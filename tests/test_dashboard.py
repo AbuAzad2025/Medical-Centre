@@ -1,7 +1,6 @@
 """
 Dashboard and reporting tests.
 """
-import pytest
 
 
 class TestMedicationDashboard:
@@ -50,8 +49,11 @@ class TestRateLimiter:
     def test_login_rate_limit(self, app, client):
         """Rate limiter should block after too many requests."""
         for _ in range(15):
-            resp = client.post('/auth/login', data={
-                'username': 'ratelimit_test',
-                'password': 'wrong',
-            })
+            resp = client.post(
+                '/auth/login',
+                data={
+                    'username': 'ratelimit_test',
+                    'password': 'wrong',
+                },
+            )
         assert resp.status_code in (200, 429)

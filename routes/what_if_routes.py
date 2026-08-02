@@ -1,24 +1,28 @@
 """
 What-If Scenario Routes
 """
+
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from sqlalchemy import select
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import handle_route_errors, manager_or_admin_only
+
 from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from models import WhatIfScenario, Department
-from datetime import datetime, timezone
+from models import Department, WhatIfScenario
+from utils.db_safety import safe_commit
+from utils.decorators import handle_route_errors, manager_or_admin_only
 
 what_if_bp = Blueprint('what_if', __name__)
-
 
 
 @what_if_bp.route('/')
 @login_required
 @handle_route_errors
 def index():
-    scenarios = db.session.execute(select(WhatIfScenario).order_by(WhatIfScenario.created_at.desc())).scalars().all()
+    scenarios = (
+        db.session.execute(select(WhatIfScenario).order_by(WhatIfScenario.created_at.desc()))
+        .scalars()
+        .all()
+    )
     return render_template('what_if/index.html', scenarios=scenarios)
 
 
@@ -40,11 +44,11 @@ def new_scenario():
             param_new_staff_count=request.form.get('param_new_staff_count', type=int),
             param_new_bed_count=request.form.get('param_new_bed_count', type=int),
             param_department_id=request.form.get('param_department_id', type=int),
-            created_by=current_user.id
+            created_by=current_user.id,
         )
         scenario.calculate_projections()
         db.session.add(scenario)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم إنشاء السيناريو وحساب التوقعات', 'success')
         return redirect(url_for('what_if.index'))
     departments = db.session.execute(select(Department)).scalars().all()

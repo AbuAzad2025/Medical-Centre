@@ -2,13 +2,14 @@
 Rate limiter with Redis backend for production, in-memory fallback for development.
 Supports sliding window algorithm with Redis sorted sets.
 """
-import time
+
 import logging
 import os
 import threading
+import time
 from functools import wraps
-from typing import Optional
-from flask import request, jsonify, current_app
+
+from flask import current_app, jsonify, request
 
 logger = logging.getLogger(__name__)
 
@@ -22,23 +23,26 @@ _redis_pool = None
 _pool_lock = threading.Lock()
 
 
-def _get_redis_pool() -> Optional[object]:
+def _get_redis_pool() -> object | None:
     """Get or create Redis connection pool."""
     global _redis_pool
-    
+
     if _redis_pool is not None:
         return _redis_pool
-    
+
     with _pool_lock:
         if _redis_pool is not None:
             return _redis_pool
-        
-        redis_url = os.getenv('REDIS_URL') or current_app.config.get('REDIS_URL') if current_app else None
+
+        redis_url = (
+            os.getenv('REDIS_URL') or current_app.config.get('REDIS_URL') if current_app else None
+        )
         if not redis_url:
             return None
-        
+
         try:
             import redis
+
             _redis_pool = redis.ConnectionPool.from_url(
                 redis_url,
                 decode_responses=True,
@@ -51,22 +55,25 @@ def _get_redis_pool() -> Optional[object]:
             # Test connection
             test_client = redis.Redis(connection_pool=_redis_pool)
             test_client.ping()
-            logger.info("Rate limiter: Redis connection pool created")
+            logger.info('Rate limiter: Redis connection pool created')
             return _redis_pool
         except Exception as e:
-            logger.warning(f"Rate limiter: Redis pool creation failed, using in-memory fallback: {e}")
+            logger.warning(
+                f'Rate limiter: Redis pool creation failed, using in-memory fallback: {e}'
+            )
             return None
 
 
-def _get_redis() -> Optional[object]:
+def _get_redis() -> object | None:
     """Get Redis client from pool."""
     pool = _get_redis_pool()
     if pool is None:
         return None
     try:
         import redis
+
         return redis.Redis(connection_pool=pool)
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -86,13 +93,13 @@ def _cleanup_expired(window_seconds: int = 60):
 
 class RateLimiter:
     """Sliding-window rate limiter with Redis backend, in-memory fallback."""
-    
+
     def __init__(
-        self, 
-        max_requests: int = 100, 
-        window_seconds: int = 60, 
-        namespace: str = "rl",
-        use_redis: bool = True
+        self,
+        max_requests: int = 100,
+        window_seconds: int = 60,
+        namespace: str = 'rl',
+        use_redis: bool = True,
     ):
         self.max_requests = max_requests
         self.window = window_seconds
@@ -105,7 +112,7 @@ class RateLimiter:
         """Check if request is allowed under rate limit."""
         now = time.time()
         window_start = now - self.window
-        full_key = f"{self.namespace}:{key}"
+        full_key = f'{self.namespace}:{key}'
 
         # Try Redis first
         if self.use_redis and self._redis:
@@ -120,11 +127,11 @@ class RateLimiter:
                 current_count = results[1]
                 return current_count < self.max_requests
             except Exception as e:
-                logger.warning(f"Rate limiter Redis error, falling back to memory: {e}")
+                logger.warning(f'Rate limiter Redis error, falling back to memory: {e}')
                 self._redis = None
                 self._fallback_count += 1
                 if self._fallback_count > 5:
-                    logger.error("Rate limiter: Too many Redis failures, disabling Redis")
+                    logger.error('Rate limiter: Too many Redis failures, disabling Redis')
                     self.use_redis = False
 
         # In-memory fallback (thread-safe)
@@ -143,45 +150,55 @@ class RateLimiter:
         """Clear all rate limit data for this namespace."""
         if self.use_redis and self._redis:
             try:
-                pattern = f"{self.namespace}:*"
+                pattern = f'{self.namespace}:*'
                 for key in self._redis.scan_iter(match=pattern):
                     self._redis.delete(key)
-            except Exception as e:
+            except Exception:
                 pass
         with _store_lock:
-            keys_to_delete = [k for k in _shared_store if k.startswith(f"{self.namespace}:")]
+            keys_to_delete = [k for k in _shared_store if k.startswith(f'{self.namespace}:')]
             for k in keys_to_delete:
                 del _shared_store[k]
 
 
-def rate_limit(max_requests: int = 60, window_seconds: int = 60, namespace: str = "rl", use_redis: bool = True):
+def rate_limit(
+    max_requests: int = 60, window_seconds: int = 60, namespace: str = 'rl', use_redis: bool = True
+):
     """Decorator to rate-limit a route by IP + endpoint."""
     limiter = RateLimiter(
-        max_requests=max_requests, 
-        window_seconds=window_seconds, 
+        max_requests=max_requests,
+        window_seconds=window_seconds,
         namespace=namespace,
-        use_redis=use_redis
+        use_redis=use_redis,
     )
-    
+
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            key = f"{request.remote_addr}:{request.endpoint}"
+            key = f'{request.remote_addr}:{request.endpoint}'
             if not limiter.is_allowed(key):
-                return jsonify({
-                    'success': False, 
-                    'message': 'Too many requests. Please try again later.',
-                    'retry_after': window_seconds
-                }), 429
+                return jsonify(
+                    {
+                        'success': False,
+                        'message': 'Too many requests. Please try again later.',
+                        'retry_after': window_seconds,
+                    }
+                ), 429
             return f(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
 # Convenience function for programmatic rate limiting
-def check_rate_limit(key: str, max_requests: int = 100, window_seconds: int = 60, namespace: str = "rl") -> bool:
+def check_rate_limit(
+    key: str, max_requests: int = 100, window_seconds: int = 60, namespace: str = 'rl'
+) -> bool:
     """Check rate limit programmatically without decorator."""
-    limiter = RateLimiter(max_requests=max_requests, window_seconds=window_seconds, namespace=namespace)
+    limiter = RateLimiter(
+        max_requests=max_requests, window_seconds=window_seconds, namespace=namespace
+    )
     return limiter.is_allowed(key)
 
 
@@ -206,13 +223,13 @@ class IdempotencyLock:
     at a time, preventing phantom-insert races.
     """
 
-    def __init__(self, namespace: str = "idemp", timeout_seconds: int = 30):
+    def __init__(self, namespace: str = 'idemp', timeout_seconds: int = 30):
         self.namespace = namespace
         self.timeout = timeout_seconds
         self._redis = _get_redis()
 
     def acquire(self, key: str) -> bool:
-        full_key = f"{self.namespace}:{key}"
+        full_key = f'{self.namespace}:{key}'
         now = time.time()
 
         if self._redis:
@@ -220,7 +237,7 @@ class IdempotencyLock:
                 acquired = self._redis.set(full_key, str(now), nx=True, ex=self.timeout)
                 return bool(acquired)
             except Exception as e:
-                logger.warning(f"Idempotency lock Redis error, falling back to memory: {e}")
+                logger.warning(f'Idempotency lock Redis error, falling back to memory: {e}')
                 self._redis = None
 
         with _idempotency_lock_lock:
@@ -233,7 +250,7 @@ class IdempotencyLock:
             return True
 
     def release(self, key: str) -> None:
-        full_key = f"{self.namespace}:{key}"
+        full_key = f'{self.namespace}:{key}'
         if self._redis:
             try:
                 self._redis.delete(full_key)
@@ -245,14 +262,14 @@ class IdempotencyLock:
 
     def clear_all(self) -> None:
         """Clear every in-memory lock for this namespace (test helper)."""
-        prefix = f"{self.namespace}:"
+        prefix = f'{self.namespace}:'
         with _idempotency_lock_lock:
             for k in list(_idempotency_locks.keys()):
                 if k.startswith(prefix):
                     del _idempotency_locks[k]
         if self._redis:
             try:
-                for k in self._redis.scan_iter(match=f"{prefix}*"):
+                for k in self._redis.scan_iter(match=f'{prefix}*'):
                     self._redis.delete(k)
             except Exception:
                 pass

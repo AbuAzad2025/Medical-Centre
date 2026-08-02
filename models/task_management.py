@@ -3,45 +3,70 @@
 Medical System Task Management Models
 """
 
-from datetime import datetime, timedelta, timezone
-from sqlalchemy import Index, CheckConstraint
-from app_factory import db
+from datetime import UTC, datetime
+
+from sqlalchemy import CheckConstraint, Index
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class Task(TenantMixin, db.Model):
     """نموذج المهام"""
-    
+
     __tablename__ = 'tasks'
     __tenant_migration__ = True
-    
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    task_type = db.Column(db.String(50), nullable=False)  # patient_care, administrative, maintenance, emergency
-    
+    task_type = db.Column(
+        db.String(50), nullable=False
+    )  # patient_care, administrative, maintenance, emergency
+
     # الحالة
-    status = db.Column(db.String(50), nullable=False, default='pending')  # pending, in_progress, completed, cancelled
-    priority = db.Column(db.String(20), nullable=False, default='medium')  # low, medium, high, urgent
-    
+    status = db.Column(
+        db.String(50), nullable=False, default='pending'
+    )  # pending, in_progress, completed, cancelled
+    priority = db.Column(
+        db.String(20), nullable=False, default='medium'
+    )  # low, medium, high, urgent
+
     # التعيين
-    assigned_to = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    assigned_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    assigned_to = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    assigned_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # الكيان المرتبط
-    related_entity_type = db.Column(db.String(50), nullable=True)  # patient, visit, appointment, department
+    related_entity_type = db.Column(
+        db.String(50), nullable=True
+    )  # patient, visit, appointment, department
     related_entity_id = db.Column(db.Integer, nullable=True)
-    
+
     # التواريخ
     due_date = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
     # Constraints and Indexes
     __table_args__ = (
-        CheckConstraint("task_type IN ('patient_care', 'administrative', 'maintenance', 'emergency', 'follow_up', 'reporting')", name='chk_task_type'),
-        CheckConstraint("status IN ('pending', 'in_progress', 'completed', 'cancelled', 'on_hold')", name='chk_task_status'),
-        CheckConstraint("priority IN ('low', 'medium', 'high', 'urgent')", name='chk_task_priority'),
+        CheckConstraint(
+            "task_type IN ('patient_care', 'administrative', 'maintenance', 'emergency', 'follow_up', 'reporting')",
+            name='chk_task_type',
+        ),
+        CheckConstraint(
+            "status IN ('pending', 'in_progress', 'completed', 'cancelled', 'on_hold')",
+            name='chk_task_status',
+        ),
+        CheckConstraint(
+            "priority IN ('low', 'medium', 'high', 'urgent')", name='chk_task_priority'
+        ),
         Index('idx_task_title', 'title'),
         Index('idx_task_status', 'status'),
         Index('idx_task_priority', 'priority'),
@@ -50,31 +75,41 @@ class Task(TenantMixin, db.Model):
         Index('idx_task_due', 'due_date'),
         Index('idx_task_created', 'created_at'),
     )
-    
+
     # العلاقات
-    assignee = db.relationship('User', foreign_keys=[assigned_to], back_populates='assigned_tasks', lazy='selectin')
-    assigner = db.relationship('User', foreign_keys=[assigned_by], back_populates='created_tasks', lazy='selectin')
-    comments = db.relationship('TaskComment', back_populates='task', lazy='dynamic', cascade='all, delete-orphan')
-    attachments = db.relationship('TaskAttachment', back_populates='task', lazy='dynamic', cascade='all, delete-orphan')
-    project_tasks = db.relationship('ProjectTask', back_populates='task', lazy='dynamic', cascade='all, delete-orphan')
-    
+    assignee = db.relationship(
+        'User', foreign_keys=[assigned_to], back_populates='assigned_tasks', lazy='selectin'
+    )
+    assigner = db.relationship(
+        'User', foreign_keys=[assigned_by], back_populates='created_tasks', lazy='selectin'
+    )
+    comments = db.relationship(
+        'TaskComment', back_populates='task', lazy='dynamic', cascade='all, delete-orphan'
+    )
+    attachments = db.relationship(
+        'TaskAttachment', back_populates='task', lazy='dynamic', cascade='all, delete-orphan'
+    )
+    project_tasks = db.relationship(
+        'ProjectTask', back_populates='task', lazy='dynamic', cascade='all, delete-orphan'
+    )
+
     def __repr__(self):
         return f'<Task {self.title}>'
-    
+
     def is_overdue(self):
         """هل المهمة متأخرة"""
         if self.due_date and self.status not in ['completed', 'cancelled']:
-            return datetime.now(timezone.utc) > self.due_date
+            return datetime.now(UTC) > self.due_date
         return False
-    
+
     def get_remaining_time(self):
         """الحصول على الوقت المتبقي"""
         if self.due_date and self.status not in ['completed', 'cancelled']:
-            remaining = self.due_date - datetime.now(timezone.utc)
+            remaining = self.due_date - datetime.now(UTC)
             if remaining.total_seconds() > 0:
                 return remaining
         return None
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -95,41 +130,54 @@ class Task(TenantMixin, db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
             'is_overdue': self.is_overdue(),
-            'remaining_time': self.get_remaining_time().total_seconds() if self.get_remaining_time() else None
+            'remaining_time': self.get_remaining_time().total_seconds()
+            if self.get_remaining_time()
+            else None,
         }
 
 
 class TaskComment(TenantMixin, db.Model):
     """نموذج تعليقات المهام"""
-    
+
     __tablename__ = 'task_comments'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False, index=True)
+    task_id = db.Column(
+        db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False, index=True
+    )
     comment = db.Column(db.Text, nullable=False)
-    comment_type = db.Column(db.String(20), nullable=False, default='comment')  # comment, update, status_change
-    
+    comment_type = db.Column(
+        db.String(20), nullable=False, default='comment'
+    )  # comment, update, status_change
+
     # المستخدم
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    user_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # التواريخ
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+
     # Constraints and Indexes
     __table_args__ = (
-        CheckConstraint("comment_type IN ('comment', 'update', 'status_change', 'priority_change')", name='chk_comment_type'),
+        CheckConstraint(
+            "comment_type IN ('comment', 'update', 'status_change', 'priority_change')",
+            name='chk_comment_type',
+        ),
         Index('idx_task_comment_task', 'task_id'),
         Index('idx_task_comment_user', 'user_id'),
         Index('idx_task_comment_created', 'created_at'),
     )
-    
+
     # العلاقات
     task = db.relationship('Task', back_populates='comments', lazy='selectin')
-    user = db.relationship('User', foreign_keys=[user_id], back_populates='task_comments', lazy='selectin')
-    
+    user = db.relationship(
+        'User', foreign_keys=[user_id], back_populates='task_comments', lazy='selectin'
+    )
+
     def __repr__(self):
         return f'<TaskComment {self.id}>'
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -139,38 +187,46 @@ class TaskComment(TenantMixin, db.Model):
             'comment_type': self.comment_type,
             'user_id': self.user_id,
             'user_name': self.user.full_name if self.user else None,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
         }
 
 
 class TaskAttachment(TenantMixin, db.Model):
     """نموذج مرفقات المهام"""
-    
+
     __tablename__ = 'task_attachments'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False, index=True)
-    file_id = db.Column(db.Integer, db.ForeignKey('file_uploads.id', ondelete='CASCADE'), nullable=False, index=True)
-    
+    task_id = db.Column(
+        db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    file_id = db.Column(
+        db.Integer, db.ForeignKey('file_uploads.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+
     # التواريخ
-    attached_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    attached_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    attached_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    attached_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # Constraints and Indexes
     __table_args__ = (
         Index('idx_task_attachment_task', 'task_id'),
         Index('idx_task_attachment_file', 'file_id'),
         Index('idx_task_attachment_user', 'attached_by'),
     )
-    
+
     # العلاقات
     task = db.relationship('Task', back_populates='attachments', lazy='selectin')
     file = db.relationship('FileUpload', back_populates='task_attachments', lazy='selectin')
-    attacher = db.relationship('User', foreign_keys=[attached_by], back_populates='task_attachments', lazy='selectin')
-    
+    attacher = db.relationship(
+        'User', foreign_keys=[attached_by], back_populates='task_attachments', lazy='selectin'
+    )
+
     def __repr__(self):
         return f'<TaskAttachment {self.id}>'
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -180,74 +236,102 @@ class TaskAttachment(TenantMixin, db.Model):
             'file_name': self.file.original_filename if self.file else None,
             'attached_at': self.attached_at.isoformat(),
             'attached_by': self.attached_by,
-            'attacher_name': self.attacher.full_name if self.attacher else None
+            'attacher_name': self.attacher.full_name if self.attacher else None,
         }
 
 
 class Project(TenantMixin, db.Model):
     """نموذج المشاريع"""
-    
+
     __tablename__ = 'projects'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    project_type = db.Column(db.String(50), nullable=False)  # system_upgrade, maintenance, new_feature, emergency
-    
+    project_type = db.Column(
+        db.String(50), nullable=False
+    )  # system_upgrade, maintenance, new_feature, emergency
+
     # الحالة
-    status = db.Column(db.String(50), nullable=False, default='planning')  # planning, in_progress, completed, cancelled
-    priority = db.Column(db.String(20), nullable=False, default='medium')  # low, medium, high, urgent
-    
+    status = db.Column(
+        db.String(50), nullable=False, default='planning'
+    )  # planning, in_progress, completed, cancelled
+    priority = db.Column(
+        db.String(20), nullable=False, default='medium'
+    )  # low, medium, high, urgent
+
     # المسؤول
-    project_manager = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    project_manager = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    created_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # التواريخ
     start_date = db.Column(db.DateTime, nullable=True)
     end_date = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
     # Constraints and Indexes
     __table_args__ = (
-        CheckConstraint("project_type IN ('system_upgrade', 'maintenance', 'new_feature', 'emergency', 'training', 'compliance')", name='chk_project_type'),
-        CheckConstraint("status IN ('planning', 'in_progress', 'completed', 'cancelled', 'on_hold')", name='chk_project_status'),
-        CheckConstraint("priority IN ('low', 'medium', 'high', 'urgent')", name='chk_project_priority'),
+        CheckConstraint(
+            "project_type IN ('system_upgrade', 'maintenance', 'new_feature', 'emergency', 'training', 'compliance')",
+            name='chk_project_type',
+        ),
+        CheckConstraint(
+            "status IN ('planning', 'in_progress', 'completed', 'cancelled', 'on_hold')",
+            name='chk_project_status',
+        ),
+        CheckConstraint(
+            "priority IN ('low', 'medium', 'high', 'urgent')", name='chk_project_priority'
+        ),
         Index('idx_project_name', 'name'),
         Index('idx_project_status', 'status'),
         Index('idx_project_priority', 'priority'),
         Index('idx_project_manager', 'project_manager'),
         Index('idx_project_created', 'created_at'),
     )
-    
+
     # العلاقات
-    manager = db.relationship('User', foreign_keys=[project_manager], back_populates='managed_projects', lazy='selectin')
-    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_projects', lazy='selectin')
-    tasks = db.relationship('ProjectTask', back_populates='project', lazy='dynamic', cascade='all, delete-orphan')
-    members = db.relationship('ProjectMember', back_populates='project', lazy='dynamic', cascade='all, delete-orphan')
-    
+    manager = db.relationship(
+        'User', foreign_keys=[project_manager], back_populates='managed_projects', lazy='selectin'
+    )
+    creator = db.relationship(
+        'User', foreign_keys=[created_by], back_populates='created_projects', lazy='selectin'
+    )
+    tasks = db.relationship(
+        'ProjectTask', back_populates='project', lazy='dynamic', cascade='all, delete-orphan'
+    )
+    members = db.relationship(
+        'ProjectMember', back_populates='project', lazy='dynamic', cascade='all, delete-orphan'
+    )
+
     def __repr__(self):
         return f'<Project {self.name}>'
-    
+
     def get_progress(self):
         """الحصول على تقدم المشروع"""
         try:
             total_tasks = self.tasks.count()
             if total_tasks == 0:
                 return 0
-            
+
             completed_tasks = self.tasks.filter_by(status='completed').count()
             return (completed_tasks / total_tasks) * 100
-        except Exception as e:
+        except Exception:
             return 0
-    
+
     def is_overdue(self):
         """هل المشروع متأخر"""
         if self.end_date and self.status not in ['completed', 'cancelled']:
-            return datetime.now(timezone.utc) > self.end_date
+            return datetime.now(UTC) > self.end_date
         return False
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -267,38 +351,46 @@ class Project(TenantMixin, db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
             'progress': self.get_progress(),
-            'is_overdue': self.is_overdue()
+            'is_overdue': self.is_overdue(),
         }
 
 
 class ProjectTask(TenantMixin, db.Model):
     """نموذج مهام المشاريع"""
-    
+
     __tablename__ = 'project_tasks'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id', ondelete='CASCADE'), nullable=False, index=True)
-    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False, index=True)
-    
+    project_id = db.Column(
+        db.Integer, db.ForeignKey('projects.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    task_id = db.Column(
+        db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+
     # التواريخ
-    added_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    added_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    added_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    added_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # Constraints and Indexes
     __table_args__ = (
         Index('idx_project_task_project', 'project_id'),
         Index('idx_project_task_task', 'task_id'),
         Index('idx_project_task_user', 'added_by'),
     )
-    
+
     # العلاقات
     project = db.relationship('Project', back_populates='tasks', lazy='selectin')
     task = db.relationship('Task', back_populates='project_tasks', lazy='selectin')
-    adder = db.relationship('User', foreign_keys=[added_by], back_populates='project_tasks', lazy='selectin')
-    
+    adder = db.relationship(
+        'User', foreign_keys=[added_by], back_populates='project_tasks', lazy='selectin'
+    )
+
     def __repr__(self):
         return f'<ProjectTask {self.id}>'
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -308,40 +400,55 @@ class ProjectTask(TenantMixin, db.Model):
             'task_title': self.task.title if self.task else None,
             'added_at': self.added_at.isoformat(),
             'added_by': self.added_by,
-            'adder_name': self.adder.full_name if self.adder else None
+            'adder_name': self.adder.full_name if self.adder else None,
         }
 
 
 class ProjectMember(TenantMixin, db.Model):
     """نموذج أعضاء المشاريع"""
-    
+
     __tablename__ = 'project_members'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id', ondelete='CASCADE'), nullable=False, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
-    role = db.Column(db.String(50), nullable=False, default='member')  # member, contributor, reviewer
-    
+    project_id = db.Column(
+        db.Integer, db.ForeignKey('projects.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    user_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    role = db.Column(
+        db.String(50), nullable=False, default='member'
+    )  # member, contributor, reviewer
+
     # التواريخ
-    joined_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    added_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    joined_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    added_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # Constraints and Indexes
     __table_args__ = (
-        CheckConstraint("role IN ('member', 'contributor', 'reviewer', 'observer')", name='chk_project_member_role'),
+        CheckConstraint(
+            "role IN ('member', 'contributor', 'reviewer', 'observer')",
+            name='chk_project_member_role',
+        ),
         Index('idx_project_member_project', 'project_id'),
         Index('idx_project_member_user', 'user_id'),
         Index('idx_project_member_role', 'role'),
     )
-    
+
     # العلاقات
     project = db.relationship('Project', back_populates='members', lazy='selectin')
-    user = db.relationship('User', foreign_keys=[user_id], back_populates='project_memberships', lazy='selectin')
-    adder = db.relationship('User', foreign_keys=[added_by], back_populates='added_project_members', lazy='selectin')
-    
+    user = db.relationship(
+        'User', foreign_keys=[user_id], back_populates='project_memberships', lazy='selectin'
+    )
+    adder = db.relationship(
+        'User', foreign_keys=[added_by], back_populates='added_project_members', lazy='selectin'
+    )
+
     def __repr__(self):
         return f'<ProjectMember {self.id}>'
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -352,5 +459,5 @@ class ProjectMember(TenantMixin, db.Model):
             'role': self.role,
             'joined_at': self.joined_at.isoformat(),
             'added_by': self.added_by,
-            'adder_name': self.adder.full_name if self.adder else None
+            'adder_name': self.adder.full_name if self.adder else None,
         }

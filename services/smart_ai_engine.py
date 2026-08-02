@@ -3,21 +3,24 @@
 Advanced NLP-Powered AI Engine for Medical System
 يقوم بفهم الأسئلة المعقدة وتحليل قاعدة البيانات والإجابة بذكاء
 """
-from app.extensions import db
 
-import re
-from datetime import datetime, timedelta, date
-from app.shared.enums import AppointmentState
-from sqlalchemy import inspect, func, text, select
 import logging
+import re
+from datetime import date, datetime, timedelta
+
+from sqlalchemy import func, inspect, select
+
+from app.extensions import db
+from app.shared.enums import AppointmentState
+
 
 class SmartAIEngine:
     """محرك الذكاء الاصطناعي الشامل مع NLP متقدم"""
-    
+
     def __init__(self, db):
         self.db = db
         self.inspector = inspect(db.engine)
-        
+
         # قاموس الكلمات المفتاحية المتقدم
         self.keywords = {
             'analysis': ['حلل', 'تحليل', 'analyze', 'analysis', 'فحص', 'اختبر', 'تدقيق', 'مراجعة'],
@@ -39,45 +42,41 @@ class SmartAIEngine:
             'when': ['متى', 'when', 'وقت'],
             'where': ['أين', 'where', 'وين', 'فين'],
             'why': ['لماذا', 'why', 'ليش', 'ليه'],
-            'how': ['كيف', 'how', 'كيفية']
+            'how': ['كيف', 'how', 'كيفية'],
         }
-        
+
     def _extract_intent(self, message):
         """استخراج النية من السؤال باستخدام NLP متقدم"""
         message_lower = message.lower()
         intents = []
-        
+
         # تحليل الكلمات المفتاحية
         for intent_type, keywords in self.keywords.items():
             if any(keyword in message_lower for keyword in keywords):
                 intents.append(intent_type)
-        
+
         return intents
-    
+
     def _extract_entities(self, message):
         """استخراج الكيانات من السؤال (أسماء، أرقام، تواريخ)"""
-        entities = {
-            'names': [],
-            'numbers': [],
-            'dates': []
-        }
-        
+        entities = {'names': [], 'numbers': [], 'dates': []}
+
         # استخراج الأسماء (كلمات تبدأ بحرف كبير أو بعد "الدكتور" أو "المريض")
         name_patterns = [
             r'(?:الدكتور|دكتور|د\.|طبيب)\s+(\w+)',
             r'(?:المريض|مريض)\s+(\w+)',
-            r'(?:الموظف|موظف)\s+(\w+)'
+            r'(?:الموظف|موظف)\s+(\w+)',
         ]
         for pattern in name_patterns:
             matches = re.findall(pattern, message, re.IGNORECASE)
             entities['names'].extend(matches)
-        
+
         # استخراج الأرقام
         numbers = re.findall(r'\d+', message)
         entities['numbers'] = [int(n) for n in numbers]
-        
+
         return entities
-        
+
     def process_query(self, user_message):
         """
         معالجة السؤال وإرجاع الإجابة باستخدام NLP متقدم
@@ -85,82 +84,85 @@ class SmartAIEngine:
         try:
             message = user_message.strip()
             message_lower = message.lower()
-            
+
             # استخراج النية والكيانات
             intents = self._extract_intent(message)
             entities = self._extract_entities(message)
-            
+
             # معالجة الأسئلة المعقدة باستخدام NLP
             # مثال: "حلل أخطاء المستخدمين"
             if 'analysis' in intents and 'errors' in intents and 'users' in intents:
                 return self._analyze_user_errors()
-            
+
             # مثال: "حلل مشاكل الأطباء"
-            if 'analysis' in intents and ('errors' in intents or 'problems' in intents) and 'doctors' in intents:
+            if (
+                'analysis' in intents
+                and ('errors' in intents or 'problems' in intents)
+                and 'doctors' in intents
+            ):
                 return self._analyze_doctor_problems()
-            
+
             # مثال: "ما هي مشاكل الأقسام غير النشطة"
             if ('problems' in intents or 'errors' in intents) and 'departments' in intents:
                 return self._analyze_department_problems()
-            
+
             # 1. التحقق من العمليات الحسابية
             if self._is_calculation(message_lower):
                 return self._handle_calculation(message_lower)
-            
+
             # 2. أسئلة عن الإحصائيات العامة
             if any(word in message for word in ['كم', 'عدد', 'count', 'how many', 'كم عدد']):
                 return self._handle_count_query(message)
-            
+
             # 3. أسئلة عن المستخدمين
             if any(word in message for word in ['مستخدم', 'user', 'موظف', 'staff']):
                 return self._handle_user_query(message)
-            
+
             # 4. أسئلة عن الأطباء
             if any(word in message for word in ['طبيب', 'دكتور', 'doctor', 'طبيبة']):
                 return self._handle_doctor_query(message)
-            
+
             # 5. أسئلة عن المرضى
             if any(word in message for word in ['مريض', 'patient', 'مريضة']):
                 return self._handle_patient_query(message)
-            
+
             # 6. أسئلة عن الأقسام
             if any(word in message for word in ['قسم', 'department', 'أقسام']):
                 return self._handle_department_query(message)
-            
+
             # 7. أسئلة عن الزيارات
             if any(word in message for word in ['زيارة', 'visit', 'زيارات']):
                 return self._handle_visit_query(message)
-            
+
             # 8. أسئلة عن المواعيد
             if any(word in message for word in ['موعد', 'appointment', 'مواعيد', 'حجز']):
                 return self._handle_appointment_query(message)
-            
+
             # 9. أسئلة عن الخدمات
             if any(word in message for word in ['خدمة', 'service', 'خدمات']):
                 return self._handle_service_query(message)
-            
+
             # 10. تحليل النظام
             if any(word in message for word in ['حلل', 'تحليل', 'analyze', 'analysis']):
                 return self._handle_system_analysis()
-            
+
             # 11. تقارير
             if any(word in message for word in ['تقرير', 'report']):
                 return self._handle_report_generation()
-            
+
             # 12. جداول قاعدة البيانات
-            if any(word in message for word in ['جدول', 'table', 'جداول', 'قاعدة البيانات', 'database']):
+            if any(
+                word in message for word in ['جدول', 'table', 'جداول', 'قاعدة البيانات', 'database']
+            ):
                 return self._handle_database_query(message)
-            
+
             # 13. البحث العام في قاعدة البيانات
             return self._handle_general_search(message)
-            
+
         except Exception as e:
-            logging.error(f"AI Engine Error: {str(e)}")
-            return {
-                'response': f"عذراً، حدث خطأ في معالجة سؤالك: {str(e)}",
-                'actions': []
-            }
-    
+            logging.exception(f'AI Engine Error: {e!s}')
+            return {'response': f'عذراً، حدث خطأ في معالجة سؤالك: {e!s}', 'actions': []}
+
     def _is_calculation(self, message):
         """التحقق إذا كان السؤال عملية حسابية"""
         calc_patterns = [
@@ -168,21 +170,21 @@ class SmartAIEngine:
             r'احسب',
             r'calculate',
             r'حاسبة',
-            r'calculator'
+            r'calculator',
         ]
         return any(re.search(pattern, message) for pattern in calc_patterns)
-    
+
     def _handle_calculation(self, message):
         """معالجة العمليات الحسابية"""
         try:
             # استخراج العملية الحسابية
             calc_match = re.search(r'(\d+\.?\d*)\s*([\+\-\*\/×÷])\s*(\d+\.?\d*)', message)
-            
+
             if calc_match:
                 num1 = float(calc_match.group(1))
                 operator = calc_match.group(2)
                 num2 = float(calc_match.group(3))
-                
+
                 # تنفيذ العملية
                 if operator in ['+', 'plus']:
                     result = num1 + num2
@@ -195,18 +197,12 @@ class SmartAIEngine:
                     op_ar = 'ضرب'
                 elif operator in ['/', '÷', 'divide']:
                     if num2 == 0:
-                        return {
-                            'response': '❌ خطأ: لا يمكن القسمة على صفر!',
-                            'actions': []
-                        }
+                        return {'response': '❌ خطأ: لا يمكن القسمة على صفر!', 'actions': []}
                     result = num1 / num2
                     op_ar = 'قسمة'
                 else:
-                    return {
-                        'response': '❌ عملية حسابية غير مدعومة',
-                        'actions': []
-                    }
-                
+                    return {'response': '❌ عملية حسابية غير مدعومة', 'actions': []}
+
                 response = f"""
 🧮 **نتيجة العملية الحسابية:**
 
@@ -222,137 +218,163 @@ class SmartAIEngine:
 - قسمة: 20 ÷ 4
 """
                 return {'response': response, 'actions': []}
-            else:
-                return {
-                    'response': '🧮 الآلة الحاسبة جاهزة! أدخل عملية حسابية مثل: 5 + 3 أو 10 × 2',
-                    'actions': []
-                }
-                
-        except Exception as e:
             return {
-                'response': f'❌ خطأ في العملية الحسابية: {str(e)}',
-                'actions': []
+                'response': '🧮 الآلة الحاسبة جاهزة! أدخل عملية حسابية مثل: 5 + 3 أو 10 × 2',
+                'actions': [],
             }
-    
+
+        except Exception as e:
+            return {'response': f'❌ خطأ في العملية الحسابية: {e!s}', 'actions': []}
+
     def _handle_count_query(self, message):
         """معالجة أسئلة العد"""
-        from models.user import User
-        from models.patient import Patient
-        from models.visit import Visit
-        from models.department import Department
-        from models.service import ServiceMaster
         from models.appointment import Appointment
-        
-        response = "📊 **إحصائيات النظام:**\n\n"
-        
+        from models.department import Department
+        from models.patient import Patient
+        from models.service import ServiceMaster
+        from models.user import User
+        from models.visit import Visit
+
+        response = '📊 **إحصائيات النظام:**\n\n'
+
         # إحصائيات المستخدمين
         if 'مستخدم' in message or 'user' in message or 'موظف' in message:
             total_users = db.session.execute(select(func.count()).select_from(User)).scalar()
-            active_users = db.session.execute(select(func.count()).select_from(User).filter_by(is_active=True)).scalar()
-            response += f"👥 **المستخدمون:**\n"
-            response += f"├─ إجمالي المستخدمين: {total_users}\n"
-            response += f"└─ المستخدمون النشطون: {active_users}\n\n"
-        
+            active_users = db.session.execute(
+                select(func.count()).select_from(User).filter_by(is_active=True)
+            ).scalar()
+            response += '👥 **المستخدمون:**\n'
+            response += f'├─ إجمالي المستخدمين: {total_users}\n'
+            response += f'└─ المستخدمون النشطون: {active_users}\n\n'
+
         # إحصائيات الأطباء
         if 'طبيب' in message or 'doctor' in message or 'دكتور' in message:
-            total_doctors = db.session.execute(select(func.count()).select_from(User).filter_by(role='doctor')).scalar()
-            active_doctors = db.session.execute(select(func.count()).select_from(User).filter_by(role='doctor', is_active=True)).scalar()
-            response += f"👨‍⚕️ **الأطباء:**\n"
-            response += f"├─ إجمالي الأطباء: {total_doctors}\n"
-            response += f"└─ الأطباء النشطون: {active_doctors}\n\n"
-        
+            total_doctors = db.session.execute(
+                select(func.count()).select_from(User).filter_by(role='doctor')
+            ).scalar()
+            active_doctors = db.session.execute(
+                select(func.count()).select_from(User).filter_by(role='doctor', is_active=True)
+            ).scalar()
+            response += '👨‍⚕️ **الأطباء:**\n'
+            response += f'├─ إجمالي الأطباء: {total_doctors}\n'
+            response += f'└─ الأطباء النشطون: {active_doctors}\n\n'
+
         # إحصائيات المرضى
         if 'مريض' in message or 'patient' in message:
             total_patients = db.session.execute(select(func.count()).select_from(Patient)).scalar()
-            response += f"🏥 **المرضى:**\n"
-            response += f"└─ إجمالي المرضى: {total_patients}\n\n"
-        
+            response += '🏥 **المرضى:**\n'
+            response += f'└─ إجمالي المرضى: {total_patients}\n\n'
+
         # إحصائيات الزيارات
         if 'زيارة' in message or 'visit' in message:
             total_visits = db.session.execute(select(func.count()).select_from(Visit)).scalar()
-            today_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
-                func.date(Visit.created_at) == date.today()
-            )).scalar()
-            response += f"📋 **الزيارات:**\n"
-            response += f"├─ إجمالي الزيارات: {total_visits}\n"
-            response += f"└─ زيارات اليوم: {today_visits}\n\n"
-        
+            today_visits = db.session.execute(
+                select(func.count())
+                .select_from(Visit)
+                .filter(func.date(Visit.created_at) == date.today())
+            ).scalar()
+            response += '📋 **الزيارات:**\n'
+            response += f'├─ إجمالي الزيارات: {total_visits}\n'
+            response += f'└─ زيارات اليوم: {today_visits}\n\n'
+
         # إحصائيات الأقسام
         if 'قسم' in message or 'department' in message:
-            total_departments = db.session.execute(select(func.count()).select_from(Department)).scalar()
-            active_departments = db.session.execute(select(func.count()).select_from(Department).filter_by(is_active=True)).scalar()
-            response += f"🏢 **الأقسام:**\n"
-            response += f"├─ إجمالي الأقسام: {total_departments}\n"
-            response += f"└─ الأقسام النشطة: {active_departments}\n\n"
-        
+            total_departments = db.session.execute(
+                select(func.count()).select_from(Department)
+            ).scalar()
+            active_departments = db.session.execute(
+                select(func.count()).select_from(Department).filter_by(is_active=True)
+            ).scalar()
+            response += '🏢 **الأقسام:**\n'
+            response += f'├─ إجمالي الأقسام: {total_departments}\n'
+            response += f'└─ الأقسام النشطة: {active_departments}\n\n'
+
         # إحصائيات الخدمات
         if 'خدمة' in message or 'service' in message:
-            total_services = db.session.execute(select(func.count()).select_from(ServiceMaster)).scalar()
-            active_services = db.session.execute(select(func.count()).select_from(ServiceMaster).filter_by(is_active=True)).scalar()
-            response += f"⚕️ **الخدمات:**\n"
-            response += f"├─ إجمالي الخدمات: {total_services}\n"
-            response += f"└─ الخدمات النشطة: {active_services}\n\n"
-        
+            total_services = db.session.execute(
+                select(func.count()).select_from(ServiceMaster)
+            ).scalar()
+            active_services = db.session.execute(
+                select(func.count()).select_from(ServiceMaster).filter_by(is_active=True)
+            ).scalar()
+            response += '⚕️ **الخدمات:**\n'
+            response += f'├─ إجمالي الخدمات: {total_services}\n'
+            response += f'└─ الخدمات النشطة: {active_services}\n\n'
+
         # إحصائيات المواعيد
         if 'موعد' in message or 'appointment' in message:
-            total_appointments = db.session.execute(select(func.count()).select_from(Appointment)).scalar()
-            today_appointments = db.session.execute(select(func.count()).select_from(Appointment).filter(
-                func.date(Appointment.starts_at) == date.today()
-            )).scalar()
-            response += f"📅 **المواعيد:**\n"
-            response += f"├─ إجمالي المواعيد: {total_appointments}\n"
-            response += f"└─ مواعيد اليوم: {today_appointments}\n\n"
-        
+            total_appointments = db.session.execute(
+                select(func.count()).select_from(Appointment)
+            ).scalar()
+            today_appointments = db.session.execute(
+                select(func.count())
+                .select_from(Appointment)
+                .filter(func.date(Appointment.starts_at) == date.today())
+            ).scalar()
+            response += '📅 **المواعيد:**\n'
+            response += f'├─ إجمالي المواعيد: {total_appointments}\n'
+            response += f'└─ مواعيد اليوم: {today_appointments}\n\n'
+
         # إذا لم يتم تحديد شيء محدد، أظهر كل شيء
-        if response == "📊 **إحصائيات النظام:**\n\n":
+        if response == '📊 **إحصائيات النظام:**\n\n':
             total_users = db.session.execute(select(func.count()).select_from(User)).scalar()
-            total_doctors = db.session.execute(select(func.count()).select_from(User).filter_by(role='doctor')).scalar()
+            total_doctors = db.session.execute(
+                select(func.count()).select_from(User).filter_by(role='doctor')
+            ).scalar()
             total_patients = db.session.execute(select(func.count()).select_from(Patient)).scalar()
             total_visits = db.session.execute(select(func.count()).select_from(Visit)).scalar()
-            total_departments = db.session.execute(select(func.count()).select_from(Department)).scalar()
-            total_services = db.session.execute(select(func.count()).select_from(ServiceMaster)).scalar()
-            
-            response += f"👥 المستخدمون: {total_users}\n"
-            response += f"👨‍⚕️ الأطباء: {total_doctors}\n"
-            response += f"🏥 المرضى: {total_patients}\n"
-            response += f"📋 الزيارات: {total_visits}\n"
-            response += f"🏢 الأقسام: {total_departments}\n"
-            response += f"⚕️ الخدمات: {total_services}\n"
-        
+            total_departments = db.session.execute(
+                select(func.count()).select_from(Department)
+            ).scalar()
+            total_services = db.session.execute(
+                select(func.count()).select_from(ServiceMaster)
+            ).scalar()
+
+            response += f'👥 المستخدمون: {total_users}\n'
+            response += f'👨‍⚕️ الأطباء: {total_doctors}\n'
+            response += f'🏥 المرضى: {total_patients}\n'
+            response += f'📋 الزيارات: {total_visits}\n'
+            response += f'🏢 الأقسام: {total_departments}\n'
+            response += f'⚕️ الخدمات: {total_services}\n'
+
         return {'response': response, 'actions': []}
-    
+
     def _handle_user_query(self, message):
         """معالجة أسئلة عن المستخدمين"""
         from models.user import User
-        
+
         # البحث عن اسم محدد
         name_match = re.search(r'(مستخدم|user)\s+(\w+)', message)
         if name_match:
             name = name_match.group(2)
-            users = db.session.execute(select(User).filter(
-                User.full_name.ilike(f'%{name}%')
-            )).scalars().all()
-            
+            users = (
+                db.session.execute(select(User).filter(User.full_name.ilike(f'%{name}%')))
+                .scalars()
+                .all()
+            )
+
             if users:
                 response = f"👥 **نتائج البحث عن '{name}':**\n\n"
                 for user in users[:5]:
-                    response += f"**{user.full_name}**\n"
-                    response += f"├─ الدور: {user.role}\n"
-                    response += f"├─ البريد: {user.email or 'غير محدد'}\n"
-                    response += f"├─ الحالة: {'نشط' if user.is_active else 'غير نشط'}\n"
-                    response += f"└─ تاريخ الإنشاء: {user.created_at.strftime('%Y-%m-%d') if user.created_at else 'غير محدد'}\n\n"
+                    response += f'**{user.full_name}**\n'
+                    response += f'├─ الدور: {user.role}\n'
+                    response += f'├─ البريد: {user.email or "غير محدد"}\n'
+                    response += f'├─ الحالة: {"نشط" if user.is_active else "غير نشط"}\n'
+                    response += f'└─ تاريخ الإنشاء: {user.created_at.strftime("%Y-%m-%d") if user.created_at else "غير محدد"}\n\n'
                 return {'response': response, 'actions': []}
-        
+
         # إحصائيات عامة
         total_users = db.session.execute(select(func.count()).select_from(User)).scalar()
-        active_users = db.session.execute(select(func.count()).select_from(User).filter_by(is_active=True)).scalar()
+        active_users = db.session.execute(
+            select(func.count()).select_from(User).filter_by(is_active=True)
+        ).scalar()
         inactive_users = total_users - active_users
-        
+
         # توزيع الأدوار
-        roles_dist = db.session.execute(select(
-            User.role, func.count(User.id)
-        ).group_by(User.role)).all()
-        
+        roles_dist = db.session.execute(
+            select(User.role, func.count(User.id)).group_by(User.role)
+        ).all()
+
         response = f"""
 👥 **معلومات المستخدمين:**
 
@@ -372,76 +394,84 @@ class SmartAIEngine:
                 'receptionist': 'موظف استقبال',
                 'accountant': 'محاسب',
                 'pharmacist': 'صيدلي',
-                'lab_tech': 'فني مختبر'
+                'lab_tech': 'فني مختبر',
             }.get(role, role)
-            response += f"├─ {role_ar}: {count}\n"
-        
+            response += f'├─ {role_ar}: {count}\n'
+
         return {'response': response, 'actions': []}
-    
+
     def _handle_doctor_query(self, message):
         """معالجة أسئلة عن الأطباء"""
         from models.department import Department
         from models.user import User
         from models.visit import Visit
-        
+
         # البحث عن طبيب محدد
         name_match = re.search(r'(طبيب|دكتور|doctor)\s+(\w+)', message, re.IGNORECASE)
         if name_match:
             name = name_match.group(2)
             doctors = [
-                doctor for doctor in
-                db.session.execute(select(
-                    User.id,
-                    User.full_name,
-                    User.is_active,
-                    User.department_id,
-                ).filter(User.role == 'doctor')).all()
+                doctor
+                for doctor in db.session.execute(
+                    select(
+                        User.id,
+                        User.full_name,
+                        User.is_active,
+                        User.department_id,
+                    ).filter(User.role == 'doctor')
+                ).all()
                 if name.lower() in str(doctor.full_name or '').lower()
             ]
-            
+
             if doctors:
                 response = f"👨‍⚕️ **معلومات عن الدكتور '{name}':**\n\n"
                 for doctor in doctors[:3]:
                     # إحصائيات الطبيب
-                    total_visits = db.session.execute(select(func.count()).select_from(Visit).filter_by(doctor_id=doctor.id)).scalar()
-                    today_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
-                        Visit.doctor_id == doctor.id,
-                        func.date(Visit.created_at) == date.today()
-                    )).scalar()
+                    total_visits = db.session.execute(
+                        select(func.count()).select_from(Visit).filter_by(doctor_id=doctor.id)
+                    ).scalar()
+                    today_visits = db.session.execute(
+                        select(func.count())
+                        .select_from(Visit)
+                        .filter(
+                            Visit.doctor_id == doctor.id,
+                            func.date(Visit.created_at) == date.today(),
+                        )
+                    ).scalar()
                     dept_name = 'غير محدد'
                     if doctor.department_id:
                         dept = db.session.get(Department, doctor.department_id)
                         if dept is not None:
                             dept_name = dept.name
-                    
-                    response += f"**د. {doctor.full_name}**\n"
-                    response += f"├─ التخصص: {'غير محدد'}\n"
-                    response += f"├─ القسم: {dept_name}\n"
-                    response += f"├─ الحالة: {'نشط' if doctor.is_active else 'غير نشط'}\n"
-                    response += f"├─ إجمالي الزيارات: {total_visits}\n"
-                    response += f"└─ زيارات اليوم: {today_visits}\n\n"
-                
+
+                    response += f'**د. {doctor.full_name}**\n'
+                    response += f'├─ التخصص: {"غير محدد"}\n'
+                    response += f'├─ القسم: {dept_name}\n'
+                    response += f'├─ الحالة: {"نشط" if doctor.is_active else "غير نشط"}\n'
+                    response += f'├─ إجمالي الزيارات: {total_visits}\n'
+                    response += f'└─ زيارات اليوم: {today_visits}\n\n'
+
                 return {'response': response, 'actions': []}
-            else:
-                return {
-                    'response': f"❌ لم يتم العثور على طبيب باسم '{name}'",
-                    'actions': []
-                }
-        
+            return {'response': f"❌ لم يتم العثور على طبيب باسم '{name}'", 'actions': []}
+
         # إحصائيات عامة عن الأطباء
-        total_doctors = db.session.execute(select(func.count()).select_from(User).filter_by(role='doctor')).scalar()
-        active_doctors = db.session.execute(select(func.count()).select_from(User).filter_by(role='doctor', is_active=True)).scalar()
-        
+        total_doctors = db.session.execute(
+            select(func.count()).select_from(User).filter_by(role='doctor')
+        ).scalar()
+        active_doctors = db.session.execute(
+            select(func.count()).select_from(User).filter_by(role='doctor', is_active=True)
+        ).scalar()
+
         # أكثر الأطباء نشاطاً
-        top_doctors = db.session.execute(select(
-            User.full_name,
-            func.count(Visit.id).label('visit_count')
-        ).join(Visit, Visit.doctor_id == User.id)\
-         .filter(User.role == 'doctor')\
-         .group_by(User.id, User.full_name)\
-         .order_by(func.count(Visit.id).desc())\
-         .limit(5)).all()
-        
+        top_doctors = db.session.execute(
+            select(User.full_name, func.count(Visit.id).label('visit_count'))
+            .join(Visit, Visit.doctor_id == User.id)
+            .filter(User.role == 'doctor')
+            .group_by(User.id, User.full_name)
+            .order_by(func.count(Visit.id).desc())
+            .limit(5)
+        ).all()
+
         response = f"""
 👨‍⚕️ **معلومات الأطباء:**
 
@@ -452,59 +482,81 @@ class SmartAIEngine:
 **⭐ أكثر الأطباء نشاطاً:**
 """
         for i, (name, count) in enumerate(top_doctors, 1):
-            response += f"{i}. د. {name}: {count} زيارة\n"
-        
+            response += f'{i}. د. {name}: {count} زيارة\n'
+
         return {'response': response, 'actions': []}
-    
+
     def _handle_patient_query(self, message):
         """معالجة أسئلة عن المرضى"""
         from models.patient import Patient
         from models.visit import Visit
-        
+
         # البحث عن مريض محدد
         name_match = re.search(r'(مريض|patient)\s+(\w+)', message, re.IGNORECASE)
         if name_match:
             name = name_match.group(2)
-            patients = db.session.execute(select(Patient).filter(
-                Patient.full_name.ilike(f'%{name}%')
-            )).scalars().all()
-            
+            patients = (
+                db.session.execute(select(Patient).filter(Patient.full_name.ilike(f'%{name}%')))
+                .scalars()
+                .all()
+            )
+
             if patients:
                 response = f"🏥 **معلومات عن المريض '{name}':**\n\n"
                 for patient in patients[:3]:
                     # إحصائيات المريض
-                    total_visits = db.session.execute(select(func.count()).select_from(Visit).filter_by(patient_id=patient.id)).scalar()
-                    last_visit = db.session.execute(select(Visit).filter_by(patient_id=patient.id)\
-                        .order_by(Visit.created_at.desc())).scalars().first()
-                    
+                    total_visits = db.session.execute(
+                        select(func.count()).select_from(Visit).filter_by(patient_id=patient.id)
+                    ).scalar()
+                    last_visit = (
+                        db.session.execute(
+                            select(Visit)
+                            .filter_by(patient_id=patient.id)
+                            .order_by(Visit.created_at.desc())
+                        )
+                        .scalars()
+                        .first()
+                    )
+
                     # حساب العمر
                     age = None
                     if patient.birth_date:
                         today = date.today()
-                        age = today.year - patient.birth_date.year - (
-                            (today.month, today.day) < (patient.birth_date.month, patient.birth_date.day)
+                        age = (
+                            today.year
+                            - patient.birth_date.year
+                            - (
+                                (today.month, today.day)
+                                < (patient.birth_date.month, patient.birth_date.day)
+                            )
                         )
-                    
-                    response += f"**{patient.full_name}**\n"
-                    response += f"├─ الرقم الطبي: {patient.medical_number}\n"
-                    response += f"├─ العمر: {age if age else 'غير محدد'} سنة\n"
-                    response += f"├─ الجنس: {patient.gender}\n"
-                    response += f"├─ الهاتف: {patient.phone or 'غير محدد'}\n"
-                    response += f"├─ إجمالي الزيارات: {total_visits}\n"
-                    response += f"└─ آخر زيارة: {last_visit.created_at.strftime('%Y-%m-%d') if last_visit else 'لا توجد'}\n\n"
-                
+
+                    response += f'**{patient.full_name}**\n'
+                    response += f'├─ الرقم الطبي: {patient.medical_number}\n'
+                    response += f'├─ العمر: {age if age else "غير محدد"} سنة\n'
+                    response += f'├─ الجنس: {patient.gender}\n'
+                    response += f'├─ الهاتف: {patient.phone or "غير محدد"}\n'
+                    response += f'├─ إجمالي الزيارات: {total_visits}\n'
+                    response += f'└─ آخر زيارة: {last_visit.created_at.strftime("%Y-%m-%d") if last_visit else "لا توجد"}\n\n'
+
                 return {'response': response, 'actions': []}
-        
+
         # إحصائيات عامة
         total_patients = db.session.execute(select(func.count()).select_from(Patient)).scalar()
-        male_patients = db.session.execute(select(func.count()).select_from(Patient).filter_by(gender='male')).scalar()
-        female_patients = db.session.execute(select(func.count()).select_from(Patient).filter_by(gender='female')).scalar()
-        
+        male_patients = db.session.execute(
+            select(func.count()).select_from(Patient).filter_by(gender='male')
+        ).scalar()
+        female_patients = db.session.execute(
+            select(func.count()).select_from(Patient).filter_by(gender='female')
+        ).scalar()
+
         # مرضى جدد اليوم
-        new_today = db.session.execute(select(func.count()).select_from(Patient).filter(
-            func.date(Patient.created_at) == date.today()
-        )).scalar()
-        
+        new_today = db.session.execute(
+            select(func.count())
+            .select_from(Patient)
+            .filter(func.date(Patient.created_at) == date.today())
+        ).scalar()
+
         response = f"""
 🏥 **معلومات المرضى:**
 
@@ -514,53 +566,62 @@ class SmartAIEngine:
 ├─ إناث: {female_patients}
 └─ مرضى جدد اليوم: {new_today}
 """
-        
+
         return {'response': response, 'actions': []}
-    
+
     def _handle_department_query(self, message):
         """معالجة أسئلة عن الأقسام"""
         from models.department import Department
         from models.user import User
-        
+
         # البحث عن قسم محدد
         name_match = re.search(r'(قسم|department)\s+(\w+)', message, re.IGNORECASE)
         if name_match:
             name = name_match.group(2)
-            departments = db.session.execute(select(Department).filter(
-                Department.name.ilike(f'%{name}%')
-            )).scalars().all()
-            
+            departments = (
+                db.session.execute(select(Department).filter(Department.name.ilike(f'%{name}%')))
+                .scalars()
+                .all()
+            )
+
             if departments:
                 response = f"🏢 **معلومات عن القسم '{name}':**\n\n"
                 for dept in departments:
                     # عدد الموظفين
-                    staff_count = db.session.execute(select(func.count()).select_from(User).filter_by(department_id=dept.id)).scalar()
-                    doctors_count = db.session.execute(select(func.count()).select_from(User).filter_by(
-                        department_id=dept.id,
-                        role='doctor'
-                    )).scalar()
-                    
-                    response += f"**{dept.name}**\n"
-                    response += f"├─ الوصف: {dept.description or 'غير محدد'}\n"
-                    response += f"├─ الحالة: {'نشط' if dept.is_active else 'غير نشط'}\n"
-                    response += f"├─ عدد الموظفين: {staff_count}\n"
-                    response += f"└─ عدد الأطباء: {doctors_count}\n\n"
-                
+                    staff_count = db.session.execute(
+                        select(func.count()).select_from(User).filter_by(department_id=dept.id)
+                    ).scalar()
+                    doctors_count = db.session.execute(
+                        select(func.count())
+                        .select_from(User)
+                        .filter_by(department_id=dept.id, role='doctor')
+                    ).scalar()
+
+                    response += f'**{dept.name}**\n'
+                    response += f'├─ الوصف: {dept.description or "غير محدد"}\n'
+                    response += f'├─ الحالة: {"نشط" if dept.is_active else "غير نشط"}\n'
+                    response += f'├─ عدد الموظفين: {staff_count}\n'
+                    response += f'└─ عدد الأطباء: {doctors_count}\n\n'
+
                 return {'response': response, 'actions': []}
-        
+
         # إحصائيات عامة
-        total_departments = db.session.execute(select(func.count()).select_from(Department)).scalar()
-        active_departments = db.session.execute(select(func.count()).select_from(Department).filter_by(is_active=True)).scalar()
-        
+        total_departments = db.session.execute(
+            select(func.count()).select_from(Department)
+        ).scalar()
+        active_departments = db.session.execute(
+            select(func.count()).select_from(Department).filter_by(is_active=True)
+        ).scalar()
+
         # الأقسام مع عدد الموظفين
-        dept_stats = db.session.execute(select(
-            Department.name,
-            func.count(User.id).label('staff_count')
-        ).outerjoin(User, User.department_id == Department.id)\
-         .group_by(Department.id, Department.name)\
-         .order_by(func.count(User.id).desc())\
-         .limit(5)).all()
-        
+        dept_stats = db.session.execute(
+            select(Department.name, func.count(User.id).label('staff_count'))
+            .outerjoin(User, User.department_id == Department.id)
+            .group_by(Department.id, Department.name)
+            .order_by(func.count(User.id).desc())
+            .limit(5)
+        ).all()
+
         response = f"""
 🏢 **معلومات الأقسام:**
 
@@ -571,37 +632,38 @@ class SmartAIEngine:
 **👥 الأقسام حسب عدد الموظفين:**
 """
         for name, count in dept_stats:
-            response += f"├─ {name}: {count} موظف\n"
-        
+            response += f'├─ {name}: {count} موظف\n'
+
         return {'response': response, 'actions': []}
-    
+
     def _handle_visit_query(self, message):
         """معالجة أسئلة عن الزيارات"""
         from models.visit import Visit
-        
+
         total_visits = db.session.execute(select(func.count()).select_from(Visit)).scalar()
-        today_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
-            func.date(Visit.created_at) == date.today()
-        )).scalar()
-        
+        today_visits = db.session.execute(
+            select(func.count())
+            .select_from(Visit)
+            .filter(func.date(Visit.created_at) == date.today())
+        ).scalar()
+
         # زيارات الأسبوع
         week_ago = date.today() - timedelta(days=7)
-        week_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
-            Visit.created_at >= week_ago
-        )).scalar()
-        
+        week_visits = db.session.execute(
+            select(func.count()).select_from(Visit).filter(Visit.created_at >= week_ago)
+        ).scalar()
+
         # زيارات الشهر
         month_ago = date.today() - timedelta(days=30)
-        month_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
-            Visit.created_at >= month_ago
-        )).scalar()
-        
+        month_visits = db.session.execute(
+            select(func.count()).select_from(Visit).filter(Visit.created_at >= month_ago)
+        ).scalar()
+
         # حالات الزيارات
-        status_dist = db.session.execute(select(
-            Visit.status,
-            func.count(Visit.id)
-        ).group_by(Visit.status)).all()
-        
+        status_dist = db.session.execute(
+            select(Visit.status, func.count(Visit.id)).group_by(Visit.status)
+        ).all()
+
         response = f"""
 📋 **معلومات الزيارات:**
 
@@ -618,33 +680,45 @@ class SmartAIEngine:
                 'active': 'نشطة',
                 'completed': 'مكتملة',
                 'cancelled': 'ملغاة',
-                'pending': 'قيد الانتظار'
+                'pending': 'قيد الانتظار',
             }.get(status, status)
-            response += f"├─ {status_ar}: {count}\n"
-        
+            response += f'├─ {status_ar}: {count}\n'
+
         return {'response': response, 'actions': []}
-    
+
     def _handle_appointment_query(self, message):
         """معالجة أسئلة عن المواعيد"""
         from models.appointment import Appointment
-        
-        total_appointments = db.session.execute(select(func.count()).select_from(Appointment)).scalar()
-        today_appointments = db.session.execute(select(func.count()).select_from(Appointment).filter(
-            func.date(Appointment.starts_at) == date.today()
-        )).scalar()
-        
+
+        total_appointments = db.session.execute(
+            select(func.count()).select_from(Appointment)
+        ).scalar()
+        today_appointments = db.session.execute(
+            select(func.count())
+            .select_from(Appointment)
+            .filter(func.date(Appointment.starts_at) == date.today())
+        ).scalar()
+
         # مواعيد قادمة
-        upcoming = db.session.execute(select(func.count()).select_from(Appointment).filter(
-            Appointment.starts_at > datetime.now(),
-            Appointment.status == AppointmentState.SCHEDULED
-        )).scalar()
-        
+        upcoming = db.session.execute(
+            select(func.count())
+            .select_from(Appointment)
+            .filter(
+                Appointment.starts_at > datetime.now(),
+                Appointment.status == AppointmentState.SCHEDULED,
+            )
+        ).scalar()
+
         # مواعيد متأخرة
-        overdue = db.session.execute(select(func.count()).select_from(Appointment).filter(
-            Appointment.starts_at < datetime.now(),
-            Appointment.status == AppointmentState.SCHEDULED
-        )).scalar()
-        
+        overdue = db.session.execute(
+            select(func.count())
+            .select_from(Appointment)
+            .filter(
+                Appointment.starts_at < datetime.now(),
+                Appointment.status == AppointmentState.SCHEDULED,
+            )
+        ).scalar()
+
         response = f"""
 📅 **معلومات المواعيد:**
 
@@ -654,22 +728,30 @@ class SmartAIEngine:
 ├─ مواعيد قادمة: {upcoming}
 └─ مواعيد متأخرة: {overdue}
 """
-        
+
         if overdue > 0:
-            response += f"\n⚠️ **تحذير:** يوجد {overdue} موعد متأخر يحتاج متابعة!"
-        
+            response += f'\n⚠️ **تحذير:** يوجد {overdue} موعد متأخر يحتاج متابعة!'
+
         return {'response': response, 'actions': []}
-    
+
     def _handle_service_query(self, message):
         """معالجة أسئلة عن الخدمات"""
         from models.service import ServiceMaster
-        
-        total_services = db.session.execute(select(func.count()).select_from(ServiceMaster)).scalar()
-        active_services = db.session.execute(select(func.count()).select_from(ServiceMaster).filter_by(is_active=True)).scalar()
-        
+
+        total_services = db.session.execute(
+            select(func.count()).select_from(ServiceMaster)
+        ).scalar()
+        active_services = db.session.execute(
+            select(func.count()).select_from(ServiceMaster).filter_by(is_active=True)
+        ).scalar()
+
         # الخدمات الأكثر استخداماً (يمكن تطويرها)
-        services = db.session.execute(select(ServiceMaster).filter_by(is_active=True).limit(10)).scalars().all()
-        
+        services = (
+            db.session.execute(select(ServiceMaster).filter_by(is_active=True).limit(10))
+            .scalars()
+            .all()
+        )
+
         response = f"""
 ⚕️ **معلومات الخدمات:**
 
@@ -680,28 +762,32 @@ class SmartAIEngine:
 **📋 الخدمات المتاحة:**
 """
         for service in services:
-            price = f"{service.base_price:,.2f} ريال" if service.base_price else "غير محدد"
-            response += f"├─ {service.name}: {price}\n"
-        
+            price = f'{service.base_price:,.2f} ريال' if service.base_price else 'غير محدد'
+            response += f'├─ {service.name}: {price}\n'
+
         return {'response': response, 'actions': []}
-    
+
     def _handle_system_analysis(self):
         """تحليل شامل للنظام"""
-        from models.user import User
-        from models.patient import Patient
-        from models.visit import Visit
         from models.department import Department
-        
+        from models.patient import Patient
+        from models.user import User
+        from models.visit import Visit
+
         # جمع الإحصائيات
         total_users = db.session.execute(select(func.count()).select_from(User)).scalar()
         total_patients = db.session.execute(select(func.count()).select_from(Patient)).scalar()
         total_visits = db.session.execute(select(func.count()).select_from(Visit)).scalar()
-        total_departments = db.session.execute(select(func.count()).select_from(Department)).scalar()
-        
-        today_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
-            func.date(Visit.created_at) == date.today()
-        )).scalar()
-        
+        total_departments = db.session.execute(
+            select(func.count()).select_from(Department)
+        ).scalar()
+
+        today_visits = db.session.execute(
+            select(func.count())
+            .select_from(Visit)
+            .filter(func.date(Visit.created_at) == date.today())
+        ).scalar()
+
         # تقييم الأداء
         performance_score = 0
         if total_users > 0:
@@ -714,9 +800,11 @@ class SmartAIEngine:
             performance_score += 15
         if today_visits > 0:
             performance_score += 15
-        
-        status = "ممتاز" if performance_score >= 80 else "جيد" if performance_score >= 60 else "متوسط"
-        
+
+        status = (
+            'ممتاز' if performance_score >= 80 else 'جيد' if performance_score >= 60 else 'متوسط'
+        )
+
         response = f"""
 📊 **تحليل شامل للنظام:**
 
@@ -748,28 +836,28 @@ class SmartAIEngine:
 
 **💡 التوصيات:**
 """
-        
+
         # توصيات ذكية
         if total_patients < 10:
-            response += "• يُنصح بزيادة التسويق لجذب المزيد من المرضى\n"
+            response += '• يُنصح بزيادة التسويق لجذب المزيد من المرضى\n'
         if today_visits == 0:
-            response += "• لا توجد زيارات اليوم - تحقق من المواعيد\n"
+            response += '• لا توجد زيارات اليوم - تحقق من المواعيد\n'
         if total_departments == 0:
-            response += "• يُنصح بإضافة أقسام للنظام\n"
-        
-        response += "\n✅ النظام يعمل بشكل جيد!"
-        
+            response += '• يُنصح بإضافة أقسام للنظام\n'
+
+        response += '\n✅ النظام يعمل بشكل جيد!'
+
         return {'response': response, 'actions': []}
-    
+
     def _handle_report_generation(self):
         """إنشاء تقرير شامل"""
         return self._handle_system_analysis()
-    
+
     def _handle_database_query(self, message):
         """معالجة أسئلة عن قاعدة البيانات"""
         # الحصول على جميع الجداول
         tables = self.inspector.get_table_names()
-        
+
         response = f"""
 🗄️ **معلومات قاعدة البيانات:**
 
@@ -779,13 +867,13 @@ class SmartAIEngine:
         for i, table in enumerate(tables, 1):
             # الحصول على عدد الأعمدة
             columns = self.inspector.get_columns(table)
-            response += f"{i}. **{table}** ({len(columns)} عمود)\n"
-        
-        response += "\n💡 **للاستعلام عن جدول محدد:**\n"
+            response += f'{i}. **{table}** ({len(columns)} عمود)\n'
+
+        response += '\n💡 **للاستعلام عن جدول محدد:**\n'
         response += "اكتب: 'معلومات عن جدول [اسم الجدول]'"
-        
+
         return {'response': response, 'actions': []}
-    
+
     def _handle_general_search(self, message):
         """البحث العام في النظام"""
         response = """
@@ -822,96 +910,110 @@ class SmartAIEngine:
 💡 **جرب أي سؤال وسأحاول مساعدتك!**
 """
         return {'response': response, 'actions': []}
-    
+
     def _analyze_user_errors(self):
         """تحليل متقدم لأخطاء ومشاكل المستخدمين"""
         from models.user import User
         from models.visit import Visit
-        from models.audit_trail import AuditTrail
-        
+
         # جمع البيانات
         total_users = db.session.execute(select(func.count()).select_from(User)).scalar()
         inactive_users = db.session.execute(select(User).filter_by(is_active=False)).scalars().all()
-        users_without_email = db.session.execute(select(User).filter(
-            (User.email == None) | (User.email == '')
-        )).scalars().all()
-        users_without_phone = db.session.execute(select(User).filter(
-            (User.phone == None) | (User.phone == '')
-        )).scalars().all()
-        
+        users_without_email = (
+            db.session.execute(select(User).filter((User.email == None) | (User.email == '')))
+            .scalars()
+            .all()
+        )
+        users_without_phone = (
+            db.session.execute(select(User).filter((User.phone == None) | (User.phone == '')))
+            .scalars()
+            .all()
+        )
+
         # المستخدمين الذين لم يسجلوا دخول أبداً
-        users_never_logged_in = db.session.execute(select(User).filter(
-            User.last_login == None
-        )).scalars().all()
-        
+        users_never_logged_in = (
+            db.session.execute(select(User).filter(User.last_login == None)).scalars().all()
+        )
+
         # المستخدمين بدون أدوار أو صلاحيات
-        users_without_role = db.session.execute(select(User).filter(
-            (User.role == None) | (User.role == '')
-        )).scalars().all()
-        
+        users_without_role = (
+            db.session.execute(select(User).filter((User.role == None) | (User.role == '')))
+            .scalars()
+            .all()
+        )
+
         # الأطباء بدون قسم
-        doctors_without_dept = db.session.execute(select(User).filter(
-            User.role == 'doctor',
-            User.department_id == None
-        )).scalars().all()
-        
+        doctors_without_dept = (
+            db.session.execute(
+                select(User).filter(User.role == 'doctor', User.department_id == None)
+            )
+            .scalars()
+            .all()
+        )
+
         # الأطباء بدون زيارات
         doctors = db.session.execute(select(User).filter_by(role='doctor')).scalars().all()
         doctors_no_visits = []
         for doctor in doctors:
-            visit_count = db.session.execute(select(func.count()).select_from(Visit).filter_by(doctor_id=doctor.id)).scalar()
+            visit_count = db.session.execute(
+                select(func.count()).select_from(Visit).filter_by(doctor_id=doctor.id)
+            ).scalar()
             if visit_count == 0:
                 doctors_no_visits.append(doctor)
-        
+
         # تحليل الأخطاء
         errors = []
         warnings = []
         suggestions = []
-        
+
         if len(inactive_users) > 0:
-            errors.append(f"🔴 **{len(inactive_users)} مستخدم غير نشط** - قد يحتاجون تفعيل أو حذف")
+            errors.append(f'🔴 **{len(inactive_users)} مستخدم غير نشط** - قد يحتاجون تفعيل أو حذف')
             for user in inactive_users[:5]:
-                errors.append(f"   • {user.full_name} ({user.username}) - غير نشط منذ {user.created_at.strftime('%Y-%m-%d') if user.created_at else 'غير معروف'}")
-        
+                errors.append(
+                    f'   • {user.full_name} ({user.username}) - غير نشط منذ {user.created_at.strftime("%Y-%m-%d") if user.created_at else "غير معروف"}'
+                )
+
         if len(users_without_email) > 0:
-            warnings.append(f"⚠️ **{len(users_without_email)} مستخدم بدون بريد إلكتروني**")
+            warnings.append(f'⚠️ **{len(users_without_email)} مستخدم بدون بريد إلكتروني**')
             for user in users_without_email[:3]:
-                warnings.append(f"   • {user.full_name}")
-        
+                warnings.append(f'   • {user.full_name}')
+
         if len(users_without_phone) > 0:
-            warnings.append(f"⚠️ **{len(users_without_phone)} مستخدم بدون رقم هاتف**")
-        
+            warnings.append(f'⚠️ **{len(users_without_phone)} مستخدم بدون رقم هاتف**')
+
         if len(users_never_logged_in) > 0:
-            errors.append(f"🔴 **{len(users_never_logged_in)} مستخدم لم يسجل دخول أبداً**")
+            errors.append(f'🔴 **{len(users_never_logged_in)} مستخدم لم يسجل دخول أبداً**')
             for user in users_never_logged_in[:5]:
-                errors.append(f"   • {user.full_name} - تم إنشاؤه {user.created_at.strftime('%Y-%m-%d') if user.created_at else 'غير معروف'}")
-        
+                errors.append(
+                    f'   • {user.full_name} - تم إنشاؤه {user.created_at.strftime("%Y-%m-%d") if user.created_at else "غير معروف"}'
+                )
+
         if len(users_without_role) > 0:
-            errors.append(f"🔴 **{len(users_without_role)} مستخدم بدون دور محدد**")
-        
+            errors.append(f'🔴 **{len(users_without_role)} مستخدم بدون دور محدد**')
+
         if len(doctors_without_dept) > 0:
-            errors.append(f"🔴 **{len(doctors_without_dept)} طبيب بدون قسم**")
+            errors.append(f'🔴 **{len(doctors_without_dept)} طبيب بدون قسم**')
             for doctor in doctors_without_dept:
-                errors.append(f"   • د. {doctor.full_name}")
-        
+                errors.append(f'   • د. {doctor.full_name}')
+
         if len(doctors_no_visits) > 0:
-            warnings.append(f"⚠️ **{len(doctors_no_visits)} طبيب بدون زيارات**")
+            warnings.append(f'⚠️ **{len(doctors_no_visits)} طبيب بدون زيارات**')
             for doctor in doctors_no_visits[:5]:
-                warnings.append(f"   • د. {doctor.full_name}")
-        
+                warnings.append(f'   • د. {doctor.full_name}')
+
         # اقتراحات الحلول
         if len(inactive_users) > 0:
-            suggestions.append("💡 **حذف أو تفعيل المستخدمين غير النشطين**")
-        
+            suggestions.append('💡 **حذف أو تفعيل المستخدمين غير النشطين**')
+
         if len(users_without_email) > 0:
-            suggestions.append("💡 **إضافة البريد الإلكتروني للمستخدمين**")
-        
+            suggestions.append('💡 **إضافة البريد الإلكتروني للمستخدمين**')
+
         if len(doctors_without_dept) > 0:
-            suggestions.append("💡 **تعيين الأطباء إلى أقسامهم المناسبة**")
-        
+            suggestions.append('💡 **تعيين الأطباء إلى أقسامهم المناسبة**')
+
         if len(users_never_logged_in) > 0:
-            suggestions.append("💡 **إرسال تذكير للمستخدمين الجدد لتسجيل الدخول**")
-        
+            suggestions.append('💡 **إرسال تذكير للمستخدمين الجدد لتسجيل الدخول**')
+
         # بناء التقرير
         response = f"""
 🔍 **تحليل متقدم لأخطاء ومشاكل المستخدمين**
@@ -953,52 +1055,55 @@ class SmartAIEngine:
 
 **💡 نصيحة:** ابدأ بحل الأخطاء الحرجة أولاً!
 """
-        
+
         return {'response': response, 'actions': []}
-    
+
     def _analyze_doctor_problems(self):
         """تحليل مشاكل الأطباء"""
         from models.user import User
         from models.visit import Visit
-        from models.department import Department
-        
+
         doctors = db.session.execute(select(User).filter_by(role='doctor')).scalars().all()
         total_doctors = len(doctors)
-        
+
         problems = []
-        
+
         # الأطباء غير النشطين
         inactive_doctors = [d for d in doctors if not d.is_active]
         if inactive_doctors:
-            problems.append(f"🔴 **{len(inactive_doctors)} طبيب غير نشط**")
-        
+            problems.append(f'🔴 **{len(inactive_doctors)} طبيب غير نشط**')
+
         # الأطباء بدون قسم
         doctors_no_dept = [d for d in doctors if not d.department_id]
         if doctors_no_dept:
-            problems.append(f"🔴 **{len(doctors_no_dept)} طبيب بدون قسم**")
+            problems.append(f'🔴 **{len(doctors_no_dept)} طبيب بدون قسم**')
             for doc in doctors_no_dept[:3]:
-                problems.append(f"   • د. {doc.full_name}")
-        
+                problems.append(f'   • د. {doc.full_name}')
+
         # الأطباء بدون زيارات
         doctors_no_visits = []
         for doctor in doctors:
-            visits = db.session.execute(select(func.count()).select_from(Visit).filter_by(doctor_id=doctor.id)).scalar()
+            visits = db.session.execute(
+                select(func.count()).select_from(Visit).filter_by(doctor_id=doctor.id)
+            ).scalar()
             if visits == 0:
                 doctors_no_visits.append(doctor)
-        
+
         if doctors_no_visits:
-            problems.append(f"⚠️ **{len(doctors_no_visits)} طبيب بدون زيارات**")
-        
+            problems.append(f'⚠️ **{len(doctors_no_visits)} طبيب بدون زيارات**')
+
         # الأطباء بزيارات قليلة جداً
         low_activity_doctors = []
         for doctor in doctors:
-            visits = db.session.execute(select(func.count()).select_from(Visit).filter_by(doctor_id=doctor.id)).scalar()
+            visits = db.session.execute(
+                select(func.count()).select_from(Visit).filter_by(doctor_id=doctor.id)
+            ).scalar()
             if 0 < visits < 5:
                 low_activity_doctors.append((doctor, visits))
-        
+
         if low_activity_doctors:
-            problems.append(f"⚠️ **{len(low_activity_doctors)} طبيب بنشاط منخفض**")
-        
+            problems.append(f'⚠️ **{len(low_activity_doctors)} طبيب بنشاط منخفض**')
+
         response = f"""
 👨‍⚕️ **تحليل مشاكل الأطباء**
 
@@ -1024,51 +1129,54 @@ class SmartAIEngine:
 • تفعيل الأطباء غير النشطين أو حذفهم
 • مراجعة جداول الأطباء ذوي النشاط المنخفض
 """
-        
+
         return {'response': response, 'actions': []}
-    
+
     def _analyze_department_problems(self):
         """تحليل مشاكل الأقسام"""
         from models.department import Department
         from models.user import User
-        
+
         departments = db.session.execute(select(Department)).scalars().all()
         total_depts = len(departments)
-        
+
         problems = []
-        
+
         # الأقسام غير النشطة
         inactive_depts = [d for d in departments if not d.is_active]
         if inactive_depts:
-            problems.append(f"🔴 **{len(inactive_depts)} قسم غير نشط**")
+            problems.append(f'🔴 **{len(inactive_depts)} قسم غير نشط**')
             for dept in inactive_depts:
-                problems.append(f"   • {dept.name}")
-        
+                problems.append(f'   • {dept.name}')
+
         # الأقسام بدون موظفين
         depts_no_staff = []
         for dept in departments:
-            staff_count = db.session.execute(select(func.count()).select_from(User).filter_by(department_id=dept.id)).scalar()
+            staff_count = db.session.execute(
+                select(func.count()).select_from(User).filter_by(department_id=dept.id)
+            ).scalar()
             if staff_count == 0:
                 depts_no_staff.append(dept)
-        
+
         if depts_no_staff:
-            problems.append(f"⚠️ **{len(depts_no_staff)} قسم بدون موظفين**")
+            problems.append(f'⚠️ **{len(depts_no_staff)} قسم بدون موظفين**')
             for dept in depts_no_staff:
-                problems.append(f"   • {dept.name}")
-        
+                problems.append(f'   • {dept.name}')
+
         # الأقسام بدون أطباء
         depts_no_doctors = []
         for dept in departments:
-            doctors_count = db.session.execute(select(func.count()).select_from(User).filter_by(
-                department_id=dept.id,
-                role='doctor'
-            )).scalar()
+            doctors_count = db.session.execute(
+                select(func.count())
+                .select_from(User)
+                .filter_by(department_id=dept.id, role='doctor')
+            ).scalar()
             if doctors_count == 0:
                 depts_no_doctors.append(dept)
-        
+
         if depts_no_doctors:
-            problems.append(f"⚠️ **{len(depts_no_doctors)} قسم بدون أطباء**")
-        
+            problems.append(f'⚠️ **{len(depts_no_doctors)} قسم بدون أطباء**')
+
         response = f"""
 🏢 **تحليل مشاكل الأقسام**
 
@@ -1093,5 +1201,5 @@ class SmartAIEngine:
 • تعيين موظفين للأقسام الفارغة
 • توزيع الأطباء على الأقسام بشكل متوازن
 """
-        
+
         return {'response': response, 'actions': []}

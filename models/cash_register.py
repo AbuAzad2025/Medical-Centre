@@ -1,18 +1,21 @@
-from datetime import datetime, timezone, date, time
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from app.shared.mixins import TenantMixin
 import logging
+from datetime import UTC, date, datetime
+
 from sqlalchemy import select
+
+from app.extensions import db
+from app.shared.mixins import TenantMixin
+from utils.db_safety import safe_commit, safe_rollback
 
 
 class CashRegister(TenantMixin, db.Model):
     """نموذج سجل الصندوق اليومي - Cash Register / Till"""
+
     __tablename__ = 'cash_registers'
 
     id = db.Column(db.Integer, primary_key=True)
     register_date = db.Column(db.Date, nullable=False, default=date.today, index=True)
-    opened_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    opened_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     closed_at = db.Column(db.DateTime, nullable=True)
 
     # Opening float (رصيد الافتتاح)
@@ -41,11 +44,15 @@ class CashRegister(TenantMixin, db.Model):
 
     # Shift info
     shift_name = db.Column(db.String(50), nullable=True)  # morning, evening, night
-    receptionist_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    receptionist_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     # Audit
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
 
     receptionist = db.relationship('User', foreign_keys=[receptionist_id])
 
@@ -53,20 +60,21 @@ class CashRegister(TenantMixin, db.Model):
     def get_or_create_today(cls, user_id=None):
         try:
             today = date.today()
-            reg = db.session.execute(select(cls).filter_by(register_date=today, is_closed=False)).scalars().first()
+            reg = (
+                db.session.execute(select(cls).filter_by(register_date=today, is_closed=False))
+                .scalars()
+                .first()
+            )
             if not reg:
                 reg = cls(
-                    register_date=today,
-                    receptionist_id=user_id,
-                    shift_name='morning',
-                    is_open=True
+                    register_date=today, receptionist_id=user_id, shift_name='morning', is_open=True
                 )
                 db.session.add(reg)
-                safe_commit(db.session, error_message="database commit failed", reraise=True)
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
             return reg
-        except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error("CashRegister.get_or_create_today failed")
+        except Exception:
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception('CashRegister.get_or_create_today failed')
             raise
 
     def to_dict(self):

@@ -1,7 +1,9 @@
 """Tests for phase 12 — PWA, mobile, kiosk (§25, §28)."""
 
 from pathlib import Path
+
 from sqlalchemy import select
+
 from app.extensions import db
 
 
@@ -14,11 +16,15 @@ class TestPWAAssets:
         assert '/pwa/offline' in text
 
     def test_mobile_css_touch_targets(self):
-        css = (Path(__file__).parent.parent / 'static' / 'css' / 'mobile.css').read_text(encoding='utf-8')
+        css = (Path(__file__).parent.parent / 'static' / 'css' / 'mobile.css').read_text(
+            encoding='utf-8'
+        )
         assert 'min-height: 48px' in css
 
     def test_touch_css_kiosk_targets(self):
-        css = (Path(__file__).parent.parent / 'static' / 'css' / 'touch.css').read_text(encoding='utf-8')
+        css = (Path(__file__).parent.parent / 'static' / 'css' / 'touch.css').read_text(
+            encoding='utf-8'
+        )
         assert '48px' in css
         assert '[data-kiosk="true"]' in css
 
@@ -60,8 +66,8 @@ class TestStaffShellPWA:
         assert 'pwa-install.js' in text
 
     def test_mobile_bottom_nav_for_reception(self, app, client, test_tenant):
-        from app.extensions import db
         from models.user import User
+
         u = db.session.execute(select(User).filter_by(username='reception_p12')).scalars().first()
         if not u:
             u = User(

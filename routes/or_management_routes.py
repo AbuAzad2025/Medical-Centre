@@ -1,15 +1,14 @@
 """
 Operating Room Management Routes
 """
+
+from flask import Blueprint, render_template, request
+from flask_login import login_required
 from sqlalchemy import select
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
-from flask_login import login_required, current_user
-from utils.decorators import handle_route_errors, role_required
-from models.or_management import SurgerySchedule, SurgeryChecklist
-from models.patient import Patient
-from models.user import User
-from models.icd_coding import CPTCode, ICD10Code
+
 from app.extensions import db
+from models.or_management import SurgeryChecklist, SurgerySchedule
+from utils.decorators import handle_route_errors, role_required
 
 or_bp = Blueprint('or', __name__)
 
@@ -26,13 +25,19 @@ def schedule():
         query = query.filter_by(status=status)
     if date:
         from datetime import datetime
+
         try:
             d = datetime.strptime(date, '%Y-%m-%d').date()
             query = query.filter(SurgerySchedule.scheduled_date == d)
         except ValueError:
             pass
-    surgeries = query.order_by(SurgerySchedule.scheduled_date, SurgerySchedule.scheduled_start_time).limit(100).all()
+    surgeries = (
+        query.order_by(SurgerySchedule.scheduled_date, SurgerySchedule.scheduled_start_time)
+        .limit(100)
+        .all()
+    )
     return render_template('or/schedule.html', surgeries=surgeries, status=status)
+
 
 @or_bp.route('/surgery/<int:surgery_id>')
 @login_required
@@ -40,5 +45,9 @@ def schedule():
 @handle_route_errors
 def surgery_detail(surgery_id):
     surgery = db.get_or_404(SurgerySchedule, surgery_id)
-    checklist = db.session.execute(select(SurgeryChecklist).filter_by(surgery_schedule_id=surgery_id)).scalars().first()
+    checklist = (
+        db.session.execute(select(SurgeryChecklist).filter_by(surgery_schedule_id=surgery_id))
+        .scalars()
+        .first()
+    )
     return render_template('or/surgery_detail.html', surgery=surgery, checklist=checklist)

@@ -3,32 +3,34 @@
 P0C-002: enumerate every unique constraint / unique index, classify it, and emit
 a machine-readable audit that downstream de-duplication tooling can consume.
 """
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-from app_factory import create_app
-from app.extensions import db
 from sqlalchemy import text
+
+from app.extensions import db
+from app_factory import create_app
 
 ROOT = Path(__file__).parent.parent
 
 
 def classify(table: str, columns: list[str]) -> str:
     cols = {c.lower() for c in columns}
-    if "tenant_id" in cols:
-        return "tenant-scoped"
-    if "branch_id" in cols or "fiscal_year" in cols:
-        return "branch/fiscal"
-    if "deleted_at" in cols:
-        return "soft-delete"
-    if table in {"approval_decision", "clinical_decision"} or "decision" in table:
-        return "decision"
+    if 'tenant_id' in cols:
+        return 'tenant-scoped'
+    if 'branch_id' in cols or 'fiscal_year' in cols:
+        return 'branch/fiscal'
+    if 'deleted_at' in cols:
+        return 'soft-delete'
+    if table in {'approval_decision', 'clinical_decision'} or 'decision' in table:
+        return 'decision'
     # Single-column uniqueness on a natural key (username, code, key, email, ...)
     if len(columns) == 1:
-        return "global"
-    return "unknown"
+        return 'global'
+    return 'unknown'
 
 
 def _parse_cols(value) -> list[str]:
@@ -37,18 +39,19 @@ def _parse_cols(value) -> list[str]:
         return [str(c) for c in value]
     if isinstance(value, str):
         s = value.strip()
-        if s.startswith("{") and s.endswith("}"):
+        if s.startswith('{') and s.endswith('}'):
             s = s[1:-1]
         if not s:
             return []
-        return [c.strip() for c in s.split(",") if c.strip()]
+        return [c.strip() for c in s.split(',') if c.strip()]
     return []
 
 
 def main() -> None:
-    app = create_app("testing")
+    app = create_app('testing')
     with app.app_context():
-        rows = db.session.execute(text("""
+        rows = db.session.execute(
+            text("""
             SELECT
                 tc.table_name,
                 tc.constraint_name,
@@ -61,10 +64,12 @@ def main() -> None:
               AND tc.table_schema = 'public'
             GROUP BY tc.table_name, tc.constraint_name
             ORDER BY tc.table_name, tc.constraint_name
-        """)).fetchall()
+        """)
+        ).fetchall()
 
         # Also capture unique indexes not backed by a named constraint.
-        idx_rows = db.session.execute(text("""
+        idx_rows = db.session.execute(
+            text("""
             SELECT
                 t.relname AS table_name,
                 i.relname AS index_name,
@@ -82,7 +87,8 @@ def main() -> None:
               )
             GROUP BY t.relname, i.relname
             ORDER BY t.relname, i.relname
-        """)).fetchall()
+        """)
+        ).fetchall()
 
         seen = set()
         constraints = []
@@ -92,41 +98,43 @@ def main() -> None:
             if key in seen:
                 continue
             seen.add(key)
-            constraints.append({
-                "table": table,
-                "columns": list(columns),
-                "classification": classify(table, list(columns)),
-            })
+            constraints.append(
+                {
+                    'table': table,
+                    'columns': list(columns),
+                    'classification': classify(table, list(columns)),
+                }
+            )
 
         by_class: dict[str, int] = {}
         for c in constraints:
-            by_class[c["classification"]] = by_class.get(c["classification"], 0) + 1
+            by_class[c['classification']] = by_class.get(c['classification'], 0) + 1
 
         audit = {
-            "constraints": constraints,
-            "summary": {
-                "total": len(constraints),
-                "by_classification": by_class,
+            'constraints': constraints,
+            'summary': {
+                'total': len(constraints),
+                'by_classification': by_class,
             },
-            "duplicate_audit_queries": [
+            'duplicate_audit_queries': [
                 {
-                    "table": c["table"],
-                    "columns": c["columns"],
-                    "sql": (
-                        f"SELECT {', '.join(c['columns'])}, COUNT(*) AS n "
-                        f"FROM {c['table']} GROUP BY {', '.join(c['columns'])} "
-                        f"HAVING COUNT(*) > 1"
+                    'table': c['table'],
+                    'columns': c['columns'],
+                    'sql': (
+                        f'SELECT {", ".join(c["columns"])}, COUNT(*) AS n '
+                        f'FROM {c["table"]} GROUP BY {", ".join(c["columns"])} '
+                        f'HAVING COUNT(*) > 1'
                     ),
                 }
                 for c in constraints
-                if c["classification"] in {"global", "tenant-scoped"}
+                if c['classification'] in {'global', 'tenant-scoped'}
             ],
         }
 
-    out = ROOT / "unique_constraint_audit.json"
-    out.write_text(json.dumps(audit, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"Wrote {out} with {len(constraints)} unique constraints")
+    out = ROOT / 'unique_constraint_audit.json'
+    out.write_text(json.dumps(audit, indent=2, ensure_ascii=False), encoding='utf-8')
+    print(f'Wrote {out} with {len(constraints)} unique constraints')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

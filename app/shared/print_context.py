@@ -1,21 +1,32 @@
 """Print document header/footer resolution — tenant branding (phase 5/9)."""
+
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, Optional, Tuple, Set
+from typing import Any
 
-from app.shared.branding_context import get_branding_row, resolve_ui_context
-from app.extensions import db
 from sqlalchemy import select
+
+from app.extensions import db
+from app.shared.branding_context import get_branding_row, resolve_ui_context
 
 PLATFORM_COPYRIGHT = 'شركة ازاد للأنظمة الذكية'
 PLATFORM_WATERMARK = 'شركة أزاد للأنظمة الطبية'
 
 # Document types supported
 DOC_TYPES = (
-    'invoice', 'receipt', 'prescription', 'report', 'queue_ticket',
-    'lab_result', 'radiology_report', 'emergency_report',
-    'pharmacy_sale', 'barcode', 'label', 'doctor_medical_report'
+    'invoice',
+    'receipt',
+    'prescription',
+    'report',
+    'queue_ticket',
+    'lab_result',
+    'radiology_report',
+    'emergency_report',
+    'pharmacy_sale',
+    'barcode',
+    'label',
+    'doctor_medical_report',
 )
 
 # Mapping from doc_type to BrandingSettings header/footer fields
@@ -51,7 +62,7 @@ _FOOTERS = {
 
 # Module access map: doc_type -> set of module names that provide this capability
 # If empty set, no module restriction (available to all)
-_DOC_TYPE_MODULE_MAP: Dict[str, Set[str]] = {
+_DOC_TYPE_MODULE_MAP: dict[str, set[str]] = {
     'invoice': {'billing'},
     'receipt': {'billing'},
     'prescription': {'doctor', 'pharmacy'},
@@ -83,7 +94,7 @@ _DOC_TYPE_CATEGORIES = {
 }
 
 
-def resolve_print_slots(doc_type: str, branding) -> Tuple[Optional[str], Optional[str]]:
+def resolve_print_slots(doc_type: str, branding) -> tuple[str | None, str | None]:
     """Return (header_html, footer_html) for a document type."""
     doc_type = (doc_type or 'report').lower()
     if doc_type not in _HEADERS:
@@ -99,7 +110,7 @@ def resolve_print_slots(doc_type: str, branding) -> Tuple[Optional[str], Optiona
     return header, footer
 
 
-def _get_active_modules() -> Set[str]:
+def _get_active_modules() -> set[str]:
     """Get active modules from Flask g context (set by tenant middleware).
 
     Falls back to querying the database if a tenant is bound to g
@@ -117,16 +128,17 @@ def _get_active_modules() -> Set[str]:
     if tenant and getattr(tenant, 'id', None):
         try:
             from app.core.module.validators import get_active_modules_for_tenant
+
             modules = get_active_modules_for_tenant(tenant.id)
             g.enabled_modules = modules  # Cache for subsequent calls
             return modules
-        except Exception as e:
+        except Exception:
             pass
 
     return set()
 
 
-def _is_doc_type_allowed(doc_type: str, active_modules: Set[str]) -> bool:
+def _is_doc_type_allowed(doc_type: str, active_modules: set[str]) -> bool:
     """Check if doc_type is allowed given active modules."""
     required = _DOC_TYPE_MODULE_MAP.get(doc_type, set())
     if not required:
@@ -178,29 +190,119 @@ def generate_barcode_code128(payload: str) -> str:
     # Full Code128 patterns for all 107 codes (0-106)
     # 0-102: data characters, 103: START A, 104: START B, 105: START C, 106: STOP
     _CODE128_PATTERNS = [
-        "11011001100", "11001101100", "11001100110", "10010011000", "10010001100",
-        "10001001100", "10011001000", "10011000100", "10001100100", "11001001000",
-        "11001000100", "11000100100", "10110011100", "10011011100", "10011001110",
-        "10111001100", "10011101100", "10011100110", "11001110010", "11001011100",
-        "11000101110", "11101101110", "11101001100", "11100101100", "11100100110",
-        "11101100100", "11100110100", "11100110010", "11011011000", "11011000110",
-        "11000110110", "10100011000", "10001011000", "10001000110", "10110001000",
-        "10001101000", "10001100010", "11010001000", "11000101000", "11011011100",
-        "11011000111", "11000110111", "10110111000", "10110001110", "10001101110",
-        "10001110110", "11010001110", "11010000111", "11011101000", "11011100010",
-        "11011101110", "11101011000", "11101000110", "11100010110", "11101101000",
-        "11101100010", "11100011010", "11101111010", "11001000010", "11110001010",
-        "10100110000", "10100001100", "10010110000", "10010000110", "10000101100",
-        "10000100110", "10110010000", "10110000100", "10011010000", "10011000010",
-        "10000110100", "10000110010", "11000010100", "11001010000", "11110111110",
-        "11000010010", "11001001000", "11110101000", "11110100010", "11110001010",
-        "10110110000", "10110001000", "10011011000", "10011000110", "10001011110",
-        "10001011110", "10001101110", "10110111100", "10110000111", "10011110100",
-        "10011110010", "10011011110", "10111011000", "10111000110", "10011101110",
-        "11110101000", "11110100010", "11110001010", "10110110000", "10110001000",
-        "10011011000", "10011000110", "10001011110", "10001011110", "10001101110",
-        "10110111100", "10110000111", "10011110100", "10011110010", "10011011110",
-        "10111011000", "10111000110", "10011101110",
+        '11011001100',
+        '11001101100',
+        '11001100110',
+        '10010011000',
+        '10010001100',
+        '10001001100',
+        '10011001000',
+        '10011000100',
+        '10001100100',
+        '11001001000',
+        '11001000100',
+        '11000100100',
+        '10110011100',
+        '10011011100',
+        '10011001110',
+        '10111001100',
+        '10011101100',
+        '10011100110',
+        '11001110010',
+        '11001011100',
+        '11000101110',
+        '11101101110',
+        '11101001100',
+        '11100101100',
+        '11100100110',
+        '11101100100',
+        '11100110100',
+        '11100110010',
+        '11011011000',
+        '11011000110',
+        '11000110110',
+        '10100011000',
+        '10001011000',
+        '10001000110',
+        '10110001000',
+        '10001101000',
+        '10001100010',
+        '11010001000',
+        '11000101000',
+        '11011011100',
+        '11011000111',
+        '11000110111',
+        '10110111000',
+        '10110001110',
+        '10001101110',
+        '10001110110',
+        '11010001110',
+        '11010000111',
+        '11011101000',
+        '11011100010',
+        '11011101110',
+        '11101011000',
+        '11101000110',
+        '11100010110',
+        '11101101000',
+        '11101100010',
+        '11100011010',
+        '11101111010',
+        '11001000010',
+        '11110001010',
+        '10100110000',
+        '10100001100',
+        '10010110000',
+        '10010000110',
+        '10000101100',
+        '10000100110',
+        '10110010000',
+        '10110000100',
+        '10011010000',
+        '10011000010',
+        '10000110100',
+        '10000110010',
+        '11000010100',
+        '11001010000',
+        '11110111110',
+        '11000010010',
+        '11001001000',
+        '11110101000',
+        '11110100010',
+        '11110001010',
+        '10110110000',
+        '10110001000',
+        '10011011000',
+        '10011000110',
+        '10001011110',
+        '10001011110',
+        '10001101110',
+        '10110111100',
+        '10110000111',
+        '10011110100',
+        '10011110010',
+        '10011011110',
+        '10111011000',
+        '10111000110',
+        '10011101110',
+        '11110101000',
+        '11110100010',
+        '11110001010',
+        '10110110000',
+        '10110001000',
+        '10011011000',
+        '10011000110',
+        '10001011110',
+        '10001011110',
+        '10001101110',
+        '10110111100',
+        '10110000111',
+        '10011110100',
+        '10011110010',
+        '10011011110',
+        '10111011000',
+        '10111000110',
+        '10011101110',
     ]
     _CODE128_START_A = 103
     _CODE128_START_B = 104
@@ -209,8 +311,8 @@ def generate_barcode_code128(payload: str) -> str:
 
     # Character set for Code B (ASCII 32-127)
     _CODE128_CHARS = (
-        " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
-        "abcdefghijklmnopqrstuvwxyz{|}~"
+        ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`'
+        'abcdefghijklmnopqrstuvwxyz{|}~'
     )
 
     def _encode_code128(data: str) -> str:
@@ -226,11 +328,11 @@ def generate_barcode_code128(payload: str) -> str:
         codes.append(checksum)
         codes.append(_CODE128_STOP)
         # Add quiet zone (11 zeros each side)
-        pattern = "0" * 11
+        pattern = '0' * 11
         for code in codes:
             if code < len(_CODE128_PATTERNS):
                 pattern += _CODE128_PATTERNS[code]
-        pattern += "0" * 11
+        pattern += '0' * 11
         return pattern
 
     # Generate barcode image using PIL
@@ -238,7 +340,7 @@ def generate_barcode_code128(payload: str) -> str:
         from PIL import Image, ImageDraw
     except ImportError:
         # Fallback: return empty string if PIL not available
-        return ""
+        return ''
 
     pattern = _encode_code128(payload)
     module_width = 2  # pixels per module
@@ -257,7 +359,7 @@ def generate_barcode_code128(payload: str) -> str:
     return 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
 
 
-def resolve_print_context(doc_type: str, branding=None) -> Dict[str, Any]:
+def resolve_print_context(doc_type: str, branding=None) -> dict[str, Any]:
     """Full print template context — tenant header/footer + platform stamp (§34.10).
 
     Ghost-mode aware: if the request is an impersonation (Ghost Mode),
@@ -268,7 +370,7 @@ def resolve_print_context(doc_type: str, branding=None) -> Dict[str, Any]:
     given the current tenant's active modules. Raises ModuleAccessError
     if the doc_type requires modules not active for the tenant.
     """
-    from flask import g, request, has_request_context
+    from flask import g, has_request_context, request
 
     doc_type = (doc_type or 'report').lower()
     if doc_type not in _HEADERS:
@@ -279,12 +381,15 @@ def resolve_print_context(doc_type: str, branding=None) -> Dict[str, Any]:
     if not _is_doc_type_allowed(doc_type, active_modules):
         required = _DOC_TYPE_MODULE_MAP.get(doc_type, set())
         from app.core.module.registry import get_module_metadata
-        required_names = ', '.join(
-            get_module_metadata(m).name_ar for m in required if get_module_metadata(m)
-        ) if required else 'غير محدد'
+
+        required_names = (
+            ', '.join(get_module_metadata(m).name_ar for m in required if get_module_metadata(m))
+            if required
+            else 'غير محدد'
+        )
         raise ModuleAccessError(
             f"نوع المستند '{doc_type}' يتطلب وحدات غير مفعلة: {required_names}. "
-            f"الوحدات المفعلة حالياً: {', '.join(active_modules) if active_modules else 'لا شيء'}"
+            f'الوحدات المفعلة حالياً: {", ".join(active_modules) if active_modules else "لا شيء"}'
         )
 
     # Ghost Mode detection
@@ -304,7 +409,12 @@ def resolve_print_context(doc_type: str, branding=None) -> Dict[str, Any]:
     if branding is None:
         if is_ghost_mode and ghost_target_tenant:
             from app.core.tenant.models import TenantBranding
-            branding = db.session.execute(select(TenantBranding).filter_by(tenant_id=ghost_target_tenant)).scalars().first()
+
+            branding = (
+                db.session.execute(select(TenantBranding).filter_by(tenant_id=ghost_target_tenant))
+                .scalars()
+                .first()
+            )
         if branding is None:
             branding = get_branding_row()
 
@@ -314,6 +424,7 @@ def resolve_print_context(doc_type: str, branding=None) -> Dict[str, Any]:
     # In ghost mode, override UI context with target tenant's branding
     if is_ghost_mode and ghost_target_tenant:
         from app.core.tenant.models import Tenant
+
         target_tenant = db.session.get(Tenant, ghost_target_tenant)
         if target_tenant:
             ui = ui.copy()
@@ -337,34 +448,125 @@ def resolve_print_context(doc_type: str, branding=None) -> Dict[str, Any]:
 
 class ModuleAccessError(Exception):
     """Raised when a print doc_type requires modules not active for the tenant."""
+
     pass
 
 
 # Constants for template access
 _CODE128_PATTERNS = [
-    "11011001100", "11001101100", "11001100110", "10010011000", "10010001100",
-    "10001001100", "10011001000", "10011000100", "10001100100", "11001001000",
-    "11001000100", "11000100100", "10110011100", "10011011100", "10011001110",
-    "10111001100", "10011101100", "10011100110", "11001110010", "11001011100",
-    "11000101110", "11101101110", "11101001100", "11100101100", "11100100110",
-    "11101100100", "11100110100", "11100110010", "11011011000", "11011000110",
-    "11000110110", "10100011000", "10001011000", "10001000110", "10110001000",
-    "10001101000", "10001100010", "11010001000", "11000101000", "11011011100",
-    "11011000111", "11000110111", "10110111000", "10110001110", "10001101110",
-    "10001110110", "11010001110", "11010000111", "11011101000", "11011100010",
-    "11011101110", "11101011000", "11101000110", "11100010110", "11101101000",
-    "11101100010", "11100011010", "11101111010", "11001000010", "11110001010",
-    "10100110000", "10100001100", "10010110000", "10010000110", "10000101100",
-    "10000100110", "10110010000", "10110000100", "10011010000", "10011000010",
-    "10000110100", "10000110010", "11000010100", "11001010000", "11110111110",
-    "11000010010", "11001001000", "11110101000", "11110100010", "11110001010",
-    "10110110000", "10110001000", "10011011000", "10011000110", "10001011110",
-    "10001011110", "10001101110", "10110111100", "10110000111", "10011110100",
-    "10011110010", "10011011110", "10111011000", "10111000110", "10011101110",
-    "11110101000", "11110100010", "11110001010", "10110110000", "10110001000",
-    "10011011000", "10011000110", "10001011110", "10001011110", "10001101110",
-    "10110111100", "10110000111", "10011110100", "10011110010", "10011011110",
-    "10111011000", "10111000110", "10011101110",
+    '11011001100',
+    '11001101100',
+    '11001100110',
+    '10010011000',
+    '10010001100',
+    '10001001100',
+    '10011001000',
+    '10011000100',
+    '10001100100',
+    '11001001000',
+    '11001000100',
+    '11000100100',
+    '10110011100',
+    '10011011100',
+    '10011001110',
+    '10111001100',
+    '10011101100',
+    '10011100110',
+    '11001110010',
+    '11001011100',
+    '11000101110',
+    '11101101110',
+    '11101001100',
+    '11100101100',
+    '11100100110',
+    '11101100100',
+    '11100110100',
+    '11100110010',
+    '11011011000',
+    '11011000110',
+    '11000110110',
+    '10100011000',
+    '10001011000',
+    '10001000110',
+    '10110001000',
+    '10001101000',
+    '10001100010',
+    '11010001000',
+    '11000101000',
+    '11011011100',
+    '11011000111',
+    '11000110111',
+    '10110111000',
+    '10110001110',
+    '10001101110',
+    '10001110110',
+    '11010001110',
+    '11010000111',
+    '11011101000',
+    '11011100010',
+    '11011101110',
+    '11101011000',
+    '11101000110',
+    '11100010110',
+    '11101101000',
+    '11101100010',
+    '11100011010',
+    '11101111010',
+    '11001000010',
+    '11110001010',
+    '10100110000',
+    '10100001100',
+    '10010110000',
+    '10010000110',
+    '10000101100',
+    '10000100110',
+    '10110010000',
+    '10110000100',
+    '10011010000',
+    '10011000010',
+    '10000110100',
+    '10000110010',
+    '11000010100',
+    '11001010000',
+    '11110111110',
+    '11000010010',
+    '11001001000',
+    '11110101000',
+    '11110100010',
+    '11110001010',
+    '10110110000',
+    '10110001000',
+    '10011011000',
+    '10011000110',
+    '10001011110',
+    '10001011110',
+    '10001101110',
+    '10110111100',
+    '10110000111',
+    '10011110100',
+    '10011110010',
+    '10011011110',
+    '10111011000',
+    '10111000110',
+    '10011101110',
+    '11110101000',
+    '11110100010',
+    '11110001010',
+    '10110110000',
+    '10110001000',
+    '10011011000',
+    '10011000110',
+    '10001011110',
+    '10001011110',
+    '10001101110',
+    '10110111100',
+    '10110000111',
+    '10011110100',
+    '10011110010',
+    '10011011110',
+    '10111011000',
+    '10111000110',
+    '10011101110',
 ]
 _CODE128_START_A = 103
 _CODE128_START_B = 104
@@ -372,8 +574,8 @@ _CODE128_START_C = 105
 _CODE128_STOP = 106
 
 _CODE128_CHARS = (
-    " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
-    "abcdefghijklmnopqrstuvwxyz{|}~"
+    ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`'
+    'abcdefghijklmnopqrstuvwxyz{|}~'
 )
 
 
@@ -389,9 +591,9 @@ def _encode_code128(data: str) -> str:
     checksum %= 103
     codes.append(checksum)
     codes.append(_CODE128_STOP)
-    pattern = "0" * 11
+    pattern = '0' * 11
     for code in codes:
         if code < len(_CODE128_PATTERNS):
             pattern += _CODE128_PATTERNS[code]
-    pattern += "0" * 11
+    pattern += '0' * 11
     return pattern

@@ -24,9 +24,12 @@ class TestUserPreferencesAPI:
 
     def test_save_hidden_widgets(self, app, manager_user, db):
         with app.app_context():
-            assert save_user_preferences(manager_user, {
-                'dashboard': {'hidden_widgets': ['queue_live', 'visits_today']},
-            })
+            assert save_user_preferences(
+                manager_user,
+                {
+                    'dashboard': {'hidden_widgets': ['queue_live', 'visits_today']},
+                },
+            )
             prefs = get_user_preferences(manager_user)
             assert 'queue_live' in prefs['dashboard']['hidden_widgets']
 

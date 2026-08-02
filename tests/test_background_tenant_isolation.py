@@ -4,25 +4,35 @@ import uuid
 from unittest.mock import MagicMock
 
 import pytest
+
 from app.extensions import db
 
 
 def _unique_slug(prefix):
-    return f"{prefix}-{uuid.uuid4().hex[:8]}"
+    return f'{prefix}-{uuid.uuid4().hex[:8]}'
 
 
 class TestTenantJobRunner:
     """Tenant-aware job runner must isolate tenants."""
 
     def test_for_each_tenant_calls_job_per_active_tenant(self, app):
-        from services.tenant_job_runner import for_each_tenant
         from app.core.tenant.models import Tenant, TenantStatus
-        from app.extensions import db
+        from services.tenant_job_runner import for_each_tenant
 
         with app.app_context():
             # Ensure at least two active tenants exist using unique slugs
-            t1 = Tenant(slug=_unique_slug('tenant-a'), name='Tenant A', contact_email='a@example.com', status=TenantStatus.ACTIVE)
-            t2 = Tenant(slug=_unique_slug('tenant-b'), name='Tenant B', contact_email='b@example.com', status=TenantStatus.ACTIVE)
+            t1 = Tenant(
+                slug=_unique_slug('tenant-a'),
+                name='Tenant A',
+                contact_email='a@example.com',
+                status=TenantStatus.ACTIVE,
+            )
+            t2 = Tenant(
+                slug=_unique_slug('tenant-b'),
+                name='Tenant B',
+                contact_email='b@example.com',
+                status=TenantStatus.ACTIVE,
+            )
             db.session.add_all([t1, t2])
             db.session.commit()
 
@@ -34,13 +44,22 @@ class TestTenantJobRunner:
             assert t2.id in called_ids
 
     def test_for_each_tenant_skips_inactive_tenants(self, app):
-        from services.tenant_job_runner import for_each_tenant
         from app.core.tenant.models import Tenant, TenantStatus
-        from app.extensions import db
+        from services.tenant_job_runner import for_each_tenant
 
         with app.app_context():
-            active = Tenant(slug=_unique_slug('active-tenant'), name='Active', contact_email='active@example.com', status=TenantStatus.ACTIVE)
-            inactive = Tenant(slug=_unique_slug('inactive-tenant'), name='Inactive', contact_email='inactive@example.com', status=TenantStatus.SUSPENDED)
+            active = Tenant(
+                slug=_unique_slug('active-tenant'),
+                name='Active',
+                contact_email='active@example.com',
+                status=TenantStatus.ACTIVE,
+            )
+            inactive = Tenant(
+                slug=_unique_slug('inactive-tenant'),
+                name='Inactive',
+                contact_email='inactive@example.com',
+                status=TenantStatus.SUSPENDED,
+            )
             db.session.add_all([active, inactive])
             db.session.commit()
 
@@ -53,9 +72,9 @@ class TestTenantJobRunner:
 
     def test_with_tenant_context_binds_tenant_id(self, app):
         from flask import g
-        from services.tenant_job_runner import with_tenant_context
+
         from app.core.tenant.models import Tenant, TenantStatus
-        from app.extensions import db
+        from services.tenant_job_runner import with_tenant_context
 
         with app.app_context():
             tenant = Tenant(
@@ -68,7 +87,9 @@ class TestTenantJobRunner:
             db.session.commit()
 
             captured = {}
-            with_tenant_context(app, tenant.id, lambda: captured.update(tenant_id=g.get('tenant_id')))
+            with_tenant_context(
+                app, tenant.id, lambda: captured.update(tenant_id=g.get('tenant_id'))
+            )
             assert captured['tenant_id'] == tenant.id
 
 
@@ -77,12 +98,11 @@ class TestNotificationQueueTenantIsolation:
     """Notification queue processing must be scoped to a single tenant."""
 
     def test_process_notification_queue_filters_by_tenant(self, app, monkeypatch):
-        from services.notification_service import NotificationService
-        from models.notification import NotificationQueue
-        from models.user import User
         from app.core.tenant.models import Tenant
         from app.shared.enums import NotificationState
-        from app.extensions import db
+        from models.notification import NotificationQueue
+        from models.user import User
+        from services.notification_service import NotificationService
 
         with app.app_context(), app.test_request_context():
             from flask import g
@@ -90,17 +110,48 @@ class TestNotificationQueueTenantIsolation:
             g._tenant_filter_bypass = True
             # Create real tenants; production DB has FK and NOT NULL constraints
             # that the ORM model doesn't reflect.
-            t1 = Tenant(slug=_unique_slug('notif-t1'), name='Notif T1', contact_email='t1@example.com', status='ACTIVE')
-            t2 = Tenant(slug=_unique_slug('notif-t2'), name='Notif T2', contact_email='t2@example.com', status='ACTIVE')
+            t1 = Tenant(
+                slug=_unique_slug('notif-t1'),
+                name='Notif T1',
+                contact_email='t1@example.com',
+                status='ACTIVE',
+            )
+            t2 = Tenant(
+                slug=_unique_slug('notif-t2'),
+                name='Notif T2',
+                contact_email='t2@example.com',
+                status='ACTIVE',
+            )
             db.session.add_all([t1, t2])
             db.session.commit()
 
-            user = User(username='notif-dummy', email='notif@example.com', role='admin', password_hash='fakehash', full_name='Notif Dummy', tenant_id=t1.id)
+            user = User(
+                username='notif-dummy',
+                email='notif@example.com',
+                role='admin',
+                password_hash='fakehash',
+                full_name='Notif Dummy',
+                tenant_id=t1.id,
+            )
             db.session.add(user)
             db.session.commit()
 
-            n1 = NotificationQueue(tenant_id=t1.id, user_id=user.id, notification_type='email', recipient='a@example.com', content='A', status=NotificationState.PENDING)
-            n2 = NotificationQueue(tenant_id=t2.id, user_id=user.id, notification_type='email', recipient='b@example.com', content='B', status=NotificationState.PENDING)
+            n1 = NotificationQueue(
+                tenant_id=t1.id,
+                user_id=user.id,
+                notification_type='email',
+                recipient='a@example.com',
+                content='A',
+                status=NotificationState.PENDING,
+            )
+            n2 = NotificationQueue(
+                tenant_id=t2.id,
+                user_id=user.id,
+                notification_type='email',
+                recipient='b@example.com',
+                content='B',
+                status=NotificationState.PENDING,
+            )
             db.session.add_all([n1, n2])
             db.session.commit()
 
@@ -124,14 +175,14 @@ class TestAppointmentRemindersTenantIsolation:
     """Appointment reminder worker must be scoped to a single tenant."""
 
     def test_send_appointment_reminders_filters_by_tenant(self, app, monkeypatch):
-        from services.notification_service import NotificationService
+        from datetime import datetime, timedelta
+
+        from app.core.tenant.models import Tenant
+        from app.shared.enums import AppointmentState
         from models.appointment import Appointment
         from models.patient import Patient
         from models.user import User
-        from app.core.tenant.models import Tenant
-        from app.shared.enums import AppointmentState
-        from app.extensions import db
-        from datetime import datetime, timedelta
+        from services.notification_service import NotificationService
 
         with app.app_context(), app.test_request_context():
             from flask import g
@@ -141,22 +192,55 @@ class TestAppointmentRemindersTenantIsolation:
             soon = now + timedelta(hours=12)
 
             # Create real tenants so the service can resolve the tenant context
-            t1 = Tenant(slug=_unique_slug('appt-t1'), name='Appt T1', contact_email='t1@example.com', status='ACTIVE')
-            t2 = Tenant(slug=_unique_slug('appt-t2'), name='Appt T2', contact_email='t2@example.com', status='ACTIVE')
+            t1 = Tenant(
+                slug=_unique_slug('appt-t1'),
+                name='Appt T1',
+                contact_email='t1@example.com',
+                status='ACTIVE',
+            )
+            t2 = Tenant(
+                slug=_unique_slug('appt-t2'),
+                name='Appt T2',
+                contact_email='t2@example.com',
+                status='ACTIVE',
+            )
             db.session.add_all([t1, t2])
             db.session.commit()
             # Set g.tenant_id so get_tenant_record can verify ownership
             g.tenant_id = t1.id
             db.session.commit()
 
-            patient1 = Patient(tenant_id=t1.id, first_name='P1', last_name='Test', phone='0500000001')
-            patient2 = Patient(tenant_id=t2.id, first_name='P2', last_name='Test', phone='0500000002')
-            doctor = User(username='doc', email='doc@example.com', role='doctor', password_hash='fakehash', full_name='Dr. Test', tenant_id=t1.id)
+            patient1 = Patient(
+                tenant_id=t1.id, first_name='P1', last_name='Test', phone='0500000001'
+            )
+            patient2 = Patient(
+                tenant_id=t2.id, first_name='P2', last_name='Test', phone='0500000002'
+            )
+            doctor = User(
+                username='doc',
+                email='doc@example.com',
+                role='doctor',
+                password_hash='fakehash',
+                full_name='Dr. Test',
+                tenant_id=t1.id,
+            )
             db.session.add_all([patient1, patient2, doctor])
             db.session.commit()
 
-            a1 = Appointment(tenant_id=t1.id, patient_id=patient1.id, doctor_id=doctor.id, status=AppointmentState.SCHEDULED, starts_at=soon)
-            a2 = Appointment(tenant_id=t2.id, patient_id=patient2.id, doctor_id=doctor.id, status=AppointmentState.SCHEDULED, starts_at=soon)
+            a1 = Appointment(
+                tenant_id=t1.id,
+                patient_id=patient1.id,
+                doctor_id=doctor.id,
+                status=AppointmentState.SCHEDULED,
+                starts_at=soon,
+            )
+            a2 = Appointment(
+                tenant_id=t2.id,
+                patient_id=patient2.id,
+                doctor_id=doctor.id,
+                status=AppointmentState.SCHEDULED,
+                starts_at=soon,
+            )
             db.session.add_all([a1, a2])
             db.session.commit()
 

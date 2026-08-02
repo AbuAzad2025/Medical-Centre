@@ -3,13 +3,11 @@ SQLAlchemy 1.x Query Audit Script
 Scans the codebase for legacy Model.query / session.query() patterns
 and reports them for systematic refactoring to SQLAlchemy 2.0+ explicit syntax.
 """
+
 import os
-import sys
 import re
-import ast
+import sys
 from pathlib import Path
-from typing import List, Dict, Tuple
-from app.extensions import db
 
 # Force UTF-8 stdout on Windows to avoid UnicodeEncodeError
 if hasattr(sys.stdout, 'reconfigure'):
@@ -17,7 +15,11 @@ if hasattr(sys.stdout, 'reconfigure'):
 
 # Directories to scan (relative to project root)
 SCAN_DIRS = [
-    'models', 'routes', 'services', 'app', 'utils',
+    'models',
+    'routes',
+    'services',
+    'app',
+    'utils',
 ]
 
 # Patterns that indicate legacy SQLAlchemy 1.x usage
@@ -33,9 +35,9 @@ LEGACY_PATTERNS = [
 # Safe/allowed patterns (ORM event listeners, type hints, etc.)
 ALLOWED_PATTERNS = [
     r'__table__\.columns',  # metadata introspection
-    r'\.query\.get\(',       # some get() calls are acceptable in 2.0 compat mode
-    r'inspector\.get_',       # reflection API
-    r'text\(',               # raw text()
+    r'\.query\.get\(',  # some get() calls are acceptable in 2.0 compat mode
+    r'inspector\.get_',  # reflection API
+    r'text\(',  # raw text()
 ]
 
 
@@ -46,11 +48,11 @@ def _is_allowed_line(line: str) -> bool:
     return False
 
 
-def scan_file(filepath: Path) -> List[Dict]:
+def scan_file(filepath: Path) -> list[dict]:
     """Scan a single Python file for legacy query patterns."""
     findings = []
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding='utf-8') as f:
             lines = f.readlines()
     except Exception:
         return findings
@@ -63,19 +65,21 @@ def scan_file(filepath: Path) -> List[Dict]:
             continue
         for pattern, label in LEGACY_PATTERNS:
             if re.search(pattern, line):
-                findings.append({
-                    'file': str(filepath),
-                    'line': lineno,
-                    'code': stripped,
-                    'pattern': label,
-                })
+                findings.append(
+                    {
+                        'file': str(filepath),
+                        'line': lineno,
+                        'code': stripped,
+                        'pattern': label,
+                    }
+                )
                 break  # Only report first match per line
     return findings
 
 
 def main() -> int:
     root = Path(__file__).resolve().parent.parent.parent
-    all_findings: List[Dict] = []
+    all_findings: list[dict] = []
 
     for subdir in SCAN_DIRS:
         target = root / subdir
@@ -88,30 +92,30 @@ def main() -> int:
             all_findings.extend(findings)
 
     # Group by file
-    by_file: Dict[str, List[Dict]] = {}
+    by_file: dict[str, list[dict]] = {}
     for f in all_findings:
         by_file.setdefault(f['file'], []).append(f)
 
-    print("=" * 70)
-    print("SQLAlchemy 1.x Legacy Query Audit Report")
-    print("=" * 70)
-    print(f"Total legacy query occurrences found: {len(all_findings)}")
-    print(f"Files affected: {len(by_file)}")
+    print('=' * 70)
+    print('SQLAlchemy 1.x Legacy Query Audit Report')
+    print('=' * 70)
+    print(f'Total legacy query occurrences found: {len(all_findings)}')
+    print(f'Files affected: {len(by_file)}')
     print()
 
     if not all_findings:
-        print("[OK] No legacy SQLAlchemy 1.x query patterns detected.")
+        print('[OK] No legacy SQLAlchemy 1.x query patterns detected.')
         return 0
 
     for filepath, findings in sorted(by_file.items()):
         rel = os.path.relpath(filepath, root)
-        print(f"\n[FILE] {rel}  ({len(findings)} occurrence(s))")
+        print(f'\n[FILE] {rel}  ({len(findings)} occurrence(s))')
         for f in findings:
-            print(f"   L{f['line']:4d}  [{f['pattern']}]  {f['code'][:80]}")
+            print(f'   L{f["line"]:4d}  [{f["pattern"]}]  {f["code"][:80]}')
 
-    print("\n" + "=" * 70)
-    print("REFACTORING GUIDE (SQLAlchemy 2.0+)")
-    print("=" * 70)
+    print('\n' + '=' * 70)
+    print('REFACTORING GUIDE (SQLAlchemy 2.0+)')
+    print('=' * 70)
     print("""
 Legacy pattern:              Modern 2.0+ equivalent:
 ------------------------------------------------------------

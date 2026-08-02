@@ -1,67 +1,120 @@
 """
 PermissionService — unified DB-driven + fallback role-based permission checking
 """
+
 import logging
+
 from flask_login import current_user
+
 from app.extensions import db
 
 logger = logging.getLogger(__name__)
 
 # Fallback role-permission map (hardcoded only as graceful degradation)
 ROLE_PERMISSIONS = {
-    "super_admin": {"*"},  # wildcard
-    "admin": {
-        "user.*", "patient.*", "visit.*", "appointment.*",
-        "department.*", "report.*", "setting.*", "audit.*",
+    'super_admin': {'*'},  # wildcard
+    'admin': {
+        'user.*',
+        'patient.*',
+        'visit.*',
+        'appointment.*',
+        'department.*',
+        'report.*',
+        'setting.*',
+        'audit.*',
     },
-    "manager": {
-        "patient.read", "patient.update", "visit.read", "visit.update",
-        "report.read", "report.create", "financial.*",
+    'manager': {
+        'patient.read',
+        'patient.update',
+        'visit.read',
+        'visit.update',
+        'report.read',
+        'report.create',
+        'financial.*',
     },
-    "doctor": {
-        "patient.read", "visit.read", "visit.update", "prescription.*",
-        "lab_order.*", "radiology_order.*", "medical_record.*",
+    'doctor': {
+        'patient.read',
+        'visit.read',
+        'visit.update',
+        'prescription.*',
+        'lab_order.*',
+        'radiology_order.*',
+        'medical_record.*',
     },
-    "reception": {
-        "patient.*", "visit.*", "appointment.*", "payment.*",
-        "queue.*", "receipt.*",
+    'reception': {
+        'patient.*',
+        'visit.*',
+        'appointment.*',
+        'payment.*',
+        'queue.*',
+        'receipt.*',
     },
-    "lab": {
-        "lab_request.read", "lab_request.update", "lab_result.*",
-        "patient.read",
+    'lab': {
+        'lab_request.read',
+        'lab_request.update',
+        'lab_result.*',
+        'patient.read',
     },
-    "radiology": {
-        "radiology_request.read", "radiology_request.update", "radiology_result.*",
-        "patient.read",
+    'radiology': {
+        'radiology_request.read',
+        'radiology_request.update',
+        'radiology_result.*',
+        'patient.read',
     },
-    "pharmacist": {
-        "pharmacy.*", "prescription.read", "patient.read",
+    'pharmacist': {
+        'pharmacy.*',
+        'prescription.read',
+        'patient.read',
     },
-    "emergency": {
-        "emergency.*", "patient.read", "patient.update", "visit.*",
+    'emergency': {
+        'emergency.*',
+        'patient.read',
+        'patient.update',
+        'visit.*',
     },
-    "nurse": {
-        "patient.read", "patient.update", "nurse.*", "visit.read",
+    'nurse': {
+        'patient.read',
+        'patient.update',
+        'nurse.*',
+        'visit.read',
     },
-    "accountant": {
-        "financial.*", "invoice.*", "payment.*", "report.read",
+    'accountant': {
+        'financial.*',
+        'invoice.*',
+        'payment.*',
+        'report.read',
     },
-    "technician": {
-        "lab_request.read", "lab_request.update", "lab_result.*",
-        "radiology_request.read", "radiology_request.update", "radiology_result.*",
-        "patient.read",
+    'technician': {
+        'lab_request.read',
+        'lab_request.update',
+        'lab_result.*',
+        'radiology_request.read',
+        'radiology_request.update',
+        'radiology_result.*',
+        'patient.read',
     },
-    "receptionist": {
-        "patient.*", "visit.*", "appointment.*", "payment.*",
-        "queue.*", "receipt.*",
+    'receptionist': {
+        'patient.*',
+        'visit.*',
+        'appointment.*',
+        'payment.*',
+        'queue.*',
+        'receipt.*',
     },
-    "lab_tech": {
-        "lab_request.read", "lab_request.update", "lab_result.*",
-        "patient.read",
+    'lab_tech': {
+        'lab_request.read',
+        'lab_request.update',
+        'lab_result.*',
+        'patient.read',
     },
-    "owner": {
-        "patient.*", "visit.*", "report.*", "financial.*",
-        "setting.*", "user.*", "audit.*",
+    'owner': {
+        'patient.*',
+        'visit.*',
+        'report.*',
+        'financial.*',
+        'setting.*',
+        'user.*',
+        'audit.*',
     },
 }
 
@@ -76,39 +129,57 @@ class PermissionService:
 
     @staticmethod
     def has_permission(user, permission: str) -> bool:
-        if not user or not getattr(user, "is_authenticated", False):
+        if not user or not getattr(user, 'is_authenticated', False):
             return False
 
         # Wildcard super-admin
-        if getattr(user, "role", None) == "super_admin":
+        if getattr(user, 'role', None) == 'super_admin':
             return True
 
         # 1. Try DB-driven permissions
         try:
             from sqlalchemy import inspect, select
-            from models.permissions import Role, Permission as Perm, RolePermission
+
+            from models.permissions import Permission as Perm
+            from models.permissions import Role, RolePermission
 
             insp = inspect(db.engine)
-            if insp.has_table("roles") and insp.has_table("permissions"):
-                role = db.session.execute(select(Role).filter_by(name=user.role, is_active=True)).scalars().first()
+            if insp.has_table('roles') and insp.has_table('permissions'):
+                role = (
+                    db.session.execute(select(Role).filter_by(name=user.role, is_active=True))
+                    .scalars()
+                    .first()
+                )
                 if role:
-                    perm = db.session.execute(select(Perm).filter_by(name=permission, is_active=True)).scalars().first()
+                    perm = (
+                        db.session.execute(select(Perm).filter_by(name=permission, is_active=True))
+                        .scalars()
+                        .first()
+                    )
                     if perm:
-                        ok = db.session.execute(select(RolePermission).filter_by(role_id=role.id, permission_id=perm.id)).scalars().first()
+                        ok = (
+                            db.session.execute(
+                                select(RolePermission).filter_by(
+                                    role_id=role.id, permission_id=perm.id
+                                )
+                            )
+                            .scalars()
+                            .first()
+                        )
                         if ok:
                             return True
-        except Exception as e:
+        except Exception:
             pass
 
         # 2. Fallback role map
         role_perms = ROLE_PERMISSIONS.get(user.role, set())
-        if "*" in role_perms:
+        if '*' in role_perms:
             return True
         # Support wildcard segments: user.* matches user.read
         for rp in role_perms:
             if rp == permission:
                 return True
-            if rp.endswith(".*") and permission.startswith(rp[:-1]):
+            if rp.endswith('.*') and permission.startswith(rp[:-1]):
                 return True
         return False
 
@@ -116,6 +187,7 @@ class PermissionService:
     def require(permission: str):
         """Decorator factory — use @PermissionService.require('action.resource')"""
         from functools import wraps
+
         from flask import abort
 
         def decorator(f):
@@ -124,5 +196,7 @@ class PermissionService:
                 if not PermissionService.has_permission(current_user, permission):
                     abort(403)
                 return f(*args, **kwargs)
+
             return wrapper
+
         return decorator

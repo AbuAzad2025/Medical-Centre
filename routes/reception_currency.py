@@ -1,11 +1,13 @@
 """
 Reception Currency API — حفظ سعر الصرف اليدوي من المودال
 """
-from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
-from services.currency_service import CurrencyConverter
-from app_factory import db
+
 import logging
+
+from flask import Blueprint, jsonify, request
+from flask_login import current_user, login_required
+
+from services.currency_service import CurrencyConverter
 
 reception_currency_bp = Blueprint('reception_currency', __name__)
 
@@ -30,14 +32,16 @@ def save_manual_rate():
             buy_rate=float(rate),
             user_id=current_user.id,
         )
-        return jsonify({
-            'success': True,
-            'message': f'تم حفظ سعر الصرف {from_currency} → {to_currency}',
-            'rate_id': rate.id,
-            'sell_rate': float(rate.sell_rate)
-        })
+        return jsonify(
+            {
+                'success': True,
+                'message': f'تم حفظ سعر الصرف {from_currency} → {to_currency}',
+                'rate_id': rate.id,
+                'sell_rate': float(rate.sell_rate),
+            }
+        )
     except Exception as e:
-        logging.error(f"Error saving manual rate: {e}")
+        logging.exception(f'Error saving manual rate: {e}')
         return jsonify({'success': False, 'error': 'تعذر حفظ سعر الصرف'}), 500
 
 
@@ -48,9 +52,11 @@ def check_rate():
     from_currency = request.args.get('from', 'ILS').upper()
     to_currency = request.args.get('to', 'USD').upper()
     rate = CurrencyConverter.get_rate(from_currency, to_currency)
-    return jsonify({
-        'available': rate is not None,
-        'rate': float(rate) if rate else None,
-        'from_currency': from_currency,
-        'to_currency': to_currency,
-    })
+    return jsonify(
+        {
+            'available': rate is not None,
+            'rate': float(rate) if rate else None,
+            'from_currency': from_currency,
+            'to_currency': to_currency,
+        }
+    )

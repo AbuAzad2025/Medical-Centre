@@ -9,14 +9,20 @@ from models.payment import PaymentStatus as ModelPaymentStatus
 class TestPaymentEnumUnification:
     def test_payment_status_same_values(self):
         shared_values = {m.value for m in SharedPaymentStatus}
-        model_values = {getattr(ModelPaymentStatus, attr) for attr in dir(ModelPaymentStatus)
-                        if not attr.startswith('_') and not callable(getattr(ModelPaymentStatus, attr))}
+        model_values = {
+            getattr(ModelPaymentStatus, attr)
+            for attr in dir(ModelPaymentStatus)
+            if not attr.startswith('_') and not callable(getattr(ModelPaymentStatus, attr))
+        }
         assert shared_values == model_values
 
     def test_payment_method_same_values(self):
         shared_values = {m.value for m in SharedPaymentMethod}
-        model_values = {getattr(ModelPaymentMethod, attr) for attr in dir(ModelPaymentMethod)
-                        if not attr.startswith('_') and not callable(getattr(ModelPaymentMethod, attr))}
+        model_values = {
+            getattr(ModelPaymentMethod, attr)
+            for attr in dir(ModelPaymentMethod)
+            if not attr.startswith('_') and not callable(getattr(ModelPaymentMethod, attr))
+        }
         assert shared_values == model_values
 
     def test_status_values_include_confirmed_and_paid(self):

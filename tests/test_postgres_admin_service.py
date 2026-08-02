@@ -47,9 +47,13 @@ class TestDatabaseSize:
     def test_health_payload_postgresql(self):
         engine = MagicMock()
         engine.url = 'postgresql://localhost/medical'
-        with patch('services.postgres_admin_service.get_postgres_server_version', return_value='16.2'), \
-             patch('services.postgres_admin_service.get_database_size_bytes', return_value=2048), \
-             patch('services.postgres_admin_service.get_active_connection_count', return_value=3):
+        with (
+            patch(
+                'services.postgres_admin_service.get_postgres_server_version', return_value='16.2'
+            ),
+            patch('services.postgres_admin_service.get_database_size_bytes', return_value=2048),
+            patch('services.postgres_admin_service.get_active_connection_count', return_value=3),
+        ):
             health = get_database_health(engine)
         assert health['dialect'] == 'postgresql'
         assert health['healthy'] is True

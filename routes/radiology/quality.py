@@ -1,30 +1,30 @@
 """quality routes - extracted from monolithic radiology.py"""
 
-from routes.radiology import radiology_bp
+import logging
+from datetime import UTC, date, datetime
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app, g
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
-from models.radiology_request import RadiologyRequest
-from models.radiology_result import RadiologyResult
-from models.file_management import FileUpload
-from models.system_config import SystemConfig
-from app.shared.enums import OrderState, RadiologyResultStatus
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-import logging, json, os, base64, secrets
-from datetime import datetime, date, timezone, timedelta
-from io import BytesIO
+from flask import (
+    g,
+    jsonify,
+    render_template,
+    request,
+)
+from flask_login import current_user, login_required
 from sqlalchemy import select
 
+from app.extensions import db
+from app.shared.enums import OrderState, RadiologyResultStatus
+from models.radiology_request import RadiologyRequest
+from models.radiology_result import RadiologyResult
+from routes.radiology import radiology_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required
 
 # =============================================
 # QUALITY ROUTES
 # =============================================
+
 
 @radiology_bp.route('/quality')
 @login_required
@@ -33,74 +33,110 @@ def quality():
     start_raw = (request.args.get('start_date') or '').strip()
     end_raw = (request.args.get('end_date') or '').strip()
     try:
-        start_date = datetime.strptime(start_raw, '%Y-%m-%d').date() if start_raw else (date.today().replace(day=1))
-    except Exception as e:
+        start_date = (
+            datetime.strptime(start_raw, '%Y-%m-%d').date()
+            if start_raw
+            else (date.today().replace(day=1))
+        )
+    except Exception:
         start_date = date.today().replace(day=1)
     try:
         end_date = datetime.strptime(end_raw, '%Y-%m-%d').date() if end_raw else date.today()
-    except Exception as e:
+    except Exception:
         end_date = date.today()
 
-    start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
-    end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
+    start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=UTC)
+    end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=UTC)
 
     from sqlalchemy import func
-    total_done = db.session.scalar(
-        select(func.count()).select_from(RadiologyRequest)
-    )
+
+    total_done = db.session.scalar(select(func.count()).select_from(RadiologyRequest))
 
     try:
-        avg_tat_seconds = db.session.execute(select(
-            db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
-        ).filter(
-            RadiologyRequest.status == OrderState.DONE,
-            RadiologyRequest.updated_at >= start_dt,
-            RadiologyRequest.updated_at <= end_dt
-        )).scalar()
-    except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        avg_tat_seconds = db.session.execute(
+            select(
+                db.func.avg(
+                    db.func.extract('epoch', RadiologyRequest.updated_at)
+                    - db.func.extract('epoch', RadiologyRequest.created_at)
+                )
+            ).filter(
+                RadiologyRequest.status == OrderState.DONE,
+                RadiologyRequest.updated_at >= start_dt,
+                RadiologyRequest.updated_at <= end_dt,
+            )
+        ).scalar()
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
         avg_tat_seconds = None
     avg_tat_minutes = float(avg_tat_seconds or 0) / 60.0 if avg_tat_seconds is not None else 0.0
 
-    total_validated_results = db.session.execute(select(db.func.count(RadiologyResult.id)).join(
-        RadiologyRequest, RadiologyRequest.id == RadiologyResult.request_id
-    ).filter(
-        RadiologyRequest.status == OrderState.DONE,
-        RadiologyRequest.updated_at >= start_dt,
-        RadiologyRequest.updated_at <= end_dt,
-        RadiologyResult.status == RadiologyResultStatus.VALIDATED
-    )).scalar() or 0
+    total_validated_results = (
+        db.session.execute(
+            select(db.func.count(RadiologyResult.id))
+            .join(RadiologyRequest, RadiologyRequest.id == RadiologyResult.request_id)
+            .filter(
+                RadiologyRequest.status == OrderState.DONE,
+                RadiologyRequest.updated_at >= start_dt,
+                RadiologyRequest.updated_at <= end_dt,
+                RadiologyResult.status == RadiologyResultStatus.VALIDATED,
+            )
+        ).scalar()
+        or 0
+    )
 
-    critical_validated_results = db.session.execute(select(db.func.count(RadiologyResult.id)).join(
-        RadiologyRequest, RadiologyRequest.id == RadiologyResult.request_id
-    ).filter(
-        RadiologyRequest.status == OrderState.DONE,
-        RadiologyRequest.updated_at >= start_dt,
-        RadiologyRequest.updated_at <= end_dt,
-        RadiologyResult.status == RadiologyResultStatus.VALIDATED,
-        RadiologyResult.is_critical == True
-    )).scalar() or 0
+    critical_validated_results = (
+        db.session.execute(
+            select(db.func.count(RadiologyResult.id))
+            .join(RadiologyRequest, RadiologyRequest.id == RadiologyResult.request_id)
+            .filter(
+                RadiologyRequest.status == OrderState.DONE,
+                RadiologyRequest.updated_at >= start_dt,
+                RadiologyRequest.updated_at <= end_dt,
+                RadiologyResult.status == RadiologyResultStatus.VALIDATED,
+                RadiologyResult.is_critical == True,
+            )
+        ).scalar()
+        or 0
+    )
 
-    critical_ratio = (float(critical_validated_results) / float(total_validated_results)) if total_validated_results else 0.0
+    critical_ratio = (
+        (float(critical_validated_results) / float(total_validated_results))
+        if total_validated_results
+        else 0.0
+    )
 
     modality_rows = []
     try:
-        rows = db.session.execute(select(
-            db.func.upper(RadiologyRequest.modality).label('modality'),
-            db.func.count(RadiologyRequest.id).label('cnt'),
-            db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at)).label('avg_sec'),
-        ).filter(
-            RadiologyRequest.status == OrderState.DONE,
-            RadiologyRequest.updated_at >= start_dt,
-            RadiologyRequest.updated_at <= end_dt
-        ).group_by(db.func.upper(RadiologyRequest.modality)).order_by(db.func.count(RadiologyRequest.id).desc())).scalars().all()
+        rows = (
+            db.session.execute(
+                select(
+                    db.func.upper(RadiologyRequest.modality).label('modality'),
+                    db.func.count(RadiologyRequest.id).label('cnt'),
+                    db.func.avg(
+                        db.func.extract('epoch', RadiologyRequest.updated_at)
+                        - db.func.extract('epoch', RadiologyRequest.created_at)
+                    ).label('avg_sec'),
+                )
+                .filter(
+                    RadiologyRequest.status == OrderState.DONE,
+                    RadiologyRequest.updated_at >= start_dt,
+                    RadiologyRequest.updated_at <= end_dt,
+                )
+                .group_by(db.func.upper(RadiologyRequest.modality))
+                .order_by(db.func.count(RadiologyRequest.id).desc())
+            )
+            .scalars()
+            .all()
+        )
         for r in rows:
-            modality_rows.append({
-                'modality': (r.modality or 'N/A'),
-                'count': int(r.cnt or 0),
-                'avg_minutes': float(r.avg_sec or 0) / 60.0
-            })
-    except Exception as e:
+            modality_rows.append(
+                {
+                    'modality': (r.modality or 'N/A'),
+                    'count': int(r.cnt or 0),
+                    'avg_minutes': float(r.avg_sec or 0) / 60.0,
+                }
+            )
+    except Exception:
         modality_rows = []
 
     return render_template(
@@ -112,8 +148,9 @@ def quality():
         total_validated_results=int(total_validated_results),
         critical_validated_results=int(critical_validated_results),
         critical_ratio=critical_ratio,
-        modality_rows=modality_rows
+        modality_rows=modality_rows,
     )
+
 
 @radiology_bp.route('/api/ai-assist', methods=['POST'])
 @login_required
@@ -142,11 +179,11 @@ def api_ai_assist():
         payload = {
             'suggestions': suggestions,
             'disclaimer': 'مخرجات مساعدة وليست تشخيصاً نهائياً.',
-            'external_ref': pacs_url or (f"study:{study_uid}" if study_uid else None)
+            'external_ref': pacs_url or (f'study:{study_uid}' if study_uid else None),
         }
         return jsonify({'success': True, 'data': payload}), 200
     except Exception as e:
-        logging.error(f"Error generating radiology AI assist: {str(e)}")
+        logging.exception(f'Error generating radiology AI assist: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر توليد توصيات AI'}), 500
 
 
@@ -156,14 +193,23 @@ def api_ai_assist():
 def second_review_result(result_id):
     try:
         from models.radiology_result import RadiologyResult
-        res = db.session.execute(select(RadiologyResult).filter(RadiologyResult.id == result_id, RadiologyResult.tenant_id == g.tenant_id)).scalars().first()
+
+        res = (
+            db.session.execute(
+                select(RadiologyResult).filter(
+                    RadiologyResult.id == result_id, RadiologyResult.tenant_id == g.tenant_id
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not res:
             return jsonify({'success': False, 'message': 'النتيجة غير موجودة'}), 404
         res.reviewed_by = current_user.id
-        res.reviewed_at = datetime.now(timezone.utc)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        res.reviewed_at = datetime.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Second review radiology result error: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Second review radiology result error: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر حفظ المراجعة حالياً'}), 500

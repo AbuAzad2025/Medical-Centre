@@ -1,12 +1,13 @@
 """dashboard routes - extracted from monolithic manager.py"""
 
-from routes.manager import manager_bp
-
-from flask import flash, redirect, render_template, url_for
-from flask.typing import ResponseReturnValue
-from flask_login import login_required, current_user
-from utils.decorators import role_required
 import logging
+
+from flask import flash, render_template
+from flask.typing import ResponseReturnValue
+from flask_login import current_user, login_required
+
+from routes.manager import manager_bp
+from utils.decorators import role_required
 
 
 @manager_bp.route('/dashboard')
@@ -16,8 +17,9 @@ def dashboard() -> ResponseReturnValue:
     """لوحة تحكم المدير — Command Center"""
     try:
         from app.shared.dashboard_service import render_command_center
+
         return render_command_center(current_user, role='manager')
     except Exception as e:
-        logging.error(f"Error in manager dashboard: {str(e)}")
+        logging.exception(f'Error in manager dashboard: {e!s}')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return render_template('manager/dashboard.html', error=str(e))

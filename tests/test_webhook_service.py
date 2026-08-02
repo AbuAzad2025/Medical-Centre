@@ -1,8 +1,6 @@
 """Tests for services.webhook_service dispatch and signing."""
-import json
-from unittest.mock import MagicMock, patch
 
-import pytest
+from unittest.mock import MagicMock, patch
 
 import services.webhook_service as wh
 
@@ -21,7 +19,9 @@ class TestDispatchSingle:
         resp.__enter__ = MagicMock(return_value=resp)
         resp.__exit__ = MagicMock(return_value=False)
         with patch('services.webhook_service.urlopen', return_value=resp):
-            ok = wh._dispatch_single({'url': 'http://example.com/hook', 'secret': 's'}, 'tenant.created', {'id': 1})
+            ok = wh._dispatch_single(
+                {'url': 'http://example.com/hook', 'secret': 's'}, 'tenant.created', {'id': 1}
+            )
         assert ok is True
 
     def test_empty_url_returns_false(self):
@@ -38,9 +38,13 @@ class TestDispatchWebhook:
 
     def test_enqueues_matching_webhook(self, monkeypatch):
         items = []
-        monkeypatch.setattr(wh, '_load_webhooks', lambda: [
-            {'url': 'http://example.com/h', 'secret': 'k', 'events': 'tenant.created'},
-        ])
+        monkeypatch.setattr(
+            wh,
+            '_load_webhooks',
+            lambda: [
+                {'url': 'http://example.com/h', 'secret': 'k', 'events': 'tenant.created'},
+            ],
+        )
         fake_q = MagicMock()
         fake_q.put = items.append
         monkeypatch.setattr(wh, '_dispatch_queue', fake_q)
@@ -51,10 +55,14 @@ class TestDispatchWebhook:
 
     def test_filters_by_event_list(self, monkeypatch):
         items = []
-        monkeypatch.setattr(wh, '_load_webhooks', lambda: [
-            {'url': 'http://a', 'events': 'bundle.changed'},
-            {'url': 'http://b', 'events': 'tenant.created'},
-        ])
+        monkeypatch.setattr(
+            wh,
+            '_load_webhooks',
+            lambda: [
+                {'url': 'http://a', 'events': 'bundle.changed'},
+                {'url': 'http://b', 'events': 'tenant.created'},
+            ],
+        )
         fake_q = MagicMock()
         fake_q.put = items.append
         monkeypatch.setattr(wh, '_dispatch_queue', fake_q)

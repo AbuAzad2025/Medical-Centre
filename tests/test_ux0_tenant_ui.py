@@ -3,18 +3,18 @@
 import uuid
 
 import pytest
+from sqlalchemy import delete
 
 from app.extensions import db
 from models.user import User
-from sqlalchemy import select, delete
 
 
 @pytest.fixture(scope='function')
 def superadmin_user(app, test_tenant):
-    username = f"sa_test_{uuid.uuid4().hex[:8]}"
+    username = f'sa_test_{uuid.uuid4().hex[:8]}'
     u = User(
         username=username,
-        email=f"{username}@example.com",
+        email=f'{username}@example.com',
         full_name='Super Admin Test',
         role='super_admin',
         is_active=True,
@@ -26,8 +26,9 @@ def superadmin_user(app, test_tenant):
     yield u
     try:
         from models.audit_trail import LoginAttempt
+
         db.session.execute(delete(LoginAttempt).filter_by(user_id=u.id))
-    except Exception as e:
+    except Exception:
         db.session.rollback()
     db.session.delete(u)
     db.session.commit()

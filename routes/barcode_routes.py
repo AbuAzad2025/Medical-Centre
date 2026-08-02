@@ -1,14 +1,15 @@
 """
 Barcode / QR Code Tracking Routes
 """
+
+from flask import Blueprint, jsonify, render_template, request
+from flask_login import current_user, login_required
 from sqlalchemy import select
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
-from flask_login import login_required, current_user
-from utils.decorators import handle_route_errors, role_required
-from models.barcode_tracking import BarcodeRegistry, BarcodeScanLog
+
 from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from datetime import datetime, timezone
+from models.barcode_tracking import BarcodeRegistry, BarcodeScanLog
+from utils.db_safety import safe_commit
+from utils.decorators import handle_route_errors, role_required
 
 barcode_bp = Blueprint('barcode', __name__)
 
@@ -19,6 +20,7 @@ barcode_bp = Blueprint('barcode', __name__)
 @handle_route_errors
 def scan_page():
     return render_template('barcode/scan.html')
+
 
 @barcode_bp.route('/api/scan', methods=['POST'])
 @login_required
@@ -31,7 +33,13 @@ def api_scan():
     if not barcode_value:
         return jsonify({'success': False, 'message': 'Barcode required'})
 
-    registry = db.session.execute(select(BarcodeRegistry).filter_by(barcode_value=barcode_value, is_active=True)).scalars().first()
+    registry = (
+        db.session.execute(
+            select(BarcodeRegistry).filter_by(barcode_value=barcode_value, is_active=True)
+        )
+        .scalars()
+        .first()
+    )
     if not registry:
         # Log failed scan
         log = BarcodeScanLog(
@@ -40,10 +48,10 @@ def api_scan():
             scanned_by_id=current_user.id,
             verification_result='NOT_FOUND',
             verification_message='Barcode not found in registry',
-            ip_address=request.remote_addr
+            ip_address=request.remote_addr,
         )
         db.session.add(log)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': False, 'message': 'Barcode not found'})
 
     # Log successful scan
@@ -52,18 +60,21 @@ def api_scan():
         scan_action=action,
         scanned_by_id=current_user.id,
         verification_result='SUCCESS',
-        ip_address=request.remote_addr
+        ip_address=request.remote_addr,
     )
     db.session.add(log)
     registry.print_count += 1
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
 
-    return jsonify({
-        'success': True,
-        'entity_type': registry.entity_type,
-        'entity_id': registry.entity_id,
-        'barcode': registry.barcode_value
-    })
+    return jsonify(
+        {
+            'success': True,
+            'entity_type': registry.entity_type,
+            'entity_id': registry.entity_id,
+            'barcode': registry.barcode_value,
+        }
+    )
+
 
 @barcode_bp.route('/registry')
 @login_required

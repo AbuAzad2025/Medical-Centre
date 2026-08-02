@@ -1,12 +1,13 @@
 """
 PDF Report Printer — A4 medical reports with Arabic support
 """
-from app.extensions import db
+
 import logging
 import os
+from datetime import UTC, date, datetime
 from io import BytesIO
-from typing import Optional
-from datetime import datetime, timezone, date
+
+from app.extensions import db
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +26,12 @@ class PDFReportPrinter:
         try:
             from reportlab.pdfbase import pdfmetrics
             from reportlab.pdfbase.ttfonts import TTFont
+
             if os.path.exists(_FONT_PATH):
                 pdfmetrics.registerFont(TTFont(_FONT_NAME, _FONT_PATH))
                 self._font_registered = True
         except Exception as e:
-            logger.warning("Could not register Arabic font: %s", e)
+            logger.warning('Could not register Arabic font: %s', e)
 
     def _arabic(self, text: str) -> str:
         if not text or not self._font_registered:
@@ -37,18 +39,27 @@ class PDFReportPrinter:
         try:
             import arabic_reshaper
             from bidi.algorithm import get_display
+
             reshaped = arabic_reshaper.reshape(text)
             return get_display(reshaped)
-        except Exception as e:
+        except Exception:
             return text
 
     def _draw_header(self, c, width, title: str, subtitle: str = '', logo_path: str = ''):
         from reportlab.lib.units import mm
+
         y_top = 297 * mm - 15 * mm
         if logo_path and os.path.exists(logo_path):
             try:
-                c.drawImage(logo_path, 15 * mm, y_top - 15 * mm, width=20 * mm, height=20 * mm, preserveAspectRatio=True)
-            except Exception as e:
+                c.drawImage(
+                    logo_path,
+                    15 * mm,
+                    y_top - 15 * mm,
+                    width=20 * mm,
+                    height=20 * mm,
+                    preserveAspectRatio=True,
+                )
+            except Exception:
                 pass
         c.setFont(_FONT_NAME if self._font_registered else 'Helvetica-Bold', 16)
         c.drawString(40 * mm if not logo_path else 42 * mm, y_top, self._arabic(title))
@@ -59,29 +70,37 @@ class PDFReportPrinter:
 
     def _draw_patient_info(self, c, x, y, patient, request=None):
         from reportlab.lib.units import mm
+
         c.setFont(_FONT_NAME if self._font_registered else 'Helvetica-Bold', 10)
         c.drawString(x, y, self._arabic('معلومات المريض:'))
         y -= 5 * mm
         c.setFont(_FONT_NAME if self._font_registered else 'Helvetica', 9)
         lines = []
         p = patient
-        lines.append(f"الاسم: {getattr(p, 'full_name', '') or getattr(p, 'first_name_ar', '') or getattr(p, 'first_name', '')}")
+        lines.append(
+            f'الاسم: {getattr(p, "full_name", "") or getattr(p, "first_name_ar", "") or getattr(p, "first_name", "")}'
+        )
         if hasattr(p, 'birth_date') and p.birth_date:
             b = p.birth_date
             if isinstance(b, str):
                 from datetime import datetime as dt
+
                 b = dt.strptime(b, '%Y-%m-%d').date()
-            age = date.today().year - b.year - ((date.today().month, date.today().day) < (b.month, b.day))
-            lines.append(f"العمر: {age} سنة")
+            age = (
+                date.today().year
+                - b.year
+                - ((date.today().month, date.today().day) < (b.month, b.day))
+            )
+            lines.append(f'العمر: {age} سنة')
         if hasattr(p, 'gender') and p.gender:
             g = 'ذكر' if str(p.gender).lower() in ('male', 'm', 'ذكر') else 'أنثى'
-            lines.append(f"الجنس: {g}")
+            lines.append(f'الجنس: {g}')
         if hasattr(p, 'id_number') and p.id_number:
-            lines.append(f"رقم الهوية: {p.id_number}")
+            lines.append(f'رقم الهوية: {p.id_number}')
         elif hasattr(p, 'national_id') and p.national_id:
-            lines.append(f"رقم الهوية: {p.national_id}")
+            lines.append(f'رقم الهوية: {p.national_id}')
         if hasattr(p, 'phone') and p.phone:
-            lines.append(f"الهاتف: {p.phone}")
+            lines.append(f'الهاتف: {p.phone}')
         col_x = x
         for line in lines:
             c.drawString(col_x, y, self._arabic(line))
@@ -94,15 +113,15 @@ class PDFReportPrinter:
             c.setFont(_FONT_NAME if self._font_registered else 'Helvetica-Bold', 9)
             req_lines = []
             if hasattr(request, 'request_number') and request.request_number:
-                req_lines.append(f"رقم الطلب: {request.request_number}")
+                req_lines.append(f'رقم الطلب: {request.request_number}')
             elif hasattr(request, 'id'):
-                req_lines.append(f"رقم الطلب: #{request.id}")
+                req_lines.append(f'رقم الطلب: #{request.id}')
             if hasattr(request, 'created_at') and request.created_at:
                 ts = request.created_at
                 if hasattr(ts, 'strftime'):
-                    req_lines.append(f"التاريخ: {ts.strftime('%Y-%m-%d')}")
+                    req_lines.append(f'التاريخ: {ts.strftime("%Y-%m-%d")}')
             if hasattr(request, 'status') and request.status:
-                req_lines.append(f"الحالة: {request.status}")
+                req_lines.append(f'الحالة: {request.status}')
             col_x = x
             for line in req_lines:
                 c.drawString(col_x, y, self._arabic(line))
@@ -111,6 +130,7 @@ class PDFReportPrinter:
 
     def _draw_lab_results(self, c, x, y, results, width):
         from reportlab.lib.units import mm
+
         c.setFont(_FONT_NAME if self._font_registered else 'Helvetica-Bold', 10)
         c.drawString(x, y, self._arabic('نتائج التحاليل:'))
         y -= 6 * mm
@@ -147,6 +167,7 @@ class PDFReportPrinter:
 
     def _draw_radiology_section(self, c, x, y, label: str, text: str):
         from reportlab.lib.units import mm
+
         if not text:
             return y
         c.setFont(_FONT_NAME if self._font_registered else 'Helvetica-Bold', 10)
@@ -154,6 +175,7 @@ class PDFReportPrinter:
         y -= 5 * mm
         c.setFont(_FONT_NAME if self._font_registered else 'Helvetica', 9)
         import textwrap
+
         max_chars = 90
         wrapped = textwrap.wrap(text, width=max_chars)
         for line in wrapped:
@@ -166,20 +188,24 @@ class PDFReportPrinter:
 
     def _draw_qr(self, c, x, y, data: str, size=20):
         from reportlab.lib.units import mm
+
         try:
-            import qrcode
             from io import BytesIO as _Bio
+
+            import qrcode
+
             img = qrcode.make(data)
             buf = _Bio()
             img.save(buf, format='PNG')
             buf.seek(0)
             c.drawImage(buf, x, y - size * mm, width=size * mm, height=size * mm)
-        except Exception as e:
+        except Exception:
             pass
 
     def _draw_footer(self, c, width, y_pos=None):
         from reportlab.lib.units import mm
-        ts = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+
+        ts = datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')
         c.setFont(_FONT_NAME if self._font_registered else 'Helvetica', 7)
         text = self._arabic(f'تم الإنشاء: {ts}')
         c.drawString(15 * mm, 10 * mm, text)
@@ -192,16 +218,18 @@ class PDFReportPrinter:
             from reportlab.lib.units import mm
             from reportlab.pdfgen import canvas
         except ImportError:
-            return b"%PDF-1.4 placeholder"
+            return b'%PDF-1.4 placeholder'
         width, height = A4
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
         y = self._initial_y(c, width, height, 'تقرير نتائج التحاليل', lab_request)
-        y = self._draw_patient_info(c, 15 * mm, y, getattr(lab_request, 'patient', None), lab_request)
+        y = self._draw_patient_info(
+            c, 15 * mm, y, getattr(lab_request, 'patient', None), lab_request
+        )
         y = self._draw_lab_results(c, 15 * mm, y, getattr(lab_request, 'results', []) or [], width)
         if getattr(lab_request, 'notes', ''):
             y = self._draw_radiology_section(c, 15 * mm, y, 'ملاحظات', lab_request.notes)
-        payload = f"LAB|{lab_request.id}|{getattr(lab_request, 'patient_id', '')}|{getattr(lab_request, 'created_at', '')}"
+        payload = f'LAB|{lab_request.id}|{getattr(lab_request, "patient_id", "")}|{getattr(lab_request, "created_at", "")}'
         self._draw_qr(c, width - 30 * mm, y, payload)
         self._draw_footer(c, width)
         c.save()
@@ -214,7 +242,7 @@ class PDFReportPrinter:
             from reportlab.lib.units import mm
             from reportlab.pdfgen import canvas
         except ImportError:
-            return b"%PDF-1.4 placeholder"
+            return b'%PDF-1.4 placeholder'
         width, height = A4
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
@@ -224,19 +252,25 @@ class PDFReportPrinter:
         if req:
             modality_text = ''
             if getattr(req, 'modality', ''):
-                modality_text += f"نوع الفحص: {req.modality}"
+                modality_text += f'نوع الفحص: {req.modality}'
             if getattr(req, 'body_part', ''):
                 if modality_text:
                     modality_text += ' | '
-                modality_text += f"المنطقة: {req.body_part}"
+                modality_text += f'المنطقة: {req.body_part}'
             if modality_text:
                 c.setFont(_FONT_NAME if self._font_registered else 'Helvetica', 9)
                 c.drawString(15 * mm, y, self._arabic(modality_text))
                 y -= 6 * mm
-        y = self._draw_radiology_section(c, 15 * mm, y, 'النتائج', getattr(radiology_result, 'findings', ''))
-        y = self._draw_radiology_section(c, 15 * mm, y, 'الانطباع', getattr(radiology_result, 'impression', ''))
-        y = self._draw_radiology_section(c, 15 * mm, y, 'التوصيات', getattr(radiology_result, 'notes', ''))
-        payload = f"RAD|{radiology_result.id}|{getattr(radiology_result, 'patient_id', '')}|{getattr(radiology_result, 'created_at', '')}"
+        y = self._draw_radiology_section(
+            c, 15 * mm, y, 'النتائج', getattr(radiology_result, 'findings', '')
+        )
+        y = self._draw_radiology_section(
+            c, 15 * mm, y, 'الانطباع', getattr(radiology_result, 'impression', '')
+        )
+        y = self._draw_radiology_section(
+            c, 15 * mm, y, 'التوصيات', getattr(radiology_result, 'notes', '')
+        )
+        payload = f'RAD|{radiology_result.id}|{getattr(radiology_result, "patient_id", "")}|{getattr(radiology_result, "created_at", "")}'
         self._draw_qr(c, width - 30 * mm, y, payload)
         self._draw_footer(c, width)
         c.save()
@@ -245,16 +279,18 @@ class PDFReportPrinter:
 
     def _initial_y(self, c, width, height, title: str, request_obj=None):
         from reportlab.lib.units import mm
+
         tenant_name = ''
         tenant_logo = ''
         if request_obj and hasattr(request_obj, 'tenant_id') and request_obj.tenant_id:
             try:
                 from app.core.tenant.models import Tenant
+
                 t = db.session.get(Tenant, request_obj.tenant_id)
                 if t:
                     tenant_name = t.name or t.name_ar or ''
                     tenant_logo = t.logo_url or ''
-            except Exception as e:
+            except Exception:
                 pass
         self._draw_header(c, width, title, tenant_name, tenant_logo)
         return 297 * mm - 32 * mm
@@ -265,8 +301,8 @@ class PDFReportPrinter:
             from reportlab.lib.units import mm
             from reportlab.pdfgen import canvas
         except ImportError:
-            logger.warning("reportlab not installed; returning empty PDF placeholder")
-            return b"%PDF-1.4 placeholder"
+            logger.warning('reportlab not installed; returning empty PDF placeholder')
+            return b'%PDF-1.4 placeholder'
 
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
@@ -277,16 +313,16 @@ class PDFReportPrinter:
         c.setFont(_FONT_NAME if self._font_registered else 'Helvetica', 10)
         y = height - 30 * mm
         for k, v in patient_info.items():
-            c.drawString(20 * mm, y, f"{k}: {self._arabic(str(v))}")
+            c.drawString(20 * mm, y, f'{k}: {self._arabic(str(v))}')
             y -= 5 * mm
 
         for section in sections:
             y -= 5 * mm
             c.setFont(_FONT_NAME if self._font_registered else 'Helvetica-Bold', 12)
-            c.drawString(20 * mm, y, self._arabic(section.get("heading", "")))
+            c.drawString(20 * mm, y, self._arabic(section.get('heading', '')))
             y -= 5 * mm
             c.setFont(_FONT_NAME if self._font_registered else 'Helvetica', 10)
-            for line in section.get("lines", []):
+            for line in section.get('lines', []):
                 c.drawString(25 * mm, y, self._arabic(line))
                 y -= 4 * mm
                 if y < 30 * mm:

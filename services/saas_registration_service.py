@@ -1,4 +1,5 @@
 """Automated SaaS self-service tenant registration (S0 provisioning loop)."""
+
 from __future__ import annotations
 
 import json
@@ -7,20 +8,24 @@ import os
 import re
 import urllib.parse
 import urllib.request
+from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Iterator, Optional, Tuple
+from datetime import UTC, datetime, timedelta
 
 from flask import g, has_request_context, request
+from sqlalchemy import select
 
-from app.extensions import db
-from utils.db_safety import safe_commit
 from app.core.saas.lifecycle import ProvisioningError, TenantProvisioningService
-from app.core.saas.models import PackageVersion, PackageVersionAvailability, PackageVersionAvailabilityStatus
-from app.core.tenant.models import Tenant, PlatformAuditLog
+from app.core.saas.models import (
+    PackageVersion,
+    PackageVersionAvailability,
+    PackageVersionAvailabilityStatus,
+)
+from app.core.tenant.models import PlatformAuditLog, Tenant
+from app.extensions import db
 from app.shared.enums import TenantStatus
 from models.user import User
-from sqlalchemy import select
+from utils.db_safety import safe_commit
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +43,7 @@ class SaasRegistrationError(ValueError):
 class RegistrationResult:
     tenant: Tenant
     admin: User
-    checkout_url: Optional[str] = None
+    checkout_url: str | None = None
 
     def __iter__(self) -> Iterator:
         yield self.tenant
@@ -77,10 +82,12 @@ class SaasRegistrationService:
             return
         if not token or not str(token).strip():
             raise SaasRegistrationError('captcha_required')
-        payload = urllib.parse.urlencode({
-            'secret': secret,
-            'response': token.strip(),
-        }).encode()
+        payload = urllib.parse.urlencode(
+            {
+                'secret': secret,
+                'response': token.strip(),
+            }
+        ).encode()
         req = urllib.request.Request(
             'https://challenges.cloudflare.com/turnstile/v0/siteverify',
             data=payload,
@@ -97,23 +104,30 @@ class SaasRegistrationService:
 
     @classmethod
     def _check_signup_flood(cls, email: str, client_ip: str | None) -> None:
-        hour_ago = datetime.now(timezone.utc) - _SIGNUP_FLOOD_WINDOW
+        hour_ago = datetime.now(UTC) - _SIGNUP_FLOOD_WINDOW
         email_norm = (email or '').strip().lower()
 
         pending_recent = cls._with_tenant_bypass(
-            lambda: db.session.execute(select(Tenant).filter(
-                Tenant.status == TenantStatus.PENDING,
-                Tenant.created_at >= hour_ago,
-            )).scalars().all()
+            lambda: (
+                db.session.execute(
+                    select(Tenant).filter(
+                        Tenant.status == TenantStatus.PENDING,
+                        Tenant.created_at >= hour_ago,
+                    )
+                )
+                .scalars()
+                .all()
+            )
         )
-        email_count = sum(1 for t in pending_recent if (t.contact_email or '').lower() == email_norm)
+        email_count = sum(
+            1 for t in pending_recent if (t.contact_email or '').lower() == email_norm
+        )
         if email_count >= _SIGNUP_FLOOD_EMAIL_LIMIT:
             raise SaasRegistrationError('signup_flood_email')
 
         if client_ip:
             ip_count = sum(
-                1 for t in pending_recent
-                if (t.settings or {}).get('signup_ip') == client_ip
+                1 for t in pending_recent if (t.settings or {}).get('signup_ip') == client_ip
             )
             if ip_count >= _SIGNUP_FLOOD_IP_LIMIT:
                 raise SaasRegistrationError('signup_flood_ip')
@@ -133,18 +147,34 @@ class SaasRegistrationService:
         if env_val:
             return int(env_val)
 
-        row = db.session.execute(select(PackageVersion).join(PackageVersionAvailability)
-            .filter(PackageVersionAvailability.availability_status == PackageVersionAvailabilityStatus.AVAILABLE)
-            .order_by(PackageVersion.id.asc())).scalars().first()
+        row = (
+            db.session.execute(
+                select(PackageVersion)
+                .join(PackageVersionAvailability)
+                .filter(
+                    PackageVersionAvailability.availability_status
+                    == PackageVersionAvailabilityStatus.AVAILABLE
+                )
+                .order_by(PackageVersion.id.asc())
+            )
+            .scalars()
+            .first()
+        )
         if not row:
             raise SaasRegistrationError('no_default_package')
         return row.id
 
     @classmethod
     def _payment_required_at_signup(cls, package_version_id: int) -> bool:
-        if os.environ.get('SAAS_REQUIRE_PAYMENT_AT_SIGNUP', '').strip().lower() in ('1', 'true', 'yes'):
+        if os.environ.get('SAAS_REQUIRE_PAYMENT_AT_SIGNUP', '').strip().lower() in (
+            '1',
+            'true',
+            'yes',
+        ):
             return True
-        version = db.session.get(PackageVersion, package_version_id)  # global reference table - no tenant scope
+        version = db.session.get(
+            PackageVersion, package_version_id
+        )  # global reference table - no tenant scope
         if version is None:
             return False
         return not (version.trial_days and version.trial_days > 0)
@@ -155,7 +185,7 @@ class SaasRegistrationService:
         tenant: Tenant,
         package_version_id: int,
         billing_type: str,
-    ) -> Optional[str]:
+    ) -> str | None:
         if not os.environ.get('STRIPE_SECRET_KEY', '').strip():
             return None
         try:
@@ -164,6 +194,7 @@ class SaasRegistrationService:
             base = os.environ.get('SAAS_CHECKOUT_BASE_URL', '').strip().rstrip('/')
             if not base and has_request_context():
                 from flask import request
+
                 base = request.host_url.rstrip('/')
             if not base:
                 base = 'http://localhost:5000'
@@ -189,9 +220,9 @@ class SaasRegistrationService:
         admin_username: str,
         admin_password: str,
         admin_full_name: str,
-        package_version_id: Optional[int] = None,
+        package_version_id: int | None = None,
         billing_type: str = 'monthly',
-        product_profile_code: Optional[str] = None,
+        product_profile_code: str | None = None,
         honeypot: str | None = None,
         captcha_token: str | None = None,
         client_ip: str | None = None,
@@ -227,7 +258,7 @@ class SaasRegistrationService:
             tenant.settings = {**(tenant.settings or {}), 'signup_ip': client_ip}
             db.session.add(tenant)
 
-        checkout_url: Optional[str] = None
+        checkout_url: str | None = None
         if payment_required:
             tenant.status = TenantStatus.PENDING
             db.session.add(tenant)
@@ -235,9 +266,17 @@ class SaasRegistrationService:
             checkout_url = cls._maybe_create_checkout(tenant, pkg_id, billing_type)
 
         def _check_user_uniqueness_within_tenant():
-            if db.session.execute(select(User).filter_by(username=username, tenant_id=tenant.id)).scalars().first():
+            if (
+                db.session.execute(select(User).filter_by(username=username, tenant_id=tenant.id))
+                .scalars()
+                .first()
+            ):
                 raise SaasRegistrationError('username_taken')
-            if db.session.execute(select(User).filter_by(email=email, tenant_id=tenant.id)).scalars().first():
+            if (
+                db.session.execute(select(User).filter_by(email=email, tenant_id=tenant.id))
+                .scalars()
+                .first()
+            ):
                 raise SaasRegistrationError('email_taken')
 
         cls._with_tenant_bypass(_check_user_uniqueness_within_tenant)
@@ -252,35 +291,43 @@ class SaasRegistrationService:
         )
         admin.set_password(admin_password)
         db.session.add(admin)
-        safe_commit(db.session, error_message="Failed to save admin user", reraise=True)
+        safe_commit(db.session, error_message='Failed to save admin user', reraise=True)
 
         # Ticket 10: platform audit trail for tenant creation
         try:
             ip = client_ip or (request.remote_addr if has_request_context() else None)
             ua = request.headers.get('User-Agent') if has_request_context() else None
-        except Exception as e:
+        except Exception:
             ip = None
             ua = None
-        db.session.add(PlatformAuditLog(
-            action='SAAS_SIGNUP',
-            entity_type='tenant',
-            entity_id=tenant.id,
-            details=json.dumps({
-                'slug': slug,
-                'name': name.strip(),
-                'admin_username': username,
-                'admin_role': cls.DEFAULT_ADMIN_ROLE,
-                'pending_payment': payment_required,
-                'package_version_id': pkg_id,
-                'billing_type': billing_type,
-            }, ensure_ascii=False),
-            ip_address=ip,
-            user_agent=ua,
-        ))
-        safe_commit(db.session, error_message="Failed to save audit log", reraise=True)
+        db.session.add(
+            PlatformAuditLog(
+                action='SAAS_SIGNUP',
+                entity_type='tenant',
+                entity_id=tenant.id,
+                details=json.dumps(
+                    {
+                        'slug': slug,
+                        'name': name.strip(),
+                        'admin_username': username,
+                        'admin_role': cls.DEFAULT_ADMIN_ROLE,
+                        'pending_payment': payment_required,
+                        'package_version_id': pkg_id,
+                        'billing_type': billing_type,
+                    },
+                    ensure_ascii=False,
+                ),
+                ip_address=ip,
+                user_agent=ua,
+            )
+        )
+        safe_commit(db.session, error_message='Failed to save audit log', reraise=True)
 
         logger.info(
             'SaaS registration complete tenant_id=%s slug=%s admin=%s pending_payment=%s',
-            tenant.id, slug, username, payment_required,
+            tenant.id,
+            slug,
+            username,
+            payment_required,
         )
         return RegistrationResult(tenant=tenant, admin=admin, checkout_url=checkout_url)

@@ -1,15 +1,15 @@
 """Tests for P1-001: VisitStateMachineService lifecycle contract."""
 
 import pytest
+from sqlalchemy import select
 
-from app_factory import db as _db
+from app.extensions import db
 from app.shared.enums import VisitState
+from app_factory import db as _db
 from models.patient import Patient
 from models.user import User
 from models.visit import Visit
 from services.visit_state_machine_service import VisitStateMachineService, set_vsm_authorized
-from sqlalchemy import select
-from app.extensions import db
 
 
 def _set_visit_status(visit, status):
@@ -107,15 +107,18 @@ class TestVisitStateMachineService:
         _set_visit_status(sm_visit, 'UNKNOWN')
         assert VisitStateMachineService.get_status(sm_visit) is None
 
-    @pytest.mark.parametrize('start,target,ok', [
-        (VisitState.OPEN, VisitState.CHECKED_IN, True),
-        (VisitState.OPEN, VisitState.CANCELLED, True),
-        (VisitState.CHECKED_IN, VisitState.IN_PROGRESS, True),
-        (VisitState.IN_PROGRESS, VisitState.COMPLETED, True),
-        (VisitState.IN_PROGRESS, VisitState.CHECKED_IN, True),
-        (VisitState.COMPLETED, VisitState.OPEN, True),
-        (VisitState.CANCELLED, VisitState.OPEN, False),
-    ])
+    @pytest.mark.parametrize(
+        'start,target,ok',
+        [
+            (VisitState.OPEN, VisitState.CHECKED_IN, True),
+            (VisitState.OPEN, VisitState.CANCELLED, True),
+            (VisitState.CHECKED_IN, VisitState.IN_PROGRESS, True),
+            (VisitState.IN_PROGRESS, VisitState.COMPLETED, True),
+            (VisitState.IN_PROGRESS, VisitState.CHECKED_IN, True),
+            (VisitState.COMPLETED, VisitState.OPEN, True),
+            (VisitState.CANCELLED, VisitState.OPEN, False),
+        ],
+    )
     def test_transition_matrix(self, sm_visit, start, target, ok):
         _set_visit_status(sm_visit, start)
         assert VisitStateMachineService.can_transition(sm_visit, target) is ok

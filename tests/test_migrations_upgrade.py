@@ -16,7 +16,8 @@ def test_migration_utils_callable():
     assert callable(column_exists)
     assert callable(index_exists)
     assert callable(fk_exists)
-    from migrations.migration_utils import enable_tenant_rls, disable_tenant_rls
+    from migrations.migration_utils import disable_tenant_rls, enable_tenant_rls
+
     assert callable(enable_tenant_rls)
     assert callable(disable_tenant_rls)
 
@@ -38,7 +39,8 @@ def test_alembic_single_head(app):
     )
     assert result.returncode == 0, result.stderr
     head_lines = [
-        ln.strip() for ln in result.stdout.splitlines()
+        ln.strip()
+        for ln in result.stdout.splitlines()
         if ln.strip() and ('(head)' in ln or ALEMBIC_HEAD_REVISION in ln)
     ]
     assert len(head_lines) == 1

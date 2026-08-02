@@ -1,10 +1,11 @@
 """Operational expense tracking for finance and manager dashboards."""
-from datetime import date, datetime, timezone
+
+from datetime import UTC, date, datetime
 
 from sqlalchemy import Index
 
-from app_factory import db
 from app.shared.mixins import TenantMixin
+from app_factory import db
 
 
 class Expense(TenantMixin, db.Model):
@@ -16,19 +17,27 @@ class Expense(TenantMixin, db.Model):
     amount = db.Column(db.Numeric(12, 2), nullable=False)
     description = db.Column(db.Text, nullable=True)
     recorded_by_id = db.Column(
-        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True,
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='SET NULL'),
+        nullable=True,
+        index=True,
     )
     expense_date = db.Column(db.Date, nullable=False, index=True, default=date.today)
     status = db.Column(db.String(20), default='RECORDED', nullable=False, index=True)
-    approved_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    approved_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True
+    )
 
     created_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True,
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        nullable=False,
+        index=True,
     )
     updated_at = db.Column(
         db.DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
         nullable=False,
     )
 

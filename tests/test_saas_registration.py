@@ -1,10 +1,11 @@
 """SaaS self-service registration integration tests."""
 
 import uuid
+from datetime import UTC, datetime
 
 import pytest
+from sqlalchemy import func, select
 
-from app.extensions import db
 from app.core.saas.models import (
     Package,
     PackageVersion,
@@ -14,11 +15,10 @@ from app.core.saas.models import (
     PackageVersionPricing,
 )
 from app.core.tenant.models import Tenant
-from datetime import datetime, timezone
+from app.extensions import db
 from models.user import User
 from services.saas_registration_service import SaasRegistrationError, SaasRegistrationService
 from tests.tenant_context import tenant_test_context
-from sqlalchemy import select, func
 
 
 def _seed_package_version():
@@ -34,27 +34,33 @@ def _seed_package_version():
         package_id=pkg.id,
         version='1.0.0',
         trial_days=7,
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
     )
     db.session.add(version)
     db.session.flush()
-    db.session.add(PackageVersionPricing(
-        package_version_id=version.id,
-        billing_type='monthly',
-        price=100,
-        setup_fee=0,
-        currency='SAR',
-    ))
-    db.session.add(PackageVersionEntitlement(
-        package_version_id=version.id,
-        module_name='reception',
-        capability_key='reception.access',
-    ))
-    db.session.add(PackageVersionAvailability(
-        package_version_id=version.id,
-        availability_status=PackageVersionAvailabilityStatus.AVAILABLE,
-        effective_from=datetime.now(timezone.utc),
-    ))
+    db.session.add(
+        PackageVersionPricing(
+            package_version_id=version.id,
+            billing_type='monthly',
+            price=100,
+            setup_fee=0,
+            currency='SAR',
+        )
+    )
+    db.session.add(
+        PackageVersionEntitlement(
+            package_version_id=version.id,
+            module_name='reception',
+            capability_key='reception.access',
+        )
+    )
+    db.session.add(
+        PackageVersionAvailability(
+            package_version_id=version.id,
+            availability_status=PackageVersionAvailabilityStatus.AVAILABLE,
+            effective_from=datetime.now(UTC),
+        )
+    )
     db.session.commit()
     return version
 
@@ -77,7 +83,12 @@ class TestSaasRegistrationService:
         assert admin.tenant_id == tenant.id
         assert admin.role == 'manager'
         with tenant_test_context(app, tenant):
-            assert db.session.execute(select(func.count()).select_from(User).filter_by(tenant_id=tenant.id)).scalar() == 1
+            assert (
+                db.session.execute(
+                    select(func.count()).select_from(User).filter_by(tenant_id=tenant.id)
+                ).scalar()
+                == 1
+            )
 
     def test_duplicate_slug_rejected(self, app):
         version = _seed_package_version()
@@ -108,19 +119,27 @@ class TestSaasRegistrationRoute:
     def test_public_register_endpoint(self, client, app):
         version = _seed_package_version()
         slug = f'api-{uuid.uuid4().hex[:6]}'
-        resp = client.post('/api/saas/register', json={
-            'slug': slug,
-            'name': 'مركز صحي',
-            'contact_email': f'{slug}@clinic.test',
-            'admin_username': f'owner_{slug}',
-            'admin_password': 'securepass1',
-            'admin_full_name': 'المالك',
-            'package_version_id': version.id,
-        })
+        resp = client.post(
+            '/api/saas/register',
+            json={
+                'slug': slug,
+                'name': 'مركز صحي',
+                'contact_email': f'{slug}@clinic.test',
+                'admin_username': f'owner_{slug}',
+                'admin_password': 'securepass1',
+                'admin_full_name': 'المالك',
+                'package_version_id': version.id,
+            },
+        )
         assert resp.status_code == 201
         body = resp.get_json()
         assert body['tenant']['slug'] == slug
         tenant = db.session.execute(select(Tenant).filter_by(slug=slug)).scalars().first()
         assert tenant is not None
         with tenant_test_context(app, tenant):
-            assert db.session.execute(select(func.count()).select_from(User).filter_by(tenant_id=tenant.id)).scalar() == 1
+            assert (
+                db.session.execute(
+                    select(func.count()).select_from(User).filter_by(tenant_id=tenant.id)
+                ).scalar()
+                == 1
+            )

@@ -1,10 +1,11 @@
 """Tests for S0-004 limit enforcement and LegacyEntitlementAdapter."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
+from sqlalchemy import select
 
-from app.extensions import db
+from app.core.module.models import TenantModule
 from app.core.saas.exceptions import EntitlementDeniedError
 from app.core.saas.legacy_adapter import LegacyEntitlementAdapter
 from app.core.saas.models import (
@@ -19,15 +20,14 @@ from app.core.saas.models import (
 )
 from app.core.saas.resolver import EntitlementResolver
 from app.core.tenant.models import ProductBundle, Tenant, TenantStatus, get_bundle_for_profile
-from app.core.module.models import TenantModule
+from app.extensions import db
 from tests.tenant_context import tenant_test_context
-from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
 def limit_tenant(app):
     t = Tenant(
-        slug=f"lim-{datetime.now(timezone.utc).timestamp()}",
+        slug=f'lim-{datetime.now(UTC).timestamp()}',
         name='Limit Tenant',
         contact_email='lim@test.local',
         status=TenantStatus.ACTIVE,
@@ -47,7 +47,11 @@ class TestLegacyAdapter:
         # CI does not seed ProductBundles. 'doctor_clinic_full' is the profile
         # of the limit_tenant fixture; the legacy adapter resolves the
         # tenant's own bundle through get_bundle_for_profile().
-        bundle = db.session.execute(select(ProductBundle).filter_by(profile_code='standalone_clinic')).scalars().first()
+        bundle = (
+            db.session.execute(select(ProductBundle).filter_by(profile_code='standalone_clinic'))
+            .scalars()
+            .first()
+        )
         if bundle is None:
             bundle = ProductBundle(
                 name='Standalone Clinic',
@@ -71,6 +75,7 @@ class TestLegacyAdapter:
         mods = bundle.get_modules()
         assert mods, 'bundle must expose at least one module'
         from app.core.module.registry import MODULE_REGISTRY
+
         cap = MODULE_REGISTRY[mods[0]].capabilities[0]
         assert LegacyEntitlementAdapter.is_entitled(limit_tenant, cap) is True
 
@@ -90,13 +95,20 @@ class TestEntitlementResolverLimits:
         pkg = Package(name='LimPkg', slug=f'lim-{tenant_id}', category='bundle', is_active=True)
         db.session.add(pkg)
         db.session.flush()
-        ver = PackageVersion(package_id=pkg.id, version='1.0.0', published_at=datetime.now(timezone.utc))
+        ver = PackageVersion(package_id=pkg.id, version='1.0.0', published_at=datetime.now(UTC))
         db.session.add(ver)
         db.session.flush()
-        db.session.add(PackageVersionLimit(package_version_id=ver.id, limit_key='max_users', limit_value=2))
-        db.session.add(PackageVersionLimit(package_version_id=ver.id, limit_key='max_patients', limit_value=5))
-        db.session.add(PackageVersionEntitlement(
-            package_version_id=ver.id, module_name='lab', capability_key='lab.order'))
+        db.session.add(
+            PackageVersionLimit(package_version_id=ver.id, limit_key='max_users', limit_value=2)
+        )
+        db.session.add(
+            PackageVersionLimit(package_version_id=ver.id, limit_key='max_patients', limit_value=5)
+        )
+        db.session.add(
+            PackageVersionEntitlement(
+                package_version_id=ver.id, module_name='lab', capability_key='lab.order'
+            )
+        )
         line = SubscriptionLine(
             tenant_id=tenant_id,
             package_version_id=ver.id,
@@ -104,7 +116,7 @@ class TestEntitlementResolverLimits:
             status=SubscriptionLineStatus.ACTIVE,
             billing_type='monthly',
             unit_price=100,
-            effective_from=datetime.now(timezone.utc) - timedelta(days=1),
+            effective_from=datetime.now(UTC) - timedelta(days=1),
         )
         db.session.add(line)
         db.session.commit()
@@ -137,9 +149,9 @@ class TestEntitlementResolverLimits:
             tenant_id=limit_tenant.id,
             capability_key='lab.order',
             module_name='lab',
-            effective_from=datetime.now(timezone.utc) - timedelta(hours=1),
+            effective_from=datetime.now(UTC) - timedelta(hours=1),
             is_effective=True,
-            calculated_at=datetime.now(timezone.utc),
+            calculated_at=datetime.now(UTC),
             calculation_version=1,
         )
         db.session.add(te)

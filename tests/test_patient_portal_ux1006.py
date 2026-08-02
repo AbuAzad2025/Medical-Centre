@@ -3,13 +3,13 @@
 import uuid
 
 import pytest
+from sqlalchemy import select
 
+from app.extensions import db
 from app_factory import db as _db
 from models.patient import Patient
 from models.patient_account import PatientAccount
 from models.user import User
-from sqlalchemy import select
-from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -42,7 +42,9 @@ def portal_user(app, test_tenant, portal_patient):
     u.set_password('test123')
     _db.session.add(u)
     _db.session.flush()
-    _db.session.add(PatientAccount(user_id=u.id, patient_id=portal_patient.id, tenant_id=test_tenant.id))
+    _db.session.add(
+        PatientAccount(user_id=u.id, patient_id=portal_patient.id, tenant_id=test_tenant.id)
+    )
     _db.session.commit()
     return u
 
@@ -67,24 +69,32 @@ def unlinked_portal_user(app, test_tenant):
 @pytest.fixture(scope='function')
 def portal_auth_client(app, client, portal_user, test_tenant):
     from app.core.rate_limiter import _shared_store
+
     _shared_store.clear()
-    client.post('/auth/login', data={
-        'username': portal_user.username,
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    })
+    client.post(
+        '/auth/login',
+        data={
+            'username': portal_user.username,
+            'password': 'test123',
+            'tenant_slug': test_tenant.slug,
+        },
+    )
     return client
 
 
 @pytest.fixture(scope='function')
 def unlinked_auth_client(app, client, unlinked_portal_user, test_tenant):
     from app.core.rate_limiter import _shared_store
+
     _shared_store.clear()
-    client.post('/auth/login', data={
-        'username': unlinked_portal_user.username,
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    })
+    client.post(
+        '/auth/login',
+        data={
+            'username': unlinked_portal_user.username,
+            'password': 'test123',
+            'tenant_slug': test_tenant.slug,
+        },
+    )
     return client
 
 
@@ -93,9 +103,9 @@ class TestPublicLanding:
         resp = client.get('/')
         assert resp.status_code == 200
         # B2B Gateway: Check for new action buttons instead of "Book Appointment"
-        assert 'تسجيل الدخول للعيادة/الصيدلية'.encode('utf-8') in resp.data
-        assert 'طلب اشتراك/حساب جديد'.encode('utf-8') in resp.data
-        assert 'لوحة المالك/المشرف'.encode('utf-8') in resp.data
+        assert 'تسجيل الدخول للعيادة/الصيدلية'.encode() in resp.data
+        assert 'طلب اشتراك/حساب جديد'.encode() in resp.data
+        assert 'لوحة المالك/المشرف'.encode() in resp.data
 
     def test_public_booking_index(self, client):
         resp = client.get('/booking/')
@@ -106,15 +116,25 @@ class TestPatientPortalIdentity:
     def test_unlinked_user_sees_link_form(self, unlinked_auth_client):
         resp = unlinked_auth_client.get('/portal/link-account')
         assert resp.status_code == 200
-        assert 'التحقق من هوية'.encode('utf-8') in resp.data
+        assert 'التحقق من هوية'.encode() in resp.data
 
-    def test_link_account_by_national_id(self, unlinked_auth_client, portal_patient, unlinked_portal_user):
-        resp = unlinked_auth_client.post('/portal/link-account', data={
-            'national_id': portal_patient.national_id,
-            'phone': portal_patient.phone,
-        }, follow_redirects=True)
+    def test_link_account_by_national_id(
+        self, unlinked_auth_client, portal_patient, unlinked_portal_user
+    ):
+        resp = unlinked_auth_client.post(
+            '/portal/link-account',
+            data={
+                'national_id': portal_patient.national_id,
+                'phone': portal_patient.phone,
+            },
+            follow_redirects=True,
+        )
         assert resp.status_code == 200
-        link = db.session.execute(select(PatientAccount).filter_by(user_id=unlinked_portal_user.id)).scalars().first()
+        link = (
+            db.session.execute(select(PatientAccount).filter_by(user_id=unlinked_portal_user.id))
+            .scalars()
+            .first()
+        )
         assert link is not None
         assert link.patient_id == portal_patient.id
 
@@ -129,14 +149,22 @@ class TestPatientPortalFeatures:
         assert resp.status_code == 200
 
     def test_settings_save_preferences(self, portal_auth_client, portal_user):
-        resp = portal_auth_client.post('/portal/settings', data={
-            'notify_results': '1',
-            'notify_appointments': '1',
-            'marketing_contact': '0',
-            'telemedicine_consent': '1',
-        }, follow_redirects=True)
+        resp = portal_auth_client.post(
+            '/portal/settings',
+            data={
+                'notify_results': '1',
+                'notify_appointments': '1',
+                'marketing_contact': '0',
+                'telemedicine_consent': '1',
+            },
+            follow_redirects=True,
+        )
         assert resp.status_code == 200
-        link = db.session.execute(select(PatientAccount).filter_by(user_id=portal_user.id)).scalars().first()
+        link = (
+            db.session.execute(select(PatientAccount).filter_by(user_id=portal_user.id))
+            .scalars()
+            .first()
+        )
         prefs = link.portal_preferences or {}
         assert prefs.get('telemedicine_consent') is True
         assert prefs.get('marketing_contact') is False

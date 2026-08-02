@@ -16,6 +16,7 @@ from app_factory import db
 
 class TenantContextError(PermissionError):
     """Raised when a record is missing or belongs to another tenant."""
+
     pass
 
 
@@ -24,7 +25,7 @@ def get_tenant_record(
     record_id: int,
     tenant_id: int | None = None,
     *,
-    error_message: str = "Unauthorized tenant context",
+    error_message: str = 'Unauthorized tenant context',
 ) -> DeclarativeMeta:
     """
     Fetch a single record by primary key and enforce tenant ownership.
@@ -43,7 +44,7 @@ def get_tenant_record(
         TenantContextError: If the record does not exist or does not belong to
             the active tenant context.
     """
-    context_tenant_id = getattr(g, "tenant_id", None)
+    context_tenant_id = getattr(g, 'tenant_id', None)
 
     # Ticket 3: g.tenant_id is authoritative for ordinary tenant-scoped requests.
     # An explicit tenant_id parameter must match g.tenant_id; if it conflicts
@@ -60,7 +61,7 @@ def get_tenant_record(
 
     # If the model supports tenant scoping but no tenant context is available,
     # fail closed rather than returning a cross-tenant record.
-    if resolved_tenant_id is None and hasattr(model, "tenant_id"):
+    if resolved_tenant_id is None and hasattr(model, 'tenant_id'):
         raise TenantContextError(error_message)
 
     # Always fetch via db.session.get first so test monkeypatches and
@@ -72,8 +73,8 @@ def get_tenant_record(
 
     # If a tenant context is active and the model supports tenant scoping,
     # enforce ownership.
-    if resolved_tenant_id is not None and hasattr(model, "tenant_id"):
-        if getattr(record, "tenant_id", None) != resolved_tenant_id:
+    if resolved_tenant_id is not None and hasattr(model, 'tenant_id'):
+        if getattr(record, 'tenant_id', None) != resolved_tenant_id:
             raise TenantContextError(error_message)
 
     return record
@@ -86,8 +87,8 @@ def tenant_filter(model: type[DeclarativeMeta], tenant_id: int | None = None):
     Useful when the caller needs to apply additional filters beyond a simple
     primary-key lookup.
     """
-    resolved_tenant_id = tenant_id if tenant_id is not None else getattr(g, "tenant_id", None)
+    resolved_tenant_id = tenant_id if tenant_id is not None else getattr(g, 'tenant_id', None)
     q = model.query
-    if resolved_tenant_id is not None and hasattr(model, "tenant_id"):
+    if resolved_tenant_id is not None and hasattr(model, 'tenant_id'):
         q = q.filter(model.tenant_id == resolved_tenant_id)
     return q

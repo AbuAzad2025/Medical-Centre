@@ -1,19 +1,24 @@
-from datetime import datetime, timezone, date
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from app.shared.mixins import TenantMixin
 import logging
+from datetime import UTC, datetime
+
 from sqlalchemy import select
+
+from app.extensions import db
+from app.shared.mixins import TenantMixin
+from utils.db_safety import safe_commit, safe_rollback
 
 
 class Budget(TenantMixin, db.Model):
     """نموذج الميزانية الشهرية - Budget vs Actual"""
+
     __tablename__ = 'budgets'
 
     id = db.Column(db.Integer, primary_key=True)
     year = db.Column(db.Integer, nullable=False)
     month = db.Column(db.Integer, nullable=False)
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
+    department_id = db.Column(
+        db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     # Budget targets
     revenue_target = db.Column(db.Numeric(14, 2), default=0)
@@ -24,11 +29,15 @@ class Budget(TenantMixin, db.Model):
     # Notes
     notes = db.Column(db.Text, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
     created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
 
-    __table_args__ = (db.UniqueConstraint('year', 'month', 'department_id', name='uq_budget_month_dept'),)
+    __table_args__ = (
+        db.UniqueConstraint('year', 'month', 'department_id', name='uq_budget_month_dept'),
+    )
 
     def to_dict(self):
         return {
@@ -40,19 +49,25 @@ class Budget(TenantMixin, db.Model):
             'visits_target': self.visits_target or 0,
             'new_patients_target': self.new_patients_target or 0,
             'expenses_target': float(self.expenses_target or 0),
-            'notes': self.notes
+            'notes': self.notes,
         }
 
     @classmethod
     def get_or_create(cls, year, month, department_id=None, user_id=None):
         try:
-            b = db.session.execute(select(cls).filter_by(year=year, month=month, department_id=department_id)).scalars().first()
+            b = (
+                db.session.execute(
+                    select(cls).filter_by(year=year, month=month, department_id=department_id)
+                )
+                .scalars()
+                .first()
+            )
             if not b:
                 b = cls(year=year, month=month, department_id=department_id, created_by=user_id)
                 db.session.add(b)
-                safe_commit(db.session, error_message="database commit failed", reraise=True)
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
             return b
-        except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error(f"Budget.get_or_create failed for year={year} month={month}")
+        except Exception:
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception(f'Budget.get_or_create failed for year={year} month={month}')
             raise

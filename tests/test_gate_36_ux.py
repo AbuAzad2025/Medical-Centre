@@ -5,10 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
-from app.shared.user_messages import resolve_user_message, user_message
 from sqlalchemy import select
+
 from app.extensions import db
+from app.shared.user_messages import resolve_user_message, user_message
 
 REPO = Path(__file__).resolve().parents[1]
 DOCTOR_JS = REPO / 'static' / 'js' / 'pages' / 'doctor'
@@ -42,9 +42,8 @@ class TestUserMessageJinjaFilter:
     def test_filter_in_template(self, app):
         with app.app_context():
             from flask import render_template_string
-            html = render_template_string(
-                "{{ 'pos_connection_failed' | user_message }}"
-            )
+
+            html = render_template_string("{{ 'pos_connection_failed' | user_message }}")
         assert 'الاتصال' in html
         assert 'pos_connection' not in html
 
@@ -53,6 +52,7 @@ class TestEmptyStateMacro:
     def test_renders_title_and_action(self, app):
         with app.app_context():
             from flask import render_template_string
+
             html = render_template_string(
                 "{% from 'partials/_empty_state.html' import empty_state %}"
                 "{{ empty_state(title='لا مرضى بالانتظار', action_url='/q', action_label='تحديث') }}"
@@ -70,16 +70,19 @@ class TestApiFeedbackGlobal:
 
 
 class TestDoctorJsNoRawAlert:
-    @pytest.mark.parametrize('filename', [
-        'notes.js',
-        'visit_summary.js',
-        'dental_chart.js',
-        'dashboard.js',
-        'diagnosis.js',
-        'patient_details.js',
-        'prescription.js',
-        'patient_queue.js',
-    ])
+    @pytest.mark.parametrize(
+        'filename',
+        [
+            'notes.js',
+            'visit_summary.js',
+            'dental_chart.js',
+            'dashboard.js',
+            'diagnosis.js',
+            'patient_details.js',
+            'prescription.js',
+            'patient_queue.js',
+        ],
+    )
     def test_no_window_alert_in_doctor_pages(self, filename):
         path = DOCTOR_JS / filename
         if not path.exists():
@@ -111,11 +114,14 @@ class TestDoctorPatientQueueEmptyState:
             _db.session.add(u)
             _db.session.commit()
 
-        client.post('/auth/login', data={
-            'username': 'doctor_g36',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
+        client.post(
+            '/auth/login',
+            data={
+                'username': 'doctor_g36',
+                'password': 'test123',
+                'tenant_slug': test_tenant.slug,
+            },
+        )
         return client
 
     def test_queue_page_uses_empty_state_macro(self, doctor_client):

@@ -1,16 +1,23 @@
 """
 Tenant subscription self-service — UX0-004 / UX0-005
 """
-from sqlalchemy import select
+
 from datetime import date
 
-from flask import render_template, request, flash, redirect, url_for
-from flask_login import login_required, current_user
+from flask import flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import select
 
-from app.extensions import db
 from app.core.saas.lifecycle import TenantProvisioningService
-from app.core.saas.models import Package, PackageVersion, SubscriptionLine, SubscriptionLineStatus, SubscriptionLineType
+from app.core.saas.models import (
+    Package,
+    PackageVersion,
+    SubscriptionLine,
+    SubscriptionLineStatus,
+    SubscriptionLineType,
+)
 from app.core.tenant.models import Tenant
+from app.extensions import db
 from utils.decorators import super_admin_required
 
 from . import super_admin_bp
@@ -21,15 +28,22 @@ def _current_tenant() -> Tenant:
 
 
 def _active_base_line(tenant: Tenant) -> SubscriptionLine | None:
-    return db.session.execute(select(SubscriptionLine).filter_by(
-            tenant_id=tenant.id,
-            line_type=SubscriptionLineType.BASE,
-            status=SubscriptionLineStatus.ACTIVE,
+    return (
+        db.session.execute(
+            select(SubscriptionLine)
+            .filter_by(
+                tenant_id=tenant.id,
+                line_type=SubscriptionLineType.BASE,
+                status=SubscriptionLineStatus.ACTIVE,
+            )
+            .order_by(SubscriptionLine.effective_from.desc())
         )
-        .order_by(SubscriptionLine.effective_from.desc())).scalars().first()
+        .scalars()
+        .first()
+    )
 
 
-@super_admin_bp.route("/subscription-status")
+@super_admin_bp.route('/subscription-status')
 @login_required
 @super_admin_required
 def subscription_status():
@@ -38,20 +52,18 @@ def subscription_status():
     base_line = _active_base_line(tenant)
 
     status_label = tenant.status.value
-    status_class = "secondary"
-    if tenant.status.value in ("active", "trial"):
-        status_class = "success"
-    elif tenant.status.value == "suspended":
-        status_class = "warning"
-    elif tenant.status.value in ("expired", "cancelled"):
-        status_class = "danger"
+    status_class = 'secondary'
+    if tenant.status.value in ('active', 'trial'):
+        status_class = 'success'
+    elif tenant.status.value == 'suspended':
+        status_class = 'warning'
+    elif tenant.status.value in ('expired', 'cancelled'):
+        status_class = 'danger'
 
-    in_grace = bool(
-        tenant.grace_period_end and date.today() <= tenant.grace_period_end
-    )
+    in_grace = bool(tenant.grace_period_end and date.today() <= tenant.grace_period_end)
 
     return render_template(
-        "tenant/subscription_status.html",
+        'tenant/subscription_status.html',
         tenant=tenant,
         base_line=base_line,
         status_label=status_label,
@@ -60,7 +72,7 @@ def subscription_status():
     )
 
 
-@super_admin_bp.route("/change-plan", methods=["GET", "POST"])
+@super_admin_bp.route('/change-plan', methods=['GET', 'POST'])
 @login_required
 @super_admin_required
 def change_plan():
@@ -68,23 +80,23 @@ def change_plan():
     tenant = _current_tenant()
     base_line = _active_base_line(tenant)
 
-    if request.method == "POST":
-        version_id = request.form.get("package_version_id", type=int)
-        action = request.form.get("action", "upgrade").strip()
-        billing_type = request.form.get("billing_type", "monthly").strip()
+    if request.method == 'POST':
+        version_id = request.form.get('package_version_id', type=int)
+        action = request.form.get('action', 'upgrade').strip()
+        billing_type = request.form.get('billing_type', 'monthly').strip()
         if not version_id:
-            flash("يجب اختيار خطة", "error")
-            return redirect(url_for("super_admin.change_plan"))
+            flash('يجب اختيار خطة', 'error')
+            return redirect(url_for('super_admin.change_plan'))
 
         try:
-            if action == "downgrade":
+            if action == 'downgrade':
                 TenantProvisioningService.downgrade_tenant(
                     tenant.id,
                     version_id,
                     billing_type,
                     performed_by_user_id=current_user.id,
                 )
-                flash("تم تخفيض الخطة بنجاح", "success")
+                flash('تم تخفيض الخطة بنجاح', 'success')
             else:
                 TenantProvisioningService.upgrade_tenant(
                     tenant.id,
@@ -92,18 +104,25 @@ def change_plan():
                     billing_type,
                     performed_by_user_id=current_user.id,
                 )
-                flash("تم ترقية الخطة بنجاح", "success")
+                flash('تم ترقية الخطة بنجاح', 'success')
         except Exception as e:
-            flash(f"فشل تغيير الخطة: {e}", "error")
-        return redirect(url_for("super_admin.change_plan"))
+            flash(f'فشل تغيير الخطة: {e}', 'error')
+        return redirect(url_for('super_admin.change_plan'))
 
-    available = db.session.execute(select(PackageVersion).join(PackageVersion.package)
-        .filter(Package.is_active == True)
-        .filter(PackageVersion.is_deprecated == False)
-        .order_by(Package.name, PackageVersion.version)).scalars().all()
+    available = (
+        db.session.execute(
+            select(PackageVersion)
+            .join(PackageVersion.package)
+            .filter(Package.is_active == True)
+            .filter(PackageVersion.is_deprecated == False)
+            .order_by(Package.name, PackageVersion.version)
+        )
+        .scalars()
+        .all()
+    )
 
     return render_template(
-        "tenant/change_plan.html",
+        'tenant/change_plan.html',
         tenant=tenant,
         base_line=base_line,
         available_versions=available,

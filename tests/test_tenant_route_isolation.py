@@ -9,20 +9,21 @@ import json
 import uuid
 
 import pytest
-
-from app_factory import db as _db
-from app.shared.enums import ProductProfile
-from models.lab_test_catalog import LabTestCatalog, LabTestPanel
-from models.medication import Medication, PharmacySale, Supplier, MedicationPurchase
-from models.user import User
-from app.core.tenant.models import Tenant
 from sqlalchemy import select
+
+from app.core.tenant.models import Tenant
 from app.extensions import db
+from app.shared.enums import ProductProfile
+from app_factory import db as _db
+from models.lab_test_catalog import LabTestCatalog, LabTestPanel
+from models.medication import Medication, MedicationPurchase, PharmacySale, Supplier
+from models.user import User
 
 
 @pytest.fixture(scope='function')
 def tenant_a(app):
     from flask import g
+
     prev = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
@@ -39,13 +40,20 @@ def tenant_a(app):
             _db.session.commit()
         # Ensure pharmacy/medication modules are active (idempotent across test runs)
         from app.core.module.models import TenantModule
+
         for mn in ('pharmacy', 'medication', 'lab'):
             try:
-                existing = db.session.execute(select(TenantModule).filter_by(tenant_id=t.id, module_name=mn)).scalars().first()
+                existing = (
+                    db.session.execute(
+                        select(TenantModule).filter_by(tenant_id=t.id, module_name=mn)
+                    )
+                    .scalars()
+                    .first()
+                )
                 if not existing:
                     _db.session.add(TenantModule(tenant_id=t.id, module_name=mn, is_active=True))
                     _db.session.flush()
-            except Exception as e:
+            except Exception:
                 _db.session.rollback()
         _db.session.commit()
     finally:
@@ -59,6 +67,7 @@ def tenant_a(app):
 @pytest.fixture(scope='function')
 def tenant_b(app):
     from flask import g
+
     prev = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
@@ -74,13 +83,20 @@ def tenant_b(app):
             _db.session.add(t)
             _db.session.commit()
         from app.core.module.models import TenantModule
+
         for mn in ('pharmacy', 'medication', 'lab'):
             try:
-                existing = db.session.execute(select(TenantModule).filter_by(tenant_id=t.id, module_name=mn)).scalars().first()
+                existing = (
+                    db.session.execute(
+                        select(TenantModule).filter_by(tenant_id=t.id, module_name=mn)
+                    )
+                    .scalars()
+                    .first()
+                )
                 if not existing:
                     _db.session.add(TenantModule(tenant_id=t.id, module_name=mn, is_active=True))
                     _db.session.flush()
-            except Exception as e:
+            except Exception:
                 _db.session.rollback()
         _db.session.commit()
     finally:
@@ -95,13 +111,18 @@ def tenant_b(app):
 def manager_a(app, tenant_a):
     """Create a unique manager user per test to avoid duplicate-key errors."""
     from flask import g
+
     uid_suffix = uuid.uuid4().hex[:8]
     username = f'manager_a_{uid_suffix}'
     email = f'ma_{uid_suffix}@example.com'
     prev = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        u = db.session.execute(select(User).filter_by(username=username, tenant_id=tenant_a.id)).scalars().first()
+        u = (
+            db.session.execute(select(User).filter_by(username=username, tenant_id=tenant_a.id))
+            .scalars()
+            .first()
+        )
         if not u:
             u = User(
                 username=username,
@@ -125,12 +146,16 @@ def manager_a(app, tenant_a):
 @pytest.fixture(scope='function')
 def client_a(app, client, manager_a, tenant_a):
     from app.core.rate_limiter import _shared_store
+
     _shared_store.clear()
-    resp = client.post('/auth/login', data={
-        'username': manager_a.username,
-        'password': 'test123',
-        'tenant_slug': tenant_a.slug,
-    })
+    resp = client.post(
+        '/auth/login',
+        data={
+            'username': manager_a.username,
+            'password': 'test123',
+            'tenant_slug': tenant_a.slug,
+        },
+    )
     with client.session_transaction() as sess:
         sess['_user_id'] = str(manager_a.id)
         sess['tenant_id'] = int(tenant_a.id)

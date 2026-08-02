@@ -1,44 +1,38 @@
 """Patient management routes - extracted from monolithic reception.py"""
 
 # Import blueprint (absolute import avoids parent package requirement)
-from routes.reception import reception_bp, _wants_json
+import logging
 
 # Imports
- 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from flask_login import login_required, current_user
-from sqlalchemy import func, select
-from datetime import datetime, timezone
-from models.user import User, StaffWorkSchedule, StaffAbsence
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_login import login_required
+from sqlalchemy import select
+
+from app.extensions import db
+from models.appointment import Appointment
+from models.department import Department
 from models.patient import Patient
 from models.visit import Visit
-from models.appointment import Appointment
-from models.follow_up import FollowUpRequest
-from models.online_booking import OnlineBooking
-from models.department import Department
-from models.payment import Payment, PaymentMethod, PaymentStatus
-from models.queue_management import QueueManagement
-from models.patient_satisfaction import PatientSatisfactionSurvey
-from services.gatekeeper_service import GatekeeperService
-from services.reception_service import reception_service
-from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
-from app.extensions import db
+from routes.reception import _wants_json, reception_bp
 from utils.db_safety import safe_commit, safe_rollback
-import logging
-from services.access_control_service import AccessControlService
-from services.pos_terminal_service import PosTerminalService
-
-
+from utils.decorators import (
+    can_delete_patient,
+    can_modify_patient_data,
+    role_required,
+    role_required_json,
+)
 
 # ═══════════════════════════════════════
 # PATIENT ROUTES
 # ═══════════════════════════════════════
+
 
 @reception_bp.route('/patients')
 @login_required
 @role_required('reception', 'super_admin', 'manager')
 def patients():
     """قائمة المرضى - الوحدة المركزية"""
+
     def _normalize_phone(v):
         if not v:
             return None
@@ -62,9 +56,9 @@ def patients():
     department_id = request.args.get('department_id', type=int)
     page = request.args.get('page', 1, type=int)
     per_page = 25
-    
+
     query = Patient.query
-    
+
     if search:
         search_norm_phone = _normalize_phone(search)
         search_norm_nid = _normalize_national_id(search)
@@ -72,7 +66,7 @@ def patients():
             Patient.first_name.ilike(f'%{search}%'),
             Patient.last_name.ilike(f'%{search}%'),
             Patient.phone.ilike(f'%{search}%'),
-            Patient.national_id.ilike(f'%{search}%')
+            Patient.national_id.ilike(f'%{search}%'),
         ]
         if search_norm_phone:
             conditions.append(Patient.phone == search_norm_phone)
@@ -82,36 +76,50 @@ def patients():
             try:
                 conditions.append(Patient.id == int(search))
             except Exception as e:
-
-                logging.warning(f"Error in {__name__}: {e}")
+                logging.warning(f'Error in {__name__}: {e}')
         query = query.filter(db.or_(*conditions))
-    
+
     if department_id:
-        query = query.join(Visit, Visit.patient_id == Patient.id).filter(Visit.department_id == department_id).distinct()
-    
+        query = (
+            query.join(Visit, Visit.patient_id == Patient.id)
+            .filter(Visit.department_id == department_id)
+            .distinct()
+        )
+
     total = query.count()
     pages = (total + per_page - 1) // per_page
-    
+
     patients = query.offset((page - 1) * per_page).limit(per_page).all()
     departments = db.session.execute(select(Department)).scalars().all()
     from models.insurance import InsuranceCompany
-    insurance_companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True).order_by(InsuranceCompany.name.asc())).scalars().all()
-    
-    return render_template('reception/patients.html', 
-                         patients=patients, 
-                         departments=departments,
-                         insurance_companies=insurance_companies,
-                         search=search,
-                         selected_department=department_id,
-                         page=page, pages=pages, total=total)
+
+    insurance_companies = (
+        db.session.execute(
+            select(InsuranceCompany).filter_by(is_active=True).order_by(InsuranceCompany.name.asc())
+        )
+        .scalars()
+        .all()
+    )
+
+    return render_template(
+        'reception/patients.html',
+        patients=patients,
+        departments=departments,
+        insurance_companies=insurance_companies,
+        search=search,
+        selected_department=department_id,
+        page=page,
+        pages=pages,
+        total=total,
+    )
+
 
 @reception_bp.route('/add_patient', methods=['GET', 'POST'])
 @login_required
 @role_required('reception')
 def add_patient():
     """إضافة مريض جديد - الوحدة المركزية"""
-    
-    
+
     if request.method == 'POST':
         try:
             # حقول أساسية
@@ -126,19 +134,37 @@ def add_patient():
             notes = (request.form.get('notes') or '').strip() or None
             admin_notes = (request.form.get('admin_notes') or '').strip() or None
             insurance_company_id = request.form.get('insurance_company_id')
-            insurance_company_id = int(insurance_company_id) if insurance_company_id and str(insurance_company_id).isdigit() else None
-            insurance_member_number = (request.form.get('insurance_member_number') or '').strip() or None
+            insurance_company_id = (
+                int(insurance_company_id)
+                if insurance_company_id and str(insurance_company_id).isdigit()
+                else None
+            )
+            insurance_member_number = (
+                request.form.get('insurance_member_number') or ''
+            ).strip() or None
             marital_status = (request.form.get('marital_status') or '').strip() or None
-            is_pregnant = str(request.form.get('is_pregnant') or '').lower() in ['true', 'on', '1', 'yes']
+            is_pregnant = str(request.form.get('is_pregnant') or '').lower() in [
+                'true',
+                'on',
+                '1',
+                'yes',
+            ]
             pregnancy_weeks_raw = request.form.get('pregnancy_weeks')
-            pregnancy_weeks = int(pregnancy_weeks_raw) if pregnancy_weeks_raw and pregnancy_weeks_raw.isdigit() else None
+            pregnancy_weeks = (
+                int(pregnancy_weeks_raw)
+                if pregnancy_weeks_raw and pregnancy_weeks_raw.isdigit()
+                else None
+            )
             last_menstruation_date_raw = request.form.get('last_menstruation_date')
             last_menstruation_date = None
             if last_menstruation_date_raw:
                 try:
                     from datetime import datetime
-                    last_menstruation_date = datetime.strptime(last_menstruation_date_raw, '%Y-%m-%d').date()
-                except Exception as e:
+
+                    last_menstruation_date = datetime.strptime(
+                        last_menstruation_date_raw, '%Y-%m-%d'
+                    ).date()
+                except Exception:
                     last_menstruation_date = None
             pregnancy_notes = (request.form.get('pregnancy_notes') or '').strip() or None
 
@@ -196,21 +222,37 @@ def add_patient():
 
             # منع التكرار: رقم الهوية
             if national_id:
-                existing_by_id = db.session.execute(select(Patient).filter_by(national_id=national_id)).scalars().first()
+                existing_by_id = (
+                    db.session.execute(select(Patient).filter_by(national_id=national_id))
+                    .scalars()
+                    .first()
+                )
                 if existing_by_id:
-                    message = f"المريض موجود مسبقاً برقم الهوية {national_id}"
+                    message = f'المريض موجود مسبقاً برقم الهوية {national_id}'
                     if _wants_json():
-                        return jsonify({'success': False, 'message': message, 'patient_id': existing_by_id.id}), 409
+                        return jsonify(
+                            {'success': False, 'message': message, 'patient_id': existing_by_id.id}
+                        ), 409
                     flash(message, 'warning')
                     raise ValueError(message)
 
             # منع التكرار: رقم الهاتف (تحذير قوي)
             if phone:
-                existing_by_phone = db.session.execute(select(Patient).filter(Patient.phone == phone)).scalars().first()
+                existing_by_phone = (
+                    db.session.execute(select(Patient).filter(Patient.phone == phone))
+                    .scalars()
+                    .first()
+                )
                 if existing_by_phone:
-                    message = f"يوجد مريض بنفس رقم الهاتف ({phone})"
+                    message = f'يوجد مريض بنفس رقم الهاتف ({phone})'
                     if _wants_json():
-                        return jsonify({'success': False, 'message': message, 'patient_id': existing_by_phone.id}), 409
+                        return jsonify(
+                            {
+                                'success': False,
+                                'message': message,
+                                'patient_id': existing_by_phone.id,
+                            }
+                        ), 409
                     flash(message, 'warning')
                     raise ValueError(message)
 
@@ -220,8 +262,9 @@ def add_patient():
             if birth_date_raw:
                 try:
                     from datetime import datetime
+
                     birth_date = datetime.strptime(birth_date_raw, '%Y-%m-%d').date()
-                except Exception as e:
+                except Exception:
                     birth_date = None
 
             patient = Patient(
@@ -242,56 +285,101 @@ def add_patient():
                 is_pregnant=is_pregnant,
                 pregnancy_weeks=pregnancy_weeks,
                 last_menstruation_date=last_menstruation_date,
-                pregnancy_notes=pregnancy_notes
+                pregnancy_notes=pregnancy_notes,
             )
-            
+
             db.session.add(patient)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-            
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+
             if _wants_json():
                 return jsonify({'success': True, 'patient_id': patient.id})
             flash('تم إضافة المريض بنجاح.', 'success')
             return redirect(url_for('reception.patients'))
-            
+
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error(f"Error adding patient: {str(e)}")
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception(f'Error adding patient: {e!s}')
             if _wants_json():
-                return jsonify({'success': False, 'message': 'تعذر إضافة المريض، يرجى التحقق من البيانات والمحاولة مرة أخرى'}), 400
+                return jsonify(
+                    {
+                        'success': False,
+                        'message': 'تعذر إضافة المريض، يرجى التحقق من البيانات والمحاولة مرة أخرى',
+                    }
+                ), 400
             flash('تعذر إضافة المريض، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
-    
+
     # في طلبات GET نعيد التوجيه إلى قائمة المرضى مع فتح نموذج الإضافة داخل نفس القالب
     return redirect(url_for('reception.patients', show_add=1))
+
 
 @reception_bp.route('/view_patient/<int:patient_id>')
 @login_required
 @role_required('reception', 'manager')
 def view_patient(patient_id):
     """عرض تفاصيل المريض - الوحدة المركزية"""
-    
+
     patient = db.session.get(Patient, patient_id)
     if not patient:
         flash('المريض غير موجود', 'error')
         return redirect(url_for('reception.queue_management'))
-    
-    visits = db.session.execute(select(Visit).filter_by(patient_id=patient_id).order_by(Visit.created_at.desc()).limit(10)).scalars().all()
-    appointments = db.session.execute(select(Appointment).filter_by(patient_id=patient_id).order_by(Appointment.starts_at.desc()).limit(10)).scalars().all()
-    
+
+    visits = (
+        db.session.execute(
+            select(Visit)
+            .filter_by(patient_id=patient_id)
+            .order_by(Visit.created_at.desc())
+            .limit(10)
+        )
+        .scalars()
+        .all()
+    )
+    appointments = (
+        db.session.execute(
+            select(Appointment)
+            .filter_by(patient_id=patient_id)
+            .order_by(Appointment.starts_at.desc())
+            .limit(10)
+        )
+        .scalars()
+        .all()
+    )
+
     # جلب طلبات المختبر والأشعة
     from models.lab_request import LabRequest
     from models.radiology_request import RadiologyRequest
-    
-    lab_requests = db.session.execute(select(LabRequest).filter_by(patient_id=patient_id).order_by(LabRequest.created_at.desc()).limit(10)).scalars().all()
-    radiology_requests = db.session.execute(select(RadiologyRequest).filter_by(patient_id=patient_id).order_by(RadiologyRequest.created_at.desc()).limit(10)).scalars().all()
-    
+
+    lab_requests = (
+        db.session.execute(
+            select(LabRequest)
+            .filter_by(patient_id=patient_id)
+            .order_by(LabRequest.created_at.desc())
+            .limit(10)
+        )
+        .scalars()
+        .all()
+    )
+    radiology_requests = (
+        db.session.execute(
+            select(RadiologyRequest)
+            .filter_by(patient_id=patient_id)
+            .order_by(RadiologyRequest.created_at.desc())
+            .limit(10)
+        )
+        .scalars()
+        .all()
+    )
+
     template = 'reception/view_patient.html'
-    
-    return render_template(template, 
-                         patient=patient, 
-                         visits=visits, 
-                         appointments=appointments,
-                         lab_requests=lab_requests,
-                         radiology_requests=radiology_requests)
+
+    return render_template(
+        template,
+        patient=patient,
+        visits=visits,
+        appointments=appointments,
+        lab_requests=lab_requests,
+        radiology_requests=radiology_requests,
+    )
+
 
 @reception_bp.route('/edit_patient/<int:patient_id>', methods=['GET', 'POST'])
 @login_required
@@ -302,7 +390,7 @@ def edit_patient(patient_id):
     if not patient:
         flash('المريض غير موجود', 'error')
         return redirect(url_for('reception.queue_management'))
-    
+
     if request.method == 'POST':
         try:
             national_id_raw = (request.form.get('national_id') or '').strip() or None
@@ -316,19 +404,37 @@ def edit_patient(patient_id):
             notes = (request.form.get('notes') or '').strip() or None
             admin_notes = (request.form.get('admin_notes') or '').strip() or None
             insurance_company_id = request.form.get('insurance_company_id')
-            insurance_company_id = int(insurance_company_id) if insurance_company_id and str(insurance_company_id).isdigit() else None
-            insurance_member_number = (request.form.get('insurance_member_number') or '').strip() or None
+            insurance_company_id = (
+                int(insurance_company_id)
+                if insurance_company_id and str(insurance_company_id).isdigit()
+                else None
+            )
+            insurance_member_number = (
+                request.form.get('insurance_member_number') or ''
+            ).strip() or None
             marital_status = (request.form.get('marital_status') or '').strip() or None
-            is_pregnant = str(request.form.get('is_pregnant') or '').lower() in ['true', 'on', '1', 'yes']
+            is_pregnant = str(request.form.get('is_pregnant') or '').lower() in [
+                'true',
+                'on',
+                '1',
+                'yes',
+            ]
             pregnancy_weeks_raw = request.form.get('pregnancy_weeks')
-            pregnancy_weeks = int(pregnancy_weeks_raw) if pregnancy_weeks_raw and pregnancy_weeks_raw.isdigit() else None
+            pregnancy_weeks = (
+                int(pregnancy_weeks_raw)
+                if pregnancy_weeks_raw and pregnancy_weeks_raw.isdigit()
+                else None
+            )
             last_menstruation_date_raw = request.form.get('last_menstruation_date')
             last_menstruation_date = None
             if last_menstruation_date_raw:
                 try:
                     from datetime import datetime
-                    last_menstruation_date = datetime.strptime(last_menstruation_date_raw, '%Y-%m-%d').date()
-                except Exception as e:
+
+                    last_menstruation_date = datetime.strptime(
+                        last_menstruation_date_raw, '%Y-%m-%d'
+                    ).date()
+                except Exception:
                     last_menstruation_date = None
             pregnancy_notes = (request.form.get('pregnancy_notes') or '').strip() or None
 
@@ -384,20 +490,38 @@ def edit_patient(patient_id):
                 raise ValueError(message)
 
             if national_id and national_id != (patient.national_id or None):
-                existing_by_id = db.session.execute(select(Patient).filter_by(national_id=national_id)).scalars().first()
+                existing_by_id = (
+                    db.session.execute(select(Patient).filter_by(national_id=national_id))
+                    .scalars()
+                    .first()
+                )
                 if existing_by_id and existing_by_id.id != patient.id:
-                    message = f"المريض موجود مسبقاً برقم الهوية {national_id}"
+                    message = f'المريض موجود مسبقاً برقم الهوية {national_id}'
                     if _wants_json():
-                        return jsonify({'success': False, 'message': message, 'patient_id': existing_by_id.id}), 409
+                        return jsonify(
+                            {'success': False, 'message': message, 'patient_id': existing_by_id.id}
+                        ), 409
                     flash(message, 'warning')
                     raise ValueError(message)
 
             if phone and phone != (patient.phone or None):
-                existing_by_phone = db.session.execute(select(Patient).filter(Patient.phone == phone, Patient.id != patient.id)).scalars().first()
+                existing_by_phone = (
+                    db.session.execute(
+                        select(Patient).filter(Patient.phone == phone, Patient.id != patient.id)
+                    )
+                    .scalars()
+                    .first()
+                )
                 if existing_by_phone:
-                    message = f"يوجد مريض بنفس رقم الهاتف ({phone})"
+                    message = f'يوجد مريض بنفس رقم الهاتف ({phone})'
                     if _wants_json():
-                        return jsonify({'success': False, 'message': message, 'patient_id': existing_by_phone.id}), 409
+                        return jsonify(
+                            {
+                                'success': False,
+                                'message': message,
+                                'patient_id': existing_by_phone.id,
+                            }
+                        ), 409
                     flash(message, 'warning')
                     raise ValueError(message)
 
@@ -406,8 +530,9 @@ def edit_patient(patient_id):
             if birth_date_raw:
                 try:
                     from datetime import datetime
+
                     birth_date = datetime.strptime(birth_date_raw, '%Y-%m-%d').date()
-                except Exception as e:
+                except Exception:
                     birth_date = None
 
             patient.national_id = national_id
@@ -428,33 +553,54 @@ def edit_patient(patient_id):
             patient.pregnancy_weeks = pregnancy_weeks
             patient.last_menstruation_date = last_menstruation_date
             patient.pregnancy_notes = pregnancy_notes
-            
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             if _wants_json():
                 return jsonify({'success': True, 'patient_id': patient.id})
             flash('تم تحديث بيانات المريض بنجاح.', 'success')
             return redirect(url_for('reception.view_patient', patient_id=patient_id))
-            
+
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+            safe_rollback(db.session, error_message='database rollback')
             if _wants_json():
-                return jsonify({'success': False, 'message': 'تعذر تحديث بيانات المريض، يرجى التحقق من البيانات والمحاولة مرة أخرى'}), 400
+                return jsonify(
+                    {
+                        'success': False,
+                        'message': 'تعذر تحديث بيانات المريض، يرجى التحقق من البيانات والمحاولة مرة أخرى',
+                    }
+                ), 400
             flash('تعذر تحديث بيانات المريض، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
-            logging.error(f"Error updating patient: {str(e)}")
-    
-    patients = db.session.execute(select(Patient).order_by(Patient.created_at.desc()).limit(200)).scalars().all()
+            logging.exception(f'Error updating patient: {e!s}')
+
+    patients = (
+        db.session.execute(select(Patient).order_by(Patient.created_at.desc()).limit(200))
+        .scalars()
+        .all()
+    )
     departments = db.session.execute(select(Department)).scalars().all()
     from models.insurance import InsuranceCompany
-    insurance_companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True).order_by(InsuranceCompany.name.asc())).scalars().all()
-    return render_template('reception/patients.html', 
-                         patients=patients,
-                         patient=patient,
-                         departments=departments,
-                         insurance_companies=insurance_companies,
-                         search='',
-                         selected_department=None,
-                         page=1, pages=1, total=len(patients),
-                         mode='edit')
+
+    insurance_companies = (
+        db.session.execute(
+            select(InsuranceCompany).filter_by(is_active=True).order_by(InsuranceCompany.name.asc())
+        )
+        .scalars()
+        .all()
+    )
+    return render_template(
+        'reception/patients.html',
+        patients=patients,
+        patient=patient,
+        departments=departments,
+        insurance_companies=insurance_companies,
+        search='',
+        selected_department=None,
+        page=1,
+        pages=1,
+        total=len(patients),
+        mode='edit',
+    )
+
 
 @reception_bp.route('/delete_patient/<int:patient_id>', methods=['POST'])
 @login_required
@@ -465,26 +611,43 @@ def delete_patient(patient_id):
         flash('المريض غير موجود', 'error')
         return redirect(url_for('reception.patients'))
     try:
-        from models.receipt import Receipt
         from models.medication import Prescription
-        has_receipts = db.session.execute(select(Receipt.id).filter_by(patient_id=patient_id)).scalars().first() is not None
-        has_prescriptions = db.session.execute(select(Prescription.id).filter_by(patient_id=patient_id)).scalars().first() is not None
+        from models.receipt import Receipt
+
+        has_receipts = (
+            db.session.execute(select(Receipt.id).filter_by(patient_id=patient_id))
+            .scalars()
+            .first()
+            is not None
+        )
+        has_prescriptions = (
+            db.session.execute(select(Prescription.id).filter_by(patient_id=patient_id))
+            .scalars()
+            .first()
+            is not None
+        )
         if has_receipts or has_prescriptions:
             parts = []
             if has_receipts:
                 parts.append('سندات قبض')
             if has_prescriptions:
                 parts.append('روشتات')
-            flash('لا يمكن حذف المريض لوجود ' + ' و '.join(parts) + '. يرجى أرشفة/حذف السجلات المرتبطة أولاً.', 'warning')
+            flash(
+                'لا يمكن حذف المريض لوجود '
+                + ' و '.join(parts)
+                + '. يرجى أرشفة/حذف السجلات المرتبطة أولاً.',
+                'warning',
+            )
             return redirect(url_for('reception.patients'))
         db.session.delete(patient)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم حذف المريض بنجاح.', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error deleting patient: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error deleting patient: {e!s}')
         flash('حدث خطأ أثناء حذف المريض.', 'error')
     return redirect(url_for('reception.patients'))
+
 
 @reception_bp.route('/api/smart-patient-search')
 @login_required
@@ -495,8 +658,9 @@ def api_smart_patient_search():
     search_term = request.args.get('q', '').strip()
     try:
         from app.shared.search_service import SearchService
+
         results = SearchService.search_patients(search_term, limit=10)
         return jsonify({'patients': results})
     except Exception as e:
-        logging.error(f"Error in smart patient search: {str(e)}")
+        logging.exception(f'Error in smart patient search: {e!s}')
         return jsonify({'error': 'حدث خطأ في البحث'}), 500

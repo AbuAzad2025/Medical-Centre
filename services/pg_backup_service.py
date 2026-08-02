@@ -1,4 +1,5 @@
 """Native PostgreSQL backup/restore via pg_dump and psql (production pilot)."""
+
 from __future__ import annotations
 
 import gzip
@@ -7,8 +8,7 @@ import os
 import shutil
 import subprocess
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 from urllib.parse import unquote, urlparse
 
 logger = logging.getLogger(__name__)
@@ -27,18 +27,18 @@ class PgConnectionParams:
     database: str
 
 
-def _resolve_database_url(database_url: Optional[str] = None) -> str:
+def _resolve_database_url(database_url: str | None = None) -> str:
     url = (
-        database_url
-        or os.environ.get('DATABASE_URL')
-        or os.environ.get('SQLALCHEMY_DATABASE_URI')
+        database_url or os.environ.get('DATABASE_URL') or os.environ.get('SQLALCHEMY_DATABASE_URI')
     )
     if not url:
         raise PgBackupError(
             'DATABASE_URL or SQLALCHEMY_DATABASE_URI is required for PostgreSQL backup'
         )
     if url.startswith('sqlite'):
-        raise PgBackupError('SQLite databases must use file-level backup; pg_dump is PostgreSQL-only')
+        raise PgBackupError(
+            'SQLite databases must use file-level backup; pg_dump is PostgreSQL-only'
+        )
     return url
 
 
@@ -72,8 +72,8 @@ def _pg_env(params: PgConnectionParams) -> dict[str, str]:
     return env
 
 
-def build_backup_path(base_dir: str, backup_name: str, when: Optional[datetime] = None) -> str:
-    ts = (when or datetime.now(timezone.utc)).strftime('%Y%m%d_%H%M%S')
+def build_backup_path(base_dir: str, backup_name: str, when: datetime | None = None) -> str:
+    ts = (when or datetime.now(UTC)).strftime('%Y%m%d_%H%M%S')
     folder = os.path.join(base_dir, ts[:4], ts[4:6])
     os.makedirs(folder, exist_ok=True)
     safe_name = ''.join(c if c.isalnum() or c in ('-', '_') else '_' for c in backup_name)
@@ -87,7 +87,7 @@ def _backup_timeout() -> int:
     return int(os.environ.get('BACKUP_TIMEOUT_SECONDS', '3600'))
 
 
-def run_pg_dump_sql_gz(output_path: str, database_url: Optional[str] = None) -> int:
+def run_pg_dump_sql_gz(output_path: str, database_url: str | None = None) -> int:
     """Execute pg_dump and stream stdout chunk-by-chunk into a gzip file (memory-safe)."""
     params = parse_database_url(_resolve_database_url(database_url))
     pg_dump = _find_executable('pg_dump')
@@ -95,18 +95,27 @@ def run_pg_dump_sql_gz(output_path: str, database_url: Optional[str] = None) -> 
 
     cmd = [
         pg_dump,
-        '--host', params.host,
-        '--port', params.port,
-        '--username', params.user,
-        '--dbname', params.database,
-        '--format', 'plain',
+        '--host',
+        params.host,
+        '--port',
+        params.port,
+        '--username',
+        params.user,
+        '--dbname',
+        params.database,
+        '--format',
+        'plain',
         '--no-owner',
         '--no-acl',
-        '--encoding', 'UTF8',
+        '--encoding',
+        'UTF8',
     ]
     logger.info(
         'Starting pg_dump host=%s port=%s db=%s -> %s',
-        params.host, params.port, params.database, output_path,
+        params.host,
+        params.port,
+        params.database,
+        output_path,
     )
     timeout = _backup_timeout()
     proc = subprocess.Popen(
@@ -131,7 +140,7 @@ def run_pg_dump_sql_gz(output_path: str, database_url: Optional[str] = None) -> 
         try:
             if proc.poll() is None:
                 proc.kill()
-        except Exception as e:
+        except Exception:
             pass
 
     if proc.returncode != 0:
@@ -146,7 +155,7 @@ def run_pg_dump_sql_gz(output_path: str, database_url: Optional[str] = None) -> 
     return size
 
 
-def restore_pg_sql_gz(backup_path: str, database_url: Optional[str] = None) -> None:
+def restore_pg_sql_gz(backup_path: str, database_url: str | None = None) -> None:
     """Restore a .sql.gz pg_dump plain-SQL backup via psql."""
     if not os.path.isfile(backup_path):
         raise PgBackupError(f'Backup file not found: {backup_path}')
@@ -163,17 +172,25 @@ def restore_pg_sql_gz(backup_path: str, database_url: Optional[str] = None) -> N
 
     cmd = [
         psql,
-        '--host', params.host,
-        '--port', params.port,
-        '--username', params.user,
-        '--dbname', params.database,
+        '--host',
+        params.host,
+        '--port',
+        params.port,
+        '--username',
+        params.user,
+        '--dbname',
+        params.database,
         '--single-transaction',
-        '--set', 'ON_ERROR_STOP=1',
+        '--set',
+        'ON_ERROR_STOP=1',
         '--quiet',
     ]
     logger.info(
         'Starting psql restore host=%s port=%s db=%s <- %s',
-        params.host, params.port, params.database, backup_path,
+        params.host,
+        params.port,
+        params.database,
+        backup_path,
     )
     proc = subprocess.run(
         cmd,

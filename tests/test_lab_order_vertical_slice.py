@@ -1,17 +1,16 @@
 """Tests for P2-001: Lab Order Vertical Slice."""
 
 import pytest
+from sqlalchemy import func, select
 
-from app_factory import db as _db
 from app.extensions import db
-from app.shared.enums import OrderState
+from app_factory import db as _db
 from models.lab_request import LabRequest, LabResult
 from models.lab_test_catalog import LabTestCatalog
 from models.patient import Patient
 from models.user import User
 from models.visit import Visit
 from services.lab_service import LabService
-from sqlalchemy import select, func
 
 
 @pytest.fixture(scope='function')
@@ -29,7 +28,11 @@ def lab_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def lab_doctor(app, test_tenant):
-    u = db.session.execute(select(User).filter_by(username='lab_doctor', tenant_id=test_tenant.id)).scalars().first()
+    u = (
+        db.session.execute(select(User).filter_by(username='lab_doctor', tenant_id=test_tenant.id))
+        .scalars()
+        .first()
+    )
     if not u:
         u = User(
             username='lab_doctor',
@@ -62,9 +65,9 @@ def lab_visit(app, test_tenant, lab_patient, lab_doctor):
 def lab_catalog(app, test_tenant):
     items = []
     for code, name in [('CBC', 'CBC'), ('GLU', 'Glucose')]:
-        c = db.session.execute(select(LabTestCatalog).filter_by(
-            tenant_id=test_tenant.id, code=code
-        )).scalar()
+        c = db.session.execute(
+            select(LabTestCatalog).filter_by(tenant_id=test_tenant.id, code=code)
+        ).scalar()
         if not c:
             c = LabTestCatalog(
                 tenant_id=test_tenant.id,
@@ -130,33 +133,52 @@ class TestLabServiceCreateRequest:
 
 
 class TestDoctorLabRequestRoute:
-    def test_creates_structured_lab_request(self, app, client, lab_visit, lab_doctor, lab_catalog, test_tenant):
+    def test_creates_structured_lab_request(
+        self, app, client, lab_visit, lab_doctor, lab_catalog, test_tenant
+    ):
         from tests.tenant_context import login_test_client
 
         login_test_client(client, lab_doctor, test_tenant)
         test_ids = [c.id for c in lab_catalog]
-        resp = client.post(f'/doctor/lab-request/{lab_visit.id}', data={
-            'test_ids': ','.join(str(i) for i in test_ids),
-            'notes': 'Routine panel',
-        })
+        resp = client.post(
+            f'/doctor/lab-request/{lab_visit.id}',
+            data={
+                'test_ids': ','.join(str(i) for i in test_ids),
+                'notes': 'Routine panel',
+            },
+        )
         assert resp.status_code in (200, 302)
 
-        req = db.session.execute(select(LabRequest).filter_by(visit_id=lab_visit.id)).scalars().first()
+        req = (
+            db.session.execute(select(LabRequest).filter_by(visit_id=lab_visit.id))
+            .scalars()
+            .first()
+        )
         assert req is not None
         assert req.status == 'REQUESTED'
-        results = db.session.execute(select(func.count()).select_from(LabResult).filter_by(request_id=req.id)).scalar()
+        results = db.session.execute(
+            select(func.count()).select_from(LabResult).filter_by(request_id=req.id)
+        ).scalar()
         assert results == 2
 
     def test_free_text_mode_without_test_ids(self, app, client, lab_visit, lab_doctor, test_tenant):
         from tests.tenant_context import login_test_client
 
         login_test_client(client, lab_doctor, test_tenant)
-        resp = client.post(f'/doctor/lab-request/{lab_visit.id}', data={
-            'test_name': 'Custom blood test',
-            'notes': 'Please check manually',
-        })
+        resp = client.post(
+            f'/doctor/lab-request/{lab_visit.id}',
+            data={
+                'test_name': 'Custom blood test',
+                'notes': 'Please check manually',
+            },
+        )
         assert resp.status_code in (200, 302)
-        assert db.session.execute(select(func.count()).select_from(LabRequest).filter_by(visit_id=lab_visit.id)).scalar() == 0
+        assert (
+            db.session.execute(
+                select(func.count()).select_from(LabRequest).filter_by(visit_id=lab_visit.id)
+            ).scalar()
+            == 0
+        )
         _db.session.refresh(lab_visit)
         assert lab_visit.lab_tests_ordered is True
         assert 'مذكرة تحاليل' in (lab_visit.notes or '')

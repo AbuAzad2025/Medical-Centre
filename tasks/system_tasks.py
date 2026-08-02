@@ -1,13 +1,14 @@
 """Infrastructure Celery tasks."""
+
 from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import Optional
+
+from sqlalchemy import select
 
 from celery_app import get_celery_app
 from services.backup_automation_service import BackupAutomationError
-from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -35,10 +36,11 @@ def _load_backup_without_tenant_context(backup_id: int):
 def _purge_expired_tokens() -> dict:
     """Purge expired OAuth tokens, password reset tokens, and email verification tokens."""
     from flask import g
+
     from app.extensions import db
+    from models.email_verification_token import EmailVerificationToken
     from models.oauth_token import OAuthToken
     from models.password_reset_token import PasswordResetToken
-    from models.email_verification_token import EmailVerificationToken
 
     g._tenant_filter_bypass = True
     try:
@@ -58,11 +60,18 @@ def _purge_expired_tokens() -> dict:
         deleted += email_expired
 
         db.session.commit()
-        logger.info(f"Purged {deleted} expired tokens")
-        return {'deleted': deleted, 'types': {'oauth': oauth_expired, 'password_reset': pwd_expired, 'email_verification': email_expired}}
+        logger.info(f'Purged {deleted} expired tokens')
+        return {
+            'deleted': deleted,
+            'types': {
+                'oauth': oauth_expired,
+                'password_reset': pwd_expired,
+                'email_verification': email_expired,
+            },
+        }
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Failed to purge expired tokens: {e}")
+        logger.error(f'Failed to purge expired tokens: {e}')
         raise
     finally:
         g.pop('_tenant_filter_bypass', None)
@@ -71,6 +80,7 @@ def _purge_expired_tokens() -> dict:
 def _purge_old_audit_logs() -> dict:
     """Archive or delete audit logs older than retention period."""
     from flask import g
+
     from app.extensions import db
     from models.audit_trail import AuditTrail
 
@@ -81,11 +91,11 @@ def _purge_old_audit_logs() -> dict:
     try:
         deleted = select(AuditTrail).delete(synchronize_session=False)
         db.session.commit()
-        logger.info(f"Purged {deleted} audit logs older than {retention_days} days")
+        logger.info(f'Purged {deleted} audit logs older than {retention_days} days')
         return {'deleted': deleted, 'retention_days': retention_days}
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Failed to purge old audit logs: {e}")
+        logger.error(f'Failed to purge old audit logs: {e}')
         raise
     finally:
         g.pop('_tenant_filter_bypass', None)
@@ -94,6 +104,7 @@ def _purge_old_audit_logs() -> dict:
 def _purge_stale_notifications() -> dict:
     """Purge read notifications older than 30 days and failed notification retries."""
     from flask import g
+
     from app.extensions import db
     from models.notification import Notification
     from models.notification_queue import NotificationQueue
@@ -110,11 +121,13 @@ def _purge_stale_notifications() -> dict:
         failed_retries = select(NotificationQueue).delete(synchronize_session=False)
 
         db.session.commit()
-        logger.info(f"Purged {deleted_notifs} old notifications and {failed_retries} failed retries")
+        logger.info(
+            f'Purged {deleted_notifs} old notifications and {failed_retries} failed retries'
+        )
         return {'notifications': deleted_notifs, 'failed_retries': failed_retries}
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Failed to purge stale notifications: {e}")
+        logger.error(f'Failed to purge stale notifications: {e}')
         raise
     finally:
         g.pop('_tenant_filter_bypass', None)
@@ -147,7 +160,9 @@ def run_system_backup(self, backup_id: int) -> dict:
         raise
 
     if outcome is None:
-        raise BackupAutomationError(f'Backup tenant {backup.tenant_id} not found for backup {backup_id}')
+        raise BackupAutomationError(
+            f'Backup tenant {backup.tenant_id} not found for backup {backup_id}'
+        )
 
     status, size = outcome
     return {
@@ -165,72 +180,73 @@ def _backup_result_tuple(execute_fn, backup_id: int):
 
 # ===== MAINTENANCE TASKS =====
 
+
 @celery.task(name='tasks.purge_expired_tokens', bind=True)
 def purge_expired_tokens_task(self) -> dict:
     """Daily task to purge expired OAuth, password reset, and email verification tokens."""
-    logger.info("Starting expired tokens purge")
+    logger.info('Starting expired tokens purge')
     try:
         result = _purge_expired_tokens()
         result['task_id'] = self.request.id
         return result
     except Exception as e:
-        logger.error(f"Expired tokens purge failed: {e}")
+        logger.error(f'Expired tokens purge failed: {e}')
         raise
 
 
 @celery.task(name='tasks.purge_old_audit_logs', bind=True)
 def purge_old_audit_logs_task(self) -> dict:
     """Weekly task to purge audit logs older than retention period."""
-    logger.info("Starting audit logs purge")
+    logger.info('Starting audit logs purge')
     try:
         result = _purge_old_audit_logs()
         result['task_id'] = self.request.id
         return result
     except Exception as e:
-        logger.error(f"Audit logs purge failed: {e}")
+        logger.error(f'Audit logs purge failed: {e}')
         raise
 
 
 @celery.task(name='tasks.purge_stale_notifications', bind=True)
 def purge_stale_notifications_task(self) -> dict:
     """Daily task to purge old read notifications and failed notification retries."""
-    logger.info("Starting stale notifications purge")
+    logger.info('Starting stale notifications purge')
     try:
         result = _purge_stale_notifications()
         result['task_id'] = self.request.id
         return result
     except Exception as e:
-        logger.error(f"Stale notifications purge failed: {e}")
+        logger.error(f'Stale notifications purge failed: {e}')
         raise
 
 
 @celery.task(name='tasks.run_all_maintenance', bind=True)
 def run_all_maintenance_task(self) -> dict:
     """Run all maintenance tasks in sequence."""
-    logger.info("Starting full maintenance cycle")
+    logger.info('Starting full maintenance cycle')
     results = {}
-    
+
     try:
         results['expired_tokens'] = _purge_expired_tokens()
     except Exception as e:
-        logger.error(f"Token purge failed: {e}")
+        logger.error(f'Token purge failed: {e}')
         results['expired_tokens'] = {'error': str(e)}
-    
+
     try:
         results['audit_logs'] = _purge_old_audit_logs()
     except Exception as e:
-        logger.error(f"Audit logs purge failed: {e}")
+        logger.error(f'Audit logs purge failed: {e}')
         results['audit_logs'] = {'error': str(e)}
-    
+
     try:
         results['stale_notifications'] = _purge_stale_notifications()
     except Exception as e:
-        logger.error(f"Stale notifications purge failed: {e}")
+        logger.error(f'Stale notifications purge failed: {e}')
         results['stale_notifications'] = {'error': str(e)}
-    
+
     results['task_id'] = self.request.id
     results['completed_at'] = datetime.utcnow().isoformat()
-    logger.info(f"Maintenance cycle completed: {results}")
+    logger.info(f'Maintenance cycle completed: {results}')
     return results
 
 
@@ -284,7 +300,9 @@ def run_system_backup(self, backup_id: int) -> dict:
         raise
 
     if outcome is None:
-        raise BackupAutomationError(f'Backup tenant {backup.tenant_id} not found for backup {backup_id}')
+        raise BackupAutomationError(
+            f'Backup tenant {backup.tenant_id} not found for backup {backup_id}'
+        )
 
     status, size = outcome
     return {

@@ -11,7 +11,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 _FORBIDDEN_BS4 = (
     (re.compile(r'data-dismiss="modal"'), 'data-dismiss (use data-bs-dismiss)'),
-    (re.compile(r'data-toggle="(?:modal|tooltip|popover|tab|collapse|dropdown)"'), 'data-toggle (use data-bs-toggle)'),
+    (
+        re.compile(r'data-toggle="(?:modal|tooltip|popover|tab|collapse|dropdown)"'),
+        'data-toggle (use data-bs-toggle)',
+    ),
     (re.compile(r'data-target="#'), 'data-target (use data-bs-target)'),
     (re.compile(r'class="close"'), 'class="close" (use btn-close)'),
 )
@@ -27,16 +30,18 @@ def scan_templates():
                 continue
             try:
                 text = fpath.read_text(encoding='utf-8', errors='replace')
-            except Exception as e:
+            except Exception:
                 continue
             for regex, label in _FORBIDDEN_BS4:
                 for m in regex.finditer(text):
-                    line_num = text[:m.start()].count('\n') + 1
-                    violations.append({
-                        'file': str(fpath.relative_to(REPO_ROOT)),
-                        'line': line_num,
-                        'pattern': label,
-                    })
+                    line_num = text[: m.start()].count('\n') + 1
+                    violations.append(
+                        {
+                            'file': str(fpath.relative_to(REPO_ROOT)),
+                            'line': line_num,
+                            'pattern': label,
+                        }
+                    )
     return violations
 
 
@@ -51,11 +56,8 @@ CLINICAL_CSS = REPO_ROOT / 'static' / 'css' / 'clinical.css'
 class TestBs4TemplateAudit:
     def test_no_forbidden_bs4_patterns_in_templates(self):
         violations = scan_templates()
-        assert not violations, (
-            'BS4 legacy patterns remain:\n'
-            + '\n'.join(
-                f"  {v['file']}:{v['line']} {v['pattern']}" for v in violations[:20]
-            )
+        assert not violations, 'BS4 legacy patterns remain:\n' + '\n'.join(
+            f'  {v["file"]}:{v["line"]} {v["pattern"]}' for v in violations[:20]
         )
 
 
@@ -101,10 +103,11 @@ class TestClinicalThemeLinked:
 class TestReceptionQueuePagesHttp:
     @pytest.fixture
     def reception_client(self, app, client, test_tenant):
-        from app.extensions import db as _db
         from sqlalchemy import text
         from werkzeug.security import generate_password_hash
+
         from app.core.rate_limiter import _shared_store
+        from app.extensions import db as _db
 
         # Enable SaaS mode so ORM tenant filter + reassert_set_local work
         app.config['ENABLE_SAAS_MODE'] = True
@@ -135,12 +138,17 @@ class TestReceptionQueuePagesHttp:
 
         _shared_store.clear()
         from tests.tenant_context import login_test_client
-        fake_user = type('FakeUser', (), {
-            'id': row[0],
-            'tenant_id': tenant_id,
-            'session_version': row[1] or 0,
-            'username': 'reception_bs4',
-        })()
+
+        fake_user = type(
+            'FakeUser',
+            (),
+            {
+                'id': row[0],
+                'tenant_id': tenant_id,
+                'session_version': row[1] or 0,
+                'username': 'reception_bs4',
+            },
+        )()
         login_test_client(client, fake_user, test_tenant)
         yield client
 

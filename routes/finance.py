@@ -1,20 +1,20 @@
- 
-
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, g
-from flask_login import login_required, current_user
-from utils.decorators import role_required, role_required_json
-from models.visit import Visit
-from models.payment import Payment
-from models.invoice import Invoice
-from services.gatekeeper_service import GatekeeperService
-from models.audit_trail import AuditTrail
-from services.report_service import ReportService
-from utils.tenant_query import get_tenant_record, TenantContextError
-from app.extensions import db
-from app.shared.enums import PaymentStatus, InvoiceStatus
 import logging
-from datetime import datetime, date
-from sqlalchemy import select, func
+from datetime import date
+
+from flask import Blueprint, flash, g, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import func, select
+
+from app.extensions import db
+from app.shared.enums import InvoiceStatus, PaymentStatus
+from models.audit_trail import AuditTrail
+from models.invoice import Invoice
+from models.payment import Payment
+from models.visit import Visit
+from services.gatekeeper_service import GatekeeperService
+from services.report_service import ReportService
+from utils.decorators import role_required, role_required_json
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 finance_bp = Blueprint('finance', __name__)
 
@@ -23,6 +23,7 @@ finance_bp = Blueprint('finance', __name__)
 @login_required
 def index():
     return redirect(url_for('finance.dashboard'))
+
 
 @finance_bp.route('/dashboard')
 @login_required
@@ -33,45 +34,60 @@ def dashboard():
         today = date.today()
 
         # إحصائيات مالية
-        total_revenue = db.session.execute(select(db.func.sum(Payment.amount)).filter(
-            Payment.is_provisional == False
-        )).scalar() or 0
+        total_revenue = (
+            db.session.execute(
+                select(db.func.sum(Payment.amount)).filter(Payment.is_provisional == False)
+            ).scalar()
+            or 0
+        )
 
-        pending_payments = db.session.execute(select(func.count()).select_from(Payment).filter(
-            Payment.is_provisional == True
-        )).scalar()
+        pending_payments = db.session.execute(
+            select(func.count()).select_from(Payment).filter(Payment.is_provisional == True)
+        ).scalar()
 
-        locked_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
-            Visit.receipt_printed == False,
-            Visit.payment_status != PaymentStatus.PAID
-        )).scalar()
+        locked_visits = db.session.execute(
+            select(func.count())
+            .select_from(Visit)
+            .filter(Visit.receipt_printed == False, Visit.payment_status != PaymentStatus.PAID)
+        ).scalar()
 
-        today_invoices = db.session.execute(select(func.count()).select_from(Invoice).filter(
-            db.func.date(Invoice.created_at) == today
-        )).scalar()
+        today_invoices = db.session.execute(
+            select(func.count())
+            .select_from(Invoice)
+            .filter(db.func.date(Invoice.created_at) == today)
+        ).scalar()
 
-        today_payments = db.session.execute(select(func.count()).select_from(Payment).filter(
-            Payment.is_provisional == False,
-            db.func.date(Payment.created_at) == today
-        )).scalar()
+        today_payments = db.session.execute(
+            select(func.count())
+            .select_from(Payment)
+            .filter(Payment.is_provisional == False, db.func.date(Payment.created_at) == today)
+        ).scalar()
 
-        pending_invoices = db.session.execute(select(func.count()).select_from(Invoice).filter(
-            Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.POSTED]),
-            Invoice.paid_amount < Invoice.total_amount
-        )).scalar()
+        pending_invoices = db.session.execute(
+            select(func.count())
+            .select_from(Invoice)
+            .filter(
+                Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.POSTED]),
+                Invoice.paid_amount < Invoice.total_amount,
+            )
+        ).scalar()
 
-        refunded_count = db.session.execute(select(func.count()).select_from(Payment).filter(
-            Payment.status == PaymentStatus.REFUNDED
-        )).scalar()
+        refunded_count = db.session.execute(
+            select(func.count())
+            .select_from(Payment)
+            .filter(Payment.status == PaymentStatus.REFUNDED)
+        ).scalar()
 
-        recent_invoices = db.session.execute(select(Invoice).order_by(
-            Invoice.created_at.desc()
-        ).limit(10)).scalars().all()
+        recent_invoices = (
+            db.session.execute(select(Invoice).order_by(Invoice.created_at.desc()).limit(10))
+            .scalars()
+            .all()
+        )
 
         stats = {
             'total_revenue': total_revenue,
             'pending_payments': pending_payments,
-            'locked_visits': locked_visits
+            'locked_visits': locked_visits,
         }
 
         return render_template(
@@ -85,44 +101,41 @@ def dashboard():
         )
 
     except Exception as e:
-        logging.error(f"Error loading finance dashboard: {str(e)}")
+        logging.exception(f'Error loading finance dashboard: {e!s}')
         flash('حدث خطأ في تحميل لوحة التحكم المالية', 'error')
         return redirect(url_for('main.dashboard'))
+
 
 @finance_bp.route('/post', methods=['POST'])
 @login_required
 @role_required_json('accountant', 'admin', 'manager')
 def post_gl():
     """الترحيل المالي - Finance فقط"""
-    
-    
+
     try:
         data = request.get_json()
         visit_id = data.get('visit_id')
-        
+
         if not visit_id:
             return jsonify({'error': 'معرف الزيارة مطلوب'}), 400
-        
+
         # MC-004: validate visit ownership before delegating to service
         try:
             get_tenant_record(Visit, visit_id)
         except TenantContextError:
             return jsonify({'error': 'الزيارة غير موجودة'}), 404
-        
+
         # استخدام حراسة الخدمة
         success, message = GatekeeperService.post_gl(visit_id, current_user.id)
-        
+
         if success:
-            return jsonify({
-                'success': True,
-                'message': message
-            })
-        else:
-            return jsonify({'error': message}), 422
-            
+            return jsonify({'success': True, 'message': message})
+        return jsonify({'error': message}), 422
+
     except Exception as e:
-        logging.error(f"Error posting GL: {str(e)}")
+        logging.exception(f'Error posting GL: {e!s}')
         return jsonify({'error': 'تعذر تنفيذ الترحيل المالي حالياً'}), 500
+
 
 @finance_bp.route('/visits/<int:visit_id>/archive', methods=['POST'])
 @login_required
@@ -136,72 +149,104 @@ def archive_visit(visit_id):
     """
     return jsonify({'error': 'Archive is handled by reception only.'}), 403
 
+
 # تم نقل مسار الزيارات إلى routes/reception.py لتجنب التكرار
 # يمكن الوصول إليه عبر /reception/visits
+
 
 @finance_bp.route('/payments')
 @login_required
 @role_required('accountant', 'admin', 'manager')
 def payments():
     """عرض المدفوعات"""
-    
-    
+
     try:
         per_page = request.args.get('per_page', type=int) or 50
         per_page = max(10, min(per_page, 200))
         page = request.args.get('page', type=int) or 1
         page = max(1, page)
-        payments = db.session.execute(select(Payment).filter_by(tenant_id=g.tenant_id).order_by(Payment.created_at.desc()).limit(per_page).offset((page - 1) * per_page)).scalars().all()
+        payments = (
+            db.session.execute(
+                select(Payment)
+                .filter_by(tenant_id=g.tenant_id)
+                .order_by(Payment.created_at.desc())
+                .limit(per_page)
+                .offset((page - 1) * per_page)
+            )
+            .scalars()
+            .all()
+        )
         return render_template('finance/payments.html', payments=payments)
-        
+
     except Exception as e:
-        logging.error(f"Error loading payments: {str(e)}")
+        logging.exception(f'Error loading payments: {e!s}')
         flash('حدث خطأ في تحميل المدفوعات', 'error')
         return redirect(url_for('finance.dashboard'))
+
 
 @finance_bp.route('/invoices')
 @login_required
 @role_required('accountant', 'admin', 'manager')
 def invoices():
     """عرض الفواتير"""
-    
-    
+
     try:
         per_page = request.args.get('per_page', type=int) or 50
         per_page = max(10, min(per_page, 200))
         page = request.args.get('page', type=int) or 1
         page = max(1, page)
-        invoices = db.session.execute(select(Invoice).filter_by(tenant_id=g.tenant_id).order_by(Invoice.created_at.desc()).limit(per_page).offset((page - 1) * per_page)).scalars().all()
+        invoices = (
+            db.session.execute(
+                select(Invoice)
+                .filter_by(tenant_id=g.tenant_id)
+                .order_by(Invoice.created_at.desc())
+                .limit(per_page)
+                .offset((page - 1) * per_page)
+            )
+            .scalars()
+            .all()
+        )
         return render_template('finance/invoices.html', invoices=invoices)
-        
+
     except Exception as e:
-        logging.error(f"Error loading invoices: {str(e)}")
+        logging.exception(f'Error loading invoices: {e!s}')
         flash('حدث خطأ في تحميل الفواتير', 'error')
         return redirect(url_for('finance.dashboard'))
+
 
 @finance_bp.route('/audit')
 @login_required
 @role_required('accountant', 'admin', 'manager')
 def audit():
     """عرض التدقيق المالي"""
-    
-    
+
     try:
         per_page = request.args.get('per_page', type=int) or 100
         per_page = max(20, min(per_page, 500))
         page = request.args.get('page', type=int) or 1
         page = max(1, page)
-        audit_entries = db.session.execute(select(AuditTrail).filter(
-            AuditTrail.entity_type.in_(['visit', 'payment', 'invoice']),
-            AuditTrail.tenant_id == g.tenant_id
-        ).order_by(AuditTrail.created_at.desc()).limit(per_page).offset((page - 1) * per_page)).scalars().all()
-        
+        audit_entries = (
+            db.session.execute(
+                select(AuditTrail)
+                .filter(
+                    AuditTrail.entity_type.in_(['visit', 'payment', 'invoice']),
+                    AuditTrail.tenant_id == g.tenant_id,
+                )
+                .order_by(AuditTrail.created_at.desc())
+                .limit(per_page)
+                .offset((page - 1) * per_page)
+            )
+            .scalars()
+            .all()
+        )
+
         return render_template('finance/audit.html', audit_entries=audit_entries)
-        
+
     except Exception as e:
-        logging.error(f"Error loading audit: {str(e)}")
+        logging.exception(f'Error loading audit: {e!s}')
         flash('حدث خطأ في تحميل التدقيق', 'error')
         return redirect(url_for('finance.dashboard'))
+
 
 @finance_bp.route('/slow-queries')
 @login_required
@@ -213,9 +258,10 @@ def slow_queries():
         report = ReportService.get_slow_queries_report(limit=limit)
         return render_template('finance/slow_queries.html', report=report, limit=limit)
     except Exception as e:
-        logging.error(f"Error loading slow queries report: {str(e)}")
+        logging.exception(f'Error loading slow queries report: {e!s}')
         flash('حدث خطأ في تحميل تقرير الاستعلامات البطيئة', 'error')
         return redirect(url_for('finance.dashboard'))
+
 
 @finance_bp.route('/slow-queries/weekly')
 @login_required
@@ -223,12 +269,20 @@ def slow_queries():
 def slow_queries_weekly():
     try:
         from models.audit_trail import SlowQueryReport
-        reports = db.session.execute(select(SlowQueryReport).order_by(SlowQueryReport.created_at.desc()).limit(50)).scalars().all()
+
+        reports = (
+            db.session.execute(
+                select(SlowQueryReport).order_by(SlowQueryReport.created_at.desc()).limit(50)
+            )
+            .scalars()
+            .all()
+        )
         return render_template('finance/slow_queries_weekly.html', reports=reports)
     except Exception as e:
-        logging.error(f"Error loading weekly slow queries: {str(e)}")
+        logging.exception(f'Error loading weekly slow queries: {e!s}')
         flash('حدث خطأ في تحميل التقرير الأسبوعي', 'error')
         return redirect(url_for('finance.dashboard'))
+
 
 @finance_bp.route('/slow-queries/weekly/<int:report_id>')
 @login_required
@@ -236,6 +290,7 @@ def slow_queries_weekly():
 def slow_queries_weekly_detail(report_id):
     try:
         from models.audit_trail import SlowQueryReport
+
         try:
             report = get_tenant_record(SlowQueryReport, report_id)
         except TenantContextError:
@@ -243,9 +298,10 @@ def slow_queries_weekly_detail(report_id):
             return redirect(url_for('finance.slow_queries_weekly'))
         return render_template('finance/slow_queries_weekly_detail.html', report=report)
     except Exception as e:
-        logging.error(f"Error loading weekly slow queries detail: {str(e)}")
+        logging.exception(f'Error loading weekly slow queries detail: {e!s}')
         flash('حدث خطأ في تحميل تفاصيل التقرير', 'error')
         return redirect(url_for('finance.slow_queries_weekly'))
+
 
 @finance_bp.route('/slow-queries/capture', methods=['POST'])
 @login_required
@@ -259,8 +315,10 @@ def capture_slow_queries_weekly():
             flash(result.get('message') or 'تعذر إنشاء التقرير الأسبوعي', 'error')
             return redirect(url_for('finance.slow_queries'))
         flash('تم حفظ التقرير الأسبوعي بنجاح', 'success')
-        return redirect(url_for('finance.slow_queries_weekly_detail', report_id=result.get('report_id')))
+        return redirect(
+            url_for('finance.slow_queries_weekly_detail', report_id=result.get('report_id'))
+        )
     except Exception as e:
-        logging.error(f"Error capturing weekly slow queries: {str(e)}")
+        logging.exception(f'Error capturing weekly slow queries: {e!s}')
         flash('حدث خطأ في إنشاء التقرير الأسبوعي', 'error')
         return redirect(url_for('finance.slow_queries'))

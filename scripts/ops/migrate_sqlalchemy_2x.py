@@ -5,13 +5,11 @@ Targets the most common legacy patterns in the codebase.
 Uses regex with balanced-parenthesis matching for safe transformation.
 Preserves comments and indentation; run 'black' afterward if desired.
 """
+
 import os
-import sys
 import re
-import ast
+import sys
 from pathlib import Path
-from typing import List, Tuple
-from app.extensions import db
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -38,7 +36,7 @@ def _balanced_paren(text: str, start: int) -> int:
     return -1
 
 
-def _extract_call_arg(text: str, call_start: int) -> Tuple[str, int]:
+def _extract_call_arg(text: str, call_start: int) -> tuple[str, int]:
     """Given text starting at 'call_name(', extract the full argument string and end index."""
     open_idx = text.find('(', call_start)
     if open_idx == -1:
@@ -46,14 +44,14 @@ def _extract_call_arg(text: str, call_start: int) -> Tuple[str, int]:
     close_idx = _balanced_paren(text, open_idx)
     if close_idx == -1:
         return '', call_start
-    return text[open_idx + 1:close_idx], close_idx
+    return text[open_idx + 1 : close_idx], close_idx
 
 
-def _add_import(content: str, needed: List[str]) -> str:
+def _add_import(content: str, needed: list[str]) -> str:
     """Add missing sqlalchemy imports at the top of the file."""
     if not needed:
         return content
-    import_line = f"from sqlalchemy import {', '.join(needed)}\n"
+    import_line = f'from sqlalchemy import {", ".join(needed)}\n'
     # Insert after any existing from sqlalchemy import
     m = re.search(r'(from sqlalchemy import [^\n]+\n)', content)
     if m:
@@ -63,7 +61,7 @@ def _add_import(content: str, needed: List[str]) -> str:
         if not missing:
             return content
         new_import = existing + ', ' + ', '.join(missing)
-        content = content[:m.start()] + new_import + '\n' + content[m.end():]
+        content = content[: m.start()] + new_import + '\n' + content[m.end() :]
         return content
     # Insert after docstring or at top
     lines = content.split('\n')
@@ -83,13 +81,13 @@ def _add_import(content: str, needed: List[str]) -> str:
     return '\n'.join(lines)
 
 
-def refactor_file(filepath: Path) -> Tuple[int, str]:
+def refactor_file(filepath: Path) -> tuple[int, str]:
     """Refactor a single file. Returns (number of replacements, new content)."""
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding='utf-8') as f:
             content = f.read()
     except Exception as e:
-        print(f"  [SKIP] {filepath}: {e}")
+        print(f'  [SKIP] {filepath}: {e}')
         return 0, ''
 
     original = content
@@ -108,7 +106,7 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
             try:
                 new_text = repl_func(m)
                 if new_text is not None:
-                    content = content[:m.start()] + new_text + content[m.end():]
+                    content = content[: m.start()] + new_text + content[m.end() :]
                     replacements += 1
                     needs_select = True
             except Exception:
@@ -136,11 +134,13 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
             if not m:
                 break
             model_prefix = m.group(1).replace('.query.filter_by(', '')
-            arg, close_idx = _extract_call_arg(line, m.start() + len(model_prefix) + len('.query.filter_by'))
+            arg, close_idx = _extract_call_arg(
+                line, m.start() + len(model_prefix) + len('.query.filter_by')
+            )
             if close_idx == -1:
                 break
             # Look for .all() or .first() or .count() after close_idx
-            suffix_match = re.match(r'\s*\.(all|first|count|one)\(\)', line[close_idx + 1:])
+            suffix_match = re.match(r'\s*\.(all|first|count|one)\(\)', line[close_idx + 1 :])
             if not suffix_match:
                 break
             suffix = suffix_match.group(1)
@@ -149,10 +149,12 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
                 needs_func = True
                 new_expr = f'db.session.execute(select(func.count()).select_from({model_prefix}).filter_by({arg})).scalar()'
             elif suffix == 'one':
-                new_expr = f'db.session.execute(select({model_prefix}).filter_by({arg})).scalar_one()'
+                new_expr = (
+                    f'db.session.execute(select({model_prefix}).filter_by({arg})).scalar_one()'
+                )
             else:
                 new_expr = f'db.session.execute(select({model_prefix}).filter_by({arg})).scalars().{suffix}()'
-            line = line[:m.start()] + new_expr + line[end_idx:]
+            line = line[: m.start()] + new_expr + line[end_idx:]
             replacements += 1
             needs_select = True
 
@@ -162,10 +164,12 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
             if not m:
                 break
             model_prefix = m.group(1).replace('.query.filter(', '')
-            arg, close_idx = _extract_call_arg(line, m.start() + len(model_prefix) + len('.query.filter'))
+            arg, close_idx = _extract_call_arg(
+                line, m.start() + len(model_prefix) + len('.query.filter')
+            )
             if close_idx == -1:
                 break
-            suffix_match = re.match(r'\s*\.(all|first|count|one)\(\)', line[close_idx + 1:])
+            suffix_match = re.match(r'\s*\.(all|first|count|one)\(\)', line[close_idx + 1 :])
             if not suffix_match:
                 break
             suffix = suffix_match.group(1)
@@ -176,8 +180,10 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
             elif suffix == 'one':
                 new_expr = f'db.session.execute(select({model_prefix}).where({arg})).scalar_one()'
             else:
-                new_expr = f'db.session.execute(select({model_prefix}).where({arg})).scalars().{suffix}()'
-            line = line[:m.start()] + new_expr + line[end_idx:]
+                new_expr = (
+                    f'db.session.execute(select({model_prefix}).where({arg})).scalars().{suffix}()'
+                )
+            line = line[: m.start()] + new_expr + line[end_idx:]
             replacements += 1
             needs_select = True
 
@@ -187,10 +193,12 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
             if not m:
                 break
             model_prefix = m.group(1).replace('.query.order_by(', '')
-            arg, close_idx = _extract_call_arg(line, m.start() + len(model_prefix) + len('.query.order_by'))
+            arg, close_idx = _extract_call_arg(
+                line, m.start() + len(model_prefix) + len('.query.order_by')
+            )
             if close_idx == -1:
                 break
-            suffix_match = re.match(r'\s*\.(all|first|count|one)\(\)', line[close_idx + 1:])
+            suffix_match = re.match(r'\s*\.(all|first|count|one)\(\)', line[close_idx + 1 :])
             if not suffix_match:
                 break
             suffix = suffix_match.group(1)
@@ -199,10 +207,12 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
                 needs_func = True
                 new_expr = f'db.session.execute(select(func.count()).select_from({model_prefix}).order_by({arg})).scalar()'
             elif suffix == 'one':
-                new_expr = f'db.session.execute(select({model_prefix}).order_by({arg})).scalar_one()'
+                new_expr = (
+                    f'db.session.execute(select({model_prefix}).order_by({arg})).scalar_one()'
+                )
             else:
                 new_expr = f'db.session.execute(select({model_prefix}).order_by({arg})).scalars().{suffix}()'
-            line = line[:m.start()] + new_expr + line[end_idx:]
+            line = line[: m.start()] + new_expr + line[end_idx:]
             replacements += 1
             needs_select = True
 
@@ -212,10 +222,12 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
             if not m:
                 break
             model_prefix = m.group(1).replace('.query.limit(', '')
-            arg, close_idx = _extract_call_arg(line, m.start() + len(model_prefix) + len('.query.limit'))
+            arg, close_idx = _extract_call_arg(
+                line, m.start() + len(model_prefix) + len('.query.limit')
+            )
             if close_idx == -1:
                 break
-            suffix_match = re.match(r'\s*\.(all|first|count|one)\(\)', line[close_idx + 1:])
+            suffix_match = re.match(r'\s*\.(all|first|count|one)\(\)', line[close_idx + 1 :])
             if not suffix_match:
                 break
             suffix = suffix_match.group(1)
@@ -226,8 +238,10 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
             elif suffix == 'one':
                 new_expr = f'db.session.execute(select({model_prefix}).limit({arg})).scalar_one()'
             else:
-                new_expr = f'db.session.execute(select({model_prefix}).limit({arg})).scalars().{suffix}()'
-            line = line[:m.start()] + new_expr + line[end_idx:]
+                new_expr = (
+                    f'db.session.execute(select({model_prefix}).limit({arg})).scalars().{suffix}()'
+                )
+            line = line[: m.start()] + new_expr + line[end_idx:]
             replacements += 1
             needs_select = True
 
@@ -240,12 +254,14 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
             suffix = m.group(2)
             if suffix == 'count':
                 needs_func = True
-                new_expr = f'db.session.execute(select(func.count()).select_from({model_prefix})).scalar()'
+                new_expr = (
+                    f'db.session.execute(select(func.count()).select_from({model_prefix})).scalar()'
+                )
             elif suffix == 'one':
                 new_expr = f'db.session.execute(select({model_prefix})).scalar_one()'
             else:
                 new_expr = f'db.session.execute(select({model_prefix})).scalars().{suffix}()'
-            line = line[:m.start()] + new_expr + line[m.end():]
+            line = line[: m.start()] + new_expr + line[m.end() :]
             replacements += 1
             needs_select = True
 
@@ -255,12 +271,14 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
             if not m:
                 break
             model_prefix = m.group(1).replace('.query.get(', '')
-            arg, close_idx = _extract_call_arg(line, m.start() + len(model_prefix) + len('.query.get'))
+            arg, close_idx = _extract_call_arg(
+                line, m.start() + len(model_prefix) + len('.query.get')
+            )
             if close_idx == -1:
                 break
             end_idx = close_idx + 1
             new_expr = f'db.session.get({model_prefix}, {arg})'
-            line = line[:m.start()] + new_expr + line[end_idx:]
+            line = line[: m.start()] + new_expr + line[end_idx:]
             replacements += 1
             needs_select = False  # get() doesn't need select import
 
@@ -272,9 +290,11 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
             model_arg, close_idx = _extract_call_arg(line, m.start() + len('db.session.query'))
             if close_idx == -1:
                 break
-            rest = line[close_idx + 1:]
+            rest = line[close_idx + 1 :]
             # Look for .filter(...) or .filter_by(...) then .all/first/count/one
-            chain_match = re.match(r'\s*\.(filter|filter_by)\((.*)\)\s*\.(all|first|count|one)\(\)', rest)
+            chain_match = re.match(
+                r'\s*\.(filter|filter_by)\((.*)\)\s*\.(all|first|count|one)\(\)', rest
+            )
             if chain_match:
                 chain_type = chain_match.group(1)
                 chain_arg = chain_match.group(2)
@@ -288,15 +308,14 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
                         new_expr = f'db.session.execute(select({model_arg}).where({chain_arg})).scalar_one()'
                     else:
                         new_expr = f'db.session.execute(select({model_arg}).where({chain_arg})).scalars().{suffix}()'
-                else:  # filter_by
-                    if suffix == 'count':
-                        needs_func = True
-                        new_expr = f'db.session.execute(select(func.count()).select_from({model_arg}).filter_by({chain_arg})).scalar()'
-                    elif suffix == 'one':
-                        new_expr = f'db.session.execute(select({model_arg}).filter_by({chain_arg})).scalar_one()'
-                    else:
-                        new_expr = f'db.session.execute(select({model_arg}).filter_by({chain_arg})).scalars().{suffix}()'
-                line = line[:m.start()] + new_expr + line[end_idx:]
+                elif suffix == 'count':
+                    needs_func = True
+                    new_expr = f'db.session.execute(select(func.count()).select_from({model_arg}).filter_by({chain_arg})).scalar()'
+                elif suffix == 'one':
+                    new_expr = f'db.session.execute(select({model_arg}).filter_by({chain_arg})).scalar_one()'
+                else:
+                    new_expr = f'db.session.execute(select({model_arg}).filter_by({chain_arg})).scalars().{suffix}()'
+                line = line[: m.start()] + new_expr + line[end_idx:]
                 replacements += 1
                 needs_select = True
                 break  # Only one per line for safety
@@ -312,7 +331,7 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
                     new_expr = f'db.session.execute(select({model_arg})).scalar_one()'
                 else:
                     new_expr = f'db.session.execute(select({model_arg})).scalars().{suffix}()'
-                line = line[:m.start()] + new_expr + line[end_idx:]
+                line = line[: m.start()] + new_expr + line[end_idx:]
                 replacements += 1
                 needs_select = True
                 break
@@ -357,13 +376,13 @@ def main() -> int:
                 with open(pyfile, 'w', encoding='utf-8') as f:
                     f.write(new_content)
                 rel = os.path.relpath(pyfile, root)
-                print(f"[MODIFIED] {rel}  ({count} replacement(s))")
+                print(f'[MODIFIED] {rel}  ({count} replacement(s))')
 
-    print(f"\n{'='*60}")
-    print(f"SQLAlchemy 2.0 Auto-Refactor Complete")
-    print(f"{'='*60}")
-    print(f"Files modified: {files_modified}")
-    print(f"Total replacements: {total_replacements}")
+    print(f'\n{"=" * 60}')
+    print('SQLAlchemy 2.0 Auto-Refactor Complete')
+    print(f'{"=" * 60}')
+    print(f'Files modified: {files_modified}')
+    print(f'Total replacements: {total_replacements}')
     return 0
 
 

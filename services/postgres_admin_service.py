@@ -1,8 +1,9 @@
 """PostgreSQL-native database administration helpers (production dialect only)."""
+
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 from sqlalchemy import text
@@ -34,11 +35,11 @@ def get_database_size_bytes(engine: Engine) -> int:
 def format_byte_size(size_bytes: int) -> str:
     if size_bytes < 1024:
         return f'{size_bytes} B'
-    if size_bytes < 1024 ** 2:
+    if size_bytes < 1024**2:
         return f'{size_bytes / 1024:.2f} KB'
-    if size_bytes < 1024 ** 3:
-        return f'{size_bytes / (1024 ** 2):.2f} MB'
-    return f'{size_bytes / (1024 ** 3):.2f} GB'
+    if size_bytes < 1024**3:
+        return f'{size_bytes / (1024**2):.2f} MB'
+    return f'{size_bytes / (1024**3):.2f} GB'
 
 
 def get_database_size_display(engine: Engine) -> str:
@@ -53,7 +54,7 @@ def get_active_connection_count(engine: Engine) -> int:
     require_postgresql_engine(engine)
     with engine.connect() as conn:
         count = conn.execute(
-            text("SELECT count(*) FROM pg_stat_activity WHERE datname = current_database()")
+            text('SELECT count(*) FROM pg_stat_activity WHERE datname = current_database()')
         ).scalar()
     return int(count or 0)
 

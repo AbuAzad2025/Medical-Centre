@@ -2,6 +2,7 @@
 مشتركو الإشارات — Signal Subscribers
 Connects system-wide signals to handlers (audit log, notifications, etc.)
 """
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,17 +13,20 @@ def _safe_send(signal, **kwargs):
     try:
         signal.send(**kwargs)
     except Exception as exc:
-        logger.warning("Signal %s failed: %s", signal.name, exc)
+        logger.warning('Signal %s failed: %s', signal.name, exc)
 
 
 def connect_audit_logger(signal, entity_name):
     """Generic audit-log subscriber factory."""
+
     def _handler(sender, **kwargs):
         logger.info(
-            "AUDIT %s | entity=%s | data=%s",
-            signal.name, entity_name, {k: v for k, v in kwargs.items()
-                                       if k not in ('password', 'token', 'secret')}
+            'AUDIT %s | entity=%s | data=%s',
+            signal.name,
+            entity_name,
+            {k: v for k, v in kwargs.items() if k not in ('password', 'token', 'secret')},
         )
+
     signal.connect(_handler, weak=False)
     return _handler
 
@@ -45,6 +49,7 @@ def connect_notification(signal, notification_type, title_template, message_temp
             related_entity_type=kwargs.get('entity_type'),
             related_entity_id=kwargs.get('entity_id'),
         )
+
     signal.connect(_handler, weak=False)
     return _handler
 
@@ -52,18 +57,34 @@ def connect_notification(signal, notification_type, title_template, message_temp
 def register_all_subscribers():
     """Called once at app startup to connect all signals -> handlers."""
     from app.shared.signals import (
-        patient_created, patient_updated,
-        visit_created, visit_status_changed, visit_completed,
-        appointment_created, appointment_status_changed,
-        lab_order_created, lab_result_ready, lab_result_validated,
-        radiology_order_created, radiology_result_ready, radiology_report_approved,
-        prescription_issued, prescription_dispensed,
-        stock_low_alert, stock_movement_recorded,
-        invoice_created, invoice_paid, invoice_voided, payment_received,
-        emergency_case_created, emergency_status_changed,
-        user_created, user_login, user_logout, security_event,
+        appointment_created,
+        appointment_status_changed,
+        emergency_case_created,
+        emergency_status_changed,
+        invoice_created,
+        invoice_paid,
+        invoice_voided,
+        lab_order_created,
+        lab_result_ready,
+        lab_result_validated,
+        patient_created,
+        patient_updated,
+        payment_received,
+        prescription_dispensed,
+        prescription_issued,
+        radiology_order_created,
+        radiology_report_approved,
+        radiology_result_ready,
+        security_event,
+        stock_low_alert,
+        user_created,
+        user_login,
+        user_logout,
+        visit_completed,
+        visit_created,
+        visit_status_changed,
     )
-    
+
     # ── Audit logger for every signal ──
     _all_signals = [
         (patient_created, 'Patient'),
@@ -97,24 +118,34 @@ def register_all_subscribers():
 
     # ── Notifications ──
     connect_notification(
-        lab_result_ready, 'lab',
-        'نتيجة مختبر جاهزة', 'نتيجة الفحص للمريض {patient_name} جاهزة للمراجعة'
+        lab_result_ready,
+        'lab',
+        'نتيجة مختبر جاهزة',
+        'نتيجة الفحص للمريض {patient_name} جاهزة للمراجعة',
     )
     connect_notification(
-        radiology_result_ready, 'radiology',
-        'تقرير أشعة جاهز', 'تقرير الأشعة للمريض {patient_name} جاهز'
+        radiology_result_ready,
+        'radiology',
+        'تقرير أشعة جاهز',
+        'تقرير الأشعة للمريض {patient_name} جاهز',
     )
     connect_notification(
-        stock_low_alert, 'warning',
-        'تنبيه: مخزون منخفض', 'الدواء {medication_name} مخزونه منخفض ({current_stock})'
+        stock_low_alert,
+        'warning',
+        'تنبيه: مخزون منخفض',
+        'الدواء {medication_name} مخزونه منخفض ({current_stock})',
     )
     connect_notification(
-        emergency_case_created, 'emergency',
-        'حالة طوارئ جديدة', 'حالة طوارئ جديدة للمريض {patient_name} - {severity}'
+        emergency_case_created,
+        'emergency',
+        'حالة طوارئ جديدة',
+        'حالة طوارئ جديدة للمريض {patient_name} - {severity}',
     )
     connect_notification(
-        emergency_status_changed, 'emergency',
-        'تحديث حالة طوارئ', 'تغيير حالة الطوارئ للمريض {patient_name} إلى {new_status}'
+        emergency_status_changed,
+        'emergency',
+        'تحديث حالة طوارئ',
+        'تغيير حالة الطوارئ للمريض {patient_name} إلى {new_status}',
     )
 
-    logger.info("All signal subscribers registered (%d signals)", len(_all_signals))
+    logger.info('All signal subscribers registered (%d signals)', len(_all_signals))

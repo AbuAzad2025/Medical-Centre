@@ -1,10 +1,13 @@
 """
 Module activation validators — business rules
 """
+
 from sqlalchemy import select
-from app.extensions import db
+
 from app.core.module.models import TenantModule
-from app.core.module.registry import get_clinical_modules, MODULE_REGISTRY
+from app.core.module.registry import MODULE_REGISTRY, get_clinical_modules
+from app.extensions import db
+
 
 class ModuleValidationError(Exception):
     pass
@@ -12,7 +15,11 @@ class ModuleValidationError(Exception):
 
 def get_active_modules_for_tenant(tenant_id: int) -> set:
     """Return set of active module names for a tenant."""
-    rows = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)).scalars().all()
+    rows = (
+        db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True))
+        .scalars()
+        .all()
+    )
     return {r.module_name for r in rows}
 
 
@@ -25,9 +32,9 @@ def validate_reception_required(tenant_id: int, proposed_modules: list[str]):
     all_clinical = all_modules & clinical
 
     if len(all_clinical) > 3:
-        if "reception" not in all_modules:
+        if 'reception' not in all_modules:
             raise ModuleValidationError(
-                "Reception module is mandatory when more than 3 clinical modules are active."
+                'Reception module is mandatory when more than 3 clinical modules are active.'
             )
 
 
@@ -41,14 +48,12 @@ def validate_required_any_of(tenant_id: int, module_name: str, active: set):
         if any(req in active or req == module_name for req in group):
             return True, None
 
-    groups_str = " أو ".join(" + ".join(g) for g in meta.required_any_of)
+    groups_str = ' أو '.join(' + '.join(g) for g in meta.required_any_of)
     return False, f"Module '{module_name}' requires one of: {groups_str}"
 
 
 def can_activate_module(
-    tenant_id: int,
-    module_name: str,
-    profile_code: str | None = None
+    tenant_id: int, module_name: str, profile_code: str | None = None
 ) -> tuple[bool, str | None]:
     """
     Check whether a module can be activated for a tenant.
@@ -60,7 +65,7 @@ def can_activate_module(
 
     meta = MODULE_REGISTRY.get(module_name)
     if not meta:
-        return False, f"Unknown module: {module_name}"
+        return False, f'Unknown module: {module_name}'
 
     # Check required modules
     for req in meta.required_modules:
@@ -73,8 +78,8 @@ def can_activate_module(
         return False, err
 
     # For standalone profiles, check if module is standalone_allowed
-    if profile_code and profile_code.startswith("standalone_"):
-        if not meta.standalone_allowed and profile_code != "multi_department_center":
+    if profile_code and profile_code.startswith('standalone_'):
+        if not meta.standalone_allowed and profile_code != 'multi_department_center':
             return False, f"Module '{module_name}' is not available as standalone."
 
     # Check reception rule
@@ -89,19 +94,20 @@ def can_activate_module(
 def validate_profile_modules(profile_code: str, modules: list[str]) -> list[str]:
     """Validate that the module combination makes sense for a profile."""
     errors = []
-    from app.core.tenant.models import get_bundle_for_profile, _PRODUCT_PROFILE_SEED
+    from app.core.tenant.models import _PRODUCT_PROFILE_SEED, get_bundle_for_profile
+
     try:
         bundle = get_bundle_for_profile(profile_code)
         if bundle:
-            bundle_data = {"standalone": profile_code.startswith("standalone_")}
+            bundle_data = {'standalone': profile_code.startswith('standalone_')}
         else:
             bundle_data = _PRODUCT_PROFILE_SEED.get(profile_code)
-    except Exception as e:
+    except Exception:
         bundle_data = _PRODUCT_PROFILE_SEED.get(profile_code)
     if not bundle_data:
-        return ["Invalid profile code"]
+        return ['Invalid profile code']
 
-    if profile_code.startswith("standalone_"):
+    if profile_code.startswith('standalone_'):
         for m in modules:
             meta = MODULE_REGISTRY.get(m)
             if meta and not meta.standalone_allowed:

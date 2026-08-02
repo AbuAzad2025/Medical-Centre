@@ -6,10 +6,13 @@ Handles edge cases:
   - Files with multi-line from-imports (insert after last top-level import)
   - Skip files already correct
 """
-import re
-import os
 
-ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'tests')
+import os
+import re
+
+ROOT = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'tests'
+)
 
 
 def has_standalone_db_import(content):
@@ -48,7 +51,7 @@ def find_insert_point(lines):
 
 def fix_file(filepath):
     try:
-        with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
+        with open(filepath, encoding='utf-8', errors='replace') as f:
             content = f.read()
     except Exception:
         return False
@@ -83,8 +86,8 @@ def main():
             if fix_file(filepath):
                 fixed += 1
                 rel = os.path.relpath(filepath, ROOT)
-                print(f"  Fixed: {rel}")
-    print(f"\nTotal: {fixed} files fixed")
+                print(f'  Fixed: {rel}')
+    print(f'\nTotal: {fixed} files fixed')
 
 
 if __name__ == '__main__':

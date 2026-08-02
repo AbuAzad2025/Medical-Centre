@@ -3,10 +3,9 @@
 import uuid
 
 import pytest
+from sqlalchemy import func, select
 
-from app.extensions import db
-from app.core.saas.seed import seed_packages_from_product_bundles
-from app.core.saas.migration import migrate_legacy_tenant_to_package, LegacyMigrationError
+from app.core.saas.migration import LegacyMigrationError, migrate_legacy_tenant_to_package
 from app.core.saas.models import (
     Package,
     PackageVersion,
@@ -15,8 +14,9 @@ from app.core.saas.models import (
     SubscriptionLine,
 )
 from app.core.saas.resolver import EntitlementResolver
+from app.core.saas.seed import seed_packages_from_product_bundles
 from app.core.tenant.models import ProductBundle, Tenant, TenantStatus
-from sqlalchemy import select, func
+from app.extensions import db
 
 
 class TestSeedFromProductBundles:
@@ -24,6 +24,7 @@ class TestSeedFromProductBundles:
         # Ensure bundles exist
         if db.session.execute(select(func.count()).select_from(ProductBundle)).scalar() == 0:
             from app.core.tenant.models import seed_default_bundles
+
             seed_default_bundles()
 
         before = db.session.execute(select(func.count()).select_from(Package)).scalar()
@@ -41,20 +42,33 @@ class TestSeedFromProductBundles:
 
         if not created:
             version = db.session.execute(
-                select(PackageVersion).join(PackageVersionPricing)
+                select(PackageVersion)
+                .join(PackageVersionPricing)
                 .join(PackageVersionEntitlement)
                 .order_by(PackageVersion.id)
             ).scalar()
         else:
-            version = db.session.execute(select(PackageVersion).filter_by(package_id=package.id)).scalars().first()
+            version = (
+                db.session.execute(select(PackageVersion).filter_by(package_id=package.id))
+                .scalars()
+                .first()
+            )
 
         assert version is not None
         assert version.pricing
-        assert db.session.execute(select(func.count()).select_from(PackageVersionEntitlement).filter_by(package_version_id=version.id)).scalar() > 0
+        assert (
+            db.session.execute(
+                select(func.count())
+                .select_from(PackageVersionEntitlement)
+                .filter_by(package_version_id=version.id)
+            ).scalar()
+            > 0
+        )
 
     def test_seed_is_idempotent(self, app):
         if db.session.execute(select(func.count()).select_from(ProductBundle)).scalar() == 0:
             from app.core.tenant.models import seed_default_bundles
+
             seed_default_bundles()
 
         first = seed_packages_from_product_bundles()
@@ -70,6 +84,7 @@ class TestLegacyTenantMigration:
     def test_migrate_legacy_tenant_creates_line_and_entitlements(self, app):
         if db.session.execute(select(func.count()).select_from(ProductBundle)).scalar() == 0:
             from app.core.tenant.models import seed_default_bundles
+
             seed_default_bundles()
 
         created = seed_packages_from_product_bundles()
@@ -79,11 +94,11 @@ class TestLegacyTenantMigration:
             version = db.session.execute(select(PackageVersion)).scalars().first()
 
         tenant = Tenant(
-            slug=f"legacy-{uuid.uuid4().hex[:8]}",
-            name="Legacy Tenant",
-            contact_email="legacy@test.local",
+            slug=f'legacy-{uuid.uuid4().hex[:8]}',
+            name='Legacy Tenant',
+            contact_email='legacy@test.local',
             status=TenantStatus.ACTIVE,
-            product_profile_code="custom",
+            product_profile_code='custom',
         )
         db.session.add(tenant)
         db.session.commit()
@@ -91,12 +106,17 @@ class TestLegacyTenantMigration:
         line = migrate_legacy_tenant_to_package(
             tenant.id,
             package_version_id=version.id,
-            billing_type="monthly",
+            billing_type='monthly',
         )
 
         assert line.tenant_id == tenant.id
-        assert line.line_type == "base"
-        assert db.session.execute(select(func.count()).select_from(SubscriptionLine).filter_by(tenant_id=tenant.id)).scalar() == 1
+        assert line.line_type == 'base'
+        assert (
+            db.session.execute(
+                select(func.count()).select_from(SubscriptionLine).filter_by(tenant_id=tenant.id)
+            ).scalar()
+            == 1
+        )
 
         capabilities = {e.capability_key for e in version.entitlements}
         for cap in capabilities:
@@ -105,6 +125,7 @@ class TestLegacyTenantMigration:
     def test_migrate_fails_if_active_lines_exist(self, app):
         if db.session.execute(select(func.count()).select_from(ProductBundle)).scalar() == 0:
             from app.core.tenant.models import seed_default_bundles
+
             seed_default_bundles()
 
         created = seed_packages_from_product_bundles()
@@ -114,11 +135,11 @@ class TestLegacyTenantMigration:
             version = db.session.execute(select(PackageVersion)).scalars().first()
 
         tenant = Tenant(
-            slug=f"legacy-dup-{uuid.uuid4().hex[:8]}",
-            name="Legacy Tenant With Line",
-            contact_email="legacy2@test.local",
+            slug=f'legacy-dup-{uuid.uuid4().hex[:8]}',
+            name='Legacy Tenant With Line',
+            contact_email='legacy2@test.local',
             status=TenantStatus.ACTIVE,
-            product_profile_code="custom",
+            product_profile_code='custom',
         )
         db.session.add(tenant)
         db.session.commit()
@@ -126,12 +147,12 @@ class TestLegacyTenantMigration:
         migrate_legacy_tenant_to_package(
             tenant.id,
             package_version_id=version.id,
-            billing_type="monthly",
+            billing_type='monthly',
         )
 
         with pytest.raises(LegacyMigrationError):
             migrate_legacy_tenant_to_package(
                 tenant.id,
                 package_version_id=version.id,
-                billing_type="monthly",
+                billing_type='monthly',
             )

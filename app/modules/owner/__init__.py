@@ -17,8 +17,9 @@ S0-007 Platform Owner Console Security Contract:
 5. All denied owner-area attempts and sensitive mutations are logged to
    PlatformAuditLog.
 """
+
 from flask import Blueprint
 
-owner_bp = Blueprint("owner", __name__)
+owner_bp = Blueprint('owner', __name__)
 
 from app.modules.owner import routes

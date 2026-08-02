@@ -3,19 +3,22 @@
 Medical System Advanced Notification Model
 """
 
-from datetime import datetime, timezone
-from sqlalchemy import Index, CheckConstraint, func
-from app_factory import db
-from utils.db_safety import safe_commit, safe_rollback
-from app.shared.mixins import TenantMixin
-from app.shared.encrypted_type import EncryptedString
 import json
+from datetime import UTC, datetime
+
+from sqlalchemy import Index
+
+from app.shared.encrypted_type import EncryptedString
+from app.shared.mixins import TenantMixin
+from app_factory import db
+from utils.db_safety import safe_commit
 
 # ===== النماذج الأساسية (موحدة) =====
 
+
 class Notification(TenantMixin, db.Model):
     """نموذج الإشعار المتطور"""
-    
+
     __tablename__ = 'notifications'
     __tenant_migration__ = True
 
@@ -24,20 +27,26 @@ class Notification(TenantMixin, db.Model):
     message = db.Column(db.Text, nullable=False)
     notification_type = db.Column(db.String(50), nullable=False)  # info, warning, error, success
     priority = db.Column(db.String(20), default='normal')  # low, normal, high, urgent
-    
+
     # المستلم
-    recipient_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    recipient_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     recipient_role = db.Column(db.String(50), nullable=True)
-    recipient_department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    recipient_department_id = db.Column(
+        db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # المرسل
-    sender_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    sender_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # الحالة
     is_read = db.Column(db.Boolean, default=False, index=True)
     is_urgent = db.Column(db.Boolean, default=False)
     expires_at = db.Column(db.DateTime, nullable=True)
-    
+
     # التوقيت
     sent_at = db.Column(db.DateTime, default=db.func.now(), index=True)
     read_at = db.Column(db.DateTime, nullable=True)
@@ -47,31 +56,33 @@ class Notification(TenantMixin, db.Model):
         Index('idx_notif_recipient', 'recipient_id'),
         Index('idx_notif_sender', 'sender_id'),
         Index('idx_notif_created', 'sent_at'),
-        {'extend_existing': True}
+        {'extend_existing': True},
     )
-    
+
     # العلاقات
     recipient = db.relationship('User', foreign_keys=[recipient_id], back_populates='notifications')
     sender = db.relationship('User', foreign_keys=[sender_id], back_populates='sent_notifications')
     department = db.relationship('Department', foreign_keys=[recipient_department_id])
-    
+
     def __repr__(self):
         return f'<Notification {self.title}>'
-    
+
     def mark_as_read(self):
         """تحديد الإشعار كمقروء"""
         self.is_read = True
-        from datetime import timezone, datetime as _dt
-        self.read_at = _dt.now(timezone.utc)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-    
+        from datetime import datetime as _dt
+
+        self.read_at = _dt.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+
     def is_expired(self):
         """التحقق من انتهاء صلاحية الإشعار"""
         if self.expires_at:
-            from datetime import timezone, datetime as _dt
-            return _dt.now(timezone.utc) > self.expires_at
+            from datetime import datetime as _dt
+
+            return _dt.now(UTC) > self.expires_at
         return False
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -88,14 +99,15 @@ class Notification(TenantMixin, db.Model):
             'is_urgent': self.is_urgent,
             'expires_at': self.expires_at.isoformat() if self.expires_at else None,
             'sent_at': self.sent_at.isoformat() if self.sent_at else None,
-            'read_at': self.read_at.isoformat() if self.read_at else None
+            'read_at': self.read_at.isoformat() if self.read_at else None,
         }
+
 
 class NotificationTemplate(TenantMixin, db.Model):
     """نموذج قالب الإشعار"""
-    
+
     __tablename__ = 'notification_templates'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     template_type = db.Column(db.String(50), nullable=False)  # whatsapp, email, sms, push
@@ -104,52 +116,53 @@ class NotificationTemplate(TenantMixin, db.Model):
     variables = db.Column(db.Text, nullable=True)  # JSON format
     is_active = db.Column(db.Boolean, default=True)
     is_system = db.Column(db.Boolean, default=False)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    created_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
-    
+
     # العلاقات
     creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
     queue_items = db.relationship('NotificationQueue', back_populates='template')
 
-    
     def __repr__(self):
         return f'<NotificationTemplate {self.name}>'
-    
+
     def render(self, variables=None):
         """تطبيق المتغيرات على القالب"""
         if not variables:
             variables = {}
-        
+
         try:
             # تحليل المتغيرات المحفوظة
             template_vars = json.loads(self.variables) if self.variables else {}
-            
+
             # دمج المتغيرات
             all_vars = {**template_vars, **variables}
-            
+
             # تطبيق المتغيرات على المحتوى
             rendered_content = self.content
             for key, value in all_vars.items():
                 rendered_content = rendered_content.replace(f'{{{key}}}', str(value))
-            
+
             # تطبيق المتغيرات على العنوان
             rendered_subject = self.subject or ''
             for key, value in all_vars.items():
                 rendered_subject = rendered_subject.replace(f'{{{key}}}', str(value))
-            
+
             return {
                 'subject': rendered_subject,
                 'content': rendered_content,
-                'notification_type': self.template_type
+                'notification_type': self.template_type,
             }
-        except Exception as e:
+        except Exception:
             return {
                 'subject': self.subject or '',
                 'content': self.content,
-                'notification_type': self.template_type
+                'notification_type': self.template_type,
             }
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -163,17 +176,25 @@ class NotificationTemplate(TenantMixin, db.Model):
             'is_system': self.is_system,
             'created_by': self.created_by,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
+
 
 class NotificationQueue(TenantMixin, db.Model):
     """نموذج طابور الإشعارات"""
-    
+
     __tablename__ = 'notification_queue'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    template_id = db.Column(db.Integer, db.ForeignKey('notification_templates.id', ondelete='CASCADE'), nullable=True, index=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    template_id = db.Column(
+        db.Integer,
+        db.ForeignKey('notification_templates.id', ondelete='CASCADE'),
+        nullable=True,
+        index=True,
+    )
     notification_type = db.Column(db.String(50), nullable=False)  # whatsapp, email, sms, push
     recipient = db.Column(EncryptedString(200), nullable=False)  # phone, email, etc.
     subject = db.Column(db.String(200), nullable=True)
@@ -189,44 +210,39 @@ class NotificationQueue(TenantMixin, db.Model):
     max_retries = db.Column(db.Integer, default=3)
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
-    
+
     # العلاقات
     user = db.relationship('User')
     template = db.relationship('NotificationTemplate', back_populates='queue_items')
-    
+
     def __repr__(self):
         return f'<NotificationQueue {self.id}>'
-    
+
     def get_notification_type_display(self):
         """نوع الإشعار للعرض"""
         type_map = {
             'whatsapp': 'واتساب',
             'email': 'بريد إلكتروني',
             'sms': 'رسالة نصية',
-            'push': 'إشعار فوري'
+            'push': 'إشعار فوري',
         }
         return type_map.get(self.notification_type, self.notification_type)
-    
+
     def get_priority_display(self):
         """أولوية الإشعار للعرض"""
-        priority_map = {
-            'low': 'منخفضة',
-            'normal': 'عادية',
-            'high': 'عالية',
-            'urgent': 'عاجلة'
-        }
+        priority_map = {'low': 'منخفضة', 'normal': 'عادية', 'high': 'عالية', 'urgent': 'عاجلة'}
         return priority_map.get(self.priority, self.priority)
-    
+
     def get_status_display(self):
         """حالة الإشعار للعرض"""
         status_map = {
             'pending': 'في الانتظار',
             'sent': 'تم الإرسال',
             'failed': 'فشل الإرسال',
-            'cancelled': 'ملغي'
+            'cancelled': 'ملغي',
         }
         return status_map.get(self.status, self.status)
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -247,14 +263,15 @@ class NotificationQueue(TenantMixin, db.Model):
             'retry_count': self.retry_count,
             'max_retries': self.max_retries,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
+
 
 class WhatsAppNotificationMessage(TenantMixin, db.Model):
     """نموذج رسائل الواتساب"""
-    
+
     __tablename__ = 'whatsapp_messages'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     phone_number = db.Column(EncryptedString(20), nullable=False)
     message_content = db.Column(db.Text, nullable=False)
@@ -266,11 +283,11 @@ class WhatsAppNotificationMessage(TenantMixin, db.Model):
     delivered_at = db.Column(db.DateTime, nullable=True)
     failed_at = db.Column(db.DateTime, nullable=True)
     error_message = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+
     def __repr__(self):
         return f'<WhatsAppNotificationMessage {self.phone_number}>'
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -285,14 +302,15 @@ class WhatsAppNotificationMessage(TenantMixin, db.Model):
             'delivered_at': self.delivered_at.isoformat() if self.delivered_at else None,
             'failed_at': self.failed_at.isoformat() if self.failed_at else None,
             'error_message': self.error_message,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
         }
+
 
 class EmailMessage(TenantMixin, db.Model):
     """نموذج رسائل البريد الإلكتروني"""
-    
+
     __tablename__ = 'email_messages'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     recipient_email = db.Column(EncryptedString(200), nullable=False)
     subject = db.Column(db.String(300), nullable=False)
@@ -304,11 +322,11 @@ class EmailMessage(TenantMixin, db.Model):
     delivered_at = db.Column(db.DateTime, nullable=True)
     failed_at = db.Column(db.DateTime, nullable=True)
     error_message = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+
     def __repr__(self):
         return f'<EmailMessage {self.recipient_email}>'
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -323,5 +341,5 @@ class EmailMessage(TenantMixin, db.Model):
             'delivered_at': self.delivered_at.isoformat() if self.delivered_at else None,
             'failed_at': self.failed_at.isoformat() if self.failed_at else None,
             'error_message': self.error_message,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
         }

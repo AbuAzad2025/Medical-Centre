@@ -1,4 +1,5 @@
 """Shared field validation rules — server + client (G-83)."""
+
 from __future__ import annotations
 
 import json

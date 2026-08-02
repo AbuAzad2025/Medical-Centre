@@ -1,14 +1,14 @@
 """Focused tests for FinancialService expense CRUD paths."""
 
+import types
 import uuid
 from datetime import date
-import types
 
 import pytest
 
-from services.financial_service import FinancialService
-from models.user import User
 from app.extensions import db
+from models.user import User
+from services.financial_service import FinancialService
 
 
 @pytest.fixture
@@ -43,7 +43,11 @@ class TestExpenseCRUD:
         u = exp_ctx.user()
         target = date(2025, 3, 15)
         res = FinancialService.record_expense(
-            'rent', 1000, 'facilities', u.id, expense_date=target,
+            'rent',
+            1000,
+            'facilities',
+            u.id,
+            expense_date=target,
         )
         assert res['success'] is True
         assert res['expense']['expense_date'] == target.isoformat()
@@ -71,10 +75,10 @@ class TestExpenseCRUD:
         assert len(res['expenses']) == 2
 
     def test_get_expenses_handles_query_failure(self, exp_ctx, monkeypatch):
-        from app.extensions import db
 
         def _raise(*a, **k):
             raise RuntimeError('db down')
+
         monkeypatch.setattr(db.session, 'execute', _raise)
         res = FinancialService.get_expenses()
         assert res['success'] is False

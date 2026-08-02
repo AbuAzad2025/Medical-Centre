@@ -1,34 +1,31 @@
 """financial routes - extracted from monolithic manager.py"""
 
-from routes.manager import manager_bp
+import logging
+from datetime import date, datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import manager_or_admin_only, can_approve_force_payment, prevent_self_approval, role_required, role_required_json
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User, StaffWorkSchedule, StaffAbsence
-from models.department import Department
-from models.payment import Payment
-from app.shared.enums import PaymentStatus, VisitState
-from models.invoice import Invoice
-from models.appointment import Appointment
-from models.lab_request import LabRequest
-from models.radiology_request import RadiologyRequest
-from services.gatekeeper_service import GatekeeperService
-from services.manager_service import manager_service
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
+from flask import flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from sqlalchemy import func, select
-from decimal import Decimal, ROUND_HALF_UP
-import logging
-from datetime import datetime, date, timedelta, timezone
 
+from app.extensions import db
+from app.shared.enums import PaymentStatus
+from models.department import Department
+from models.patient import Patient
+from models.payment import Payment
+from models.user import User
+from models.visit import Visit
+from routes.manager import manager_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import (
+    role_required,
+)
 
 # =============================================
 # FINANCIAL ROUTES
 # =============================================
+
 
 @manager_bp.route('/settlements')
 @login_required
@@ -37,15 +34,30 @@ def settlements():
     """تسويات شهرية/فترية حسب القسم أو الطبيب"""
     try:
         # مصادر الفلاتر
-        doctors = db.session.execute(select(User).filter(
-            User.tenant_id == current_user.tenant_id,
-            User.role == 'doctor',
-            User.is_active == True
-        ).order_by(User.full_name.asc())).scalars().all()
-        departments = db.session.execute(select(Department).filter(
-            Department.tenant_id == current_user.tenant_id,
-            Department.is_active == True
-        ).order_by(Department.name.asc())).scalars().all()
+        doctors = (
+            db.session.execute(
+                select(User)
+                .filter(
+                    User.tenant_id == current_user.tenant_id,
+                    User.role == 'doctor',
+                    User.is_active == True,
+                )
+                .order_by(User.full_name.asc())
+            )
+            .scalars()
+            .all()
+        )
+        departments = (
+            db.session.execute(
+                select(Department)
+                .filter(
+                    Department.tenant_id == current_user.tenant_id, Department.is_active == True
+                )
+                .order_by(Department.name.asc())
+            )
+            .scalars()
+            .all()
+        )
 
         mode = (request.args.get('mode') or 'doctor').lower()  # doctor | department
         doctor_id = request.args.get('doctor_id', type=int)
@@ -60,14 +72,14 @@ def settlements():
             try:
                 y, m = map(int, month.split('-'))
                 period_start = date(y, m, 1)
-            except Exception as e:
+            except Exception:
                 period_start = date(today.year, today.month, 1)
         else:
             period_start = date(today.year, today.month, 1)
         if end_date:
             try:
                 period_end = datetime.strptime(end_date, '%Y-%m-%d').date()
-            except Exception as e:
+            except Exception:
                 period_end = date(period_start.year, period_start.month, 28)
         else:
             # نهاية الشهر
@@ -94,17 +106,26 @@ def settlements():
             fee = None
             try:
                 from models.pricing import DoctorPricing
-                pricing = db.session.execute(select(DoctorPricing).filter(
-                    DoctorPricing.doctor_id == v.doctor_id,
-                    DoctorPricing.department_id == v.department_id,
-                    DoctorPricing.is_active == True,
-                    DoctorPricing.tenant_id == current_user.tenant_id
-                ).order_by(DoctorPricing.effective_from.desc())).scalars().first()
-            except Exception as e:
+
+                pricing = (
+                    db.session.execute(
+                        select(DoctorPricing)
+                        .filter(
+                            DoctorPricing.doctor_id == v.doctor_id,
+                            DoctorPricing.department_id == v.department_id,
+                            DoctorPricing.is_active == True,
+                            DoctorPricing.tenant_id == current_user.tenant_id,
+                        )
+                        .order_by(DoctorPricing.effective_from.desc())
+                    )
+                    .scalars()
+                    .first()
+                )
+            except Exception:
                 pricing = None
             vt = (v.visit_type or '').upper()
             if pricing:
-                if vt in ['FIRST','CONSULTATION'] and pricing.consultation_price:
+                if vt in ['FIRST', 'CONSULTATION'] and pricing.consultation_price:
                     fee = Decimal(str(pricing.consultation_price))
                 elif vt in ['FOLLOW_UP'] and pricing.follow_up_price:
                     fee = Decimal(str(pricing.follow_up_price))
@@ -112,8 +133,7 @@ def settlements():
                     fee = Decimal(str(pricing.emergency_price))
             if fee is None:
                 fee = total * Decimal('0.30')
-            if fee > total:
-                fee = total
+            fee = min(fee, total)
             return fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
         items = []
@@ -122,19 +142,29 @@ def settlements():
             paid = Decimal(str(v.paid_amount or 0))
             fee = compute_doctor_fee(v)
             center = (tot - fee).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            items.append({
-                'visit': v,
-                'total': float(tot),
-                'paid': float(paid),
-                'remaining': float((tot - paid).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)),
-                'doctor_fee': float(fee),
-                'center_share': float(center)
-            })
+            items.append(
+                {
+                    'visit': v,
+                    'total': float(tot),
+                    'paid': float(paid),
+                    'remaining': float(
+                        (tot - paid).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    ),
+                    'doctor_fee': float(fee),
+                    'center_share': float(center),
+                }
+            )
         total_amount = sum(Decimal(str(i['total'])) for i in items) if items else Decimal('0.00')
         paid_amount = sum(Decimal(str(i['paid'])) for i in items) if items else Decimal('0.00')
-        doctor_fee_total = sum(Decimal(str(i['doctor_fee'])) for i in items) if items else Decimal('0.00')
-        service_share_total = (total_amount - doctor_fee_total).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-        remaining_amount = (total_amount - paid_amount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        doctor_fee_total = (
+            sum(Decimal(str(i['doctor_fee'])) for i in items) if items else Decimal('0.00')
+        )
+        service_share_total = (total_amount - doctor_fee_total).quantize(
+            Decimal('0.01'), rounding=ROUND_HALF_UP
+        )
+        remaining_amount = (total_amount - paid_amount).quantize(
+            Decimal('0.01'), rounding=ROUND_HALF_UP
+        )
 
         stats = {
             'period_start': period_start,
@@ -146,7 +176,7 @@ def settlements():
             'paid_amount': float(paid_amount),
             'remaining_amount': float(remaining_amount),
             'doctor_fee_total': float(doctor_fee_total),
-            'service_share_total': float(service_share_total)
+            'service_share_total': float(service_share_total),
         }
 
         return render_template(
@@ -158,12 +188,13 @@ def settlements():
             items=items,
             selected_doctor_id=doctor_id,
             selected_department_id=department_id,
-            selected_month=month
+            selected_month=month,
         )
     except Exception as e:
-        logging.error(f"Error in settlements: {str(e)}")
+        logging.exception(f'Error in settlements: {e!s}')
         flash('حدث خطأ في تحميل التسويات', 'error')
         return redirect(url_for('manager.dashboard'))
+
 
 @manager_bp.route('/settlements/export')
 @login_required
@@ -183,14 +214,14 @@ def settlements_export():
             try:
                 y, m = map(int, month.split('-'))
                 period_start = date(y, m, 1)
-            except Exception as e:
+            except Exception:
                 period_start = date(today.year, today.month, 1)
         else:
             period_start = date(today.year, today.month, 1)
         if end_date:
             try:
                 period_end = datetime.strptime(end_date, '%Y-%m-%d').date()
-            except Exception as e:
+            except Exception:
                 period_end = date(period_start.year, period_start.month, 28)
         else:
             next_month = (period_start.replace(day=28) + timedelta(days=4)).replace(day=1)
@@ -208,12 +239,25 @@ def settlements_export():
             fee = None
             try:
                 from models.pricing import DoctorPricing
-                pricing = db.session.execute(select(DoctorPricing).filter(DoctorPricing.doctor_id == v.doctor_id, DoctorPricing.department_id == v.department_id, DoctorPricing.is_active == True).order_by(DoctorPricing.effective_from.desc())).scalars().first()
-            except Exception as e:
+
+                pricing = (
+                    db.session.execute(
+                        select(DoctorPricing)
+                        .filter(
+                            DoctorPricing.doctor_id == v.doctor_id,
+                            DoctorPricing.department_id == v.department_id,
+                            DoctorPricing.is_active == True,
+                        )
+                        .order_by(DoctorPricing.effective_from.desc())
+                    )
+                    .scalars()
+                    .first()
+                )
+            except Exception:
                 pricing = None
             vt = (v.visit_type or '').upper()
             if pricing:
-                if vt in ['FIRST','CONSULTATION'] and pricing.consultation_price:
+                if vt in ['FIRST', 'CONSULTATION'] and pricing.consultation_price:
                     fee = Decimal(str(pricing.consultation_price))
                 elif vt in ['FOLLOW_UP'] and pricing.follow_up_price:
                     fee = Decimal(str(pricing.follow_up_price))
@@ -221,46 +265,60 @@ def settlements_export():
                     fee = Decimal(str(pricing.emergency_price))
             if fee is None:
                 fee = total * Decimal('0.30')
-            if fee > total:
-                fee = total
+            fee = min(fee, total)
             return fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
         import io
+
         output = io.StringIO()
-        output.write('رقم الزيارة,التاريخ,القسم,الطبيب,المريض,الإجمالي,المدفوع,المتبقي,حصة الطبيب,حصة المركز\n')
+        output.write(
+            'رقم الزيارة,التاريخ,القسم,الطبيب,المريض,الإجمالي,المدفوع,المتبقي,حصة الطبيب,حصة المركز\n'
+        )
         for v in visits:
             total = Decimal(str(v.total_amount or 0))
             paid = Decimal(str(v.paid_amount or 0))
             remaining = (total - paid).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             fee = compute_doctor_fee(v)
             center = (total - fee).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            output.write(','.join([
-                str(v.id),
-                (v.visit_date.strftime('%Y-%m-%d') if v.visit_date else ''),
-                (v.department.name_ar if v.department else ''),
-                (v.doctor.full_name if v.doctor else ''),
-                (v.patient.full_name if v.patient else ''),
-                f"{float(total):.2f}",
-                f"{float(paid):.2f}",
-                f"{float(remaining):.2f}",
-                f"{float(fee):.2f}",
-                f"{float(center):.2f}"
-            ]) + '\n')
+            output.write(
+                ','.join(
+                    [
+                        str(v.id),
+                        (v.visit_date.strftime('%Y-%m-%d') if v.visit_date else ''),
+                        (v.department.name_ar if v.department else ''),
+                        (v.doctor.full_name if v.doctor else ''),
+                        (v.patient.full_name if v.patient else ''),
+                        f'{float(total):.2f}',
+                        f'{float(paid):.2f}',
+                        f'{float(remaining):.2f}',
+                        f'{float(fee):.2f}',
+                        f'{float(center):.2f}',
+                    ]
+                )
+                + '\n'
+            )
         from flask import Response
-        filename = f"settlements_{mode}_{(doctor_id or department_id or 'all')}_{period_start}_{period_end}.csv"
-        return Response(output.getvalue(), mimetype='text/csv', headers={'Content-Disposition': f'attachment; filename={filename}'})
+
+        filename = f'settlements_{mode}_{(doctor_id or department_id or "all")}_{period_start}_{period_end}.csv'
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': f'attachment; filename={filename}'},
+        )
     except Exception as e:
-        logging.error(f"Error exporting settlements: {str(e)}")
+        logging.exception(f'Error exporting settlements: {e!s}')
         flash('حدث خطأ في تصدير التسويات', 'error')
         return redirect(url_for('manager.dashboard'))
+
 
 @manager_bp.route('/financial-reports')
 @login_required
 @role_required('manager', 'admin')
 def financial_reports():
     """التقارير المالية"""
-    
+
     return render_template('manager/reports.html')
+
 
 @manager_bp.route('/budget', methods=['GET', 'POST'])
 @login_required
@@ -268,6 +326,7 @@ def financial_reports():
 def budget_dashboard():
     """إدارة الميزانية - Budget vs Actual"""
     from models.budget import Budget
+
     today = date.today()
     year = int(request.args.get('year', today.year))
     month = int(request.args.get('month', today.month))
@@ -282,12 +341,12 @@ def budget_dashboard():
             b.new_patients_target = int(request.form.get('new_patients_target', 0))
             b.expenses_target = Decimal(request.form.get('expenses_target', 0))
             b.notes = request.form.get('notes', '')
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم حفظ الميزانية', 'success')
             return redirect(url_for('manager.budget_dashboard', year=year, month=month))
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error(f"Error saving budget: {str(e)}")
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception(f'Error saving budget: {e!s}')
             flash('حدث خطأ أثناء حفظ الميزانية', 'error')
             return redirect(url_for('manager.budget_dashboard', year=year, month=month))
 
@@ -297,31 +356,60 @@ def budget_dashboard():
     else:
         end = date(year, month + 1, 1)
 
-    actual_revenue = db.session.execute(select(func.sum(Payment.amount)).filter(
-        Payment.tenant_id == current_user.tenant_id,
-        Payment.payment_date >= start, Payment.payment_date < end,
-        Payment.status.in_([PaymentStatus.CONFIRMED, PaymentStatus.PAID])
-    )).scalar() or 0
+    actual_revenue = (
+        db.session.execute(
+            select(func.sum(Payment.amount)).filter(
+                Payment.tenant_id == current_user.tenant_id,
+                Payment.payment_date >= start,
+                Payment.payment_date < end,
+                Payment.status.in_([PaymentStatus.CONFIRMED, PaymentStatus.PAID]),
+            )
+        ).scalar()
+        or 0
+    )
 
-    actual_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
-        Visit.tenant_id == current_user.tenant_id,
-        Visit.visit_date >= start, Visit.visit_date < end
-    )).scalar()
-    actual_new_patients = db.session.execute(select(func.count()).select_from(Patient).filter(
-        Patient.tenant_id == current_user.tenant_id,
-        Patient.created_at >= start, Patient.created_at < end
-    )).scalar()
+    actual_visits = db.session.execute(
+        select(func.count())
+        .select_from(Visit)
+        .filter(
+            Visit.tenant_id == current_user.tenant_id,
+            Visit.visit_date >= start,
+            Visit.visit_date < end,
+        )
+    ).scalar()
+    actual_new_patients = db.session.execute(
+        select(func.count())
+        .select_from(Patient)
+        .filter(
+            Patient.tenant_id == current_user.tenant_id,
+            Patient.created_at >= start,
+            Patient.created_at < end,
+        )
+    ).scalar()
 
-    budgets = db.session.execute(select(Budget).filter_by(tenant_id=current_user.tenant_id, year=year, month=month)).scalars().all()
+    budgets = (
+        db.session.execute(
+            select(Budget).filter_by(tenant_id=current_user.tenant_id, year=year, month=month)
+        )
+        .scalars()
+        .all()
+    )
     dept_budgets = {b.department_id: b for b in budgets}
 
-    return render_template('manager/budget.html',
-                           year=year, month=month,
-                           actual_revenue=float(actual_revenue),
-                           actual_visits=actual_visits,
-                           actual_new_patients=actual_new_patients,
-                           dept_budgets=dept_budgets,
-                           departments=db.session.execute(select(Department).filter(Department.tenant_id == current_user.tenant_id)).scalars().all())
+    return render_template(
+        'manager/budget.html',
+        year=year,
+        month=month,
+        actual_revenue=float(actual_revenue),
+        actual_visits=actual_visits,
+        actual_new_patients=actual_new_patients,
+        dept_budgets=dept_budgets,
+        departments=db.session.execute(
+            select(Department).filter(Department.tenant_id == current_user.tenant_id)
+        )
+        .scalars()
+        .all(),
+    )
 
 
 @manager_bp.route('/monthly-comparison')
@@ -343,37 +431,61 @@ def monthly_comparison():
         else:
             end = date(y, m + 1, 1)
 
-        rev = db.session.execute(select(func.sum(Payment.amount)).filter(
-            Payment.tenant_id == current_user.tenant_id,
-            Payment.payment_date >= start, Payment.payment_date < end
-        )).scalar() or 0
-        vis = db.session.execute(select(func.count()).select_from(Visit).filter(
-            Visit.tenant_id == current_user.tenant_id,
-            Visit.visit_date >= start, Visit.visit_date < end
-        )).scalar()
-        newp = db.session.execute(select(func.count()).select_from(Patient).filter(
-            Patient.tenant_id == current_user.tenant_id,
-            Patient.created_at >= start, Patient.created_at < end
-        )).scalar()
+        rev = (
+            db.session.execute(
+                select(func.sum(Payment.amount)).filter(
+                    Payment.tenant_id == current_user.tenant_id,
+                    Payment.payment_date >= start,
+                    Payment.payment_date < end,
+                )
+            ).scalar()
+            or 0
+        )
+        vis = db.session.execute(
+            select(func.count())
+            .select_from(Visit)
+            .filter(
+                Visit.tenant_id == current_user.tenant_id,
+                Visit.visit_date >= start,
+                Visit.visit_date < end,
+            )
+        ).scalar()
+        newp = db.session.execute(
+            select(func.count())
+            .select_from(Patient)
+            .filter(
+                Patient.tenant_id == current_user.tenant_id,
+                Patient.created_at >= start,
+                Patient.created_at < end,
+            )
+        ).scalar()
 
-        months.append({'label': f"{y}-{m:02d}", 'revenue': float(rev), 'visits': vis, 'new_patients': newp})
+        months.append(
+            {'label': f'{y}-{m:02d}', 'revenue': float(rev), 'visits': vis, 'new_patients': newp}
+        )
 
     for i in range(1, len(months)):
         prev = months[i - 1]
         curr = months[i]
-        curr['revenue_growth'] = round(((curr['revenue'] - prev['revenue']) / (prev['revenue'] or 1)) * 100, 1)
-        curr['visits_growth'] = round(((curr['visits'] - prev['visits']) / (prev['visits'] or 1)) * 100, 1)
+        curr['revenue_growth'] = round(
+            ((curr['revenue'] - prev['revenue']) / (prev['revenue'] or 1)) * 100, 1
+        )
+        curr['visits_growth'] = round(
+            ((curr['visits'] - prev['visits']) / (prev['visits'] or 1)) * 100, 1
+        )
 
     return render_template('manager/monthly_comparison.html', months=months)
+
 
 @manager_bp.route('/exchange-rates', methods=['GET', 'POST'])
 @login_required
 @role_required('manager', 'admin', 'super_admin')
 def exchange_rates():
     """إدارة أسعار الصرف"""
-    from models.exchange_rate import ExchangeRate, CurrencySettings
-    from services.currency_service import CurrencyConverter
     from decimal import Decimal
+
+    from models.exchange_rate import CurrencySettings
+    from services.currency_service import CurrencyConverter
 
     if request.method == 'POST':
         try:
@@ -396,17 +508,19 @@ def exchange_rates():
             )
             flash(f'تم تحديث سعر الصرف {from_currency} → {to_currency}', 'success')
         except Exception as e:
-            logging.error(f"Error saving exchange rate: {e}")
+            logging.exception(f'Error saving exchange rate: {e}')
             flash('حدث خطأ أثناء حفظ سعر الصرف', 'error')
         return redirect(url_for('manager.exchange_rates'))
 
     active_rates = CurrencyConverter.get_all_active_rates()
     missing_pairs = CurrencyConverter.get_missing_pairs()
     currencies = CurrencySettings.get_all()
-    return render_template('manager/exchange_rates.html',
-                           rates=active_rates,
-                           missing_pairs=missing_pairs,
-                           currencies=currencies)
+    return render_template(
+        'manager/exchange_rates.html',
+        rates=active_rates,
+        missing_pairs=missing_pairs,
+        currencies=currencies,
+    )
 
 
 @manager_bp.route('/exchange-rates/fetch-api', methods=['POST'])
@@ -416,6 +530,7 @@ def fetch_api_exchange_rates():
     """جلب أسعار الصرف من API خارجي"""
     from models.exchange_rate import CurrencySettings
     from services.currency_service import CurrencyConverter
+
     base = request.form.get('base_currency', 'ILS').upper()
     imported = 0
     failed = 0
@@ -428,7 +543,7 @@ def fetch_api_exchange_rates():
                 imported += 1
             else:
                 failed += 1
-        except Exception as e:
+        except Exception:
             failed += 1
     flash(f'تم جلب {imported} سعر صرف | فشل {failed}', 'info' if failed == 0 else 'warning')
     return redirect(url_for('manager.exchange_rates'))
@@ -440,19 +555,25 @@ def fetch_api_exchange_rates():
 def deactivate_exchange_rate(rate_id):
     """تعطيل سعر صرف"""
     from models.exchange_rate import ExchangeRate
-    rate = db.session.execute(select(ExchangeRate).filter(
-        ExchangeRate.tenant_id == current_user.tenant_id,
-        ExchangeRate.id == rate_id
-    )).scalars().first()
+
+    rate = (
+        db.session.execute(
+            select(ExchangeRate).filter(
+                ExchangeRate.tenant_id == current_user.tenant_id, ExchangeRate.id == rate_id
+            )
+        )
+        .scalars()
+        .first()
+    )
     if not rate:
         flash('سعر الصرف غير موجود', 'error')
         return redirect(url_for('manager.exchange_rates'))
     try:
         rate.is_active = False
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash(f'تم تعطيل سعر {rate.from_currency} → {rate.to_currency}', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error deactivating exchange rate: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error deactivating exchange rate: {e!s}')
         flash('حدث خطأ أثناء تعطيل سعر الصرف', 'error')
     return redirect(url_for('manager.exchange_rates'))

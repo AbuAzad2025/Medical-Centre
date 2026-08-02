@@ -1,16 +1,18 @@
 """
 Biometric authentication — delegates to BiometricCredential / BiometricAuthChallenge models.
 """
+
 from __future__ import annotations
-from sqlalchemy import select
 
 import logging
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
+from sqlalchemy import select
 
 from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
+from utils.db_safety import safe_commit
 
 logger = logging.getLogger(__name__)
 
@@ -18,19 +20,20 @@ logger = logging.getLogger(__name__)
 class BiometricAuth:
     """DB-backed biometric credential management (WebAuthn / device templates)."""
 
-    def __init__(self, driver_name: Optional[str] = None, tenant_id: Optional[int] = None):
+    def __init__(self, driver_name: str | None = None, tenant_id: int | None = None):
         self.driver_name = driver_name or 'db'
         self.tenant_id = tenant_id
 
-    def _resolve_tenant_id(self, tenant_id: Optional[int] = None) -> Optional[int]:
+    def _resolve_tenant_id(self, tenant_id: int | None = None) -> int | None:
         if tenant_id is not None:
             return tenant_id
         if self.tenant_id is not None:
             return self.tenant_id
         try:
             from flask import g
+
             return getattr(g, 'tenant_id', None)
-        except Exception as e:
+        except Exception:
             return None
 
     def enroll(
@@ -38,11 +41,11 @@ class BiometricAuth:
         user_id: int,
         template: bytes | dict | None = None,
         *,
-        credential_id: Optional[str] = None,
-        public_key: Optional[str] = None,
+        credential_id: str | None = None,
+        public_key: str | None = None,
         device_type: str = 'security_key',
-        device_name: Optional[str] = None,
-        tenant_id: Optional[int] = None,
+        device_name: str | None = None,
+        tenant_id: int | None = None,
         **kwargs: Any,
     ) -> bool:
         from models.biometric_auth import BiometricCredential
@@ -61,11 +64,12 @@ class BiometricAuth:
             device_type=device_type or payload.get('device_type', 'security_key'),
             device_name=device_name or payload.get('device_name'),
             aaguid=kwargs.get('aaguid') or payload.get('aaguid'),
-            authenticator_attachment=kwargs.get('authenticator_attachment') or payload.get('authenticator_attachment'),
+            authenticator_attachment=kwargs.get('authenticator_attachment')
+            or payload.get('authenticator_attachment'),
             is_active=True,
         )
         db.session.add(cred)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         logger.info('Enrolled biometric credential user=%s cred=%s', user_id, cred_id)
         return True
 
@@ -74,9 +78,9 @@ class BiometricAuth:
         user_id: int,
         template: bytes | dict | None = None,
         *,
-        credential_id: Optional[str] = None,
-        sign_count: Optional[int] = None,
-        tenant_id: Optional[int] = None,
+        credential_id: str | None = None,
+        sign_count: int | None = None,
+        tenant_id: int | None = None,
     ) -> bool:
         from models.biometric_auth import BiometricCredential
 
@@ -100,11 +104,11 @@ class BiometricAuth:
 
         if new_count is not None:
             cred.sign_count = int(new_count)
-        cred.last_used_at = datetime.now(timezone.utc)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        cred.last_used_at = datetime.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return True
 
-    def list_credentials(self, user_id: int, *, tenant_id: Optional[int] = None) -> list[dict]:
+    def list_credentials(self, user_id: int, *, tenant_id: int | None = None) -> list[dict]:
         from models.biometric_auth import BiometricCredential
 
         query = select(BiometricCredential)
@@ -126,10 +130,10 @@ class BiometricAuth:
     def create_challenge(
         self,
         *,
-        user_id: Optional[int] = None,
+        user_id: int | None = None,
         challenge_type: str = 'authentication',
         ttl_minutes: int = 5,
-        tenant_id: Optional[int] = None,
+        tenant_id: int | None = None,
     ) -> str:
         from models.biometric_auth import BiometricAuthChallenge
 
@@ -139,13 +143,13 @@ class BiometricAuth:
             tenant_id=self._resolve_tenant_id(tenant_id),
             challenge=challenge,
             challenge_type=challenge_type,
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=ttl_minutes),
+            expires_at=datetime.now(UTC) + timedelta(minutes=ttl_minutes),
         )
         db.session.add(ch)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return challenge
 
-    def consume_challenge(self, challenge: str, *, challenge_type: Optional[str] = None) -> bool:
+    def consume_challenge(self, challenge: str, *, challenge_type: str | None = None) -> bool:
         from models.biometric_auth import BiometricAuthChallenge
 
         query = select(BiometricAuthChallenge)
@@ -154,13 +158,13 @@ class BiometricAuth:
         ch = query.first()
         if not ch:
             return False
-        if ch.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+        if ch.expires_at.replace(tzinfo=UTC) < datetime.now(UTC):
             return False
         ch.used = True
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return True
 
-    def is_enabled(self, user_id: Optional[int] = None) -> bool:
+    def is_enabled(self, user_id: int | None = None) -> bool:
         from models.biometric_auth import BiometricCredential
 
         query = select(BiometricCredential)

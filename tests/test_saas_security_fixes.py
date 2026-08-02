@@ -1,11 +1,10 @@
 """Security and SaaS completeness regression tests."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-import pytest
+from sqlalchemy import func, select
 
-from app.extensions import db
 from app.core.saas.models import (
     Package,
     PackageVersion,
@@ -14,11 +13,9 @@ from app.core.saas.models import (
     PackageVersionEntitlement,
     PackageVersionPricing,
 )
-from app.core.tenant.models import Tenant
+from app.extensions import db
 from app.shared.enums import TenantStatus
 from models.user import User
-from tests.tenant_context import tenant_test_context
-from sqlalchemy import select, func
 
 
 def _seed_trial_package():
@@ -34,27 +31,33 @@ def _seed_trial_package():
         package_id=pkg.id,
         version='1.0.0',
         trial_days=14,
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
     )
     db.session.add(version)
     db.session.flush()
-    db.session.add(PackageVersionPricing(
-        package_version_id=version.id,
-        billing_type='monthly',
-        price=99,
-        setup_fee=0,
-        currency='USD',
-    ))
-    db.session.add(PackageVersionEntitlement(
-        package_version_id=version.id,
-        module_name='reception',
-        capability_key='reception.access',
-    ))
-    db.session.add(PackageVersionAvailability(
-        package_version_id=version.id,
-        availability_status=PackageVersionAvailabilityStatus.AVAILABLE,
-        effective_from=datetime.now(timezone.utc),
-    ))
+    db.session.add(
+        PackageVersionPricing(
+            package_version_id=version.id,
+            billing_type='monthly',
+            price=99,
+            setup_fee=0,
+            currency='USD',
+        )
+    )
+    db.session.add(
+        PackageVersionEntitlement(
+            package_version_id=version.id,
+            module_name='reception',
+            capability_key='reception.access',
+        )
+    )
+    db.session.add(
+        PackageVersionAvailability(
+            package_version_id=version.id,
+            availability_status=PackageVersionAvailabilityStatus.AVAILABLE,
+            effective_from=datetime.now(UTC),
+        )
+    )
     db.session.commit()
     return version
 
@@ -87,6 +90,7 @@ class TestTrialTenantLogin:
         slug = f'trial-flow-{uuid.uuid4().hex[:8]}'
         username = f'user_{slug[:8]}'
         from services.saas_registration_service import SaasRegistrationService
+
         SaasRegistrationService.register_organization(
             slug=slug,
             name='Trial Flow Clinic',
@@ -97,12 +101,16 @@ class TestTrialTenantLogin:
             package_version_id=version.id,
         )
         from app.core.rate_limiter import _shared_store
+
         _shared_store.clear()
-        resp = client.post('/auth/login', data={
-            'username': username,
-            'password': 'SecurePass1!',
-            'tenant_slug': slug,
-        })
+        resp = client.post(
+            '/auth/login',
+            data={
+                'username': username,
+                'password': 'SecurePass1!',
+                'tenant_slug': slug,
+            },
+        )
         assert resp.status_code in (200, 302)
 
 
@@ -131,18 +139,29 @@ class TestPerTenantUsername:
         slug_a = f'ta-{uuid.uuid4().hex[:6]}'
         slug_b = f'tb-{uuid.uuid4().hex[:6]}'
         SaasRegistrationService.register_organization(
-            slug=slug_a, name='A', contact_email=f'{slug_a}@a.test',
-            admin_username=shared, admin_password='SecurePass1!',
-            admin_full_name='Admin A', package_version_id=version.id,
+            slug=slug_a,
+            name='A',
+            contact_email=f'{slug_a}@a.test',
+            admin_username=shared,
+            admin_password='SecurePass1!',
+            admin_full_name='Admin A',
+            package_version_id=version.id,
         )
         tenant_b, _ = SaasRegistrationService.register_organization(
-            slug=slug_b, name='B', contact_email=f'{slug_b}@b.test',
-            admin_username=shared, admin_password='SecurePass1!',
-            admin_full_name='Admin B', package_version_id=version.id,
+            slug=slug_b,
+            name='B',
+            contact_email=f'{slug_b}@b.test',
+            admin_username=shared,
+            admin_password='SecurePass1!',
+            admin_full_name='Admin B',
+            package_version_id=version.id,
         )
         with app.app_context(), app.test_request_context():
             from flask import g
+
             g._tenant_filter_bypass = True
-            count = db.session.execute(select(func.count()).select_from(User).filter_by(username=shared)).scalar()
+            count = db.session.execute(
+                select(func.count()).select_from(User).filter_by(username=shared)
+            ).scalar()
             assert count == 2
             assert tenant_b.id is not None

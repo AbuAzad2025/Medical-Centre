@@ -1,16 +1,16 @@
 """Tests for S0-004: Combined Access Contract (Entitlement + Authorization)."""
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
-
 from sqlalchemy import select
-from app.extensions import db
-from app.core.saas.exceptions import EntitlementDeniedError
-from app.core.saas.resolver import EntitlementResolver
+
 from app.core.saas.decorators import require_entitlement
+from app.core.saas.exceptions import EntitlementDeniedError
 from app.core.saas.models import TenantEntitlement
+from app.core.saas.resolver import EntitlementResolver
 from app.core.tenant.models import PlatformAuditLog, Tenant, TenantStatus
+from app.extensions import db
 from models.user import User
 from tests.tenant_context import tenant_test_context
 
@@ -18,7 +18,7 @@ from tests.tenant_context import tenant_test_context
 @pytest.fixture(scope='function')
 def access_tenant(app):
     t = Tenant(
-        slug=f"access-{datetime.now(timezone.utc).timestamp()}",
+        slug=f'access-{datetime.now(UTC).timestamp()}',
         name='Access Test Tenant',
         contact_email='access@test.local',
         status=TenantStatus.ACTIVE,
@@ -35,7 +35,7 @@ def access_tenant(app):
 @pytest.fixture(scope='function')
 def access_user(app, access_tenant):
     u = User(
-        username=f"access_user_{datetime.now(timezone.utc).timestamp()}",
+        username=f'access_user_{datetime.now(UTC).timestamp()}',
         email='access-user@test.local',
         full_name='Access User',
         role='admin',
@@ -52,22 +52,22 @@ def access_user(app, access_tenant):
 
 class TestEntitlementResolver:
     def test_active_tenant_without_projection_is_not_entitled(self, access_tenant):
-        assert EntitlementResolver.is_entitled(access_tenant.id, "lab.order") is False
+        assert EntitlementResolver.is_entitled(access_tenant.id, 'lab.order') is False
 
     def test_entitled_when_projection_active(self, access_tenant):
         te = TenantEntitlement(
             tenant_id=access_tenant.id,
-            capability_key="lab.order",
-            module_name="lab",
-            effective_from=datetime.now(timezone.utc) - timedelta(hours=1),
+            capability_key='lab.order',
+            module_name='lab',
+            effective_from=datetime.now(UTC) - timedelta(hours=1),
             is_effective=True,
-            calculated_at=datetime.now(timezone.utc),
+            calculated_at=datetime.now(UTC),
             calculation_version=1,
         )
         db.session.add(te)
         db.session.commit()
 
-        assert EntitlementResolver.is_entitled(access_tenant.id, "lab.order") is True
+        assert EntitlementResolver.is_entitled(access_tenant.id, 'lab.order') is True
 
     def test_inactive_tenant_denied(self, access_tenant):
         access_tenant.status = TenantStatus.SUSPENDED
@@ -75,17 +75,17 @@ class TestEntitlementResolver:
 
         te = TenantEntitlement(
             tenant_id=access_tenant.id,
-            capability_key="lab.order",
-            module_name="lab",
-            effective_from=datetime.now(timezone.utc) - timedelta(hours=1),
+            capability_key='lab.order',
+            module_name='lab',
+            effective_from=datetime.now(UTC) - timedelta(hours=1),
             is_effective=True,
-            calculated_at=datetime.now(timezone.utc),
+            calculated_at=datetime.now(UTC),
             calculation_version=1,
         )
         db.session.add(te)
         db.session.commit()
 
-        assert EntitlementResolver.is_entitled(access_tenant.id, "lab.order") is False
+        assert EntitlementResolver.is_entitled(access_tenant.id, 'lab.order') is False
 
     def test_expired_subscription_denied(self, access_tenant):
         access_tenant.subscription_end = date.today() - timedelta(days=5)
@@ -93,31 +93,37 @@ class TestEntitlementResolver:
 
         te = TenantEntitlement(
             tenant_id=access_tenant.id,
-            capability_key="lab.order",
-            module_name="lab",
-            effective_from=datetime.now(timezone.utc) - timedelta(hours=1),
+            capability_key='lab.order',
+            module_name='lab',
+            effective_from=datetime.now(UTC) - timedelta(hours=1),
             is_effective=True,
-            calculated_at=datetime.now(timezone.utc),
+            calculated_at=datetime.now(UTC),
             calculation_version=1,
         )
         db.session.add(te)
         db.session.commit()
 
-        assert EntitlementResolver.is_entitled(access_tenant.id, "lab.order") is False
+        assert EntitlementResolver.is_entitled(access_tenant.id, 'lab.order') is False
 
     def test_assert_entitled_raises(self, access_tenant):
         with pytest.raises(EntitlementDeniedError):
-            EntitlementResolver.assert_entitled(access_tenant.id, "lab.order")
+            EntitlementResolver.assert_entitled(access_tenant.id, 'lab.order')
 
     def test_audit_log_deduplication_per_request(self, access_tenant, client):
-        EntitlementResolver.is_entitled(access_tenant.id, "lab.order")
-        EntitlementResolver.is_entitled(access_tenant.id, "lab.order")
+        EntitlementResolver.is_entitled(access_tenant.id, 'lab.order')
+        EntitlementResolver.is_entitled(access_tenant.id, 'lab.order')
 
-        logs = db.session.execute(select(PlatformAuditLog).filter_by(
-            tenant_id=access_tenant.id, action="ENTITLEMENT_DENIED"
-        )).scalars().all()
+        logs = (
+            db.session.execute(
+                select(PlatformAuditLog).filter_by(
+                    tenant_id=access_tenant.id, action='ENTITLEMENT_DENIED'
+                )
+            )
+            .scalars()
+            .all()
+        )
         assert len(logs) == 1
-        assert "lab.order" in (logs[0].details or "")
+        assert 'lab.order' in (logs[0].details or '')
 
 
 class TestRequireEntitlementDecorator:
@@ -125,9 +131,9 @@ class TestRequireEntitlementDecorator:
         from flask import g
         from werkzeug.exceptions import Forbidden
 
-        @require_entitlement("lab.order")
+        @require_entitlement('lab.order')
         def blocked_view():
-            return "ok", 200
+            return 'ok', 200
 
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = True
@@ -141,35 +147,35 @@ class TestRequireEntitlementDecorator:
 
         te = TenantEntitlement(
             tenant_id=access_tenant.id,
-            capability_key="lab.order",
-            module_name="lab",
-            effective_from=datetime.now(timezone.utc) - timedelta(hours=1),
+            capability_key='lab.order',
+            module_name='lab',
+            effective_from=datetime.now(UTC) - timedelta(hours=1),
             is_effective=True,
-            calculated_at=datetime.now(timezone.utc),
+            calculated_at=datetime.now(UTC),
             calculation_version=1,
         )
         db.session.add(te)
         db.session.commit()
 
-        @require_entitlement("lab.order")
+        @require_entitlement('lab.order')
         def allowed_view():
-            return "ok", 200
+            return 'ok', 200
 
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = True
             g.current_tenant = access_tenant
             g.tenant_id = access_tenant.id
             result = allowed_view()
-            assert result == ("ok", 200)
+            assert result == ('ok', 200)
 
     def test_route_skips_when_saas_mode_off(self, app, access_tenant):
         from flask import g
 
-        @require_entitlement("lab.order")
+        @require_entitlement('lab.order')
         def open_view():
-            return "ok", 200
+            return 'ok', 200
 
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = False
             g.current_tenant = access_tenant
-            assert open_view() == ("ok", 200)
+            assert open_view() == ('ok', 200)

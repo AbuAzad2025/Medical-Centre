@@ -1,23 +1,25 @@
 """Barcode generation and registration for lab samples."""
+
 from __future__ import annotations
 
 import base64
 import io
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import qrcode
+
 from app_factory import db
 
 
 def generate_lab_barcode(lab_request_id: int, patient_id: int) -> tuple[str, str]:
     """Generate a QR code for a lab request. Returns (barcode_value, base64_png)."""
-    timestamp_hex = format(int(datetime.now(timezone.utc).timestamp() * 1000), 'x')
-    barcode_value = f"LAB-{lab_request_id}-{patient_id}-{timestamp_hex}"
+    timestamp_hex = format(int(datetime.now(UTC).timestamp() * 1000), 'x')
+    barcode_value = f'LAB-{lab_request_id}-{patient_id}-{timestamp_hex}'
 
     qr = qrcode.QRCode(version=2, box_size=8, border=2)
     qr.add_data(barcode_value)
     qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
+    img = qr.make_image(fill_color='black', back_color='white')
 
     buf = io.BytesIO()
     img.save(buf, format='PNG')

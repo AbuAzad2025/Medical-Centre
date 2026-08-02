@@ -1,32 +1,32 @@
 """reports routes - extracted from monolithic manager.py"""
 
-from routes.manager import manager_bp
+import logging
+from datetime import UTC, date, datetime, timedelta
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, g
-from flask_login import login_required, current_user
-from utils.decorators import manager_or_admin_only, can_approve_force_payment, prevent_self_approval, role_required, role_required_json
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User, StaffWorkSchedule, StaffAbsence
-from models.department import Department
-from models.payment import Payment
-from models.invoice import Invoice
-from models.appointment import Appointment
-from models.lab_request import LabRequest
-from models.radiology_request import RadiologyRequest
-from services.gatekeeper_service import GatekeeperService
-from services.manager_service import manager_service
-from app.extensions import db
+from flask import flash, g, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from sqlalchemy import func, select
-from decimal import Decimal, ROUND_HALF_UP
-import logging
-from datetime import datetime, date, timedelta, timezone
 
+from app.extensions import db
+from models.department import Department
+from models.invoice import Invoice
+from models.lab_request import LabRequest
+from models.patient import Patient
+from models.payment import Payment
+from models.radiology_request import RadiologyRequest
+from models.visit import Visit
+from routes.manager import manager_bp
+from services.gatekeeper_service import GatekeeperService
+from utils.decorators import (
+    manager_or_admin_only,
+    role_required,
+)
 
 # =============================================
 # REPORTS ROUTES
 # =============================================
+
 
 @manager_bp.route('/reports')
 @login_required
@@ -41,60 +41,105 @@ def reports():
 @role_required('manager', 'admin', 'super_admin')
 def reports_center():
     try:
-        from services.report_center_service import ReportCenterService
         from models.department import Department
         from models.user import User
+        from services.report_center_service import ReportCenterService
 
         report = (request.args.get('report') or '').strip()
         start_raw = request.args.get('start_date')
         end_raw = request.args.get('end_date')
         department_id = request.args.get('department_id', type=int)
 
-        start_date, end_date, start_dt, end_dt = ReportCenterService._parse_dates(start_raw, end_raw)
+        start_date, end_date, start_dt, end_dt = ReportCenterService._parse_dates(
+            start_raw, end_raw
+        )
         result = None
 
         if report == 'compare_month':
             now = date.today()
-            a_start = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+            a_start = datetime(now.year, now.month, 1, tzinfo=UTC)
             if now.month == 12:
-                a_end = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
+                a_end = datetime(now.year + 1, 1, 1, tzinfo=UTC) - timedelta(seconds=1)
             else:
-                a_end = datetime(now.year, now.month + 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
+                a_end = datetime(now.year, now.month + 1, 1, tzinfo=UTC) - timedelta(seconds=1)
             if now.month == 1:
                 p_year, p_month = now.year - 1, 12
             else:
                 p_year, p_month = now.year, now.month - 1
-            b_start = datetime(p_year, p_month, 1, tzinfo=timezone.utc)
+            b_start = datetime(p_year, p_month, 1, tzinfo=UTC)
             if p_month == 12:
-                b_end = datetime(p_year + 1, 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
+                b_end = datetime(p_year + 1, 1, 1, tzinfo=UTC) - timedelta(seconds=1)
             else:
-                b_end = datetime(p_year, p_month + 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
-            result = {'compare': ReportCenterService.compare_periods(a_start, a_end, b_start, b_end, department_id=department_id)}
+                b_end = datetime(p_year, p_month + 1, 1, tzinfo=UTC) - timedelta(seconds=1)
+            result = {
+                'compare': ReportCenterService.compare_periods(
+                    a_start, a_end, b_start, b_end, department_id=department_id
+                )
+            }
         elif report == 'compare_year':
             now = date.today()
-            a_start = datetime(now.year, 1, 1, tzinfo=timezone.utc)
-            a_end = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
-            b_start = datetime(now.year - 1, 1, 1, tzinfo=timezone.utc)
-            b_end = datetime(now.year, 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
-            result = {'compare': ReportCenterService.compare_periods(a_start, a_end, b_start, b_end, department_id=department_id)}
+            a_start = datetime(now.year, 1, 1, tzinfo=UTC)
+            a_end = datetime(now.year + 1, 1, 1, tzinfo=UTC) - timedelta(seconds=1)
+            b_start = datetime(now.year - 1, 1, 1, tzinfo=UTC)
+            b_end = datetime(now.year, 1, 1, tzinfo=UTC) - timedelta(seconds=1)
+            result = {
+                'compare': ReportCenterService.compare_periods(
+                    a_start, a_end, b_start, b_end, department_id=department_id
+                )
+            }
         elif report == 'transfers':
             result = {'transfers': ReportCenterService.department_transfers(start_dt, end_dt)}
         elif report == 'capacity':
             result = {'capacity': ReportCenterService.capacity_impact(start_date, end_date)}
         elif report == 'booking':
             booking = ReportCenterService.booking_report(start_dt, end_dt)
-            dept_names = {d.id: (d.name_ar or d.name) for d in db.session.execute(select(Department).filter(Department.tenant_id == current_user.tenant_id)).scalars().all()}
-            doctor_names = {u.id: u.full_name for u in db.session.execute(select(User).filter_by(role='doctor').filter(User.tenant_id == current_user.tenant_id)).scalars().all()}
-            booking['top_departments_named'] = [{'label': dept_names.get(did) or 'غير محدد', 'count': cnt} for did, cnt in booking.get('top_departments', [])]
-            booking['top_doctors_named'] = [{'label': doctor_names.get(did) or 'غير محدد', 'count': cnt} for did, cnt in booking.get('top_doctors', [])]
+            dept_names = {
+                d.id: (d.name_ar or d.name)
+                for d in db.session.execute(
+                    select(Department).filter(Department.tenant_id == current_user.tenant_id)
+                )
+                .scalars()
+                .all()
+            }
+            doctor_names = {
+                u.id: u.full_name
+                for u in db.session.execute(
+                    select(User)
+                    .filter_by(role='doctor')
+                    .filter(User.tenant_id == current_user.tenant_id)
+                )
+                .scalars()
+                .all()
+            }
+            booking['top_departments_named'] = [
+                {'label': dept_names.get(did) or 'غير محدد', 'count': cnt}
+                for did, cnt in booking.get('top_departments', [])
+            ]
+            booking['top_doctors_named'] = [
+                {'label': doctor_names.get(did) or 'غير محدد', 'count': cnt}
+                for did, cnt in booking.get('top_doctors', [])
+            ]
             result = {'booking': booking}
         elif report == 'emergency_times':
-            result = {'emergency_times': ReportCenterService.emergency_stage_times(start_dt, end_dt)}
+            result = {
+                'emergency_times': ReportCenterService.emergency_stage_times(start_dt, end_dt)
+            }
         elif report == 'radiology_revision':
-            result = {'radiology_revision': ReportCenterService.radiology_revision_rate(start_dt, end_dt)}
+            result = {
+                'radiology_revision': ReportCenterService.radiology_revision_rate(start_dt, end_dt)
+            }
 
-        departments = db.session.execute(select(Department).filter_by(is_active=True).filter(Department.tenant_id == current_user.tenant_id)).scalars().all()
+        departments = (
+            db.session.execute(
+                select(Department)
+                .filter_by(is_active=True)
+                .filter(Department.tenant_id == current_user.tenant_id)
+            )
+            .scalars()
+            .all()
+        )
         from app.shared.report_template_service import list_templates
+
         saved_templates = list_templates()
         return render_template(
             'manager/reports_center.html',
@@ -107,8 +152,17 @@ def reports_center():
             saved_templates=saved_templates,
         )
     except Exception as e:
-        logging.error(f"Manager reports center error: {str(e)}")
-        return render_template('manager/reports_center.html', report='', start_date=None, end_date=None, departments=[], result=None, saved_templates=[])
+        logging.exception(f'Manager reports center error: {e!s}')
+        return render_template(
+            'manager/reports_center.html',
+            report='',
+            start_date=None,
+            end_date=None,
+            departments=[],
+            result=None,
+            saved_templates=[],
+        )
+
 
 @manager_bp.route('/analytics')
 @login_required
@@ -118,43 +172,80 @@ def analytics():
     try:
         billing_active = 'billing' in getattr(g, 'enabled_modules', set())
         from app.shared.enums import VisitState
+
         units_status = {
             'reception': {
                 'name': 'الاستقبال',
                 'status': 'active',
-                'pending_visits': db.session.execute(select(func.count()).select_from(Visit).filter(Visit.status == VisitState.OPEN, Visit.tenant_id == current_user.tenant_id)).scalar(),
+                'pending_visits': db.session.execute(
+                    select(func.count())
+                    .select_from(Visit)
+                    .filter(
+                        Visit.status == VisitState.OPEN, Visit.tenant_id == current_user.tenant_id
+                    )
+                ).scalar(),
             },
             'doctor': {
                 'name': 'الأطباء',
                 'status': 'active',
-                'in_progress_visits': db.session.execute(select(func.count()).select_from(Visit).filter(Visit.status == VisitState.IN_PROGRESS, Visit.tenant_id == current_user.tenant_id)).scalar(),
+                'in_progress_visits': db.session.execute(
+                    select(func.count())
+                    .select_from(Visit)
+                    .filter(
+                        Visit.status == VisitState.IN_PROGRESS,
+                        Visit.tenant_id == current_user.tenant_id,
+                    )
+                ).scalar(),
             },
             'emergency': {
                 'name': 'الطوارئ',
                 'status': 'active',
-                'emergency_visits': db.session.execute(select(func.count()).select_from(Visit).filter(Visit.visit_type == 'emergency', Visit.tenant_id == current_user.tenant_id)).scalar(),
+                'emergency_visits': db.session.execute(
+                    select(func.count())
+                    .select_from(Visit)
+                    .filter(
+                        Visit.visit_type == 'emergency', Visit.tenant_id == current_user.tenant_id
+                    )
+                ).scalar(),
             },
             'lab': {
                 'name': 'المختبر',
                 'status': 'active',
-                'lab_requests': db.session.execute(select(func.count()).select_from(LabRequest).filter(LabRequest.tenant_id == current_user.tenant_id)).scalar(),
+                'lab_requests': db.session.execute(
+                    select(func.count())
+                    .select_from(LabRequest)
+                    .filter(LabRequest.tenant_id == current_user.tenant_id)
+                ).scalar(),
             },
             'radiology': {
                 'name': 'الأشعة',
                 'status': 'active',
-                'radiology_requests': db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(RadiologyRequest.tenant_id == current_user.tenant_id)).scalar(),
+                'radiology_requests': db.session.execute(
+                    select(func.count())
+                    .select_from(RadiologyRequest)
+                    .filter(RadiologyRequest.tenant_id == current_user.tenant_id)
+                ).scalar(),
             },
             'accountant': {
                 'name': 'المحاسبة',
                 'status': 'active' if billing_active else 'disabled',
-                'open_invoices': 0 if not billing_active else db.session.execute(select(func.count()).select_from(Invoice).filter(Invoice.status != 'paid', Invoice.tenant_id == current_user.tenant_id)).scalar(),
+                'open_invoices': 0
+                if not billing_active
+                else db.session.execute(
+                    select(func.count())
+                    .select_from(Invoice)
+                    .filter(Invoice.status != 'paid', Invoice.tenant_id == current_user.tenant_id)
+                ).scalar(),
             },
         }
-        return render_template('manager/monitoring.html', units_status=units_status, billing_active=billing_active)
+        return render_template(
+            'manager/monitoring.html', units_status=units_status, billing_active=billing_active
+        )
     except Exception as e:
-        logging.error(f"Error in analytics monitoring: {str(e)}")
+        logging.exception(f'Error in analytics monitoring: {e!s}')
         flash('حدث خطأ في تحميل التحليلات', 'error')
         return redirect(url_for('manager.dashboard'))
+
 
 @manager_bp.route('/self-service')
 @login_required
@@ -162,6 +253,7 @@ def analytics():
 def self_service():
     try:
         from services.advanced_report_service import AdvancedReportService
+
         report_type = (request.args.get('type') or 'patients').strip()
         start_raw = (request.args.get('start_date') or '').strip()
         end_raw = (request.args.get('end_date') or '').strip()
@@ -180,10 +272,20 @@ def self_service():
         else:
             data = AdvancedReportService.generate_patient_analytics(start_date, end_date)
             report_type = 'patients'
-        return render_template('manager/self_service.html', report_type=report_type, data=data, start_date=start_raw, end_date=end_raw, billing_active=billing_active)
+        return render_template(
+            'manager/self_service.html',
+            report_type=report_type,
+            data=data,
+            start_date=start_raw,
+            end_date=end_raw,
+            billing_active=billing_active,
+        )
     except Exception as e:
-        logging.error(f"Error in self service analytics: {str(e)}")
-        return render_template('manager/self_service.html', report_type='patients', data={}, start_date='', end_date='')
+        logging.exception(f'Error in self service analytics: {e!s}')
+        return render_template(
+            'manager/self_service.html', report_type='patients', data={}, start_date='', end_date=''
+        )
+
 
 @manager_bp.route('/kpi-dashboard')
 @login_required
@@ -195,7 +297,11 @@ def kpi_dashboard():
         from services.report_service import ReportService
 
         if not billing_active:
-            report = {'success': False, 'message': 'التقارير المالية غير متاحة في باقتك الحالية', 'data': {}}
+            report = {
+                'success': False,
+                'message': 'التقارير المالية غير متاحة في باقتك الحالية',
+                'data': {},
+            }
             force_stats = {}
         else:
             # الحصول على تقرير الشهر الحالي
@@ -208,15 +314,18 @@ def kpi_dashboard():
             # الحصول على إحصائيات الدفع القسري
             force_stats = GatekeeperService.get_force_payment_statistics(days=30)
 
-        return render_template('manager/kpi_dashboard.html',
-                             report=report,
-                             force_stats=force_stats,
-                             billing_active=billing_active)
-    
+        return render_template(
+            'manager/kpi_dashboard.html',
+            report=report,
+            force_stats=force_stats,
+            billing_active=billing_active,
+        )
+
     except Exception as e:
-        logging.error(f"Error loading KPI dashboard: {str(e)}")
+        logging.exception(f'Error loading KPI dashboard: {e!s}')
         flash('حدث خطأ في تحميل لوحة المؤشرات', 'error')
         return redirect(url_for('manager.dashboard'))
+
 
 @manager_bp.route('/drill-down/<report_type>')
 @login_required
@@ -247,13 +356,39 @@ def drill_down(report_type):
             return redirect(url_for('manager.dashboard'))
         title = 'تفاصيل الإيرادات'
         q = select(Payment)
-        results = db.session.execute(q.order_by(Payment.payment_date.desc()).limit(200)).scalars().all()
+        results = (
+            db.session.execute(q.order_by(Payment.payment_date.desc()).limit(200)).scalars().all()
+        )
     elif report_type == 'patients':
         title = 'المرضى الجدد'
-        results = db.session.execute(select(Patient).filter(Patient.created_at >= start_dt, Patient.created_at <= end_dt, Patient.tenant_id == current_user.tenant_id).order_by(Patient.created_at.desc()).limit(200)).scalars().all()
+        results = (
+            db.session.execute(
+                select(Patient)
+                .filter(
+                    Patient.created_at >= start_dt,
+                    Patient.created_at <= end_dt,
+                    Patient.tenant_id == current_user.tenant_id,
+                )
+                .order_by(Patient.created_at.desc())
+                .limit(200)
+            )
+            .scalars()
+            .all()
+        )
     else:
         flash('نوع التقرير غير معروف', 'error')
         return redirect(url_for('manager.dashboard'))
 
-    return render_template('manager/drill_down.html', report_type=report_type, title=title,
-                           results=results, start=start, end=end, departments=db.session.execute(select(Department).filter(Department.tenant_id == current_user.tenant_id)).scalars().all())
+    return render_template(
+        'manager/drill_down.html',
+        report_type=report_type,
+        title=title,
+        results=results,
+        start=start,
+        end=end,
+        departments=db.session.execute(
+            select(Department).filter(Department.tenant_id == current_user.tenant_id)
+        )
+        .scalars()
+        .all(),
+    )

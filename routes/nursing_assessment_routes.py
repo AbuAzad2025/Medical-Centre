@@ -1,14 +1,15 @@
 """
 Nursing Assessment Routes (Braden, Glasgow, Fall Risk, Pain, Norton)
 """
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import handle_route_errors
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from models import NursingAssessment, Patient, Visit
+
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from sqlalchemy import func, select
-from datetime import datetime, timezone
+
+from app.extensions import db
+from models import NursingAssessment, Patient
+from utils.db_safety import safe_commit
+from utils.decorators import handle_route_errors
 
 nursing_assessment_bp = Blueprint('nursing_assessment', __name__)
 
@@ -18,8 +19,18 @@ nursing_assessment_bp = Blueprint('nursing_assessment', __name__)
 @handle_route_errors
 def patient_assessments(patient_id):
     patient = db.get_or_404(Patient, patient_id)
-    assessments = db.session.execute(select(NursingAssessment).filter_by(patient_id=patient_id).order_by(NursingAssessment.created_at.desc())).scalars().all()
-    return render_template('nursing_assessment/patient_list.html', patient=patient, assessments=assessments)
+    assessments = (
+        db.session.execute(
+            select(NursingAssessment)
+            .filter_by(patient_id=patient_id)
+            .order_by(NursingAssessment.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
+    return render_template(
+        'nursing_assessment/patient_list.html', patient=patient, assessments=assessments
+    )
 
 
 @nursing_assessment_bp.route('/new/<int:patient_id>', methods=['GET', 'POST'])
@@ -36,7 +47,7 @@ def new_assessment(patient_id):
             visit_id=visit_id,
             nurse_id=current_user.id,
             assessment_type=assessment_type,
-            notes=request.form.get('notes', '')
+            notes=request.form.get('notes', ''),
         )
 
         if assessment_type == 'braden':
@@ -120,11 +131,16 @@ def new_assessment(patient_id):
                     assessment.risk_level = 'low'
 
         db.session.add(assessment)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم حفظ التقييم بنجاح', 'success')
         return redirect(url_for('nursing_assessment.patient_assessments', patient_id=patient_id))
 
-    return render_template('nursing_assessment/new.html', patient=patient, assessment_type=assessment_type, visit_id=visit_id)
+    return render_template(
+        'nursing_assessment/new.html',
+        patient=patient,
+        assessment_type=assessment_type,
+        visit_id=visit_id,
+    )
 
 
 @nursing_assessment_bp.route('/view/<int:assessment_id>')
@@ -140,10 +156,22 @@ def view_assessment(assessment_id):
 @handle_route_errors
 def dashboard():
     """Dashboard showing recent assessments across all patients"""
-    recent = db.session.execute(select(NursingAssessment).order_by(NursingAssessment.created_at.desc()).limit(50)).scalars().all()
-    stats = db.session.execute(select(
-        NursingAssessment.assessment_type,
-        func.count(NursingAssessment.id).label('count'),
-        func.avg(NursingAssessment.total_score).label('avg_score')
-    ).group_by(NursingAssessment.assessment_type)).scalars().all()
+    recent = (
+        db.session.execute(
+            select(NursingAssessment).order_by(NursingAssessment.created_at.desc()).limit(50)
+        )
+        .scalars()
+        .all()
+    )
+    stats = (
+        db.session.execute(
+            select(
+                NursingAssessment.assessment_type,
+                func.count(NursingAssessment.id).label('count'),
+                func.avg(NursingAssessment.total_score).label('avg_score'),
+            ).group_by(NursingAssessment.assessment_type)
+        )
+        .scalars()
+        .all()
+    )
     return render_template('nursing_assessment/dashboard.html', recent=recent, stats=stats)

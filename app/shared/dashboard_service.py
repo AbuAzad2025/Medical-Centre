@@ -1,8 +1,9 @@
 """Command Center data + render helper — §29."""
+
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, date, datetime
+from typing import Any
 
 from flask import g, render_template, url_for
 from sqlalchemy import func, select
@@ -23,6 +24,7 @@ def _enabled_modules() -> set:
 
 def _user_hidden_widgets(user) -> set:
     from app.shared.user_preferences import get_user_preferences
+
     prefs = get_user_preferences(user)
     dash = prefs.get('dashboard') or {}
     if isinstance(dash, dict):
@@ -68,98 +70,227 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
 
     if role in ('reception', 'manager'):
         stats = core_queries.get_basic_dashboard_stats()
-        waiting = db.session.execute(select(func.count()).select_from(QueueManagement).filter(
-            QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED])
-        )).scalar()
+        waiting = db.session.execute(
+            select(func.count())
+            .select_from(QueueManagement)
+            .filter(QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED]))
+        ).scalar()
         data['metrics']['queue_count'] = waiting
         data['metrics']['visits_today'] = stats.get('visits_today', 0)
         data['metrics']['total_patients'] = stats.get('total_patients', 0)
-        data['lists']['active_queue'] = db.session.execute(select(QueueManagement).filter(
-            QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
-        ).order_by(QueueManagement.queued_at.asc()).limit(10)).scalars().all()
-        data['lists']['today_visits'] = db.session.execute(select(Visit).filter(
-            Visit.visit_date == today,
-            Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS, VisitState.COMPLETED]),
-        ).order_by(Visit.created_at.desc()).limit(15)).scalars().all()
-        data['lists']['today_appointments'] = db.session.execute(select(Appointment).filter(
-            db.func.date(Appointment.starts_at) == today,
-            Appointment.status.in_([
-                AppointmentState.SCHEDULED,
-                AppointmentState.CONFIRMED,
-                AppointmentState.CHECKED_IN,
-            ]),
-        ).order_by(Appointment.starts_at.asc()).limit(10)).scalars().all()
+        data['lists']['active_queue'] = (
+            db.session.execute(
+                select(QueueManagement)
+                .filter(
+                    QueueManagement.status.in_(
+                        [QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS]
+                    )
+                )
+                .order_by(QueueManagement.queued_at.asc())
+                .limit(10)
+            )
+            .scalars()
+            .all()
+        )
+        data['lists']['today_visits'] = (
+            db.session.execute(
+                select(Visit)
+                .filter(
+                    Visit.visit_date == today,
+                    Visit.status.in_(
+                        [VisitState.OPEN, VisitState.IN_PROGRESS, VisitState.COMPLETED]
+                    ),
+                )
+                .order_by(Visit.created_at.desc())
+                .limit(15)
+            )
+            .scalars()
+            .all()
+        )
+        data['lists']['today_appointments'] = (
+            db.session.execute(
+                select(Appointment)
+                .filter(
+                    db.func.date(Appointment.starts_at) == today,
+                    Appointment.status.in_(
+                        [
+                            AppointmentState.SCHEDULED,
+                            AppointmentState.CONFIRMED,
+                            AppointmentState.CHECKED_IN,
+                        ]
+                    ),
+                )
+                .order_by(Appointment.starts_at.asc())
+                .limit(10)
+            )
+            .scalars()
+            .all()
+        )
 
     if role == 'doctor':
-        pending = db.session.execute(select(func.count()).select_from(Visit).filter(
-            Visit.doctor_id == user.id,
-            Visit.status == VisitState.OPEN,
-        )).scalar()
+        pending = db.session.execute(
+            select(func.count())
+            .select_from(Visit)
+            .filter(
+                Visit.doctor_id == user.id,
+                Visit.status == VisitState.OPEN,
+            )
+        ).scalar()
         data['metrics']['waiting_patients'] = pending
-        data['metrics']['today_visits'] = db.session.execute(select(func.count()).select_from(Visit).filter(
-            Visit.doctor_id == user.id,
-            Visit.visit_date == today,
-        )).scalar()
-        data['lists']['waiting_list'] = db.session.execute(select(Visit).filter(
-            Visit.doctor_id == user.id,
-            Visit.visit_date == today,
-            Visit.status.in_([VisitState.OPEN, VisitState.CHECKED_IN, VisitState.IN_PROGRESS]),
-        ).order_by(Visit.created_at.asc()).limit(8)).scalars().all()
-        data['lists']['today_appointments'] = db.session.execute(select(Appointment).filter(
-            Appointment.doctor_id == user.id,
-            db.func.date(Appointment.starts_at) == today,
-        ).order_by(Appointment.starts_at.asc()).limit(8)).scalars().all()
-        data['lists']['pending_lab'] = db.session.execute(select(LabRequest).join(Visit).filter(
-            Visit.doctor_id == user.id,
-            LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
-        ).order_by(LabRequest.created_at.desc()).limit(6)).scalars().all()
-        data['lists']['pending_radiology'] = db.session.execute(select(RadiologyRequest).join(Visit).filter(
-            Visit.doctor_id == user.id,
-            RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
-        ).order_by(RadiologyRequest.created_at.desc()).limit(6)).scalars().all()
+        data['metrics']['today_visits'] = db.session.execute(
+            select(func.count())
+            .select_from(Visit)
+            .filter(
+                Visit.doctor_id == user.id,
+                Visit.visit_date == today,
+            )
+        ).scalar()
+        data['lists']['waiting_list'] = (
+            db.session.execute(
+                select(Visit)
+                .filter(
+                    Visit.doctor_id == user.id,
+                    Visit.visit_date == today,
+                    Visit.status.in_(
+                        [VisitState.OPEN, VisitState.CHECKED_IN, VisitState.IN_PROGRESS]
+                    ),
+                )
+                .order_by(Visit.created_at.asc())
+                .limit(8)
+            )
+            .scalars()
+            .all()
+        )
+        data['lists']['today_appointments'] = (
+            db.session.execute(
+                select(Appointment)
+                .filter(
+                    Appointment.doctor_id == user.id,
+                    db.func.date(Appointment.starts_at) == today,
+                )
+                .order_by(Appointment.starts_at.asc())
+                .limit(8)
+            )
+            .scalars()
+            .all()
+        )
+        data['lists']['pending_lab'] = (
+            db.session.execute(
+                select(LabRequest)
+                .join(Visit)
+                .filter(
+                    Visit.doctor_id == user.id,
+                    LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+                )
+                .order_by(LabRequest.created_at.desc())
+                .limit(6)
+            )
+            .scalars()
+            .all()
+        )
+        data['lists']['pending_radiology'] = (
+            db.session.execute(
+                select(RadiologyRequest)
+                .join(Visit)
+                .filter(
+                    Visit.doctor_id == user.id,
+                    RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+                )
+                .order_by(RadiologyRequest.created_at.desc())
+                .limit(6)
+            )
+            .scalars()
+            .all()
+        )
 
     if role in ('lab', 'technician'):
         try:
             from services.lab_service import lab_service
+
             ls = lab_service.get_dashboard_stats()
             data['metrics']['pending_requests'] = ls.get('pending_requests', 0)
             data['metrics']['completed_today'] = ls.get('completed_today', 0)
-        except Exception as e:
-            data['metrics']['pending_requests'] = db.session.execute(select(func.count()).select_from(LabRequest).filter(
-                LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
-            )).scalar()
-        data['lists']['lab_pending'] = db.session.execute(select(LabRequest).filter(
-            LabRequest.status.in_([OrderState.REQUESTED, OrderState.RECEIVED, OrderState.IN_PROGRESS])
-        ).order_by(LabRequest.created_at.asc()).limit(10)).scalars().all()
+        except Exception:
+            data['metrics']['pending_requests'] = db.session.execute(
+                select(func.count())
+                .select_from(LabRequest)
+                .filter(LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]))
+            ).scalar()
+        data['lists']['lab_pending'] = (
+            db.session.execute(
+                select(LabRequest)
+                .filter(
+                    LabRequest.status.in_(
+                        [OrderState.REQUESTED, OrderState.RECEIVED, OrderState.IN_PROGRESS]
+                    )
+                )
+                .order_by(LabRequest.created_at.asc())
+                .limit(10)
+            )
+            .scalars()
+            .all()
+        )
 
     if role == 'radiology':
-        data['metrics']['pending_reports'] = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
-            RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
-        )).scalar()
-        data['lists']['pending_radiology'] = db.session.execute(select(RadiologyRequest).filter(
-            RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
-        ).order_by(RadiologyRequest.created_at.asc()).limit(10)).scalars().all()
+        data['metrics']['pending_reports'] = db.session.execute(
+            select(func.count())
+            .select_from(RadiologyRequest)
+            .filter(RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]))
+        ).scalar()
+        data['lists']['pending_radiology'] = (
+            db.session.execute(
+                select(RadiologyRequest)
+                .filter(RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]))
+                .order_by(RadiologyRequest.created_at.asc())
+                .limit(10)
+            )
+            .scalars()
+            .all()
+        )
 
     if role == 'emergency':
         try:
             from models.emergency import EmergencyCase
-            critical = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
-                EmergencyCase.severity.in_(['HIGH', 'CRITICAL']),
-                EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED']),
-            )).scalar()
-            active = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
-                EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED'])
-            )).scalar()
+
+            critical = db.session.execute(
+                select(func.count())
+                .select_from(EmergencyCase)
+                .filter(
+                    EmergencyCase.severity.in_(['HIGH', 'CRITICAL']),
+                    EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED']),
+                )
+            ).scalar()
+            active = db.session.execute(
+                select(func.count())
+                .select_from(EmergencyCase)
+                .filter(EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED']))
+            ).scalar()
             data['metrics']['critical_count'] = critical
             data['metrics']['active_cases'] = active
-            data['lists']['emergency_cases'] = db.session.execute(select(EmergencyCase).filter(
-                EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED'])
-            ).order_by(EmergencyCase.created_at.desc()).limit(10)).scalars().all()
-            data['lists']['emergency_queue'] = db.session.execute(select(EmergencyCase).filter(
-                EmergencyCase.severity.in_(['HIGH', 'CRITICAL', 'URGENT']),
-                EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED']),
-            ).order_by(EmergencyCase.created_at.asc()).limit(10)).scalars().all()
-        except Exception as e:
+            data['lists']['emergency_cases'] = (
+                db.session.execute(
+                    select(EmergencyCase)
+                    .filter(EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED']))
+                    .order_by(EmergencyCase.created_at.desc())
+                    .limit(10)
+                )
+                .scalars()
+                .all()
+            )
+            data['lists']['emergency_queue'] = (
+                db.session.execute(
+                    select(EmergencyCase)
+                    .filter(
+                        EmergencyCase.severity.in_(['HIGH', 'CRITICAL', 'URGENT']),
+                        EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED']),
+                    )
+                    .order_by(EmergencyCase.created_at.asc())
+                    .limit(10)
+                )
+                .scalars()
+                .all()
+            )
+        except Exception:
             data['metrics']['critical_count'] = 0
             data['metrics']['active_cases'] = 0
             data['lists']['emergency_cases'] = []
@@ -168,35 +299,74 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
     if role == 'accountant':
         try:
             from models.invoice import Invoice
-            pending = db.session.execute(select(func.count()).select_from(Invoice).filter(Invoice.status.in_(['ISSUED', 'DRAFT']))).scalar()
+
+            pending = db.session.execute(
+                select(func.count())
+                .select_from(Invoice)
+                .filter(Invoice.status.in_(['ISSUED', 'DRAFT']))
+            ).scalar()
             data['metrics']['pending_invoices'] = pending
-        except Exception as e:
+        except Exception:
             data['metrics']['pending_invoices'] = 0
 
     if role == 'nurse':
-        data['lists']['assigned'] = db.session.execute(select(Visit).filter(
-            Visit.visit_date == today,
-            Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS, VisitState.CHECKED_IN]),
-        ).order_by(Visit.created_at.desc()).limit(12)).scalars().all()
+        data['lists']['assigned'] = (
+            db.session.execute(
+                select(Visit)
+                .filter(
+                    Visit.visit_date == today,
+                    Visit.status.in_(
+                        [VisitState.OPEN, VisitState.IN_PROGRESS, VisitState.CHECKED_IN]
+                    ),
+                )
+                .order_by(Visit.created_at.desc())
+                .limit(12)
+            )
+            .scalars()
+            .all()
+        )
 
     if role == 'pharmacist':
         try:
-            from models.medication import Medication, Prescription, PharmacySale
+            from models.medication import Medication, PharmacySale, Prescription
 
-            data['lists']['low_stock'] = db.session.execute(select(Medication).filter(
-                Medication.stock_quantity <= Medication.minimum_stock
-            ).order_by(Medication.stock_quantity.asc()).limit(10)).scalars().all()
-            data['lists']['pending_prescriptions'] = db.session.execute(select(Prescription).filter(
-                Prescription.status == 'active'
-            ).order_by(Prescription.created_at.desc()).limit(10)).scalars().all()
-            data['lists']['recent_sales'] = db.session.execute(select(PharmacySale).filter(
-                func.date(PharmacySale.created_at) == today
-            ).order_by(PharmacySale.created_at.desc()).limit(10)).scalars().all()
+            data['lists']['low_stock'] = (
+                db.session.execute(
+                    select(Medication)
+                    .filter(Medication.stock_quantity <= Medication.minimum_stock)
+                    .order_by(Medication.stock_quantity.asc())
+                    .limit(10)
+                )
+                .scalars()
+                .all()
+            )
+            data['lists']['pending_prescriptions'] = (
+                db.session.execute(
+                    select(Prescription)
+                    .filter(Prescription.status == 'active')
+                    .order_by(Prescription.created_at.desc())
+                    .limit(10)
+                )
+                .scalars()
+                .all()
+            )
+            data['lists']['recent_sales'] = (
+                db.session.execute(
+                    select(PharmacySale)
+                    .filter(func.date(PharmacySale.created_at) == today)
+                    .order_by(PharmacySale.created_at.desc())
+                    .limit(10)
+                )
+                .scalars()
+                .all()
+            )
             data['metrics']['dispense_today'] = len(data['lists']['recent_sales'])
-            data['metrics']['today_sales'] = db.session.execute(select(
-                func.coalesce(func.sum(PharmacySale.total_amount), 0)
-            ).filter(func.date(PharmacySale.created_at) == today)).scalar()
-        except Exception as e:
+            data['metrics']['today_sales'] = db.session.execute(
+                select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
+                    func.date(PharmacySale.created_at) == today
+                )
+            ).scalar()
+        except Exception:
             data['lists']['low_stock'] = []
             data['lists']['pending_prescriptions'] = []
             data['lists']['recent_sales'] = []
@@ -206,7 +376,7 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
     return data
 
 
-def build_now_cards(widgets: List[WidgetMeta], data: dict) -> list[dict]:
+def build_now_cards(widgets: list[WidgetMeta], data: dict) -> list[dict]:
     """High-priority metric cards for _now_panel."""
     metrics = data.get('metrics') or {}
     cards = []
@@ -216,9 +386,7 @@ def build_now_cards(widgets: List[WidgetMeta], data: dict) -> list[dict]:
         value = None
         if w.id == 'queue_live':
             value = metrics.get('queue_count', 0)
-        elif w.id == 'my_queue':
-            value = metrics.get('waiting_patients', 0)
-        elif w.id == 'patients_waiting':
+        elif w.id == 'my_queue' or w.id == 'patients_waiting':
             value = metrics.get('waiting_patients', 0)
         elif w.id == 'cash_summary':
             value = metrics.get('visits_today', '—')
@@ -244,20 +412,22 @@ def build_now_cards(widgets: List[WidgetMeta], data: dict) -> list[dict]:
         if w.action_url:
             try:
                 action_href = url_for(w.action_url)
-            except Exception as e:
+            except Exception:
                 action_href = None
-        cards.append({
-            'id': w.id,
-            'title': w.title_ar,
-            'value': value,
-            'icon': w.icon,
-            'action_href': action_href,
-            'action_label': w.action_label,
-        })
+        cards.append(
+            {
+                'id': w.id,
+                'title': w.title_ar,
+                'value': value,
+                'icon': w.icon,
+                'action_href': action_href,
+                'action_label': w.action_label,
+            }
+        )
     return cards[:4]
 
 
-def build_command_center_context(user, role: Optional[str] = None, **extra) -> dict:
+def build_command_center_context(user, role: str | None = None, **extra) -> dict:
     role = role or user.role
     enabled = _enabled_modules()
     hidden = _user_hidden_widgets(user)
@@ -267,11 +437,13 @@ def build_command_center_context(user, role: Optional[str] = None, **extra) -> d
     for wid in layout_ids:
         meta = WIDGETS.get(wid)
         if meta:
-            customizable_widgets.append({
-                'id': meta.id,
-                'title': meta.title_ar,
-                'hidden': wid in hidden,
-            })
+            customizable_widgets.append(
+                {
+                    'id': meta.id,
+                    'title': meta.title_ar,
+                    'hidden': wid in hidden,
+                }
+            )
     now_widgets = [w for w in widgets if w.priority == 1]
     body_widgets = [w for w in widgets if w.size in ('md', 'lg', 'full')]
     data = _load_role_data(role, user)
@@ -280,7 +452,7 @@ def build_command_center_context(user, role: Optional[str] = None, **extra) -> d
     for ep, icon, label in quick:
         try:
             quick_actions.append({'href': url_for(ep), 'icon': icon, 'label': label})
-        except Exception as e:
+        except Exception:
             continue
     ctx = {
         'hero': build_hero_context(user),
@@ -299,19 +471,19 @@ def build_command_center_context(user, role: Optional[str] = None, **extra) -> d
     return ctx
 
 
-def render_command_center(user, role: Optional[str] = None, **extra):
+def render_command_center(user, role: str | None = None, **extra):
     return render_template(
         'dashboards/command_center.html',
         **build_command_center_context(user, role=role, **extra),
     )
 
 
-def snapshot_metrics(user, role: Optional[str] = None) -> dict:
+def snapshot_metrics(user, role: str | None = None) -> dict:
     """Light JSON for dashboard-live.js polling."""
     role = role or user.role
     data = _load_role_data(role, user)
     return {
         'role': role,
         'metrics': data.get('metrics') or {},
-        'ts': datetime.now(timezone.utc).isoformat(),
+        'ts': datetime.now(UTC).isoformat(),
     }

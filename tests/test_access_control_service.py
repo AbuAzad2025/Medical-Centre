@@ -6,32 +6,38 @@ fix where can_access_visit referenced non-existent Visit columns
 (requested_labs/requested_radiology) and status=='EMERGENCY', silently denying
 lab/radiology/emergency staff. ``rollback_db``.
 """
+
 import types
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from werkzeug.exceptions import Forbidden
 
-from services.access_control_service import AccessControlService as AC
+from app.shared.enums import VisitArchiveStatus, VisitState
+from models.patient import Patient
 from models.user import User
 from models.visit import Visit
-from models.patient import Patient
-from models.payment import Payment
-from app.shared.enums import VisitState, VisitArchiveStatus
-from app.extensions import db
+from services.access_control_service import AccessControlService as AC
 
 
 @pytest.fixture
 def fx(rollback_db):
     db = rollback_db
     from flask import g
+
     g._tenant_filter_bypass = True
 
     def user(role='doctor', department_id=None):
         un = 'ac_' + uuid.uuid4().hex[:8]
-        u = User(username=un, email=un + '@x.com', full_name='u', role=role,
-                 is_active=True, department_id=department_id)
+        u = User(
+            username=un,
+            email=un + '@x.com',
+            full_name='u',
+            role=role,
+            is_active=True,
+            department_id=department_id,
+        )
         u.set_password('p')
         db.session.add(u)
         db.session.commit()
@@ -44,8 +50,7 @@ def fx(rollback_db):
         return p
 
     def visit(**kw):
-        params = dict(patient_id=patient().id, status=VisitState.OPEN,
-                      created_at=datetime.now(timezone.utc))
+        params = dict(patient_id=patient().id, status=VisitState.OPEN, created_at=datetime.now(UTC))
         params.update(kw)
         v = Visit(**params)
         db.session.add(v)
@@ -102,7 +107,7 @@ class TestCanModifyVisit:
         rec = fx.user(role='reception')
         # created_at is a naive (UTC) column; insert naive values to avoid
         # tz round-trip skew in the assertion.
-        utcnow = datetime.now(timezone.utc).replace(tzinfo=None)
+        utcnow = datetime.now(UTC).replace(tzinfo=None)
         fresh = fx.visit(created_at=utcnow - timedelta(minutes=5))
         stale = fx.visit(created_at=utcnow - timedelta(minutes=45))
         assert AC.can_modify_visit(rec.id, fresh.id) is True
@@ -183,6 +188,7 @@ class TestRolesAndDepartments:
 
     def test_accessible_departments_includes_user_dept(self, fx):
         from models.department import Department
+
         dept = Department(name='Ortho', name_ar='عظام')
         fx.db.session.add(dept)
         fx.db.session.commit()
@@ -213,9 +219,14 @@ class TestRolesAndDepartments:
 class TestPermissionHelpers:
     def test_can_helpers_return_bool(self, fx):
         uid = fx.user(role='reception').id
-        for fn in (AC.can_create_visit, AC.can_process_payment, AC.can_archive_visit,
-                   AC.can_prescribe_medication, AC.can_enter_lab_results,
-                   AC.can_enter_radiology_reports):
+        for fn in (
+            AC.can_create_visit,
+            AC.can_process_payment,
+            AC.can_archive_visit,
+            AC.can_prescribe_medication,
+            AC.can_enter_lab_results,
+            AC.can_enter_radiology_reports,
+        ):
             assert isinstance(fn(uid), bool)
 
 
@@ -224,28 +235,38 @@ class TestDepartmentScopingDeep:
 
     def _dept(self, fx, tag):
         from models.department import Department
+
         d = Department(name='D' + tag + uuid.uuid4().hex[:4], name_ar='ق' + tag)
         fx.db.session.add(d)
         fx.db.session.commit()
         return d
 
     def _setup(self, fx, with_global=False):
-        from models.permissions import Role
         from models.advanced_permissions import DepartmentPermission
+        from models.permissions import Role
+
         rolename = 'rl_' + uuid.uuid4().hex[:8]
         role = Role(name=rolename, is_active=True)
         fx.db.session.add(role)
         fx.db.session.flush()
         d1, d2 = self._dept(fx, '1'), self._dept(fx, '2')
         if with_global:
-            fx.db.session.add(DepartmentPermission(
-                role_id=role.id, department_id=None, can_access=True))
+            fx.db.session.add(
+                DepartmentPermission(role_id=role.id, department_id=None, can_access=True)
+            )
         else:
-            fx.db.session.add(DepartmentPermission(
-                role_id=role.id, department_id=d1.id, can_access=True,
-                can_manage_patients=True, can_manage_visits=True,
-                can_manage_appointments=True, can_manage_staff=True,
-                can_manage_department_settings=True))
+            fx.db.session.add(
+                DepartmentPermission(
+                    role_id=role.id,
+                    department_id=d1.id,
+                    can_access=True,
+                    can_manage_patients=True,
+                    can_manage_visits=True,
+                    can_manage_appointments=True,
+                    can_manage_staff=True,
+                    can_manage_department_settings=True,
+                )
+            )
         fx.db.session.commit()
         u = fx.user(role=rolename)
         fx.db.session.expire_all()
@@ -263,6 +284,7 @@ class TestDepartmentScopingDeep:
 
     def test_user_department_access_extra(self, fx):
         from models.user_department_access import UserDepartmentAccess
+
         u, d1, d2 = self._setup(fx)
         d3 = self._dept(fx, '3')
         fx.db.session.add(UserDepartmentAccess(user_id=u.id, department_id=d3.id, can_access=True))
@@ -297,9 +319,8 @@ class TestDecorators:
         def view():
             return 'ok'
 
-        with app.test_request_context():
-            with pytest.raises(Forbidden):
-                view()
+        with app.test_request_context(), pytest.raises(Forbidden):
+            view()
 
     def test_require_role_denies(self, app, fx, monkeypatch):
         monkeypatch.setattr(AC, 'has_role', lambda u, r: False)
@@ -308,9 +329,8 @@ class TestDecorators:
         def view():
             return 'ok'
 
-        with app.test_request_context():
-            with pytest.raises(Forbidden):
-                view()
+        with app.test_request_context(), pytest.raises(Forbidden):
+            view()
 
     def test_require_role_allows(self, app, fx, monkeypatch):
         monkeypatch.setattr(AC, 'has_role', lambda u, r: True)
@@ -348,7 +368,10 @@ class TestPermissionDenyPaths:
         assert AC.can_create_visit(uid) is False
 
     def test_can_access_visit_exception_returns_false(self, fx, monkeypatch):
-        monkeypatch.setattr('services.access_control_service.db.session.get', lambda *a, **k: (_ for _ in ()).throw(RuntimeError()))
+        monkeypatch.setattr(
+            'services.access_control_service.db.session.get',
+            lambda *a, **k: (_ for _ in ()).throw(RuntimeError()),
+        )
         assert AC.can_access_visit(1, 1) is False
 
     def test_can_modify_visit_doctor_other_visit_denied(self, fx):

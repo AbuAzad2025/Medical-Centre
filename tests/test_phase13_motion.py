@@ -5,13 +5,17 @@ from pathlib import Path
 
 class TestMotionAssets:
     def test_motion_js_respects_reduced_motion(self):
-        js = (Path(__file__).parent.parent / 'static' / 'js' / 'motion.js').read_text(encoding='utf-8')
+        js = (Path(__file__).parent.parent / 'static' / 'js' / 'motion.js').read_text(
+            encoding='utf-8'
+        )
         assert 'motionEnabled' in js
         assert 'prefers-reduced-motion' in js
         assert '.animate-in' in js
 
     def test_motion_css_exists(self):
-        css = (Path(__file__).parent.parent / 'static' / 'css' / 'motion.css').read_text(encoding='utf-8')
+        css = (Path(__file__).parent.parent / 'static' / 'css' / 'motion.css').read_text(
+            encoding='utf-8'
+        )
         assert '.animate-in' in css
         assert 'prefers-reduced-motion' in css
 
@@ -46,7 +50,9 @@ class TestWorkflowMacros:
     def test_visit_next_actions_helper_registered(self, app):
         with app.app_context():
             from flask import render_template_string
+
             from services.workflow_orchestrator import WorkflowOrchestrator
+
             assert WorkflowOrchestrator.next_actions is not None
             out = render_template_string('{{ visit_next_actions is defined }}')
             assert 'True' in out

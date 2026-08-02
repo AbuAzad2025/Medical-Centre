@@ -1,16 +1,20 @@
 """Tests for UX1-004: Patient 360 Timeline."""
 
 import pytest
+from sqlalchemy import delete, select
 
 from app.extensions import db
-from models.user import User
 from models.patient import Patient
-from sqlalchemy import select, delete
+from models.user import User
 
 
 @pytest.fixture(scope='function')
 def doctor_user(app, test_tenant):
-    u = db.session.execute(select(User).filter_by(username='doctor_timeline_test')).scalars().first()
+    u = (
+        db.session.execute(select(User).filter_by(username='doctor_timeline_test'))
+        .scalars()
+        .first()
+    )
     if not u:
         u = User(
             username='doctor_timeline_test',
@@ -26,8 +30,9 @@ def doctor_user(app, test_tenant):
     yield u
     try:
         from models.audit_trail import LoginAttempt
+
         db.session.execute(delete(LoginAttempt).filter_by(user_id=u.id))
-    except Exception as e:
+    except Exception:
         db.session.rollback()
 
 
@@ -57,12 +62,17 @@ def sample_patient(app, test_tenant, monkeypatch):
 @pytest.fixture(scope='function')
 def timeline_auth_client(app, client, doctor_user, test_tenant):
     from app.core.rate_limiter import _shared_store
+
     _shared_store.clear()
-    resp = client.post('/auth/login', data={
-        'username': 'doctor_timeline_test',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    }, follow_redirects=True)
+    resp = client.post(
+        '/auth/login',
+        data={
+            'username': 'doctor_timeline_test',
+            'password': 'test123',
+            'tenant_slug': test_tenant.slug,
+        },
+        follow_redirects=True,
+    )
     assert resp.status_code == 200
     return client
 

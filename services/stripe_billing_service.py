@@ -1,18 +1,17 @@
 """Outbound Stripe billing API for self-service SaaS subscription management."""
+
 from __future__ import annotations
 
 import logging
 import os
 import uuid
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any
 
 import stripe
+from sqlalchemy import select
 
-from app.extensions import db
-from utils.db_safety import safe_commit
-from utils.circuit_breaker import circuit_breaker_call
-from app.core.saas.lifecycle import TenantProvisioningService, ProvisioningError
+from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import (
     PackageVersion,
     PackageVersionAvailability,
@@ -24,7 +23,9 @@ from app.core.saas.models import (
 )
 from app.core.saas.projection import EntitlementProjectionService
 from app.core.tenant.models import Tenant, TenantStatus
-from sqlalchemy import select
+from app.extensions import db
+from utils.circuit_breaker import circuit_breaker_call
+from utils.db_safety import safe_commit
 
 logger = logging.getLogger(__name__)
 
@@ -72,10 +73,16 @@ class StripeBillingService:
 
     @classmethod
     def _pricing_for(cls, package_version_id: int, billing_type: str) -> PackageVersionPricing:
-        pricing = db.session.execute(select(PackageVersionPricing).filter_by(
-            package_version_id=package_version_id,
-            billing_type=billing_type,
-        )).scalars().first()
+        pricing = (
+            db.session.execute(
+                select(PackageVersionPricing).filter_by(
+                    package_version_id=package_version_id,
+                    billing_type=billing_type,
+                )
+            )
+            .scalars()
+            .first()
+        )
         if pricing is None:
             raise StripeBillingError('package_pricing_not_found')
         return pricing
@@ -106,12 +113,19 @@ class StripeBillingService:
             raise PlanChangeValidationError('package_version_not_found')
         if version.is_deprecated:
             raise PlanChangeValidationError('package_version_deprecated')
-        latest_availability = db.session.execute(
-            select(PackageVersionAvailability)
-            .filter_by(package_version_id=version.id)
-            .order_by(PackageVersionAvailability.effective_from.desc())
-        ).scalars().first()
-        if latest_availability and latest_availability.availability_status == PackageVersionAvailabilityStatus.RETIRED:
+        latest_availability = (
+            db.session.execute(
+                select(PackageVersionAvailability)
+                .filter_by(package_version_id=version.id)
+                .order_by(PackageVersionAvailability.effective_from.desc())
+            )
+            .scalars()
+            .first()
+        )
+        if (
+            latest_availability
+            and latest_availability.availability_status == PackageVersionAvailabilityStatus.RETIRED
+        ):
             raise PlanChangeValidationError('package_version_retired')
         return version
 
@@ -131,7 +145,7 @@ class StripeBillingService:
         if tenant.status not in cls._PLAN_CHANGE_ALLOWED_STATUSES:
             raise PlanChangeValidationError(
                 f"Plan changes not allowed for tenant status '{tenant.status.value}'. "
-                f"Allowed: {[s.value for s in cls._PLAN_CHANGE_ALLOWED_STATUSES]}"
+                f'Allowed: {[s.value for s in cls._PLAN_CHANGE_ALLOWED_STATUSES]}'
             )
 
         # 2. Target version must be available (not deprecated/retired)
@@ -144,16 +158,22 @@ class StripeBillingService:
 
         # 4. Current base line pricing for proration comparison
         current_price = Decimal('0')
-        current_line = db.session.execute(
-            select(SubscriptionLine).filter_by(
-                tenant_id=tenant.id,
-                line_type=SubscriptionLineType.BASE,
-                status=SubscriptionLineStatus.ACTIVE,
+        current_line = (
+            db.session.execute(
+                select(SubscriptionLine).filter_by(
+                    tenant_id=tenant.id,
+                    line_type=SubscriptionLineType.BASE,
+                    status=SubscriptionLineStatus.ACTIVE,
+                )
             )
-        ).scalars().first()
+            .scalars()
+            .first()
+        )
         if current_line:
             try:
-                current_pricing = cls._pricing_for(current_line.package_version_id, current_line.billing_type)
+                current_pricing = cls._pricing_for(
+                    current_line.package_version_id, current_line.billing_type
+                )
                 current_price = Decimal(str(current_pricing.price or 0))
             except StripeBillingError:
                 current_price = Decimal('0')
@@ -176,7 +196,9 @@ class StripeBillingService:
             except Exception as e:
                 logger.warning(
                     'Stripe invoice list failed for tenant=%s sub=%s: %s',
-                    tenant.id, subscription_id, e,
+                    tenant.id,
+                    subscription_id,
+                    e,
                 )
                 # Non-fatal: if we can't verify, we proceed with caution
 
@@ -197,7 +219,8 @@ class StripeBillingService:
                 if amount_due < 0:
                     logger.warning(
                         'Proration produced negative upcoming invoice: sub=%s amount_due=%s',
-                        subscription_id, amount_due,
+                        subscription_id,
+                        amount_due,
                     )
                     # We do NOT raise here — negative proration credits are valid in Stripe.
                     # We only log for monitoring. If the business wants to block this,
@@ -221,7 +244,7 @@ class StripeBillingService:
             metadata={'tenant_id': str(tenant.id), 'tenant_slug': tenant.slug},
         )
         cls._store_stripe_refs(tenant, customer_id=customer.id)
-        safe_commit(db.session, error_message="فشل حفظ عميل Stripe", reraise=True)
+        safe_commit(db.session, error_message='فشل حفظ عميل Stripe', reraise=True)
         return customer.id
 
     @classmethod
@@ -236,7 +259,9 @@ class StripeBillingService:
     ) -> dict[str, Any]:
         cls._api_key()
         tenant = cls._require_tenant(tenant_id)
-        version = db.session.get(PackageVersion, package_version_id)  # global reference table - no tenant scope
+        version = db.session.get(
+            PackageVersion, package_version_id
+        )  # global reference table - no tenant scope
         if version is None:
             raise StripeBillingError('package_version_not_found')
 
@@ -250,15 +275,17 @@ class StripeBillingService:
             mode='subscription',
             success_url=success_url,
             cancel_url=cancel_url,
-            line_items=[{
-                'price_data': {
-                    'currency': os.environ.get('STRIPE_CURRENCY', 'usd'),
-                    'product_data': {'name': cls._version_display_name(version)},
-                    'recurring': {'interval': interval},
-                    'unit_amount': amount_cents,
-                },
-                'quantity': 1,
-            }],
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': os.environ.get('STRIPE_CURRENCY', 'usd'),
+                        'product_data': {'name': cls._version_display_name(version)},
+                        'recurring': {'interval': interval},
+                        'unit_amount': amount_cents,
+                    },
+                    'quantity': 1,
+                }
+            ],
             metadata={
                 'tenant_id': str(tenant.id),
                 'package_version_id': str(package_version_id),
@@ -300,7 +327,7 @@ class StripeBillingService:
             if getattr(subscription, 'status', None) in ('canceled', 'cancelled'):
                 TenantProvisioningService.cancel_tenant(tenant_id)
                 EntitlementProjectionService.calculate(tenant_id)
-            safe_commit(db.session, error_message="فشل إلغاء الاشتراك (نهاية الفترة)", reraise=True)
+            safe_commit(db.session, error_message='فشل إلغاء الاشتراك (نهاية الفترة)', reraise=True)
             return {
                 'subscription_id': subscription.id,
                 'status': subscription.status,
@@ -309,7 +336,7 @@ class StripeBillingService:
 
         subscription = stripe.Subscription.cancel(subscription_id)
         TenantProvisioningService.cancel_tenant(tenant_id)
-        safe_commit(db.session, error_message="فشل إلغاء الاشتراك", reraise=True)
+        safe_commit(db.session, error_message='فشل إلغاء الاشتراك', reraise=True)
         EntitlementProjectionService.calculate(tenant_id)
         return {
             'subscription_id': subscription.id,
@@ -324,7 +351,7 @@ class StripeBillingService:
         new_package_version_id: int,
         billing_type: str,
         *,
-        performed_by_user_id: Optional[int] = None,
+        performed_by_user_id: int | None = None,
     ) -> dict[str, Any]:
         cls._api_key()
         tenant = cls._require_tenant(tenant_id)
@@ -344,15 +371,17 @@ class StripeBillingService:
 
             stripe.Subscription.modify(
                 subscription_id,
-                items=[{
-                    'id': item_id,
-                    'price_data': {
-                        'currency': os.environ.get('STRIPE_CURRENCY', 'usd'),
-                        'product_data': {'name': cls._version_display_name(new_version)},
-                        'recurring': {'interval': interval},
-                        'unit_amount': int(float(new_pricing.price) * 100),
-                    },
-                }],
+                items=[
+                    {
+                        'id': item_id,
+                        'price_data': {
+                            'currency': os.environ.get('STRIPE_CURRENCY', 'usd'),
+                            'product_data': {'name': cls._version_display_name(new_version)},
+                            'recurring': {'interval': interval},
+                            'unit_amount': int(float(new_pricing.price) * 100),
+                        },
+                    }
+                ],
                 proration_behavior='create_prorations',
                 metadata={
                     'tenant_id': str(tenant.id),
@@ -392,7 +421,7 @@ class StripeBillingService:
             db.session.add(tenant)
 
         cls._store_stripe_refs(tenant, subscription_id=subscription_id)
-        safe_commit(db.session, error_message="فشل تغيير خطة الاشتراك", reraise=True)
+        safe_commit(db.session, error_message='فشل تغيير خطة الاشتراك', reraise=True)
         EntitlementProjectionService.calculate(tenant_id)
         return {
             'action': action,

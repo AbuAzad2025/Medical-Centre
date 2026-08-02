@@ -1,7 +1,9 @@
 """Tests for P3-002: Payment allocation activation and transactional posting."""
 
 import pytest
+from sqlalchemy import select
 
+from app.extensions import db
 from app_factory import db as _db
 from models.invoice import Invoice, InvoiceService
 from models.patient import Patient
@@ -10,8 +12,6 @@ from models.user import User
 from models.visit import Visit
 from services.billing_state_service import PaymentAllocationService
 from services.payment_service import PaymentService
-from sqlalchemy import select
-from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -84,7 +84,9 @@ def alloc_invoice(app, test_tenant, alloc_visit):
 
 
 class TestPaymentAllocationService:
-    def test_allocates_fully_to_single_invoice(self, alloc_visit, alloc_invoice, alloc_accountant, test_tenant):
+    def test_allocates_fully_to_single_invoice(
+        self, alloc_visit, alloc_invoice, alloc_accountant, test_tenant
+    ):
         payment = Payment(
             tenant_id=test_tenant.id,
             visit_id=alloc_visit.id,
@@ -103,7 +105,9 @@ class TestPaymentAllocationService:
         _db.session.refresh(alloc_invoice)
         assert float(alloc_invoice.paid_amount) == 100
 
-    def test_allocates_partially_across_invoices(self, alloc_visit, alloc_invoice, alloc_accountant, test_tenant):
+    def test_allocates_partially_across_invoices(
+        self, alloc_visit, alloc_invoice, alloc_accountant, test_tenant
+    ):
         inv2 = Invoice(
             tenant_id=test_tenant.id,
             visit_id=alloc_visit.id,
@@ -136,7 +140,9 @@ class TestPaymentAllocationService:
 
 
 class TestPaymentServiceAllocation:
-    def test_creates_payment_and_allocates(self, alloc_visit, alloc_invoice, alloc_accountant, test_tenant):
+    def test_creates_payment_and_allocates(
+        self, alloc_visit, alloc_invoice, alloc_accountant, test_tenant
+    ):
         ok, payment = PaymentService.create_payment(
             tenant_id=test_tenant.id,
             operation_type='payment',
@@ -154,7 +160,9 @@ class TestPaymentServiceAllocation:
         _db.session.refresh(alloc_invoice)
         assert float(alloc_invoice.paid_amount) == 80
 
-    def test_pending_payment_is_not_allocated(self, alloc_visit, alloc_invoice, alloc_accountant, test_tenant):
+    def test_pending_payment_is_not_allocated(
+        self, alloc_visit, alloc_invoice, alloc_accountant, test_tenant
+    ):
         ok, payment = PaymentService.create_payment(
             tenant_id=test_tenant.id,
             operation_type='payment',

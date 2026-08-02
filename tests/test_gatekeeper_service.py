@@ -3,23 +3,25 @@
 Pure validators run without a DB. Visit-state transitions run under
 ``rollback_db`` (savepoint isolation) with real Visit/Patient/Payment rows.
 """
+
 import types
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime
 
 import pytest
 
-from services.gatekeeper_service import GatekeeperService as GK
 import services.gatekeeper_service as gk_mod
-from models.visit import Visit
 from models.patient import Patient
 from models.user import User
-from app.extensions import db
-
+from models.visit import Visit
+from services.gatekeeper_service import GatekeeperService as GK
 
 # ───────────────────────── pure validators ─────────────────────────
 
+
 class TestValidatePaymentMethod:
-    @pytest.mark.parametrize('method', ['cash', 'visa', 'card', 'insurance', 'force', 'wire', 'CASH', 'Visa'])
+    @pytest.mark.parametrize(
+        'method', ['cash', 'visa', 'card', 'insurance', 'force', 'wire', 'CASH', 'Visa']
+    )
     def test_valid_methods(self, method):
         ok, _ = GK.validate_payment_method(method)
         assert ok is True
@@ -91,12 +93,20 @@ class TestValidateCardPayment:
 
 class TestCheckPaymentRules:
     def _visit(self, **kw):
-        base = dict(total_amount=100, paid_amount=100, payment_method='cash',
-                    insurance_provider=None, insurance_policy_number=None,
-                    insurance_coverage_percentage=None, patient_share=None,
-                    is_force_payment=False, force_payment_reason=None,
-                    force_payment_approved_by=None, card_number_last_digits=None,
-                    card_holder_name=None)
+        base = dict(
+            total_amount=100,
+            paid_amount=100,
+            payment_method='cash',
+            insurance_provider=None,
+            insurance_policy_number=None,
+            insurance_coverage_percentage=None,
+            patient_share=None,
+            is_force_payment=False,
+            force_payment_reason=None,
+            force_payment_approved_by=None,
+            card_number_last_digits=None,
+            card_holder_name=None,
+        )
         base.update(kw)
         return types.SimpleNamespace(**base)
 
@@ -117,9 +127,15 @@ class TestCheckPaymentRules:
         assert ok is False and len(issues) >= 3
 
     def test_insurance_patient_share_unpaid(self):
-        v = self._visit(payment_method='insurance', insurance_provider='X',
-                        insurance_policy_number='P1', insurance_coverage_percentage=80,
-                        patient_share=40, paid_amount=10, total_amount=100)
+        v = self._visit(
+            payment_method='insurance',
+            insurance_provider='X',
+            insurance_policy_number='P1',
+            insurance_coverage_percentage=80,
+            patient_share=40,
+            paid_amount=10,
+            total_amount=100,
+        )
         ok, issues = GK.check_payment_rules(v)
         assert ok is False and any('حصة المريض' in i for i in issues)
 
@@ -134,10 +150,16 @@ class TestCheckPaymentRules:
 
 # ───────────────────────── visit-state transitions ─────────────────────────
 
+
 @pytest.fixture
 def staff_id(rollback_db):
-    u = User(username='zz_gk_staff', email='zz_gk_staff@x.com', full_name='s',
-             role='reception', is_active=True)
+    u = User(
+        username='zz_gk_staff',
+        email='zz_gk_staff@x.com',
+        full_name='s',
+        role='reception',
+        is_active=True,
+    )
     u.set_password('p')
     rollback_db.session.add(u)
     rollback_db.session.commit()
@@ -154,9 +176,15 @@ def make_visit(rollback_db):
             rollback_db.session.add(p)
             rollback_db.session.commit()
             created['patient'] = p
-        defaults = dict(patient_id=created['patient'].id, total_amount=100, paid_amount=0,
-                        is_emergency=False, is_strong_pay=False, financial_locked=False,
-                        receipt_printed=False)
+        defaults = dict(
+            patient_id=created['patient'].id,
+            total_amount=100,
+            paid_amount=0,
+            is_emergency=False,
+            is_strong_pay=False,
+            financial_locked=False,
+            receipt_printed=False,
+        )
         defaults.update(kw)
         v = Visit(**defaults)
         rollback_db.session.add(v)
@@ -177,7 +205,7 @@ class TestCanEnqueueVisit:
         assert ok is False and 'إقرار المسؤولية' in msg
 
     def test_emergency_with_liability_locks(self, make_visit):
-        v = make_visit(is_emergency=True, liability_acknowledged_at=datetime.now(timezone.utc))
+        v = make_visit(is_emergency=True, liability_acknowledged_at=datetime.now(UTC))
         ok, msg = GK.can_enqueue_visit(v.id, 1)
         assert ok is True
         assert v.financial_locked is True
@@ -230,20 +258,31 @@ class TestCanArchiveVisit:
         assert ok is False and 'الترحيل المالي' in msg
 
     def test_locked(self, make_visit):
-        v = make_visit(status='COMPLETED', gl_posted_at=datetime.now(timezone.utc), financial_locked=True)
+        v = make_visit(status='COMPLETED', gl_posted_at=datetime.now(UTC), financial_locked=True)
         ok, _ = GK.can_archive_visit(v.id, 1)
         assert ok is False
 
     def test_emergency_without_financial_completed(self, make_visit):
-        v = make_visit(status='COMPLETED', gl_posted_at=datetime.now(timezone.utc), financial_locked=False,
-                       is_emergency=True, financial_completed_at=None,
-                       paid_amount=100, total_amount=100)
+        v = make_visit(
+            status='COMPLETED',
+            gl_posted_at=datetime.now(UTC),
+            financial_locked=False,
+            is_emergency=True,
+            financial_completed_at=None,
+            paid_amount=100,
+            total_amount=100,
+        )
         ok, msg = GK.can_archive_visit(v.id, 1)
         assert ok is False and 'اكتمال الدفع' in msg
 
     def test_ok(self, make_visit):
-        v = make_visit(status='COMPLETED', gl_posted_at=datetime.now(timezone.utc), financial_locked=False,
-                       paid_amount=100, total_amount=100)
+        v = make_visit(
+            status='COMPLETED',
+            gl_posted_at=datetime.now(UTC),
+            financial_locked=False,
+            paid_amount=100,
+            total_amount=100,
+        )
         ok, _ = GK.can_archive_visit(v.id, 1)
         assert ok is True
 
@@ -269,7 +308,9 @@ class TestCreateSystemReceipt:
 
     def test_exception_rolls_back(self, make_visit, staff_id, monkeypatch):
         v = make_visit()
-        monkeypatch.setattr(gk_mod, 'Payment', lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x')))
+        monkeypatch.setattr(
+            gk_mod, 'Payment', lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x'))
+        )
         ok, _ = GK.create_system_receipt(v.id, staff_id, 50)
         assert ok is False
 
@@ -336,8 +377,13 @@ class TestArchiveVisit:
         assert ok is False
 
     def test_success(self, make_visit, staff_id):
-        v = make_visit(status='COMPLETED', gl_posted_at=datetime.now(timezone.utc), financial_locked=False,
-                       paid_amount=100, total_amount=100)
+        v = make_visit(
+            status='COMPLETED',
+            gl_posted_at=datetime.now(UTC),
+            financial_locked=False,
+            paid_amount=100,
+            total_amount=100,
+        )
         ok, _ = GK.archive_visit(v.id, staff_id)
         assert ok is True
         assert v.archive_status == 'ARCHIVED'
@@ -345,8 +391,13 @@ class TestArchiveVisit:
 
 class TestValidateForcePayment:
     def _manager(self, db, username='zz_gk_mgr'):
-        u = User(username=username, email=f'{username}@x.com', full_name='م',
-                 role='manager', is_active=True)
+        u = User(
+            username=username,
+            email=f'{username}@x.com',
+            full_name='م',
+            role='manager',
+            is_active=True,
+        )
         u.set_password('p')
         db.session.add(u)
         db.session.commit()
@@ -361,8 +412,13 @@ class TestValidateForcePayment:
         assert ok is False and 'المستخدم غير موجود' in msg
 
     def test_user_wrong_role(self, rollback_db):
-        u = User(username='zz_gk_recep', email='zz_gk_recep@x.com', full_name='r',
-                 role='reception', is_active=True)
+        u = User(
+            username='zz_gk_recep',
+            email='zz_gk_recep@x.com',
+            full_name='r',
+            role='reception',
+            is_active=True,
+        )
         u.set_password('p')
         rollback_db.session.add(u)
         rollback_db.session.commit()
@@ -382,8 +438,13 @@ class TestValidateForcePayment:
 
     def test_success(self, rollback_db, make_visit):
         u = self._manager(rollback_db, username='zz_gk_mgr3')
-        creator = User(username='zz_gk_creator', email='zz_gk_creator@x.com',
-                       full_name='c', role='reception', is_active=True)
+        creator = User(
+            username='zz_gk_creator',
+            email='zz_gk_creator@x.com',
+            full_name='c',
+            role='reception',
+            is_active=True,
+        )
         creator.set_password('p')
         rollback_db.session.add(creator)
         rollback_db.session.commit()
@@ -417,8 +478,9 @@ class TestValidateForcePayment:
         assert ok is False and 'نسبة الدفع القسري' in msg
 
     def test_exception(self, rollback_db, monkeypatch):
-        monkeypatch.setattr(gk_mod.db.session, 'get',
-                            lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x')))
+        monkeypatch.setattr(
+            gk_mod.db.session, 'get', lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x'))
+        )
         ok, msg = GK.validate_force_payment(1, 1, 'a valid long reason here')
         assert ok is False and 'خطأ' in msg
 
@@ -434,8 +496,12 @@ class TestForcePaymentStatistics:
             def filter(self, *a, **k):
                 raise RuntimeError('x')
 
-        monkeypatch.setattr(gk_mod, 'Visit', types.SimpleNamespace(
-            created_at=type('C', (), {'__ge__': lambda s, o: True})(),
-            query=_BoomQ()))
+        monkeypatch.setattr(
+            gk_mod,
+            'Visit',
+            types.SimpleNamespace(
+                created_at=type('C', (), {'__ge__': lambda s, o: True})(), query=_BoomQ()
+            ),
+        )
         stats = GK.get_force_payment_statistics()
         assert 'error' in stats

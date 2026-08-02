@@ -1,31 +1,30 @@
 """reagents routes - extracted from monolithic lab.py"""
 
-from routes.lab import lab_bp
+import logging
+from datetime import UTC, date, datetime, timedelta
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response, g
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
-from models.lab_request import LabRequest
-from models.lab_request import LabResult
-from models.lab_quality import LabQualityControlEntry
-from models.lab_reagent import LabReagent
-from models.audit_trail import AuditTrail
-from services.lab_service import lab_service
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-import logging, json, base64
-from datetime import datetime, date, timezone, timedelta
-from io import BytesIO
+from flask import (
+    flash,
+    g,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from flask_login import login_required
 from sqlalchemy import select
 
+from app.extensions import db
+from models.lab_reagent import LabReagent
+from routes.lab import lab_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required
 
 # =============================================
 # REAGENTS ROUTES
 # =============================================
+
 
 @lab_bp.route('/reagents')
 @login_required
@@ -37,16 +36,18 @@ def reagents():
 
     q = LabReagent.query
     if search:
-        like = f"%{search}%"
+        like = f'%{search}%'
         q = q.filter(
             db.or_(
                 LabReagent.name.ilike(like),
                 LabReagent.supplier.ilike(like),
-                LabReagent.lot_number.ilike(like)
+                LabReagent.lot_number.ilike(like),
             )
         )
     if stock == 'low':
-        q = q.filter(LabReagent.stock_quantity <= LabReagent.minimum_stock, LabReagent.stock_quantity > 0)
+        q = q.filter(
+            LabReagent.stock_quantity <= LabReagent.minimum_stock, LabReagent.stock_quantity > 0
+        )
     elif stock == 'out':
         q = q.filter(LabReagent.stock_quantity <= 0)
     elif stock == 'normal':
@@ -60,7 +61,15 @@ def reagents():
         q = q.filter(LabReagent.expiry_date.isnot(None), LabReagent.expiry_date <= soon_date)
 
     reagents_list = q.order_by(LabReagent.is_active.desc(), LabReagent.name.asc()).limit(1000).all()
-    return render_template('lab/reagents.html', reagents=reagents_list, search=search, stock=stock, expiry=expiry, today=today, soon_date=soon_date)
+    return render_template(
+        'lab/reagents.html',
+        reagents=reagents_list,
+        search=search,
+        stock=stock,
+        expiry=expiry,
+        today=today,
+        soon_date=soon_date,
+    )
 
 
 @lab_bp.route('/reagents/add', methods=['GET', 'POST'])
@@ -83,38 +92,48 @@ def add_reagent():
                 flash('يرجى إدخال اسم المادة', 'warning')
                 return redirect(url_for('lab.add_reagent'))
             try:
-                stock_quantity = int(stock_quantity) if stock_quantity is not None and str(stock_quantity).strip() != '' else 0
-            except Exception as e:
+                stock_quantity = (
+                    int(stock_quantity)
+                    if stock_quantity is not None and str(stock_quantity).strip() != ''
+                    else 0
+                )
+            except Exception:
                 stock_quantity = 0
             try:
-                minimum_stock = int(minimum_stock) if minimum_stock is not None and str(minimum_stock).strip() != '' else 0
-            except Exception as e:
+                minimum_stock = (
+                    int(minimum_stock)
+                    if minimum_stock is not None and str(minimum_stock).strip() != ''
+                    else 0
+                )
+            except Exception:
                 minimum_stock = 0
 
             expiry_date = None
             if expiry_raw:
                 try:
                     expiry_date = datetime.strptime(expiry_raw, '%Y-%m-%d').date()
-                except Exception as e:
+                except Exception:
                     expiry_date = None
 
-            db.session.add(LabReagent(
-                name=name,
-                supplier=supplier,
-                lot_number=lot_number,
-                unit=unit,
-                stock_quantity=stock_quantity,
-                minimum_stock=minimum_stock,
-                expiry_date=expiry_date,
-                notes=notes,
-                is_active=is_active
-            ))
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            db.session.add(
+                LabReagent(
+                    name=name,
+                    supplier=supplier,
+                    lot_number=lot_number,
+                    unit=unit,
+                    stock_quantity=stock_quantity,
+                    minimum_stock=minimum_stock,
+                    expiry_date=expiry_date,
+                    notes=notes,
+                    is_active=is_active,
+                )
+            )
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تمت إضافة المادة', 'success')
             return redirect(url_for('lab.reagents'))
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error(f"Error adding reagent: {str(e)}")
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception(f'Error adding reagent: {e!s}')
             flash('حدث خطأ أثناء الإضافة', 'error')
             return redirect(url_for('lab.add_reagent'))
     return render_template('lab/reagent_form.html', reagent=None)
@@ -124,7 +143,15 @@ def add_reagent():
 @login_required
 @role_required('lab', 'admin', 'manager')
 def edit_reagent(reagent_id: int):
-    reagent = db.session.execute(select(LabReagent).filter(LabReagent.id == reagent_id, LabReagent.tenant_id == g.tenant_id)).scalars().first()
+    reagent = (
+        db.session.execute(
+            select(LabReagent).filter(
+                LabReagent.id == reagent_id, LabReagent.tenant_id == g.tenant_id
+            )
+        )
+        .scalars()
+        .first()
+    )
     if not reagent:
         flash('المادة غير موجودة', 'error')
         return redirect(url_for('lab.reagents'))
@@ -144,19 +171,27 @@ def edit_reagent(reagent_id: int):
                 flash('يرجى إدخال اسم المادة', 'warning')
                 return redirect(url_for('lab.edit_reagent', reagent_id=reagent_id))
             try:
-                stock_quantity = int(stock_quantity) if stock_quantity is not None and str(stock_quantity).strip() != '' else 0
-            except Exception as e:
+                stock_quantity = (
+                    int(stock_quantity)
+                    if stock_quantity is not None and str(stock_quantity).strip() != ''
+                    else 0
+                )
+            except Exception:
                 stock_quantity = 0
             try:
-                minimum_stock = int(minimum_stock) if minimum_stock is not None and str(minimum_stock).strip() != '' else 0
-            except Exception as e:
+                minimum_stock = (
+                    int(minimum_stock)
+                    if minimum_stock is not None and str(minimum_stock).strip() != ''
+                    else 0
+                )
+            except Exception:
                 minimum_stock = 0
 
             expiry_date = None
             if expiry_raw:
                 try:
                     expiry_date = datetime.strptime(expiry_raw, '%Y-%m-%d').date()
-                except Exception as e:
+                except Exception:
                     expiry_date = None
 
             reagent.name = name
@@ -168,13 +203,13 @@ def edit_reagent(reagent_id: int):
             reagent.expiry_date = expiry_date
             reagent.notes = notes
             reagent.is_active = is_active
-            reagent.updated_at = datetime.now(timezone.utc)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            reagent.updated_at = datetime.now(UTC)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم تحديث المادة', 'success')
             return redirect(url_for('lab.reagents'))
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error(f"Error editing reagent: {str(e)}")
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception(f'Error editing reagent: {e!s}')
             flash('حدث خطأ أثناء التحديث', 'error')
             return redirect(url_for('lab.edit_reagent', reagent_id=reagent_id))
     return render_template('lab/reagent_form.html', reagent=reagent)

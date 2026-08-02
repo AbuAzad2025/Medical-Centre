@@ -1,31 +1,24 @@
 """api routes - extracted from monolithic emergency.py"""
 
-from routes.emergency import emergency_bp
+import logging
+from datetime import datetime
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import role_required_json
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
-from models.department import Department
-from models.emergency import EmergencyCase
-from models.medication import Prescription
-from models.lab_request import LabRequest
-from models.radiology_request import RadiologyRequest
-from models.medical_record import MedicalRecord
-from services.emergency_service import emergency_service
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import and_, or_, desc, case, select
-import logging, json
-from datetime import datetime, date, timedelta, timezone
+from flask import jsonify, request
+from flask_login import login_required
+from sqlalchemy import select
 
+from app.extensions import db
+from models.emergency import EmergencyCase
+from models.patient import Patient
+from routes.emergency import emergency_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required_json
 
 # =============================================
 # API ROUTES
 # =============================================
+
 
 @emergency_bp.route('/api/ems/intake', methods=['POST'])
 @login_required
@@ -51,15 +44,15 @@ def api_ems_intake():
             db.session.flush()
         case = EmergencyCase(
             patient_id=patient.id,
-            case_number=f"EMS-{int(datetime.now().timestamp())}",
+            case_number=f'EMS-{int(datetime.now().timestamp())}',
             chief_complaint=complaint,
             severity=severity,
-            status='WAITING'
+            status='WAITING',
         )
         db.session.add(case)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'case_id': case.id}), 201
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"EMS intake error: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'EMS intake error: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر تسجيل الحالة'}), 500

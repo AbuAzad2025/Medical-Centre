@@ -1,10 +1,10 @@
 """Tests for UX1-002D: Pharmacy & Billing Workspace dashboards."""
 
 import pytest
+from sqlalchemy import delete, select
 
 from app.extensions import db
 from models.user import User
-from sqlalchemy import select, delete
 
 
 @pytest.fixture(scope='function')
@@ -25,8 +25,9 @@ def pharmacist_user(app, test_tenant):
     yield u
     try:
         from models.audit_trail import LoginAttempt
+
         db.session.execute(delete(LoginAttempt).filter_by(user_id=u.id))
-    except Exception as e:
+    except Exception:
         db.session.rollback()
 
 
@@ -48,8 +49,9 @@ def accountant_user(app, test_tenant):
     yield u
     try:
         from models.audit_trail import LoginAttempt
+
         db.session.execute(delete(LoginAttempt).filter_by(user_id=u.id))
-    except Exception as e:
+    except Exception:
         db.session.rollback()
 
 

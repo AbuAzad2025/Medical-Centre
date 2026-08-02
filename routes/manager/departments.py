@@ -1,32 +1,23 @@
 """departments routes - extracted from monolithic manager.py"""
 
-from routes.manager import manager_bp
+import logging
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import manager_or_admin_only, can_approve_force_payment, prevent_self_approval, role_required, role_required_json
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User, StaffWorkSchedule, StaffAbsence
-from models.department import Department
-from models.payment import Payment
-from models.invoice import Invoice
-from models.appointment import Appointment
-from models.lab_request import LabRequest
-from models.radiology_request import RadiologyRequest
-from services.gatekeeper_service import GatekeeperService
-from services.manager_service import manager_service
-from app.extensions import db
-from sqlalchemy import func, select
-from decimal import Decimal, ROUND_HALF_UP
-import logging
-from datetime import datetime, date, timedelta, timezone
+from flask import flash, redirect, render_template, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import select
 
+from app.extensions import db
+from models.department import Department
+from routes.manager import manager_bp
+from utils.decorators import (
+    role_required,
+)
 
 # =============================================
 # DEPARTMENTS ROUTES
 # =============================================
+
 
 @manager_bp.route('/departments')
 @login_required
@@ -34,11 +25,18 @@ from datetime import datetime, date, timedelta, timezone
 def departments():
     """إدارة الأقسام"""
     try:
-        departments = db.session.execute(select(Department).filter(Department.tenant_id == current_user.tenant_id)).scalars().all()
+        departments = (
+            db.session.execute(
+                select(Department).filter(Department.tenant_id == current_user.tenant_id)
+            )
+            .scalars()
+            .all()
+        )
         return render_template('manager/departments.html', departments=departments)
     except Exception as e:
-        logging.error(f"Error loading departments: {str(e)}")
+        logging.exception(f'Error loading departments: {e!s}')
         flash('حدث خطأ في تحميل الأقسام', 'error')
         return redirect(url_for('manager.dashboard'))
+
 
 # ==================== موافقات الدفع القسري (الأسبوع الثاني) ====================

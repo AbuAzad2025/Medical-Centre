@@ -1,4 +1,5 @@
 """Front-end E2E — renders staff GET pages; asserts no 500s and no technical leaks."""
+
 from __future__ import annotations
 
 import re
@@ -57,6 +58,7 @@ def _fill_path(rule_str: str, id_map: dict) -> str:
         if name.endswith('_id') or name in ('id', 'pk'):
             return '999999'  # non-existent -> route must handle gracefully (no 500)
         return 'test'
+
     return _ARG_RE.sub(repl, rule_str)
 
 
@@ -94,14 +96,25 @@ def e2e_seed(app, test_tenant, db):
         db.session.rollback()
         p = db.session.execute(select(Patient).filter_by(national_id='E2ESEED01')).scalars().first()
         if not p:
-            p = Patient(tenant_id=test_tenant.id, first_name='مريض', last_name='شامل',
-                        phone='0599123456', national_id='E2ESEED01')
+            p = Patient(
+                tenant_id=test_tenant.id,
+                first_name='مريض',
+                last_name='شامل',
+                phone='0599123456',
+                national_id='E2ESEED01',
+            )
             db.session.add(p)
             db.session.flush()
         v = db.session.execute(select(Visit).filter_by(patient_id=p.id)).scalars().first()
         if not v:
-            v = Visit(tenant_id=test_tenant.id, patient_id=p.id, payment_status='PENDING',
-                      total_amount=100, paid_amount=0, status='OPEN')
+            v = Visit(
+                tenant_id=test_tenant.id,
+                patient_id=p.id,
+                payment_status='PENDING',
+                total_amount=100,
+                paid_amount=0,
+                status='OPEN',
+            )
             db.session.add(v)
         db.session.commit()
     return {'patient_id': p.id, 'visit_id': v.id}
@@ -170,8 +183,8 @@ class TestFrontendE2E:
 
 # ── Static integrity: every template, button, link, and asset reference ──
 from pathlib import Path  # noqa: E402
+
 from sqlalchemy import select
-from app.extensions import db
 
 _TEMPLATES_ROOT = Path(__file__).parent.parent / 'templates'
 _STATIC_ROOT = Path(__file__).parent.parent / 'static'
@@ -212,7 +225,7 @@ class TestFrontendStaticIntegrity:
                 if ep == 'static':
                     continue
                 if ep not in known:
-                    missing.append(f'{rel}: url_for(\'{ep}\') — endpoint not registered')
+                    missing.append(f"{rel}: url_for('{ep}') — endpoint not registered")
         assert not missing, 'broken link/button endpoints:\n' + '\n'.join(sorted(set(missing)))
 
     def test_every_static_asset_reference_exists(self, app):

@@ -2,12 +2,16 @@
 Clinical Decision Support (CDS) Alerts
 Smart alerts for drug interactions, allergies, contraindications
 """
-from datetime import datetime, timezone
-from app_factory import db
+
+from datetime import UTC, datetime
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class CDSAlertRule(TenantMixin, db.Model):
     """Rules for generating clinical alerts"""
+
     __tablename__ = 'cds_alert_rules'
     __table_args__ = {'extend_existing': True}
 
@@ -18,13 +22,21 @@ class CDSAlertRule(TenantMixin, db.Model):
     # DOSAGE_RANGE, LAB_MONITORING, VITAL_SIGN_ALERT, AGE_RESTRICTION,
     # PREGNANCY_WARNING, RENAL_DOSE_ADJUST, HEPATIC_DOSE_ADJUST
 
-    trigger_entity_type = db.Column(db.String(50), nullable=False)  # MEDICATION, DIAGNOSIS, LAB, VITAL
-    trigger_entity_code = db.Column(db.String(100), nullable=True)  # specific drug code or null for all
-    trigger_entity_code_2 = db.Column(db.String(100), nullable=True)  # second entity for interactions
+    trigger_entity_type = db.Column(
+        db.String(50), nullable=False
+    )  # MEDICATION, DIAGNOSIS, LAB, VITAL
+    trigger_entity_code = db.Column(
+        db.String(100), nullable=True
+    )  # specific drug code or null for all
+    trigger_entity_code_2 = db.Column(
+        db.String(100), nullable=True
+    )  # second entity for interactions
 
     # Conditions
     condition_logic = db.Column(db.Text, nullable=True)  # JSON conditions
-    min_severity = db.Column(db.String(20), default='MODERATE')  # INFO, LOW, MODERATE, HIGH, CRITICAL
+    min_severity = db.Column(
+        db.String(20), default='MODERATE'
+    )  # INFO, LOW, MODERATE, HIGH, CRITICAL
 
     # Alert content
     alert_title = db.Column(db.String(500), nullable=False)
@@ -36,25 +48,42 @@ class CDSAlertRule(TenantMixin, db.Model):
     is_blocking = db.Column(db.Boolean, default=False)  # Hard stop vs soft alert
     requires_acknowledgment = db.Column(db.Boolean, default=True)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
 
     fired_alerts = db.relationship('CDSFiredAlert', back_populates='rule', lazy='dynamic')
 
     def __repr__(self):
-        return f"<CDSAlertRule {self.rule_type}>"
+        return f'<CDSAlertRule {self.rule_type}>'
 
 
 class CDSFiredAlert(TenantMixin, db.Model):
     """Individual fired alert instance"""
+
     __tablename__ = 'cds_fired_alerts'
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    rule_id = db.Column(db.Integer, db.ForeignKey('cds_alert_rules.id', ondelete='CASCADE'), nullable=False, index=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='SET NULL'), nullable=True, index=True)
+    rule_id = db.Column(
+        db.Integer,
+        db.ForeignKey('cds_alert_rules.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True
+    )
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    prescription_id = db.Column(
+        db.Integer,
+        db.ForeignKey('prescriptions.id', ondelete='SET NULL'),
+        nullable=True,
+        index=True,
+    )
 
     severity = db.Column(db.String(20), nullable=False)
     alert_title = db.Column(db.String(500), nullable=False)
@@ -62,19 +91,23 @@ class CDSFiredAlert(TenantMixin, db.Model):
     suggested_action = db.Column(db.Text, nullable=True)
 
     # User response
-    fired_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    acknowledged_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    fired_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    acknowledged_by_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     acknowledged_at = db.Column(db.DateTime, nullable=True)
     overridden = db.Column(db.Boolean, default=False)
     override_reason = db.Column(db.Text, nullable=True)
-    override_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    override_by_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     # Outcome tracking
     action_taken = db.Column(db.Text, nullable=True)
     patient_outcome = db.Column(db.String(200), nullable=True)
 
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
 
     patient = db.relationship('Patient', back_populates='cds_alerts')
     visit = db.relationship('Visit', back_populates='cds_alerts')
@@ -83,6 +116,5 @@ class CDSFiredAlert(TenantMixin, db.Model):
     override_by = db.relationship('User', foreign_keys=[override_by_id])
     rule = db.relationship('CDSAlertRule', back_populates='fired_alerts')
 
-
     def __repr__(self):
-        return f"<CDSFiredAlert {self.severity}>"
+        return f'<CDSFiredAlert {self.severity}>'

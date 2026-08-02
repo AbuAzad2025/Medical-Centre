@@ -2,28 +2,27 @@
 مسارات الدفع - Payment Routes
 Medical System Payment Routes
 """
-from sqlalchemy import select, func
 
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, abort, g
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.payment import Payment, PaymentMethod, PaymentStatus
-from models.patient import Patient
-from models.visit import Visit
+import hashlib
+import logging
+from datetime import UTC, datetime, timedelta
+from decimal import Decimal
+
+from flask import Blueprint, abort, flash, g, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import func, select
+
+from app.extensions import db
 from models.invoice import Invoice
-from models.system_config import SystemConfig
+from models.payment import Payment, PaymentMethod, PaymentStatus
 from models.queue_management import QueueSettings
+from models.system_config import SystemConfig
+from models.visit import Visit
 from services.gatekeeper_service import GatekeeperService
 from services.payment_service import payment_service
 from services.refund_service import refund_service
-from utils.tenant_query import get_tenant_record, TenantContextError
-from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
-import logging
-from datetime import datetime, timedelta, timezone
-from decimal import Decimal
-import hashlib
-import json
+from utils.decorators import role_required
 
 payment_bp = Blueprint('payment', __name__)
 
@@ -33,78 +32,110 @@ payment_bp = Blueprint('payment', __name__)
 def index():
     return redirect(url_for('payment.dashboard'))
 
+
 @payment_bp.route('/dashboard')
 @login_required
 @role_required('accountant', 'manager', 'admin')
 def dashboard():
     """لوحة تحكم الدفع"""
-    
-    
+
     try:
         # إحصائيات الدفع
         today = datetime.now().date()
-        
+
         # المدفوعات اليوم
-        payments_today = db.session.execute(select(func.count()).select_from(Payment).filter(
-            db.func.date(Payment.created_at) == today
-        )).scalar()
-        
+        payments_today = db.session.execute(
+            select(func.count())
+            .select_from(Payment)
+            .filter(db.func.date(Payment.created_at) == today)
+        ).scalar()
+
         # إجمال المدفوعات اليوم
-        total_today = db.session.execute(select(db.func.sum(Payment.amount)).filter(
-            db.func.date(Payment.created_at) == today
-        )).scalar() or 0
-        
+        total_today = (
+            db.session.execute(
+                select(db.func.sum(Payment.amount)).filter(
+                    db.func.date(Payment.created_at) == today
+                )
+            ).scalar()
+            or 0
+        )
+
         # المدفوعات المعلقة
-        pending_payments = db.session.execute(select(func.count()).select_from(Payment).filter(Payment.status == PaymentStatus.PENDING)).scalar()
-        
+        pending_payments = db.session.execute(
+            select(func.count())
+            .select_from(Payment)
+            .filter(Payment.status == PaymentStatus.PENDING)
+        ).scalar()
+
         # المدفوعات المرفوضة
-        cancelled_payments = db.session.execute(select(func.count()).select_from(Payment).filter(Payment.status == PaymentStatus.CANCELLED)).scalar()
-        
+        cancelled_payments = db.session.execute(
+            select(func.count())
+            .select_from(Payment)
+            .filter(Payment.status == PaymentStatus.CANCELLED)
+        ).scalar()
+
         # طرق الدفع الأكثر استخداماً
-        payment_methods = db.session.execute(select(
-            Payment.method,
-            db.func.count(Payment.id).label('count')
-        ).group_by(Payment.method)).scalars().all()
-        
+        payment_methods = (
+            db.session.execute(
+                select(Payment.method, db.func.count(Payment.id).label('count')).group_by(
+                    Payment.method
+                )
+            )
+            .scalars()
+            .all()
+        )
+
         stats = {
             'payments_today': payments_today,
             'total_today': float(total_today),
             'pending_payments': pending_payments,
             'cancelled_payments': cancelled_payments,
-            'payment_methods': payment_methods
+            'payment_methods': payment_methods,
         }
-        
+
         return render_template('accountant/dashboard.html', stats=stats)
     except Exception as e:
-        logging.error(f"Error in payment dashboard: {str(e)}")
+        logging.exception(f'Error in payment dashboard: {e!s}')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))
+
 
 @payment_bp.route('/process/<int:visit_id>', methods=['GET', 'POST'])
 @login_required
 @role_required('accountant')
 def process_payment(visit_id):
     """معالجة دفع"""
-    
-    
-    visit = db.session.execute(select(Visit).filter_by(id=visit_id, tenant_id=g.tenant_id).with_for_update()).scalars().first()
+
+    visit = (
+        db.session.execute(
+            select(Visit).filter_by(id=visit_id, tenant_id=g.tenant_id).with_for_update()
+        )
+        .scalars()
+        .first()
+    )
     if not visit:
         abort(404)
 
     # Ticket 4: archived visits cannot receive ordinary financial mutations
     if visit.archive_status == 'ARCHIVED':
-        if request.is_json or (request.headers.get('Accept') or '').lower().startswith('application/json'):
-            return jsonify({'success': False, 'message': 'الزيارة مؤرشفة ولا يمكن تعديلها مالياً'}), 422
+        if request.is_json or (request.headers.get('Accept') or '').lower().startswith(
+            'application/json'
+        ):
+            return jsonify(
+                {'success': False, 'message': 'الزيارة مؤرشفة ولا يمكن تعديلها مالياً'}
+            ), 422
         flash('الزيارة مؤرشفة ولا يمكن تعديلها مالياً', 'error')
         return redirect(url_for('payment.process_payment', visit_id=visit_id))
 
     if request.method == 'POST':
         try:
+
             def _wants_json():
                 accept = (request.headers.get('Accept') or '').lower()
                 if request.is_json:
                     return True
                 return ('application/json' in accept) and ('text/html' not in accept)
+
             method_input = (request.form.get('payment_method') or '').lower()
             normalized_method = 'cash'
             if method_input in {'bank_transfer', 'wire', 'check', 'other'}:
@@ -135,23 +166,35 @@ def process_payment(visit_id):
             converted_amount = amount_value
             if payment_currency != base_currency and amount_value > 0:
                 from services.currency_service import CurrencyConverter
+
                 rate = CurrencyConverter.get_rate(payment_currency, base_currency)
                 if rate is not None:
-                    converted_amount = Decimal(str(CurrencyConverter.convert(amount_value, payment_currency, base_currency)))
+                    converted_amount = Decimal(
+                        str(
+                            CurrencyConverter.convert(amount_value, payment_currency, base_currency)
+                        )
+                    )
                 else:
                     if _wants_json():
-                        return jsonify({'success': False, 'message': f'سعر صرف {payment_currency}→{base_currency} غير متوفر'}), 400
-                    flash(f'سعر صرف {payment_currency}→{base_currency} غير متوفر — يرجى إدخال السعر أولاً', 'error')
+                        return jsonify(
+                            {
+                                'success': False,
+                                'message': f'سعر صرف {payment_currency}→{base_currency} غير متوفر',
+                            }
+                        ), 400
+                    flash(
+                        f'سعر صرف {payment_currency}→{base_currency} غير متوفر — يرجى إدخال السعر أولاً',
+                        'error',
+                    )
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
-            is_debt = (request.form.get('is_debt') == 'on')
+            is_debt = request.form.get('is_debt') == 'on'
             debt_reason = (request.form.get('debt_reason') or '').strip()
-            accept_responsibility = (request.form.get('accept_responsibility') == 'on')
-            return_to_reception = (request.form.get('return_to_reception') == 'on')
-            is_force_payment = (request.form.get('is_force_payment') == 'on')
+            accept_responsibility = request.form.get('accept_responsibility') == 'on'
+            return_to_reception = request.form.get('return_to_reception') == 'on'
+            is_force_payment = request.form.get('is_force_payment') == 'on'
 
             valid_method, method_message = GatekeeperService.validate_payment_method(
-                normalized_method,
-                amount_value
+                normalized_method, amount_value
             )
             if not valid_method:
                 if _wants_json():
@@ -160,7 +203,9 @@ def process_payment(visit_id):
                 return redirect(url_for('payment.process_payment', visit_id=visit_id))
 
             if normalized_method in {'card', 'visa'} and amount_value > 0:
-                valid_card, card_message = GatekeeperService.validate_card_payment(card_last_digits, card_holder_name)
+                valid_card, card_message = GatekeeperService.validate_card_payment(
+                    card_last_digits, card_holder_name
+                )
                 if not valid_card:
                     if _wants_json():
                         return jsonify({'success': False, 'message': card_message}), 400
@@ -168,22 +213,26 @@ def process_payment(visit_id):
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
 
             if normalized_method == 'insurance':
-                coverage_value = insurance_coverage_raw or getattr(visit, 'insurance_coverage_percentage', None) or 0
+                coverage_value = (
+                    insurance_coverage_raw
+                    or getattr(visit, 'insurance_coverage_percentage', None)
+                    or 0
+                )
                 provider_value = insurance_provider or getattr(visit, 'insurance_provider', '')
-                policy_value = insurance_policy_number or getattr(visit, 'insurance_policy_number', '')
+                policy_value = insurance_policy_number or getattr(
+                    visit, 'insurance_policy_number', ''
+                )
                 if insurance_company_id and insurance_company_id.isdigit():
                     try:
                         from models.insurance import InsuranceCompany
+
                         company = db.session.get(InsuranceCompany, int(insurance_company_id))
                         if company:
                             provider_value = company.name_ar or company.name or provider_value
                     except Exception as e:
-
-                        logging.warning(f"Error in {__name__}: {e}")
+                        logging.warning(f'Error in {__name__}: {e}')
                 valid_ins, ins_message = GatekeeperService.validate_insurance(
-                    provider_value,
-                    policy_value,
-                    coverage_value
+                    provider_value, policy_value, coverage_value
                 )
                 if not valid_ins:
                     if _wants_json():
@@ -192,23 +241,41 @@ def process_payment(visit_id):
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
 
             if is_force_payment:
-                valid_force, force_message = GatekeeperService.validate_force_payment(visit_id, current_user.id, force_reason)
+                valid_force, force_message = GatekeeperService.validate_force_payment(
+                    visit_id, current_user.id, force_reason
+                )
                 if not valid_force:
                     if _wants_json():
                         return jsonify({'success': False, 'message': force_message}), 400
                     flash(force_message, 'error')
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
 
-            sc_partial = db.session.execute(select(SystemConfig).filter_by(config_key='allow_partial_payment_global')).scalars().first()
-            sc_debt = db.session.execute(select(SystemConfig).filter_by(config_key='allow_debt_global')).scalars().first()
+            sc_partial = (
+                db.session.execute(
+                    select(SystemConfig).filter_by(config_key='allow_partial_payment_global')
+                )
+                .scalars()
+                .first()
+            )
+            sc_debt = (
+                db.session.execute(select(SystemConfig).filter_by(config_key='allow_debt_global'))
+                .scalars()
+                .first()
+            )
             allow_partial_global = sc_partial.get_value() if sc_partial else True
             allow_debt_global = sc_debt.get_value() if sc_debt else False
 
             qs = None
             if visit.department_id:
-                qs = db.session.execute(select(QueueSettings).filter_by(department_id=visit.department_id)).scalars().first()
-            allow_partial_dept = (qs.allow_partial_payment if qs is not None else True)
-            allow_debt_dept = (qs.allow_debt if qs is not None else False)
+                qs = (
+                    db.session.execute(
+                        select(QueueSettings).filter_by(department_id=visit.department_id)
+                    )
+                    .scalars()
+                    .first()
+                )
+            allow_partial_dept = qs.allow_partial_payment if qs is not None else True
+            allow_debt_dept = qs.allow_debt if qs is not None else False
 
             allow_partial = bool(allow_partial_global) and bool(allow_partial_dept)
             allow_debt = bool(allow_debt_global) and bool(allow_debt_dept)
@@ -219,28 +286,31 @@ def process_payment(visit_id):
                     return jsonify({'success': False, 'message': 'الزيارة مدفوعة بالكامل'}), 400
                 flash('الزيارة مدفوعة بالكامل', 'error')
                 return redirect(url_for('payment.process_payment', visit_id=visit_id))
-            if amount_value > remaining and remaining > 0:
+            if amount_value > remaining > 0:
                 if _wants_json():
-                    return jsonify({'success': False, 'message': 'المبلغ المدفوع يتجاوز المستحق'}), 400
+                    return jsonify(
+                        {'success': False, 'message': 'المبلغ المدفوع يتجاوز المستحق'}
+                    ), 400
                 flash('المبلغ المدفوع يتجاوز المستحق', 'error')
                 return redirect(url_for('payment.process_payment', visit_id=visit_id))
 
             if is_debt and visit.remaining_amount > 0:
                 if not accept_responsibility:
                     if _wants_json():
-                        return jsonify({'success': False, 'message': 'يتطلب تحمل المسؤولية من الاستقبال'}), 400
+                        return jsonify(
+                            {'success': False, 'message': 'يتطلب تحمل المسؤولية من الاستقبال'}
+                        ), 400
                     flash('يتطلب تحمل المسؤولية من الاستقبال', 'error')
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
                 visit.payment_method = method_value or visit.payment_method
                 visit.payment_status = PaymentStatus.DEBT
                 if debt_reason:
                     try:
-                        note_prefix = f"DEBT[{current_user.id}] {debt_reason}"
-                        visit.notes = f"{visit.notes or ''}\n{note_prefix}".strip()
+                        note_prefix = f'DEBT[{current_user.id}] {debt_reason}'
+                        visit.notes = f'{visit.notes or ""}\n{note_prefix}'.strip()
                     except Exception as e:
-
-                        logging.warning(f"Error in {__name__}: {e}")
-                safe_commit(db.session, error_message="database commit failed", reraise=True)
+                        logging.warning(f'Error in {__name__}: {e}')
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
                 if _wants_json():
                     return jsonify({'success': True})
                 flash('تم تسجيل الدين وفق الشروط', 'info')
@@ -248,7 +318,11 @@ def process_payment(visit_id):
                     return redirect(url_for('reception.view_visit', visit_id=visit_id))
                 return redirect(url_for('reception.print_receipt', visit_id=visit_id))
 
-            if amount_value < visit.remaining_amount and visit.remaining_amount > 0 and not allow_partial:
+            if (
+                amount_value < visit.remaining_amount
+                and visit.remaining_amount > 0
+                and not allow_partial
+            ):
                 if _wants_json():
                     return jsonify({'success': False, 'message': 'الدفع الجزئي غير مسموح'}), 400
                 flash('الدفع الجزئي غير مسموح', 'error')
@@ -262,7 +336,7 @@ def process_payment(visit_id):
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
                 visit.payment_method = method_value or visit.payment_method
                 visit.payment_status = PaymentStatus.DEBT
-                safe_commit(db.session, error_message="database commit failed", reraise=True)
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
                 if _wants_json():
                     return jsonify({'success': True})
                 flash('تم تسجيل الدين بنجاح', 'info')
@@ -271,17 +345,25 @@ def process_payment(visit_id):
                 return redirect(url_for('reception.print_receipt', visit_id=visit_id))
 
             # P3-001: deterministic idempotency fingerprint for this payment attempt.
-            idempotency_seed = "|".join([
-                str(getattr(current_user, 'tenant_id', None) or ''),
-                str(visit_id),
-                str(amount_value),
-                str(method_value),
-                str(payment_reference or ''),
-                str(payment_currency),
-            ])
+            idempotency_seed = '|'.join(
+                [
+                    str(getattr(current_user, 'tenant_id', None) or ''),
+                    str(visit_id),
+                    str(amount_value),
+                    str(method_value),
+                    str(payment_reference or ''),
+                    str(payment_currency),
+                ]
+            )
             idempotency_key = hashlib.sha256(idempotency_seed.encode()).hexdigest()[:32]
 
-            existing_invoice = db.session.execute(select(Invoice).filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc())).scalars().first()
+            existing_invoice = (
+                db.session.execute(
+                    select(Invoice).filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc())
+                )
+                .scalars()
+                .first()
+            )
             ok, payment_or_error = payment_service.create_payment(
                 tenant_id=getattr(current_user, 'tenant_id', None),
                 operation_type='payment',
@@ -293,14 +375,19 @@ def process_payment(visit_id):
                 currency=payment_currency,
                 method=method_value,
                 status=PaymentStatus.CONFIRMED,
-                reference=payment_reference or (f"CARD-****{card_last_digits}" if method_value == PaymentMethod.CARD and card_last_digits else None),
+                reference=payment_reference
+                or (
+                    f'CARD-****{card_last_digits}'
+                    if method_value == PaymentMethod.CARD and card_last_digits
+                    else None
+                ),
                 received_by=current_user.id,
                 notes=request.form.get('payment_notes') or request.form.get('notes'),
             )
             if not ok:
                 if _wants_json():
                     return jsonify({'success': False, 'message': payment_or_error}), 500
-                flash(f"تعذر تسجيل الدفع: {payment_or_error}", 'error')
+                flash(f'تعذر تسجيل الدفع: {payment_or_error}', 'error')
                 return redirect(url_for('payment.process_payment', visit_id=visit_id))
             payment = payment_or_error
 
@@ -320,24 +407,23 @@ def process_payment(visit_id):
                     try:
                         visit.insurance_coverage_percentage = Decimal(insurance_coverage_raw)
                     except Exception as e:
-
-                        logging.warning(f"Error in {__name__}: {e}")
+                        logging.warning(f'Error in {__name__}: {e}')
                 if insurance_company_id and insurance_company_id.isdigit():
                     try:
                         from models.insurance import InsuranceCompany
+
                         company = db.session.get(InsuranceCompany, int(insurance_company_id))
                         if company:
                             visit.insurance_company_id = company.id
                             if not visit.insurance_provider:
                                 visit.insurance_provider = company.name_ar or company.name
                     except Exception as e:
-
-                        logging.warning(f"Error in {__name__}: {e}")
+                        logging.warning(f'Error in {__name__}: {e}')
                 # حساب مبالغ التأمين وحصة المريض
                 visit.calculate_insurance_amounts()
                 # عند الدفع بالتأمين يجب أن يكون المبلغ مساوياً لحصة المريض
                 if visit.patient_share and converted_amount > visit.patient_share:
-                    msg = f"المبلغ المدخل ({converted_amount} {base_currency}) يتجاوز حصة المريض ({visit.patient_share} {base_currency})"
+                    msg = f'المبلغ المدخل ({converted_amount} {base_currency}) يتجاوز حصة المريض ({visit.patient_share} {base_currency})'
                     if _wants_json():
                         return jsonify({'success': False, 'message': msg}), 400
                     flash(msg, 'error')
@@ -347,7 +433,7 @@ def process_payment(visit_id):
                 if force_reason:
                     visit.force_payment_reason = force_reason
                 visit.force_payment_approved_by = current_user.id
-                visit.force_payment_approved_at = datetime.now(timezone.utc)
+                visit.force_payment_approved_at = datetime.now(UTC)
             if visit.remaining_amount <= 0:
                 visit.payment_status = PaymentStatus.PAID
             elif converted_amount > 0:
@@ -358,11 +444,10 @@ def process_payment(visit_id):
             # توليد رقم إيصال بسيط للزيارة عند الدفع
             try:
                 if not visit.receipt_number:
-                    visit.receipt_number = f"RCPT-{visit.id}-{int(datetime.now(timezone.utc).timestamp())}"
+                    visit.receipt_number = f'RCPT-{visit.id}-{int(datetime.now(UTC).timestamp())}'
             except Exception as e:
-
-                logging.warning(f"Error in {__name__}: {e}")
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+                logging.warning(f'Error in {__name__}: {e}')
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
 
             resp = {'success': True, 'payment_id': payment.id}
             if _wants_json():
@@ -372,122 +457,160 @@ def process_payment(visit_id):
                 return redirect(url_for('reception.view_visit', visit_id=visit_id))
             return redirect(url_for('reception.print_receipt', visit_id=visit_id))
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error(f"Error processing payment: {str(e)}")
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception(f'Error processing payment: {e!s}')
             err = {'success': False, 'message': 'حدث خطأ في معالجة الدفع'}
             if _wants_json():
                 return jsonify(err), 500
             flash('حدث خطأ في معالجة الدفع', 'error')
             return redirect(url_for('payment.process_payment', visit_id=visit_id))
-    
+
     insurance_companies = []
     try:
         from models.insurance import InsuranceCompany
-        insurance_companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True).order_by(InsuranceCompany.name.asc())).scalars().all()
-    except Exception as e:
+
+        insurance_companies = (
+            db.session.execute(
+                select(InsuranceCompany)
+                .filter_by(is_active=True)
+                .order_by(InsuranceCompany.name.asc())
+            )
+            .scalars()
+            .all()
+        )
+    except Exception:
         insurance_companies = []
     from models.exchange_rate import CurrencySettings
-    return render_template('accountant/process_payment.html',
-                           visit=visit,
-                           insurance_companies=insurance_companies,
-                           currencies=CurrencySettings.get_all(),
-                           base_currency='ILS')
+
+    return render_template(
+        'accountant/process_payment.html',
+        visit=visit,
+        insurance_companies=insurance_companies,
+        currencies=CurrencySettings.get_all(),
+        base_currency='ILS',
+    )
+
 
 @payment_bp.route('/history')
 @login_required
 @role_required('accountant')
 def payment_history():
     """تاريخ المدفوعات"""
-    
-    
+
     try:
         # فلترة المدفوعات
         status = request.args.get('status', '')
         payment_method = request.args.get('payment_method', '')
         date_from = request.args.get('date_from', '')
         date_to = request.args.get('date_to', '')
-        
+
         query = select(Payment)
-        
+
         if status:
             query = query.filter(Payment.status == status.upper())
-        
+
         if payment_method:
             pm = payment_method.upper()
             query = query.filter(Payment.method == pm)
-        
+
         if date_from:
             df = datetime.strptime(date_from, '%Y-%m-%d').date()
             query = query.filter(db.func.date(Payment.created_at) >= df)
-        
+
         if date_to:
             dt = datetime.strptime(date_to, '%Y-%m-%d').date()
             query = query.filter(db.func.date(Payment.created_at) <= dt)
-        
+
         payments = query.order_by(Payment.created_at.desc()).all()
-        
-        return render_template('accountant/payment_management.html', 
-                             payments=payments,
-                             status=status,
-                             payment_method=payment_method,
-                             date_from=date_from,
-                             date_to=date_to)
+
+        return render_template(
+            'accountant/payment_management.html',
+            payments=payments,
+            status=status,
+            payment_method=payment_method,
+            date_from=date_from,
+            date_to=date_to,
+        )
     except Exception as e:
-        logging.error(f"Error loading payment history: {str(e)}")
+        logging.exception(f'Error loading payment history: {e!s}')
         flash('حدث خطأ في تحميل تاريخ المدفوعات', 'error')
         return redirect(url_for('payment.dashboard'))
+
 
 @payment_bp.route('/methods')
 @login_required
 @role_required('admin', 'manager')
 def payment_methods():
     """طرق الدفع"""
-    
-    
+
     try:
-        methods = [PaymentMethod.CASH, PaymentMethod.CARD, PaymentMethod.INSURANCE, PaymentMethod.WIRE, PaymentMethod.FORCE]
+        methods = [
+            PaymentMethod.CASH,
+            PaymentMethod.CARD,
+            PaymentMethod.INSURANCE,
+            PaymentMethod.WIRE,
+            PaymentMethod.FORCE,
+        ]
         return render_template('payment/methods.html', methods=methods)
     except Exception as e:
-        logging.error(f"Error loading payment methods: {str(e)}")
+        logging.exception(f'Error loading payment methods: {e!s}')
         flash('حدث خطأ في تحميل طرق الدفع', 'error')
         return redirect(url_for('payment.dashboard'))
+
 
 @payment_bp.route('/reports')
 @login_required
 @role_required('accountant', 'admin', 'manager')
 def payment_reports():
     """تقارير الدفع"""
-    
-    
+
     try:
         # تقرير المدفوعات اليومية
         today = datetime.now().date()
         week_ago = today - timedelta(days=7)
-        
-        daily_payments = db.session.execute(select(
-            db.func.date(Payment.created_at).label('date'),
-            db.func.count(Payment.id).label('count'),
-            db.func.sum(Payment.amount).label('total')
-        ).filter(
-            Payment.tenant_id == current_user.tenant_id,
-            Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
-        ).group_by(db.func.date(Payment.created_at))).scalars().all()
-        
+
+        daily_payments = (
+            db.session.execute(
+                select(
+                    db.func.date(Payment.created_at).label('date'),
+                    db.func.count(Payment.id).label('count'),
+                    db.func.sum(Payment.amount).label('total'),
+                )
+                .filter(
+                    Payment.tenant_id == current_user.tenant_id,
+                    Payment.created_at >= datetime.combine(week_ago, datetime.min.time()),
+                )
+                .group_by(db.func.date(Payment.created_at))
+            )
+            .scalars()
+            .all()
+        )
+
         # تقرير طرق الدفع
-        method_stats = db.session.execute(select(
-            Payment.method,
-            db.func.count(Payment.id).label('count'),
-            db.func.sum(Payment.amount).label('total')
-        ).filter(
-            Payment.tenant_id == current_user.tenant_id,
-            Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
-        ).group_by(Payment.method)).scalars().all()
-        
-        return render_template('accountant/financial_reports.html', 
-                             daily_payments=daily_payments,
-                             method_stats=method_stats)
+        method_stats = (
+            db.session.execute(
+                select(
+                    Payment.method,
+                    db.func.count(Payment.id).label('count'),
+                    db.func.sum(Payment.amount).label('total'),
+                )
+                .filter(
+                    Payment.tenant_id == current_user.tenant_id,
+                    Payment.created_at >= datetime.combine(week_ago, datetime.min.time()),
+                )
+                .group_by(Payment.method)
+            )
+            .scalars()
+            .all()
+        )
+
+        return render_template(
+            'accountant/financial_reports.html',
+            daily_payments=daily_payments,
+            method_stats=method_stats,
+        )
     except Exception as e:
-        logging.error(f"Error loading payment reports: {str(e)}")
+        logging.exception(f'Error loading payment reports: {e!s}')
         flash('حدث خطأ في تحميل تقارير الدفع', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -511,12 +634,12 @@ def request_refund(payment_id):
         if not ok:
             flash(result, 'error')
             return redirect(url_for('payment.dashboard'))
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم تقديم طلب الاسترداد بنجاح', 'success')
         return redirect(url_for('payment.dashboard'))
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error requesting refund: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error requesting refund: {e!s}')
         flash('حدث خطأ أثناء طلب الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -531,12 +654,12 @@ def approve_refund(refund_id):
         if not ok:
             flash(result, 'error')
             return redirect(url_for('payment.dashboard'))
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تمت موافقة طلب الاسترداد', 'success')
         return redirect(url_for('payment.dashboard'))
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error approving refund: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error approving refund: {e!s}')
         flash('حدث خطأ أثناء موافقة الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -551,11 +674,11 @@ def execute_refund(refund_id):
         if not ok:
             flash(result, 'error')
             return redirect(url_for('payment.dashboard'))
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم تنفيذ الاسترداد بنجاح', 'success')
         return redirect(url_for('payment.dashboard'))
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error executing refund: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error executing refund: {e!s}')
         flash('حدث خطأ أثناء تنفيذ الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))

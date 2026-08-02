@@ -1,17 +1,21 @@
 """Patient 360 timeline aggregation — UX1-004."""
+
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from flask import url_for
-from app.extensions import db
 from sqlalchemy import select
+
+from app.extensions import db
 
 
 class PatientTimelineService:
     @staticmethod
-    def build_events(patient_id: int, *, doctor_id: Optional[int] = None, filter_type: str = '') -> list[dict[str, Any]]:
+    def build_events(
+        patient_id: int, *, doctor_id: int | None = None, filter_type: str = ''
+    ) -> list[dict[str, Any]]:
         from models.appointment import Appointment
         from models.follow_up import FollowUpRequest
         from models.lab_request import LabRequest
@@ -22,97 +26,168 @@ class PatientTimelineService:
 
         events: list[dict[str, Any]] = []
 
-        visits = db.session.execute(select(Visit).filter(Visit.patient_id == patient_id).order_by(
-            Visit.visit_date.desc(), Visit.created_at.desc()
-        ).limit(200)).scalars().all()
+        visits = (
+            db.session.execute(
+                select(Visit)
+                .filter(Visit.patient_id == patient_id)
+                .order_by(Visit.visit_date.desc(), Visit.created_at.desc())
+                .limit(200)
+            )
+            .scalars()
+            .all()
+        )
         for v in visits:
             dt = PatientTimelineService._visit_datetime(v)
-            events.append({
-                'type': 'visit',
-                'dt': dt,
-                'title': f"زيارة ({v.visit_type_display})",
-                'status': v.status,
-                'details': (v.diagnosis or v.symptoms or v.notes or ''),
-                'link': url_for('doctor.patient_details', visit_id=v.id) if doctor_id and v.doctor_id == doctor_id else None,
-            })
+            events.append(
+                {
+                    'type': 'visit',
+                    'dt': dt,
+                    'title': f'زيارة ({v.visit_type_display})',
+                    'status': v.status,
+                    'details': (v.diagnosis or v.symptoms or v.notes or ''),
+                    'link': url_for('doctor.patient_details', visit_id=v.id)
+                    if doctor_id and v.doctor_id == doctor_id
+                    else None,
+                }
+            )
 
-        prescriptions = db.session.execute(select(Prescription).filter(Prescription.patient_id == patient_id).order_by(
-            Prescription.created_at.desc()
-        ).limit(200)).scalars().all()
+        prescriptions = (
+            db.session.execute(
+                select(Prescription)
+                .filter(Prescription.patient_id == patient_id)
+                .order_by(Prescription.created_at.desc())
+                .limit(200)
+            )
+            .scalars()
+            .all()
+        )
         for rx in prescriptions:
-            events.append({
-                'type': 'prescription',
-                'dt': rx.created_at or datetime.now(),
-                'title': 'وصفة طبية',
-                'status': getattr(rx, 'status', None),
-                'details': (getattr(rx, 'additional_notes', None) or getattr(rx, 'notes', None) or ''),
-                'link': url_for('doctor.prescriptions_history', patient_id=patient_id),
-            })
+            events.append(
+                {
+                    'type': 'prescription',
+                    'dt': rx.created_at or datetime.now(),
+                    'title': 'وصفة طبية',
+                    'status': getattr(rx, 'status', None),
+                    'details': (
+                        getattr(rx, 'additional_notes', None) or getattr(rx, 'notes', None) or ''
+                    ),
+                    'link': url_for('doctor.prescriptions_history', patient_id=patient_id),
+                }
+            )
 
-        lab_reqs = db.session.execute(select(LabRequest).filter(LabRequest.patient_id == patient_id).order_by(
-            LabRequest.created_at.desc()
-        ).limit(200)).scalars().all()
+        lab_reqs = (
+            db.session.execute(
+                select(LabRequest)
+                .filter(LabRequest.patient_id == patient_id)
+                .order_by(LabRequest.created_at.desc())
+                .limit(200)
+            )
+            .scalars()
+            .all()
+        )
         for lr in lab_reqs:
-            events.append({
-                'type': 'lab',
-                'dt': lr.created_at or datetime.now(),
-                'title': f"مختبر: {getattr(lr, 'test_name', None) or getattr(lr, 'test_type', None) or 'طلب'}",
-                'status': lr.status,
-                'details': (getattr(lr, 'reason', None) or getattr(lr, 'notes', None) or ''),
-                'link': None,
-            })
+            events.append(
+                {
+                    'type': 'lab',
+                    'dt': lr.created_at or datetime.now(),
+                    'title': f'مختبر: {getattr(lr, "test_name", None) or getattr(lr, "test_type", None) or "طلب"}',
+                    'status': lr.status,
+                    'details': (getattr(lr, 'reason', None) or getattr(lr, 'notes', None) or ''),
+                    'link': None,
+                }
+            )
 
-        rad_reqs = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.patient_id == patient_id).order_by(
-            RadiologyRequest.created_at.desc()
-        ).limit(200)).scalars().all()
+        rad_reqs = (
+            db.session.execute(
+                select(RadiologyRequest)
+                .filter(RadiologyRequest.patient_id == patient_id)
+                .order_by(RadiologyRequest.created_at.desc())
+                .limit(200)
+            )
+            .scalars()
+            .all()
+        )
         for rr in rad_reqs:
-            events.append({
-                'type': 'radiology',
-                'dt': rr.created_at or datetime.now(),
-                'title': f"أشعة: {getattr(rr, 'test_name', None) or getattr(rr, 'modality', None) or 'طلب'}",
-                'status': rr.status,
-                'details': (getattr(rr, 'clinical_info', None) or getattr(rr, 'notes', None) or ''),
-                'link': None,
-            })
+            events.append(
+                {
+                    'type': 'radiology',
+                    'dt': rr.created_at or datetime.now(),
+                    'title': f'أشعة: {getattr(rr, "test_name", None) or getattr(rr, "modality", None) or "طلب"}',
+                    'status': rr.status,
+                    'details': (
+                        getattr(rr, 'clinical_info', None) or getattr(rr, 'notes', None) or ''
+                    ),
+                    'link': None,
+                }
+            )
 
-        records = db.session.execute(select(MedicalRecord).filter(MedicalRecord.patient_id == patient_id).order_by(
-            MedicalRecord.created_at.desc()
-        ).limit(200)).scalars().all()
+        records = (
+            db.session.execute(
+                select(MedicalRecord)
+                .filter(MedicalRecord.patient_id == patient_id)
+                .order_by(MedicalRecord.created_at.desc())
+                .limit(200)
+            )
+            .scalars()
+            .all()
+        )
         for mr in records:
-            events.append({
-                'type': 'record',
-                'dt': mr.created_at or datetime.now(),
-                'title': mr.title or 'سجل طبي',
-                'status': None,
-                'details': mr.details or '',
-                'link': url_for('doctor.medical_history', patient_id=patient_id),
-            })
+            events.append(
+                {
+                    'type': 'record',
+                    'dt': mr.created_at or datetime.now(),
+                    'title': mr.title or 'سجل طبي',
+                    'status': None,
+                    'details': mr.details or '',
+                    'link': url_for('doctor.medical_history', patient_id=patient_id),
+                }
+            )
 
-        follow_ups = db.session.execute(select(FollowUpRequest).filter(FollowUpRequest.patient_id == patient_id).order_by(
-            FollowUpRequest.created_at.desc()
-        ).limit(200)).scalars().all()
+        follow_ups = (
+            db.session.execute(
+                select(FollowUpRequest)
+                .filter(FollowUpRequest.patient_id == patient_id)
+                .order_by(FollowUpRequest.created_at.desc())
+                .limit(200)
+            )
+            .scalars()
+            .all()
+        )
         for fu in follow_ups:
-            events.append({
-                'type': 'follow_up',
-                'dt': datetime.combine(fu.suggested_date, datetime.min.time()) if fu.suggested_date else (fu.created_at or datetime.now()),
-                'title': 'متابعة مقترحة',
-                'status': fu.status,
-                'details': fu.notes or '',
-                'link': None,
-            })
+            events.append(
+                {
+                    'type': 'follow_up',
+                    'dt': datetime.combine(fu.suggested_date, datetime.min.time())
+                    if fu.suggested_date
+                    else (fu.created_at or datetime.now()),
+                    'title': 'متابعة مقترحة',
+                    'status': fu.status,
+                    'details': fu.notes or '',
+                    'link': None,
+                }
+            )
 
-        appointments = db.session.execute(select(Appointment).filter(Appointment.patient_id == patient_id).order_by(
-            Appointment.starts_at.desc()
-        ).limit(200)).scalars().all()
+        appointments = (
+            db.session.execute(
+                select(Appointment)
+                .filter(Appointment.patient_id == patient_id)
+                .order_by(Appointment.starts_at.desc())
+                .limit(200)
+            )
+            .scalars()
+            .all()
+        )
         for ap in appointments:
-            events.append({
-                'type': 'appointment',
-                'dt': ap.starts_at or datetime.now(),
-                'title': 'موعد',
-                'status': ap.status,
-                'details': ap.notes or '',
-                'link': None,
-            })
+            events.append(
+                {
+                    'type': 'appointment',
+                    'dt': ap.starts_at or datetime.now(),
+                    'title': 'موعد',
+                    'status': ap.status,
+                    'details': ap.notes or '',
+                    'link': None,
+                }
+            )
 
         ft = (filter_type or '').strip().lower()
         if ft:
@@ -125,7 +200,7 @@ class PatientTimelineService:
         if getattr(visit, 'visit_date', None) and getattr(visit, 'visit_time', None):
             try:
                 return datetime.combine(visit.visit_date, visit.visit_time)
-            except Exception as e:
+            except Exception:
                 pass
         return visit.created_at or datetime.now()
 

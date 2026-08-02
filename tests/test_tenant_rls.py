@@ -2,18 +2,23 @@
 
 import pytest
 from flask import g
+from sqlalchemy import select
 
-from app.extensions import db
 from app.core.tenant.models import Tenant
+from app.extensions import db
 from app.shared.tenant_filter import TenantIsolationError
 from models.patient import Patient
-from sqlalchemy import select
 
 
 @pytest.fixture
 def tenant_a(app):
     from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
-    t = db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG)).scalars().first()
+
+    t = (
+        db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG))
+        .scalars()
+        .first()
+    )
     if t is None:
         raise RuntimeError(
             f'Default tenant "{DEFAULT_TEST_TENANT_SLUG}" not found — bootstrap first'
@@ -23,13 +28,18 @@ def tenant_a(app):
 
 @pytest.fixture
 def tenant_b(app):
-    from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
-    from flask import g
     import uuid
+
+    from flask import g
+
+    from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
+
     prev = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        t = db.session.execute(select(Tenant).filter(Tenant.slug != DEFAULT_TEST_TENANT_SLUG)).scalar()
+        t = db.session.execute(
+            select(Tenant).filter(Tenant.slug != DEFAULT_TEST_TENANT_SLUG)
+        ).scalar()
         if t is None:
             t = Tenant(
                 slug=f'tenant-b-{uuid.uuid4().hex[:8]}',

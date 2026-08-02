@@ -6,25 +6,29 @@ P3-005: PaymentStatus/PaymentMethod are now sourced from app.shared.enums
 so that models, services, routes, and templates all reference the same
 canonical definitions. The shared enum values are preserved exactly.
 """
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
+
 from sqlalchemy import CheckConstraint, Index
-from app_factory import db
-from app.shared.mixins import TenantMixin
-from app.shared.enums import PaymentMethod, PaymentStatus
+
 from app.shared.encrypted_type import EncryptedString
+from app.shared.enums import PaymentMethod, PaymentStatus
+from app.shared.mixins import TenantMixin
+from app_factory import db
 
 
 class PaymentCard(TenantMixin, db.Model):
     """نموذج البطاقات المخزنة - Payment Cards Vault"""
+
     __tablename__ = 'payment_cards'
     __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    
+
     # Ownership
     owner_name = db.Column(EncryptedString(100), nullable=False)
     owner_email = db.Column(EncryptedString(255), nullable=True)
-    
+
     # Card details (masked for security)
     bank_name = db.Column(db.String(100), nullable=True)
     card_type = db.Column(db.String(20), nullable=False)  # credit, debit, prepaid
@@ -32,64 +36,81 @@ class PaymentCard(TenantMixin, db.Model):
     expiry_month = db.Column(db.Integer, nullable=False)
     expiry_year = db.Column(db.Integer, nullable=False)
     cardholder_name = db.Column(EncryptedString(100), nullable=True)
-    
+
     # Status
     is_active = db.Column(db.Boolean, default=True, nullable=False)
-    
+
     # Timestamps
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-    
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
     # Relationships
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=False, index=True)
+    tenant_id = db.Column(
+        db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=False, index=True
+    )
     tenant = db.relationship('Tenant', lazy='selectin')
-    
+
     __table_args__ = (
         Index('idx_payment_card_tenant', 'tenant_id', 'is_active'),
         Index('idx_payment_card_last_four', 'last_four'),
     )
-    
+
     @property
     def masked_number(self):
-        return f"**** **** **** {self.last_four}"
-    
+        return f'**** **** **** {self.last_four}'
+
     @property
     def is_expired(self):
         from datetime import date
+
         today = date.today()
         expiry = date(self.expiry_year, self.expiry_month, 1)
         return expiry < today
-    
+
     def to_dict(self):
         return {
-            "id": self.id,
-            "owner_name": self.owner_name,
-            "owner_email": self.owner_email,
-            "bank_name": self.bank_name,
-            "card_type": self.card_type,
-            "last_four": self.last_four,
-            "expiry_month": self.expiry_month,
-            "expiry_year": self.expiry_year,
-            "cardholder_name": self.cardholder_name,
-            "is_active": self.is_active,
-            "masked_number": self.masked_number,
-            "is_expired": self.is_expired,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            'id': self.id,
+            'owner_name': self.owner_name,
+            'owner_email': self.owner_email,
+            'bank_name': self.bank_name,
+            'card_type': self.card_type,
+            'last_four': self.last_four,
+            'expiry_month': self.expiry_month,
+            'expiry_year': self.expiry_year,
+            'cardholder_name': self.cardholder_name,
+            'is_active': self.is_active,
+            'masked_number': self.masked_number,
+            'is_expired': self.is_expired,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
         }
 
 
 class Payment(TenantMixin, db.Model):
     """نموذج المدفوعات - يسجل كل عملية دفع"""
+
     __tablename__ = 'payments'
     __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    
+
     # الارتباطات
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    invoice_id = db.Column(db.Integer, db.ForeignKey('invoices.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    invoice_id = db.Column(
+        db.Integer, db.ForeignKey('invoices.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # معلومات الدفع الأساسية
     method = db.Column(db.String(16), default=PaymentMethod.CASH, nullable=False, index=True)
     amount = db.Column(db.Numeric(12, 2), nullable=False, default=0)
@@ -104,36 +125,54 @@ class Payment(TenantMixin, db.Model):
 
     # مرجع خارجي (رقم قسيمة/تحويل/معاملة بطاقة)
     reference = db.Column(db.String(64), nullable=True, index=True)
-    
+
     # رقم الإيصال
     receipt_number = db.Column(db.String(50), nullable=True, unique=True)
     is_provisional = db.Column(db.Boolean, default=False, index=True)
     provisional_reason = db.Column(db.Text, nullable=True)
-    
+
     # ملاحظات
     notes = db.Column(db.Text, nullable=True)
-    
+
     # من استلم الدفع
-    received_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    received_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # للإلغاء/الاسترجاع
-    cancelled_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    cancelled_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     cancelled_at = db.Column(db.DateTime, nullable=True)
     cancellation_reason = db.Column(db.Text, nullable=True)
-    
+
     # التواريخ
-    payment_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    payment_date = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
 
     __table_args__ = (
-        CheckConstraint("amount >= 0", name='chk_payment_amount_non_negative'),
+        CheckConstraint('amount >= 0', name='chk_payment_amount_non_negative'),
         Index('idx_payment_patient_date', 'patient_id', 'payment_date'),
         Index('idx_payment_visit_date', 'visit_id', 'payment_date'),
         Index('idx_payment_invoice_created', 'invoice_id', 'created_at'),
         Index('idx_payment_status', 'status'),
         Index('idx_payment_method', 'method'),
-        Index('idx_payment_idempotency', 'tenant_id', 'operation_type', 'idempotency_key', unique=True, postgresql_where=db.text("idempotency_key IS NOT NULL")),
+        Index(
+            'idx_payment_idempotency',
+            'tenant_id',
+            'operation_type',
+            'idempotency_key',
+            unique=True,
+            postgresql_where=db.text('idempotency_key IS NOT NULL'),
+        ),
     )
 
     # العلاقات
@@ -147,12 +186,12 @@ class Payment(TenantMixin, db.Model):
     def is_cancelled(self):
         """هل تم إلغاء الدفع"""
         return self.status == PaymentStatus.CANCELLED
-    
+
     @property
     def is_confirmed(self):
         """هل تم تأكيد الدفع"""
         return self.status == PaymentStatus.CONFIRMED
-    
+
     @property
     def method_display(self):
         """عرض طريقة الدفع بالعربية"""
@@ -161,10 +200,10 @@ class Payment(TenantMixin, db.Model):
             'CARD': 'بطاقة',
             'WIRE': 'تحويل',
             'INSURANCE': 'تأمين',
-            'FORCE': 'قسري'
+            'FORCE': 'قسري',
         }
         return method_map.get(self.method, self.method)
-    
+
     @property
     def status_display(self):
         """عرض حالة الدفع بالعربية"""
@@ -172,62 +211,62 @@ class Payment(TenantMixin, db.Model):
             'PENDING': 'معلق',
             'CONFIRMED': 'مؤكد',
             'CANCELLED': 'ملغي',
-            'REFUNDED': 'مسترجع'
+            'REFUNDED': 'مسترجع',
         }
         return status_map.get(self.status, self.status)
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id,
-            "patient_id": self.patient_id,
-            "visit_id": self.visit_id,
-            "invoice_id": self.invoice_id,
-            "method": self.method,
-            "amount": float(self.amount or 0),
-            "currency": self.currency,
-            "status": self.status,
-            "reference": self.reference,
-            "receipt_number": self.receipt_number,
-            "is_provisional": self.is_provisional,
-            "provisional_reason": self.provisional_reason,
-            "notes": self.notes,
-            "payment_date": self.payment_date.isoformat() if self.payment_date else None,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            'id': self.id,
+            'patient_id': self.patient_id,
+            'visit_id': self.visit_id,
+            'invoice_id': self.invoice_id,
+            'method': self.method,
+            'amount': float(self.amount or 0),
+            'currency': self.currency,
+            'status': self.status,
+            'reference': self.reference,
+            'receipt_number': self.receipt_number,
+            'is_provisional': self.is_provisional,
+            'provisional_reason': self.provisional_reason,
+            'notes': self.notes,
+            'payment_date': self.payment_date.isoformat() if self.payment_date else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
-    
+
     def can_be_cancelled(self):
         """هل يمكن إلغاء الدفع"""
         if self.status == PaymentStatus.CANCELLED:
-            return False, "الدفع ملغي مسبقاً"
-        
+            return False, 'الدفع ملغي مسبقاً'
+
         if self.status == PaymentStatus.REFUNDED:
-            return False, "الدفع مسترجع"
-        
+            return False, 'الدفع مسترجع'
+
         # يمكن إلغاء الدفع خلال 24 ساعة
-        from datetime import timedelta, timezone
-        now = datetime.now(timezone.utc)
+        from datetime import timedelta
+
+        now = datetime.now(UTC)
         created = self.created_at if self.created_at else now
         if created.tzinfo is None:
-            created = created.replace(tzinfo=timezone.utc)
+            created = created.replace(tzinfo=UTC)
         if (now - created) > timedelta(hours=24):
-            return False, "تجاوز وقت الإلغاء (24 ساعة)"
-        
-        return True, "يمكن الإلغاء"
-    
+            return False, 'تجاوز وقت الإلغاء (24 ساعة)'
+
+        return True, 'يمكن الإلغاء'
+
     def cancel(self, user_id, reason):
         """إلغاء الدفع"""
         can_cancel, message = self.can_be_cancelled()
         if not can_cancel:
             return False, message
-        
+
         self.status = PaymentStatus.CANCELLED
         self.cancelled_by = user_id
-        from datetime import timezone
-        self.cancelled_at = datetime.now(timezone.utc)
+        self.cancelled_at = datetime.now(UTC)
         self.cancellation_reason = reason
-        
-        return True, "تم الإلغاء بنجاح"
+
+        return True, 'تم الإلغاء بنجاح'
 
     def __repr__(self) -> str:
-        return f"<Payment #{self.id} {self.method} {self.amount} {self.currency}>"
+        return f'<Payment #{self.id} {self.method} {self.amount} {self.currency}>'

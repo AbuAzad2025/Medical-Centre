@@ -3,13 +3,15 @@ Ticket 10: Audited platform tenant assumption
 - SaaS registration creates PlatformAuditLog entry for tenant creation
 - Log captures action=CREATE_TENANT, entity_type=tenant, tenant details
 """
-import pytest, uuid
-from datetime import datetime, timezone
-from app.core.tenant.models import Tenant, PlatformAuditLog
-from app.shared.enums import TenantStatus
-from services.saas_registration_service import SaasRegistrationService, SaasRegistrationError
+
+import uuid
+
+import pytest
 from sqlalchemy import select
+
+from app.core.tenant.models import PlatformAuditLog
 from app_factory import db as _db
+from services.saas_registration_service import SaasRegistrationService
 
 
 @pytest.mark.usefixtures('app')
@@ -20,7 +22,7 @@ class TestPlatformTenantAudit:
             result = SaasRegistrationService.register_organization(
                 slug=slug,
                 name='Audit Tenant',
-                contact_email='audit-'+uuid.uuid4().hex[:6]+'@example.com',
+                contact_email='audit-' + uuid.uuid4().hex[:6] + '@example.com',
                 admin_username='admin_' + uuid.uuid4().hex[:6],
                 admin_password='SecurePass123!',
                 admin_full_name='Audit Admin',
@@ -29,11 +31,13 @@ class TestPlatformTenantAudit:
             assert result.admin is not None
 
             # Verify platform audit log was created for SaaS signup
-            log = _db.session.execute(select(PlatformAuditLog).filter_by(
-                action='SAAS_SIGNUP',
-                entity_type='tenant',
-                entity_id=result.tenant.id,
-            )).scalar()
+            log = _db.session.execute(
+                select(PlatformAuditLog).filter_by(
+                    action='SAAS_SIGNUP',
+                    entity_type='tenant',
+                    entity_id=result.tenant.id,
+                )
+            ).scalar()
             assert log is not None
             assert log.details is not None
             assert slug in log.details
@@ -46,15 +50,17 @@ class TestPlatformTenantAudit:
             result = SaasRegistrationService.register_organization(
                 slug=slug,
                 name='Audit IP Tenant',
-                contact_email='ip-'+uuid.uuid4().hex[:6]+'@example.com',
+                contact_email='ip-' + uuid.uuid4().hex[:6] + '@example.com',
                 admin_username='admin_' + uuid.uuid4().hex[:6],
                 admin_password='SecurePass123!',
                 admin_full_name='IP Admin',
                 client_ip='192.168.1.100',
             )
-            log = _db.session.execute(select(PlatformAuditLog).filter_by(
-                action='SAAS_SIGNUP',
-                entity_id=result.tenant.id,
-            )).scalar()
+            log = _db.session.execute(
+                select(PlatformAuditLog).filter_by(
+                    action='SAAS_SIGNUP',
+                    entity_id=result.tenant.id,
+                )
+            ).scalar()
             assert log is not None
             assert log.ip_address == '192.168.1.100'

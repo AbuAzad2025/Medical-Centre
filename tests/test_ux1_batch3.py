@@ -1,14 +1,12 @@
 """Tests for Batch 3 — UX1 design system, inbox service, entitlements."""
 
-import uuid
-
 import pytest
+from sqlalchemy import select
 
 from app.extensions import db
 from models.user import User
-from services.work_inbox_service import WorkInboxService
 from services.patient_timeline_service import PatientTimelineService
-from sqlalchemy import select
+from services.work_inbox_service import WorkInboxService
 
 
 @pytest.fixture(scope='function')
@@ -50,24 +48,34 @@ def batch3_accountant(app, test_tenant):
 @pytest.fixture(scope='function')
 def batch3_billing_client(app, client, batch3_accountant, test_tenant):
     from app.core.rate_limiter import _shared_store
+
     _shared_store.clear()
-    client.post('/auth/login', data={
-        'username': 'batch3_accountant',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    }, follow_redirects=True)
+    client.post(
+        '/auth/login',
+        data={
+            'username': 'batch3_accountant',
+            'password': 'test123',
+            'tenant_slug': test_tenant.slug,
+        },
+        follow_redirects=True,
+    )
     return client
 
 
 @pytest.fixture(scope='function')
 def batch3_inbox_client(app, client, reception_inbox_user, test_tenant):
     from app.core.rate_limiter import _shared_store
+
     _shared_store.clear()
-    client.post('/auth/login', data={
-        'username': 'batch3_inbox_user',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    }, follow_redirects=True)
+    client.post(
+        '/auth/login',
+        data={
+            'username': 'batch3_inbox_user',
+            'password': 'test123',
+            'tenant_slug': test_tenant.slug,
+        },
+        follow_redirects=True,
+    )
     return client
 
 
@@ -92,12 +100,14 @@ class TestPatientTimelineService:
 
     def test_build_events_empty_patient(self, app, test_tenant, monkeypatch):
         from models.patient import Patient
+
         monkeypatch.setattr(
             'app.shared.tenant_filter._check_bundle_limits_on_create',
             lambda instance, tenant_id: None,
         )
         p = Patient(
-            first_name='Empty', last_name='Timeline',
+            first_name='Empty',
+            last_name='Timeline',
             tenant_id=test_tenant.id,
         )
         db.session.add(p)

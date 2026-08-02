@@ -1,33 +1,43 @@
 """
 نماذج أسعار الصرف — Multi-Currency Exchange Rate System
 """
-from datetime import datetime, timezone
-from sqlalchemy import Index, CheckConstraint
-from app_factory import db
+
+from datetime import UTC, datetime
+
+from sqlalchemy import CheckConstraint, Index
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
 
 
 class ExchangeRate(TenantMixin, db.Model):
     """أسعار الصرف لدعم العملات المتعددة"""
+
     __tablename__ = 'exchange_rates'
 
     id = db.Column(db.Integer, primary_key=True)
-    from_currency = db.Column(db.String(8), nullable=False)   # العملة المصدر (ILS, USD, EUR, JOD)
-    to_currency = db.Column(db.String(8), nullable=False)     # العملة الهدف (ILS, USD, EUR, JOD)
-    buy_rate = db.Column(db.Numeric(18, 6), nullable=False)   # سعر الشراء (المركز يشتري)
+    from_currency = db.Column(db.String(8), nullable=False)  # العملة المصدر (ILS, USD, EUR, JOD)
+    to_currency = db.Column(db.String(8), nullable=False)  # العملة الهدف (ILS, USD, EUR, JOD)
+    buy_rate = db.Column(db.Numeric(18, 6), nullable=False)  # سعر الشراء (المركز يشتري)
     sell_rate = db.Column(db.Numeric(18, 6), nullable=False)  # سعر البيع (المركز يبيع)
-    effective_date = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    effective_date = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
     source = db.Column(db.String(50), nullable=False, default='MANUAL')  # MANUAL, API, EXTERNAL
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     notes = db.Column(db.Text, nullable=True)
 
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
-                           onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
 
     __table_args__ = (
-        CheckConstraint("from_currency != to_currency", name='chk_diff_currencies'),
+        CheckConstraint('from_currency != to_currency', name='chk_diff_currencies'),
         Index('idx_exchange_currency_pair', 'from_currency', 'to_currency'),
         Index('idx_exchange_effective', 'effective_date'),
         Index('idx_exchange_active', 'is_active'),
@@ -55,6 +65,7 @@ class ExchangeRate(TenantMixin, db.Model):
 
 class CurrencySettings:
     """إعدادات العملات المدعومة"""
+
     SUPPORTED_CURRENCIES = {
         'ILS': {'name': 'شيكل إسرائيلي', 'symbol': '₪', 'flag': '🇮🇱'},
         'USD': {'name': 'دولار أمريكي', 'symbol': '$', 'flag': '🇺🇸'},

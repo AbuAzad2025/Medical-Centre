@@ -2,21 +2,41 @@
 eMAR — Electronic Medication Administration Record
 Nurse medication administration tracking with barcode/QR support
 """
-from datetime import datetime, timezone
-from app_factory import db
+
+from datetime import UTC, datetime
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class eMARAdministration(TenantMixin, db.Model):
     """Record of nurse administering medication to patient"""
+
     __tablename__ = 'emar_administrations'
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='SET NULL'), nullable=True, index=True)
-    prescription_item_id = db.Column(db.Integer, db.ForeignKey('prescription_items.id', ondelete='CASCADE'), nullable=True, index=True)
-    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='SET NULL'), nullable=True, index=True)
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True
+    )
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    prescription_id = db.Column(
+        db.Integer,
+        db.ForeignKey('prescriptions.id', ondelete='SET NULL'),
+        nullable=True,
+        index=True,
+    )
+    prescription_item_id = db.Column(
+        db.Integer,
+        db.ForeignKey('prescription_items.id', ondelete='CASCADE'),
+        nullable=True,
+        index=True,
+    )
+    medication_id = db.Column(
+        db.Integer, db.ForeignKey('medications.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     # Administration details
     scheduled_time = db.Column(db.DateTime, nullable=False)
@@ -35,8 +55,12 @@ class eMARAdministration(TenantMixin, db.Model):
     medication_barcode = db.Column(db.String(100), nullable=True)
 
     # Nurse documentation
-    nurse_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    witnessed_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    nurse_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    witnessed_by_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     notes = db.Column(db.Text, nullable=True)
     refusal_reason = db.Column(db.String(200), nullable=True)
     hold_reason = db.Column(db.String(200), nullable=True)
@@ -49,8 +73,10 @@ class eMARAdministration(TenantMixin, db.Model):
     pain_score = db.Column(db.Integer, nullable=True)
 
     # Timestamps
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
 
     # Relationships
     patient = db.relationship('Patient', back_populates='emar_administrations')
@@ -61,16 +87,22 @@ class eMARAdministration(TenantMixin, db.Model):
     witnessed_by = db.relationship('User', foreign_keys=[witnessed_by_id])
 
     def __repr__(self):
-        return f"<eMARAdministration {self.status}>"
+        return f'<eMARAdministration {self.status}>'
 
 
 class MedicationSchedule(TenantMixin, db.Model):
     """Scheduled medication times for a prescription item"""
+
     __tablename__ = 'medication_schedules'
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    prescription_item_id = db.Column(db.Integer, db.ForeignKey('prescription_items.id', ondelete='CASCADE'), nullable=False, index=True)
+    prescription_item_id = db.Column(
+        db.Integer,
+        db.ForeignKey('prescription_items.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
     scheduled_time = db.Column(db.Time, nullable=False)
     dose = db.Column(db.String(100), nullable=True)
     frequency = db.Column(db.String(50), nullable=True)  # Q4H, BID, TID, QD, etc.
@@ -79,6 +111,6 @@ class MedicationSchedule(TenantMixin, db.Model):
     is_prn = db.Column(db.Boolean, default=False)  # As needed
     prn_reason = db.Column(db.String(200), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
 
     prescription_item = db.relationship('PrescriptionItem', back_populates='schedules')

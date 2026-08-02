@@ -1,7 +1,9 @@
-from datetime import datetime, timezone
-from sqlalchemy import Index, CheckConstraint
-from app_factory import db
+from datetime import UTC, datetime
+
+from sqlalchemy import CheckConstraint, Index
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
 
 
 class MedicationSupplyRequest(TenantMixin, db.Model):
@@ -13,18 +15,34 @@ class MedicationSupplyRequest(TenantMixin, db.Model):
     status = db.Column(db.String(16), nullable=False, default='DRAFT', index=True)
     notes = db.Column(db.Text, nullable=True)
 
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    approved_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    fulfilled_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    created_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    approved_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    fulfilled_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     approved_at = db.Column(db.DateTime, nullable=True)
     fulfilled_at = db.Column(db.DateTime, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
 
     __table_args__ = (
-        CheckConstraint("status IN ('DRAFT','APPROVED','FULFILLED','CANCELLED')", name='chk_med_supply_requests_status'),
+        CheckConstraint(
+            "status IN ('DRAFT','APPROVED','FULFILLED','CANCELLED')",
+            name='chk_med_supply_requests_status',
+        ),
         Index('idx_med_supply_requests_status_created', 'status', 'created_at'),
     )
 
@@ -32,15 +50,27 @@ class MedicationSupplyRequest(TenantMixin, db.Model):
     approver = db.relationship('User', foreign_keys=[approved_by], lazy='selectin')
     fulfiller = db.relationship('User', foreign_keys=[fulfilled_by], lazy='selectin')
 
-    items = db.relationship('MedicationSupplyRequestItem', back_populates='request', lazy='selectin', cascade='all, delete-orphan')
+    items = db.relationship(
+        'MedicationSupplyRequestItem',
+        back_populates='request',
+        lazy='selectin',
+        cascade='all, delete-orphan',
+    )
 
 
 class MedicationSupplyRequestItem(TenantMixin, db.Model):
     __tablename__ = 'medication_supply_request_items'
 
     id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.Integer, db.ForeignKey('medication_supply_requests.id', ondelete='CASCADE'), nullable=False, index=True)
-    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='CASCADE'), nullable=False, index=True)
+    request_id = db.Column(
+        db.Integer,
+        db.ForeignKey('medication_supply_requests.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
+    medication_id = db.Column(
+        db.Integer, db.ForeignKey('medications.id', ondelete='CASCADE'), nullable=False, index=True
+    )
 
     current_stock = db.Column(db.Integer, nullable=False, default=0)
     minimum_stock = db.Column(db.Integer, nullable=False, default=0)
@@ -48,13 +78,14 @@ class MedicationSupplyRequestItem(TenantMixin, db.Model):
     approved_qty = db.Column(db.Integer, nullable=True)
     fulfilled_qty = db.Column(db.Integer, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True
+    )
 
     __table_args__ = (
-        CheckConstraint("requested_qty > 0", name='chk_med_supply_request_items_requested_qty'),
+        CheckConstraint('requested_qty > 0', name='chk_med_supply_request_items_requested_qty'),
         Index('idx_med_supply_request_items_request_med', 'request_id', 'medication_id'),
     )
 
     request = db.relationship('MedicationSupplyRequest', back_populates='items', lazy='selectin')
     medication = db.relationship('Medication', lazy='selectin')
-

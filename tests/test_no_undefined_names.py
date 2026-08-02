@@ -5,6 +5,7 @@ missing imports used only in cold POST/branch paths slip through until a user
 hits them at runtime. This test fails the build if any undefined name exists in
 the application packages, and verifies every route/service module imports cleanly.
 """
+
 from __future__ import annotations
 
 import importlib
@@ -12,8 +13,6 @@ import pkgutil
 import subprocess
 import sys
 from pathlib import Path
-
-import pytest
 
 ROOT = Path(__file__).parent.parent
 _PKGS = ['routes', 'app', 'services', 'models', 'utils']
@@ -23,11 +22,14 @@ def test_no_undefined_names_f821():
     """No F821 undefined names anywhere in the application packages."""
     proc = subprocess.run(
         [sys.executable, '-m', 'flake8', '--select=F821', '--max-line-length=200', *_PKGS],
-        cwd=str(ROOT), capture_output=True, text=True,
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
     )
     assert proc.returncode == 0, (
         'Undefined names found (likely missing imports — latent NameError):\n'
-        + proc.stdout + proc.stderr
+        + proc.stdout
+        + proc.stderr
     )
 
 

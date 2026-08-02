@@ -2,15 +2,17 @@
 SSO Service - SSO/LDAP configuration management.
 Extracted from routes/sso_routes.py.
 """
+
 from __future__ import annotations
-from sqlalchemy import select
 
 import logging
 from typing import Any
 
+from sqlalchemy import select
+
 from app.extensions import db
 from utils.db_safety import safe_commit
-from utils.tenant_query import get_tenant_record, TenantContextError
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 
 class SSOService:
@@ -19,25 +21,36 @@ class SSOService:
     @staticmethod
     def get_configs() -> list:
         from models import SSOConfiguration
+
         return db.session.execute(select(SSOConfiguration)).scalars().all()
 
     @staticmethod
     def get_active_configs() -> list:
         from models import SSOConfiguration
-        return db.session.execute(select(SSOConfiguration).filter_by(is_active=True)).scalars().all()
+
+        return (
+            db.session.execute(select(SSOConfiguration).filter_by(is_active=True)).scalars().all()
+        )
 
     @staticmethod
     def get_config(config_id: int) -> Any | None:
         from models import SSOConfiguration
+
         return get_tenant_record(SSOConfiguration, config_id)
 
     @staticmethod
-    def create_config(name: str, provider_type: str = "ldap",
-                      server_url: str = "", base_dn: str = "",
-                      bind_dn: str = "", bind_password: str = "",
-                      auto_create_user: bool = False,
-                      default_role: str = "user") -> Any | None:
+    def create_config(
+        name: str,
+        provider_type: str = 'ldap',
+        server_url: str = '',
+        base_dn: str = '',
+        bind_dn: str = '',
+        bind_password: str = '',
+        auto_create_user: bool = False,
+        default_role: str = 'user',
+    ) -> Any | None:
         from models import SSOConfiguration
+
         try:
             cfg = SSOConfiguration(
                 name=name,
@@ -50,33 +63,35 @@ class SSOService:
                 default_role=default_role,
             )
             db.session.add(cfg)
-            if not safe_commit(db.session, error_message="Failed to create SSO config"):
+            if not safe_commit(db.session, error_message='Failed to create SSO config'):
                 return None
             return cfg
         except Exception as e:
-            logging.error(f"Error creating SSO config: {str(e)}")
+            logging.exception(f'Error creating SSO config: {e!s}')
             return None
 
     @staticmethod
     def toggle_config(config_id: int) -> bool:
         from models import SSOConfiguration
+
         try:
             cfg = get_tenant_record(SSOConfiguration, config_id)
         except TenantContextError:
             return False
         cfg.is_active = not cfg.is_active
-        safe_commit(db.session, error_message="Failed to toggle SSO config", reraise=True)
+        safe_commit(db.session, error_message='Failed to toggle SSO config', reraise=True)
         return True
 
     @staticmethod
     def delete_config(config_id: int) -> bool:
         from models import SSOConfiguration
+
         try:
             cfg = get_tenant_record(SSOConfiguration, config_id)
         except TenantContextError:
             return False
         db.session.delete(cfg)
-        safe_commit(db.session, error_message="Failed to delete SSO config", reraise=True)
+        safe_commit(db.session, error_message='Failed to delete SSO config', reraise=True)
         return True
 
 

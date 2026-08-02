@@ -1,21 +1,20 @@
 """Automated backup scheduler and cloud upload tests."""
 
-import os
 from unittest.mock import MagicMock, patch
 
-import pytest
-
+from app.extensions import db
 from app.shared.enums import BackupStatus
 from models.backup import Backup
-from services.backup_automation_service import BackupAutomationError, BackupAutomationService
-from app.extensions import db
+from services.backup_automation_service import BackupAutomationService
 
 
 class TestBackupAutomationService:
     def test_run_scheduled_backup_persists_completed_record(self, app, test_user, monkeypatch):
         monkeypatch.setenv('DATABASE_URL', 'postgresql://u:p@localhost:5432/medical')
-        with patch('services.backup_automation_service.run_pg_dump_sql_gz', return_value=128), \
-             patch.object(BackupAutomationService, 'upload_to_cloud', return_value=None):
+        with (
+            patch('services.backup_automation_service.run_pg_dump_sql_gz', return_value=128),
+            patch.object(BackupAutomationService, 'upload_to_cloud', return_value=None),
+        ):
             record = BackupAutomationService.run_scheduled_backup(created_by=test_user.id)
         assert record.backup_status == BackupStatus.COMPLETED
         assert record.backup_size == 128

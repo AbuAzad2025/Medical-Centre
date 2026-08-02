@@ -4,13 +4,13 @@ VisitWorkflowService — facade over VisitStateMachineService + GatekeeperServic
 Maps legacy workflow status strings to canonical VisitState values and routes
 all mutations through validated services (no direct visit.status writes).
 """
-from datetime import datetime, timezone
-from typing import Optional
+
+from datetime import UTC, datetime
 
 from app.extensions import db
-from app.shared.enums import VisitState, VisitArchiveStatus, VisitWorkflowStatus as VisitStatus
+from app.shared.enums import VisitArchiveStatus, VisitState
+from app.shared.enums import VisitWorkflowStatus as VisitStatus
 from services.visit_state_machine_service import VisitStateMachineService
-
 
 _WORKFLOW_TO_VISIT: dict[str, VisitState] = {
     VisitStatus.REGISTERED: VisitState.OPEN,
@@ -55,51 +55,61 @@ class VisitWorkflowService:
         visit_state = _WORKFLOW_TO_VISIT.get(wf_target)
         if visit_state is None:
             return False
+
         class _Proxy:
             status = current
+
         return VisitStateMachineService.can_transition(_Proxy(), visit_state)
 
     @staticmethod
-    def transition(visit, new_status: str, performed_by: Optional[int] = None, reason: Optional[str] = None) -> None:
+    def transition(
+        visit, new_status: str, performed_by: int | None = None, reason: str | None = None
+    ) -> None:
         from models.visit import Visit
+
         if not isinstance(visit, Visit):
-            raise TypeError("Expected Visit model instance")
+            raise TypeError('Expected Visit model instance')
 
         try:
             wf_target = VisitStatus(new_status)
         except ValueError as exc:
-            raise ValueError(f"Unknown workflow status: {new_status}") from exc
+            raise ValueError(f'Unknown workflow status: {new_status}') from exc
 
         if wf_target == VisitStatus.ARCHIVED:
             can, msg = visit.can_be_archived()
             if not can:
-                raise PermissionError(msg or "Visit cannot be archived")
+                raise PermissionError(msg or 'Visit cannot be archived')
             ok, msg = VisitStateMachineService.transition_or_archive(
-                visit, VisitArchiveStatus.ARCHIVED, actor=performed_by, user_id=performed_by,
+                visit,
+                VisitArchiveStatus.ARCHIVED,
+                actor=performed_by,
+                user_id=performed_by,
             )
             if not ok:
-                raise PermissionError(msg or "Archival failed")
-            visit.updated_at = datetime.now(timezone.utc)
+                raise PermissionError(msg or 'Archival failed')
+            visit.updated_at = datetime.now(UTC)
             db.session.add(visit)
             return
 
         target_clinical = _WORKFLOW_TO_VISIT.get(wf_target)
         if target_clinical is None:
-            raise ValueError(f"Unsupported workflow transition to {new_status}")
+            raise ValueError(f'Unsupported workflow transition to {new_status}')
 
         VisitStateMachineService._coerce_legacy_status(visit)
         if target_clinical == VisitState.IN_PROGRESS:
             VisitStateMachineService.ensure_in_progress(visit, actor=performed_by)
         else:
             VisitStateMachineService.transition(visit, target_clinical, actor=performed_by)
-        visit.updated_at = datetime.now(timezone.utc)
+        visit.updated_at = datetime.now(UTC)
         db.session.add(visit)
 
     @staticmethod
     def get_allowed_actions(visit) -> list[str]:
         current = VisitWorkflowService._resolve_current(visit)
+
         class _Proxy:
             status = current.value
+
         allowed = VisitStateMachineService.get_allowed_transitions(_Proxy())
         actions = [_VISIT_TO_WORKFLOW[s] for s in allowed if s in _VISIT_TO_WORKFLOW]
         if current == VisitState.COMPLETED:
@@ -108,11 +118,10 @@ class VisitWorkflowService:
 
     @staticmethod
     def assign_to_doctor(visit, doctor_id: int) -> None:
-        from models.visit import Visit
         current = VisitWorkflowService._resolve_current(visit)
         if current not in (VisitState.OPEN, VisitState.CHECKED_IN):
-            raise ValueError("Cannot assign doctor unless visit is registered or waiting")
+            raise ValueError('Cannot assign doctor unless visit is registered or waiting')
         visit.doctor_id = doctor_id
         VisitStateMachineService.ensure_in_progress(visit)
-        visit.updated_at = datetime.now(timezone.utc)
+        visit.updated_at = datetime.now(UTC)
         db.session.add(visit)

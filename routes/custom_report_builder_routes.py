@@ -2,22 +2,23 @@
 Custom Report Builder
 Drag-drop field selection for ad-hoc reports
 """
+
+from flask import Blueprint, jsonify, render_template, request
+from flask_login import current_user, login_required
+
 from app.extensions import db
-from flask import Blueprint, render_template, request, jsonify
-from flask_login import login_required, current_user
-from utils.decorators import role_required
 from app.shared.report_template_service import (
     REPORT_ENTITIES,
     list_templates,
+    render_template_preview,
+    run_entity_preview,
     save_builder_template,
     template_config,
-    run_entity_preview,
-    render_template_preview,
 )
 from models.reporting import ReportTemplate
+from utils.decorators import role_required
 
 report_builder_bp = Blueprint('report_builder', __name__)
-
 
 
 @report_builder_bp.route('/')

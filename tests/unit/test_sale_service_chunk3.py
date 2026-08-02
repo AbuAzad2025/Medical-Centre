@@ -2,24 +2,26 @@
 
 Chunk 3: commission/options, final-commit failure, and basic CRUD paths.
 """
-import pytest
+
 from unittest.mock import patch
+
+import pytest
 from sqlalchemy import select
 
-from services.pharmacy_sale_service import PharmacySaleService
-from app.shared.enums import PrescriptionState
-from tests.tenant_context import bind_tenant_on_g
 from app.extensions import db
-
+from app.shared.enums import PrescriptionState
+from services.pharmacy_sale_service import PharmacySaleService
+from tests.tenant_context import bind_tenant_on_g
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_prescription(app, test_tenant, patient_id, status='active'):
     """Insert a minimal Prescription row and return its id."""
-    from models.medication import Prescription
     from app.extensions import db
+    from models.medication import Prescription
 
     rx = Prescription(
         tenant_id=test_tenant.id,
@@ -34,8 +36,8 @@ def _make_prescription(app, test_tenant, patient_id, status='active'):
 
 def _make_patient(app, test_tenant):
     """Insert a minimal Patient row and return its id."""
-    from models.patient import Patient
     from app.extensions import db
+    from models.patient import Patient
 
     p = Patient(
         tenant_id=test_tenant.id,
@@ -50,12 +52,14 @@ def _make_patient(app, test_tenant):
 
 def _make_user(app, test_tenant, username='dispenser_test'):
     """Insert a minimal User row and return it."""
-    from models.user import User
     from app.extensions import db
+    from models.user import User
 
-    u = db.session.execute(
-        select(User).filter_by(username=username, tenant_id=test_tenant.id)
-    ).scalars().first()
+    u = (
+        db.session.execute(select(User).filter_by(username=username, tenant_id=test_tenant.id))
+        .scalars()
+        .first()
+    )
     if not u:
         u = User(
             tenant_id=test_tenant.id,
@@ -84,6 +88,7 @@ def _tenant_ctx(app, test_tenant):
 # ===========================================================================
 # TestCreateSaleCommissionAndOptions
 # ===========================================================================
+
 
 class TestCreateSaleCommissionAndOptions:
     """Tests for PharmacySaleService.create_sale."""
@@ -235,13 +240,14 @@ class TestCreateSaleCommissionAndOptions:
 # void_sale tests
 # ===========================================================================
 
+
 class TestVoidSale:
     """Tests for PharmacySaleService.void_sale."""
 
     def _create_sale(self, app, test_tenant):
         """Helper: create a real sale and return its id."""
-        from models.medication import PharmacySale
         from app.extensions import db
+        from models.medication import PharmacySale
 
         sale = PharmacySale(
             tenant_id=test_tenant.id,
@@ -285,6 +291,7 @@ class TestVoidSale:
 # ===========================================================================
 # get_prescription_status tests
 # ===========================================================================
+
 
 class TestGetPrescriptionStatus:
     """Tests for PharmacySaleService.get_prescription_status."""

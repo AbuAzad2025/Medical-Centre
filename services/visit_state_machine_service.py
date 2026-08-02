@@ -9,12 +9,12 @@ Rules:
   service (which sets a thread-local authorization flag).
 - Routes being migrated should call transition() instead of mutating status.
 """
+
 from __future__ import annotations
 
 import threading
-from typing import Optional
 
-from app.shared.enums import VisitState, VisitArchiveStatus
+from app.shared.enums import VisitArchiveStatus, VisitState
 
 _vsm_authorized = threading.local()
 
@@ -44,7 +44,7 @@ class VisitStateMachineService:
     }
 
     @classmethod
-    def get_status(cls, visit) -> Optional[VisitState]:
+    def get_status(cls, visit) -> VisitState | None:
         """Dual-read helper: parse the legacy status field into VisitState.
 
         Returns None if the stored value is empty or unrecognised.
@@ -74,9 +74,7 @@ class VisitStateMachineService:
         """
         current = cls.get_status(visit)
         if not cls.can_transition(visit, target_state):
-            raise ValueError(
-                f"Invalid visit transition from {current} to {target_state}"
-            )
+            raise ValueError(f'Invalid visit transition from {current} to {target_state}')
         _vsm_authorized.active = True
         try:
             visit.status = target_state.value
@@ -95,8 +93,8 @@ class VisitStateMachineService:
     @classmethod
     def _coerce_legacy_status(cls, visit) -> None:
         """Map pre-P1 legacy status strings into the canonical enum."""
-        raw = getattr(visit, "status", None)
-        if raw in ("WAITING", None, ""):
+        raw = getattr(visit, 'status', None)
+        if raw in ('WAITING', None, ''):
             _vsm_authorized.active = True
             try:
                 visit.status = VisitState.OPEN.value
@@ -133,14 +131,15 @@ class VisitStateMachineService:
         """Clinical transitions via VSM; archival delegates to GatekeeperService."""
         if target_state == VisitArchiveStatus.ARCHIVED:
             if user_id is None:
-                return False, "user_id required for archival"
+                return False, 'user_id required for archival'
             from services.gatekeeper_service import GatekeeperService
+
             return GatekeeperService.archive_visit(visit.id, user_id)
         if not isinstance(target_state, VisitState):
-            return False, f"invalid target: {target_state}"
+            return False, f'invalid target: {target_state}'
         try:
             cls.transition(visit, target_state, actor=actor)
-            return True, ""
+            return True, ''
         except ValueError as exc:
             return False, str(exc)
 
@@ -155,7 +154,7 @@ class VisitStateMachineService:
         if cls.can_transition(visit, VisitState.CHECKED_IN):
             cls.transition(visit, VisitState.CHECKED_IN, actor=actor)
             return cls.transition(visit, VisitState.IN_PROGRESS, actor=actor)
-        raise ValueError(f"Cannot move visit to IN_PROGRESS from {getattr(visit, 'status', None)}")
+        raise ValueError(f'Cannot move visit to IN_PROGRESS from {getattr(visit, "status", None)}')
 
     @classmethod
     def ensure_completed(cls, visit, *, actor=None) -> bool:
@@ -165,7 +164,7 @@ class VisitStateMachineService:
             return True
         if cls.can_transition(visit, VisitState.COMPLETED):
             return cls.transition(visit, VisitState.COMPLETED, actor=actor)
-        raise ValueError(f"Cannot move visit to COMPLETED from {getattr(visit, 'status', None)}")
+        raise ValueError(f'Cannot move visit to COMPLETED from {getattr(visit, "status", None)}')
 
     @classmethod
     def return_to_treatment(cls, visit, *, actor=None, reason=None) -> bool:
@@ -175,9 +174,11 @@ class VisitStateMachineService:
         """
         cls._coerce_legacy_status(visit)
         if cls.get_status(visit) != VisitState.COMPLETED:
-            raise ValueError(f"Return-to-treatment only valid from COMPLETED; current={getattr(visit, 'status', None)}")
+            raise ValueError(
+                f'Return-to-treatment only valid from COMPLETED; current={getattr(visit, "status", None)}'
+            )
         if actor is None:
-            raise ValueError("actor required for return-to-treatment")
+            raise ValueError('actor required for return-to-treatment')
         allowed_roles = {'reception'}
         actor_role = getattr(actor, 'role', None)
         if actor_role not in allowed_roles:

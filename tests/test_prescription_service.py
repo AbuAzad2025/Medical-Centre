@@ -6,20 +6,20 @@ Includes coverage of three latent bugs fixed in this change:
   - log_action (wrong AuditTrail field names / missing required fields)
 All DB work runs under ``rollback_db`` isolation.
 """
-import uuid
+
 import types
+import uuid
 
 import pytest
+from flask import g
+from sqlalchemy import select
 
-from services.prescription_service import PrescriptionService as RX
-from models.medication import Medication, PrescriptionItem
+from app.extensions import db
 from models.drug_interaction import DrugInteraction
+from models.medication import Medication, PrescriptionItem
 from models.patient import Patient, PatientAllergy
 from models.user import User
-from sqlalchemy import select
-from app.extensions import db
-from flask import g
-from tests.tenant_context import clear_tenant_g
+from services.prescription_service import PrescriptionService as RX
 
 
 @pytest.fixture
@@ -58,16 +58,31 @@ def rxfx(rollback_db, monkeypatch):
 
     def doctor():
         un = 'zz_rx_' + uuid.uuid4().hex[:8]
-        u = User(username=un, email=un + '@x.com', full_name='د', role='doctor', is_active=True, tenant_id=1)
+        u = User(
+            username=un,
+            email=un + '@x.com',
+            full_name='د',
+            role='doctor',
+            is_active=True,
+            tenant_id=1,
+        )
         u.set_password('p')
         db.session.add(u)
         db.session.commit()
         return u
 
     def med(trade='ZZTrade', sci='ZZSci', price=10, stock=100, min_stock=10):
-        m = Medication(trade_name=trade + uuid.uuid4().hex[:4], scientific_name=sci,
-                       dosage_form='tablet', strength='500mg', price=price,
-                       stock_quantity=stock, minimum_stock=min_stock, category='general', tenant_id=1)
+        m = Medication(
+            trade_name=trade + uuid.uuid4().hex[:4],
+            scientific_name=sci,
+            dosage_form='tablet',
+            strength='500mg',
+            price=price,
+            stock_quantity=stock,
+            minimum_stock=min_stock,
+            category='general',
+            tenant_id=1,
+        )
         db.session.add(m)
         db.session.commit()
         return m
@@ -80,17 +95,24 @@ def rxfx(rollback_db, monkeypatch):
 
     def interaction(a_id, b_id, severity='HIGH'):
         lo, hi = min(a_id, b_id), max(a_id, b_id)
-        di = DrugInteraction(medication_a_id=lo, medication_b_id=hi, is_active=True,
-                             severity=severity, description='تفاعل خطير')
+        di = DrugInteraction(
+            medication_a_id=lo,
+            medication_b_id=hi,
+            is_active=True,
+            severity=severity,
+            description='تفاعل خطير',
+        )
         db.session.add(di)
         db.session.commit()
         return di
 
-    return types.SimpleNamespace(db=db, patient=patient, doctor=doctor, med=med,
-                                 allergy=allergy, interaction=interaction)
+    return types.SimpleNamespace(
+        db=db, patient=patient, doctor=doctor, med=med, allergy=allergy, interaction=interaction
+    )
 
 
 # ───────────────────────── interactions / allergies ─────────────────────────
+
 
 class TestCheckInteractions:
     def test_empty_returns_empty(self, rxfx):
@@ -136,16 +158,23 @@ class TestCheckPatientAllergies:
 
 # ───────────────────────── prescription creation ─────────────────────────
 
+
 class TestCreatePrescription:
     def test_success_with_items(self, rxfx):
         p = rxfx.patient()
         doc = rxfx.doctor()
         m = rxfx.med(price=10)
         ok, pres = RX.create_prescription(
-            p.id, doc.id, items=[{'medication_id': m.id, 'dosage': '1x2', 'quantity': 3,
-                                  'duration_days': 5}])
+            p.id,
+            doc.id,
+            items=[{'medication_id': m.id, 'dosage': '1x2', 'quantity': 3, 'duration_days': 5}],
+        )
         assert ok is True
-        items = db.session.execute(select(PrescriptionItem).filter_by(prescription_id=pres.id)).scalars().all()
+        items = (
+            db.session.execute(select(PrescriptionItem).filter_by(prescription_id=pres.id))
+            .scalars()
+            .all()
+        )
         assert len(items) == 1
         assert float(items[0].total_price) == 30.0
 
@@ -167,7 +196,8 @@ class TestCreatePrescription:
         doc = rxfx.doctor()
         m = rxfx.med()
         ok, msg = RX.create_prescription(
-            p.id, doc.id, items=[{'medication_id': m.id, 'quantity': 'not-a-number'}])
+            p.id, doc.id, items=[{'medication_id': m.id, 'quantity': 'not-a-number'}]
+        )
         assert ok is False
         assert isinstance(msg, str)
 
@@ -197,6 +227,7 @@ class TestPrescriptionQueries:
 
 # ───────────────────────── inventory ─────────────────────────
 
+
 class TestInventory:
     def test_low_stock(self, rxfx):
         m = rxfx.med(stock=2, min_stock=10)
@@ -218,6 +249,7 @@ class TestInventory:
 
 
 # ───────────────────────── supply requests ─────────────────────────
+
 
 class TestSupplyRequests:
     def test_create_supply_request_success(self, rxfx):
@@ -245,13 +277,16 @@ class TestSupplyRequests:
 
 # ───────────────────────── misc / audit ─────────────────────────
 
+
 class TestMiscAndAudit:
     def test_log_action_persists(self, rxfx):
         doc = rxfx.doctor()
         RX.log_action('prescription_created', 'some details', user_id=doc.id)
         from models.audit_trail import AuditTrail
-        row = (db.session.execute(select(AuditTrail).filter_by(user_id=doc.id)
-               .order_by(AuditTrail.id.desc())).scalar())
+
+        row = db.session.execute(
+            select(AuditTrail).filter_by(user_id=doc.id).order_by(AuditTrail.id.desc())
+        ).scalar()
         assert row is not None
         assert 'prescription_created' in row.description
         assert 'some details' in row.description

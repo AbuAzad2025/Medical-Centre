@@ -1,7 +1,9 @@
 """Tests for P3-003: Invoice paid/balance projection and reconciliation."""
 
 import pytest
+from sqlalchemy import select
 
+from app.extensions import db
 from app_factory import db as _db
 from models.invoice import Invoice, InvoiceService
 from models.patient import Patient
@@ -9,8 +11,6 @@ from models.payment import Payment
 from models.user import User
 from models.visit import Visit
 from services.financial_service import FinancialService
-from sqlalchemy import select
-from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -99,7 +99,9 @@ class TestInvoiceBalanceDue:
 
 
 class TestFinancialServiceReconcileVisitPayments:
-    def test_reconcile_allocates_payment(self, recon_visit, recon_invoice, recon_accountant, test_tenant):
+    def test_reconcile_allocates_payment(
+        self, recon_visit, recon_invoice, recon_accountant, test_tenant
+    ):
         payment = Payment(
             tenant_id=test_tenant.id,
             visit_id=recon_visit.id,
@@ -121,7 +123,9 @@ class TestFinancialServiceReconcileVisitPayments:
         assert recon_invoice.status == 'PARTIAL'
         assert recon_invoice.balance_due == 40
 
-    def test_reconcile_resets_and_reallocates(self, recon_visit, recon_invoice, recon_accountant, test_tenant):
+    def test_reconcile_resets_and_reallocates(
+        self, recon_visit, recon_invoice, recon_accountant, test_tenant
+    ):
         # Simulate an out-of-sync paid_amount
         recon_invoice.paid_amount = 999
         _db.session.commit()
@@ -147,7 +151,9 @@ class TestFinancialServiceReconcileVisitPayments:
         assert recon_invoice.status == 'PAID'
         assert recon_invoice.balance_due == 0
 
-    def test_reconcile_multiple_invoices_fifo(self, recon_visit, recon_invoice, recon_accountant, test_tenant):
+    def test_reconcile_multiple_invoices_fifo(
+        self, recon_visit, recon_invoice, recon_accountant, test_tenant
+    ):
         inv2 = Invoice(
             tenant_id=test_tenant.id,
             visit_id=recon_visit.id,
@@ -181,7 +187,9 @@ class TestFinancialServiceReconcileVisitPayments:
         assert float(inv2.paid_amount) == 20
         assert inv2.status == 'PARTIAL'
 
-    def test_reconcile_ignores_non_confirmed_payments(self, recon_visit, recon_invoice, recon_accountant, test_tenant):
+    def test_reconcile_ignores_non_confirmed_payments(
+        self, recon_visit, recon_invoice, recon_accountant, test_tenant
+    ):
         payment = Payment(
             tenant_id=test_tenant.id,
             visit_id=recon_visit.id,

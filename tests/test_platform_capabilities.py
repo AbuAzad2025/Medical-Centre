@@ -42,28 +42,35 @@ def test_capabilities_read_env(monkeypatch):
 def test_template_context_injects_platform_capability(app):
     with app.test_request_context('/'):
         from flask import render_template_string
+
         html = render_template_string(
             '{% if platform_capability("webauthn") %}on{% else %}off{% endif %}'
         )
         assert html == 'off'
 
 
-@pytest.mark.parametrize('cap_env,path', [
-    ('PLATFORM_CAP_WEBAUTHN', '/biometric/'),
-    ('PLATFORM_CAP_FHIR', '/api/fhir/Patient'),
-    ('PLATFORM_CAP_SSO', '/sso/config'),
-])
+@pytest.mark.parametrize(
+    'cap_env,path',
+    [
+        ('PLATFORM_CAP_WEBAUTHN', '/biometric/'),
+        ('PLATFORM_CAP_FHIR', '/api/fhir/Patient'),
+        ('PLATFORM_CAP_SSO', '/sso/config'),
+    ],
+)
 def test_gated_routes_404_when_disabled(client, login_as, cap_env, path):
     login_as(client, 'cap_mgr', 'manager')
     resp = client.get(path)
     assert resp.status_code == 404
 
 
-@pytest.mark.parametrize('cap_env,path', [
-    ('PLATFORM_CAP_WEBAUTHN', '/biometric/'),
-    ('PLATFORM_CAP_FHIR', '/api/fhir/Patient'),
-    ('PLATFORM_CAP_SSO', '/sso/config'),
-])
+@pytest.mark.parametrize(
+    'cap_env,path',
+    [
+        ('PLATFORM_CAP_WEBAUTHN', '/biometric/'),
+        ('PLATFORM_CAP_FHIR', '/api/fhir/Patient'),
+        ('PLATFORM_CAP_SSO', '/sso/config'),
+    ],
+)
 def test_gated_routes_available_when_enabled(client, login_as, monkeypatch, cap_env, path):
     monkeypatch.setenv(cap_env, 'true')
     login_as(client, 'cap_mgr2', 'super_admin')

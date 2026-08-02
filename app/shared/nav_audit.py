@@ -1,18 +1,19 @@
 """Navigation audit helpers — G-143, Gate 6b."""
+
 from __future__ import annotations
 
 import re
-from typing import Iterable, Set
+from collections.abc import Iterable
 
-from flask import Flask, url_for
+from flask import Flask
 
 from app.shared.manager_nav_registry import REQUIRED_MANAGER_ENDPOINTS, resolve_manager_nav_sections
-from app.shared.nav_resolver import NavSection, resolve_nav_for_user
-from app.shared.owner_nav_registry import resolve_owner_nav, owner_nav_href
+from app.shared.nav_resolver import NavSection
+from app.shared.owner_nav_registry import owner_nav_href, resolve_owner_nav
 
 
-def _manager_get_paths(app: Flask) -> Set[str]:
-    paths: Set[str] = set()
+def _manager_get_paths(app: Flask) -> set[str]:
+    paths: set[str] = set()
     for rule in app.url_map.iter_rules():
         if not rule.rule.startswith('/manager'):
             continue
@@ -26,7 +27,7 @@ def _manager_get_paths(app: Flask) -> Set[str]:
     return paths
 
 
-def manager_nav_endpoints() -> Set[str]:
+def manager_nav_endpoints() -> set[str]:
     return set(REQUIRED_MANAGER_ENDPOINTS)
 
 
@@ -40,21 +41,40 @@ def audit_manager_nav_coverage(app: Flask) -> list[str]:
     covered_prefixes = {
         re.sub(r'<[^>]+>', '', p).rstrip('/') or p
         for p in (
-            '/manager/dashboard', '/manager/settlements', '/manager/budget',
-            '/manager/monthly-comparison', '/manager/financial-reports',
-            '/manager/exchange-rates', '/manager/force-payment-approvals',
+            '/manager/dashboard',
+            '/manager/settlements',
+            '/manager/budget',
+            '/manager/monthly-comparison',
+            '/manager/financial-reports',
+            '/manager/exchange-rates',
+            '/manager/force-payment-approvals',
             '/manager/custom-service-approvals',
-            '/manager/pricing', '/manager/departments', '/manager/unit-control',
-            '/manager/user-management', '/manager/staff', '/manager/staff/absence',
-            '/manager/staff/capacity', '/manager/staff/schedule',
-            '/manager/reports-center', '/manager/self-service', '/manager/analytics',
-            '/manager/kpi-dashboard', '/manager/patient-satisfaction',
-            '/manager/drill-down/visits', '/manager/reports', '/manager/settings',
+            '/manager/pricing',
+            '/manager/departments',
+            '/manager/unit-control',
+            '/manager/user-management',
+            '/manager/staff',
+            '/manager/staff/absence',
+            '/manager/staff/capacity',
+            '/manager/staff/schedule',
+            '/manager/reports-center',
+            '/manager/self-service',
+            '/manager/analytics',
+            '/manager/kpi-dashboard',
+            '/manager/patient-satisfaction',
+            '/manager/drill-down/visits',
+            '/manager/reports',
+            '/manager/settings',
         )
     }
     missing = []
-    skip = {'/manager/api/', '/manager/settlements/export', '/manager/settings/test-sms',
-            '/manager/seed-pricing', '/manager/exchange-rates/fetch-api'}
+    skip = {
+        '/manager/api/',
+        '/manager/settlements/export',
+        '/manager/settings/test-sms',
+        '/manager/seed-pricing',
+        '/manager/exchange-rates/fetch-api',
+    }
     for path in sorted(registered):
         if any(path.startswith(s) for s in skip):
             continue
@@ -80,11 +100,11 @@ def audit_nav_link_endpoints(app: Flask) -> list[str]:
             for item in section.items:
                 try:
                     owner_nav_href(item)
-                except Exception as e:
+                except Exception:
                     broken.append(item.endpoint)
     return broken
 
 
-def nav_endpoints_from_sections(sections: Iterable[NavSection]) -> Set[str]:
+def nav_endpoints_from_sections(sections: Iterable[NavSection]) -> set[str]:
     """Extract endpoint-like ids from resolved nav (for tests)."""
     return {item.id for section in sections for item in section.items}

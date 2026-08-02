@@ -15,14 +15,12 @@ import json
 import os
 import shutil
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
+from sqlalchemy import func, select
 
-from app.extensions import db
-from app.shared.enums import BackupStatus, VisitState
-from app.core.saas.resolver import EntitlementResolver
 from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import (
     Package,
@@ -32,7 +30,10 @@ from app.core.saas.models import (
     PackageVersionEntitlement,
     PackageVersionPricing,
 )
+from app.core.saas.resolver import EntitlementResolver
 from app.core.tenant.models import Tenant
+from app.extensions import db
+from app.shared.enums import BackupStatus, VisitState
 from models.backup import Backup
 from models.medical_record import MedicalRecord
 from models.patient import Patient
@@ -41,7 +42,6 @@ from models.visit import Visit
 from services.stripe_subscription_service import StripeSubscriptionService
 from services.visit_state_machine_service import VisitStateMachineService
 from tests.tenant_context import tenant_test_context
-from sqlalchemy import select, func
 
 pytestmark = [
     pytest.mark.e2e,
@@ -73,27 +73,33 @@ def _seed_starter_package():
         package_id=pkg.id,
         version='1.0.0',
         trial_days=7,
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
     )
     db.session.add(version)
     db.session.flush()
-    db.session.add(PackageVersionPricing(
-        package_version_id=version.id,
-        billing_type='monthly',
-        price=199,
-        setup_fee=0,
-        currency='USD',
-    ))
-    db.session.add(PackageVersionEntitlement(
-        package_version_id=version.id,
-        module_name='lab',
-        capability_key='lab.order',
-    ))
-    db.session.add(PackageVersionAvailability(
-        package_version_id=version.id,
-        availability_status=PackageVersionAvailabilityStatus.AVAILABLE,
-        effective_from=datetime.now(timezone.utc),
-    ))
+    db.session.add(
+        PackageVersionPricing(
+            package_version_id=version.id,
+            billing_type='monthly',
+            price=199,
+            setup_fee=0,
+            currency='USD',
+        )
+    )
+    db.session.add(
+        PackageVersionEntitlement(
+            package_version_id=version.id,
+            module_name='lab',
+            capability_key='lab.order',
+        )
+    )
+    db.session.add(
+        PackageVersionAvailability(
+            package_version_id=version.id,
+            availability_status=PackageVersionAvailabilityStatus.AVAILABLE,
+            effective_from=datetime.now(UTC),
+        )
+    )
     db.session.commit()
     return version
 
@@ -108,6 +114,7 @@ def e2e_runtime(app, monkeypatch, tmp_path):
     monkeypatch.setenv('STRIPE_WEBHOOK_SECRET', 'whsec_e2e_production')
     monkeypatch.setenv('BACKUP_LOCAL_DIR', str(tmp_path / 'backups'))
     from celery_app import get_celery_app, init_celery_app
+
     init_celery_app(app)
     celery = get_celery_app()
     celery.conf.task_always_eager = True
@@ -123,16 +130,19 @@ class TestE2EProductionFlow:
         admin_pass = 'E2eSecurePass1!'
 
         # ── 1. Tenant provisioning (live HTTP) ─────────────────────────────
-        reg = client.post('/api/saas/register', json={
-            'slug': slug,
-            'name': 'E2E Production Clinic',
-            'contact_email': f'{slug}@e2e.test',
-            'admin_username': admin_user,
-            'admin_password': admin_pass,
-            'admin_full_name': 'E2E Owner',
-            'package_version_id': version.id,
-            'billing_type': 'monthly',
-        })
+        reg = client.post(
+            '/api/saas/register',
+            json={
+                'slug': slug,
+                'name': 'E2E Production Clinic',
+                'contact_email': f'{slug}@e2e.test',
+                'admin_username': admin_user,
+                'admin_password': admin_pass,
+                'admin_full_name': 'E2E Owner',
+                'package_version_id': version.id,
+                'billing_type': 'monthly',
+            },
+        )
         assert reg.status_code == 201, reg.get_data(as_text=True)
         reg_body = reg.get_json()
         tenant_id = reg_body['tenant']['id']
@@ -142,17 +152,28 @@ class TestE2EProductionFlow:
         assert tenant.slug == slug
 
         with tenant_test_context(app, tenant):
-            assert db.session.execute(select(func.count()).select_from(User).filter_by(tenant_id=tenant_id, username=admin_user)).scalar() == 1
+            assert (
+                db.session.execute(
+                    select(func.count())
+                    .select_from(User)
+                    .filter_by(tenant_id=tenant_id, username=admin_user)
+                ).scalar()
+                == 1
+            )
             assert EntitlementResolver.is_entitled(tenant_id, 'lab.order') is True
 
         # ── 2. Clinical workflow (real VSM + medical record) ─────────────
         from app.core.rate_limiter import _shared_store
+
         _shared_store.clear()
-        login = client.post('/auth/login', data={
-            'username': admin_user,
-            'password': admin_pass,
-            'tenant_slug': slug,
-        })
+        login = client.post(
+            '/auth/login',
+            data={
+                'username': admin_user,
+                'password': admin_pass,
+                'tenant_slug': slug,
+            },
+        )
         assert login.status_code in (200, 302)
 
         doctor = User(
@@ -182,21 +203,28 @@ class TestE2EProductionFlow:
 
         VisitStateMachineService.transition(visit, VisitState.CHECKED_IN)
         VisitStateMachineService.transition(visit, VisitState.IN_PROGRESS)
-        db.session.add(MedicalRecord(
-            tenant_id=tenant_id,
-            patient_id=patient.id,
-            visit_id=visit.id,
-            title='E2E intake note',
-            details='Un-mocked clinical documentation',
-            created_by=doctor.id,
-        ))
+        db.session.add(
+            MedicalRecord(
+                tenant_id=tenant_id,
+                patient_id=patient.id,
+                visit_id=visit.id,
+                title='E2E intake note',
+                details='Un-mocked clinical documentation',
+                created_by=doctor.id,
+            )
+        )
         db.session.commit()
         VisitStateMachineService.transition(visit, VisitState.COMPLETED)
         db.session.commit()
 
         db.session.refresh(visit)
         assert visit.status == VisitState.COMPLETED.value
-        assert db.session.execute(select(func.count()).select_from(MedicalRecord).filter_by(visit_id=visit.id)).scalar() == 1
+        assert (
+            db.session.execute(
+                select(func.count()).select_from(MedicalRecord).filter_by(visit_id=visit.id)
+            ).scalar()
+            == 1
+        )
 
         # ── 3. Billing → entitlements (live services, SDK boundary stub) ───
         monkeypatch.setattr(
@@ -208,12 +236,15 @@ class TestE2EProductionFlow:
             lambda **kw: MagicMock(id='cs_e2e', url='https://checkout.stripe.test/e2e'),
         )
 
-        checkout = client.post('/api/billing/checkout', json={
-            'package_version_id': version.id,
-            'billing_type': 'monthly',
-            'success_url': 'https://example.com/success',
-            'cancel_url': 'https://example.com/cancel',
-        })
+        checkout = client.post(
+            '/api/billing/checkout',
+            json={
+                'package_version_id': version.id,
+                'billing_type': 'monthly',
+                'success_url': 'https://example.com/success',
+                'cancel_url': 'https://example.com/cancel',
+            },
+        )
         assert checkout.status_code == 201, checkout.get_data(as_text=True)
         checkout_body = checkout.get_json()
         assert checkout_body.get('checkout_session_id') == 'cs_e2e'
@@ -223,11 +254,13 @@ class TestE2EProductionFlow:
         assert EntitlementResolver.is_entitled(tenant_id, 'lab.order') is False
 
         event_id = f'evt_e2e_{uuid.uuid4().hex}'
-        payload = json.dumps({
-            'id': event_id,
-            'type': 'invoice.paid',
-            'data': {'object': {'metadata': {'tenant_id': str(tenant_id)}}},
-        }).encode('utf-8')
+        payload = json.dumps(
+            {
+                'id': event_id,
+                'type': 'invoice.paid',
+                'data': {'object': {'metadata': {'tenant_id': str(tenant_id)}}},
+            }
+        ).encode('utf-8')
         monkeypatch.setattr(
             'services.stripe_subscription_service.stripe.Webhook.construct_event',
             lambda p, s, sec: json.loads(p),
@@ -237,7 +270,9 @@ class TestE2EProductionFlow:
         assert EntitlementResolver.is_entitled(tenant_id, 'lab.order') is True
 
         # ── 4. Async backup (202 + Celery eager + real pg_dump when available) ─
-        super_admin = db.session.execute(select(User).filter_by(role='super_admin')).scalars().first()
+        super_admin = (
+            db.session.execute(select(User).filter_by(role='super_admin')).scalars().first()
+        )
         if super_admin is None:
             super_admin = User(
                 username=f'sa_{slug}',
@@ -251,8 +286,8 @@ class TestE2EProductionFlow:
             db.session.add(super_admin)
             db.session.commit()
 
-        from tests.tenant_context import login_test_client
         from app.core.rate_limiter import _shared_store
+        from tests.tenant_context import login_test_client
 
         _shared_store.clear()
         login_test_client(client, super_admin, tenant, 'sapass1')

@@ -5,14 +5,13 @@ Provides controlled migration of legacy tenants (which only have a
 product_profile_code and/or SubscriptionPlan) onto the new Package/SubscriptionLine
 model without data loss.
 """
-from sqlalchemy import select, func
 
-from typing import Optional
+from sqlalchemy import func, select
 
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
 from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import SubscriptionLine
+from app.extensions import db
+from utils.db_safety import safe_commit
 
 
 class LegacyMigrationError(Exception):
@@ -24,7 +23,7 @@ def migrate_legacy_tenant_to_package(
     package_version_id: int,
     billing_type: str,
     *,
-    performed_by_user_id: Optional[int] = None,
+    performed_by_user_id: int | None = None,
 ) -> SubscriptionLine:
     """Attach a new base SubscriptionLine to an existing legacy tenant.
 
@@ -44,15 +43,15 @@ def migrate_legacy_tenant_to_package(
 
     tenant = db.session.get(Tenant, tenant_id)
     if not tenant:
-        raise LegacyMigrationError(f"Tenant {tenant_id} not found.")
+        raise LegacyMigrationError(f'Tenant {tenant_id} not found.')
 
-    active_lines = db.session.execute(select(func.count()).select_from(SubscriptionLine).filter_by(
-        tenant_id=tenant_id, status="active"
-    )).scalar()
+    active_lines = db.session.execute(
+        select(func.count())
+        .select_from(SubscriptionLine)
+        .filter_by(tenant_id=tenant_id, status='active')
+    ).scalar()
     if active_lines > 0:
-        raise LegacyMigrationError(
-            f"Tenant {tenant_id} already has active subscription lines."
-        )
+        raise LegacyMigrationError(f'Tenant {tenant_id} already has active subscription lines.')
 
     line = TenantProvisioningService._create_base_line(
         tenant.id,
@@ -66,7 +65,7 @@ def migrate_legacy_tenant_to_package(
         line,
         TenantProvisioningService._require_available_package_version(package_version_id),
     )
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
 
     from app.core.saas.projection import EntitlementProjectionService
 
@@ -77,16 +76,16 @@ def migrate_legacy_tenant_to_package(
     )
     TenantProvisioningService._record_history(
         tenant.id,
-        "MIGRATE_TO_PACKAGE",
-        notes=f"Migrated to package_version={package_version_id}, billing={billing_type}",
+        'MIGRATE_TO_PACKAGE',
+        notes=f'Migrated to package_version={package_version_id}, billing={billing_type}',
         performed_by_user_id=performed_by_user_id,
     )
     TenantProvisioningService._audit(
         tenant.id,
-        "MIGRATE_TO_PACKAGE",
-        entity_type="tenant",
+        'MIGRATE_TO_PACKAGE',
+        entity_type='tenant',
         entity_id=tenant.id,
-        details=f"package_version={package_version_id}, billing={billing_type}",
+        details=f'package_version={package_version_id}, billing={billing_type}',
         user_id=performed_by_user_id,
     )
     return line

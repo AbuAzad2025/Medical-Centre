@@ -2,10 +2,9 @@
 Trace ID middleware tests.
 Verifies that X-Request-ID header is injected into g.trace_id and returned in response headers.
 """
+
 from __future__ import annotations
 
-import pytest
-from flask import g, jsonify
 import logging
 
 
@@ -40,11 +39,10 @@ class TestTraceIdMiddleware:
 
     def test_trace_id_in_logs(self, app, client, caplog):
         """Trace ID appears in log records via TraceIdFilter."""
-        import logging
         caplog.set_level(logging.INFO)
-        
+
         client.get('/test/log-trace', headers={'X-Request-ID': 'log-trace-456'})
-        
+
         # Check that log records have trace_id
         log_records = [r for r in caplog.records if 'Test log message' in r.message]
         assert len(log_records) > 0

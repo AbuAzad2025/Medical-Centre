@@ -11,13 +11,16 @@ Fail-closed: in SaaS mode, queries on tenant-scoped models MUST have a
 tenant_id in context or an explicit bypass flag.  Without one, an
 AuthorizationError is raised to prevent data leaks.
 """
+
 import logging
 from typing import Any
 
 from flask import current_app, g
 from sqlalchemy import event
+from sqlalchemy.orm import Query
+from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.sql.elements import TextClause
-from sqlalchemy.orm import Query, Session as OrmSession
+
 from app.extensions import db
 
 logger = logging.getLogger(__name__)
@@ -44,13 +47,20 @@ class TenantIsolationError(PermissionError):
 #
 # NOTE: Keep ``scripts/ci/audit_rls_coverage.py`` in sync — its
 # ``PLATFORM_TENANT_TABLES`` must mirror this set exactly.
-_GLOBAL_TENANT_TABLES = frozenset({
-    'tenants',
-    'roles', 'permissions', 'role_permissions', 'user_permissions',
-    'module_permissions', 'department_permissions',
-    'system_configs', 'branding_settings',
-    'platform_audit_logs',  # has tenant_id column but is cross-tenant audit trail
-})
+_GLOBAL_TENANT_TABLES = frozenset(
+    {
+        'tenants',
+        'roles',
+        'permissions',
+        'role_permissions',
+        'user_permissions',
+        'module_permissions',
+        'department_permissions',
+        'system_configs',
+        'branding_settings',
+        'platform_audit_logs',  # has tenant_id column but is cross-tenant audit trail
+    }
+)
 
 
 def _skip_table(model_class) -> bool:
@@ -77,6 +87,7 @@ def _skip_table(model_class) -> bool:
 # ---------------------------------------------------------------------------
 # GLOBAL SESSION.GET() GUARD — catch cross-tenant loads from pk lookups
 # ---------------------------------------------------------------------------
+
 
 @event.listens_for(OrmSession, 'loaded_as_persistent')
 def _guard_session_get(target, context):
@@ -110,23 +121,24 @@ def _guard_session_get(target, context):
         # tenant context is suspicious — fail closed.
         if _is_saas_mode():
             raise TenantIsolationError(
-                f"Tenant-scoped object {target.__class__.__name__}:{getattr(target, 'id', '?')} "
-                f"loaded without tenant context"
+                f'Tenant-scoped object {target.__class__.__name__}:{getattr(target, "id", "?")} '
+                f'loaded without tenant context'
             )
         return
 
     instance_tid = getattr(target, 'tenant_id', None)
     if instance_tid is not None and instance_tid != tid:
         raise PermissionError(
-            f"Cross-tenant access blocked via session.get(): "
-            f"{target.__class__.__name__}:{getattr(target, 'id', '?')} "
-            f"(tenant={instance_tid}) does not belong to current tenant (tenant={tid})"
+            f'Cross-tenant access blocked via session.get(): '
+            f'{target.__class__.__name__}:{getattr(target, "id", "?")} '
+            f'(tenant={instance_tid}) does not belong to current tenant (tenant={tid})'
         )
 
 
 # ---------------------------------------------------------------------------
 # HELPERS
 # ---------------------------------------------------------------------------
+
 
 def _is_saas_mode() -> bool:
     try:
@@ -161,6 +173,7 @@ def _is_tenant_bypass() -> bool:
 
 # Common soft-delete column names (configurable if needed)
 _SOFT_DELETE_COLUMNS = frozenset({'deleted_at', 'is_deleted', 'deleted'})
+
 
 def _model_has_soft_delete(model_class) -> bool:
     """Check if model has a soft-delete column."""
@@ -266,6 +279,7 @@ def _statement_explicitly_scopes_tenant(statement, entity) -> bool:
         criteria = getattr(statement, '_where_criteria', None)
         if criteria:
             from sqlalchemy import and_
+
             where = and_(*criteria)
     if where is None:
         return False
@@ -290,30 +304,39 @@ def _check_bundle_limits_on_create(instance, tenant_id):
 
     table = instance.__tablename__
     if table == 'users':
-        current_count = db.session.execute(
-            db.text('SELECT COUNT(*) FROM users WHERE tenant_id = :tid'),
-            {'tid': tenant_id},
-        ).scalar() or 0
+        current_count = (
+            db.session.execute(
+                db.text('SELECT COUNT(*) FROM users WHERE tenant_id = :tid'),
+                {'tid': tenant_id},
+            ).scalar()
+            or 0
+        )
         ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_users', current_count, increment=1)
         if not ok:
             cap = EntitlementResolver.get_limit(tenant_id, 'max_users')
-            raise ValueError(f"Bundle limit exceeded: maximum {cap} users allowed")
+            raise ValueError(f'Bundle limit exceeded: maximum {cap} users allowed')
     elif table == 'patients':
-        current_count = db.session.execute(
-            db.text('SELECT COUNT(*) FROM patients WHERE tenant_id = :tid'),
-            {'tid': tenant_id},
-        ).scalar() or 0
-        ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_patients', current_count, increment=1)
+        current_count = (
+            db.session.execute(
+                db.text('SELECT COUNT(*) FROM patients WHERE tenant_id = :tid'),
+                {'tid': tenant_id},
+            ).scalar()
+            or 0
+        )
+        ok, _ = EntitlementResolver.check_limit(
+            tenant_id, 'max_patients', current_count, increment=1
+        )
         if not ok:
             cap = EntitlementResolver.get_limit(tenant_id, 'max_patients')
-            raise ValueError(f"Bundle limit exceeded: maximum {cap} patients allowed")
+            raise ValueError(f'Bundle limit exceeded: maximum {cap} patients allowed')
 
 
 # ---------------------------------------------------------------------------
 # 1. AUTO-FILTER — every SELECT gets WHERE tenant_id = :tenant_id
 # ---------------------------------------------------------------------------
 
-@event.listens_for(Query, "before_compile", retval=True)
+
+@event.listens_for(Query, 'before_compile', retval=True)
 def tenant_filter_query(query):
     """Automatically append tenant_id filter to all multi-tenant queries."""
     session = getattr(query, 'session', None)
@@ -332,8 +355,8 @@ def tenant_filter_query(query):
                     if _statement_explicitly_scopes_tenant(query, entity):
                         continue
                     raise TenantIsolationError(
-                        f"Fail-closed: query on tenant-scoped model "
-                        f"{entity.__name__} without tenant context in SaaS mode"
+                        f'Fail-closed: query on tenant-scoped model '
+                        f'{entity.__name__} without tenant context in SaaS mode'
                     )
         return query
 
@@ -383,6 +406,7 @@ def tenant_filter_query(query):
 #     current_setting('app.tenant_id', true) returns NULL.
 # ---------------------------------------------------------------------------
 
+
 @event.listens_for(OrmSession, 'do_orm_execute')
 def tenant_filter_select(orm_execute_state):
     """Tenant filter for ``session.execute(select(...))`` style queries.
@@ -400,6 +424,7 @@ def tenant_filter_select(orm_execute_state):
 
     # Intercept both ORM and Core Select statements
     from sqlalchemy import Select as _SASelect
+
     if not isinstance(statement, _SASelect):
         return
 
@@ -414,7 +439,7 @@ def tenant_filter_select(orm_execute_state):
     # expired attributes on already-loaded objects.  Filtering them would
     # break users with NULL tenant_id (platform/owner) whose identity
     # reload query returns no rows, causing ObjectDeletedError.
-    if "_sa_orm_load_options" in orm_execute_state.execution_options:
+    if '_sa_orm_load_options' in orm_execute_state.execution_options:
         return
 
     if tid is None:
@@ -428,8 +453,8 @@ def tenant_filter_select(orm_execute_state):
                     if _statement_explicitly_scopes_tenant(statement, entity):
                         continue
                     raise TenantIsolationError(
-                        f"Fail-closed: query on tenant-scoped model "
-                        f"{entity.__name__} without tenant context in SaaS mode"
+                        f'Fail-closed: query on tenant-scoped model '
+                        f'{entity.__name__} without tenant context in SaaS mode'
                     )
         return
 
@@ -484,7 +509,7 @@ def reassert_set_local(orm_execute_state):
         # and will not match any tenant_id since they're positive ints).
         try:
             orm_execute_state.session.execute(db.text("SET LOCAL app.tenant_id = ''"))
-        except Exception as e:
+        except Exception:
             logger.exception('RESET app.tenant_id failed in reassert_set_local')
             raise TenantIsolationError(
                 'RESET app.tenant_id failed: tenant context cannot be cleared'
@@ -494,19 +519,20 @@ def reassert_set_local(orm_execute_state):
         orm_execute_state.session.execute(
             db.text(f"SET LOCAL app.tenant_id = '{tid}'"),
         )
-    except Exception as e:
+    except Exception:
         logger.exception(
-            'SET LOCAL app.tenant_id = %s failed in reassert_set_local', tid,
+            'SET LOCAL app.tenant_id = %s failed in reassert_set_local',
+            tid,
         )
         raise TenantIsolationError(
-            'SET LOCAL re-assertion failed: tenant context cannot be '
-            f'applied (tenant_id={tid})'
+            f'SET LOCAL re-assertion failed: tenant context cannot be applied (tenant_id={tid})'
         )
 
 
 # ---------------------------------------------------------------------------
 # 2. AUTO-ASSIGN — every INSERT gets tenant_id = g.tenant_id
 # ---------------------------------------------------------------------------
+
 
 @event.listens_for(db.session.__class__, 'before_flush')
 def auto_assign_tenant(session, flush_context, instances):
@@ -533,7 +559,7 @@ def auto_assign_tenant(session, flush_context, instances):
                     continue
                 if getattr(instance, 'tenant_id', None) is None:
                     raise TenantIsolationError(
-                        f"Tenant-scoped record {instance.__class__.__name__} created without tenant context"
+                        f'Tenant-scoped record {instance.__class__.__name__} created without tenant context'
                     )
         return
 
@@ -544,9 +570,10 @@ def auto_assign_tenant(session, flush_context, instances):
     if dialect is not None and dialect.name == 'postgresql':
         try:
             session.execute(db.text(f"SET LOCAL app.tenant_id = '{tid}'"))
-        except Exception as e:
+        except Exception:
             logger.exception(
-                'SET LOCAL app.tenant_id = %s failed in auto_assign_tenant', tid,
+                'SET LOCAL app.tenant_id = %s failed in auto_assign_tenant',
+                tid,
             )
             raise TenantIsolationError(
                 'SET LOCAL re-assertion during flush failed: tenant context '
@@ -572,6 +599,7 @@ def auto_assign_tenant(session, flush_context, instances):
 # 3. CROSS-TENANT GUARD — prevent UPDATE/DELETE across tenants
 # ---------------------------------------------------------------------------
 
+
 def _cross_tenant_check(session, is_delete=False):
     """Guard against cross-tenant UPDATE/DELETE on dirty/deleted objects."""
     if _is_tenant_bypass():
@@ -592,9 +620,9 @@ def _cross_tenant_check(session, is_delete=False):
         instance_tid = getattr(instance, 'tenant_id', None)
         if instance_tid is not None and instance_tid != tid:
             raise PermissionError(
-                f"Cross-tenant {is_delete and 'DELETE' or 'UPDATE'} blocked: "
-                f"{instance.__class__.__name__} (tenant={instance_tid}) "
-                f"does not belong to current tenant (tenant={tid})"
+                f'Cross-tenant {(is_delete and "DELETE") or "UPDATE"} blocked: '
+                f'{instance.__class__.__name__} (tenant={instance_tid}) '
+                f'does not belong to current tenant (tenant={tid})'
             )
 
 
@@ -604,23 +632,29 @@ def _check_bundle_limits_on_update(instance, tenant_id):
 
     table = instance.__tablename__
     if table == 'users':
-        current_count = db.session.execute(
-            db.text('SELECT COUNT(*) FROM users WHERE tenant_id = :tid'),
-            {'tid': tenant_id},
-        ).scalar() or 0
+        current_count = (
+            db.session.execute(
+                db.text('SELECT COUNT(*) FROM users WHERE tenant_id = :tid'),
+                {'tid': tenant_id},
+            ).scalar()
+            or 0
+        )
         ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_users', current_count)
         if not ok:
             cap = EntitlementResolver.get_limit(tenant_id, 'max_users')
-            raise ValueError(f"Bundle limit exceeded: maximum {cap} users allowed")
+            raise ValueError(f'Bundle limit exceeded: maximum {cap} users allowed')
     elif table == 'patients':
-        current_count = db.session.execute(
-            db.text('SELECT COUNT(*) FROM patients WHERE tenant_id = :tid'),
-            {'tid': tenant_id},
-        ).scalar() or 0
+        current_count = (
+            db.session.execute(
+                db.text('SELECT COUNT(*) FROM patients WHERE tenant_id = :tid'),
+                {'tid': tenant_id},
+            ).scalar()
+            or 0
+        )
         ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_patients', current_count)
         if not ok:
             cap = EntitlementResolver.get_limit(tenant_id, 'max_patients')
-            raise ValueError(f"Bundle limit exceeded: maximum {cap} patients allowed")
+            raise ValueError(f'Bundle limit exceeded: maximum {cap} patients allowed')
 
 
 @event.listens_for(db.session.__class__, 'before_flush')

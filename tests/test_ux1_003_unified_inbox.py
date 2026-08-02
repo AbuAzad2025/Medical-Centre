@@ -1,10 +1,10 @@
 """Tests for UX1-003: Unified Work Inbox."""
 
 import pytest
+from sqlalchemy import delete, select
 
 from app.extensions import db
 from models.user import User
-from sqlalchemy import select, delete
 
 
 @pytest.fixture(scope='function')
@@ -25,20 +25,26 @@ def staff_user(app, test_tenant):
     yield u
     try:
         from models.audit_trail import LoginAttempt
+
         db.session.execute(delete(LoginAttempt).filter_by(user_id=u.id))
-    except Exception as e:
+    except Exception:
         db.session.rollback()
 
 
 @pytest.fixture(scope='function')
 def inbox_auth_client(app, client, staff_user, test_tenant):
     from app.core.rate_limiter import _shared_store
+
     _shared_store.clear()
-    resp = client.post('/auth/login', data={
-        'username': 'staff_inbox_test',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    }, follow_redirects=True)
+    resp = client.post(
+        '/auth/login',
+        data={
+            'username': 'staff_inbox_test',
+            'password': 'test123',
+            'tenant_slug': test_tenant.slug,
+        },
+        follow_redirects=True,
+    )
     assert resp.status_code == 200
     return client
 

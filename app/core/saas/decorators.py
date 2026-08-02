@@ -7,21 +7,21 @@ Composes with existing role/permission decorators:
     def create_lab_order(...):
         ...
 """
-from app.extensions import db
 
 from functools import wraps
 
-from flask import abort, g, current_app
+from flask import abort, current_app, g
 from flask_login import current_user
 
 from app.core.saas.resolver import EntitlementResolver
+from app.extensions import db
 
 
 def _is_admin_user() -> bool:
     """True if the current user is a global super_admin bypassing tenant restrictions."""
     try:
-        return current_user.is_authenticated and current_user.role == "super_admin"
-    except Exception as e:
+        return current_user.is_authenticated and current_user.role == 'super_admin'
+    except Exception:
         return False
 
 
@@ -33,20 +33,20 @@ def require_entitlement(capability_key: str):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            if not current_app.config.get("ENABLE_SAAS_MODE", False):
+            if not current_app.config.get('ENABLE_SAAS_MODE', False):
                 return f(*args, **kwargs)
 
             if _is_admin_user():
                 return f(*args, **kwargs)
 
-            from app.core.tenant.service import TenantContextService
             from app.core.tenant.models import Tenant
+            from app.core.tenant.service import TenantContextService
 
-            tenant = getattr(g, "current_tenant", None) or TenantContextService.get_current_tenant()
-            if tenant is None and getattr(g, "tenant_id", None):
+            tenant = getattr(g, 'current_tenant', None) or TenantContextService.get_current_tenant()
+            if tenant is None and getattr(g, 'tenant_id', None):
                 tenant = db.session.get(Tenant, g.tenant_id)
             if tenant is None:
-                abort(403, description="Tenant context required.")
+                abort(403, description='Tenant context required.')
 
             if not EntitlementResolver.is_entitled(tenant.id, capability_key):
                 abort(403, description=f"Tenant not entitled to '{capability_key}'.")

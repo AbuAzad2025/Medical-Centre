@@ -1,7 +1,7 @@
 """Unified work inbox — UX1-003."""
 
 from flask import Blueprint, g, render_template, request
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 
 from services.work_inbox_service import WorkInboxService
 
@@ -10,6 +10,7 @@ inbox_bp = Blueprint('inbox', __name__)
 
 def _resolve_is_entitled():
     from app.core.saas.resolver import EntitlementResolver
+
     tenant = getattr(g, 'current_tenant', None)
     if tenant is None:
         return lambda _k: True

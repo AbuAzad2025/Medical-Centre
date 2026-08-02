@@ -1,21 +1,21 @@
 """
 Permission Scope Service - resolves what data a user can access based on module roles
 """
+
 from sqlalchemy import select
+
 from app.extensions import db
-from typing import List, Optional
-from flask import g
-from utils.tenant_query import get_tenant_record, TenantContextError
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 
 class PermissionScopeService:
     """Determines data access scope based on user's active modules and role."""
 
     @staticmethod
-    def get_accessible_tenant_ids(user_id: int) -> List[int]:
+    def get_accessible_tenant_ids(user_id: int) -> list[int]:
         """Return tenant IDs the user can access (all if super admin, else assigned)."""
-        from models.user import User
         from app.core.tenant.models import Tenant
+        from models.user import User
 
         try:
             user = get_tenant_record(User, user_id)
@@ -28,33 +28,54 @@ class PermissionScopeService:
         return []
 
     @staticmethod
-    def get_accessible_module_names(user_id: int, tenant_id: Optional[int] = None) -> List[str]:
+    def get_accessible_module_names(user_id: int, tenant_id: int | None = None) -> list[str]:
         """Return module names the user can access within a tenant."""
         from app.core.tenant.models import TenantFeatureFlag
-        from models.user import User
         from models.advanced_permissions import ModulePermission
+        from models.user import User
 
         try:
             user = get_tenant_record(User, user_id)
         except TenantContextError:
             return []
         if user.is_super_admin:
-            return ['reception', 'doctor', 'lab', 'radiology', 'emergency', 'accounting',
-                    'pharmacy', 'billing', 'nursing', 'appointments', 'inventory',
-                    'portal', 'dicom', 'ai_imaging', 'admin', 'manager']
+            return [
+                'reception',
+                'doctor',
+                'lab',
+                'radiology',
+                'emergency',
+                'accounting',
+                'pharmacy',
+                'billing',
+                'nursing',
+                'appointments',
+                'inventory',
+                'portal',
+                'dicom',
+                'ai_imaging',
+                'admin',
+                'manager',
+            ]
 
         tid = tenant_id or (user.tenant_id if hasattr(user, 'tenant_id') else None)
         if not tid:
             return []
 
-        features = db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tid, is_active=True)).scalars().all()
+        features = (
+            db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tid, is_active=True))
+            .scalars()
+            .all()
+        )
         enabled_modules = [f.module for f in features if f.module]
 
         role_id = user.role_id if hasattr(user, 'role_id') else None
         if not role_id:
             return enabled_modules
 
-        perms = db.session.execute(select(ModulePermission).filter_by(role_id=role_id)).scalars().all()
+        perms = (
+            db.session.execute(select(ModulePermission).filter_by(role_id=role_id)).scalars().all()
+        )
         permitted_modules = [p.module_name for p in perms if p.can_view]
 
         return [m for m in enabled_modules if m in permitted_modules]

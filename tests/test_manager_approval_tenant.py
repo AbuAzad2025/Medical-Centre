@@ -1,15 +1,15 @@
 """Tests for manager approval route tenant safety (Ticket 2)."""
-import pytest
+
 from unittest.mock import patch
 
-from models.visit import Visit
+from sqlalchemy import select
+
+from app.extensions import db
+from app.shared.enums import PaymentStatus
+from app_factory import db as _db
 from models.patient import Patient
 from models.queue_management import QueueManagement
-from models.user import User
-from app_factory import db as _db
-from app.shared.enums import PaymentStatus
-from sqlalchemy import select
-from app.extensions import db
+from models.visit import Visit
 
 
 class TestManagerApprovalTenantSafety:
@@ -22,16 +22,22 @@ class TestManagerApprovalTenantSafety:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='OPEN',
-            total_amount=100, paid_amount=0,
-            is_force_payment=True, force_payment_reason='Emergency surgery needed'
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='OPEN',
+            total_amount=100,
+            paid_amount=0,
+            is_force_payment=True,
+            force_payment_reason='Emergency surgery needed',
         )
         _db.session.add(v)
         _db.session.commit()
 
         login_as(client, 'mgr_approve_t2', 'manager')
 
-        with patch('services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100):
+        with patch(
+            'services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100
+        ):
             resp = client.post(f'/manager/approve-force-payment/{v.id}', follow_redirects=False)
         assert resp.status_code == 302
         # Should redirect to force_payment_approvals, not error
@@ -49,20 +55,26 @@ class TestManagerApprovalTenantSafety:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='OPEN',
-            total_amount=100, paid_amount=0,
-            is_force_payment=True, force_payment_reason='Emergency surgery needed'
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='OPEN',
+            total_amount=100,
+            paid_amount=0,
+            is_force_payment=True,
+            force_payment_reason='Emergency surgery needed',
         )
         _db.session.add(v)
         _db.session.commit()
 
         login_as(client, 'mgr_reject_t2', 'manager')
 
-        with patch('services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100):
+        with patch(
+            'services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100
+        ):
             resp = client.post(
                 f'/manager/reject-force-payment/{v.id}',
                 data={'rejection_reason': 'Reason for rejection is clear and sufficient'},
-                follow_redirects=False
+                follow_redirects=False,
             )
         assert resp.status_code == 302
 
@@ -73,8 +85,13 @@ class TestManagerApprovalTenantSafety:
 
     def test_manager_approve_cross_tenant_denied(self, app, test_tenant, client, login_as):
         from app.core.tenant.models import Tenant
+
         tenant_id = test_tenant.id
-        other = Tenant(name='Other', slug=f'other-mgr-{__import__("uuid").uuid4().hex[:8]}', contact_email='other@example.com')
+        other = Tenant(
+            name='Other',
+            slug=f'other-mgr-{__import__("uuid").uuid4().hex[:8]}',
+            contact_email='other@example.com',
+        )
         _db.session.add(other)
         _db.session.commit()
 
@@ -83,16 +100,22 @@ class TestManagerApprovalTenantSafety:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=other.id, status='OPEN',
-            total_amount=100, paid_amount=0,
-            is_force_payment=True, force_payment_reason='Emergency surgery needed'
+            patient_id=p.id,
+            tenant_id=other.id,
+            status='OPEN',
+            total_amount=100,
+            paid_amount=0,
+            is_force_payment=True,
+            force_payment_reason='Emergency surgery needed',
         )
         _db.session.add(v)
         _db.session.commit()
 
         login_as(client, 'mgr_cross_t2', 'manager')
 
-        with patch('services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100):
+        with patch(
+            'services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100
+        ):
             resp = client.post(f'/manager/approve-force-payment/{v.id}', follow_redirects=False)
         # Must redirect with flash error rather than disclosing cross-tenant data
         assert resp.status_code == 302
@@ -104,8 +127,13 @@ class TestManagerApprovalTenantSafety:
 
     def test_manager_reject_cross_tenant_denied(self, app, test_tenant, client, login_as):
         from app.core.tenant.models import Tenant
+
         tenant_id = test_tenant.id
-        other = Tenant(name='Other', slug=f'other-mgr2-{__import__("uuid").uuid4().hex[:8]}', contact_email='other@example.com')
+        other = Tenant(
+            name='Other',
+            slug=f'other-mgr2-{__import__("uuid").uuid4().hex[:8]}',
+            contact_email='other@example.com',
+        )
         _db.session.add(other)
         _db.session.commit()
 
@@ -114,20 +142,26 @@ class TestManagerApprovalTenantSafety:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=other.id, status='OPEN',
-            total_amount=100, paid_amount=0,
-            is_force_payment=True, force_payment_reason='Emergency surgery needed'
+            patient_id=p.id,
+            tenant_id=other.id,
+            status='OPEN',
+            total_amount=100,
+            paid_amount=0,
+            is_force_payment=True,
+            force_payment_reason='Emergency surgery needed',
         )
         _db.session.add(v)
         _db.session.commit()
 
         login_as(client, 'mgr_reject_cross_t2', 'manager')
 
-        with patch('services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100):
+        with patch(
+            'services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100
+        ):
             resp = client.post(
                 f'/manager/reject-force-payment/{v.id}',
                 data={'rejection_reason': 'Reason for rejection is clear and sufficient'},
-                follow_redirects=False
+                follow_redirects=False,
             )
         assert resp.status_code == 302
 
@@ -143,16 +177,22 @@ class TestManagerApprovalTenantSafety:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='OPEN',
-            total_amount=100, paid_amount=0,
-            is_force_payment=True, force_payment_reason='Emergency surgery needed'
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='OPEN',
+            total_amount=100,
+            paid_amount=0,
+            is_force_payment=True,
+            force_payment_reason='Emergency surgery needed',
         )
         _db.session.add(v)
         _db.session.commit()
 
         login_as(client, 'mgr_no_ctx_t2', 'manager')
 
-        with patch('services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100):
+        with patch(
+            'services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100
+        ):
             resp = client.post(f'/manager/approve-force-payment/{v.id}', follow_redirects=False)
         # Should redirect (flash error) rather than processing
         assert resp.status_code == 302
@@ -165,21 +205,28 @@ class TestManagerApprovalTenantSafety:
         _db.session.commit()
 
         from sqlalchemy import text
-        d = _db.session.execute(text("SELECT id FROM departments LIMIT 1")).fetchone()
+
+        d = _db.session.execute(text('SELECT id FROM departments LIMIT 1')).fetchone()
         dept_id = d[0] if d else None
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='OPEN',
-            total_amount=100, paid_amount=0,
-            is_force_payment=True, force_payment_reason='Emergency surgery needed',
-            department_id=dept_id
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='OPEN',
+            total_amount=100,
+            paid_amount=0,
+            is_force_payment=True,
+            force_payment_reason='Emergency surgery needed',
+            department_id=dept_id,
         )
         _db.session.add(v)
         _db.session.commit()
 
         login_as(client, 'mgr_no_enqueue_t2', 'manager')
 
-        with patch('services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100):
+        with patch(
+            'services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100
+        ):
             resp = client.post(f'/manager/approve-force-payment/{v.id}', follow_redirects=False)
         assert resp.status_code == 302
 

@@ -4,10 +4,12 @@ Resolves tenant from subdomain, path (/t/<slug>/), or dedicated domain.
 Provides TenantPathWSGIMiddleware to rewrite /t/<slug>/... → /...
 and set_tenant_context() as the Flask before_request handler.
 """
-from flask import current_app, request, g
-from sqlalchemy import select, func, text
-from app.extensions import db
+
+from flask import current_app, g, request
+from sqlalchemy import func, select
+
 from app.core.tenant.models import Tenant
+from app.extensions import db
 
 
 class TenantPathWSGIMiddleware:
@@ -16,6 +18,7 @@ class TenantPathWSGIMiddleware:
     Stores the resolved slug in environ['tenant.slug'] for later use by
     set_tenant_context().
     """
+
     def __init__(self, app):
         self.app = app
 
@@ -26,9 +29,7 @@ class TenantPathWSGIMiddleware:
             if len(parts) >= 3 and parts[2]:
                 environ['tenant.slug'] = parts[2]
                 environ['PATH_INFO'] = '/' + '/'.join(parts[3:])
-                environ['RAW_URI'] = environ.get('RAW_URI', path).replace(
-                    f'/t/{parts[2]}', '', 1
-                )
+                environ['RAW_URI'] = environ.get('RAW_URI', path).replace(f'/t/{parts[2]}', '', 1)
         return self.app(environ, start_response)
 
 
@@ -40,10 +41,16 @@ def _get_tenant_by_slug(slug: str) -> Tenant | None:
     """Return login-eligible tenant by slug (active, trial, or pending payment)."""
     from app.shared.enums import TenantStatus
 
-    return db.session.execute(select(Tenant).filter(
-        Tenant.slug == slug,
-        Tenant.status.in_((TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING)),
-    )).scalars().first()
+    return (
+        db.session.execute(
+            select(Tenant).filter(
+                Tenant.slug == slug,
+                Tenant.status.in_((TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING)),
+            )
+        )
+        .scalars()
+        .first()
+    )
 
 
 _PENDING_ALLOWED_PREFIXES = (
@@ -97,7 +104,7 @@ def resolve_tenant() -> Tenant | None:
             return tenant
         if not saas:
             return None
-        raise TenantResolutionError(f"Unknown or inactive tenant slug: {slug}")
+        raise TenantResolutionError(f'Unknown or inactive tenant slug: {slug}')
 
     # Non-SaaS mode: only path-based resolution applies
     if not saas:
@@ -117,13 +124,21 @@ def resolve_tenant() -> Tenant | None:
     base_domain = cfg.get('TENANT_BASE_DOMAIN')
     if 'subdomain' in modes and base_domain and host.endswith(f'.{base_domain}'):
         slug = host.replace(f'.{base_domain}', '')
-        tenant = db.session.execute(select(Tenant).filter_by(subdomain=slug, status='active')).scalars().first()
+        tenant = (
+            db.session.execute(select(Tenant).filter_by(subdomain=slug, status='active'))
+            .scalars()
+            .first()
+        )
         if tenant:
             return tenant
 
     # 3. Dedicated domain
     if 'domain' in modes and host:
-        tenant = db.session.execute(select(Tenant).filter_by(domain=host, status='active')).scalars().first()
+        tenant = (
+            db.session.execute(select(Tenant).filter_by(domain=host, status='active'))
+            .scalars()
+            .first()
+        )
         if tenant:
             return tenant
 
@@ -132,13 +147,14 @@ def resolve_tenant() -> Tenant | None:
     if tenant:
         return tenant
 
-    raise TenantResolutionError("No tenant could be resolved for this request.")
+    raise TenantResolutionError('No tenant could be resolved for this request.')
 
 
 def _tenant_from_authenticated_user() -> Tenant | None:
     """Resolve tenant from session or the logged-in user's ``tenant_id``."""
     try:
         from flask import g, session
+
         from models.user import User
 
         tid = session.get('tenant_id')
@@ -155,12 +171,13 @@ def _tenant_from_authenticated_user() -> Tenant | None:
         if not user_id:
             try:
                 from flask_login import current_user
+
                 if current_user.is_authenticated:
                     user_id = current_user.id
                     tid = getattr(current_user, 'tenant_id', None)
                     if tid:
                         return db.session.get(Tenant, tid)
-            except Exception as e:
+            except Exception:
                 pass
         if not user_id:
             return None
@@ -177,7 +194,7 @@ def _tenant_from_authenticated_user() -> Tenant | None:
 
         if user and user.tenant_id:
             return db.session.get(Tenant, user.tenant_id)
-    except Exception as e:
+    except Exception:
         return None
     return None
 
@@ -211,10 +228,11 @@ def bind_g_tenant(tenant: Tenant | None) -> None:
     if not tenant:
         return
     try:
-        from sqlalchemy import text, select, func
+        from sqlalchemy import text
+
         db.session.execute(text(f"SET LOCAL app.tenant_id = '{tenant.id}'"))
         db.session.info['_tenant_id'] = tenant.id
-    except Exception as e:
+    except Exception:
         pass
 
 
@@ -272,6 +290,7 @@ def set_tenant_context():
         except TenantResolutionError as exc:
             if saas and not g.get('tenant_id'):
                 from flask import abort
+
                 abort(403, description=str(exc))
             tenant = None
 
@@ -280,16 +299,50 @@ def set_tenant_context():
 
     # Module guard paths - let module guards handle access control instead of aborting here
     MODULE_GUARD_PREFIXES = (
-        '/lab/', '/radiology/', '/nurse/', '/reception/', '/medication/',
-        '/finance/', '/accountant/', '/booking/', '/manager/', '/barcode/',
-        '/patient-education/', '/telemedicine/', '/clinical-coding/',
-        '/specialty-forms/', '/referral/', '/vaccination/', '/pathway/',
-        '/cds/', '/emar/', '/bed/', '/or/', '/nursing-assessment/',
-        '/backup/', '/backup-restore/', '/ai-imaging/', '/dicom/', '/fhir/',
-        '/sso/', '/api/search/', '/api/user/', '/api/dashboard/',
-        '/population-health/', '/data-warehouse/', '/report-builder/',
-        '/quality/', '/what-if/', '/monitoring/', '/security/', '/mfa/',
-        '/biometric/', '/custom-report/', '/kiosk/', '/doctor/', '/emergency/',
+        '/lab/',
+        '/radiology/',
+        '/nurse/',
+        '/reception/',
+        '/medication/',
+        '/finance/',
+        '/accountant/',
+        '/booking/',
+        '/manager/',
+        '/barcode/',
+        '/patient-education/',
+        '/telemedicine/',
+        '/clinical-coding/',
+        '/specialty-forms/',
+        '/referral/',
+        '/vaccination/',
+        '/pathway/',
+        '/cds/',
+        '/emar/',
+        '/bed/',
+        '/or/',
+        '/nursing-assessment/',
+        '/backup/',
+        '/backup-restore/',
+        '/ai-imaging/',
+        '/dicom/',
+        '/fhir/',
+        '/sso/',
+        '/api/search/',
+        '/api/user/',
+        '/api/dashboard/',
+        '/population-health/',
+        '/data-warehouse/',
+        '/report-builder/',
+        '/quality/',
+        '/what-if/',
+        '/monitoring/',
+        '/security/',
+        '/mfa/',
+        '/biometric/',
+        '/custom-report/',
+        '/kiosk/',
+        '/doctor/',
+        '/emergency/',
     )
 
     if saas and not is_exempt and tenant is None:
@@ -301,6 +354,7 @@ def set_tenant_context():
         else:
             try:
                 from flask_login import current_user
+
                 if not current_user.is_authenticated:
                     g.current_tenant = None
                     g.tenant_id = None
@@ -308,10 +362,11 @@ def set_tenant_context():
                     g.enabled_modules = set()
                     g.product_profile = None
                     g.feature_flags = {}
-                    return
-            except Exception as e:
+                    return None
+            except Exception:
                 pass
             from flask import abort
+
             abort(403, description='No tenant could be resolved for this request.')
 
     g.enabled_modules = set()
@@ -331,11 +386,14 @@ def set_tenant_context():
         # If the module is disabled, let the module guard return 403 instead of redirecting.
         # IMPORTANT: Check for cross-tenant access - if the request path has a different
         # tenant slug than the user's tenant, skip redirect and let cross-tenant check handle it.
-        if (not request.environ.get('tenant.slug')
-                and not is_exempt
-                and request.method in ('GET', 'HEAD')):
+        if (
+            not request.environ.get('tenant.slug')
+            and not is_exempt
+            and request.method in ('GET', 'HEAD')
+        ):
             try:
                 from flask_login import current_user
+
                 if current_user.is_authenticated:
                     # Check if the request path has a different tenant slug (cross-tenant access)
                     # Skip R4 redirect for cross-tenant paths - let enforce_tenant_access handle it
@@ -353,31 +411,42 @@ def set_tenant_context():
                                 if request.path.startswith(prefix):
                                     module_name = prefix.strip('/').split('/')[0]
                                     break
-                            
+
                             if module_name:
                                 try:
-                                    from app.core.module.validators import get_active_modules_for_tenant
+                                    from app.core.module.validators import (
+                                        get_active_modules_for_tenant,
+                                    )
+
                                     active_modules = get_active_modules_for_tenant(tenant.id)
                                     if module_name not in active_modules:
                                         # Module is disabled - don't redirect, let module guard return 403
                                         pass
                                     else:
                                         from flask import redirect
-                                        query = request.query_string.decode() if request.query_string else ''
+
+                                        query = (
+                                            request.query_string.decode()
+                                            if request.query_string
+                                            else ''
+                                        )
                                         target = f'/t/{tenant.slug}{request.path}'
                                         if query:
                                             target += f'?{query}'
                                         return redirect(target)
-                                except Exception as e:
+                                except Exception:
                                     pass
                             else:
                                 from flask import redirect
-                                query = request.query_string.decode() if request.query_string else ''
+
+                                query = (
+                                    request.query_string.decode() if request.query_string else ''
+                                )
                                 target = f'/t/{tenant.slug}{request.path}'
                                 if query:
                                     target += f'?{query}'
                                 return redirect(target)
-            except Exception as e:
+            except Exception:
                 pass
     else:
         g.current_tenant = None
@@ -385,38 +454,40 @@ def set_tenant_context():
         g.tenant_slug = None
 
     if not tenant:
-        return
+        return None
 
     # MC-005: enforce tenant-access for authenticated users
     if not is_exempt:
-        actor = getattr(g, "current_user", None)
+        actor = getattr(g, 'current_user', None)
         if actor is None:
             try:
                 from flask_login import current_user
 
                 if current_user.is_authenticated:
                     actor = current_user
-            except Exception as e:
+            except Exception:
                 actor = None
-        actor_role = getattr(actor, "role", None) if actor else None
+        actor_role = getattr(actor, 'role', None) if actor else None
         # Only the Ghost Mode master (platform_owner) is exempt from pre-enforcement;
         # the ghost middleware re-resolves the impersonated context afterwards.
         # super_admin/owner cross-tenant access is still gated by
         # enforce_tenant_access() via the explicit assumption mechanism.
-        if actor_role != "platform_owner":
+        if actor_role != 'platform_owner':
             try:
                 from app.core.tenant.assumption_service import PlatformAssumptionService
 
                 PlatformAssumptionService.enforce_tenant_access()
-            except Exception as exc:
+            except Exception:
                 from flask import abort
 
-                abort(403, description="Cross-tenant access denied")
+                abort(403, description='Cross-tenant access denied')
 
     from app.shared.enums import TenantStatus
+
     if tenant.status == TenantStatus.PENDING:
         if not any(request.path.startswith(p) for p in _PENDING_ALLOWED_PREFIXES):
             from flask import abort
+
             abort(402, description='Subscription payment required before accessing this resource.')
 
     # Inject module/feature/profile context
@@ -424,7 +495,7 @@ def set_tenant_context():
         from app.core.module.validators import get_active_modules_for_tenant
 
         g.enabled_modules = get_active_modules_for_tenant(tenant.id)
-    except Exception as e:
+    except Exception:
         g.enabled_modules = set() if saas else g.enabled_modules
 
     g.product_profile = tenant.product_profile_code
@@ -432,9 +503,13 @@ def set_tenant_context():
     try:
         from app.core.tenant.models import TenantFeatureFlag
 
-        flags = db.session.execute(select(TenantFeatureFlag).filter_by(
-            tenant_id=tenant.id, is_enabled=True
-        )).scalars().all()
+        flags = (
+            db.session.execute(
+                select(TenantFeatureFlag).filter_by(tenant_id=tenant.id, is_enabled=True)
+            )
+            .scalars()
+            .all()
+        )
         g.feature_flags = {f.feature_key: True for f in flags}
-    except Exception as e:
+    except Exception:
         g.feature_flags = {}

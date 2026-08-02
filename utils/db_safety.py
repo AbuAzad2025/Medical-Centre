@@ -5,13 +5,12 @@ All `db.session.commit()` and `db.session.rollback()` calls in the
 codebase MUST be replaced by calls to this module.
 """
 
-import logging
 from contextlib import contextmanager
 
 from flask import current_app
 
 
-def safe_commit(db_session, *, error_message="Database error", reraise=False, logger=None):
+def safe_commit(db_session, *, error_message='Database error', reraise=False, logger=None):
     """
     Commit and rollback on failure.
 
@@ -44,13 +43,13 @@ def safe_commit(db_session, *, error_message="Database error", reraise=False, lo
         return True
     except Exception as e:
         db_session.rollback()
-        (logger or current_app.logger).error(f"{error_message}: {e}")
+        (logger or current_app.logger).error(f'{error_message}: {e}')
         if reraise:
             raise
         return False
 
 
-def safe_rollback(db_session, *, error_message="Database rollback", logger=None):
+def safe_rollback(db_session, *, error_message='Database rollback', logger=None):
     """
     Roll back the current transaction and log.
 
@@ -62,11 +61,11 @@ def safe_rollback(db_session, *, error_message="Database rollback", logger=None)
     try:
         db_session.rollback()
     except Exception as e:
-        (logger or current_app.logger).error(f"{error_message}: {e}")
+        (logger or current_app.logger).error(f'{error_message}: {e}')
 
 
 @contextmanager
-def safe_transaction(db_session, *, error_message="Database error", logger=None):
+def safe_transaction(db_session, *, error_message='Database error', logger=None):
     """
     Context manager that commits on success, rolls back on exception.
 
@@ -91,5 +90,5 @@ def safe_transaction(db_session, *, error_message="Database error", logger=None)
         db_session.commit()
     except Exception as e:
         db_session.rollback()
-        (logger or current_app.logger).error(f"{error_message}: {e}")
+        (logger or current_app.logger).error(f'{error_message}: {e}')
         raise

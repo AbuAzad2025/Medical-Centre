@@ -3,11 +3,11 @@
 import os
 
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from sqlalchemy import select
 
 from app.core.rate_limiter import RateLimiter, rate_limit
-from services.saas_registration_service import SaasRegistrationError, SaasRegistrationService
 from app.extensions import db
-from sqlalchemy import select
+from services.saas_registration_service import SaasRegistrationError, SaasRegistrationService
 
 saas_bp = Blueprint('saas', __name__)
 
@@ -15,15 +15,28 @@ _signup_post_limiter = RateLimiter(max_requests=5, window_seconds=300, namespace
 
 
 def _available_package_versions():
-    from app.core.saas.models import Package, PackageVersion, PackageVersionAvailability, PackageVersionAvailabilityStatus
+    from app.core.saas.models import (
+        Package,
+        PackageVersion,
+        PackageVersionAvailability,
+        PackageVersionAvailabilityStatus,
+    )
 
-    return db.session.execute(select(PackageVersion).join(Package)
-        .join(PackageVersionAvailability)
-        .filter(
-            Package.is_active == True,
-            PackageVersionAvailability.availability_status == PackageVersionAvailabilityStatus.AVAILABLE,
+    return (
+        db.session.execute(
+            select(PackageVersion)
+            .join(Package)
+            .join(PackageVersionAvailability)
+            .filter(
+                Package.is_active == True,
+                PackageVersionAvailability.availability_status
+                == PackageVersionAvailabilityStatus.AVAILABLE,
+            )
+            .order_by(Package.name, PackageVersion.version)
         )
-        .order_by(Package.name, PackageVersion.version)).scalars().all()
+        .scalars()
+        .all()
+    )
 
 
 def _signup_template_context(packages):
@@ -80,7 +93,7 @@ def signup_organization():
     except SaasRegistrationError as exc:
         flash(f'تعذر إكمال التسجيل: {exc}', 'error')
         return render_template('saas/signup.html', **_signup_template_context(packages)), 400
-    except Exception as e:
+    except Exception:
         flash('تعذر إكمال التسجيل حالياً. حاول لاحقاً.', 'error')
         return render_template('saas/signup.html', **_signup_template_context(packages)), 500
 
@@ -117,5 +130,5 @@ def register_organization():
         return jsonify(body), 201
     except SaasRegistrationError as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'registration_failed'}), 500

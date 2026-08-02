@@ -1,18 +1,14 @@
 """Tests for plan-change validation edge cases in StripeBillingService."""
 
 import uuid
-from decimal import Decimal
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
-from app.core.saas.lifecycle import TenantProvisioningService, ProvisioningError
+from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import (
-    Package,
-    PackageVersion,
     PackageVersionAvailability,
     PackageVersionAvailabilityStatus,
-    PackageVersionPricing,
     SubscriptionLine,
     SubscriptionLineStatus,
     SubscriptionLineType,
@@ -20,8 +16,8 @@ from app.core.saas.models import (
 from app.core.tenant.models import TenantStatus
 from app.extensions import db
 from services.stripe_billing_service import (
-    StripeBillingError,
     PlanChangeValidationError,
+    StripeBillingError,
     StripeBillingService,
 )
 from tests.test_saas_tenant_lifecycle import _make_package_version
@@ -47,6 +43,7 @@ def change_tenant(app):
 
 
 # ═══════════════════════════ Validation Tests ═══════════════════════════
+
 
 class TestPlanChangeValidation:
     def test_suspended_tenant_blocked(self, app, stripe_api_key, change_tenant, monkeypatch):
@@ -177,8 +174,11 @@ class TestPlanChangeValidation:
 
 # ═══════════════════════════ Proration Tests ═══════════════════════════
 
+
 class TestProrationValidation:
-    def test_proration_negative_amount_logged(self, app, stripe_api_key, change_tenant, monkeypatch):
+    def test_proration_negative_amount_logged(
+        self, app, stripe_api_key, change_tenant, monkeypatch
+    ):
         tenant, old_version = change_tenant
         new_version = _make_package_version([('lab', 'lab.order')], price=50)
         tenant.settings = {'stripe_subscription_id': 'sub_proration'}
@@ -207,7 +207,9 @@ class TestProrationValidation:
         result = StripeBillingService.change_plan(tenant.id, new_version.id, 'monthly')
         assert result['action'] == 'downgrade'
 
-    def test_stripe_invoice_list_failure_non_fatal(self, app, stripe_api_key, change_tenant, monkeypatch):
+    def test_stripe_invoice_list_failure_non_fatal(
+        self, app, stripe_api_key, change_tenant, monkeypatch
+    ):
         tenant, old_version = change_tenant
         new_version = _make_package_version([('lab', 'lab.order')], price=200)
         tenant.settings = {'stripe_subscription_id': 'sub_err'}
@@ -222,6 +224,7 @@ class TestProrationValidation:
             'services.stripe_billing_service.stripe.Subscription.modify',
             lambda *a, **k: MagicMock(id='sub_err'),
         )
+
         # Simulate Stripe error on invoice.list — should be non-fatal
         def raise_stripe_error(**kw):
             raise RuntimeError('Stripe API down')
@@ -236,6 +239,7 @@ class TestProrationValidation:
 
 
 # ═══════════════════════════ Upgrade/Downgrade Tests ═══════════════════════════
+
 
 class TestUpgradeDowngradeClassification:
     def test_higher_price_is_upgrade(self, app, stripe_api_key, change_tenant, monkeypatch):
@@ -322,8 +326,11 @@ class TestUpgradeDowngradeClassification:
 
 # ═══════════════════════════ Idempotency Tests ═══════════════════════════
 
+
 class TestIdempotency:
-    def test_idempotency_key_present_on_modify(self, app, stripe_api_key, change_tenant, monkeypatch):
+    def test_idempotency_key_present_on_modify(
+        self, app, stripe_api_key, change_tenant, monkeypatch
+    ):
         tenant, old_version = change_tenant
         new_version = _make_package_version([('lab', 'lab.order')], price=200)
         tenant.settings = {'stripe_subscription_id': 'sub_idem'}
@@ -360,8 +367,11 @@ class TestIdempotency:
 
 # ═══════════════════════════ Missing Base Line Tests ═══════════════════════════
 
+
 class TestMissingBaseLine:
-    def test_no_active_base_line_treats_current_price_as_zero(self, app, stripe_api_key, monkeypatch):
+    def test_no_active_base_line_treats_current_price_as_zero(
+        self, app, stripe_api_key, monkeypatch
+    ):
         """Tenant with no active base line (e.g., all lines ended) should still allow plan change."""
         version = _make_package_version([('lab', 'lab.order')], price=100)
         tenant = TenantProvisioningService.provision_tenant(
@@ -374,10 +384,15 @@ class TestMissingBaseLine:
         db.session.commit()
 
         # End all base lines manually
-        lines = db.session.execute(
-            __import__('sqlalchemy', fromlist=['select']).select(SubscriptionLine)
-            .filter_by(tenant_id=tenant.id, line_type=SubscriptionLineType.BASE)
-        ).scalars().all()
+        lines = (
+            db.session.execute(
+                __import__('sqlalchemy', fromlist=['select'])
+                .select(SubscriptionLine)
+                .filter_by(tenant_id=tenant.id, line_type=SubscriptionLineType.BASE)
+            )
+            .scalars()
+            .all()
+        )
         for line in lines:
             line.status = SubscriptionLineStatus.ENDED
         db.session.commit()

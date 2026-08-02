@@ -1,21 +1,22 @@
 """Pharmacy POS and Sales routes"""
-from flask import render_template, request, jsonify, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from sqlalchemy import func, select
-from decimal import Decimal
-from datetime import datetime, timezone, date
-import logging, json
 
-from app.shared.print_context import generate_qr_data_uri
-from routes.medication_routes import medication_bp
-from models.medication import Medication, PharmacySale, PharmacySaleItem, PharmacyReturn
+import logging
+from datetime import UTC, date, datetime
+from decimal import Decimal
+
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import func, select
+
 from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from app.shared.pos_charge import execute_pos_charge
-from app.shared.user_messages import user_message
-from services.pos_terminal_service import PosTerminalService
 from app.modules.workflows.pharmacy import PharmacyStockService
+from app.shared.pos_charge import execute_pos_charge
+from app.shared.print_context import generate_qr_data_uri
+from models.medication import Medication, PharmacySale, PharmacySaleItem
+from routes.medication_routes import medication_bp
+from services.pos_terminal_service import PosTerminalService
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required
 
 
 @medication_bp.route('/pos')
@@ -23,11 +24,19 @@ from app.modules.workflows.pharmacy import PharmacyStockService
 @role_required('pharmacist', 'admin', 'manager')
 def pos():
     """Point of Sale interface"""
-    medications = db.session.execute(select(Medication).filter(
-        Medication.tenant_id == current_user.tenant_id,
-        Medication.is_active == True,
-        Medication.stock_quantity > 0
-    ).order_by(Medication.trade_name)).scalars().all()
+    medications = (
+        db.session.execute(
+            select(Medication)
+            .filter(
+                Medication.tenant_id == current_user.tenant_id,
+                Medication.is_active == True,
+                Medication.stock_quantity > 0,
+            )
+            .order_by(Medication.trade_name)
+        )
+        .scalars()
+        .all()
+    )
     return render_template(
         'pharmacy/pos.html',
         medications=medications,
@@ -55,25 +64,37 @@ def api_medications_search():
     q = request.args.get('q', '').strip()
     if not q or len(q) < 1:
         return jsonify([])
-    items = db.session.execute(select(Medication).filter(
-        Medication.tenant_id == current_user.tenant_id,
-        Medication.is_active == True,
-        Medication.stock_quantity > 0,
-        db.or_(
-            Medication.trade_name.ilike(f'%{q}%'),
-            Medication.scientific_name.ilike(f'%{q}%'),
-            Medication.generic_name.ilike(f'%{q}%'),
+    items = (
+        db.session.execute(
+            select(Medication)
+            .filter(
+                Medication.tenant_id == current_user.tenant_id,
+                Medication.is_active == True,
+                Medication.stock_quantity > 0,
+                db.or_(
+                    Medication.trade_name.ilike(f'%{q}%'),
+                    Medication.scientific_name.ilike(f'%{q}%'),
+                    Medication.generic_name.ilike(f'%{q}%'),
+                ),
+            )
+            .order_by(Medication.trade_name)
+            .limit(20)
         )
-    ).order_by(Medication.trade_name).limit(20)).scalars().all()
-    data = [{
-        'id': m.id,
-        'trade_name': m.trade_name,
-        'scientific_name': m.scientific_name,
-        'price': float(m.price or 0),
-        'stock': m.stock_quantity or 0,
-        'dosage': m.get_dosage_display(),
-        'category': m.category or '',
-    } for m in items]
+        .scalars()
+        .all()
+    )
+    data = [
+        {
+            'id': m.id,
+            'trade_name': m.trade_name,
+            'scientific_name': m.scientific_name,
+            'price': float(m.price or 0),
+            'stock': m.stock_quantity or 0,
+            'dosage': m.get_dosage_display(),
+            'category': m.category or '',
+        }
+        for m in items
+    ]
     return jsonify(data)
 
 
@@ -95,10 +116,12 @@ def pos_sell():
         transaction_id = (data.get('transaction_id') or '').strip() or None
 
         if payment_method in ('card', 'visa', 'mada') and not transaction_id:
-            return jsonify({
-                'success': False,
-                'message': 'يرجى تحصيل المبلغ عبر جهاز البطاقة قبل إتمام البيع',
-            }), 400
+            return jsonify(
+                {
+                    'success': False,
+                    'message': 'يرجى تحصيل المبلغ عبر جهاز البطاقة قبل إتمام البيع',
+                }
+            ), 400
 
         sale = PharmacySale(
             tenant_id=current_user.tenant_id,
@@ -122,12 +145,19 @@ def pos_sell():
             if not med_id or qty < 1:
                 continue
 
-            med = db.session.execute(select(Medication).filter(
-                Medication.tenant_id == current_user.tenant_id,
-                Medication.id == med_id
-            ).with_for_update()).scalars().first()
+            med = (
+                db.session.execute(
+                    select(Medication)
+                    .filter(Medication.tenant_id == current_user.tenant_id, Medication.id == med_id)
+                    .with_for_update()
+                )
+                .scalars()
+                .first()
+            )
             if not med:
-                return jsonify({'success': False, 'message': f'الدواء غير موجود (الرقم {med_id})'}), 400
+                return jsonify(
+                    {'success': False, 'message': f'الدواء غير موجود (الرقم {med_id})'}
+                ), 400
 
             unit_price = Decimal(str(med.price or 0))
             total_price = unit_price * qty
@@ -152,26 +182,33 @@ def pos_sell():
                     reference_type='PharmacySale',
                     reference_id=sale.id,
                     performed_by=current_user.id,
-                    notes=f"POS sale {sale.id}",
+                    notes=f'POS sale {sale.id}',
                 )
             except ValueError:
-                return jsonify({'success': False, 'message': f'المخزون غير كافٍ لـ {med.trade_name} (المتوفر: {med.stock_quantity})'}), 400
+                return jsonify(
+                    {
+                        'success': False,
+                        'message': f'المخزون غير كافٍ لـ {med.trade_name} (المتوفر: {med.stock_quantity})',
+                    }
+                ), 400
 
             total += total_price
 
         sale.total_amount = total
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
 
-        return jsonify({
-            'success': True,
-            'message': 'تمت عملية البيع بنجاح',
-            'sale_id': sale.id,
-            'sale_number': sale.sale_number,
-            'total': float(total),
-        })
+        return jsonify(
+            {
+                'success': True,
+                'message': 'تمت عملية البيع بنجاح',
+                'sale_id': sale.id,
+                'sale_number': sale.sale_number,
+                'total': float(total),
+            }
+        )
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"POS sell error: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'POS sell error: {e!s}')
         return jsonify({'success': False, 'message': 'حدث خطأ أثناء عملية البيع'}), 500
 
 
@@ -181,10 +218,10 @@ def pos_sell():
 def sales_history():
     page = request.args.get('page', 1, type=int)
     per_page = 25
-    stmt = select(PharmacySale).filter(
-        PharmacySale.tenant_id == current_user.tenant_id
-    ).order_by(
-        PharmacySale.created_at.desc()
+    stmt = (
+        select(PharmacySale)
+        .filter(PharmacySale.tenant_id == current_user.tenant_id)
+        .order_by(PharmacySale.created_at.desc())
     )
     pagination = db.paginate(stmt, page=page, per_page=per_page, error_out=False)
     return render_template('pharmacy/sales_history.html', pagination=pagination)
@@ -194,10 +231,15 @@ def sales_history():
 @login_required
 @role_required('pharmacist', 'admin', 'manager', 'accountant')
 def sale_detail(sale_id):
-    sale = db.session.execute(select(PharmacySale).filter(
-        PharmacySale.tenant_id == current_user.tenant_id,
-        PharmacySale.id == sale_id
-    )).scalars().first()
+    sale = (
+        db.session.execute(
+            select(PharmacySale).filter(
+                PharmacySale.tenant_id == current_user.tenant_id, PharmacySale.id == sale_id
+            )
+        )
+        .scalars()
+        .first()
+    )
     if not sale:
         flash('الفاتورة غير موجودة', 'error')
         return redirect(url_for('medication.sales_history'))
@@ -209,26 +251,40 @@ def sale_detail(sale_id):
 @role_required('pharmacist', 'admin', 'manager', 'accountant')
 def print_sale_receipt(sale_id):
     """Printable pharmacy sale receipt on print_base (G-114)."""
-    sale = db.session.execute(select(PharmacySale).filter(
-        PharmacySale.tenant_id == current_user.tenant_id,
-        PharmacySale.id == sale_id
-    )).scalars().first()
+    sale = (
+        db.session.execute(
+            select(PharmacySale).filter(
+                PharmacySale.tenant_id == current_user.tenant_id, PharmacySale.id == sale_id
+            )
+        )
+        .scalars()
+        .first()
+    )
     if not sale:
         flash('الفاتورة غير موجودة', 'error')
         return redirect(url_for('medication.sales_history'))
     cashier = None
     if sale.created_by:
         from models.user import User
-        cashier = db.session.execute(select(User).filter_by(
-            id=sale.created_by,
-            tenant_id=current_user.tenant_id,
-        )).scalars().first()
-    qr_data_uri = generate_qr_data_uri(f"POS|{sale.id}|{sale.total_amount}|{sale.sale_number or sale.id}")
+
+        cashier = (
+            db.session.execute(
+                select(User).filter_by(
+                    id=sale.created_by,
+                    tenant_id=current_user.tenant_id,
+                )
+            )
+            .scalars()
+            .first()
+        )
+    qr_data_uri = generate_qr_data_uri(
+        f'POS|{sale.id}|{sale.total_amount}|{sale.sale_number or sale.id}'
+    )
     return render_template(
         'print/pharmacy_sale_receipt.html',
         sale=sale,
         cashier=cashier,
-        printed_at=datetime.now(timezone.utc),
+        printed_at=datetime.now(UTC),
         qr_data_uri=qr_data_uri,
     )
 
@@ -251,27 +307,35 @@ def api_sales_list():
             pass
     if date_to:
         try:
-            q = q.filter(PharmacySale.created_at <= datetime.strptime(date_to, '%Y-%m-%d').replace(hour=23, minute=59, second=59))
+            q = q.filter(
+                PharmacySale.created_at
+                <= datetime.strptime(date_to, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            )
         except ValueError:
             pass
     stmt = q.order_by(PharmacySale.created_at.desc())
     pagination = db.paginate(stmt, page=page, per_page=per_page, error_out=False)
-    data = [{
-        'id': s.id,
-        'sale_number': s.sale_number or f'#{s.id:06d}',
-        'customer_name': s.customer_name or '-',
-        'total': float(s.total_amount or 0),
-        'items_count': len(s.items),
-        'created_at': s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '',
-        'status': s.status,
-    } for s in pagination.items]
-    return jsonify({
-        'success': True,
-        'data': data,
-        'total': pagination.total,
-        'pages': pagination.pages,
-        'current_page': page,
-    })
+    data = [
+        {
+            'id': s.id,
+            'sale_number': s.sale_number or f'#{s.id:06d}',
+            'customer_name': s.customer_name or '-',
+            'total': float(s.total_amount or 0),
+            'items_count': len(s.items),
+            'created_at': s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '',
+            'status': s.status,
+        }
+        for s in pagination.items
+    ]
+    return jsonify(
+        {
+            'success': True,
+            'data': data,
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': page,
+        }
+    )
 
 
 @medication_bp.route('/sales/api/totals')
@@ -282,21 +346,29 @@ def api_sales_totals():
     base_q = select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
         PharmacySale.tenant_id == current_user.tenant_id
     )
-    today_sales = db.session.execute(base_q.filter(func.date(PharmacySale.created_at) == today)).scalar()
-    month_sales = db.session.execute(select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
-        PharmacySale.tenant_id == current_user.tenant_id,
-        func.extract('month', PharmacySale.created_at) == today.month,
-        func.extract('year', PharmacySale.created_at) == today.year
-    )).scalar()
-    total_sales = db.session.execute(select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
-        PharmacySale.tenant_id == current_user.tenant_id
-    )).scalar()
-    return jsonify({
-        'success': True,
-        'today': float(today_sales),
-        'month': float(month_sales),
-        'total': float(total_sales),
-    })
+    today_sales = db.session.execute(
+        base_q.filter(func.date(PharmacySale.created_at) == today)
+    ).scalar()
+    month_sales = db.session.execute(
+        select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
+            PharmacySale.tenant_id == current_user.tenant_id,
+            func.extract('month', PharmacySale.created_at) == today.month,
+            func.extract('year', PharmacySale.created_at) == today.year,
+        )
+    ).scalar()
+    total_sales = db.session.execute(
+        select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
+            PharmacySale.tenant_id == current_user.tenant_id
+        )
+    ).scalar()
+    return jsonify(
+        {
+            'success': True,
+            'today': float(today_sales),
+            'month': float(month_sales),
+            'total': float(total_sales),
+        }
+    )
 
 
 @medication_bp.route('/sales/api/report')
@@ -312,20 +384,36 @@ def api_sales_report():
     ).filter(PharmacySale.tenant_id == current_user.tenant_id)
     if from_date:
         try:
-            q = q.filter(func.date(PharmacySale.created_at) >= datetime.strptime(from_date, '%Y-%m-%d').date())
+            q = q.filter(
+                func.date(PharmacySale.created_at)
+                >= datetime.strptime(from_date, '%Y-%m-%d').date()
+            )
         except ValueError:
             pass
     if to_date:
         try:
-            q = q.filter(func.date(PharmacySale.created_at) <= datetime.strptime(to_date, '%Y-%m-%d').date())
+            q = q.filter(
+                func.date(PharmacySale.created_at) <= datetime.strptime(to_date, '%Y-%m-%d').date()
+            )
         except ValueError:
             pass
-    rows = db.session.execute(q.group_by(func.date(PharmacySale.created_at)).order_by(func.date(PharmacySale.created_at).desc())).scalars().all()
-    data = [{
-        'date': str(r.sale_date),
-        'count': r.count,
-        'total': float(r.total or 0),
-    } for r in rows]
+    rows = (
+        db.session.execute(
+            q.group_by(func.date(PharmacySale.created_at)).order_by(
+                func.date(PharmacySale.created_at).desc()
+            )
+        )
+        .scalars()
+        .all()
+    )
+    data = [
+        {
+            'date': str(r.sale_date),
+            'count': r.count,
+            'total': float(r.total or 0),
+        }
+        for r in rows
+    ]
     return jsonify({'success': True, 'data': data})
 
 
@@ -333,22 +421,30 @@ def api_sales_report():
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def sale_receipt(sale_id):
-    sale = db.session.execute(select(PharmacySale).filter(
-        PharmacySale.tenant_id == current_user.tenant_id,
-        PharmacySale.id == sale_id
-    )).scalars().first()
+    sale = (
+        db.session.execute(
+            select(PharmacySale).filter(
+                PharmacySale.tenant_id == current_user.tenant_id, PharmacySale.id == sale_id
+            )
+        )
+        .scalars()
+        .first()
+    )
     if not sale:
         return jsonify({'success': False, 'message': 'الفاتورة غير موجودة'}), 404
     data = {
         'id': sale.id,
         'sale_number': sale.sale_number or f'#{sale.id:06d}',
         'total': float(sale.total_amount or 0),
-        'items': [{
-            'medication_name': i.medication_name,
-            'quantity': i.quantity,
-            'unit_price': float(i.unit_price or 0),
-            'total_price': float(i.total_price or 0),
-        } for i in sale.items],
+        'items': [
+            {
+                'medication_name': i.medication_name,
+                'quantity': i.quantity,
+                'unit_price': float(i.unit_price or 0),
+                'total_price': float(i.total_price or 0),
+            }
+            for i in sale.items
+        ],
         'created_at': sale.created_at.strftime('%Y-%m-%d %H:%M') if sale.created_at else '',
         'status': sale.status,
     }

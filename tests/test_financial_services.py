@@ -4,24 +4,26 @@ PaymentAllocationService).
 
 All DB work runs under ``rollback_db`` isolation.
 """
-import uuid
+
 import types
+import uuid
 
 import pytest
+from sqlalchemy import select
 
-from services.financial_service import FinancialService
-from services.billing_state_service import (
-    BillingStateService, ReceiptService, PaymentAllocationService,
-)
-import services.financial_service as fin_mod
+from app.extensions import db
 from app.shared.enums import BillingState, PaymentStatus
 from models.invoice import Invoice, InvoiceService
-from models.payment import Payment
-from models.visit import Visit
 from models.patient import Patient
+from models.payment import Payment
 from models.user import User
-from sqlalchemy import select
-from app.extensions import db
+from models.visit import Visit
+from services.billing_state_service import (
+    BillingStateService,
+    PaymentAllocationService,
+    ReceiptService,
+)
+from services.financial_service import FinancialService
 
 
 @pytest.fixture
@@ -49,8 +51,13 @@ def ffx(rollback_db):
         return v
 
     def invoice(visit_id, total, paid=0, status='ISSUED'):
-        inv = Invoice(visit_id=visit_id, total_amount=total, paid_amount=paid,
-                      invoice_number='INV-' + uuid.uuid4().hex[:8].upper(), status=status)
+        inv = Invoice(
+            visit_id=visit_id,
+            total_amount=total,
+            paid_amount=paid,
+            invoice_number='INV-' + uuid.uuid4().hex[:8].upper(),
+            status=status,
+        )
         db.session.add(inv)
         db.session.commit()
         return inv
@@ -61,11 +68,13 @@ def ffx(rollback_db):
         db.session.commit()
         return pay
 
-    return types.SimpleNamespace(db=db, patient=patient, user=user, visit=visit,
-                                 invoice=invoice, payment=payment)
+    return types.SimpleNamespace(
+        db=db, patient=patient, user=user, visit=visit, invoice=invoice, payment=payment
+    )
 
 
 # ───────────────────────── FinancialService ─────────────────────────
+
 
 class TestDashboardStats:
     def test_reflects_billed_and_collected(self, ffx):
@@ -80,9 +89,12 @@ class TestDashboardStats:
 
     def test_exception_returns_zeros(self, monkeypatch):
         import models.invoice as mi
-        monkeypatch.setattr(mi, 'Invoice', property(lambda self: (_ for _ in ()).throw(RuntimeError('x'))))
+
+        monkeypatch.setattr(
+            mi, 'Invoice', property(lambda self: (_ for _ in ()).throw(RuntimeError('x')))
+        )
         stats = FinancialService.get_dashboard_stats()
-        assert stats == {"total_billed": 0, "total_collected": 0, "total_expenses": 0, "pending": 0}
+        assert stats == {'total_billed': 0, 'total_collected': 0, 'total_expenses': 0, 'pending': 0}
 
 
 class TestRevenueByPeriod:
@@ -97,13 +109,18 @@ class TestCreateInvoice:
     def test_creates_invoice_with_lines(self, ffx):
         p = ffx.patient()
         ffx.visit(p.id)
-        inv = FinancialService.create_invoice(p.id, [
-            {'price': 50, 'quantity': 2, 'description': 'X', 'service_code': 'SVC1'},
-            {'price': 30, 'quantity': 1, 'service_name': 'Y'},
-        ])
+        inv = FinancialService.create_invoice(
+            p.id,
+            [
+                {'price': 50, 'quantity': 2, 'description': 'X', 'service_code': 'SVC1'},
+                {'price': 30, 'quantity': 1, 'service_name': 'Y'},
+            ],
+        )
         assert inv is not None
         assert float(inv.total_amount) == 130.0
-        lines = db.session.execute(select(InvoiceService).filter_by(invoice_id=inv.id)).scalars().all()
+        lines = (
+            db.session.execute(select(InvoiceService).filter_by(invoice_id=inv.id)).scalars().all()
+        )
         assert len(lines) == 2
 
     def test_no_visit_still_creates(self, ffx):
@@ -113,8 +130,10 @@ class TestCreateInvoice:
 
     def test_exception_returns_none(self, ffx, monkeypatch):
         import models.invoice as mi
-        monkeypatch.setattr(mi, 'InvoiceService',
-                            lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x')))
+
+        monkeypatch.setattr(
+            mi, 'InvoiceService', lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x'))
+        )
         p = ffx.patient()
         inv = FinancialService.create_invoice(p.id, [{'price': 10, 'quantity': 1}])
         assert inv is None
@@ -150,23 +169,23 @@ class TestExpenses:
         u = ffx.user()
         FinancialService.record_expense('office supplies', 50, 'misc', u.id)
         res = FinancialService.get_expenses()
-        assert res["success"] is True
-        assert res["available"] is True
-        assert len(res["expenses"]) >= 1
-        assert res["expenses"][0]["amount"] == 50.0
+        assert res['success'] is True
+        assert res['available'] is True
+        assert len(res['expenses']) >= 1
+        assert res['expenses'][0]['amount'] == 50.0
 
     def test_record_expense_persists(self, ffx):
         u = ffx.user()
         res = FinancialService.record_expense('supplies', 50, 'misc', u.id)
-        assert res["success"] is True
-        assert res["available"] is True
-        assert res["expense"]["category"] == 'misc'
-        assert res["expense"]["amount"] == 50.0
+        assert res['success'] is True
+        assert res['available'] is True
+        assert res['expense']['category'] == 'misc'
+        assert res['expense']['amount'] == 50.0
 
     def test_record_expense_rejects_non_positive_amount(self, ffx):
         u = ffx.user()
         res = FinancialService.record_expense('bad', 0, 'misc', u.id)
-        assert res["success"] is False
+        assert res['success'] is False
 
 
 class TestReconcileVisitPayments:
@@ -196,6 +215,7 @@ class TestReconcileVisitPayments:
 
 
 # ───────────────────────── BillingStateService ─────────────────────────
+
 
 class TestBillingState:
     def test_pending_when_empty(self, ffx):
@@ -265,6 +285,7 @@ class TestCanCheckout:
 
 # ───────────────────────── ReceiptService ─────────────────────────
 
+
 class TestReceiptService:
     def test_issue_print_void(self, ffx):
         p = ffx.patient()
@@ -279,6 +300,7 @@ class TestReceiptService:
         ReceiptService.mark_printed(rid)
         ReceiptService.void_receipt(rid, reason='test')
         from models.receipt import Receipt
+
         rec = db.session.get(Receipt, rid)
         assert rec.status == 'voided' and rec.void_reason == 'test'
 
@@ -286,16 +308,20 @@ class TestReceiptService:
         p = ffx.patient()
         u = ffx.user()
         v = ffx.visit(p.id)
-        pay = Payment(visit_id=v.id, patient_id=p.id, amount=50, method='INSURANCE', received_by=u.id)
+        pay = Payment(
+            visit_id=v.id, patient_id=p.id, amount=50, method='INSURANCE', received_by=u.id
+        )
         ffx.db.session.add(pay)
         ffx.db.session.commit()
         res = ReceiptService.issue_receipt(v, pay)
         from models.receipt import Receipt
+
         rec = db.session.get(Receipt, res['receipt_id'])
         assert rec.payment_method == 'debt'
 
 
 # ───────────────────────── PaymentAllocationService ─────────────────────────
+
 
 class TestPaymentAllocation:
     def test_fifo_allocation_across_invoices(self, ffx):

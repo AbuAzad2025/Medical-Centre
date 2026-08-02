@@ -2,24 +2,34 @@
 Referral Management
 Track referrals to/from external providers and facilities
 """
-from datetime import datetime, timezone
-from app_factory import db
+
+from datetime import UTC, datetime
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class Referral(TenantMixin, db.Model):
     """Patient referral to/from another provider/facility"""
+
     __tablename__ = 'referrals'
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True
+    )
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     # Direction
     referral_type = db.Column(db.String(20), default='OUTGOING')  # OUTGOING, INCOMING
 
     # Referring party
-    referring_doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    referring_doctor_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     referring_facility = db.Column(db.String(300), nullable=True)
     referring_facility_phone = db.Column(db.String(50), nullable=True)
     referring_facility_email = db.Column(db.String(200), nullable=True)
@@ -39,7 +49,9 @@ class Referral(TenantMixin, db.Model):
     attached_files = db.Column(db.Text, nullable=True)  # JSON array of file IDs
 
     # Status
-    status = db.Column(db.String(30), default='PENDING')  # PENDING, SENT, ACCEPTED, SCHEDULED, COMPLETED, CANCELLED, DECLINED
+    status = db.Column(
+        db.String(30), default='PENDING'
+    )  # PENDING, SENT, ACCEPTED, SCHEDULED, COMPLETED, CANCELLED, DECLINED
     sent_date = db.Column(db.DateTime, nullable=True)
     response_date = db.Column(db.DateTime, nullable=True)
     appointment_date = db.Column(db.DateTime, nullable=True)
@@ -54,9 +66,13 @@ class Referral(TenantMixin, db.Model):
     tracking_number = db.Column(db.String(100), nullable=True, unique=True)
     notes = db.Column(db.Text, nullable=True)
 
-    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_by_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
 
     patient = db.relationship('Patient', back_populates='referrals')
     visit = db.relationship('Visit', back_populates='referrals')
@@ -64,4 +80,4 @@ class Referral(TenantMixin, db.Model):
     created_by = db.relationship('User', foreign_keys=[created_by_id])
 
     def __repr__(self):
-        return f"<Referral {self.status}>"
+        return f'<Referral {self.status}>'

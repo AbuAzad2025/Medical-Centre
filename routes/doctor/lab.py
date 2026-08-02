@@ -1,35 +1,26 @@
 """lab routes - extracted from monolithic doctor.py"""
 
-from routes.doctor import doctor_bp
+import logging
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, current_app, g
-from flask_login import login_required, current_user
-from utils.decorators import role_required, role_required_json
+from flask import flash, g, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import desc, select
+
+from app.extensions import db
+from app.shared.enums import VisitState
+from models.audit_trail import AuditTrail
+from models.lab_request import LabRequest
 from models.patient import Patient
 from models.visit import Visit
-from models.user import User
-from models.department import Department
-from models.medication import Prescription
-from models.lab_request import LabRequest
-from models.radiology_request import RadiologyRequest
-from models.medical_record import MedicalRecord
-from models.appointment import Appointment
-from models.follow_up import FollowUpRequest
-from models.drug_interaction import DrugInteraction
-from models.audit_trail import AuditTrail
-from models.system_config import SystemConfig
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from app.shared.enums import VisitState
-from sqlalchemy import and_, or_, desc, func, case, select
-import logging, json, secrets
-from datetime import datetime, date, timedelta, timezone
-
+from routes.doctor import doctor_bp
+from utils.db_safety import safe_commit
+from utils.decorators import role_required
 
 # =============================================
 # LAB ROUTES
 # =============================================
+
 
 @doctor_bp.route('/lab-request/<int:visit_id>', methods=['GET', 'POST'])
 @login_required
@@ -39,7 +30,17 @@ def lab_request(visit_id):
         if 'lab' not in getattr(g, 'enabled_modules', set()):
             flash('وحدة المختبر غير مفعلة لهذه المنشأة', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)).scalars().first()
+        visit = (
+            db.session.execute(
+                select(Visit).filter(
+                    Visit.id == visit_id,
+                    Visit.tenant_id == g.tenant_id,
+                    Visit.doctor_id == current_user.id,
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not visit:
             flash('الزيارة غير موجودة', 'error')
             return redirect(url_for('doctor.patient_queue'))
@@ -52,12 +53,14 @@ def lab_request(visit_id):
             test_name = (request.form.get('test_name') or '').strip()
             urgency = (request.form.get('urgency') or '').strip()
             if test_name:
-                memo_parts.append(f"الفحص: {test_name}")
+                memo_parts.append(f'الفحص: {test_name}')
             if notes:
-                memo_parts.append(f"الوصف: {notes}")
+                memo_parts.append(f'الوصف: {notes}')
             if urgency:
-                memo_parts.append(f"الأولوية: {urgency}")
-            memo_text = "[مذكرة تحاليل]\n" + ("\n".join(memo_parts) if memo_parts else "يرجى إجراء التحليل لدى مركز مناسب.")
+                memo_parts.append(f'الأولوية: {urgency}')
+            memo_text = '[مذكرة تحاليل]\n' + (
+                '\n'.join(memo_parts) if memo_parts else 'يرجى إجراء التحليل لدى مركز مناسب.'
+            )
 
             # P2-001: Create a structured LabRequest when catalog test IDs are supplied.
             test_ids_raw = request.form.get('test_ids', '') or ''
@@ -66,6 +69,7 @@ def lab_request(visit_id):
             structured_ok = False
             if test_ids:
                 from services.lab_service import lab_service
+
                 ok, result = lab_service.create_request(
                     visit_id=visit.id,
                     test_ids=test_ids,
@@ -75,35 +79,46 @@ def lab_request(visit_id):
                 )
                 if ok:
                     structured_ok = True
-                    memo_parts.append(f"رقم الطلب المهيكل: {result['request_number']}")
+                    memo_parts.append(f'رقم الطلب المهيكل: {result["request_number"]}')
                 else:
-                    flash(f"تعذر إنشاء طلب المختبر المهيكل: {result.get('error')}", 'warning')
+                    flash(f'تعذر إنشاء طلب المختبر المهيكل: {result.get("error")}', 'warning')
 
-            visit.notes = (visit.notes or '')
-            visit.notes += (('\n\n' if visit.notes else '') + memo_text)
+            visit.notes = visit.notes or ''
+            visit.notes += ('\n\n' if visit.notes else '') + memo_text
             visit.lab_tests_ordered = True
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             try:
-                db.session.add(AuditTrail(
-                    entity_type='lab_test',
-                    entity_id=visit.id,
-                    action='create',
-                    user_id=current_user.id,
-                    user_ip=request.remote_addr,
-                    user_agent=request.headers.get('User-Agent'),
-                    description='إضافة مذكرة تحاليل' + (' + LabRequest' if structured_ok else '')
-                ))
-                safe_commit(db.session, error_message="database commit failed", reraise=True)
+                db.session.add(
+                    AuditTrail(
+                        entity_type='lab_test',
+                        entity_id=visit.id,
+                        action='create',
+                        user_id=current_user.id,
+                        user_ip=request.remote_addr,
+                        user_agent=request.headers.get('User-Agent'),
+                        description='إضافة مذكرة تحاليل'
+                        + (' + LabRequest' if structured_ok else ''),
+                    )
+                )
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
             except Exception as e:
-
-                logging.warning(f"Error in {__name__}: {e}")
-            flash('تم تدوين مذكرة التحاليل. ' + ('تم إنشاء طلب مختبر مهيكل.' if structured_ok else 'يتوجه المريض للاستقبال لإنشاء زيارة للمختبر عند رغبة التنفيذ داخل المركز.'), 'info')
+                logging.warning(f'Error in {__name__}: {e}')
+            flash(
+                'تم تدوين مذكرة التحاليل. '
+                + (
+                    'تم إنشاء طلب مختبر مهيكل.'
+                    if structured_ok
+                    else 'يتوجه المريض للاستقبال لإنشاء زيارة للمختبر عند رغبة التنفيذ داخل المركز.'
+                ),
+                'info',
+            )
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
     except Exception as e:
-        logging.error(f"Error in lab_request: {str(e)}")
+        logging.exception(f'Error in lab_request: {e!s}')
         flash('حدث خطأ أثناء إنشاء طلب المختبر', 'error')
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
+
 
 @doctor_bp.route('/lab-results/<int:patient_id>')
 @login_required
@@ -111,47 +126,71 @@ def lab_request(visit_id):
 def lab_results(patient_id):
     """عرض نتائج المختبر للطبيب — للإطلاع فقط"""
     try:
-        patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)).scalars().first()
+        patient = (
+            db.session.execute(
+                select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)
+            )
+            .scalars()
+            .first()
+        )
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('doctor.patient_queue'))
 
-        lab_requests = db.session.execute(select(LabRequest).filter(
-            LabRequest.patient_id == patient_id
-        ).order_by(desc(LabRequest.created_at))).scalars().all()
+        lab_requests = (
+            db.session.execute(
+                select(LabRequest)
+                .filter(LabRequest.patient_id == patient_id)
+                .order_by(desc(LabRequest.created_at))
+            )
+            .scalars()
+            .all()
+        )
 
         results = []
         for req in lab_requests:
             try:
                 from models.lab_request import LabResult
-                req_results = db.session.execute(select(LabResult).filter(
-                    LabResult.request_id == req.id
-                ).order_by(desc(LabResult.created_at))).scalars().all()
-                for r in req_results:
-                    results.append({
-                        'test_name': getattr(r, 'test_name', None) or getattr(req, 'test_name', 'غير محدد'),
-                        'value': getattr(r, 'value', None),
-                        'unit': getattr(r, 'unit', None),
-                        'reference_range': getattr(r, 'reference_range', None),
-                        'status': getattr(r, 'status', 'PENDING'),
-                        'is_critical': getattr(r, 'is_critical', False),
-                        'recorded_at': getattr(r, 'created_at', None),
-                        'technician': getattr(r, 'recorded_by', None)
-                    })
-            except Exception as e:
 
-                logging.warning(f"Error in {__name__}: {e}")
-        return render_template('doctor/lab_results.html',
-                             patient=patient,
-                             lab_requests=lab_requests,
-                             results=results)
+                req_results = (
+                    db.session.execute(
+                        select(LabResult)
+                        .filter(LabResult.request_id == req.id)
+                        .order_by(desc(LabResult.created_at))
+                    )
+                    .scalars()
+                    .all()
+                )
+                for r in req_results:
+                    results.append(
+                        {
+                            'test_name': getattr(r, 'test_name', None)
+                            or getattr(req, 'test_name', 'غير محدد'),
+                            'value': getattr(r, 'value', None),
+                            'unit': getattr(r, 'unit', None),
+                            'reference_range': getattr(r, 'reference_range', None),
+                            'status': getattr(r, 'status', 'PENDING'),
+                            'is_critical': getattr(r, 'is_critical', False),
+                            'recorded_at': getattr(r, 'created_at', None),
+                            'technician': getattr(r, 'recorded_by', None),
+                        }
+                    )
+            except Exception as e:
+                logging.warning(f'Error in {__name__}: {e}')
+        return render_template(
+            'doctor/lab_results.html', patient=patient, lab_requests=lab_requests, results=results
+        )
     except Exception as e:
-        logging.error(f"Error loading lab results: {str(e)}")
+        logging.exception(f'Error loading lab results: {e!s}')
         flash('حدث خطأ في تحميل نتائج المختبر', 'error')
         return redirect(url_for('doctor.patient_queue'))
+
 
 @doctor_bp.route('/lab-requests')
 @login_required
 def lab_requests():
-    flash('تم فصل طلبات المختبر عن الطبيب. للاستعلام، يرجى مراجعة قسم المختبر أو الاستقبال.', 'warning')
+    flash(
+        'تم فصل طلبات المختبر عن الطبيب. للاستعلام، يرجى مراجعة قسم المختبر أو الاستقبال.',
+        'warning',
+    )
     return redirect(url_for('doctor.patient_queue'))

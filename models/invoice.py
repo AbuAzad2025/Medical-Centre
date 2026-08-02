@@ -1,10 +1,13 @@
 """
 الفواتير - Invoice & InvoiceService (نسخة نهائية 1:* من الزيارة إلى الفواتير)
 """
-from datetime import datetime, timezone
-from sqlalchemy import Index, CheckConstraint
-from app_factory import db
+
+from datetime import UTC, datetime
+
+from sqlalchemy import CheckConstraint, Index
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
 
 
 class Invoice(TenantMixin, db.Model):
@@ -13,8 +16,12 @@ class Invoice(TenantMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     invoice_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    created_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     status = db.Column(db.String(20), default='DRAFT', index=True)  # DRAFT|ISSUED|PAID|VOID
     currency = db.Column(db.String(8), default='ILS', nullable=False)
@@ -22,12 +29,20 @@ class Invoice(TenantMixin, db.Model):
     paid_amount = db.Column(db.Numeric(12, 2), default=0, nullable=False)
 
     posted_at = db.Column(db.DateTime, nullable=True, index=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+        index=True,
+    )
 
     __table_args__ = (
-        CheckConstraint("total_amount >= 0", name='chk_invoice_total_non_negative'),
-        CheckConstraint("paid_amount >= 0", name='chk_invoice_paid_non_negative'),
+        CheckConstraint('total_amount >= 0', name='chk_invoice_total_non_negative'),
+        CheckConstraint('paid_amount >= 0', name='chk_invoice_paid_non_negative'),
         Index('idx_invoice_status', 'status'),
         Index('idx_invoice_status_created', 'status', 'created_at'),
         Index('idx_invoice_visit_created', 'visit_id', 'created_at'),
@@ -42,16 +57,17 @@ class Invoice(TenantMixin, db.Model):
         back_populates='invoice',
         lazy='selectin',
         cascade='all, delete-orphan',
-        passive_deletes=True
+        passive_deletes=True,
     )
 
     def __repr__(self) -> str:
-        return f"<Invoice #{self.invoice_number or self.id}>"
+        return f'<Invoice #{self.invoice_number or self.id}>'
 
     @property
     def balance_due(self):
         """P3-003: Remaining balance on this invoice (controlled projection)."""
         from decimal import Decimal
+
         total = Decimal(str(self.total_amount or 0))
         paid = Decimal(str(self.paid_amount or 0))
         due = total - paid
@@ -59,18 +75,18 @@ class Invoice(TenantMixin, db.Model):
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id,
-            "invoice_number": self.invoice_number,
-            "visit_id": self.visit_id,
-            "created_by": self.created_by,
-            "status": self.status,
-            "currency": self.currency,
-            "total_amount": float(self.total_amount or 0),
-            "paid_amount": float(self.paid_amount or 0),
-            "balance_due": self.balance_due,
-            "posted_at": self.posted_at.isoformat() if self.posted_at else None,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            'id': self.id,
+            'invoice_number': self.invoice_number,
+            'visit_id': self.visit_id,
+            'created_by': self.created_by,
+            'status': self.status,
+            'currency': self.currency,
+            'total_amount': float(self.total_amount or 0),
+            'paid_amount': float(self.paid_amount or 0),
+            'balance_due': self.balance_due,
+            'posted_at': self.posted_at.isoformat() if self.posted_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
 
 
@@ -79,9 +95,15 @@ class InvoiceService(TenantMixin, db.Model):
     __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    invoice_id = db.Column(db.Integer, db.ForeignKey('invoices.id', ondelete='CASCADE'), nullable=False, index=True)
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
+    invoice_id = db.Column(
+        db.Integer, db.ForeignKey('invoices.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    department_id = db.Column(
+        db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     service_code = db.Column(db.String(50), nullable=False, index=True)
     service_name = db.Column(db.String(120), nullable=False)
@@ -91,13 +113,20 @@ class InvoiceService(TenantMixin, db.Model):
     notes = db.Column(db.Text, nullable=True)
 
     # Ticket 6: link to canonical service and record creator
-    service_master_id = db.Column(db.Integer, db.ForeignKey('service_master.id', ondelete='SET NULL'), nullable=True, index=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    service_master_id = db.Column(
+        db.Integer,
+        db.ForeignKey('service_master.id', ondelete='SET NULL'),
+        nullable=True,
+        index=True,
+    )
+    created_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     __table_args__ = (
-        CheckConstraint("quantity > 0", name='chk_line_qty_positive'),
-        CheckConstraint("unit_price >= 0", name='chk_line_unit_price_non_negative'),
-        CheckConstraint("total_price >= 0", name='chk_line_total_price_non_negative'),
+        CheckConstraint('quantity > 0', name='chk_line_qty_positive'),
+        CheckConstraint('unit_price >= 0', name='chk_line_unit_price_non_negative'),
+        CheckConstraint('total_price >= 0', name='chk_line_total_price_non_negative'),
     )
 
     invoice = db.relationship('Invoice', back_populates='lines', lazy='selectin')
@@ -106,4 +135,4 @@ class InvoiceService(TenantMixin, db.Model):
     service_master = db.relationship('ServiceMaster', lazy='selectin')
 
     def __repr__(self) -> str:
-        return f"<InvoiceService {self.service_code} x{self.quantity}>"
+        return f'<InvoiceService {self.service_code} x{self.quantity}>'

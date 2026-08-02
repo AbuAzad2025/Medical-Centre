@@ -1,37 +1,29 @@
 """dashboard routes - extracted from monolithic emergency.py"""
 
-from routes.emergency import emergency_bp
+import logging
+from datetime import UTC, date, datetime, timedelta
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import role_required, role_required_json
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
-from models.department import Department
-from models.emergency import EmergencyCase
-from models.medication import Prescription
-from models.lab_request import LabRequest
-from models.radiology_request import RadiologyRequest
-from models.medical_record import MedicalRecord
-from services.emergency_service import emergency_service
-from app.extensions import db
-from services.core_queries import core_queries
-from app.shared.enums import EmergencyStatus
-from sqlalchemy import and_, or_, desc, case, select, func
-import logging, json
-from datetime import datetime, date, timedelta, timezone
+from flask import flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import case, func, select
 
+from app.extensions import db
+from app.shared.enums import EmergencyStatus
+from models.emergency import EmergencyCase
+from routes.emergency import emergency_bp
+from utils.decorators import role_required
 
 # =============================================
 # DASHBOARD ROUTES
 # =============================================
 
+
 @emergency_bp.route('/')
 @login_required
 def index():
     return redirect(url_for('emergency.dashboard'))
+
 
 @emergency_bp.route('/reports')
 @login_required
@@ -44,20 +36,31 @@ def reports():
         from datetime import datetime as _dt
 
         try:
-            start_date = _dt.strptime(start_raw, '%Y-%m-%d').date() if start_raw else (date.today() - timedelta(days=30))
-        except Exception as e:
+            start_date = (
+                _dt.strptime(start_raw, '%Y-%m-%d').date()
+                if start_raw
+                else (date.today() - timedelta(days=30))
+            )
+        except Exception:
             start_date = date.today() - timedelta(days=30)
         try:
             end_date = _dt.strptime(end_raw, '%Y-%m-%d').date() if end_raw else date.today()
-        except Exception as e:
+        except Exception:
             end_date = date.today()
-        if end_date < start_date:
-            end_date = start_date
+        end_date = max(end_date, start_date)
 
-        start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
-        end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
+        start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=UTC)
+        end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=UTC)
 
-        cases = db.session.execute(select(EmergencyCase).filter(EmergencyCase.created_at >= start_dt, EmergencyCase.created_at <= end_dt).order_by(EmergencyCase.created_at.desc())).scalars().all()
+        cases = (
+            db.session.execute(
+                select(EmergencyCase)
+                .filter(EmergencyCase.created_at >= start_dt, EmergencyCase.created_at <= end_dt)
+                .order_by(EmergencyCase.created_at.desc())
+            )
+            .scalars()
+            .all()
+        )
 
         by_status = {}
         by_severity = {}
@@ -71,14 +74,16 @@ def reports():
                 hr = int(c.created_at.strftime('%H'))
                 by_hour[hr] = by_hour.get(hr, 0) + 1
             except Exception as e:
-
-                logging.warning(f"Error in {__name__}: {e}")
+                logging.warning(f'Error in {__name__}: {e}')
         top_reasons = {}
         for c in cases:
             txt = (c.chief_complaint or '').strip()
             if not txt:
                 continue
-            key = ' '.join([p for p in txt.replace('\n', ' ').split(' ') if p][:3]).strip() or txt[:20]
+            key = (
+                ' '.join([p for p in txt.replace('\n', ' ').split(' ') if p][:3]).strip()
+                or txt[:20]
+            )
             top_reasons[key] = top_reasons.get(key, 0) + 1
         top_reasons_rows = sorted(top_reasons.items(), key=lambda x: (-x[1], x[0]))[:10]
 
@@ -86,12 +91,24 @@ def reports():
         stage_samples = {}
         try:
             from models.emergency_status_history import EmergencyStatusHistory
+
             ids = [c.id for c in cases]
-            history = db.session.execute(select(EmergencyStatusHistory).filter(
-                EmergencyStatusHistory.emergency_id.in_(ids) if ids else False,
-                EmergencyStatusHistory.created_at >= start_dt,
-                EmergencyStatusHistory.created_at <= end_dt
-            ).order_by(EmergencyStatusHistory.emergency_id.asc(), EmergencyStatusHistory.created_at.asc())).scalars().all()
+            history = (
+                db.session.execute(
+                    select(EmergencyStatusHistory)
+                    .filter(
+                        EmergencyStatusHistory.emergency_id.in_(ids) if ids else False,
+                        EmergencyStatusHistory.created_at >= start_dt,
+                        EmergencyStatusHistory.created_at <= end_dt,
+                    )
+                    .order_by(
+                        EmergencyStatusHistory.emergency_id.asc(),
+                        EmergencyStatusHistory.created_at.asc(),
+                    )
+                )
+                .scalars()
+                .all()
+            )
             per_case = {}
             for h in history:
                 per_case.setdefault(h.emergency_id, []).append(h)
@@ -108,7 +125,7 @@ def reports():
                     stage_avg[k] = stage_avg.get(k, 0.0) + float(dur)
             for k in list(stage_avg.keys()):
                 stage_avg[k] = round(stage_avg[k] / float(stage_samples.get(k) or 1), 2)
-        except Exception as e:
+        except Exception:
             stage_avg = {}
             stage_samples = {}
 
@@ -122,12 +139,13 @@ def reports():
             by_hour=by_hour,
             top_reasons=top_reasons_rows,
             stage_avg=stage_avg,
-            stage_samples=stage_samples
+            stage_samples=stage_samples,
         )
     except Exception as e:
-        logging.error(f"Error loading emergency reports: {str(e)}")
+        logging.exception(f'Error loading emergency reports: {e!s}')
         flash('حدث خطأ في تحميل تقارير الطوارئ', 'error')
         return redirect(url_for('emergency.dashboard'))
+
 
 @emergency_bp.route('/dashboard')
 @login_required
@@ -139,70 +157,133 @@ def dashboard():
         # إحصائيات متقدمة للطوارئ
         today = date.today()
         week_ago = today - timedelta(days=7)
-        
+
         # حالات الطوارئ اليوم
-        today_emergencies = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
-            EmergencyCase.created_at >= today
-        )).scalar()
-        
+        today_emergencies = db.session.execute(
+            select(func.count())
+            .select_from(EmergencyCase)
+            .filter(EmergencyCase.created_at >= today)
+        ).scalar()
+
         # الحالات النشطة
-        active_emergencies = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
-            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
-        )).scalar()
-        
+        active_emergencies = db.session.execute(
+            select(func.count())
+            .select_from(EmergencyCase)
+            .filter(
+                EmergencyCase.status.in_(
+                    [
+                        EmergencyStatus.WAITING,
+                        EmergencyStatus.TRIAGE,
+                        EmergencyStatus.RESUSCITATION,
+                        EmergencyStatus.TREATMENT,
+                        EmergencyStatus.OBSERVATION,
+                    ]
+                )
+            )
+        ).scalar()
+
         # الحالات المكتملة اليوم
-        completed_today = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
-            EmergencyCase.status == EmergencyStatus.COMPLETED,
-            EmergencyCase.completed_at >= today
-        )).scalar()
-        
+        completed_today = db.session.execute(
+            select(func.count())
+            .select_from(EmergencyCase)
+            .filter(
+                EmergencyCase.status == EmergencyStatus.COMPLETED,
+                EmergencyCase.completed_at >= today,
+            )
+        ).scalar()
+
         # الحالات الأسبوع الماضي
-        weekly_emergencies = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
-            EmergencyCase.created_at >= week_ago,
-            EmergencyCase.status == EmergencyStatus.COMPLETED
-        )).scalar()
-        
+        weekly_emergencies = db.session.execute(
+            select(func.count())
+            .select_from(EmergencyCase)
+            .filter(
+                EmergencyCase.created_at >= week_ago,
+                EmergencyCase.status == EmergencyStatus.COMPLETED,
+            )
+        ).scalar()
+
         # الحالات العاجلة
-        urgent_cases = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
-            EmergencyCase.severity == 'HIGH',
-            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
-        )).scalar()
-        
+        urgent_cases = db.session.execute(
+            select(func.count())
+            .select_from(EmergencyCase)
+            .filter(
+                EmergencyCase.severity == 'HIGH',
+                EmergencyCase.status.in_(
+                    [
+                        EmergencyStatus.WAITING,
+                        EmergencyStatus.TRIAGE,
+                        EmergencyStatus.RESUSCITATION,
+                        EmergencyStatus.TREATMENT,
+                        EmergencyStatus.OBSERVATION,
+                    ]
+                ),
+            )
+        ).scalar()
+
         # الحالات الحرجة
-        critical_cases = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
-            EmergencyCase.severity == 'CRITICAL',
-            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
-        )).scalar()
-        
+        critical_cases = db.session.execute(
+            select(func.count())
+            .select_from(EmergencyCase)
+            .filter(
+                EmergencyCase.severity == 'CRITICAL',
+                EmergencyCase.status.in_(
+                    [
+                        EmergencyStatus.WAITING,
+                        EmergencyStatus.TRIAGE,
+                        EmergencyStatus.RESUSCITATION,
+                        EmergencyStatus.TREATMENT,
+                        EmergencyStatus.OBSERVATION,
+                    ]
+                ),
+            )
+        ).scalar()
+
         # الوصفات الطبية اليوم
         prescriptions_today = 0
-        
+
         # طلبات المختبر المعلقة
         pending_lab_requests = 0
-        
+
         # طلبات الأشعة المعلقة
         pending_radiology_requests = 0
 
         from routes.emergency import (
-            get_emergency_time_metrics,
             get_emergency_protocols,
+            get_emergency_time_metrics,
             get_ems_metrics,
         )
-        
+
         severity_order = case(
             (EmergencyCase.severity == 'CRITICAL', 4),
             (EmergencyCase.severity == 'HIGH', 3),
             (EmergencyCase.severity == 'MODERATE', 2),
             (EmergencyCase.severity == 'LOW', 1),
-            else_=0
+            else_=0,
         )
 
         # الحالات القادمة (أولوية عالية)
-        upcoming_cases = db.session.execute(select(EmergencyCase).filter(
-            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION]),
-            EmergencyCase.severity.in_(['HIGH', 'CRITICAL'])
-        ).order_by(severity_order.desc(), EmergencyCase.created_at).limit(5)).scalars().all()
-        
+        upcoming_cases = (
+            db.session.execute(
+                select(EmergencyCase)
+                .filter(
+                    EmergencyCase.status.in_(
+                        [
+                            EmergencyStatus.WAITING,
+                            EmergencyStatus.TRIAGE,
+                            EmergencyStatus.RESUSCITATION,
+                            EmergencyStatus.TREATMENT,
+                            EmergencyStatus.OBSERVATION,
+                        ]
+                    ),
+                    EmergencyCase.severity.in_(['HIGH', 'CRITICAL']),
+                )
+                .order_by(severity_order.desc(), EmergencyCase.created_at)
+                .limit(5)
+            )
+            .scalars()
+            .all()
+        )
+
         # الإحصائيات
         stats = {
             'today_emergencies': today_emergencies,
@@ -216,12 +297,13 @@ def dashboard():
             'pending_radiology_requests': pending_radiology_requests,
             'time_metrics': get_emergency_time_metrics(),
             'protocols': get_emergency_protocols(),
-            'ems_metrics': get_ems_metrics()
+            'ems_metrics': get_ems_metrics(),
         }
-        
+
         from app.shared.dashboard_service import render_command_center
+
         return render_command_center(current_user)
     except Exception as e:
-        logging.error(f"Error in emergency dashboard: {str(e)}")
+        logging.exception(f'Error in emergency dashboard: {e!s}')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))

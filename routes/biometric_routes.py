@@ -1,15 +1,18 @@
 """
 Biometric Authentication (WebAuthn/FIDO2) Routes
 """
-from sqlalchemy import select
-from flask import Blueprint, render_template, request, jsonify
-from flask_login import login_required, current_user
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from models import BiometricCredential, BiometricAuthChallenge
-from datetime import datetime, timezone, timedelta
-from utils.decorators import handle_route_errors
+
 import secrets
+from datetime import UTC, datetime, timedelta
+
+from flask import Blueprint, jsonify, render_template, request
+from flask_login import current_user, login_required
+from sqlalchemy import select
+
+from app.extensions import db
+from models import BiometricAuthChallenge, BiometricCredential
+from utils.db_safety import safe_commit
+from utils.decorators import handle_route_errors
 
 biometric_bp = Blueprint('biometric', __name__)
 
@@ -18,7 +21,11 @@ biometric_bp = Blueprint('biometric', __name__)
 @login_required
 @handle_route_errors
 def status():
-    credentials = db.session.execute(select(BiometricCredential).filter_by(user_id=current_user.id)).scalars().all()
+    credentials = (
+        db.session.execute(select(BiometricCredential).filter_by(user_id=current_user.id))
+        .scalars()
+        .all()
+    )
     return render_template('biometric/status.html', credentials=credentials)
 
 
@@ -31,17 +38,19 @@ def register_challenge():
         user_id=current_user.id,
         challenge=challenge,
         challenge_type='registration',
-        expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
+        expires_at=datetime.now(UTC) + timedelta(minutes=5),
     )
     db.session.add(ch)
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
-    return jsonify({
-        'challenge': challenge,
-        'rp_name': 'Azad Medical',
-        'rp_id': request.host.split(':')[0],
-        'user_id': str(current_user.id),
-        'user_name': current_user.username
-    })
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
+    return jsonify(
+        {
+            'challenge': challenge,
+            'rp_name': 'Azad Medical',
+            'rp_id': request.host.split(':')[0],
+            'user_id': str(current_user.id),
+            'user_name': current_user.username,
+        }
+    )
 
 
 @biometric_bp.route('/register-complete', methods=['POST'])
@@ -54,10 +63,10 @@ def register_complete():
         credential_id=data.get('credential_id', ''),
         public_key=data.get('public_key', ''),
         device_type=data.get('device_type', 'security_key'),
-        device_name=data.get('device_name', 'Unknown Device')
+        device_name=data.get('device_name', 'Unknown Device'),
     )
     db.session.add(cred)
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
     return jsonify({'success': True})
 
 
@@ -68,10 +77,10 @@ def authenticate_challenge():
     ch = BiometricAuthChallenge(
         challenge=challenge,
         challenge_type='authentication',
-        expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
+        expires_at=datetime.now(UTC) + timedelta(minutes=5),
     )
     db.session.add(ch)
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
     return jsonify({'challenge': challenge})
 
 
@@ -81,5 +90,5 @@ def authenticate_challenge():
 def remove_credential(cred_id):
     cred = select(BiometricCredential).filter_by(id=cred_id, user_id=current_user.id)
     db.session.delete(cred)
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
     return jsonify({'success': True})

@@ -1,24 +1,21 @@
 """departments routes - extracted from monolithic super_admin.py"""
 
-from routes.super_admin import super_admin_bp
+import logging
 
 # Imports
- 
-
-from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, abort
-from flask_login import login_required, current_user
-from utils.decorators import super_admin_required
-from services.access_control_service import AccessControlService
-from services.super_admin_service import super_admin_service
-import logging
+from flask import abort, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import login_required
 from sqlalchemy import func, select
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
 
+from app.extensions import db
+from routes.super_admin import super_admin_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import super_admin_required
 
 # =============================================
 # DEPARTMENTS ROUTES
 # =============================================
+
 
 @super_admin_bp.route('/departments')
 @login_required
@@ -27,29 +24,40 @@ def departments():
     """إدارة الأقسام"""
     page = request.args.get('page', 1, type=int)
     per_page = 25
-    
+
     try:
         from models.department import Department
         from models.user import User
+
         query = select(Department)
-        
+
         total = query.count()
         pages = (total + per_page - 1) // per_page
-        
+
         departments = query.offset((page - 1) * per_page).limit(per_page).all()
-        total_doctors = db.session.execute(select(func.count()).select_from(User).filter_by(role='doctor')).scalar()
+        total_doctors = db.session.execute(
+            select(func.count()).select_from(User).filter_by(role='doctor')
+        ).scalar()
         total_staff = db.session.execute(select(func.count()).select_from(User)).scalar()
     except Exception as e:
-        logging.error(f"Departments error: {str(e)}")
+        logging.exception(f'Departments error: {e!s}')
         departments = []
         total = 0
         pages = 0
         total_doctors = 0
         total_staff = 0
 
-    return render_template('super_admin/departments.html', departments=departments, 
-total_doctors=total_doctors, total_staff=total_staff,
-                           page=page, pages=pages, total=total)
+    return render_template(
+        'super_admin/departments.html',
+        departments=departments,
+        total_doctors=total_doctors,
+        total_staff=total_staff,
+        page=page,
+        pages=pages,
+        total=total,
+    )
+
+
 @super_admin_bp.route('/departments/create', methods=['POST'])
 @login_required
 @super_admin_required
@@ -57,12 +65,14 @@ def create_department():
     """إنشاء قسم جديد"""
     try:
         from models.department import Department
-        
+
         # التحقق من الحقول المطلوبة
         name = request.form.get('name')
         name_ar = request.form.get('name_ar')
         if not name or not name_ar:
-            return jsonify({'success': False, 'message': 'الاسم الإنجليزي والاسم العربي مطلوبان'}), 400
+            return jsonify(
+                {'success': False, 'message': 'الاسم الإنجليزي والاسم العربي مطلوبان'}
+            ), 400
 
         department = Department(
             name=request.form.get('name'),
@@ -71,18 +81,21 @@ def create_department():
             location=request.form.get('location'),
             phone=request.form.get('phone'),
             email=request.form.get('email'),
-            is_active=bool(request.form.get('is_active', True))
+            is_active=bool(request.form.get('is_active', True)),
         )
-        
+
         db.session.add(department)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        
-        return jsonify({'success': True, 'message': 'تم إنشاء القسم بنجاح', 'department_id': department.id}), 200
-        
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+
+        return jsonify(
+            {'success': True, 'message': 'تم إنشاء القسم بنجاح', 'department_id': department.id}
+        ), 200
+
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Create department error: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Create department error: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر إنشاء القسم حالياً'}), 500
+
 
 @super_admin_bp.route('/department/<int:department_id>')
 @login_required
@@ -92,19 +105,22 @@ def view_department(department_id):
     try:
         from models.department import Department
         from models.user import User
-        
+
         department = db.session.get(Department, department_id)
         if not department:
             abort(404)
-        staff = db.session.execute(select(User).filter_by(department_id=department_id)).scalars().all()
-        
-        return render_template('super_admin/department_detail.html', 
-                             department=department, 
-                             staff=staff)
+        staff = (
+            db.session.execute(select(User).filter_by(department_id=department_id)).scalars().all()
+        )
+
+        return render_template(
+            'super_admin/department_detail.html', department=department, staff=staff
+        )
     except Exception as e:
-        logging.error(f"View department error: {str(e)}")
+        logging.exception(f'View department error: {e!s}')
         flash('حدث خطأ في عرض القسم', 'error')
         return redirect(url_for('super_admin.departments'))
+
 
 @super_admin_bp.route('/edit-department/<int:department_id>', methods=['GET', 'POST'])
 @login_required
@@ -113,11 +129,11 @@ def edit_department(department_id):
     """تعديل قسم"""
     try:
         from models.department import Department
-        
+
         department = db.session.get(Department, department_id)
         if not department:
             abort(404)
-        
+
         if request.method == 'POST':
             department.name_ar = request.form.get('name')
             department.name = request.form.get('name_en')
@@ -125,17 +141,18 @@ def edit_department(department_id):
             department.location = request.form.get('location')
             department.phone = request.form.get('phone')
             department.is_active = bool(request.form.get('is_active'))
-            
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم تحديث القسم بنجاح', 'success')
             return redirect(url_for('super_admin.departments'))
-        
+
         return render_template('super_admin/edit_department.html', department=department)
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Edit department error: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Edit department error: {e!s}')
         flash('حدث خطأ في تعديل القسم', 'error')
         return redirect(url_for('super_admin.departments'))
+
 
 @super_admin_bp.route('/department-staff/<int:department_id>')
 @login_required
@@ -145,21 +162,26 @@ def department_staff(department_id):
     try:
         from models.department import Department
         from models.user import User
-        
+
         department = db.session.get(Department, department_id)
         if not department:
             abort(404)
-        staff = db.session.execute(select(User).filter_by(department_id=department_id)).scalars().all()
+        staff = (
+            db.session.execute(select(User).filter_by(department_id=department_id)).scalars().all()
+        )
         all_users = db.session.execute(select(User).filter_by(is_active=True)).scalars().all()
-        
-        return render_template('super_admin/department_staff.html', 
-                             department=department, 
-                             staff=staff,
-                             all_users=all_users)
+
+        return render_template(
+            'super_admin/department_staff.html',
+            department=department,
+            staff=staff,
+            all_users=all_users,
+        )
     except Exception as e:
-        logging.error(f"Department staff error: {str(e)}")
+        logging.exception(f'Department staff error: {e!s}')
         flash('حدث خطأ في إدارة موظفي القسم', 'error')
         return redirect(url_for('super_admin.departments'))
+
 
 @super_admin_bp.route('/department-staff/<int:department_id>/add', methods=['POST'])
 @login_required
@@ -168,21 +190,22 @@ def add_staff_to_department(department_id):
     """إضافة موظف للقسم"""
     try:
         from models.user import User
-        
+
         data = request.get_json(silent=True)
         user_id = data.get('user_id')
-        
+
         user = db.session.get(User, user_id)
         if not user:
             abort(404)
         user.department_id = department_id
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+
         return jsonify({'success': True, 'message': 'تم إضافة الموظف للقسم'}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Add staff error: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Add staff error: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر إضافة الموظف للقسم حالياً'}), 500
+
 
 @super_admin_bp.route('/department-staff/<int:department_id>/remove', methods=['POST'])
 @login_required
@@ -191,21 +214,22 @@ def remove_staff_from_department(department_id):
     """إزالة موظف من القسم"""
     try:
         from models.user import User
-        
+
         data = request.get_json(silent=True)
         user_id = data.get('user_id')
-        
+
         user = db.session.get(User, user_id)
         if not user:
             abort(404)
         user.department_id = None
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+
         return jsonify({'success': True, 'message': 'تم إزالة الموظف من القسم'}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Remove staff error: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Remove staff error: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر إزالة الموظف من القسم حالياً'}), 500
+
 
 @super_admin_bp.route('/activate-department/<int:department_id>', methods=['POST'])
 @login_required
@@ -214,18 +238,19 @@ def activate_department(department_id):
     """تفعيل قسم"""
     try:
         from models.department import Department
-        
+
         department = db.session.get(Department, department_id)
         if not department:
             abort(404)
         department.is_active = True
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+
         return jsonify({'success': True, 'message': 'تم تفعيل القسم'}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Activate department error: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Activate department error: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر تفعيل القسم حالياً'}), 500
+
 
 @super_admin_bp.route('/deactivate-department/<int:department_id>', methods=['POST'])
 @login_required
@@ -234,18 +259,19 @@ def deactivate_department(department_id):
     """إلغاء تفعيل قسم"""
     try:
         from models.department import Department
-        
+
         department = db.session.get(Department, department_id)
         if not department:
             abort(404)
         department.is_active = False
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل القسم'}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Deactivate department error: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Deactivate department error: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل القسم حالياً'}), 500
+
 
 @super_admin_bp.route('/export-departments')
 @login_required
@@ -253,34 +279,40 @@ def deactivate_department(department_id):
 def export_departments():
     """تصدير الأقسام"""
     try:
-        from models.department import Department
         import csv
         from io import StringIO
+
         from flask import make_response
-        
+
+        from models.department import Department
+
         departments = db.session.execute(select(Department)).scalars().all()
-        
+
         si = StringIO()
         writer = csv.writer(si)
-        writer.writerow(['ID', 'الاسم العربي', 'الاسم (إنجليزي)', 'الوصف', 'الموقع', 'الهاتف', 'نشط'])
-        
+        writer.writerow(
+            ['ID', 'الاسم العربي', 'الاسم (إنجليزي)', 'الوصف', 'الموقع', 'الهاتف', 'نشط']
+        )
+
         for dept in departments:
-            writer.writerow([
-                dept.id,
-                dept.name_ar or '',
-                dept.name or '',
-                dept.description or '',
-                dept.location or '',
-                dept.phone or '',
-                'نعم' if dept.is_active else 'لا'
-            ])
-        
+            writer.writerow(
+                [
+                    dept.id,
+                    dept.name_ar or '',
+                    dept.name or '',
+                    dept.description or '',
+                    dept.location or '',
+                    dept.phone or '',
+                    'نعم' if dept.is_active else 'لا',
+                ]
+            )
+
         output = make_response(si.getvalue())
-        output.headers["Content-Disposition"] = "attachment; filename=departments_export.csv"
-        output.headers["Content-type"] = "text/csv; charset=utf-8"
+        output.headers['Content-Disposition'] = 'attachment; filename=departments_export.csv'
+        output.headers['Content-type'] = 'text/csv; charset=utf-8'
         return output
-        
+
     except Exception as e:
-        logging.error(f"Export departments error: {str(e)}")
+        logging.exception(f'Export departments error: {e!s}')
         flash('حدث خطأ في تصدير الأقسام', 'error')
         return redirect(url_for('super_admin.departments'))

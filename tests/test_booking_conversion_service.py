@@ -6,27 +6,30 @@ Exposes latent bugs fixed against live schema:
 - convert_to_appointment used non-existent appointment_date instead of starts_at.
 - lab/radiology conversions omitted required visit_id (NOT NULL).
 """
+
 import types
 import uuid
-from datetime import date, time, datetime, timezone
+from datetime import UTC, date, datetime, time
 
 import pytest
 from flask import g
 
-from services.booking_conversion_service import (
-    OnlineBookingConversionService as OBCS,
-    AppointmentCheckinService,
-)
+from app.extensions import db
+from app.shared.enums import AppointmentState, BookingState, VisitState
+from models.appointment import Appointment
+from models.department import Department
+from models.lab_request import LabRequest
 from models.online_booking import OnlineBooking
 from models.patient import Patient
-from models.visit import Visit
-from models.appointment import Appointment
-from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
-from models.department import Department
 from models.user import User
-from app.shared.enums import BookingState, VisitState, AppointmentState, OrderState
-from app.extensions import db
+from models.visit import Visit
+from services.booking_conversion_service import (
+    AppointmentCheckinService,
+)
+from services.booking_conversion_service import (
+    OnlineBookingConversionService as OBCS,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -53,8 +56,15 @@ def fx(app, rollback_db, test_tenant):
 
     def doctor(department_id=None):
         un = 'bk_' + uuid.uuid4().hex[:8]
-        u = User(username=un, email=un + '@x.com', full_name='Dr', role='doctor',
-                 is_active=True, tenant_id=test_tenant.id, department_id=department_id)
+        u = User(
+            username=un,
+            email=un + '@x.com',
+            full_name='Dr',
+            role='doctor',
+            is_active=True,
+            tenant_id=test_tenant.id,
+            department_id=department_id,
+        )
         u.set_password('p')
         db.session.add(u)
         db.session.commit()
@@ -64,8 +74,9 @@ def fx(app, rollback_db, test_tenant):
         d = dept()
         params = dict(
             booking_reference='BK-' + uuid.uuid4().hex[:8],
-            first_name='حجز', last_name='اختبار',
-            phone='05' + f"{uuid.uuid4().int % 10**8:08d}",
+            first_name='حجز',
+            last_name='اختبار',
+            phone='05' + f'{uuid.uuid4().int % 10**8:08d}',
             appointment_date=date.today(),
             appointment_time=time(10, 30),
             department_id=d.id,
@@ -78,7 +89,9 @@ def fx(app, rollback_db, test_tenant):
         db.session.commit()
         return b
 
-    return types.SimpleNamespace(db=db, tenant=test_tenant, ctx=ctx, booking=booking, doctor=doctor, dept=dept)
+    return types.SimpleNamespace(
+        db=db, tenant=test_tenant, ctx=ctx, booking=booking, doctor=doctor, dept=dept
+    )
 
 
 class TestConvertToVisit:
@@ -156,13 +169,17 @@ class TestConvertBasedOnProfile:
 class TestAppointmentCheckin:
     def test_checkin_creates_visit(self, fx, app):
         from models.appointment import Appointment
+
         doc = fx.doctor()
         p = Patient(tenant_id=fx.tenant.id, first_name='a', last_name='b', phone='+970599111000')
         fx.db.session.add(p)
         fx.db.session.commit()
         ap = Appointment(
-            tenant_id=fx.tenant.id, patient_id=p.id, doctor_id=doc.id,
-            starts_at=datetime.now(timezone.utc), status=AppointmentState.SCHEDULED,
+            tenant_id=fx.tenant.id,
+            patient_id=p.id,
+            doctor_id=doc.id,
+            starts_at=datetime.now(UTC),
+            status=AppointmentState.SCHEDULED,
         )
         fx.db.session.add(ap)
         fx.db.session.commit()

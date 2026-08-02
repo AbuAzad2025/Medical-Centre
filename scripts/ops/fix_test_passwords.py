@@ -1,5 +1,4 @@
 """Fix weak passwords in test fixtures after password policy enforcement."""
-import re
 
 FILES = [
     'tests/test_booking_conversion_service.py',
@@ -17,7 +16,7 @@ FILES = [
 ]
 
 for fp in FILES:
-    with open(fp, 'r', encoding='utf-8') as f:
+    with open(fp, encoding='utf-8') as f:
         content = f.read()
     new_content = content.replace(".set_password('p')", ".set_password('ValidPass123!')")
     if new_content != content:

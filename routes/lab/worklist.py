@@ -1,59 +1,61 @@
 """worklist routes - extracted from monolithic lab.py"""
 
-from routes.lab import lab_bp, _log_lab_workflow
+import logging
+from datetime import UTC, datetime
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response, g
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
-from models.lab_request import LabRequest
-from models.lab_request import LabResult
-from models.lab_quality import LabQualityControlEntry
-from models.lab_reagent import LabReagent
-from models.audit_trail import AuditTrail
-from app.shared.enums import LabResultStatus, OrderState
-from services.lab_service import lab_service
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-import logging, json, base64
-from datetime import datetime, date, timezone, timedelta
-from io import BytesIO
+from flask import (
+    flash,
+    g,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from flask_login import current_user, login_required
 from sqlalchemy import select
 
+from app.extensions import db
+from app.shared.enums import LabResultStatus, OrderState
+from models.audit_trail import AuditTrail
+from models.lab_request import LabRequest, LabResult
+from routes.lab import _log_lab_workflow, lab_bp
+from services.lab_service import lab_service
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required
 
 # =============================================
 # WORKLIST ROUTES
 # =============================================
+
 
 @lab_bp.route('/requests')
 @login_required
 @role_required('lab', 'manager')
 def requests():
     """طلبات المختبر"""
-    
-    
+
     return redirect(url_for('lab.worklist'))
+
 
 @lab_bp.route('/results')
 @login_required
 @role_required('lab', 'manager')
 def results():
     """نتائج المختبر"""
-    
-    
+
     return redirect(url_for('lab.worklist', status='DONE_TODAY'))
+
 
 @lab_bp.route('/tests')
 @login_required
 @role_required('lab', 'admin', 'manager')
 def tests():
     """الفحوصات"""
-    
-    
+
     return redirect(url_for('lab.requests'))
+
 
 @lab_bp.route('/worklist')
 @login_required
@@ -63,18 +65,17 @@ def worklist():
         status = (request.args.get('status') or 'REQUESTED').strip().upper()
         reqs = lab_service.get_worklist(status=status)
         counts = lab_service.get_request_counts()
-        return render_template('lab/process.html',
-                               requests=reqs,
-                               status=status,
-                               counts=counts)
+        return render_template('lab/process.html', requests=reqs, status=status, counts=counts)
     except Exception as e:
-        logging.error(f"Error loading lab worklist: {str(e)}")
+        logging.exception(f'Error loading lab worklist: {e!s}')
         flash('حدث خطأ في تحميل قائمة العمل', 'error')
         return redirect(url_for('lab.dashboard'))
+
 
 def _process_lab_results_form(lab_request, form):
     """معالجة نتائج المختبر من بيانات النموذج"""
     from services.lab_service import lab_service
+
     result_ids = form.getlist('result_id[]')
     test_codes = form.getlist('test_code[]')
     test_names = form.getlist('test_name[]')
@@ -86,8 +87,18 @@ def _process_lab_results_form(lab_request, form):
     notes_list = form.getlist('notes[]')
 
     any_change = False
-    max_len = max(len(result_ids), len(test_codes), len(test_names), len(values),
-                  len(units), len(ranges), len(critical_flags), len(statuses), len(notes_list), 0)
+    max_len = max(
+        len(result_ids),
+        len(test_codes),
+        len(test_names),
+        len(values),
+        len(units),
+        len(ranges),
+        len(critical_flags),
+        len(statuses),
+        len(notes_list),
+        0,
+    )
     for i in range(max_len):
         rid_raw = result_ids[i] if i < len(result_ids) else ''
         test_code = (test_codes[i] if i < len(test_codes) else '').strip()
@@ -95,7 +106,13 @@ def _process_lab_results_form(lab_request, form):
         value = (values[i] if i < len(values) else '').strip()
         unit = (units[i] if i < len(units) else '').strip() or None
         reference_range = (ranges[i] if i < len(ranges) else '').strip() or None
-        is_critical = str((critical_flags[i] if i < len(critical_flags) else '').strip()) in {'1', 'true', 'True', 'yes', 'on'}
+        is_critical = str((critical_flags[i] if i < len(critical_flags) else '').strip()) in {
+            '1',
+            'true',
+            'True',
+            'yes',
+            'on',
+        }
         status_val = (statuses[i] if i < len(statuses) else '').strip().upper() or 'PENDING'
         notes = (notes_list[i] if i < len(notes_list) else '').strip() or None
 
@@ -113,7 +130,15 @@ def _process_lab_results_form(lab_request, form):
                     reference_range = catalog_entry.default_reference_range or None
 
         if rid_raw and str(rid_raw).isdigit():
-            res = db.session.execute(select(LabResult).filter(LabResult.id == int(rid_raw), LabResult.tenant_id == g.tenant_id)).scalars().first()
+            res = (
+                db.session.execute(
+                    select(LabResult).filter(
+                        LabResult.id == int(rid_raw), LabResult.tenant_id == g.tenant_id
+                    )
+                )
+                .scalars()
+                .first()
+            )
             if not res or res.request_id != lab_request.id:
                 continue
             res.performed_by = current_user.id
@@ -133,12 +158,17 @@ def _process_lab_results_form(lab_request, form):
             if not (test_code and test_name):
                 continue
             res = LabResult(
-                request_id=lab_request.id, patient_id=lab_request.patient_id,
+                request_id=lab_request.id,
+                patient_id=lab_request.patient_id,
                 performed_by=current_user.id,
-                test_code=test_code, test_name=test_name, value=value or None,
-                unit=unit, reference_range=reference_range,
+                test_code=test_code,
+                test_name=test_name,
+                value=value or None,
+                unit=unit,
+                reference_range=reference_range,
                 status=status_val if status_val in {'PENDING', 'READY', 'VALIDATED'} else 'PENDING',
-                notes=notes, is_critical=is_critical
+                notes=notes,
+                is_critical=is_critical,
             )
             db.session.add(res)
             any_change = True
@@ -149,6 +179,7 @@ def _notify_lab_results_ready(lab_request):
     """إرسال إشعار للطبيب باستكمال نتائج المختبر"""
     try:
         from services.notification_service import NotificationService
+
         doctor_id = lab_request.requester.id if lab_request.requester else None
         has_critical = False
         try:
@@ -156,31 +187,43 @@ def _notify_lab_results_ready(lab_request):
                 if res.is_critical and (res.value or '').strip():
                     has_critical = True
                     break
-        except Exception as e:
+        except Exception:
             has_critical = False
         if doctor_id:
             NotificationService.send_notification(
                 recipient_id=doctor_id,
                 title='نتيجة فحص مختبر جاهزة',
-                message=f'تم اعتماد نتيجة فحص المختبر لطلب #{lab_request.id}' + (' (نتائج حرجة)' if has_critical else ''),
+                message=f'تم اعتماد نتيجة فحص المختبر لطلب #{lab_request.id}'
+                + (' (نتائج حرجة)' if has_critical else ''),
                 notification_type='error' if has_critical else 'info',
-                is_urgent=bool(has_critical)
+                is_urgent=bool(has_critical),
             )
         if has_critical:
             NotificationService.send_notification(
                 recipient_role='reception',
                 title='نتائج مختبر حرجة',
                 message=f'يوجد نتائج مختبر حرجة لطلب #{lab_request.id} للمريض #{lab_request.patient_id}',
-                notification_type='error', is_urgent=True
+                notification_type='error',
+                is_urgent=True,
             )
     except Exception as e:
-        logging.warning(f"Error in {__name__}: {e}")
+        logging.warning(f'Error in {__name__}: {e}')
+
+
 @lab_bp.route('/worklist/request/<int:request_id>', methods=['GET', 'POST'])
 @login_required
 @role_required('lab', 'technician', 'admin', 'manager', 'super_admin')
 def worklist_request(request_id):
     try:
-        lab_request = db.session.execute(select(LabRequest).filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
+        lab_request = (
+            db.session.execute(
+                select(LabRequest).filter(
+                    LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not lab_request:
             flash('الطلب غير موجود', 'error')
             return redirect(url_for('lab.worklist'))
@@ -194,16 +237,16 @@ def worklist_request(request_id):
                     'analyze': 'ANALYZING',
                     'review': 'REVIEWED',
                     'approve': 'APPROVED',
-                    'start': 'IN_PROGRESS'
+                    'start': 'IN_PROGRESS',
                 }
                 new_status = status_map.get(action)
                 if new_status and lab_request.status != new_status:
                     lab_request.status = new_status
-                    lab_request.updated_at = datetime.now(timezone.utc)
+                    lab_request.updated_at = datetime.now(UTC)
                     if action == 'collect':
-                        lab_request.collection_time = datetime.now(timezone.utc)
+                        lab_request.collection_time = datetime.now(UTC)
                     elif action == 'receive':
-                        lab_request.received_time = datetime.now(timezone.utc)
+                        lab_request.received_time = datetime.now(UTC)
                     _log_lab_workflow(lab_request.id, new_status, action)
             any_change = _process_lab_results_form(lab_request, request.form)
 
@@ -213,8 +256,8 @@ def worklist_request(request_id):
                         res.status = LabResultStatus.VALIDATED
                         res.performed_by = current_user.id
                 lab_request.status = OrderState.DONE
-                lab_request.completed_at = datetime.now(timezone.utc)
-                lab_request.updated_at = datetime.now(timezone.utc)
+                lab_request.completed_at = datetime.now(UTC)
+                lab_request.updated_at = datetime.now(UTC)
                 _log_lab_workflow(lab_request.id, 'DONE', 'finalize')
                 any_change = True
 
@@ -222,53 +265,72 @@ def worklist_request(request_id):
 
             if any_change:
                 try:
-                    db.session.add(AuditTrail(
-                        entity_type='lab_request',
-                        entity_id=lab_request.id,
-                        action='update',
-                        user_id=current_user.id,
-                        user_ip=request.remote_addr,
-                        user_agent=request.headers.get('User-Agent'),
-                        description='تحديث نتائج المختبر'
-                    ))
-                except Exception as e:
-
-                    logging.warning(f"Error in {__name__}: no audit trail")
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+                    db.session.add(
+                        AuditTrail(
+                            entity_type='lab_request',
+                            entity_id=lab_request.id,
+                            action='update',
+                            user_id=current_user.id,
+                            user_ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent'),
+                            description='تحديث نتائج المختبر',
+                        )
+                    )
+                except Exception:
+                    logging.warning(f'Error in {__name__}: no audit trail')
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم حفظ نتائج المختبر', 'success')
             return redirect(url_for('lab.worklist_request', request_id=lab_request.id))
 
         return render_template('lab/process.html', lab_request=lab_request)
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error in lab worklist request: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error in lab worklist request: {e!s}')
         flash('حدث خطأ في إدارة الطلب', 'error')
         return redirect(url_for('lab.worklist'))
+
 
 @lab_bp.route('/worklist/claim/<int:request_id>', methods=['POST'])
 @login_required
 @role_required('lab', 'technician', 'admin', 'manager', 'super_admin')
 def worklist_claim(request_id):
     try:
-        req = db.session.execute(select(LabRequest).filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
+        req = (
+            db.session.execute(
+                select(LabRequest).filter(
+                    LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not req or req.status not in ('REQUESTED',):
             return jsonify({'success': False, 'message': 'الطلب غير صالح'}), 400
         req.status = OrderState.RECEIVED
-        req.updated_at = datetime.now(timezone.utc)
+        req.updated_at = datetime.now(UTC)
         _log_lab_workflow(req.id, 'RECEIVED', 'claim')
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'message': 'تم استلام الطلب'}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error claiming lab request: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error claiming lab request: {e!s}')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
+
 
 @lab_bp.route('/worklist/complete/<int:request_id>', methods=['POST'])
 @login_required
 @role_required('lab', 'technician', 'admin', 'manager', 'super_admin')
 def worklist_complete(request_id):
     try:
-        req = db.session.execute(select(LabRequest).filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
+        req = (
+            db.session.execute(
+                select(LabRequest).filter(
+                    LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not req:
             return jsonify({'success': False, 'message': 'الطلب غير موجود'}), 404
         # إنشاء نتيجة مبسطة إذا لم تُرفق
@@ -285,17 +347,18 @@ def worklist_complete(request_id):
                 reference_range=result_payload.get('reference_range'),
                 status='VALIDATED',
                 notes=result_payload.get('notes'),
-                is_critical=bool(result_payload.get('is_critical') or False)
+                is_critical=bool(result_payload.get('is_critical') or False),
             )
             db.session.add(res)
         req.status = OrderState.DONE
-        req.completed_at = datetime.now(timezone.utc)
-        req.updated_at = datetime.now(timezone.utc)
+        req.completed_at = datetime.now(UTC)
+        req.updated_at = datetime.now(UTC)
         _log_lab_workflow(req.id, 'DONE', 'complete')
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         try:
             from services.notification_service import NotificationService
+
             # إشعار للطبيب الطالب إن وُجد
             doctor_id = req.requester.id if req.requester else None
             if doctor_id:
@@ -303,12 +366,12 @@ def worklist_complete(request_id):
                     recipient_id=doctor_id,
                     title='نتيجة فحص مختبر جاهزة',
                     message=f'تم اعتماد نتيجة فحص المختبر لطلب #{req.id}',
-                    notification_type='info'
+                    notification_type='info',
                 )
-        except Exception as e:
-            logging.warning(f"Error in {__name__}: notification skipped")
+        except Exception:
+            logging.warning(f'Error in {__name__}: notification skipped')
         return jsonify({'success': True, 'message': 'تم إكمال الطلب'}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error completing lab request: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error completing lab request: {e!s}')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

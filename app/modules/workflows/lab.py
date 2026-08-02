@@ -1,8 +1,9 @@
 """
 LabWorkflowService — lab order lifecycle
 """
-from datetime import datetime, timezone
-from typing import Optional
+
+from datetime import UTC, datetime
+
 from app.extensions import db
 from app.shared.enums import LabOrderStatus
 
@@ -23,16 +24,16 @@ class LabWorkflowService:
         return target in LabWorkflowService.VALID_TRANSITIONS.get(LabOrderStatus(current), set())
 
     @staticmethod
-    def transition(lab_request, new_status: str, performed_by: Optional[int] = None) -> None:
+    def transition(lab_request, new_status: str, performed_by: int | None = None) -> None:
         current = lab_request.status or LabOrderStatus.ORDERED
         if not LabWorkflowService.can_transition(current, new_status):
-            raise ValueError(f"Invalid lab transition from {current} to {new_status}")
+            raise ValueError(f'Invalid lab transition from {current} to {new_status}')
 
         lab_request.status = new_status
-        lab_request.updated_at = datetime.now(timezone.utc)
+        lab_request.updated_at = datetime.now(UTC)
         if new_status == LabOrderStatus.APPROVED and performed_by:
             lab_request.approved_by = performed_by
-            lab_request.approved_at = datetime.now(timezone.utc)
+            lab_request.approved_at = datetime.now(UTC)
         db.session.add(lab_request)
 
     @staticmethod
@@ -40,5 +41,5 @@ class LabWorkflowService:
         for k, v in values.items():
             setattr(lab_result, k, v)
         lab_result.entered_by = entered_by
-        lab_result.entered_at = datetime.now(timezone.utc)
+        lab_result.entered_at = datetime.now(UTC)
         db.session.add(lab_result)

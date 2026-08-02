@@ -6,46 +6,45 @@ module deactivated in TenantModule, and allow through when active.
 """
 
 import pytest
+from sqlalchemy import select
 
 from app.core.module.models import TenantModule
 from app.extensions import db
-from sqlalchemy import select
-
 
 # (module_name_in_TenantModule, route_prefix)
 BLUEPRINT_ROUTES = [
-    ("lab", "/lab/"),
-    ("radiology", "/radiology/"),
-    ("nursing", "/nurse/"),
-    ("pharmacy", "/medication/"),
-    ("reception", "/reception/"),
-    ("doctor", "/doctor/"),
-    ("emergency", "/emergency/"),
-    ("billing", "/accountant/"),
+    ('lab', '/lab/'),
+    ('radiology', '/radiology/'),
+    ('nursing', '/nurse/'),
+    ('pharmacy', '/medication/'),
+    ('reception', '/reception/'),
+    ('doctor', '/doctor/'),
+    ('emergency', '/emergency/'),
+    ('billing', '/accountant/'),
 ]
 
 LOGIN_ROLE = {
-    "lab": "lab",
-    "radiology": "radiology",
-    "nursing": "nurse",
-    "pharmacy": "pharmacist",
-    "reception": "reception",
-    "doctor": "doctor",
-    "emergency": "emergency",
-    "billing": "accountant",
+    'lab': 'lab',
+    'radiology': 'radiology',
+    'nursing': 'nurse',
+    'pharmacy': 'pharmacist',
+    'reception': 'reception',
+    'doctor': 'doctor',
+    'emergency': 'emergency',
+    'billing': 'accountant',
 }
 
 
 class TestBlueprintModuleGuards:
-    @pytest.mark.parametrize("module_name,route", BLUEPRINT_ROUTES)
-    def test_module_disabled_returns_403(self, app, client, test_tenant, login_as, module_name, route):
-        app.config["ENABLE_SAAS_MODE"] = True
-        login_as(client, f"{module_name}_403_user", LOGIN_ROLE[module_name])
+    @pytest.mark.parametrize('module_name,route', BLUEPRINT_ROUTES)
+    def test_module_disabled_returns_403(
+        self, app, client, test_tenant, login_as, module_name, route
+    ):
+        app.config['ENABLE_SAAS_MODE'] = True
+        login_as(client, f'{module_name}_403_user', LOGIN_ROLE[module_name])
 
         tm = db.session.execute(
-            select(TenantModule).filter_by(
-                tenant_id=test_tenant.id, module_name=module_name
-            )
+            select(TenantModule).filter_by(tenant_id=test_tenant.id, module_name=module_name)
         ).scalar()
         assert tm is not None, f"No TenantModule row for '{module_name}'"
         tm.is_active = False
@@ -53,18 +52,18 @@ class TestBlueprintModuleGuards:
 
         resp = client.get(route)
         assert resp.status_code == 403, (
-            f"Expected 403 for {module_name} (disabled), got {resp.status_code}"
+            f'Expected 403 for {module_name} (disabled), got {resp.status_code}'
         )
 
-    @pytest.mark.parametrize("module_name,route", BLUEPRINT_ROUTES)
-    def test_module_enabled_passes_guard(self, app, client, test_tenant, login_as, module_name, route):
-        app.config["ENABLE_SAAS_MODE"] = True
-        login_as(client, f"{module_name}_ok_user", LOGIN_ROLE[module_name])
+    @pytest.mark.parametrize('module_name,route', BLUEPRINT_ROUTES)
+    def test_module_enabled_passes_guard(
+        self, app, client, test_tenant, login_as, module_name, route
+    ):
+        app.config['ENABLE_SAAS_MODE'] = True
+        login_as(client, f'{module_name}_ok_user', LOGIN_ROLE[module_name])
 
         tm = db.session.execute(
-            select(TenantModule).filter_by(
-                tenant_id=test_tenant.id, module_name=module_name
-            )
+            select(TenantModule).filter_by(tenant_id=test_tenant.id, module_name=module_name)
         ).scalar()
         assert tm is not None, f"No TenantModule row for '{module_name}'"
         tm.is_active = True
@@ -72,77 +71,72 @@ class TestBlueprintModuleGuards:
 
         resp = client.get(route)
         assert resp.status_code != 403, (
-            f"Expected non-403 for {module_name} (enabled), got {resp.status_code}"
+            f'Expected non-403 for {module_name} (enabled), got {resp.status_code}'
         )
 
     def test_lab_disabled_blocks_subroute_too(self, app, client, test_tenant, login_as):
-        app.config["ENABLE_SAAS_MODE"] = True
-        login_as(client, "lab_subroute_user", "lab")
+        app.config['ENABLE_SAAS_MODE'] = True
+        login_as(client, 'lab_subroute_user', 'lab')
 
         tm = db.session.execute(
-            select(TenantModule).filter_by(
-                tenant_id=test_tenant.id, module_name="lab"
-            )
+            select(TenantModule).filter_by(tenant_id=test_tenant.id, module_name='lab')
         ).scalar()
         tm.is_active = False
         db.session.commit()
 
-        resp = client.get("/lab/api/test-catalog")
+        resp = client.get('/lab/api/test-catalog')
         assert resp.status_code == 403
 
     def test_pharmacy_disabled_blocks_subroute_too(self, app, client, test_tenant, login_as):
-        app.config["ENABLE_SAAS_MODE"] = True
-        login_as(client, "pharm_subroute_user", "pharmacist")
+        app.config['ENABLE_SAAS_MODE'] = True
+        login_as(client, 'pharm_subroute_user', 'pharmacist')
 
         tm = db.session.execute(
-            select(TenantModule).filter_by(
-                tenant_id=test_tenant.id, module_name="pharmacy"
-            )
+            select(TenantModule).filter_by(tenant_id=test_tenant.id, module_name='pharmacy')
         ).scalar()
         tm.is_active = False
         db.session.commit()
 
-        resp = client.get("/medication/api/medications/search")
+        resp = client.get('/medication/api/medications/search')
         assert resp.status_code == 403
 
     def test_reception_disabled_blocks_subroute_too(self, app, client, test_tenant, login_as):
-        app.config["ENABLE_SAAS_MODE"] = True
-        login_as(client, "recep_subroute_user", "reception")
+        app.config['ENABLE_SAAS_MODE'] = True
+        login_as(client, 'recep_subroute_user', 'reception')
 
         tm = db.session.execute(
-            select(TenantModule).filter_by(
-                tenant_id=test_tenant.id, module_name="reception"
-            )
+            select(TenantModule).filter_by(tenant_id=test_tenant.id, module_name='reception')
         ).scalar()
         tm.is_active = False
         db.session.commit()
 
-        resp = client.get("/reception/queue")
+        resp = client.get('/reception/queue')
         assert resp.status_code == 403
 
     def test_doctor_disabled_blocks_subroute_too(self, app, client, test_tenant, login_as):
-        app.config["ENABLE_SAAS_MODE"] = True
-        login_as(client, "doc_subroute_user", "doctor")
+        app.config['ENABLE_SAAS_MODE'] = True
+        login_as(client, 'doc_subroute_user', 'doctor')
 
         tm = db.session.execute(
-            select(TenantModule).filter_by(
-                tenant_id=test_tenant.id, module_name="doctor"
-            )
+            select(TenantModule).filter_by(tenant_id=test_tenant.id, module_name='doctor')
         ).scalar()
         tm.is_active = False
         db.session.commit()
 
-        resp = client.get("/doctor/visits")
+        resp = client.get('/doctor/visits')
         assert resp.status_code == 403
 
     def test_guard_module_missing_tenant_aborts_403(self, app):
-        app.config["ENABLE_SAAS_MODE"] = True
+        app.config['ENABLE_SAAS_MODE'] = True
         with app.test_request_context():
             from flask import g
+
             g.current_tenant = None
-            from services.feature_gate_service import guard_module
             from werkzeug.exceptions import Forbidden
+
+            from services.feature_gate_service import guard_module
+
             with pytest.raises(Forbidden) as exc_info:
-                guard_module("reception")
+                guard_module('reception')
             assert exc_info.value.code == 403
-            assert "Tenant context required" in str(exc_info.value.description)
+            assert 'Tenant context required' in str(exc_info.value.description)

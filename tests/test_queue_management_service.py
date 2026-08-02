@@ -2,21 +2,22 @@
 
 State-mutating cases run under ``rollback_db`` (savepoint isolation).
 """
-import uuid
+
 import types
+import uuid
 
 import pytest
+from sqlalchemy import select
 
-from services.queue_management_service import QueueManagementService
-from app.shared.enums import QueueState, PaymentStatus, VisitState
-from models.queue_management import QueueManagement, QueueSettings
-from models.visit import Visit
-from models.patient import Patient
+from app.extensions import db
+from app.shared.enums import PaymentStatus, QueueState
 from models.department import Department
+from models.patient import Patient
+from models.queue_management import QueueManagement, QueueSettings
 from models.user import User
 from models.user_department_access import UserDepartmentAccess
-from sqlalchemy import select
-from app.extensions import db
+from models.visit import Visit
+from services.queue_management_service import QueueManagementService
 
 
 @pytest.fixture
@@ -37,7 +38,7 @@ def qfx(rollback_db):
     def dept(name='General Clinic', name_ar='العيادة العامة'):
         # Ticket 6: add random suffix to ensure uniqueness across test runs
         # (persistent PostgreSQL test database may retain previous run data)
-        unique_name = f"{name}-{uuid.uuid4().hex[:6]}"
+        unique_name = f'{name}-{uuid.uuid4().hex[:6]}'
         d = Department(name=unique_name, name_ar=name_ar, is_active=True)
         db.session.add(d)
         db.session.commit()
@@ -45,8 +46,14 @@ def qfx(rollback_db):
 
     def user(role='doctor', dept_id=None):
         un = 'zz_q_' + uuid.uuid4().hex[:8]
-        u = User(username=un, email=un + '@x.com', full_name='د', role=role,
-                 is_active=True, department_id=dept_id)
+        u = User(
+            username=un,
+            email=un + '@x.com',
+            full_name='د',
+            role=role,
+            is_active=True,
+            department_id=dept_id,
+        )
         u.set_password('p')
         db.session.add(u)
         db.session.commit()
@@ -59,17 +66,24 @@ def qfx(rollback_db):
         return v
 
     def ticket(patient_id, department_id=None, status=QueueState.WAITING, **kw):
-        t = QueueManagement(patient_id=patient_id, department_id=department_id,
-                            queue_number='Q' + uuid.uuid4().hex[:10], status=status, **kw)
+        t = QueueManagement(
+            patient_id=patient_id,
+            department_id=department_id,
+            queue_number='Q' + uuid.uuid4().hex[:10],
+            status=status,
+            **kw,
+        )
         db.session.add(t)
         db.session.commit()
         return t
 
-    return types.SimpleNamespace(db=db, patient=patient, dept=dept, user=user,
-                                 visit=visit, ticket=ticket)
+    return types.SimpleNamespace(
+        db=db, patient=patient, dept=dept, user=user, visit=visit, ticket=ticket
+    )
 
 
 # ───────────────────────── pure: entry conditions ─────────────────────────
+
 
 class TestCheckQueueEntryConditions:
     """Ticket 1: gate must block every non-PAID normal visit regardless of
@@ -107,6 +121,7 @@ class TestCheckQueueEntryConditions:
 
 # ───────────────────────── permission helper ─────────────────────────
 
+
 class TestUserAllowedForDepartment:
     def test_superadmin_allowed(self, svc, qfx):
         d = qfx.dept()
@@ -138,12 +153,14 @@ class TestUserAllowedForDepartment:
 
     def test_role_mismatch_for_lab_dept(self, svc, qfx):
         import uuid
+
         d = qfx.dept(name=f'Lab-{uuid.uuid4().hex[:6]}', name_ar='المختبر')
         u = qfx.user(role='doctor', dept_id=d.id)
         assert svc._is_user_allowed_for_department(u.id, d.id) is False
 
 
 # ───────────────────────── add_patient_to_queue ─────────────────────────
+
 
 class TestAddPatientToQueue:
     """Ticket 1: payment_status is resolved from the authoritative visit record.
@@ -154,28 +171,36 @@ class TestAddPatientToQueue:
     def test_non_general_paid_success(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
-        v = qfx.visit(p.id, payment_status=PaymentStatus.PAID, is_emergency=False, department_id=d.id)
+        v = qfx.visit(
+            p.id, payment_status=PaymentStatus.PAID, is_emergency=False, department_id=d.id
+        )
         ok, msg = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is True and 'الطابور' in msg
 
     def test_pending_payment_blocked(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
-        v = qfx.visit(p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id)
+        v = qfx.visit(
+            p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id
+        )
         ok, _ = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is False
 
     def test_emergency_bypasses_payment(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
-        v = qfx.visit(p.id, payment_status=PaymentStatus.PENDING, is_emergency=True, department_id=d.id)
+        v = qfx.visit(
+            p.id, payment_status=PaymentStatus.PENDING, is_emergency=True, department_id=d.id
+        )
         ok, _ = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is True
 
     def test_general_requires_doctor(self, svc, qfx):
         d = qfx.dept()  # general
         p = qfx.patient()
-        v = qfx.visit(p.id, payment_status=PaymentStatus.PAID, is_emergency=False, department_id=d.id)
+        v = qfx.visit(
+            p.id, payment_status=PaymentStatus.PAID, is_emergency=False, department_id=d.id
+        )
         ok, msg = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is False and 'طبيب' in msg
 
@@ -183,7 +208,13 @@ class TestAddPatientToQueue:
         d = qfx.dept()
         doc = qfx.user(role='doctor', dept_id=d.id)
         p = qfx.patient()
-        v = qfx.visit(p.id, payment_status=PaymentStatus.PAID, is_emergency=False, department_id=d.id, doctor_id=doc.id)
+        v = qfx.visit(
+            p.id,
+            payment_status=PaymentStatus.PAID,
+            is_emergency=False,
+            department_id=d.id,
+            doctor_id=doc.id,
+        )
         ok, _ = svc.add_patient_to_queue(p.id, d.id, doctor_id=doc.id, visit_id=v.id)
         assert ok is True
 
@@ -197,30 +228,39 @@ class TestAddPatientToQueue:
     def test_partial_payment_blocked_via_service(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
-        v = qfx.visit(p.id, payment_status=PaymentStatus.PARTIAL, is_emergency=False, department_id=d.id)
+        v = qfx.visit(
+            p.id, payment_status=PaymentStatus.PARTIAL, is_emergency=False, department_id=d.id
+        )
         ok, msg = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is False and 'الدفع' in msg
 
     def test_debt_blocked(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
-        v = qfx.visit(p.id, payment_status=PaymentStatus.DEBT, is_emergency=False, department_id=d.id)
+        v = qfx.visit(
+            p.id, payment_status=PaymentStatus.DEBT, is_emergency=False, department_id=d.id
+        )
         ok, msg = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is False and 'الدفع' in msg
 
     def test_payment_required_false_still_blocks_normal(self, svc, qfx):
-        from models.queue_management import QueueSettings
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
         # QueueSettings with payment_required=False (legacy bypass)
-        qs = db.session.execute(select(QueueSettings).filter_by(department_id=d.id)).scalars().first()
+        qs = (
+            db.session.execute(select(QueueSettings).filter_by(department_id=d.id))
+            .scalars()
+            .first()
+        )
         if not qs:
             qs = QueueSettings(department_id=d.id, payment_required=False, allow_debt=True)
             qfx.db.session.add(qs)
         else:
             qs.payment_required = False
         qfx.db.session.commit()
-        v = qfx.visit(p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id)
+        v = qfx.visit(
+            p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id
+        )
         ok, msg = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         # Ticket 1: payment_required=False must no longer bypass the gate
         assert ok is False and 'الدفع' in msg
@@ -229,7 +269,9 @@ class TestAddPatientToQueue:
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
         # Visit is actually PENDING; caller can no longer pass a fake PAID parameter
-        v = qfx.visit(p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id)
+        v = qfx.visit(
+            p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id
+        )
         ok, _ = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is False
 
@@ -237,13 +279,16 @@ class TestAddPatientToQueue:
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
         # Visit is NOT emergency; caller passes is_emergency=True but should be ignored
-        v = qfx.visit(p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id)
+        v = qfx.visit(
+            p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id
+        )
         ok, _ = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id, is_emergency=True)
         # Must be blocked because the visit record says non-emergency and unpaid
         assert ok is False
 
 
 # ───────────────────────── transfer_visit ─────────────────────────
+
 
 class TestTransferVisit:
     def test_visit_not_found(self, svc, qfx):
@@ -288,6 +333,7 @@ class TestTransferVisit:
 
 # ───────────────────────── status / metrics readers ─────────────────────────
 
+
 class TestStatusReaders:
     def test_get_queue_status_structure(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
@@ -328,6 +374,7 @@ class TestStatusReaders:
 
 
 # ───────────────────────── lifecycle transitions ─────────────────────────
+
 
 class TestCallNextPatient:
     def test_empty_queue(self, svc, qfx):

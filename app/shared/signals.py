@@ -2,6 +2,7 @@
 إشارات النظام — System-wide Signals for decoupled event handling
 All medical center events flow through these signals.
 """
+
 from blinker import Namespace
 
 _signals = Namespace()

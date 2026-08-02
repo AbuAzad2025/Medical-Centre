@@ -1,12 +1,11 @@
 """Tests for public SaaS signup abuse protections."""
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 import pytest
 
-from app.extensions import db
 from app.core.saas.models import (
     Package,
     PackageVersion,
@@ -16,6 +15,7 @@ from app.core.saas.models import (
     PackageVersionPricing,
 )
 from app.core.tenant.models import Tenant
+from app.extensions import db
 from app.shared.enums import TenantStatus
 from services.saas_registration_service import SaasRegistrationError, SaasRegistrationService
 from tests.tenant_context import tenant_test_context
@@ -34,27 +34,33 @@ def _seed_package_version():
         package_id=pkg.id,
         version='1.0.0',
         trial_days=7,
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
     )
     db.session.add(version)
     db.session.flush()
-    db.session.add(PackageVersionPricing(
-        package_version_id=version.id,
-        billing_type='monthly',
-        price=100,
-        setup_fee=0,
-        currency='SAR',
-    ))
-    db.session.add(PackageVersionEntitlement(
-        package_version_id=version.id,
-        module_name='reception',
-        capability_key='reception.access',
-    ))
-    db.session.add(PackageVersionAvailability(
-        package_version_id=version.id,
-        availability_status=PackageVersionAvailabilityStatus.AVAILABLE,
-        effective_from=datetime.now(timezone.utc),
-    ))
+    db.session.add(
+        PackageVersionPricing(
+            package_version_id=version.id,
+            billing_type='monthly',
+            price=100,
+            setup_fee=0,
+            currency='SAR',
+        )
+    )
+    db.session.add(
+        PackageVersionEntitlement(
+            package_version_id=version.id,
+            module_name='reception',
+            capability_key='reception.access',
+        )
+    )
+    db.session.add(
+        PackageVersionAvailability(
+            package_version_id=version.id,
+            availability_status=PackageVersionAvailabilityStatus.AVAILABLE,
+            effective_from=datetime.now(UTC),
+        )
+    )
     db.session.commit()
     return version
 
@@ -87,7 +93,7 @@ class TestSignupFloodLimit:
     def test_email_flood_limit_blocks_pending_signups(self, app):
         version = _seed_package_version()
         email = f'flood-{uuid.uuid4().hex[:6]}@example.com'
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         with tenant_test_context(app, bypass=True):
             for i in range(3):
@@ -141,14 +147,16 @@ class TestSignupCaptcha:
         monkeypatch.setenv('SIGNUP_CAPTCHA_SECRET', 'test-secret')
         version = _seed_package_version()
         slug = f'capok-{uuid.uuid4().hex[:6]}'
-        with tenant_test_context(app, bypass=True):
-            with patch.object(
+        with (
+            tenant_test_context(app, bypass=True),
+            patch.object(
                 SaasRegistrationService,
                 '_verify_captcha',
                 side_effect=lambda token: None,
-            ):
-                tenant, _ = SaasRegistrationService.register_organization(
-                    **_signup_kwargs(version.id, slug),
-                    captcha_token='dummy-token',
-                )
+            ),
+        ):
+            tenant, _ = SaasRegistrationService.register_organization(
+                **_signup_kwargs(version.id, slug),
+                captcha_token='dummy-token',
+            )
         assert tenant.slug == slug

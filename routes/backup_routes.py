@@ -2,24 +2,26 @@
 مسارات النسخ الاحتياطي - Backup Routes
 Medical System Backup Routes
 """
-from sqlalchemy import select, func
 
-from flask import Blueprint, render_template, request, flash, redirect, url_for, send_file, abort
-from flask_login import login_required, current_user
-from utils.decorators import super_admin_required
-from models.backup import Backup
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
+from flask import Blueprint, abort, flash, redirect, render_template, request, send_file, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import func, select
+
+from app.extensions import db
 from app.shared.enums import BackupStatus
+from models.backup import Backup
 from services.pg_backup_service import (
     PgBackupError,
     build_backup_path,
     restore_pg_sql_gz,
     run_pg_dump_sql_gz,
 )
+from utils.db_safety import safe_commit
+from utils.decorators import super_admin_required
 
 backup_bp = Blueprint('backup', __name__)
 logger = logging.getLogger(__name__)
@@ -32,10 +34,20 @@ def dashboard():
     """لوحة تحكم النسخ الاحتياطي"""
     try:
         total_backups = db.session.execute(select(func.count()).select_from(Backup)).scalar()
-        completed_backups = db.session.execute(select(func.count()).select_from(Backup).filter_by(backup_status=BackupStatus.COMPLETED)).scalar()
-        failed_backups = db.session.execute(select(func.count()).select_from(Backup).filter_by(backup_status=BackupStatus.FAILED)).scalar()
-        scheduled_backups = db.session.execute(select(func.count()).select_from(Backup).filter_by(is_scheduled=True)).scalar()
-        recent_backups = db.session.execute(select(Backup).order_by(Backup.created_at.desc()).limit(5)).scalars().all()
+        completed_backups = db.session.execute(
+            select(func.count()).select_from(Backup).filter_by(backup_status=BackupStatus.COMPLETED)
+        ).scalar()
+        failed_backups = db.session.execute(
+            select(func.count()).select_from(Backup).filter_by(backup_status=BackupStatus.FAILED)
+        ).scalar()
+        scheduled_backups = db.session.execute(
+            select(func.count()).select_from(Backup).filter_by(is_scheduled=True)
+        ).scalar()
+        recent_backups = (
+            db.session.execute(select(Backup).order_by(Backup.created_at.desc()).limit(5))
+            .scalars()
+            .all()
+        )
         stats = {
             'total_backups': total_backups,
             'completed_backups': completed_backups,
@@ -69,11 +81,11 @@ def create_backup():
                 is_encrypted=is_encrypted,
                 backup_path=backup_path,
                 backup_status=BackupStatus.IN_PROGRESS,
-                started_at=datetime.now(timezone.utc),
+                started_at=datetime.now(UTC),
                 created_by=current_user.id,
             )
             db.session.add(backup)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
 
             from celery_app import celery_is_enabled, task_always_eager
             from services.backup_queue_service import BackupQueueError, queue_system_backup
@@ -91,7 +103,7 @@ def create_backup():
                 size = create_backup_file(backup)
                 backup.backup_size = size
                 backup.backup_status = BackupStatus.COMPLETED
-                backup.completed_at = datetime.now(timezone.utc)
+                backup.completed_at = datetime.now(UTC)
                 flash('تم إنشاء النسخة الاحتياطية بنجاح', 'success')
             except PgBackupError as exc:
                 backup.backup_status = BackupStatus.FAILED
@@ -104,7 +116,7 @@ def create_backup():
                 flash('فشل في إنشاء النسخة الاحتياطية', 'error')
                 logger.error('Backup failed for id=%s: %s', backup.id, exc)
 
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             return redirect(url_for('backup.dashboard'))
 
         return render_template('backup/create_backup.html')
@@ -119,7 +131,9 @@ def create_backup():
 @super_admin_required
 def list_backups():
     try:
-        backups = db.session.execute(select(Backup).order_by(Backup.created_at.desc())).scalars().all()
+        backups = (
+            db.session.execute(select(Backup).order_by(Backup.created_at.desc())).scalars().all()
+        )
         return render_template('backup/list_backups.html', backups=backups)
     except Exception as e:
         logger.error('Error listing backups: %s', e)
@@ -142,9 +156,9 @@ def restore_backup(backup_id):
         success = restore_backup_file(backup)
         if success:
             backup.restore_count += 1
-            backup.last_restore = datetime.now(timezone.utc)
+            backup.last_restore = datetime.now(UTC)
             backup.last_restore_by = current_user.id
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم استعادة النسخة الاحتياطية بنجاح', 'success')
         else:
             flash('فشل في استعادة النسخة الاحتياطية', 'error')
@@ -185,7 +199,7 @@ def delete_backup(backup_id):
         if os.path.exists(backup.backup_path):
             os.remove(backup.backup_path)
         db.session.delete(backup)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم حذف النسخة الاحتياطية بنجاح', 'success')
         return redirect(url_for('backup.list_backups'))
     except Exception as e:

@@ -1,6 +1,7 @@
-from datetime import datetime, timezone
-from app_factory import db
+from datetime import UTC, datetime
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
 
 TOOTH_STATES = {
     'sound': {'label': 'سليم', 'color': '#10b981'},
@@ -16,18 +17,26 @@ TOOTH_STATES = {
     'abscess': {'label': 'خراج', 'color': '#be185d'},
 }
 
+
 class DentalChart(TenantMixin, db.Model):
     __tablename__ = 'dental_charts'
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True
+    )
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    doctor_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     notes = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
 
-    teeth = db.relationship('DentalTooth', back_populates='chart', lazy='dynamic',
-                            cascade='all, delete-orphan')
+    teeth = db.relationship(
+        'DentalTooth', back_populates='chart', lazy='dynamic', cascade='all, delete-orphan'
+    )
 
     def to_dict(self):
         return {
@@ -37,7 +46,7 @@ class DentalChart(TenantMixin, db.Model):
             'doctor_id': self.doctor_id,
             'notes': self.notes,
             'teeth': [t.to_dict() for t in self.teeth],
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
         }
 
 
@@ -45,13 +54,17 @@ class DentalTooth(TenantMixin, db.Model):
     __tablename__ = 'dental_teeth'
 
     id = db.Column(db.Integer, primary_key=True)
-    chart_id = db.Column(db.Integer, db.ForeignKey('dental_charts.id', ondelete='CASCADE'), nullable=False, index=True)
+    chart_id = db.Column(
+        db.Integer,
+        db.ForeignKey('dental_charts.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
     fdi_number = db.Column(db.String(2), nullable=False)  # 11-48
     state = db.Column(db.String(20), nullable=False, default='sound')
     surfaces = db.Column(db.JSON, nullable=True)  # {'occlusal': 'caries', 'buccal': 'sound', ...}
     notes = db.Column(db.Text, nullable=True)
     chart = db.relationship('DentalChart', back_populates='teeth')
-
 
     def to_dict(self):
         return {
@@ -61,5 +74,5 @@ class DentalTooth(TenantMixin, db.Model):
             'state_label': TOOTH_STATES.get(self.state, {}).get('label', self.state),
             'state_color': TOOTH_STATES.get(self.state, {}).get('color', '#999'),
             'surfaces': self.surfaces or {},
-            'notes': self.notes
+            'notes': self.notes,
         }

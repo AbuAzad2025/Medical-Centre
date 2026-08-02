@@ -5,18 +5,22 @@ templates, cleanup, queue, whatsapp/email) plus smoke-coverage of the cron-style
 aggregators (debt/insurance/appointment/booking reminders, manager summary,
 alerts) to ensure they never raise against the live schema. ``rollback_db``.
 """
+
 import types
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
-
-from services.notification_service import NotificationService as NF
-from models.notification import (Notification, NotificationTemplate,
-                                 WhatsAppNotificationMessage, EmailMessage)
-from models.user import User
 from sqlalchemy import select
+
 from app.extensions import db
+from models.notification import (
+    Notification,
+    NotificationTemplate,
+    WhatsAppNotificationMessage,
+)
+from models.user import User
+from services.notification_service import NotificationService as NF
 
 
 @pytest.fixture
@@ -32,9 +36,16 @@ def fx(rollback_db):
         return u
 
     def notif(recipient_id, urgent=False, read=False, expires_at=None, ntype='info'):
-        n = Notification(title='t', message='m', notification_type=ntype,
-                         recipient_id=recipient_id, is_urgent=urgent, is_read=read,
-                         expires_at=expires_at, sent_at=datetime.now(timezone.utc))
+        n = Notification(
+            title='t',
+            message='m',
+            notification_type=ntype,
+            recipient_id=recipient_id,
+            is_urgent=urgent,
+            is_read=read,
+            expires_at=expires_at,
+            sent_at=datetime.now(UTC),
+        )
         db.session.add(n)
         db.session.commit()
         return n
@@ -45,8 +56,9 @@ def fx(rollback_db):
 class TestSend:
     def test_basic_send(self, fx):
         u = fx.user()
-        res = NF.send_notification(recipient_id=u.id, title='hi', message='body',
-                                   notification_type='info')
+        res = NF.send_notification(
+            recipient_id=u.id, title='hi', message='body', notification_type='info'
+        )
         assert res['success'] is True
         assert res['notification_id']
         assert db.session.get(Notification, res['notification_id']).recipient_id == u.id
@@ -57,19 +69,24 @@ class TestSend:
 
     def test_send_with_template(self, fx):
         name = 'tpl_' + uuid.uuid4().hex[:6]
-        NF.create_notification_template(name=name, title_template='Hi {who}',
-                                        message_template='Msg {who}', notification_type='info')
-        res = NF.send_notification(recipient_id=None, template_name=name,
-                                   template_variables={'who': 'Sara'})
+        NF.create_notification_template(
+            name=name,
+            title_template='Hi {who}',
+            message_template='Msg {who}',
+            notification_type='info',
+        )
+        res = NF.send_notification(
+            recipient_id=None, template_name=name, template_variables={'who': 'Sara'}
+        )
         assert res['success'] is True
 
 
 class TestBulk:
     def test_bulk_by_ids_roles_depts(self, fx):
         u1, u2 = fx.user(), fx.user()
-        res = NF.send_bulk_notification(recipient_ids=[u1.id, u2.id],
-                                        recipient_roles=['nurse'],
-                                        title='t', message='m')
+        res = NF.send_bulk_notification(
+            recipient_ids=[u1.id, u2.id], recipient_roles=['nurse'], title='t', message='m'
+        )
         assert res['success'] is True
         assert '3' in res['message']
 
@@ -85,7 +102,7 @@ class TestQueryReadState:
 
     def test_excludes_expired(self, fx):
         u = fx.user()
-        fx.notif(u.id, expires_at=datetime.now(timezone.utc) - timedelta(days=1))
+        fx.notif(u.id, expires_at=datetime.now(UTC) - timedelta(days=1))
         res = NF.get_user_notifications(u.id)
         assert res['total_count'] == 0
 
@@ -132,8 +149,9 @@ class TestQueryReadState:
 class TestTemplates:
     def test_create_and_list(self, fx):
         name = 'tpl_' + uuid.uuid4().hex[:6]
-        res = NF.create_notification_template(name=name, title_template='S',
-                                              message_template='C', notification_type='info')
+        res = NF.create_notification_template(
+            name=name, title_template='S', message_template='C', notification_type='info'
+        )
         assert res['success'] is True
         listing = NF.get_notification_templates()
         assert listing['success'] is True
@@ -143,13 +161,18 @@ class TestTemplates:
         res = NF.create_default_templates()
         assert res['success'] is True
         for nm in ('new_visit', 'appointment_reminder', 'payment_required'):
-            assert db.session.execute(select(NotificationTemplate).filter_by(name=nm)).scalars().first() is not None
+            assert (
+                db.session.execute(select(NotificationTemplate).filter_by(name=nm))
+                .scalars()
+                .first()
+                is not None
+            )
 
 
 class TestCleanupAndChannels:
     def test_cleanup_expired(self, fx):
         u = fx.user()
-        n = fx.notif(u.id, expires_at=datetime.now(timezone.utc) - timedelta(days=2))
+        n = fx.notif(u.id, expires_at=datetime.now(UTC) - timedelta(days=2))
         res = NF.cleanup_expired_notifications()
         assert res['success'] is True
         assert db.session.get(Notification, n.id) is None
@@ -173,33 +196,39 @@ class TestCleanupAndChannels:
 class TestAggregatorsSmoke:
     """Cron-style methods must never raise against the live schema."""
 
-    @pytest.mark.parametrize('method', [
-        'send_debt_reminders',
-        'send_insurance_followup_alerts',
-        'send_force_payment_approval_alerts',
-        'send_daily_summary_to_manager',
-        'check_and_send_alerts',
-        'send_appointment_reminders',
-        'send_online_booking_reminders',
-    ])
+    @pytest.mark.parametrize(
+        'method',
+        [
+            'send_debt_reminders',
+            'send_insurance_followup_alerts',
+            'send_force_payment_approval_alerts',
+            'send_daily_summary_to_manager',
+            'check_and_send_alerts',
+            'send_appointment_reminders',
+            'send_online_booking_reminders',
+        ],
+    )
     def test_aggregator_no_raise(self, fx, method):
         result = getattr(NF, method)(tenant_id=None)
         assert result is None or isinstance(result, (dict, list, int))
 
     def test_process_notification_queue(self, fx, monkeypatch):
-        from models.notification import NotificationQueue
         from app.shared.enums import NotificationState
+        from models.notification import NotificationQueue
 
         u = fx.user()
         monkeypatch.setattr(
             'services.notification_service.NotificationService.send_email_message',
-            staticmethod(lambda **kw: {'success': True}))
+            staticmethod(lambda **kw: {'success': True}),
+        )
         monkeypatch.setattr(
             'services.notification_service.NotificationService.send_whatsapp_message',
-            staticmethod(lambda **kw: {'success': True}))
+            staticmethod(lambda **kw: {'success': True}),
+        )
         monkeypatch.setattr(
             'services.notification_service.NotificationService.send_notification',
-            staticmethod(lambda **kw: {'success': True, 'notification_id': 1}))
+            staticmethod(lambda **kw: {'success': True, 'notification_id': 1}),
+        )
 
         queue_ids = []
         for ntype, recipient in (
@@ -232,8 +261,9 @@ class TestAggregatorsWithData:
     """Seed Visits so the financial aggregators execute their inner loops."""
 
     def _visit(self, fx, **kw):
-        from models.visit import Visit
         from models.patient import Patient
+        from models.visit import Visit
+
         p = Patient(first_name='a', last_name='b')
         fx.db.session.add(p)
         fx.db.session.commit()
@@ -246,9 +276,17 @@ class TestAggregatorsWithData:
 
     def test_debt_reminders_drives_loop(self, fx):
         from app.shared.enums import PaymentStatus
+
         old = datetime.now() - timedelta(days=70)  # >60d -> manager + urgent branches
-        self._visit(fx, payment_status=PaymentStatus.DEBT, is_force_payment=True,
-                    created_at=old, force_payment_reason='تأخر', total_amount=300, paid_amount=0)
+        self._visit(
+            fx,
+            payment_status=PaymentStatus.DEBT,
+            is_force_payment=True,
+            created_at=old,
+            force_payment_reason='تأخر',
+            total_amount=300,
+            paid_amount=0,
+        )
         res = NF.send_debt_reminders(tenant_id=None)
         assert res['success'] is True
         assert res['debts_found'] >= 1
@@ -256,37 +294,59 @@ class TestAggregatorsWithData:
 
     def test_insurance_followup_drives_loop(self, fx):
         from app.shared.enums import PaymentStatus
+
         old = datetime.now() - timedelta(days=50)  # >45d -> urgent branch
-        self._visit(fx, payment_method='insurance', payment_status=PaymentStatus.PARTIAL,
-                    created_at=old, insurance_amount=120, insurance_provider='X',
-                    insurance_policy_number='POL1', total_amount=200, paid_amount=80)
+        self._visit(
+            fx,
+            payment_method='insurance',
+            payment_status=PaymentStatus.PARTIAL,
+            created_at=old,
+            insurance_amount=120,
+            insurance_provider='X',
+            insurance_policy_number='POL1',
+            total_amount=200,
+            paid_amount=80,
+        )
         res = NF.send_insurance_followup_alerts(tenant_id=None)
         assert res['success'] is True
         assert res['pending_claims'] >= 1
 
     def test_force_payment_alerts_drives_loop(self, fx):
-        self._visit(fx, is_force_payment=True, force_payment_approved_by=None,
-                    force_payment_reason='ضرورة طبية عاجلة', total_amount=150)
+        self._visit(
+            fx,
+            is_force_payment=True,
+            force_payment_approved_by=None,
+            force_payment_reason='ضرورة طبية عاجلة',
+            total_amount=150,
+        )
         res = NF.send_force_payment_approval_alerts(tenant_id=None)
         assert res['success'] is True
         assert res['pending_count'] >= 1
 
     def test_appointment_reminders_both_branches(self, fx):
+        from app.shared.enums import AppointmentState
         from models.appointment import Appointment
         from models.patient import Patient
-        from app.shared.enums import AppointmentState
+
         soon = datetime.now() + timedelta(hours=2)
         with_phone = Patient(first_name='ذو', last_name='هاتف', phone='+970599111222')
         no_phone = Patient(first_name='بلا', last_name='هاتف')
         fx.db.session.add_all([with_phone, no_phone])
         fx.db.session.commit()
         doctor = fx.user(role='doctor')
-        fx.db.session.add_all([
-            Appointment(patient_id=with_phone.id, doctor_id=doctor.id,
-                        starts_at=soon, status=AppointmentState.SCHEDULED),
-            Appointment(patient_id=no_phone.id, starts_at=soon,
-                        status=AppointmentState.SCHEDULED),
-        ])
+        fx.db.session.add_all(
+            [
+                Appointment(
+                    patient_id=with_phone.id,
+                    doctor_id=doctor.id,
+                    starts_at=soon,
+                    status=AppointmentState.SCHEDULED,
+                ),
+                Appointment(
+                    patient_id=no_phone.id, starts_at=soon, status=AppointmentState.SCHEDULED
+                ),
+            ]
+        )
         fx.db.session.commit()
         res = NF.send_appointment_reminders(tenant_id=None)
         assert res['success'] is True
@@ -294,27 +354,36 @@ class TestAggregatorsWithData:
         assert res['fallback_notified'] >= 1
 
     def test_online_booking_reminders_drives_loop(self, fx):
-        from models.online_booking import OnlineBooking
-        from models.department import Department
         from app.shared.enums import BookingState
+        from models.department import Department
+        from models.online_booking import OnlineBooking
+
         dept = db.session.execute(select(Department)).scalars().first()
         if dept is None:
             dept = Department(name='General', name_ar='عيادة عامة')
             fx.db.session.add(dept)
             fx.db.session.commit()
-        soon = datetime.now(timezone.utc) + timedelta(hours=2)
+        soon = datetime.now(UTC) + timedelta(hours=2)
         with_email = OnlineBooking(
             booking_reference='BK-' + uuid.uuid4().hex[:8],
-            first_name='حجز', last_name='اونلاين', phone='+970599333444',
-            email='booker@x.com', appointment_date=soon.date(),
-            appointment_time=soon.time(), status=BookingState.PENDING,
+            first_name='حجز',
+            last_name='اونلاين',
+            phone='+970599333444',
+            email='booker@x.com',
+            appointment_date=soon.date(),
+            appointment_time=soon.time(),
+            status=BookingState.PENDING,
             department_id=dept.id,
         )
         no_email = OnlineBooking(
             booking_reference='BK-' + uuid.uuid4().hex[:8],
-            first_name='بلا', last_name='بريد', phone='+970599555666',
-            appointment_date=soon.date(), appointment_time=soon.time(),
-            status=BookingState.CONFIRMED, department_id=dept.id,
+            first_name='بلا',
+            last_name='بريد',
+            phone='+970599555666',
+            appointment_date=soon.date(),
+            appointment_time=soon.time(),
+            status=BookingState.CONFIRMED,
+            department_id=dept.id,
         )
         fx.db.session.add_all([with_email, no_email])
         fx.db.session.commit()
@@ -324,14 +393,15 @@ class TestAggregatorsWithData:
         assert res['fallback_notified'] >= 1
 
     def test_module_level_process_queue_entry(self, fx, monkeypatch):
-        from models.notification import NotificationQueue
         from app.shared.enums import NotificationState
+        from models.notification import NotificationQueue
         from services.notification_service import process_notification_queue
 
         u = fx.user()
         monkeypatch.setattr(
             'services.notification_service.NotificationService.send_notification',
-            staticmethod(lambda **kw: {'success': True, 'notification_id': 1}))
+            staticmethod(lambda **kw: {'success': True, 'notification_id': 1}),
+        )
         item = NotificationQueue(
             user_id=u.id,
             notification_type='inapp',
@@ -348,8 +418,8 @@ class TestAggregatorsWithData:
         assert (db.session.get(NotificationQueue, item.id).status or '').lower() == 'sent'
 
     def test_process_queue_sms_branch(self, fx, monkeypatch):
-        from models.notification import NotificationQueue
         from app.shared.enums import NotificationState
+        from models.notification import NotificationQueue
 
         u = fx.user()
         monkeypatch.setattr(
@@ -372,17 +442,24 @@ class TestAggregatorsWithData:
 
     def test_debt_reminder_medium_urgency_tier(self, fx):
         from app.shared.enums import PaymentStatus
+
         old = datetime.now() - timedelta(days=45)  # 30-60d tier
-        self._visit(fx, payment_status=PaymentStatus.DEBT, created_at=old,
-                    is_force_payment=True, force_payment_reason='تأخر',
-                    total_amount=200, paid_amount=0)
+        self._visit(
+            fx,
+            payment_status=PaymentStatus.DEBT,
+            created_at=old,
+            is_force_payment=True,
+            force_payment_reason='تأخر',
+            total_amount=200,
+            paid_amount=0,
+        )
         res = NF.send_debt_reminders(tenant_id=None)
         assert res['success'] is True
         assert res['reminders_sent'] >= 1
 
     def test_process_queue_failure_marks_failed(self, fx, monkeypatch):
-        from models.notification import NotificationQueue
         from app.shared.enums import NotificationState
+        from models.notification import NotificationQueue
 
         u = fx.user()
         monkeypatch.setattr(

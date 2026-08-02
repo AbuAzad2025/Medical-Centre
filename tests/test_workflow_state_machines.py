@@ -11,10 +11,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.shared.enums import AppointmentWorkflowStatus as A, LabOrderStatus as L
 from app.modules.workflows.appointment import AppointmentService
 from app.modules.workflows.lab import LabWorkflowService
-
+from app.shared.enums import AppointmentWorkflowStatus as A
+from app.shared.enums import LabOrderStatus as L
 
 # ---------------------------------------------------------------------------
 # Appointment transition matrix
@@ -40,12 +40,12 @@ _APPT_INVALID = [
 ]
 
 
-@pytest.mark.parametrize("current,target", _APPT_VALID)
+@pytest.mark.parametrize('current,target', _APPT_VALID)
 def test_appointment_valid_transitions(current, target):
     assert AppointmentService.can_transition(current, target) is True
 
 
-@pytest.mark.parametrize("current,target", _APPT_INVALID)
+@pytest.mark.parametrize('current,target', _APPT_INVALID)
 def test_appointment_invalid_transitions(current, target):
     assert AppointmentService.can_transition(current, target) is False
 
@@ -66,11 +66,15 @@ def test_appointment_transition_raises_on_invalid(patch_db_session):
         AppointmentService.transition(appt, A.SCHEDULED)
 
 
-@pytest.mark.parametrize("status", [A.CHECKED_IN, A.IN_PROGRESS, A.DONE])
+@pytest.mark.parametrize('status', [A.CHECKED_IN, A.IN_PROGRESS, A.DONE])
 def test_convert_to_visit_allowed_states(patch_db_session, status):
     session = patch_db_session()
     appt = SimpleNamespace(
-        status=status, patient_id=1, doctor_id=2, department_id=3, id=10,
+        status=status,
+        patient_id=1,
+        doctor_id=2,
+        department_id=3,
+        id=10,
     )
     visit = AppointmentService.convert_to_visit(appt, created_by=99)
     assert visit.patient_id == 1
@@ -78,7 +82,7 @@ def test_convert_to_visit_allowed_states(patch_db_session, status):
     assert visit in session.added
 
 
-@pytest.mark.parametrize("status", [A.SCHEDULED, A.CONFIRMED, A.CANCELLED, A.NO_SHOW])
+@pytest.mark.parametrize('status', [A.SCHEDULED, A.CONFIRMED, A.CANCELLED, A.NO_SHOW])
 def test_convert_to_visit_blocked_states(patch_db_session, status):
     patch_db_session()
     appt = SimpleNamespace(status=status, patient_id=1, doctor_id=2, department_id=3, id=10)
@@ -110,20 +114,21 @@ _LAB_INVALID = [
 ]
 
 
-@pytest.mark.parametrize("current,target", _LAB_VALID)
+@pytest.mark.parametrize('current,target', _LAB_VALID)
 def test_lab_valid_transitions(current, target):
     assert LabWorkflowService.can_transition(current, target) is True
 
 
-@pytest.mark.parametrize("current,target", _LAB_INVALID)
+@pytest.mark.parametrize('current,target', _LAB_INVALID)
 def test_lab_invalid_transitions(current, target):
     assert LabWorkflowService.can_transition(current, target) is False
 
 
 def test_lab_transition_sets_approval_metadata(patch_db_session):
     patch_db_session()
-    req = SimpleNamespace(status=L.RESULTS_ENTERED, updated_at=None,
-                          approved_by=None, approved_at=None)
+    req = SimpleNamespace(
+        status=L.RESULTS_ENTERED, updated_at=None, approved_by=None, approved_at=None
+    )
     LabWorkflowService.transition(req, L.APPROVED, performed_by=42)
     assert req.status == L.APPROVED
     assert req.approved_by == 42
@@ -140,7 +145,7 @@ def test_lab_transition_raises_on_invalid(patch_db_session):
 def test_lab_enter_results_sets_values_and_meta(patch_db_session):
     session = patch_db_session()
     result = SimpleNamespace(entered_by=None, entered_at=None)
-    LabWorkflowService.enter_results(result, {"wbc": 6.2, "rbc": 4.8}, entered_by=7)
+    LabWorkflowService.enter_results(result, {'wbc': 6.2, 'rbc': 4.8}, entered_by=7)
     assert result.wbc == 6.2
     assert result.rbc == 4.8
     assert result.entered_by == 7

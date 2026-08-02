@@ -1,26 +1,24 @@
 """interactions routes - extracted from monolithic medication_routes.py"""
 
-from routes.medication_routes import medication_bp
+import logging
+from datetime import UTC, datetime
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.medication import Medication, Prescription
-from models.patient import Patient
-from models.visit import Visit
-from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
-from models.drug_interaction import DrugInteraction
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-import logging, json
-from datetime import datetime, timezone, timedelta, date
-from sqlalchemy import func, select
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import select
 
+from app.extensions import db
+from models.drug_interaction import DrugInteraction
+from models.medication import Medication
+from routes.medication_routes import medication_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required
 
 # =============================================
 # INTERACTIONS ROUTES
 # =============================================
+
 
 @medication_bp.route('/interactions', methods=['GET', 'POST'])
 @login_required
@@ -40,34 +38,58 @@ def interactions():
             b = max(a_id, b_id)
             if severity not in {'LOW', 'MODERATE', 'HIGH'}:
                 severity = 'MODERATE'
-            exists = db.session.execute(select(DrugInteraction).filter_by(medication_a_id=a, medication_b_id=b)).scalars().first()
+            exists = (
+                db.session.execute(
+                    select(DrugInteraction).filter_by(medication_a_id=a, medication_b_id=b)
+                )
+                .scalars()
+                .first()
+            )
             if exists:
                 exists.severity = severity
                 exists.description = description
                 exists.is_active = is_active
-                exists.updated_at = datetime.now(timezone.utc)
+                exists.updated_at = datetime.now(UTC)
             else:
-                db.session.add(DrugInteraction(
-                    medication_a_id=a,
-                    medication_b_id=b,
-                    severity=severity,
-                    description=description,
-                    is_active=is_active,
-                    created_by=current_user.id,
-                    created_at=datetime.now(timezone.utc),
-                    updated_at=datetime.now(timezone.utc),
-                ))
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+                db.session.add(
+                    DrugInteraction(
+                        medication_a_id=a,
+                        medication_b_id=b,
+                        severity=severity,
+                        description=description,
+                        is_active=is_active,
+                        created_by=current_user.id,
+                        created_at=datetime.now(UTC),
+                        updated_at=datetime.now(UTC),
+                    )
+                )
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم حفظ التداخل', 'success')
             return redirect(url_for('medication.interactions'))
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error(f"Error saving interaction: {str(e)}")
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception(f'Error saving interaction: {e!s}')
             flash('حدث خطأ في حفظ التداخل', 'error')
             return redirect(url_for('medication.interactions'))
 
-    meds = db.session.execute(select(Medication).filter_by(is_active=True).filter(Medication.tenant_id == current_user.tenant_id).order_by(Medication.trade_name.asc()).limit(2000)).scalars().all()
-    rows = db.session.execute(select(DrugInteraction).order_by(DrugInteraction.created_at.desc()).limit(500)).scalars().all()
+    meds = (
+        db.session.execute(
+            select(Medication)
+            .filter_by(is_active=True)
+            .filter(Medication.tenant_id == current_user.tenant_id)
+            .order_by(Medication.trade_name.asc())
+            .limit(2000)
+        )
+        .scalars()
+        .all()
+    )
+    rows = (
+        db.session.execute(
+            select(DrugInteraction).order_by(DrugInteraction.created_at.desc()).limit(500)
+        )
+        .scalars()
+        .all()
+    )
     return render_template('medication/interactions.html', medications=meds, interactions=rows)
 
 
@@ -75,15 +97,19 @@ def interactions():
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def toggle_interaction(interaction_id: int):
-    row = db.session.execute(select(DrugInteraction).filter(DrugInteraction.id == interaction_id)).scalars().first()
+    row = (
+        db.session.execute(select(DrugInteraction).filter(DrugInteraction.id == interaction_id))
+        .scalars()
+        .first()
+    )
     if not row:
         return jsonify({'success': False, 'message': 'التداخل غير موجود'}), 404
     try:
         row.is_active = not bool(row.is_active)
-        row.updated_at = datetime.now(timezone.utc)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        row.updated_at = datetime.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'is_active': bool(row.is_active)}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error toggling interaction: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error toggling interaction: {e!s}')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

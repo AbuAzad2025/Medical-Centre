@@ -7,6 +7,7 @@ the query (e.g. ``PharmacySaleService.create_sale``) is already scoped to
 exactly one tenant, so it must be exempt from the guard; queries with no
 tenant scope at all must still fail closed.
 """
+
 import pytest
 from sqlalchemy import select
 
@@ -18,6 +19,7 @@ from models.medication import Prescription
 @pytest.mark.no_tenant_context
 def test_select_explicit_scope_skips_fail_closed(app, test_tenant, test_medications):
     from tests.tenant_context import clear_tenant_g
+
     clear_tenant_g()
     stmt = select(Prescription).filter(
         Prescription.id == 1, Prescription.tenant_id == test_tenant.id
@@ -28,6 +30,7 @@ def test_select_explicit_scope_skips_fail_closed(app, test_tenant, test_medicati
 @pytest.mark.no_tenant_context
 def test_select_no_scope_still_fails_closed(app, test_tenant, test_medications):
     from tests.tenant_context import clear_tenant_g
+
     clear_tenant_g()
     stmt = select(Prescription).filter(Prescription.id == 1)
     with pytest.raises(TenantIsolationError):
@@ -37,6 +40,7 @@ def test_select_no_scope_still_fails_closed(app, test_tenant, test_medications):
 @pytest.mark.no_tenant_context
 def test_query_explicit_scope_skips_fail_closed(app, test_tenant, test_medications):
     from tests.tenant_context import clear_tenant_g
+
     clear_tenant_g()
     q = db.session.query(Prescription).filter(
         Prescription.id == 1, Prescription.tenant_id == test_tenant.id

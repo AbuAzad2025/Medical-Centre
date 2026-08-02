@@ -1,4 +1,5 @@
 """Fix remaining weak test passwords."""
+
 import os
 
 replacements = {
@@ -30,7 +31,7 @@ for fp, reps in replacements.items():
     if not os.path.exists(fp):
         print(f'MISSING: {fp}')
         continue
-    with open(fp, 'r', encoding='utf-8') as f:
+    with open(fp, encoding='utf-8') as f:
         content = f.read()
     for old, new in reps:
         content = content.replace(old, new)

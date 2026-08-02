@@ -1,33 +1,27 @@
 """templates routes - extracted from monolithic radiology.py"""
 
-from routes.radiology import (
-    radiology_bp,
-    _get_radiology_report_templates,
-    _save_radiology_report_templates,
-    _get_radiology_report_macros,
-    _save_radiology_report_macros,
-)
+import secrets
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
-from models.radiology_request import RadiologyRequest
-from models.radiology_result import RadiologyResult
-from models.file_management import FileUpload
-from models.system_config import SystemConfig
-from app_factory import db
-import logging, json, os, base64, secrets
-from datetime import datetime, date, timezone, timedelta
-from io import BytesIO
+from flask import (
+    jsonify,
+    request,
+)
+from flask_login import login_required
 
+from routes.radiology import (
+    _get_radiology_report_macros,
+    _get_radiology_report_templates,
+    _save_radiology_report_macros,
+    _save_radiology_report_templates,
+    radiology_bp,
+)
+from utils.decorators import role_required
 
 # =============================================
 # TEMPLATES ROUTES
 # =============================================
+
 
 @radiology_bp.route('/api/report-templates', methods=['GET'])
 @login_required
@@ -35,7 +29,12 @@ from io import BytesIO
 def api_report_templates():
     templates = _get_radiology_report_templates()
     modality = (request.args.get('modality') or '').strip().upper() or None
-    active_only = (request.args.get('active_only') or 'true').strip().lower() in {'1', 'true', 'yes', 'on'}
+    active_only = (request.args.get('active_only') or 'true').strip().lower() in {
+        '1',
+        'true',
+        'yes',
+        'on',
+    }
     out = []
     for t in templates:
         if not isinstance(t, dict):
@@ -46,6 +45,7 @@ def api_report_templates():
             continue
         out.append(t)
     return jsonify({'success': True, 'templates': out}), 200
+
 
 @radiology_bp.route('/api/report-templates', methods=['POST'])
 @login_required
@@ -88,17 +88,20 @@ def upsert_report_template():
         return jsonify({'success': True, 'id': template_id}), 200
 
     new_id = secrets.token_hex(8)
-    templates.append({
-        'id': new_id,
-        'name': name,
-        'modality': modality,
-        'findings': findings,
-        'impression': impression,
-        'recommendations': recommendations,
-        'is_active': bool(is_active)
-    })
+    templates.append(
+        {
+            'id': new_id,
+            'name': name,
+            'modality': modality,
+            'findings': findings,
+            'impression': impression,
+            'recommendations': recommendations,
+            'is_active': bool(is_active),
+        }
+    )
     _save_radiology_report_templates(templates)
     return jsonify({'success': True, 'id': new_id}), 201
+
 
 @radiology_bp.route('/api/report-templates/<string:template_id>/delete', methods=['POST'])
 @login_required
@@ -112,12 +115,18 @@ def delete_report_template(template_id: str):
     _save_radiology_report_templates(templates)
     return jsonify({'success': True}), 200
 
+
 @radiology_bp.route('/api/report-macros', methods=['GET'])
 @login_required
 @role_required('radiology', 'manager', 'super_admin')
 def api_report_macros():
     macros = _get_radiology_report_macros()
-    active_only = (request.args.get('active_only') or 'true').strip().lower() in {'1', 'true', 'yes', 'on'}
+    active_only = (request.args.get('active_only') or 'true').strip().lower() in {
+        '1',
+        'true',
+        'yes',
+        'on',
+    }
     out = []
     for m in macros:
         if not isinstance(m, dict):
@@ -126,6 +135,7 @@ def api_report_macros():
             continue
         out.append(m)
     return jsonify({'success': True, 'macros': out}), 200
+
 
 @radiology_bp.route('/api/report-macros', methods=['POST'])
 @login_required
@@ -161,6 +171,7 @@ def upsert_report_macro():
     macros.append({'id': new_id, 'name': name, 'text': text, 'is_active': bool(is_active)})
     _save_radiology_report_macros(macros)
     return jsonify({'success': True, 'id': new_id}), 201
+
 
 @radiology_bp.route('/api/report-macros/<string:macro_id>/delete', methods=['POST'])
 @login_required

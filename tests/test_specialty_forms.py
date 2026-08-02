@@ -3,9 +3,10 @@
 import uuid
 
 import pytest
+from sqlalchemy import select
 
-from app_factory import db as _db
 from app.extensions import db
+from app_factory import db as _db
 from models.patient import Patient
 from models.specialty_form import (
     SpecialtyForm,
@@ -13,8 +14,6 @@ from models.specialty_form import (
     SpecialtyFormSubmission,
     SpecialtyFormVersion,
 )
-
-from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
@@ -52,15 +51,17 @@ def draft_specialty_form(app, test_tenant, manager_user):
     )
     _db.session.add(version)
     _db.session.flush()
-    _db.session.add(SpecialtyFormField(
-        tenant_id=test_tenant.id,
-        version_id=version.id,
-        name='chief_complaint',
-        label='الشكوى الرئيسية',
-        field_type='textarea',
-        required=True,
-        sort_order=0,
-    ))
+    _db.session.add(
+        SpecialtyFormField(
+            tenant_id=test_tenant.id,
+            version_id=version.id,
+            name='chief_complaint',
+            label='الشكوى الرئيسية',
+            field_type='textarea',
+            required=True,
+            sort_order=0,
+        )
+    )
     _db.session.commit()
     return form, version
 
@@ -73,7 +74,7 @@ class TestSpecialtyFormsAccess:
     def test_list_loads_for_manager(self, manager_auth_client):
         resp = manager_auth_client.get('/specialty-forms')
         assert resp.status_code == 200
-        assert 'النماذج التخصصية'.encode('utf-8') in resp.data
+        assert 'النماذج التخصصية'.encode() in resp.data
 
     def test_new_form_forbidden_for_pharmacist(self, auth_client):
         resp = auth_client.get('/specialty-forms/new')
@@ -84,19 +85,23 @@ class TestSpecialtyFormsLifecycle:
     def test_create_draft_form(self, manager_auth_client, test_tenant):
         suffix = uuid.uuid4().hex[:6]
         slug = f'intake-{suffix}'
-        resp = manager_auth_client.post('/specialty-forms/new', data={
-            'name': f'نموذج قبول {suffix}',
-            'slug': slug,
-            'specialty': 'قلب',
-            'description': 'وصف اختبار',
-            'field_label[]': ['ضغط الدم'],
-            'field_name[]': ['bp'],
-            'field_type[]': ['text'],
-            'field_required[]': ['1'],
-            'field_options[]': [''],
-            'field_default[]': [''],
-            'field_order[]': ['0'],
-        }, follow_redirects=False)
+        resp = manager_auth_client.post(
+            '/specialty-forms/new',
+            data={
+                'name': f'نموذج قبول {suffix}',
+                'slug': slug,
+                'specialty': 'قلب',
+                'description': 'وصف اختبار',
+                'field_label[]': ['ضغط الدم'],
+                'field_name[]': ['bp'],
+                'field_type[]': ['text'],
+                'field_required[]': ['1'],
+                'field_options[]': [''],
+                'field_default[]': [''],
+                'field_order[]': ['0'],
+            },
+            follow_redirects=False,
+        )
         assert resp.status_code == 302
         form = db.session.execute(select(SpecialtyForm).filter_by(slug=slug)).scalars().first()
         assert form is not None
@@ -105,7 +110,9 @@ class TestSpecialtyFormsLifecycle:
         assert form.versions[0].status == 'draft'
         assert len(form.versions[0].fields) == 1
 
-    def test_publish_and_fill(self, manager_auth_client, draft_specialty_form, specialty_patient, test_tenant):
+    def test_publish_and_fill(
+        self, manager_auth_client, draft_specialty_form, specialty_patient, test_tenant
+    ):
         form, version = draft_specialty_form
         pub = manager_auth_client.post(
             f'/specialty-forms/{form.id}/versions/{version.id}/publish',
@@ -115,12 +122,22 @@ class TestSpecialtyFormsLifecycle:
         _db.session.refresh(form)
         assert form.latest_published_version_id == version.id
 
-        fill = manager_auth_client.post(f'/specialty-forms/{form.id}/fill', data={
-            'patient_id': specialty_patient.id,
-            'field_chief_complaint': 'ألم صدر',
-        }, follow_redirects=True)
+        fill = manager_auth_client.post(
+            f'/specialty-forms/{form.id}/fill',
+            data={
+                'patient_id': specialty_patient.id,
+                'field_chief_complaint': 'ألم صدر',
+            },
+            follow_redirects=True,
+        )
         assert fill.status_code == 200
-        submission = db.session.execute(select(SpecialtyFormSubmission).filter_by(patient_id=specialty_patient.id)).scalars().first()
+        submission = (
+            db.session.execute(
+                select(SpecialtyFormSubmission).filter_by(patient_id=specialty_patient.id)
+            )
+            .scalars()
+            .first()
+        )
         assert submission is not None
         assert submission.answers['chief_complaint'] == 'ألم صدر'
 
@@ -140,7 +157,7 @@ class TestSpecialtyFormsLifecycle:
 
         resp = manager_auth_client.get(f'/specialty-forms/submissions/{submission.id}')
         assert resp.status_code == 200
-        assert 'سعال'.encode('utf-8') in resp.data
+        assert 'سعال'.encode() in resp.data
 
     def test_cannot_edit_published_version(self, manager_auth_client, draft_specialty_form):
         form, version = draft_specialty_form

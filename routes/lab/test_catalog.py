@@ -1,22 +1,30 @@
 """Test catalog and panel CRUD routes"""
 
-from routes.lab import lab_bp
-from flask import render_template, request, jsonify, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.lab_test_catalog import LabTestCatalog, LabTestPanel, LabTestPanelItem
-from app_factory import db
-from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import select
-from datetime import datetime, timezone
 import logging
+from datetime import UTC, datetime
+
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import select
+
+from app_factory import db
+from models.lab_test_catalog import LabTestCatalog, LabTestPanel, LabTestPanelItem
+from routes.lab import lab_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required
 
 logger = logging.getLogger(__name__)
 
 
 CATEGORIES = [
-    'chemistry', 'hematology', 'microbiology', 'serology',
-    'immunology', 'urinalysis', 'coagulation', 'other'
+    'chemistry',
+    'hematology',
+    'microbiology',
+    'serology',
+    'immunology',
+    'urinalysis',
+    'coagulation',
+    'other',
 ]
 
 
@@ -34,6 +42,7 @@ def _panel_tenant_filter():
 
 # ─────────────── Test Catalog CRUD ───────────────
 
+
 @lab_bp.route('/test-catalog/')
 @login_required
 @role_required('lab', 'manager', 'admin')
@@ -42,8 +51,14 @@ def test_catalog():
     stmt = select(LabTestCatalog).filter(_tenant_filter())
     if category:
         stmt = stmt.filter(LabTestCatalog.category == category)
-    tests = db.session.execute(stmt.order_by(LabTestCatalog.sort_order, LabTestCatalog.code)).scalars().all()
-    return render_template('lab/test_catalog.html', tests=tests, categories=CATEGORIES, selected_category=category)
+    tests = (
+        db.session.execute(stmt.order_by(LabTestCatalog.sort_order, LabTestCatalog.code))
+        .scalars()
+        .all()
+    )
+    return render_template(
+        'lab/test_catalog.html', tests=tests, categories=CATEGORIES, selected_category=category
+    )
 
 
 @lab_bp.route('/test-catalog/add', methods=['POST'])
@@ -67,10 +82,10 @@ def test_catalog_add():
             sort_order=request.form.get('sort_order', 0) or 0,
         )
         db.session.add(test)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم إضافة الفحص إلى الكتالوج', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         logger.exception('Error adding test catalog entry')
         flash(f'خطأ في إضافة الفحص: {e}', 'danger')
     return redirect(url_for('lab.test_catalog', category=request.form.get('category', '')))
@@ -80,7 +95,11 @@ def test_catalog_add():
 @login_required
 @role_required('lab', 'manager', 'admin')
 def test_catalog_edit(id):
-    test = db.session.execute(select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.id == id)).scalars().first()
+    test = (
+        db.session.execute(select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.id == id))
+        .scalars()
+        .first()
+    )
     if not test:
         flash('الفحص غير موجود', 'danger')
         return redirect(url_for('lab.test_catalog'))
@@ -97,11 +116,11 @@ def test_catalog_edit(id):
         test.preparation_instructions = request.form.get('preparation_instructions', '').strip()
         test.is_active = request.form.get('is_active', '1') == '1'
         test.sort_order = request.form.get('sort_order', 0) or 0
-        test.updated_at = datetime.now(timezone.utc)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        test.updated_at = datetime.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم تحديث الفحص', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         logger.exception('Error editing test catalog entry')
         flash(f'خطأ في تحديث الفحص: {e}', 'danger')
     return redirect(url_for('lab.test_catalog', category=request.form.get('category', '')))
@@ -111,32 +130,49 @@ def test_catalog_edit(id):
 @login_required
 @role_required('lab', 'manager', 'admin')
 def test_catalog_delete(id):
-    test = db.session.execute(select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.id == id)).scalars().first()
+    test = (
+        db.session.execute(select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.id == id))
+        .scalars()
+        .first()
+    )
     if not test:
         flash('الفحص غير موجود', 'danger')
         return redirect(url_for('lab.test_catalog'))
     try:
         db.session.delete(test)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم حذف الفحص', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ في حذف الفحص: {e}', 'danger')
     return redirect(url_for('lab.test_catalog'))
 
 
 # ─────────────── Test Panels CRUD ───────────────
 
+
 @lab_bp.route('/test-panels/')
 @login_required
 @role_required('lab', 'manager', 'admin')
 def test_panels():
-    panels = db.session.execute(
-        select(LabTestPanel).filter(LabTestPanel.tenant_id == getattr(current_user, 'tenant_id', None)).order_by(LabTestPanel.name_ar)
-    ).scalars().all()
-    tests = db.session.execute(
-        select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.is_active == True).order_by(LabTestCatalog.sort_order, LabTestCatalog.code)
-    ).scalars().all()
+    panels = (
+        db.session.execute(
+            select(LabTestPanel)
+            .filter(LabTestPanel.tenant_id == getattr(current_user, 'tenant_id', None))
+            .order_by(LabTestPanel.name_ar)
+        )
+        .scalars()
+        .all()
+    )
+    tests = (
+        db.session.execute(
+            select(LabTestCatalog)
+            .filter(_tenant_filter(), LabTestCatalog.is_active == True)
+            .order_by(LabTestCatalog.sort_order, LabTestCatalog.code)
+        )
+        .scalars()
+        .all()
+    )
     return render_template('lab/test_panels.html', panels=panels, tests=tests)
 
 
@@ -157,20 +193,22 @@ def test_panels_add():
         for idx, tid in enumerate(test_ids):
             if tid and tid.strip().isdigit():
                 test_id = int(tid)
-                test = db.session.execute(select(LabTestCatalog).filter(
-                    LabTestCatalog.tenant_id == tenant_id,
-                    LabTestCatalog.id == test_id
-                )).scalars().first()
+                test = (
+                    db.session.execute(
+                        select(LabTestCatalog).filter(
+                            LabTestCatalog.tenant_id == tenant_id, LabTestCatalog.id == test_id
+                        )
+                    )
+                    .scalars()
+                    .first()
+                )
                 if test:
-                    panel.items.append(LabTestPanelItem(
-                        test_id=test_id,
-                        sort_order=idx
-                    ))
+                    panel.items.append(LabTestPanelItem(test_id=test_id, sort_order=idx))
         db.session.add(panel)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم إضافة الباقة', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         logger.exception('Error adding panel')
         flash(f'خطأ في إضافة الباقة: {e}', 'danger')
     return redirect(url_for('lab.test_panels'))
@@ -180,7 +218,13 @@ def test_panels_add():
 @login_required
 @role_required('lab', 'manager', 'admin')
 def test_panels_edit(id):
-    panel = db.session.execute(select(LabTestPanel).filter(_panel_tenant_filter(), LabTestPanel.id == id)).scalars().first()
+    panel = (
+        db.session.execute(
+            select(LabTestPanel).filter(_panel_tenant_filter(), LabTestPanel.id == id)
+        )
+        .scalars()
+        .first()
+    )
     if not panel:
         flash('الباقة غير موجودة', 'danger')
         return redirect(url_for('lab.test_panels'))
@@ -189,7 +233,7 @@ def test_panels_edit(id):
         panel.name_en = request.form.get('name_en', '').strip()
         panel.description = request.form.get('description', '').strip()
         panel.is_active = request.form.get('is_active', '1') == '1'
-        panel.updated_at = datetime.now(timezone.utc)
+        panel.updated_at = datetime.now(UTC)
 
         tenant_id = getattr(current_user, 'tenant_id', None)
         panel.items.clear()
@@ -198,19 +242,21 @@ def test_panels_edit(id):
         for idx, tid in enumerate(test_ids):
             if tid and tid.strip().isdigit():
                 test_id = int(tid)
-                test = db.session.execute(select(LabTestCatalog).filter(
-                    LabTestCatalog.tenant_id == tenant_id,
-                    LabTestCatalog.id == test_id
-                )).scalars().first()
+                test = (
+                    db.session.execute(
+                        select(LabTestCatalog).filter(
+                            LabTestCatalog.tenant_id == tenant_id, LabTestCatalog.id == test_id
+                        )
+                    )
+                    .scalars()
+                    .first()
+                )
                 if test:
-                    panel.items.append(LabTestPanelItem(
-                        test_id=test_id,
-                        sort_order=idx
-                    ))
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+                    panel.items.append(LabTestPanelItem(test_id=test_id, sort_order=idx))
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم تحديث الباقة', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         logger.exception('Error editing panel')
         flash(f'خطأ في تحديث الباقة: {e}', 'danger')
     return redirect(url_for('lab.test_panels'))
@@ -220,21 +266,28 @@ def test_panels_edit(id):
 @login_required
 @role_required('lab', 'manager', 'admin')
 def test_panels_delete(id):
-    panel = db.session.execute(select(LabTestPanel).filter(_panel_tenant_filter(), LabTestPanel.id == id)).scalars().first()
+    panel = (
+        db.session.execute(
+            select(LabTestPanel).filter(_panel_tenant_filter(), LabTestPanel.id == id)
+        )
+        .scalars()
+        .first()
+    )
     if not panel:
         flash('الباقة غير موجودة', 'danger')
         return redirect(url_for('lab.test_panels'))
     try:
         db.session.delete(panel)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم حذف الباقة', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ في حذف الباقة: {e}', 'danger')
     return redirect(url_for('lab.test_panels'))
 
 
 # ─────────────── JSON API for auto-fill ───────────────
+
 
 @lab_bp.route('/api/test-catalog')
 @login_required
@@ -242,35 +295,46 @@ def api_test_catalog():
     stmt = select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.is_active == True)
     stmt = stmt.order_by(LabTestCatalog.sort_order, LabTestCatalog.code)
     tests = db.session.execute(stmt).scalars().all()
-    return jsonify([{
-        'id': t.id,
-        'code': t.code,
-        'name_ar': t.name_ar,
-        'name_en': t.name_en,
-        'category': t.category,
-        'unit': t.unit or '',
-        'default_reference_range': t.default_reference_range or '',
-        'critical_low': t.critical_low or '',
-        'critical_high': t.critical_high or '',
-    } for t in tests])
+    return jsonify(
+        [
+            {
+                'id': t.id,
+                'code': t.code,
+                'name_ar': t.name_ar,
+                'name_en': t.name_en,
+                'category': t.category,
+                'unit': t.unit or '',
+                'default_reference_range': t.default_reference_range or '',
+                'critical_low': t.critical_low or '',
+                'critical_high': t.critical_high or '',
+            }
+            for t in tests
+        ]
+    )
 
 
 @lab_bp.route('/api/test-catalog/<int:id>')
 @login_required
 def api_test_catalog_item(id):
-    test = db.session.execute(select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.id == id)).scalars().first()
+    test = (
+        db.session.execute(select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.id == id))
+        .scalars()
+        .first()
+    )
     if not test:
         return jsonify({'error': 'not found'}), 404
-    return jsonify({
-        'id': test.id,
-        'code': test.code,
-        'name_ar': test.name_ar,
-        'name_en': test.name_en,
-        'category': test.category,
-        'unit': test.unit or '',
-        'default_reference_range': test.default_reference_range or '',
-        'critical_low': test.critical_low or '',
-        'critical_high': test.critical_high or '',
-        'price': float(test.price) if test.price else 0,
-        'preparation_instructions': test.preparation_instructions or '',
-    })
+    return jsonify(
+        {
+            'id': test.id,
+            'code': test.code,
+            'name_ar': test.name_ar,
+            'name_en': test.name_en,
+            'category': test.category,
+            'unit': test.unit or '',
+            'default_reference_range': test.default_reference_range or '',
+            'critical_low': test.critical_low or '',
+            'critical_high': test.critical_high or '',
+            'price': float(test.price) if test.price else 0,
+            'preparation_instructions': test.preparation_instructions or '',
+        }
+    )

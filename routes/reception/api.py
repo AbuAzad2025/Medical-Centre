@@ -1,82 +1,74 @@
 """api routes - extracted from monolithic reception.py"""
 
-from routes.reception import reception_bp
+import logging
 
 # Imports
- 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from flask_login import login_required, current_user
-from sqlalchemy import func, select
-from datetime import datetime, timezone
-from models.user import User, StaffWorkSchedule, StaffAbsence
-from models.patient import Patient
-from models.visit import Visit
-from models.appointment import Appointment
-from models.follow_up import FollowUpRequest
-from models.online_booking import OnlineBooking
-from models.department import Department
-from models.payment import Payment, PaymentMethod, PaymentStatus
-from models.queue_management import QueueManagement
-from app.shared.enums import QueueState
-from routes.reception.queue import (
-    get_smart_queue_management,
-    get_patient_satisfaction_ai,
-    get_patient_demand_forecast,
-)
-from models.patient_satisfaction import PatientSatisfactionSurvey
-from services.gatekeeper_service import GatekeeperService
-from services.reception_service import reception_service
-from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
-from utils.tenant_query import get_tenant_record, TenantContextError
+from flask import jsonify, request
+from flask_login import current_user, login_required
+from sqlalchemy import select
+
 from app.extensions import db
-import logging
-from services.access_control_service import AccessControlService
-from services.pos_terminal_service import PosTerminalService
-
-
+from app.shared.enums import QueueState
+from models.department import Department
+from models.queue_management import QueueManagement
+from models.user import User
+from routes.reception import reception_bp
+from routes.reception.queue import (
+    get_patient_demand_forecast,
+    get_patient_satisfaction_ai,
+    get_smart_queue_management,
+)
+from utils.decorators import (
+    role_required_json,
+)
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 # ═══════════════════════════════════════
 # API ROUTES
 # ═══════════════════════════════════════
+
 
 @reception_bp.route('/api/doctors')
 @login_required
 @role_required_json('reception', 'manager')
 def api_doctors():
     """API لجلب الأطباء"""
-    
+
     department_id = request.args.get('department_id')
     appointment_type = request.args.get('appointment_type')
-    
+
     query = select(User)
-    
+
     if department_id:
         query = query.filter_by(department_id=department_id)
-    
+
     doctors = db.session.execute(query).scalars().all()
-    
-    return jsonify({
-        'success': True,
-        'doctors': [{'id': doctor.id, 'full_name': doctor.full_name} for doctor in doctors]
-    })
+
+    return jsonify(
+        {
+            'success': True,
+            'doctors': [{'id': doctor.id, 'full_name': doctor.full_name} for doctor in doctors],
+        }
+    )
+
 
 @reception_bp.route('/api/department-staff')
 @login_required
 @role_required_json('reception', 'manager')
 def api_department_staff():
     """API لجلب موظفي القسم المناسبين"""
-    
+
     department_id = request.args.get('department_id', type=int)
     if not department_id:
         return jsonify({'error': 'معرف القسم مطلوب'}), 400
-    
+
     try:
         # جلب موظفي القسم حسب نوع القسم
         try:
             department = get_tenant_record(Department, department_id)
         except TenantContextError:
             return jsonify({'error': 'القسم غير موجود'}), 404
-        
+
         dept_type = department.get_type()
         roles = ['doctor']
         if dept_type == 'lab':
@@ -85,21 +77,27 @@ def api_department_staff():
             roles = ['radiology', 'technician', 'nurse']
         elif dept_type == 'emergency':
             roles = ['emergency', 'doctor', 'nurse']
-        
+
         # 1. موظفو القسم مباشرة بصرف النظر عن الدور
-        from sqlalchemy import or_
-        direct_staff = db.session.execute(select(User).filter(
-            User.department_id == department_id,
-            User.is_active == True
-        )).scalars().all()
-        
+        direct_staff = (
+            db.session.execute(
+                select(User).filter(User.department_id == department_id, User.is_active == True)
+            )
+            .scalars()
+            .all()
+        )
+
         # 2. موظفون بدون قسم ودورهم يناسب نوع القسم
-        unassigned = db.session.execute(select(User).filter(
-            User.role.in_(roles),
-            User.is_active == True,
-            User.department_id.is_(None)
-        )).scalars().all()
-        
+        unassigned = (
+            db.session.execute(
+                select(User).filter(
+                    User.role.in_(roles), User.is_active == True, User.department_id.is_(None)
+                )
+            )
+            .scalars()
+            .all()
+        )
+
         # دمج بدون تكرار
         seen_ids = set()
         staff = []
@@ -107,21 +105,24 @@ def api_department_staff():
             if p.id not in seen_ids:
                 seen_ids.add(p.id)
                 staff.append(p)
-        
+
         results = []
         for person in staff:
-            results.append({
-                'id': person.id,
-                'full_name': person.full_name,
-                'role': person.role,
-                'specialization': getattr(person, 'specialization', ''),
-                'phone': getattr(person, 'phone', '')
-            })
-        
+            results.append(
+                {
+                    'id': person.id,
+                    'full_name': person.full_name,
+                    'role': person.role,
+                    'specialization': getattr(person, 'specialization', ''),
+                    'phone': getattr(person, 'phone', ''),
+                }
+            )
+
         return jsonify({'staff': results})
     except Exception as e:
-        logging.error(f"Error getting department staff: {str(e)}")
+        logging.exception(f'Error getting department staff: {e!s}')
         return jsonify({'error': 'حدث خطأ في جلب الموظفين'}), 500
+
 
 @reception_bp.route('/api/department-services')
 @login_required
@@ -134,22 +135,36 @@ def api_department_services():
         dept = get_tenant_record(Department, department_id)
     except TenantContextError:
         return jsonify({'error': 'القسم غير موجود'}), 404
+
     from models.service import ServiceMaster
-    from sqlalchemy import or_ as _or
+
     dt = dept.get_type()
     category = 'doctor' if dt == 'general' else dt
     # أولاً: خدمات هذا القسم تحديداً
-    services = db.session.execute(select(ServiceMaster).filter(
-        ServiceMaster.category == category,
-        ServiceMaster.is_active == True,
-        ServiceMaster.department_id == department_id
-    ).order_by(ServiceMaster.name_ar)).scalars().all()
+    services = (
+        db.session.execute(
+            select(ServiceMaster)
+            .filter(
+                ServiceMaster.category == category,
+                ServiceMaster.is_active == True,
+                ServiceMaster.department_id == department_id,
+            )
+            .order_by(ServiceMaster.name_ar)
+        )
+        .scalars()
+        .all()
+    )
     # إذا لم توجد خدمات مرتبطة بالقسم، أرجع كل خدمات الفئة
     if not services:
-        services = db.session.execute(select(ServiceMaster).filter(
-            ServiceMaster.category == category,
-            ServiceMaster.is_active == True
-        ).order_by(ServiceMaster.name_ar)).scalars().all()
+        services = (
+            db.session.execute(
+                select(ServiceMaster)
+                .filter(ServiceMaster.category == category, ServiceMaster.is_active == True)
+                .order_by(ServiceMaster.name_ar)
+            )
+            .scalars()
+            .all()
+        )
     resp = {
         'category': category,
         'services': [
@@ -160,11 +175,13 @@ def api_department_services():
                 'name_ar': s.name_ar or s.name,
                 'base_price': float(s.base_price or 0),
                 'insurance_price': float(s.insurance_price or 0),
-                'price': float(s.base_price or 0)
-            } for s in services
-        ]
+                'price': float(s.base_price or 0),
+            }
+            for s in services
+        ],
     }
     return jsonify(resp)
+
 
 @reception_bp.route('/api/queue-department-status/<int:department_id>')
 @login_required
@@ -174,39 +191,54 @@ def api_queue_status(department_id):
 
     try:
         from services.queue_management_service import QueueManagementService
-        
+
         queue_service = QueueManagementService()
         doctor_id = request.args.get('doctor_id', type=int)
         if current_user.role == 'doctor':
             doctor_id = current_user.id
         status = queue_service.get_queue_status(department_id, doctor_id=doctor_id)
-        
+
         if status:
             return jsonify({'success': True, 'data': status})
-        else:
-            return jsonify({'success': False, 'message': 'خطأ في جلب حالة الطابور'})
-            
+        return jsonify({'success': False, 'message': 'خطأ في جلب حالة الطابور'})
+
     except Exception as e:
-        logging.error(f"Error getting queue status: {str(e)}")
+        logging.exception(f'Error getting queue status: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر جلب حالة الطابور حالياً'})
+
 
 @reception_bp.route('/api/queue-status-all')
 @login_required
 @role_required_json('reception', 'manager', 'lab', 'radiology', 'doctor')
 def api_queue_status_all():
     try:
-        from services.queue_management_service import QueueManagementService
         from models.department import Department
+        from services.queue_management_service import QueueManagementService
+
         queue_service = QueueManagementService()
-        all_departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+        all_departments = (
+            db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+        )
         if current_user.role in ['reception', 'super_admin', 'manager']:
             departments = all_departments
         elif current_user.role == 'lab':
-            departments = [d for d in all_departments if 'lab' in (d.name or '').lower() or 'مختبر' in (d.name_ar or '')]
+            departments = [
+                d
+                for d in all_departments
+                if 'lab' in (d.name or '').lower() or 'مختبر' in (d.name_ar or '')
+            ]
         elif current_user.role == 'radiology':
-            departments = [d for d in all_departments if 'radiology' in (d.name or '').lower() or 'أشعة' in (d.name_ar or '')]
+            departments = [
+                d
+                for d in all_departments
+                if 'radiology' in (d.name or '').lower() or 'أشعة' in (d.name_ar or '')
+            ]
         elif current_user.role == 'doctor':
-            departments = [d for d in all_departments if d.id == current_user.department_id] if current_user.department_id else []
+            departments = (
+                [d for d in all_departments if d.id == current_user.department_id]
+                if current_user.department_id
+                else []
+            )
         else:
             departments = []
         dept_ids = [d.id for d in departments]
@@ -218,8 +250,16 @@ def api_queue_status_all():
         search = (request.args.get('search') or '').strip() or None
         is_emergency = request.args.get('is_emergency')
         force_entry = request.args.get('force_entry')
-        is_emergency = (is_emergency == '1' or is_emergency == 'true' or is_emergency == 'on') if is_emergency is not None else None
-        force_entry = (force_entry == '1' or force_entry == 'true' or force_entry == 'on') if force_entry is not None else None
+        is_emergency = (
+            (is_emergency == '1' or is_emergency == 'true' or is_emergency == 'on')
+            if is_emergency is not None
+            else None
+        )
+        force_entry = (
+            (force_entry == '1' or force_entry == 'true' or force_entry == 'on')
+            if force_entry is not None
+            else None
+        )
         # فلترة القسم المحدد ضمن الأقسام المسموح بها
         selected_dep = request.args.get('department_id', type=int)
         if selected_dep and selected_dep in dept_ids:
@@ -231,14 +271,13 @@ def api_queue_status_all():
             priority=priority,
             search=search,
             is_emergency=is_emergency,
-            force_entry=force_entry
+            force_entry=force_entry,
         )
         if data:
             return jsonify({'success': True, 'data': data})
-        else:
-            return jsonify({'success': False, 'message': 'خطأ في جلب حالة الطابور الموحد'})
+        return jsonify({'success': False, 'message': 'خطأ في جلب حالة الطابور الموحد'})
     except Exception as e:
-        logging.error(f"Error getting all queue status: {str(e)}")
+        logging.exception(f'Error getting all queue status: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر جلب حالة الطابور الموحد حالياً'})
 
 
@@ -247,19 +286,33 @@ def api_queue_status_all():
 @role_required_json('reception', 'manager', 'lab', 'radiology', 'doctor')
 def api_queue_wait_metrics():
     try:
-        from services.queue_management_service import QueueManagementService
         from models.department import Department
+        from services.queue_management_service import QueueManagementService
 
         queue_service = QueueManagementService()
-        all_departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+        all_departments = (
+            db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+        )
         if current_user.role in ['reception', 'super_admin', 'manager']:
             departments = all_departments
         elif current_user.role == 'lab':
-            departments = [d for d in all_departments if 'lab' in (d.name or '').lower() or 'مختبر' in (d.name_ar or '')]
+            departments = [
+                d
+                for d in all_departments
+                if 'lab' in (d.name or '').lower() or 'مختبر' in (d.name_ar or '')
+            ]
         elif current_user.role == 'radiology':
-            departments = [d for d in all_departments if 'radiology' in (d.name or '').lower() or 'أشعة' in (d.name_ar or '')]
+            departments = [
+                d
+                for d in all_departments
+                if 'radiology' in (d.name or '').lower() or 'أشعة' in (d.name_ar or '')
+            ]
         elif current_user.role == 'doctor':
-            departments = [d for d in all_departments if d.id == current_user.department_id] if current_user.department_id else []
+            departments = (
+                [d for d in all_departments if d.id == current_user.department_id]
+                if current_user.department_id
+                else []
+            )
         else:
             departments = []
 
@@ -271,8 +324,9 @@ def api_queue_wait_metrics():
         data = queue_service.get_wait_metrics_today(dept_ids)
         return jsonify({'success': True, 'data': data})
     except Exception as e:
-        logging.error(f"Error getting queue wait metrics: {str(e)}")
+        logging.exception(f'Error getting queue wait metrics: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر جلب مؤشرات الانتظار حالياً'})
+
 
 @reception_bp.route('/api/fhir/patient/<int:patient_id>')
 @login_required
@@ -280,21 +334,34 @@ def api_fhir_patient(patient_id):
     """تصدير بيانات المريض بصيغة FHIR Patient (مبسطة)"""
     try:
         from models.patient import Patient
-        from models.visit import Visit
+
         try:
             patient = get_tenant_record(Patient, patient_id)
         except TenantContextError:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على المريض المطلوب'}]}), 404
+            return jsonify(
+                {
+                    'resourceType': 'OperationOutcome',
+                    'issue': [
+                        {'severity': 'error', 'diagnostics': 'تعذر العثور على المريض المطلوب'}
+                    ],
+                }
+            ), 404
         gender_map = {'M': 'male', 'F': 'female'}
         resource = {
             'resourceType': 'Patient',
             'id': str(patient.id),
-            'identifier': [{'system': 'urn:medical-system:national_id', 'value': patient.national_id}] if patient.national_id else [],
-            'name': [{
-                'text': patient.full_name,
-                'given': [patient.first_name],
-                'family': patient.last_name
-            }],
+            'identifier': [
+                {'system': 'urn:medical-system:national_id', 'value': patient.national_id}
+            ]
+            if patient.national_id
+            else [],
+            'name': [
+                {
+                    'text': patient.full_name,
+                    'given': [patient.first_name],
+                    'family': patient.last_name,
+                }
+            ],
             'telecom': ([{'system': 'phone', 'value': patient.phone}] if patient.phone else []),
             'gender': gender_map.get((patient.gender or '').upper(), 'unknown'),
             'birthDate': patient.birth_date.isoformat() if patient.birth_date else None,
@@ -302,25 +369,39 @@ def api_fhir_patient(patient_id):
             'extension': [
                 {'url': 'urn:medical-system:is_pregnant', 'valueBoolean': bool(patient.is_pregnant)}
             ],
-            'meta': {'profile': ['http://hl7.org/fhir/StructureDefinition/Patient']}
+            'meta': {'profile': ['http://hl7.org/fhir/StructureDefinition/Patient']},
         }
         return jsonify(resource)
     except Exception as e:
-        logging.error(f"Error exporting FHIR Patient: {str(e)}")
-        return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير بيانات المريض حالياً'}]}), 500
+        logging.exception(f'Error exporting FHIR Patient: {e!s}')
+        return jsonify(
+            {
+                'resourceType': 'OperationOutcome',
+                'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير بيانات المريض حالياً'}],
+            }
+        ), 500
+
 
 @reception_bp.route('/api/fhir/encounter/<int:visit_id>')
 @login_required
 def api_fhir_encounter(visit_id):
     try:
-        from models.visit import Visit
+        from models.department import Department
         from models.patient import Patient
         from models.user import User
-        from models.department import Department
+        from models.visit import Visit
+
         try:
             visit = get_tenant_record(Visit, visit_id)
         except TenantContextError:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على الزيارة المطلوبة'}]}), 404
+            return jsonify(
+                {
+                    'resourceType': 'OperationOutcome',
+                    'issue': [
+                        {'severity': 'error', 'diagnostics': 'تعذر العثور على الزيارة المطلوبة'}
+                    ],
+                }
+            ), 404
         patient = db.session.get(Patient, visit.patient_id) if visit.patient_id else None
         doctor = db.session.get(User, visit.doctor_id) if visit.doctor_id else None
         dept = db.session.get(Department, visit.department_id) if visit.department_id else None
@@ -328,7 +409,7 @@ def api_fhir_encounter(visit_id):
             'OPEN': 'in-progress',
             'IN_PROGRESS': 'in-progress',
             'COMPLETED': 'finished',
-            'ARCHIVED': 'cancelled'
+            'ARCHIVED': 'cancelled',
         }
         start_dt = visit.visit_time or visit.created_at
         resource = {
@@ -337,34 +418,62 @@ def api_fhir_encounter(visit_id):
             'status': status_map.get(visit.status or '', 'unknown'),
             'class': {'system': 'http://terminology.hl7.org/CodeSystem/v3-ActCode', 'code': 'AMB'},
             'type': [{'text': visit.visit_type}] if visit.visit_type else [],
-            'subject': {'reference': f'Patient/{visit.patient_id}', 'display': (patient.full_name if patient else None)},
-            'participant': ([{'individual': {'reference': f'Practitioner/{doctor.id}', 'display': doctor.full_name}}] if doctor else []),
+            'subject': {
+                'reference': f'Patient/{visit.patient_id}',
+                'display': (patient.full_name if patient else None),
+            },
+            'participant': (
+                [
+                    {
+                        'individual': {
+                            'reference': f'Practitioner/{doctor.id}',
+                            'display': doctor.full_name,
+                        }
+                    }
+                ]
+                if doctor
+                else []
+            ),
             'serviceType': ([{'text': (dept.name_ar or dept.name)}] if dept else []),
             'period': {
                 'start': (start_dt.isoformat() if start_dt else None),
-                'end': (visit.completed_at.isoformat() if visit.completed_at else None)
+                'end': (visit.completed_at.isoformat() if visit.completed_at else None),
             },
             'reasonCode': ([{'text': visit.symptoms}] if getattr(visit, 'symptoms', None) else []),
             'note': ([{'text': visit.notes}] if getattr(visit, 'notes', None) else []),
-            'meta': {'profile': ['http://hl7.org/fhir/StructureDefinition/Encounter']}
+            'meta': {'profile': ['http://hl7.org/fhir/StructureDefinition/Encounter']},
         }
         return jsonify(resource)
     except Exception as e:
-        logging.error(f"Error exporting FHIR Encounter: {str(e)}")
-        return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير بيانات الزيارة حالياً'}]}), 500
+        logging.exception(f'Error exporting FHIR Encounter: {e!s}')
+        return jsonify(
+            {
+                'resourceType': 'OperationOutcome',
+                'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير بيانات الزيارة حالياً'}],
+            }
+        ), 500
+
 
 @reception_bp.route('/api/fhir/appointment/<int:appointment_id>')
 @login_required
 def api_fhir_appointment(appointment_id):
     try:
         from models.appointment import Appointment
+        from models.department import Department
         from models.patient import Patient
         from models.user import User
-        from models.department import Department
+
         try:
             appt = get_tenant_record(Appointment, appointment_id)
         except TenantContextError:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على الموعد المطلوب'}]}), 404
+            return jsonify(
+                {
+                    'resourceType': 'OperationOutcome',
+                    'issue': [
+                        {'severity': 'error', 'diagnostics': 'تعذر العثور على الموعد المطلوب'}
+                    ],
+                }
+            ), 404
         patient = db.session.get(Patient, appt.patient_id) if appt.patient_id else None
         doctor = db.session.get(User, appt.doctor_id) if appt.doctor_id else None
         dept = db.session.get(Department, appt.department_id) if appt.department_id else None
@@ -373,13 +482,27 @@ def api_fhir_appointment(appointment_id):
             'CONFIRMED': 'booked',
             'CANCELLED': 'cancelled',
             'NO_SHOW': 'noshow',
-            'DONE': 'fulfilled'
+            'DONE': 'fulfilled',
         }
         participants = [
-            {'actor': {'reference': f'Patient/{appt.patient_id}', 'display': (patient.full_name if patient else None)}, 'status': 'accepted'}
+            {
+                'actor': {
+                    'reference': f'Patient/{appt.patient_id}',
+                    'display': (patient.full_name if patient else None),
+                },
+                'status': 'accepted',
+            }
         ]
         if doctor:
-            participants.append({'actor': {'reference': f'Practitioner/{doctor.id}', 'display': doctor.full_name}, 'status': 'accepted'})
+            participants.append(
+                {
+                    'actor': {
+                        'reference': f'Practitioner/{doctor.id}',
+                        'display': doctor.full_name,
+                    },
+                    'status': 'accepted',
+                }
+            )
         resource = {
             'resourceType': 'Appointment',
             'id': str(appt.id),
@@ -389,64 +512,120 @@ def api_fhir_appointment(appointment_id):
             'description': (appt.notes or None),
             'serviceType': ([{'text': (dept.name_ar or dept.name)}] if dept else []),
             'participant': participants,
-            'meta': {'profile': ['http://hl7.org/fhir/StructureDefinition/Appointment']}
+            'meta': {'profile': ['http://hl7.org/fhir/StructureDefinition/Appointment']},
         }
         return jsonify(resource)
     except Exception as e:
-        logging.error(f"Error exporting FHIR Appointment: {str(e)}")
-        return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير بيانات الموعد حالياً'}]}), 500
+        logging.exception(f'Error exporting FHIR Appointment: {e!s}')
+        return jsonify(
+            {
+                'resourceType': 'OperationOutcome',
+                'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير بيانات الموعد حالياً'}],
+            }
+        ), 500
+
 
 @reception_bp.route('/api/fhir/practitioner/<int:user_id>')
 @login_required
 def api_fhir_practitioner(user_id):
     try:
-        from models.user import User
         from models.department import Department
+        from models.user import User
+
         try:
             user = get_tenant_record(User, user_id)
         except TenantContextError:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على الطبيب المطلوب'}]}), 404
+            return jsonify(
+                {
+                    'resourceType': 'OperationOutcome',
+                    'issue': [
+                        {'severity': 'error', 'diagnostics': 'تعذر العثور على الطبيب المطلوب'}
+                    ],
+                }
+            ), 404
         if user.role != 'doctor':
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على الطبيب المطلوب'}]}), 404
+            return jsonify(
+                {
+                    'resourceType': 'OperationOutcome',
+                    'issue': [
+                        {'severity': 'error', 'diagnostics': 'تعذر العثور على الطبيب المطلوب'}
+                    ],
+                }
+            ), 404
         dept = db.session.get(Department, user.department_id) if user.department_id else None
         resource = {
             'resourceType': 'Practitioner',
             'id': str(user.id),
             'name': [{'text': user.full_name}],
-            'telecom': ([{'system': 'phone', 'value': user.phone}] if user.phone else []) +
-                       ([{'system': 'email', 'value': user.email}] if user.email else []),
+            'telecom': ([{'system': 'phone', 'value': user.phone}] if user.phone else [])
+            + ([{'system': 'email', 'value': user.email}] if user.email else []),
             'qualification': [{'code': {'text': 'Doctor'}}],
-            'extension': ([{'url': 'urn:medical-system:department', 'valueString': (dept.name_ar or dept.name)}] if dept else []),
-            'meta': {'profile': ['http://hl7.org/fhir/StructureDefinition/Practitioner']}
+            'extension': (
+                [
+                    {
+                        'url': 'urn:medical-system:department',
+                        'valueString': (dept.name_ar or dept.name),
+                    }
+                ]
+                if dept
+                else []
+            ),
+            'meta': {'profile': ['http://hl7.org/fhir/StructureDefinition/Practitioner']},
         }
         return jsonify(resource)
     except Exception as e:
-        logging.error(f"Error exporting FHIR Practitioner: {str(e)}")
-        return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير بيانات الطبيب حالياً'}]}), 500
+        logging.exception(f'Error exporting FHIR Practitioner: {e!s}')
+        return jsonify(
+            {
+                'resourceType': 'OperationOutcome',
+                'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير بيانات الطبيب حالياً'}],
+            }
+        ), 500
+
 
 @reception_bp.route('/api/fhir/organization/<int:department_id>')
 @login_required
 def api_fhir_organization(department_id):
     try:
         from models.department import Department
+
         try:
             dept = get_tenant_record(Department, department_id)
         except TenantContextError:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على القسم المطلوب'}]}), 404
+            return jsonify(
+                {
+                    'resourceType': 'OperationOutcome',
+                    'issue': [
+                        {'severity': 'error', 'diagnostics': 'تعذر العثور على القسم المطلوب'}
+                    ],
+                }
+            ), 404
         resource = {
             'resourceType': 'Organization',
             'id': str(dept.id),
             'name': (dept.name_ar or dept.name),
-            'telecom': ([{'system': 'phone', 'value': dept.phone}] if getattr(dept, 'phone', None) else []) +
-                       ([{'system': 'email', 'value': dept.email}] if getattr(dept, 'email', None) else []),
-            'address': ([{'text': getattr(dept, 'location', None)}] if getattr(dept, 'location', None) else []),
+            'telecom': (
+                [{'system': 'phone', 'value': dept.phone}] if getattr(dept, 'phone', None) else []
+            )
+            + ([{'system': 'email', 'value': dept.email}] if getattr(dept, 'email', None) else []),
+            'address': (
+                [{'text': getattr(dept, 'location', None)}]
+                if getattr(dept, 'location', None)
+                else []
+            ),
             'active': bool(dept.is_active),
-            'meta': {'profile': ['http://hl7.org/fhir/StructureDefinition/Organization']}
+            'meta': {'profile': ['http://hl7.org/fhir/StructureDefinition/Organization']},
         }
         return jsonify(resource)
     except Exception as e:
-        logging.error(f"Error exporting FHIR Organization: {str(e)}")
-        return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير بيانات القسم حالياً'}]}), 500
+        logging.exception(f'Error exporting FHIR Organization: {e!s}')
+        return jsonify(
+            {
+                'resourceType': 'OperationOutcome',
+                'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير بيانات القسم حالياً'}],
+            }
+        ), 500
+
 
 @reception_bp.route('/api/patient-queue-position/<int:patient_id>/<int:department_id>')
 @login_required
@@ -456,65 +635,102 @@ def api_patient_queue_position(patient_id, department_id):
 
     try:
         from services.queue_management_service import QueueManagementService
-        
+
         queue_service = QueueManagementService()
         position, message = queue_service.get_patient_queue_position(patient_id, department_id)
-        
+
         if position:
             return jsonify({'success': True, 'position': position, 'message': message})
-        else:
-            return jsonify({'success': False, 'message': message})
-            
+        return jsonify({'success': False, 'message': message})
+
     except Exception as e:
-        logging.error(f"Error getting queue position: {str(e)}")
+        logging.exception(f'Error getting queue position: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر جلب موقع المريض في الطابور حالياً'})
+
 
 @reception_bp.route('/api/queue-snapshot')
 @login_required
 @role_required_json('reception', 'manager')
 def api_queue_snapshot():
     try:
-        active_queue_items = db.session.execute(select(QueueManagement).filter(
-            QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
-        ).order_by(QueueManagement.queued_at.asc()).limit(50)).scalars().all()
+        active_queue_items = (
+            db.session.execute(
+                select(QueueManagement)
+                .filter(
+                    QueueManagement.status.in_(
+                        [QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS]
+                    )
+                )
+                .order_by(QueueManagement.queued_at.asc())
+                .limit(50)
+            )
+            .scalars()
+            .all()
+        )
         items = []
         for item in active_queue_items:
-            items.append({
-                'queue_number': item.queue_number,
-                'patient_name': item.patient.full_name if item.patient else '',
-                'department_name': item.department.name_ar if item.department else '',
-                'status': item.get_status_display(),
-                'priority': item.get_priority_display(),
-                'payment': item.get_payment_status_display()
-            })
+            items.append(
+                {
+                    'queue_number': item.queue_number,
+                    'patient_name': item.patient.full_name if item.patient else '',
+                    'department_name': item.department.name_ar if item.department else '',
+                    'status': item.get_status_display(),
+                    'priority': item.get_priority_display(),
+                    'payment': item.get_payment_status_display(),
+                }
+            )
         stats = get_smart_queue_management()
         satisfaction = get_patient_satisfaction_ai()
         forecast = get_patient_demand_forecast()
-        return jsonify({
-            'success': True,
-            'items': items,
-            'stats': stats,
-            'satisfaction': satisfaction,
-            'forecast': forecast
-        })
+        return jsonify(
+            {
+                'success': True,
+                'items': items,
+                'stats': stats,
+                'satisfaction': satisfaction,
+                'forecast': forecast,
+            }
+        )
     except Exception as e:
-        logging.error(f"Error getting queue snapshot: {str(e)}")
+        logging.exception(f'Error getting queue snapshot: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر جلب بيانات الطابور حالياً'}), 500
+
 
 @reception_bp.route('/api/display/waiting')
 @login_required
 @role_required_json('reception', 'manager')
 def api_display_waiting():
     try:
-        waiting = db.session.execute(select(QueueManagement).filter(
-            QueueManagement.status == QueueState.WAITING
-        ).order_by(QueueManagement.queued_at.asc()).limit(60)).scalars().all()
-        called = db.session.execute(select(QueueManagement).filter(
-            QueueManagement.status == QueueState.CALLED
-        ).order_by(QueueManagement.called_at.desc()).limit(12)).scalars().all()
-        current = db.session.execute(select(QueueManagement).filter(
-            QueueManagement.status == QueueState.IN_PROGRESS
-        ).order_by(QueueManagement.started_at.desc()).limit(6)).scalars().all()
+        waiting = (
+            db.session.execute(
+                select(QueueManagement)
+                .filter(QueueManagement.status == QueueState.WAITING)
+                .order_by(QueueManagement.queued_at.asc())
+                .limit(60)
+            )
+            .scalars()
+            .all()
+        )
+        called = (
+            db.session.execute(
+                select(QueueManagement)
+                .filter(QueueManagement.status == QueueState.CALLED)
+                .order_by(QueueManagement.called_at.desc())
+                .limit(12)
+            )
+            .scalars()
+            .all()
+        )
+        current = (
+            db.session.execute(
+                select(QueueManagement)
+                .filter(QueueManagement.status == QueueState.IN_PROGRESS)
+                .order_by(QueueManagement.started_at.desc())
+                .limit(6)
+            )
+            .scalars()
+            .all()
+        )
 
         def _pack(item):
             room_value = ''
@@ -526,29 +742,41 @@ def api_display_waiting():
                 'queue_number': item.queue_number,
                 'patient_name': item.patient.full_name if item.patient else '',
                 'department_name': item.department.name_ar if item.department else '',
-                'doctor_name': item.visit.doctor.full_name if item.visit and item.visit.doctor else '',
+                'doctor_name': item.visit.doctor.full_name
+                if item.visit and item.visit.doctor
+                else '',
                 'room_name': room_value,
-                'status': item.get_status_display()
+                'status': item.get_status_display(),
             }
 
-        return jsonify({
-            'success': True,
-            'waiting': [_pack(i) for i in waiting],
-            'called': [_pack(i) for i in called],
-            'current': [_pack(i) for i in current]
-        })
+        return jsonify(
+            {
+                'success': True,
+                'waiting': [_pack(i) for i in waiting],
+                'called': [_pack(i) for i in called],
+                'current': [_pack(i) for i in current],
+            }
+        )
     except Exception as e:
-        logging.error(f"Error getting waiting display: {str(e)}")
+        logging.exception(f'Error getting waiting display: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر جلب شاشة الانتظار حالياً'}), 500
+
 
 @reception_bp.route('/api/display/calls')
 @login_required
 @role_required_json('reception', 'manager')
 def api_display_calls():
     try:
-        called = db.session.execute(select(QueueManagement).filter(
-            QueueManagement.status.in_([QueueState.CALLED, QueueState.IN_PROGRESS])
-        ).order_by(QueueManagement.called_at.desc()).limit(24)).scalars().all()
+        called = (
+            db.session.execute(
+                select(QueueManagement)
+                .filter(QueueManagement.status.in_([QueueState.CALLED, QueueState.IN_PROGRESS]))
+                .order_by(QueueManagement.called_at.desc())
+                .limit(24)
+            )
+            .scalars()
+            .all()
+        )
         items = []
         for item in called:
             room_value = ''
@@ -556,18 +784,23 @@ def api_display_calls():
                 room_value = item.visit.doctor.doctor_room
             elif item.department and item.department.location:
                 room_value = item.department.location
-            items.append({
-                'queue_number': item.queue_number,
-                'patient_name': item.patient.full_name if item.patient else '',
-                'department_name': item.department.name_ar if item.department else '',
-                'doctor_name': item.visit.doctor.full_name if item.visit and item.visit.doctor else '',
-                'room_name': room_value,
-                'status': item.get_status_display()
-            })
+            items.append(
+                {
+                    'queue_number': item.queue_number,
+                    'patient_name': item.patient.full_name if item.patient else '',
+                    'department_name': item.department.name_ar if item.department else '',
+                    'doctor_name': item.visit.doctor.full_name
+                    if item.visit and item.visit.doctor
+                    else '',
+                    'room_name': room_value,
+                    'status': item.get_status_display(),
+                }
+            )
         return jsonify({'success': True, 'items': items})
     except Exception as e:
-        logging.error(f"Error getting calls display: {str(e)}")
+        logging.exception(f'Error getting calls display: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر جلب شاشة النداء حالياً'}), 500
+
 
 # ==================== الميزات الذكية للاستقبال ====================
 
@@ -580,11 +813,15 @@ def can_search_all_patients(user_role):
 
 def get_accessible_departments_for_user(user_role, user_id=None, user_department_id=None):
     """الحصول على الأقسام المتاحة للمستخدم"""
-    all_departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+    all_departments = (
+        db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+    )
     try:
         from services.access_control_service import AccessControlService
+
         if user_id:
             from models.user import User
+
             try:
                 user = get_tenant_record(User, user_id)
             except TenantContextError:
@@ -599,12 +836,12 @@ def get_accessible_departments_for_user(user_role, user_id=None, user_department
                 return [d for d in all_departments if d.id in set(dept_ids)]
             return []
     except Exception as e:
-
-        logging.warning(f"Error in {__name__}: {e}")
+        logging.warning(f'Error in {__name__}: {e}')
     if user_role in ['reception', 'super_admin', 'manager', 'doctor', 'emergency', 'accountant']:
         return all_departments
     if user_role in ['lab', 'radiology', 'nurse'] and user_department_id:
         return [d for d in all_departments if d.id == user_department_id]
     return []
+
 
 # ===== وظائف مساعدة لسيناريو الزيارة =====

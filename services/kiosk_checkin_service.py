@@ -1,20 +1,22 @@
 """Kiosk self check-in — §28.5."""
+
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
+
+from sqlalchemy import select
 
 from app.shared.enums import AppointmentState
-from sqlalchemy import select
 
 
 def perform_kiosk_checkin(national_id: str) -> dict:
     """Find patient + today's appointment, create visit, add to queue."""
     from app.extensions import db
-    from utils.db_safety import safe_commit
     from models.appointment import Appointment
     from models.patient import Patient
     from models.visit import Visit
     from routes.reception.queue import add_patient_to_queue_auto
+    from utils.db_safety import safe_commit
 
     nid = (national_id or '').strip()
     if len(nid) < 5:
@@ -25,14 +27,24 @@ def perform_kiosk_checkin(national_id: str) -> dict:
         return {'success': False, 'message': 'لم يتم العثور على المريض'}
 
     today = date.today()
-    appointment = db.session.execute(select(Appointment).filter(
-        Appointment.patient_id == patient.id,
-        db.func.date(Appointment.starts_at) == today,
-        Appointment.status.in_([
-            AppointmentState.SCHEDULED,
-            AppointmentState.CONFIRMED,
-        ]),
-    ).order_by(Appointment.starts_at.asc())).scalars().first()
+    appointment = (
+        db.session.execute(
+            select(Appointment)
+            .filter(
+                Appointment.patient_id == patient.id,
+                db.func.date(Appointment.starts_at) == today,
+                Appointment.status.in_(
+                    [
+                        AppointmentState.SCHEDULED,
+                        AppointmentState.CONFIRMED,
+                    ]
+                ),
+            )
+            .order_by(Appointment.starts_at.asc())
+        )
+        .scalars()
+        .first()
+    )
 
     if not appointment:
         return {'success': False, 'message': 'لا يوجد موعد اليوم لهذا المريض'}
@@ -41,11 +53,17 @@ def perform_kiosk_checkin(national_id: str) -> dict:
         return {'success': False, 'message': 'الموعد بدون قسم — راجع الاستقبال'}
 
     marker = f'[APPOINTMENT:{appointment.id}]'
-    existing = db.session.execute(select(Visit).filter(
-        Visit.visit_date == today,
-        Visit.patient_id == patient.id,
-        Visit.notes.ilike(f'%{marker}%'),
-    )).scalars().first()
+    existing = (
+        db.session.execute(
+            select(Visit).filter(
+                Visit.visit_date == today,
+                Visit.patient_id == patient.id,
+                Visit.notes.ilike(f'%{marker}%'),
+            )
+        )
+        .scalars()
+        .first()
+    )
     if existing:
         return {
             'success': True,
@@ -68,14 +86,14 @@ def perform_kiosk_checkin(national_id: str) -> dict:
         is_emergency=False,
         created_by=None,
         currency='ILS',
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
     db.session.add(visit)
     db.session.flush()
 
     if appointment.status == AppointmentState.SCHEDULED:
         appointment.status = AppointmentState.CONFIRMED
-    safe_commit(db.session, error_message="Failed to save kiosk check-in", reraise=True)
+    safe_commit(db.session, error_message='Failed to save kiosk check-in', reraise=True)
 
     queue_number = None
     q_success, q_msg = add_patient_to_queue_auto(

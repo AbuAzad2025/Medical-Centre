@@ -8,19 +8,19 @@ Methods that depend on absent schema (get_nurse_patients -> Visit.assigned_nurse
 notes -> missing NursingNote model) degrade to [] / None by design and are asserted as such.
 All DB work runs under ``rollback_db`` isolation.
 """
+
 import types
 import uuid
 
 import pytest
 
-from services.nursing_service import NursingService as NS
+from app.extensions import db
+from models.nurse import MedicationAdministrationLog, Nurse
 from models.patient import Patient
-from models.visit import Visit
-from models.nurse import Nurse, VitalSigns, MedicationAdministrationLog
-from models.clinical_pathway import PatientCarePlan
 from models.task_management import Task
 from models.user import User
-from app.extensions import db
+from models.visit import Visit
+from services.nursing_service import NursingService as NS
 
 
 @pytest.fixture
@@ -55,8 +55,14 @@ def fx(rollback_db):
         return n
 
     def task(status='pending', assigned_to=None):
-        t = Task(title='T', task_type='patient_care', status=status, priority='medium',
-                 assigned_by=user().id, assigned_to=assigned_to)
+        t = Task(
+            title='T',
+            task_type='patient_care',
+            status=status,
+            priority='medium',
+            assigned_by=user().id,
+            assigned_to=assigned_to,
+        )
         db.session.add(t)
         db.session.commit()
         return t
@@ -67,8 +73,9 @@ def fx(rollback_db):
         db.session.commit()
         return log
 
-    return types.SimpleNamespace(db=db, user=user, patient=patient, visit=visit, nurse=nurse,
-                                 task=task, admin_log=admin_log)
+    return types.SimpleNamespace(
+        db=db, user=user, patient=patient, visit=visit, nurse=nurse, task=task, admin_log=admin_log
+    )
 
 
 class TestVitals:
@@ -81,8 +88,14 @@ class TestVitals:
     def test_record_vitals_success_sets_patient(self, fx):
         v = fx.visit()
         n = fx.nurse()
-        rec = NS.record_vitals(v.id, recorded_by=n.id, temperature=37.0, heart_rate=80,
-                               blood_pressure_systolic=120, blood_pressure_diastolic=80)
+        rec = NS.record_vitals(
+            v.id,
+            recorded_by=n.id,
+            temperature=37.0,
+            heart_rate=80,
+            blood_pressure_systolic=120,
+            blood_pressure_diastolic=80,
+        )
         assert rec is not None
         assert rec.patient_id == v.patient_id
         assert rec.temperature == 37.0
@@ -124,13 +137,16 @@ class TestCarePlans:
         assert NS.get_care_plans(99999999) == []
 
     def test_create_care_plan_visit_not_found(self, fx):
-        assert NS.create_care_plan(99999999, created_by=fx.user().id,
-                                   plan_type='p', description='d') is None
+        assert (
+            NS.create_care_plan(99999999, created_by=fx.user().id, plan_type='p', description='d')
+            is None
+        )
 
     def test_create_care_plan_success_sets_patient(self, fx):
         v = fx.visit()
-        plan = NS.create_care_plan(v.id, created_by=fx.user().id, plan_type='Recovery',
-                                   description='desc')
+        plan = NS.create_care_plan(
+            v.id, created_by=fx.user().id, plan_type='Recovery', description='desc'
+        )
         assert plan is not None
         assert plan.patient_id == v.patient_id
         assert plan.plan_name == 'Recovery'

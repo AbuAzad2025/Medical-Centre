@@ -1,13 +1,14 @@
 """Tests for utils.tenant_query.get_tenant_record (reception visit lookup)."""
+
 import uuid
 
 import pytest
 
-from models.visit import Visit
-from models.patient import Patient
 from app.core.tenant.models import Tenant
-from utils.tenant_query import get_tenant_record, TenantContextError
 from app_factory import db as _db
+from models.patient import Patient
+from models.visit import Visit
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 
 class TestGetTenantRecordVisit:
@@ -23,6 +24,7 @@ class TestGetTenantRecordVisit:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             record = get_tenant_record(Visit, v.id)
             assert record.id == v.id
@@ -44,6 +46,7 @@ class TestGetTenantRecordVisit:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             with pytest.raises(TenantContextError):
                 get_tenant_record(Visit, v.id)
@@ -51,6 +54,7 @@ class TestGetTenantRecordVisit:
     def test_missing_visit_raises(self, app, test_tenant):
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = test_tenant.id
             with pytest.raises(TenantContextError):
                 get_tenant_record(Visit, 99999999)
@@ -67,6 +71,7 @@ class TestGetTenantRecordVisit:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = None
             # Missing tenant context must fail closed for tenant-scoped models
             with pytest.raises(TenantContextError):
@@ -85,6 +90,7 @@ class TestGetTenantRecordVisit:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             record = get_tenant_record(Visit, v.id, tenant_id=tenant_id)
             assert record.id == v.id
@@ -102,6 +108,7 @@ class TestGetTenantRecordVisit:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             with pytest.raises(TenantContextError):
                 # explicit tenant_id differs from g.tenant_id -> must fail
@@ -120,6 +127,7 @@ class TestGetTenantRecordVisit:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = None
             with pytest.raises(TenantContextError):
                 # explicit tenant_id without g.tenant_id -> must fail closed
@@ -140,6 +148,7 @@ class TestReceptionRoutesFailClosedWithoutTenant:
         # Simulate a request without tenant context (g.tenant_id = None)
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = None
             # The route will catch TenantContextError and flash/redirect
             resp = client.get(f'/reception/view_visit/{v.id}', follow_redirects=False)
@@ -158,6 +167,7 @@ class TestReceptionRoutesFailClosedWithoutTenant:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = None
             resp = client.get(f'/reception/edit_visit/{v.id}', follow_redirects=False)
             assert resp.status_code == 302
@@ -174,6 +184,7 @@ class TestReceptionRoutesFailClosedWithoutTenant:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = None
             resp = client.post(f'/reception/visits/{v.id}/end', follow_redirects=False)
             assert resp.status_code == 302
@@ -190,6 +201,7 @@ class TestReceptionRoutesFailClosedWithoutTenant:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = None
             resp = client.post(f'/reception/visits/{v.id}/archive', follow_redirects=False)
             assert resp.status_code == 302

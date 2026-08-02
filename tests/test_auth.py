@@ -1,9 +1,6 @@
 """
 Authentication and authorization tests.
 """
-import pytest
-from flask import url_for, session
-from app.extensions import db
 
 
 class TestAuth:
@@ -15,30 +12,40 @@ class TestAuth:
         assert 'تسجيل الدخول' in resp.data.decode('utf-8')
 
     def test_login_success(self, client, test_user, test_tenant):
-        resp = client.post('/auth/login', data={
-            'username': 'pharmacist_test',
-            'password': 'ValidPass123!',
-            'tenant_slug': test_tenant.slug,
-        })
+        resp = client.post(
+            '/auth/login',
+            data={
+                'username': 'pharmacist_test',
+                'password': 'ValidPass123!',
+                'tenant_slug': test_tenant.slug,
+            },
+        )
         assert resp.status_code == 302
         assert f'/t/{test_tenant.slug}/' in resp.headers['Location']
 
     def test_login_wrong_password(self, client, test_user):
-        resp = client.post('/auth/login', data={
-            'username': 'pharmacist_test',
-            'password': 'wrongpassword',
-        })
+        resp = client.post(
+            '/auth/login',
+            data={
+                'username': 'pharmacist_test',
+                'password': 'wrongpassword',
+            },
+        )
         assert resp.status_code == 200
         assert 'كلمة المرور غير صحيحة' in resp.data.decode('utf-8')
 
     def test_login_inactive_user(self, app, client, test_user):
         test_user.is_active = False
         from app_factory import db
+
         db.session.commit()
-        resp = client.post('/auth/login', data={
-            'username': 'pharmacist_test',
-            'password': 'ValidPass123!',
-        })
+        resp = client.post(
+            '/auth/login',
+            data={
+                'username': 'pharmacist_test',
+                'password': 'ValidPass123!',
+            },
+        )
         assert resp.status_code == 200
         assert 'غير مفعل' in resp.data.decode('utf-8')
         test_user.is_active = True

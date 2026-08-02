@@ -13,7 +13,7 @@ import os
 
 import pytest
 from flask import g
-from sqlalchemy import text, select
+from sqlalchemy import select
 
 from app.extensions import db
 from app.shared.tenant_filter import TenantIsolationError
@@ -30,21 +30,25 @@ def _db_is_postgresql():
 # Helper: resolve DATABASE_URL to a psycopg2 connection for SQL-level RLS tests
 # ---------------------------------------------------------------------------
 
+
 def _rls_connection():
     """Return a raw psycopg2 connection to the same database.
 
     Skips if the current database user is a superuser — PostgreSQL RLS
     does not apply to superusers or BYPASSRLS roles.
     """
-    url = (os.environ.get('RLS_TEST_DATABASE_URL')
-           or os.environ.get('TEST_DATABASE_URL')
-           or os.environ.get('DATABASE_URL'))
+    url = (
+        os.environ.get('RLS_TEST_DATABASE_URL')
+        or os.environ.get('TEST_DATABASE_URL')
+        or os.environ.get('DATABASE_URL')
+    )
     if not url or not url.startswith('postgresql'):
         pytest.skip('PostgreSQL required for RLS enforcement tests')
     import psycopg2
+
     conn = psycopg2.connect(url)
     with conn.cursor() as cur:
-        cur.execute("SELECT rolsuper FROM pg_roles WHERE rolname = current_user")
+        cur.execute('SELECT rolsuper FROM pg_roles WHERE rolname = current_user')
         row = cur.fetchone()
         if row and row[0]:
             conn.close()
@@ -55,6 +59,7 @@ def _rls_connection():
 # ===================================================================
 #  1. Worker Lifecycle
 # ===================================================================
+
 
 @pytest.mark.usefixtures('app')
 class TestNotificationWorkerLifecycle:
@@ -76,14 +81,20 @@ class TestNotificationWorkerLifecycle:
 
             # -- N1 --
             n1 = Notification(
-                title='Lifecycle-1', message='first',
+                title='Lifecycle-1',
+                message='first',
                 notification_type='info',
             )
             db.session.add(n1)
-            db.session.commit()                     # clears SET LOCAL
+            db.session.commit()  # clears SET LOCAL
 
             # Prove N1 persisted
-            assert db.session.execute(select(Notification).filter_by(title='Lifecycle-1')).scalars().first() is not None
+            assert (
+                db.session.execute(select(Notification).filter_by(title='Lifecycle-1'))
+                .scalars()
+                .first()
+                is not None
+            )
 
             # Simulate a lazy-load of an expired column (the old
             # ObjectDeletedError path).
@@ -91,7 +102,8 @@ class TestNotificationWorkerLifecycle:
 
             # -- N2 (this raised psycopg2 RLS errors before the fix) --
             n2 = Notification(
-                title='Lifecycle-2', message='second',
+                title='Lifecycle-2',
+                message='second',
                 notification_type='info',
             )
             db.session.add(n2)
@@ -99,10 +111,14 @@ class TestNotificationWorkerLifecycle:
 
             # Both visible
             titles = {
-                r.title for r in
-                db.session.execute(select(Notification).filter(
-                    Notification.title.in_(['Lifecycle-1', 'Lifecycle-2'])
-                )).scalars().all()
+                r.title
+                for r in db.session.execute(
+                    select(Notification).filter(
+                        Notification.title.in_(['Lifecycle-1', 'Lifecycle-2'])
+                    )
+                )
+                .scalars()
+                .all()
             }
             assert titles == {'Lifecycle-1', 'Lifecycle-2'}
 
@@ -123,7 +139,8 @@ class TestNotificationWorkerLifecycle:
             bind_tenant_on_g(tenant, db_session=db.session)
 
             n = Notification(
-                title='LazyAfterCommit', message='lazy-load test',
+                title='LazyAfterCommit',
+                message='lazy-load test',
                 notification_type='info',
             )
             db.session.add(n)
@@ -135,11 +152,10 @@ class TestNotificationWorkerLifecycle:
             assert n.message == 'lazy-load test'
 
 
-
-
 # ===================================================================
 #  2. Cross-Tenant Isolation
 # ===================================================================
+
 
 @pytest.mark.usefixtures('app')
 @pytest.mark.no_tenant_context
@@ -155,6 +171,7 @@ class TestCrossTenantIsolation:
     def tenant_ids(self):
         """Fetch two existing tenant IDs from the DB."""
         from app.core.tenant.models import Tenant
+
         g._tenant_filter_bypass = True
         rows = db.session.execute(select(Tenant.id).order_by(Tenant.id).limit(2)).scalars().all()
         g._tenant_filter_bypass = False
@@ -169,24 +186,35 @@ class TestCrossTenantIsolation:
             bind_tenant_on_g(tid_a, db_session=db.session)
 
             n = Notification(
-                title='CrossTenant-Secret-A', message='only A',
+                title='CrossTenant-Secret-A',
+                message='only A',
                 notification_type='info',
             )
             db.session.add(n)
             db.session.commit()
 
             # A sees it
-            assert db.session.execute(select(Notification).filter_by(
-                title='CrossTenant-Secret-A',
-            )).scalar() is not None
+            assert (
+                db.session.execute(
+                    select(Notification).filter_by(
+                        title='CrossTenant-Secret-A',
+                    )
+                ).scalar()
+                is not None
+            )
 
         with app.test_request_context():
             bind_tenant_on_g(tid_b, db_session=db.session)
 
             # B must NOT see A's notification
-            assert db.session.execute(select(Notification).filter_by(
-                title='CrossTenant-Secret-A',
-            )).scalar() is None
+            assert (
+                db.session.execute(
+                    select(Notification).filter_by(
+                        title='CrossTenant-Secret-A',
+                    )
+                ).scalar()
+                is None
+            )
 
     def test_tenant_b_cannot_see_after_expire_all(self, app, tenant_ids):
         """Same as above but with ``expire_all()`` to simulate fresh session."""
@@ -196,7 +224,8 @@ class TestCrossTenantIsolation:
             bind_tenant_on_g(tid_a, db_session=db.session)
 
             n = Notification(
-                title='CrossTenant-Secret-A2', message='only A',
+                title='CrossTenant-Secret-A2',
+                message='only A',
                 notification_type='info',
             )
             db.session.add(n)
@@ -207,9 +236,14 @@ class TestCrossTenantIsolation:
         with app.test_request_context():
             bind_tenant_on_g(tid_b, db_session=db.session)
 
-            assert db.session.execute(select(Notification).filter_by(
-                title='CrossTenant-Secret-A2',
-            )).scalar() is None
+            assert (
+                db.session.execute(
+                    select(Notification).filter_by(
+                        title='CrossTenant-Secret-A2',
+                    )
+                ).scalar()
+                is None
+            )
 
     def test_pooled_session_tenant_id_cleared_on_context_exit(self, app, tenant_ids):
         """``session.info['_tenant_id']`` is cleared when
@@ -229,7 +263,8 @@ class TestCrossTenantIsolation:
         # -- 1. Tenant A job --
         def job_a():
             n = Notification(
-                title='Pooled-Reuse-A', message='A',
+                title='Pooled-Reuse-A',
+                message='A',
                 notification_type='info',
             )
             db.session.add(n)
@@ -238,12 +273,14 @@ class TestCrossTenantIsolation:
         with_tenant_context(app, tid_a, job_a)
 
         # -- 2. After exit: session.info['_tenant_id'] must be clean --
-        assert '_tenant_id' not in db.session.info, \
+        assert '_tenant_id' not in db.session.info, (
             'session.info[_tenant_id] leaked after with_tenant_context() exit'
+        )
 
         # -- 3. Same pooled session, no tenant context: write rejected --
         n = Notification(
-            title='Pooled-Orphan', message='no tenant',
+            title='Pooled-Orphan',
+            message='no tenant',
             notification_type='info',
         )
         db.session.add(n)
@@ -264,30 +301,34 @@ class TestCrossTenantIsolation:
 
         def job_b():
             n = Notification(
-                title='Pooled-Reuse-B', message='B',
+                title='Pooled-Reuse-B',
+                message='B',
                 notification_type='info',
             )
             db.session.add(n)
             db.session.commit()
             # Query while in Tenant B context
             b_query_result.append(
-                db.session.execute(select(Notification).filter_by(title='Pooled-Reuse-A')).scalars().first(),
+                db.session.execute(select(Notification).filter_by(title='Pooled-Reuse-A'))
+                .scalars()
+                .first(),
             )
 
         with_tenant_context(app, tid_b, job_b)
 
         # -- 6. Tenant B cannot see Tenant A --
-        assert b_query_result[0] is None, \
-            'Tenant B should not see Tenant A notification'
+        assert b_query_result[0] is None, 'Tenant B should not see Tenant A notification'
 
         # -- 7. After Tenant B exit: still clean --
-        assert '_tenant_id' not in db.session.info, \
+        assert '_tenant_id' not in db.session.info, (
             'session.info[_tenant_id] leaked after second context exit'
+        )
 
 
 # ===================================================================
 #  3. Missing Tenant Context
 # ===================================================================
+
 
 @pytest.mark.usefixtures('app')
 @pytest.mark.no_tenant_context
@@ -310,7 +351,8 @@ class TestMissingTenantContext:
             g.tenant_id = None
             g._tenant_filter_bypass = False
             n = Notification(
-                title='Orphan', message='no tenant',
+                title='Orphan',
+                message='no tenant',
                 notification_type='info',
             )
             db.session.add(n)
@@ -325,7 +367,8 @@ class TestMissingTenantContext:
             g.tenant_id = None
             g._tenant_filter_bypass = False
             n = Notification(
-                title='NonSaaS-Orphan', message='no tenant',
+                title='NonSaaS-Orphan',
+                message='no tenant',
                 notification_type='info',
             )
             db.session.add(n)
@@ -344,6 +387,7 @@ class TestFailClosedTenantBinding:
         ``auto_assign_tenant`` receive the raw Session via their event
         parameters, so the scoped_session patch misses them."""
         from sqlalchemy.sql.elements import TextClause
+
         sess = db.session.registry()
         _orig = sess.execute
 
@@ -365,7 +409,7 @@ class TestFailClosedTenantBinding:
     def test_fail_closed_when_reassert_set_local_fails(self, app, monkeypatch):
         """When ``reassert_set_local`` (do_orm_execute) cannot SET LOCAL,
         ``TenantIsolationError`` must propagate for a tenant-scoped SELECT."""
-        from tests.tenant_context import ensure_default_test_tenant, bind_tenant_on_g
+        from tests.tenant_context import bind_tenant_on_g, ensure_default_test_tenant
 
         tenant = ensure_default_test_tenant(app)
         self._patch_target_session(monkeypatch)
@@ -379,7 +423,7 @@ class TestFailClosedTenantBinding:
     def test_fail_closed_when_auto_assign_set_local_fails(self, app, monkeypatch):
         """When ``auto_assign_tenant`` (before_flush) cannot SET LOCAL,
         ``TenantIsolationError`` must propagate for a tenant-scoped INSERT."""
-        from tests.tenant_context import ensure_default_test_tenant, bind_tenant_on_g
+        from tests.tenant_context import bind_tenant_on_g, ensure_default_test_tenant
 
         tenant = ensure_default_test_tenant(app)
         self._patch_target_session(monkeypatch)
@@ -387,7 +431,8 @@ class TestFailClosedTenantBinding:
         with app.test_request_context():
             bind_tenant_on_g(tenant, db_session=db.session)
             n = Notification(
-                title='FailClosedFlush', message='SET LOCAL flush failure',
+                title='FailClosedFlush',
+                message='SET LOCAL flush failure',
                 notification_type='info',
             )
             db.session.add(n)
@@ -402,6 +447,7 @@ class TestFailClosedTenantBinding:
             g.tenant_id = None
             g._tenant_filter_bypass = True
             from app.core.tenant.models import Tenant
+
             rows = db.session.execute(select(Tenant).limit(1)).scalars().all()
             assert isinstance(rows, list)
 
@@ -409,6 +455,7 @@ class TestFailClosedTenantBinding:
 # ===================================================================
 #  4. PostgreSQL RLS Enforcement (direct SQL, bypasses ORM hooks)
 # ===================================================================
+
 
 class TestPostgresRLSEnforcement:
     """SQL-level RLS tests using a raw psycopg2 connection.
@@ -429,13 +476,13 @@ class TestPostgresRLSEnforcement:
         try:
             with conn.cursor() as cur:
                 cur.execute(
-                    "INSERT INTO notifications "
-                    "(title, message, notification_type, tenant_id, sent_at) "
+                    'INSERT INTO notifications '
+                    '(title, message, notification_type, tenant_id, sent_at) '
                     "VALUES ('RLS-Blocked', 'test', 'info', 1, NOW())",
                 )
                 conn.commit()
                 pytest.fail('RLS should have blocked this INSERT')
-        except Exception as e:
+        except Exception:
             conn.rollback()
         finally:
             conn.close()
@@ -446,12 +493,12 @@ class TestPostgresRLSEnforcement:
         try:
             with conn.cursor() as cur:
                 cur.execute(
-                    "SET LOCAL app.tenant_id = %s",
+                    'SET LOCAL app.tenant_id = %s',
                     (str(test_tenant.id),),
                 )
                 cur.execute(
-                    "INSERT INTO notifications "
-                    "(title, message, notification_type, tenant_id, sent_at) "
+                    'INSERT INTO notifications '
+                    '(title, message, notification_type, tenant_id, sent_at) '
                     "VALUES (%s, 'test', 'info', %s, NOW())",
                     ('RLS-Allowed', test_tenant.id),
                 )
@@ -467,18 +514,18 @@ class TestPostgresRLSEnforcement:
         try:
             with conn.cursor() as cur:
                 cur.execute(
-                    "SET LOCAL app.tenant_id = %s",
+                    'SET LOCAL app.tenant_id = %s',
                     (str(test_tenant.id),),
                 )
                 cur.execute(
-                    "INSERT INTO notifications "
-                    "(title, message, notification_type, tenant_id, sent_at) "
+                    'INSERT INTO notifications '
+                    '(title, message, notification_type, tenant_id, sent_at) '
                     "VALUES (%s, 'test', 'info', %s, NOW())",
                     ('RLS-WrongTenant', wrong_id),
                 )
                 conn.commit()
                 pytest.fail('RLS should have blocked INSERT with wrong tenant_id')
-        except Exception as e:
+        except Exception:
             conn.rollback()
         finally:
             conn.close()
@@ -494,12 +541,12 @@ class TestPostgresRLSEnforcement:
             with conn.cursor() as cur:
                 # Insert with tenant context
                 cur.execute(
-                    "SET LOCAL app.tenant_id = %s",
+                    'SET LOCAL app.tenant_id = %s',
                     (str(test_tenant.id),),
                 )
                 cur.execute(
-                    "INSERT INTO notifications "
-                    "(title, message, notification_type, tenant_id, sent_at) "
+                    'INSERT INTO notifications '
+                    '(title, message, notification_type, tenant_id, sent_at) '
                     "VALUES (%s, 'test', 'info', %s, NOW())",
                     ('RLS-FilterTest', test_tenant.id),
                 )
@@ -510,12 +557,10 @@ class TestPostgresRLSEnforcement:
             try:
                 with conn2.cursor() as cur2:
                     cur2.execute(
-                        "SELECT COUNT(*) FROM notifications "
-                        "WHERE title = 'RLS-FilterTest'",
+                        "SELECT COUNT(*) FROM notifications WHERE title = 'RLS-FilterTest'",
                     )
                     count = cur2.fetchone()[0]
-                    assert count == 0, \
-                        f'Expected 0 without context, got {count}'
+                    assert count == 0, f'Expected 0 without context, got {count}'
             finally:
                 conn2.close()
         finally:

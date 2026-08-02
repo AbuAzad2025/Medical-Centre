@@ -1,4 +1,5 @@
 """Kiosk routes — public self check-in."""
+
 from flask import Blueprint, jsonify, render_template, request
 
 from app.extensions import csrf

@@ -1,23 +1,26 @@
 """
 Two-Factor Authentication Routes
 """
-from sqlalchemy import select
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session, jsonify
-from flask_login import login_required, current_user
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from models import UserMFASettings, MFALoginAttempt
-from utils.decorators import handle_route_errors
+
+import base64
+import hashlib
+import io
+import json
+import secrets
+from datetime import UTC, datetime
+
 import pyotp
 import qrcode
 import qrcode.image.svg
-import io
-import base64
-import json
-import secrets
-import hashlib
-from datetime import datetime, timezone, timedelta
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import select
+
 from app.core.rate_limiter import rate_limit
+from app.extensions import db
+from models import MFALoginAttempt, UserMFASettings
+from utils.db_safety import safe_commit
+from utils.decorators import handle_route_errors
 
 mfa_bp = Blueprint('mfa', __name__)
 
@@ -26,11 +29,15 @@ mfa_bp = Blueprint('mfa', __name__)
 @login_required
 @handle_route_errors
 def setup():
-    mfa = db.session.execute(select(UserMFASettings).filter_by(user_id=current_user.id)).scalars().first()
+    mfa = (
+        db.session.execute(select(UserMFASettings).filter_by(user_id=current_user.id))
+        .scalars()
+        .first()
+    )
     if not mfa:
         mfa = UserMFASettings(user_id=current_user.id)
         db.session.add(mfa)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
 
     if mfa.totp_enabled:
         flash('2FA مفعّل بالفعل', 'info')
@@ -46,25 +53,23 @@ def setup():
         if totp.verify(code, valid_window=1):
             mfa.totp_enabled = True
             mfa.totp_verified = True
-            mfa.last_mfa_at = datetime.now(timezone.utc)
+            mfa.last_mfa_at = datetime.now(UTC)
             # Generate backup codes
             codes = [secrets.token_hex(4) for _ in range(10)]
             mfa.backup_codes = json.dumps([hashlib.sha256(c.encode()).hexdigest() for c in codes])
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم تفعيل 2FA بنجاح!', 'success')
             return render_template('mfa/backup_codes.html', codes=codes)
-        else:
-            flash('الرمز غير صحيح. حاول مرة أخرى.', 'danger')
+        flash('الرمز غير صحيح. حاول مرة أخرى.', 'danger')
 
     # Generate new secret if not exists
     if not mfa.totp_secret:
         mfa.totp_secret = pyotp.random_base32()
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
 
     totp = pyotp.TOTP(mfa.totp_secret)
     provisioning_uri = totp.provisioning_uri(
-        name=current_user.email or current_user.username,
-        issuer_name="Azad Medical"
+        name=current_user.email or current_user.username, issuer_name='Azad Medical'
     )
 
     # Generate QR code
@@ -118,23 +123,24 @@ def verify():
             user_agent=request.user_agent.string[:255] if request.user_agent else None,
             success=success,
             method=method,
-            failure_reason=None if success else 'Invalid code'
+            failure_reason=None if success else 'Invalid code',
         )
         db.session.add(attempt)
 
         if success:
-            mfa.last_mfa_at = datetime.now(timezone.utc)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            mfa.last_mfa_at = datetime.now(UTC)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             session.pop('mfa_pending_user_id', None)
             from flask_login import login_user
+
             from models import User
+
             user = db.session.get(User, user_id)
             login_user(user)
             flash('تم التحقق بنجاح', 'success')
             return redirect(url_for('main.dashboard'))
-        else:
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-            flash('رمز التحقق غير صحيح', 'danger')
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        flash('رمز التحقق غير صحيح', 'danger')
 
     return render_template('mfa/verify.html')
 
@@ -143,7 +149,11 @@ def verify():
 @login_required
 @handle_route_errors
 def status():
-    mfa = db.session.execute(select(UserMFASettings).filter_by(user_id=current_user.id)).scalars().first()
+    mfa = (
+        db.session.execute(select(UserMFASettings).filter_by(user_id=current_user.id))
+        .scalars()
+        .first()
+    )
     return render_template('mfa/status.html', mfa=mfa)
 
 
@@ -151,13 +161,17 @@ def status():
 @login_required
 @handle_route_errors
 def disable():
-    mfa = db.session.execute(select(UserMFASettings).filter_by(user_id=current_user.id)).scalars().first()
+    mfa = (
+        db.session.execute(select(UserMFASettings).filter_by(user_id=current_user.id))
+        .scalars()
+        .first()
+    )
     if mfa:
         mfa.totp_enabled = False
         mfa.totp_verified = False
         mfa.totp_secret = None
         mfa.backup_codes = None
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم تعطيل 2FA', 'info')
     return redirect(url_for('mfa.status'))
 
@@ -180,7 +194,7 @@ def api_check():
 
     totp = pyotp.TOTP(mfa.totp_secret)
     if totp.verify(code, valid_window=1):
-        mfa.last_mfa_at = datetime.now(timezone.utc)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        mfa.last_mfa_at = datetime.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return {'success': True}
     return {'success': False, 'error': 'Invalid code'}, 401

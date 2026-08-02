@@ -1,27 +1,24 @@
 """inventory routes - extracted from monolithic medication_routes.py"""
 
-from routes.medication_routes import medication_bp, _generate_supply_request_number
+import logging
+from datetime import UTC, datetime, timedelta
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.medication import Medication, Prescription
-from models.patient import Patient
-from models.visit import Visit
-from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
-from models.drug_interaction import DrugInteraction
-from services.prescription_service import prescription_service
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-import logging, json
-from datetime import datetime, timezone, timedelta, date
-from sqlalchemy import func, select
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import select
 
+from app.extensions import db
+from models.medication import Medication
+from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
+from routes.medication_routes import _generate_supply_request_number, medication_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required
 
 # =============================================
 # INVENTORY ROUTES
 # =============================================
+
 
 @medication_bp.route('/stock-alerts')
 @login_required
@@ -30,24 +27,37 @@ def stock_alerts():
     """تنبيهات المخزون"""
     try:
         # الأدوية منخفضة المخزون
-        low_stock = db.session.execute(select(Medication).filter(
-            Medication.stock_quantity <= Medication.minimum_stock,
-            Medication.tenant_id == current_user.tenant_id
-        )).scalars().all()
-        
+        low_stock = (
+            db.session.execute(
+                select(Medication).filter(
+                    Medication.stock_quantity <= Medication.minimum_stock,
+                    Medication.tenant_id == current_user.tenant_id,
+                )
+            )
+            .scalars()
+            .all()
+        )
+
         # الأدوية المنتهية الصلاحية قريباً
-        expiring_soon = db.session.execute(select(Medication).filter(
-            Medication.expiry_date <= datetime.now() + timedelta(days=30),
-            Medication.tenant_id == current_user.tenant_id
-        )).scalars().all()
-        
-        return render_template('medication/stock_alerts.html', 
-                             low_stock=low_stock,
-                             expiring_soon=expiring_soon)
+        expiring_soon = (
+            db.session.execute(
+                select(Medication).filter(
+                    Medication.expiry_date <= datetime.now() + timedelta(days=30),
+                    Medication.tenant_id == current_user.tenant_id,
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+        return render_template(
+            'medication/stock_alerts.html', low_stock=low_stock, expiring_soon=expiring_soon
+        )
     except Exception as e:
-        logging.error(f"Error loading stock alerts: {str(e)}")
+        logging.exception(f'Error loading stock alerts: {e!s}')
         flash('حدث خطأ في تحميل تنبيهات المخزون', 'error')
         return redirect(url_for('medication.dashboard'))
+
 
 @medication_bp.route('/supply-requests')
 @login_required
@@ -57,8 +67,14 @@ def supply_requests():
     q = select(MedicationSupplyRequest)
     if status:
         q = q.filter(MedicationSupplyRequest.status == status)
-    requests_list = db.session.execute(q.order_by(MedicationSupplyRequest.created_at.desc()).limit(200)).scalars().all()
-    return render_template('medication/supply_requests.html', requests=requests_list, selected_status=status)
+    requests_list = (
+        db.session.execute(q.order_by(MedicationSupplyRequest.created_at.desc()).limit(200))
+        .scalars()
+        .all()
+    )
+    return render_template(
+        'medication/supply_requests.html', requests=requests_list, selected_status=status
+    )
 
 
 @medication_bp.route('/supply-requests/create', methods=['GET', 'POST'])
@@ -71,7 +87,7 @@ def create_supply_request():
             notes = (request.form.get('notes') or '').strip() or None
 
             items = []
-            for mid_raw in (med_ids or []):
+            for mid_raw in med_ids or []:
                 mid_raw = (mid_raw or '').strip()
                 if not mid_raw.isdigit():
                     continue
@@ -80,7 +96,15 @@ def create_supply_request():
                 rq = int(qraw) if qraw.isdigit() else 0
                 if rq <= 0:
                     continue
-                med = db.session.execute(select(Medication).filter(Medication.id == mid, Medication.tenant_id == current_user.tenant_id)).scalars().first()
+                med = (
+                    db.session.execute(
+                        select(Medication).filter(
+                            Medication.id == mid, Medication.tenant_id == current_user.tenant_id
+                        )
+                    )
+                    .scalars()
+                    .first()
+                )
                 if not med:
                     continue
                 items.append((med, rq))
@@ -94,45 +118,69 @@ def create_supply_request():
                 status='DRAFT',
                 notes=notes,
                 created_by=current_user.id,
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC),
             )
             db.session.add(req)
             db.session.flush()
 
             for med, rq in items:
-                db.session.add(MedicationSupplyRequestItem(
-                    request_id=req.id,
-                    medication_id=med.id,
-                    current_stock=int(med.stock_quantity or 0),
-                    minimum_stock=int(med.minimum_stock or 0),
-                    requested_qty=rq,
-                    created_at=datetime.now(timezone.utc)
-                ))
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+                db.session.add(
+                    MedicationSupplyRequestItem(
+                        request_id=req.id,
+                        medication_id=med.id,
+                        current_stock=int(med.stock_quantity or 0),
+                        minimum_stock=int(med.minimum_stock or 0),
+                        requested_qty=rq,
+                        created_at=datetime.now(UTC),
+                    )
+                )
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إنشاء طلب التوريد', 'success')
             return redirect(url_for('medication.view_supply_request', request_id=req.id))
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error(f"Error creating supply request: {str(e)}")
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception(f'Error creating supply request: {e!s}')
             flash('حدث خطأ في إنشاء طلب التوريد', 'error')
             return redirect(url_for('medication.supply_requests'))
 
-    low_stock = db.session.execute(select(Medication).filter(Medication.stock_quantity <= Medication.minimum_stock, Medication.tenant_id == current_user.tenant_id).order_by(Medication.trade_name.asc())).scalars().all()
+    low_stock = (
+        db.session.execute(
+            select(Medication)
+            .filter(
+                Medication.stock_quantity <= Medication.minimum_stock,
+                Medication.tenant_id == current_user.tenant_id,
+            )
+            .order_by(Medication.trade_name.asc())
+        )
+        .scalars()
+        .all()
+    )
     suggested = {}
     for m in low_stock:
         cur = int(m.stock_quantity or 0)
         minv = int(m.minimum_stock or 0)
         target = max(minv * 2, 1)
         suggested[m.id] = max(target - cur, 1) if cur <= minv else 1
-    return render_template('medication/create_supply_request.html', low_stock=low_stock, suggested=suggested)
+    return render_template(
+        'medication/create_supply_request.html', low_stock=low_stock, suggested=suggested
+    )
 
 
 @medication_bp.route('/supply-requests/<int:request_id>')
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def view_supply_request(request_id: int):
-    req = db.session.execute(select(MedicationSupplyRequest).filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id)).scalars().first()
+    req = (
+        db.session.execute(
+            select(MedicationSupplyRequest).filter(
+                MedicationSupplyRequest.id == request_id,
+                MedicationSupplyRequest.tenant_id == current_user.tenant_id,
+            )
+        )
+        .scalars()
+        .first()
+    )
     if not req:
         flash('طلب التوريد غير موجود', 'error')
         return redirect(url_for('medication.supply_requests'))
@@ -143,7 +191,16 @@ def view_supply_request(request_id: int):
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def approve_supply_request(request_id: int):
-    req = db.session.execute(select(MedicationSupplyRequest).filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id)).scalars().first()
+    req = (
+        db.session.execute(
+            select(MedicationSupplyRequest).filter(
+                MedicationSupplyRequest.id == request_id,
+                MedicationSupplyRequest.tenant_id == current_user.tenant_id,
+            )
+        )
+        .scalars()
+        .first()
+    )
     if not req:
         return jsonify({'success': False, 'message': 'غير موجود'}), 404
     if req.status not in {'DRAFT'}:
@@ -154,13 +211,13 @@ def approve_supply_request(request_id: int):
                 it.approved_qty = it.requested_qty
         req.status = 'APPROVED'
         req.approved_by = current_user.id
-        req.approved_at = datetime.now(timezone.utc)
-        req.updated_at = datetime.now(timezone.utc)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        req.approved_at = datetime.now(UTC)
+        req.updated_at = datetime.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error approving supply request: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error approving supply request: {e!s}')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
 
@@ -168,7 +225,16 @@ def approve_supply_request(request_id: int):
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def fulfill_supply_request(request_id: int):
-    req = db.session.execute(select(MedicationSupplyRequest).filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id)).scalars().first()
+    req = (
+        db.session.execute(
+            select(MedicationSupplyRequest).filter(
+                MedicationSupplyRequest.id == request_id,
+                MedicationSupplyRequest.tenant_id == current_user.tenant_id,
+            )
+        )
+        .scalars()
+        .first()
+    )
     if not req:
         return jsonify({'success': False, 'message': 'غير موجود'}), 404
     if req.status not in {'APPROVED'}:
@@ -188,22 +254,30 @@ def fulfill_supply_request(request_id: int):
             fq = updates.get(it.id)
             if fq is None:
                 continue
-            if fq < 0:
-                fq = 0
+            fq = max(fq, 0)
             it.fulfilled_qty = fq
-            med = db.session.execute(select(Medication).filter(Medication.id == it.medication_id, Medication.tenant_id == current_user.tenant_id)).scalars().first()
+            med = (
+                db.session.execute(
+                    select(Medication).filter(
+                        Medication.id == it.medication_id,
+                        Medication.tenant_id == current_user.tenant_id,
+                    )
+                )
+                .scalars()
+                .first()
+            )
             if med and fq:
                 med.stock_quantity = int(med.stock_quantity or 0) + int(fq)
-                med.updated_at = datetime.now(timezone.utc)
+                med.updated_at = datetime.now(UTC)
                 db.session.add(med)
 
         req.status = 'FULFILLED'
         req.fulfilled_by = current_user.id
-        req.fulfilled_at = datetime.now(timezone.utc)
-        req.updated_at = datetime.now(timezone.utc)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        req.fulfilled_at = datetime.now(UTC)
+        req.updated_at = datetime.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error fulfilling supply request: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error fulfilling supply request: {e!s}')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

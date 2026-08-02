@@ -1,19 +1,17 @@
 """Tests for S0-003: SaaS data contracts."""
 
-from datetime import date, datetime, timedelta, timezone
 import uuid
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from app_factory import db as _db
 from app.core.saas.models import (
     EnterpriseContract,
     EnterpriseContractEntitlement,
     EntitlementGrant,
     Package,
     PackageVersion,
-    PackageVersionAvailability,
     PackageVersionEntitlement,
     PackageVersionLimit,
     PackageVersionPricing,
@@ -22,16 +20,18 @@ from app.core.saas.models import (
     TenantOverride,
 )
 from app.core.tenant.models import Tenant
+from app.extensions import db
+from app_factory import db as _db
 from models.user import User
 from tests.tenant_context import tenant_test_context
-from app.extensions import db
 
 
 @pytest.fixture(scope='function')
 def saas_tenant(app):
     import uuid
+
     t = Tenant(
-        slug=f"saas-{uuid.uuid4().hex[:8]}",
+        slug=f'saas-{uuid.uuid4().hex[:8]}',
         name='SaaS Test Tenant',
         contact_email='saas-tenant@test.local',
         status='active',
@@ -48,7 +48,7 @@ def saas_tenant(app):
 @pytest.fixture(scope='function')
 def saas_user(app, saas_tenant):
     u = User(
-        username=f"saas_admin_{uuid.uuid4().hex[:8]}",
+        username=f'saas_admin_{uuid.uuid4().hex[:8]}',
         email='saas@test.local',
         full_name='SaaS Admin',
         role='admin',
@@ -66,7 +66,8 @@ def saas_user(app, saas_tenant):
 @pytest.fixture(scope='function')
 def package_bundle(app):
     import uuid
-    slug = f"doctor_clinic_full_{uuid.uuid4().hex[:8]}"
+
+    slug = f'doctor_clinic_full_{uuid.uuid4().hex[:8]}'
     p = Package(
         name='Doctor Clinic Full',
         name_ar='عيادة طبيب متكاملة',
@@ -85,7 +86,7 @@ def package_version(app, package_bundle):
         package_id=package_bundle.id,
         version='1.0.0',
         changelog='Initial version',
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
     )
     _db.session.add(pv)
     _db.session.commit()
@@ -134,15 +135,15 @@ class TestSubscriptionLine:
             billing_type='monthly',
             quantity=1,
             unit_price=500,
-            effective_from=datetime.now(timezone.utc),
-            effective_to=datetime.now(timezone.utc) + timedelta(days=30),
+            effective_from=datetime.now(UTC),
+            effective_to=datetime.now(UTC) + timedelta(days=30),
         )
         _db.session.add(sl)
         _db.session.commit()
         assert sl.id is not None
 
     def test_base_subscription_overlap_exclusion(self, saas_tenant, package_version):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         sl1 = SubscriptionLine(
             tenant_id=saas_tenant.id,
             package_version_id=package_version.id,
@@ -174,7 +175,7 @@ class TestSubscriptionLine:
         _db.session.rollback()
 
     def test_addon_can_overlap(self, saas_tenant, package_version):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         sl1 = SubscriptionLine(
             tenant_id=saas_tenant.id,
             package_version_id=package_version.id,
@@ -214,14 +215,16 @@ class TestEntitlementGrant:
             tenant_override_id=None,
             tenant_feature_flag_id=None,
             enterprise_contract_entitlement_id=None,
-            effective_from=datetime.now(timezone.utc),
+            effective_from=datetime.now(UTC),
         )
         _db.session.add(eg)
         with pytest.raises(IntegrityError):
             _db.session.commit()
         _db.session.rollback()
 
-    def test_entitlement_grant_from_subscription_line(self, saas_tenant, package_version, saas_user):
+    def test_entitlement_grant_from_subscription_line(
+        self, saas_tenant, package_version, saas_user
+    ):
         sl = SubscriptionLine(
             tenant_id=saas_tenant.id,
             package_version_id=package_version.id,
@@ -230,8 +233,8 @@ class TestEntitlementGrant:
             billing_type='monthly',
             quantity=1,
             unit_price=500,
-            effective_from=datetime.now(timezone.utc),
-            effective_to=datetime.now(timezone.utc) + timedelta(days=30),
+            effective_from=datetime.now(UTC),
+            effective_to=datetime.now(UTC) + timedelta(days=30),
         )
         _db.session.add(sl)
         _db.session.commit()
@@ -240,7 +243,7 @@ class TestEntitlementGrant:
             tenant_id=saas_tenant.id,
             capability_key='lab.order',
             subscription_line_id=sl.id,
-            effective_from=datetime.now(timezone.utc),
+            effective_from=datetime.now(UTC),
             granted_by_user_id=saas_user.id,
         )
         _db.session.add(eg)
@@ -254,10 +257,10 @@ class TestTenantEntitlement:
             tenant_id=saas_tenant.id,
             capability_key='lab.order',
             module_name='lab',
-            effective_from=datetime.now(timezone.utc),
+            effective_from=datetime.now(UTC),
             is_effective=True,
             source_summary='test projection',
-            calculated_at=datetime.now(timezone.utc),
+            calculated_at=datetime.now(UTC),
             calculation_version=1,
         )
         _db.session.add(te)
@@ -283,7 +286,7 @@ class TestEnterpriseContract:
         ent = EnterpriseContractEntitlement(
             enterprise_contract_id=contract.id,
             capability_key='ai_imaging.analyze',
-            effective_from=datetime.now(timezone.utc),
+            effective_from=datetime.now(UTC),
         )
         _db.session.add(ent)
         _db.session.commit()
@@ -292,7 +295,7 @@ class TestEnterpriseContract:
             tenant_id=saas_tenant.id,
             capability_key='ai_imaging.analyze',
             enterprise_contract_entitlement_id=ent.id,
-            effective_from=datetime.now(timezone.utc),
+            effective_from=datetime.now(UTC),
             granted_by_user_id=saas_user.id,
         )
         _db.session.add(eg)
@@ -309,7 +312,7 @@ class TestTenantOverride:
             override_type='grant',
             reason='Enterprise negotiation',
             granted_by=saas_user.id,
-            effective_from=datetime.now(timezone.utc),
+            effective_from=datetime.now(UTC),
         )
         _db.session.add(ov)
         _db.session.commit()
@@ -318,7 +321,7 @@ class TestTenantOverride:
             tenant_id=saas_tenant.id,
             capability_key='lab.advanced_report',
             tenant_override_id=ov.id,
-            effective_from=datetime.now(timezone.utc),
+            effective_from=datetime.now(UTC),
             granted_by_user_id=saas_user.id,
         )
         _db.session.add(eg)

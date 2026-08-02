@@ -4,6 +4,7 @@ Renders core routes through the real Flask stack, audits form fields and links,
 and validates static JS assets. Reuses patterns from test_e2e_frontend and
 test_phase14_launch.
 """
+
 from __future__ import annotations
 
 import json
@@ -11,24 +12,19 @@ import re
 import subprocess
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urljoin, urlparse
 
 import pytest
 from werkzeug.routing import RequestRedirect
 
 from tests.test_e2e_frontend import (
-    BP_ROLE,
     _discover_pages,
-    _fill_path,
-    e2e_seed,
 )
 from tests.test_phase14_launch import (
     SCREEN_SAMPLES,
     TECHNICAL_LEAK_PATTERNS,
     _login_as,
 )
-
-from app.extensions import db
 
 ROOT = Path(__file__).parent.parent
 _STATIC_JS = ROOT / 'static' / 'js'
@@ -113,10 +109,17 @@ def _is_allowed_placeholder_href(href: str, attrs: dict[str, str]) -> bool:
     """Bootstrap toggles / JS-driven anchors may use href='#'."""
     if href != '#':
         return False
-    return any(attrs.get(k) for k in (
-        'data-bs-toggle', 'data-toggle', 'data-bs-target', 'data-target',
-        'onclick', 'role',
-    ))
+    return any(
+        attrs.get(k)
+        for k in (
+            'data-bs-toggle',
+            'data-toggle',
+            'data-bs-target',
+            'data-target',
+            'onclick',
+            'role',
+        )
+    )
 
 
 def _collect_form_names(html: str) -> set[str]:
@@ -206,7 +209,7 @@ def _path_matches_url_map(app, path: str) -> bool:
             return True
         except RequestRedirect:
             return True
-        except Exception as e:
+        except Exception:
             continue
     return False
 
@@ -236,7 +239,13 @@ class TestTemplateRenderMatrix:
 
     @pytest.mark.parametrize('path,role', CORE_RENDER_ROUTES)
     def test_post_form_fields_have_name_attributes(
-        self, app, test_tenant, db, e2e_seed, path, role,
+        self,
+        app,
+        test_tenant,
+        db,
+        e2e_seed,
+        path,
+        role,
     ):
         client = app.test_client()
         _login_as(client, test_tenant, role, db)
@@ -249,7 +258,12 @@ class TestTemplateRenderMatrix:
 
     @pytest.mark.parametrize('path,expected_fields', CORE_FORM_ROUTES.items())
     def test_core_post_form_backend_contract(
-        self, app, test_tenant, db, path, expected_fields,
+        self,
+        app,
+        test_tenant,
+        db,
+        path,
+        expected_fields,
     ):
         client = app.test_client()
         resp = client.get(path, follow_redirects=True)
@@ -362,16 +376,14 @@ class TestLinkCrawler:
             if r['endpoint'] not in known
         ]
         assert not missing, (
-            f'{len(missing)} route_inventory endpoints not in url_map:\n'
-            + '\n'.join(missing[:30])
+            f'{len(missing)} route_inventory endpoints not in url_map:\n' + '\n'.join(missing[:30])
         )
 
     def test_route_inventory_paths_match_url_map(self, app):
         inventory = json.loads(_ROUTE_INVENTORY.read_text(encoding='utf-8'))
         registered_paths = {str(rule.rule) for rule in app.url_map.iter_rules()}
         missing_paths = [
-            r['path'] for r in inventory['routes']
-            if r['path'] not in registered_paths
+            r['path'] for r in inventory['routes'] if r['path'] not in registered_paths
         ]
         assert not missing_paths, (
             f'{len(missing_paths)} inventory paths absent from url_map:\n'
@@ -487,4 +499,3 @@ class TestJavaScriptValidation:
         text = partial.read_text(encoding='utf-8')
         assert 'entitlement-lock-screen' in text
         assert 'capability_key' in text or 'capability' in text
-

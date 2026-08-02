@@ -1,4 +1,5 @@
 """Remove duplicate local 'from app.extensions import db' lines from files that already have it at top-level."""
+
 import os
 
 scan_dirs = ['routes', 'services', 'app', 'utils']
@@ -9,11 +10,13 @@ for scan_dir in scan_dirs:
             if not f.endswith('.py'):
                 continue
             fp = os.path.join(root, f)
-            with open(fp, 'r', encoding='utf-8') as fh:
+            with open(fp, encoding='utf-8') as fh:
                 lines = fh.readlines()
             # Check if top-level import exists
             has_top_level = any(
-                line.strip() == 'from app.extensions import db' and not line.startswith(' ') and not line.startswith('\t')
+                line.strip() == 'from app.extensions import db'
+                and not line.startswith(' ')
+                and not line.startswith('\t')
                 for line in lines
             )
             if not has_top_level:
@@ -23,7 +26,9 @@ for scan_dir in scan_dirs:
             removed = 0
             for line in lines:
                 stripped = line.strip()
-                if stripped == 'from app.extensions import db' and (line.startswith('    ') or line.startswith('\t')):
+                if stripped == 'from app.extensions import db' and (
+                    line.startswith('    ') or line.startswith('\t')
+                ):
                     removed += 1
                     continue
                 new_lines.append(line)

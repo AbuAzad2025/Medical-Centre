@@ -1,11 +1,11 @@
 """Patient portal identity — UX1-006."""
 
-from models.patient import Patient
-from models.patient_account import PatientAccount
-from app.extensions import db
-from utils.db_safety import safe_commit
 from sqlalchemy import select
 
+from app.extensions import db
+from models.patient import Patient
+from models.patient_account import PatientAccount
+from utils.db_safety import safe_commit
 
 DEFAULT_PORTAL_PREFERENCES = {
     'notify_results': True,
@@ -49,7 +49,7 @@ def save_portal_preferences(user, updates: dict) -> bool:
         if key in allowed:
             current[key] = bool(value)
     link.portal_preferences = current
-    safe_commit(db.session, error_message="Failed to save portal preferences", reraise=True)
+    safe_commit(db.session, error_message='Failed to save portal preferences', reraise=True)
     return True
 
 
@@ -65,13 +65,19 @@ def verify_and_link_patient(user, *, national_id=None, phone=None):
 
     patient = None
     if national_id:
-        patient = db.session.execute(select(Patient).filter_by(national_id=national_id)).scalars().first()
+        patient = (
+            db.session.execute(select(Patient).filter_by(national_id=national_id)).scalars().first()
+        )
     if not patient and phone:
         patient = db.session.execute(select(Patient).filter_by(phone=phone)).scalars().first()
     if not patient:
         return None, 'لم يتم العثور على ملف مريض مطابق. تواصل مع الاستقبال'
 
-    existing = db.session.execute(select(PatientAccount).filter_by(patient_id=patient.id)).scalars().first()
+    existing = (
+        db.session.execute(select(PatientAccount).filter_by(patient_id=patient.id))
+        .scalars()
+        .first()
+    )
     if existing and existing.user_id != user.id:
         return None, 'هذا الملف مرتبط بحساب آخر'
 
@@ -83,5 +89,5 @@ def verify_and_link_patient(user, *, national_id=None, phone=None):
             portal_preferences=dict(DEFAULT_PORTAL_PREFERENCES),
         )
         db.session.add(link)
-        safe_commit(db.session, error_message="Failed to link patient account", reraise=True)
+        safe_commit(db.session, error_message='Failed to link patient account', reraise=True)
     return patient, None

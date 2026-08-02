@@ -1,9 +1,9 @@
 """
 PharmacyStockService — stock movement ledger
 """
-from datetime import datetime, timezone
-from decimal import Decimal
-from typing import Optional
+
+from datetime import UTC, datetime
+
 from app.extensions import db
 from app.shared.enums import StockMovementType
 
@@ -12,24 +12,34 @@ class PharmacyStockService:
     """All stock changes MUST go through this service to maintain audit trail."""
 
     @staticmethod
-    def adjust_stock(medication_id: int, quantity_change: int, movement_type: str,
-                       reference_type: Optional[str] = None, reference_id: Optional[int] = None,
-                       performed_by: Optional[int] = None, notes: Optional[str] = None,
-                       batch_number: Optional[str] = None, expiry_date: Optional[str] = None) -> None:
-        from models.medication import Medication
+    def adjust_stock(
+        medication_id: int,
+        quantity_change: int,
+        movement_type: str,
+        reference_type: str | None = None,
+        reference_id: int | None = None,
+        performed_by: int | None = None,
+        notes: str | None = None,
+        batch_number: str | None = None,
+        expiry_date: str | None = None,
+    ) -> None:
         from app.modules.workflows.stock_models import StockMovement
+        from models.medication import Medication
 
         med = db.session.get(Medication, medication_id)
         if not med:
-            raise ValueError("Medication not found")
+            raise ValueError('Medication not found')
 
         # Prevent negative stock unless it's an adjustment/correction
-        if quantity_change < 0 and movement_type not in (StockMovementType.ADJUSTMENT, StockMovementType.EXPIRED):
+        if quantity_change < 0 and movement_type not in (
+            StockMovementType.ADJUSTMENT,
+            StockMovementType.EXPIRED,
+        ):
             if med.stock_quantity + quantity_change < 0:
-                raise ValueError("Insufficient stock")
+                raise ValueError('Insufficient stock')
 
         med.stock_quantity = max(0, med.stock_quantity + quantity_change)
-        med.updated_at = datetime.now(timezone.utc)
+        med.updated_at = datetime.now(UTC)
 
         movement = StockMovement(
             medication_id=medication_id,
@@ -50,35 +60,40 @@ class PharmacyStockService:
         # Emit stock_low_alert signal if stock is below minimum
         if med.stock_quantity < med.minimum_stock:
             try:
-                from app.shared.signals import stock_low_alert
                 from app.shared.signal_subscribers import _safe_send
-                _safe_send(stock_low_alert,
-                           medication_id=med.id,
-                           medication_name=med.trade_name or med.scientific_name,
-                           current_stock=med.stock_quantity,
-                           minimum_stock=med.minimum_stock)
-            except Exception as e:
+                from app.shared.signals import stock_low_alert
+
+                _safe_send(
+                    stock_low_alert,
+                    medication_id=med.id,
+                    medication_name=med.trade_name or med.scientific_name,
+                    current_stock=med.stock_quantity,
+                    minimum_stock=med.minimum_stock,
+                )
+            except Exception:
                 pass
 
     @staticmethod
-    def dispense_prescription_item(prescription_item_id: int, dispensed_qty: int,
-                                    performed_by: Optional[int] = None) -> None:
+    def dispense_prescription_item(
+        prescription_item_id: int, dispensed_qty: int, performed_by: int | None = None
+    ) -> None:
         from models.medication import PrescriptionItem
+
         pi = db.session.get(PrescriptionItem, prescription_item_id)
         if not pi:
-            raise ValueError("PrescriptionItem not found")
+            raise ValueError('PrescriptionItem not found')
         if pi.dispensed_quantity + dispensed_qty > pi.quantity:
-            raise ValueError("Cannot dispense more than prescribed")
+            raise ValueError('Cannot dispense more than prescribed')
 
         PharmacyStockService.adjust_stock(
             medication_id=pi.medication_id,
             quantity_change=-dispensed_qty,
             movement_type=StockMovementType.SALE,
-            reference_type="PrescriptionItem",
+            reference_type='PrescriptionItem',
             reference_id=pi.id,
             performed_by=performed_by,
-            notes=f"Dispensed for prescription item {pi.id}"
+            notes=f'Dispensed for prescription item {pi.id}',
         )
         pi.dispensed_quantity = pi.dispensed_quantity + dispensed_qty
-        pi.dispensed_at = datetime.now(timezone.utc)
+        pi.dispensed_at = datetime.now(UTC)
         db.session.add(pi)

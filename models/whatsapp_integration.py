@@ -2,66 +2,76 @@
 نموذج تكامل الواتساب - WhatsApp Integration Models
 Medical System WhatsApp Integration Models
 """
+
+import secrets
+from datetime import UTC, datetime
+
 from sqlalchemy import select
 
-from datetime import datetime, timezone
 from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from app.shared.mixins import TenantMixin
 from app.shared.encrypted_type import EncryptedString
-import secrets
-import string
+from app.shared.mixins import TenantMixin
+from utils.db_safety import safe_commit, safe_rollback
+
 
 class WhatsAppMessage(TenantMixin, db.Model):
     """نموذج رسالة الواتساب"""
-    
+
     __tablename__ = 'whatsapp_integration_messages'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     message_id = db.Column(db.String(100), unique=True, nullable=False)
-    
+
     # معلومات المرسل
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
-    sent_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True
+    )
+    sent_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # معلومات الرسالة
     phone_number = db.Column(EncryptedString(20), nullable=False)
     message_type = db.Column(db.String(50), nullable=False)  # report, appointment, reminder, etc.
     message_content = db.Column(db.Text, nullable=False)
     template_id = db.Column(db.String(100), nullable=True)
-    
+
     # المرفقات
     attachment_type = db.Column(db.String(50), nullable=True)  # pdf, image, document
     attachment_url = db.Column(db.String(500), nullable=True)
     attachment_name = db.Column(db.String(200), nullable=True)
-    
+
     # حالة الرسالة
     status = db.Column(db.String(20), default='pending')  # pending, sent, delivered, read, failed
     whatsapp_message_id = db.Column(db.String(100), nullable=True)
     error_message = db.Column(db.Text, nullable=True)
-    
+
     # تواريخ
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     sent_at = db.Column(db.DateTime, nullable=True)
     delivered_at = db.Column(db.DateTime, nullable=True)
     read_at = db.Column(db.DateTime, nullable=True)
     failed_at = db.Column(db.DateTime, nullable=True)
-    
+
     # العلاقات
     patient = db.relationship('Patient', back_populates='whatsapp_messages')
     sent_by_user = db.relationship('User', back_populates='sent_whatsapp_messages')
-    
+
     def __repr__(self):
         return f'<WhatsAppMessage {self.message_id}>'
-    
+
     @staticmethod
     def generate_message_id():
         """توليد معرف الرسالة"""
         while True:
-            msg_id = f"WA{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}{secrets.randbelow(1000):03d}"
-            if not db.session.execute(select(WhatsAppMessage).filter_by(message_id=msg_id)).scalars().first():
+            msg_id = f'WA{datetime.now(UTC).strftime("%Y%m%d%H%M%S")}{secrets.randbelow(1000):03d}'
+            if (
+                not db.session.execute(select(WhatsAppMessage).filter_by(message_id=msg_id))
+                .scalars()
+                .first()
+            ):
                 return msg_id
-    
+
     def get_status_display(self):
         """حالة الرسالة للعرض"""
         status_map = {
@@ -69,10 +79,10 @@ class WhatsAppMessage(TenantMixin, db.Model):
             'sent': 'تم الإرسال',
             'delivered': 'تم التسليم',
             'read': 'تم القراءة',
-            'failed': 'فشل الإرسال'
+            'failed': 'فشل الإرسال',
         }
         return status_map.get(self.status, 'غير محدد')
-    
+
     def get_status_color(self):
         """لون الحالة"""
         color_map = {
@@ -80,10 +90,10 @@ class WhatsAppMessage(TenantMixin, db.Model):
             'sent': 'info',
             'delivered': 'primary',
             'read': 'success',
-            'failed': 'danger'
+            'failed': 'danger',
         }
         return color_map.get(self.status, 'secondary')
-    
+
     def get_message_type_display(self):
         """نوع الرسالة للعرض"""
         type_map = {
@@ -93,18 +103,18 @@ class WhatsAppMessage(TenantMixin, db.Model):
             'prescription': 'روشيتة',
             'lab_result': 'نتيجة مختبر',
             'radiology_result': 'نتيجة أشعة',
-            'general': 'عام'
+            'general': 'عام',
         }
         return type_map.get(self.message_type, self.message_type)
-    
+
     def is_successful(self):
         """هل نجح الإرسال"""
         return self.status in ['sent', 'delivered', 'read']
-    
+
     def is_failed(self):
         """هل فشل الإرسال"""
         return self.status == 'failed'
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -133,60 +143,53 @@ class WhatsAppMessage(TenantMixin, db.Model):
             'sent_at': self.sent_at.isoformat() if self.sent_at else None,
             'delivered_at': self.delivered_at.isoformat() if self.delivered_at else None,
             'read_at': self.read_at.isoformat() if self.read_at else None,
-            'failed_at': self.failed_at.isoformat() if self.failed_at else None
+            'failed_at': self.failed_at.isoformat() if self.failed_at else None,
         }
+
 
 class WhatsAppTemplate(TenantMixin, db.Model):
     """نموذج قالب الواتساب"""
-    
+
     __tablename__ = 'whatsapp_templates'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     template_name = db.Column(db.String(100), nullable=False, unique=True)
     template_id = db.Column(db.String(100), nullable=False, unique=True)
     message_type = db.Column(db.String(50), nullable=False)
-    
+
     # محتوى القالب
     header_text = db.Column(db.Text, nullable=True)
     body_text = db.Column(db.Text, nullable=False)
     footer_text = db.Column(db.Text, nullable=True)
-    
+
     # متغيرات القالب
     variables = db.Column(db.Text, nullable=True)  # JSON string of variables
-    
+
     # حالة القالب
     status = db.Column(db.String(20), default='pending')  # pending, approved, rejected
     is_active = db.Column(db.Boolean, default=True)
-    
+
     # تواريخ
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     approved_at = db.Column(db.DateTime, nullable=True)
-    
+
     def __repr__(self):
         return f'<WhatsAppTemplate {self.template_name}>'
-    
+
     def get_status_display(self):
         """حالة القالب للعرض"""
-        status_map = {
-            'pending': 'في الانتظار',
-            'approved': 'معتمد',
-            'rejected': 'مرفوض'
-        }
+        status_map = {'pending': 'في الانتظار', 'approved': 'معتمد', 'rejected': 'مرفوض'}
         return status_map.get(self.status, 'غير محدد')
-    
+
     def get_status_color(self):
         """لون الحالة"""
-        color_map = {
-            'pending': 'warning',
-            'approved': 'success',
-            'rejected': 'danger'
-        }
+        color_map = {'pending': 'warning', 'approved': 'success', 'rejected': 'danger'}
         return color_map.get(self.status, 'secondary')
-    
+
     def is_approved(self):
         """هل القالب معتمد"""
         return self.status == 'approved' and self.is_active
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -204,59 +207,67 @@ class WhatsAppTemplate(TenantMixin, db.Model):
             'is_active': self.is_active,
             'is_approved': self.is_approved(),
             'created_at': self.created_at.isoformat(),
-            'approved_at': self.approved_at.isoformat() if self.approved_at else None
+            'approved_at': self.approved_at.isoformat() if self.approved_at else None,
         }
+
 
 class WhatsAppConfig(TenantMixin, db.Model):
     """نموذج إعدادات الواتساب"""
-    
+
     __tablename__ = 'whatsapp_config'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     config_key = db.Column(db.String(100), nullable=False, unique=True)
     config_value = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text, nullable=True)
     is_encrypted = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
     def __repr__(self):
         return f'<WhatsAppConfig {self.config_key}>'
-    
+
     @staticmethod
     def get_config(key, default=None):
         """الحصول على إعداد"""
-        config = db.session.execute(select(WhatsAppConfig).filter_by(config_key=key)).scalars().first()
+        config = (
+            db.session.execute(select(WhatsAppConfig).filter_by(config_key=key)).scalars().first()
+        )
         if config:
             return config.config_value
         return default
-    
+
     @staticmethod
     def set_config(key, value, description=None, is_encrypted=False):
         """تعيين إعداد"""
-        import logging
         try:
-            config = db.session.execute(select(WhatsAppConfig).filter_by(config_key=key)).scalars().first()
+            config = (
+                db.session.execute(select(WhatsAppConfig).filter_by(config_key=key))
+                .scalars()
+                .first()
+            )
             if config:
                 config.config_value = value
                 config.description = description
                 config.is_encrypted = is_encrypted
-                config.updated_at = datetime.now(timezone.utc)
+                config.updated_at = datetime.now(UTC)
             else:
                 config = WhatsAppConfig(
                     config_key=key,
                     config_value=value,
                     description=description,
-                    is_encrypted=is_encrypted
+                    is_encrypted=is_encrypted,
                 )
                 db.session.add(config)
-            
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             return config
-        except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+        except Exception:
+            safe_rollback(db.session, error_message='database rollback')
             raise
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -266,5 +277,5 @@ class WhatsAppConfig(TenantMixin, db.Model):
             'description': self.description,
             'is_encrypted': self.is_encrypted,
             'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'updated_at': self.updated_at.isoformat(),
         }

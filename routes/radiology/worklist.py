@@ -1,28 +1,34 @@
 """worklist routes - extracted from monolithic radiology.py"""
 
-from routes.radiology import radiology_bp, _log_radiology_workflow
+import logging
+import os
+import secrets
+from datetime import UTC, datetime
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app, g
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
+from flask import (
+    current_app,
+    flash,
+    g,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from flask_login import current_user, login_required
+from sqlalchemy import select
+from werkzeug.utils import secure_filename
+
+from app.extensions import db
+from app.shared.enums import LabResultStatus, OrderState
+from models.file_management import FileUpload
 from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
-from models.file_management import FileUpload
-from models.system_config import SystemConfig
-from app.shared.enums import LabResultStatus, OrderState
+from routes.radiology import _log_radiology_workflow, radiology_bp
 from services.radiology_service import radiology_service
-from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
-import logging, json, os, base64, secrets
-from datetime import datetime, date, timezone, timedelta
-from io import BytesIO
-from werkzeug.utils import secure_filename
-from sqlalchemy import select
-
+from utils.decorators import role_required
 
 # =============================================
 # WORKLIST ROUTES
@@ -51,7 +57,8 @@ def _handle_radiology_file_uploads(files, result, payload):
     if not files:
         return
     upload_root = current_app.config.get('UPLOAD_FOLDER') or os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), '..', 'static', 'uploads')
+        os.path.dirname(os.path.abspath(__file__)), '..', 'static', 'uploads'
+    )
     target_dir = os.path.join(upload_root, 'radiology', str(result.id))
     os.makedirs(target_dir, exist_ok=True)
     for f in files:
@@ -60,23 +67,27 @@ def _handle_radiology_file_uploads(files, result, payload):
         original_name = f.filename
         safe_name = secure_filename(original_name) or f'file_{secrets.token_hex(4)}'
         _, ext = os.path.splitext(safe_name)
-        stored_name = f'{datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")}_{secrets.token_hex(8)}{ext.lower()}'
+        stored_name = (
+            f'{datetime.now(UTC).strftime("%Y%m%d%H%M%S")}_{secrets.token_hex(8)}{ext.lower()}'
+        )
         file_path = os.path.join(target_dir, stored_name)
         f.save(file_path)
         size = 0
         try:
             size = os.path.getsize(file_path)
-        except Exception as e:
+        except Exception:
             size = 0
         fu = FileUpload(
-            filename=stored_name, original_filename=original_name,
-            file_path=file_path, file_size=(size or 1),
+            filename=stored_name,
+            original_filename=original_name,
+            file_path=file_path,
+            file_size=(size or 1),
             file_type=(getattr(f, 'mimetype', None) or 'application/octet-stream'),
             file_extension=(ext.lower().lstrip('.') or 'bin'),
             description=(payload.get('file_description') if payload else None),
             related_entity_type='radiology_result',
             related_entity_id=result.id,
-            uploaded_by=current_user.id
+            uploaded_by=current_user.id,
         )
         db.session.add(fu)
 
@@ -85,12 +96,14 @@ def _notify_radiology_complete(req, is_critical):
     """إرسال إشعار للطبيب باستكمال تقرير الأشعة"""
     try:
         from services.notification_service import NotificationService
+
         doctor_id = req.requester.id if req.requester else None
         if doctor_id:
             NotificationService.send_notification(
                 recipient_id=doctor_id,
                 title='نتيجة الأشعة جاهزة',
-                message=f'تم اعتماد تقرير الأشعة لطلب #{req.id}' + (' (حرج)' if is_critical else ''),
+                message=f'تم اعتماد تقرير الأشعة لطلب #{req.id}'
+                + (' (حرج)' if is_critical else ''),
                 notification_type=('warning' if is_critical else 'info'),
                 is_urgent=is_critical,
             )
@@ -99,11 +112,13 @@ def _notify_radiology_complete(req, is_critical):
                     recipient_role='reception',
                     title='نتيجة أشعة حرجة',
                     message=f'يوجد تقرير أشعة حرج لطلب #{req.id} للمريض #{req.patient_id}',
-                    notification_type='warning', is_urgent=True
+                    notification_type='warning',
+                    is_urgent=True,
                 )
     except Exception as e:
+        logging.warning(f'Error in {__name__}: {e}')
 
-        logging.warning(f"Error in {__name__}: {e}")
+
 @radiology_bp.route('/worklist')
 @login_required
 @role_required('radiology', 'technician', 'admin', 'manager')
@@ -113,15 +128,18 @@ def worklist():
         status = request.args.get('status') or 'REQUESTED'
         requests_list = radiology_service.get_worklist(status=status)
         visits_by_id = radiology_service.build_visit_map(requests_list)
-        return render_template('radiology/process.html',
-                               requests=requests_list,
-                               status=status,
-                               counts=counts,
-                               visits_by_id=visits_by_id)
+        return render_template(
+            'radiology/process.html',
+            requests=requests_list,
+            status=status,
+            counts=counts,
+            visits_by_id=visits_by_id,
+        )
     except Exception as e:
-        logging.error(f"Error loading radiology worklist: {str(e)}")
+        logging.exception(f'Error loading radiology worklist: {e!s}')
         flash('حدث خطأ في تحميل قائمة العمل', 'error')
         return redirect(url_for('radiology.dashboard'))
+
 
 @radiology_bp.route('/worklist/request/<int:request_id>', methods=['GET'])
 @login_required
@@ -141,12 +159,28 @@ def worklist_request(request_id):
         visit_summary = None
         if getattr(rad_request, 'visit_id', None):
             from models.visit import Visit
-            visit_summary = db.session.execute(select(Visit).filter(Visit.id == rad_request.visit_id, Visit.tenant_id == g.tenant_id)).scalars().first()
-        return render_template('radiology/process.html', radiology_request=rad_request, radiology_result=existing_result, uploads=uploads, visit_summary=visit_summary)
+
+            visit_summary = (
+                db.session.execute(
+                    select(Visit).filter(
+                        Visit.id == rad_request.visit_id, Visit.tenant_id == g.tenant_id
+                    )
+                )
+                .scalars()
+                .first()
+            )
+        return render_template(
+            'radiology/process.html',
+            radiology_request=rad_request,
+            radiology_result=existing_result,
+            uploads=uploads,
+            visit_summary=visit_summary,
+        )
     except Exception as e:
-        logging.error(f"Error loading radiology request {request_id}: {str(e)}")
+        logging.exception(f'Error loading radiology request {request_id}: {e!s}')
         flash('حدث خطأ في تحميل الطلب', 'error')
         return redirect(url_for('radiology.worklist'))
+
 
 @radiology_bp.route('/worklist/claim/<int:request_id>', methods=['POST'])
 @login_required
@@ -159,24 +193,35 @@ def worklist_claim(request_id):
                 return jsonify({'success': False, 'message': 'الطلب غير صالح'}), 400
             flash('الطلب غير صالح', 'error')
             return redirect(url_for('radiology.worklist'))
-        radiology_service.log_action(f"Claimed radiology request #{request_id}", f"User {current_user.id}", current_user.id)
+        radiology_service.log_action(
+            f'Claimed radiology request #{request_id}', f'User {current_user.id}', current_user.id
+        )
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': True, 'message': 'تم استلام الطلب'}), 200
         flash('تم استلام الطلب', 'success')
         return redirect(url_for('radiology.worklist', status='IN_PROGRESS'))
     except Exception as e:
-        logging.error(f"Error claiming radiology request: {str(e)}")
+        logging.exception(f'Error claiming radiology request: {e!s}')
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
         flash('حدث خطأ', 'error')
         return redirect(url_for('radiology.worklist'))
+
 
 @radiology_bp.route('/worklist/complete/<int:request_id>', methods=['POST'])
 @login_required
 @role_required('radiology', 'technician', 'admin', 'manager', 'super_admin')
 def worklist_complete(request_id):
     try:
-        req = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id)).scalars().first()
+        req = (
+            db.session.execute(
+                select(RadiologyRequest).filter(
+                    RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not req:
             if request.accept_mimetypes.best == 'application/json':
                 return jsonify({'success': False, 'message': 'الطلب غير موجود'}), 404
@@ -205,8 +250,12 @@ def worklist_complete(request_id):
             res.notes = payload.get('notes') or payload.get('recommendations') or res.notes
             if action == 'second_review':
                 res.reviewed_by = current_user.id
-                res.reviewed_at = datetime.now(timezone.utc)
-            res.status = LabResultStatus.VALIDATED if (action in (None, 'finalize', 'second_review')) else (res.status or 'PENDING')
+                res.reviewed_at = datetime.now(UTC)
+            res.status = (
+                LabResultStatus.VALIDATED
+                if (action in (None, 'finalize', 'second_review'))
+                else (res.status or 'PENDING')
+            )
             res.is_critical = is_critical
             if was_reviewed:
                 after = {
@@ -229,7 +278,7 @@ def worklist_complete(request_id):
                 impression=payload.get('impression') or payload.get('results'),
                 status='VALIDATED' if (action in (None, 'finalize')) else 'PENDING',
                 notes=payload.get('notes') or payload.get('recommendations'),
-                is_critical=is_critical
+                is_critical=is_critical,
             )
             db.session.add(res)
             db.session.flush()
@@ -249,18 +298,19 @@ def worklist_complete(request_id):
             else:
                 req.modality = req.modality or 'XRay'
 
-        _handle_radiology_file_uploads(request.files.getlist('image_upload') if request.files else [], res, payload)
+        _handle_radiology_file_uploads(
+            request.files.getlist('image_upload') if request.files else [], res, payload
+        )
 
         should_finalize = action in (None, 'finalize')
         if should_finalize:
             req.status = OrderState.DONE
             _log_radiology_workflow(req.id, 'DONE', 'finalize')
-        else:
-            if req.status == OrderState.REQUESTED:
-                req.status = OrderState.IN_PROGRESS
-                _log_radiology_workflow(req.id, 'IN_PROGRESS', 'start')
-        req.updated_at = datetime.now(timezone.utc)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        elif req.status == OrderState.REQUESTED:
+            req.status = OrderState.IN_PROGRESS
+            _log_radiology_workflow(req.id, 'IN_PROGRESS', 'start')
+        req.updated_at = datetime.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         _notify_radiology_complete(req, bool(is_critical))
 
@@ -271,8 +321,8 @@ def worklist_complete(request_id):
             return redirect(url_for('radiology.worklist', status='DONE_TODAY'))
         return redirect(url_for('radiology.worklist_request', request_id=req.id))
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error completing radiology request: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error completing radiology request: {e!s}')
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
         flash('حدث خطأ', 'error')

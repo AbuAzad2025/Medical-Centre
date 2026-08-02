@@ -1,10 +1,14 @@
 """Test helpers for tenant context under SaaS RLS / fail-closed isolation."""
+
 from __future__ import annotations
 
 from contextlib import contextmanager
+from datetime import UTC
 from typing import TYPE_CHECKING
+
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+
 from app.extensions import db
 
 if TYPE_CHECKING:
@@ -30,7 +34,7 @@ def _sync_tenant_sequence() -> None:
         db.session.execute(
             db.text(
                 "SELECT setval(pg_get_serial_sequence('tenants','id'), "
-                "COALESCE((SELECT MAX(id) FROM tenants), 1), true)"
+                'COALESCE((SELECT MAX(id) FROM tenants), 1), true)'
             )
         )
         db.session.commit()
@@ -45,13 +49,13 @@ def clear_tenant_g() -> None:
     for key in _TENANT_G_KEYS:
         try:
             g.pop(key, None)
-        except Exception as e:
+        except Exception:
             pass
 
 
 def ensure_default_test_tenant(app: Flask):
     """Return (or create) the shared default tenant used by SaaS-mode tests."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from app.core.module.models import TenantModule
     from app.core.module.registry import get_all_module_names
@@ -64,7 +68,11 @@ def ensure_default_test_tenant(app: Flask):
         prev_bypass = g.get('_tenant_filter_bypass', False)
         g._tenant_filter_bypass = True
         try:
-            tenant = db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG)).scalars().first()
+            tenant = (
+                db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG))
+                .scalars()
+                .first()
+            )
             if not tenant:
                 tenant = Tenant(
                     slug=DEFAULT_TEST_TENANT_SLUG,
@@ -79,7 +87,11 @@ def ensure_default_test_tenant(app: Flask):
                 except IntegrityError:
                     db.session.rollback()
                     _sync_tenant_sequence()
-                    tenant = db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG)).scalars().first()
+                    tenant = (
+                        db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG))
+                        .scalars()
+                        .first()
+                    )
                     if not tenant:
                         tenant = Tenant(
                             slug=DEFAULT_TEST_TENANT_SLUG,
@@ -95,16 +107,21 @@ def ensure_default_test_tenant(app: Flask):
 
             # Ensure tenant has active payment status for module access
             from app.shared.enums import TenantStatus
+
             if tenant.status != TenantStatus.ACTIVE:
                 tenant.status = TenantStatus.ACTIVE
                 db.session.commit()
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             changed = False
             for module_name in get_all_module_names():
-                row = db.session.execute(select(TenantModule).filter_by(
-                    tenant_id=tenant.id, module_name=module_name
-                )).scalars().first()
+                row = (
+                    db.session.execute(
+                        select(TenantModule).filter_by(tenant_id=tenant.id, module_name=module_name)
+                    )
+                    .scalars()
+                    .first()
+                )
                 if row:
                     if not row.is_active:
                         row.is_active = True
@@ -112,12 +129,14 @@ def ensure_default_test_tenant(app: Flask):
                         row.deactivated_at = None
                         changed = True
                 else:
-                    db.session.add(TenantModule(
-                        tenant_id=tenant.id,
-                        module_name=module_name,
-                        is_active=True,
-                        activated_at=now,
-                    ))
+                    db.session.add(
+                        TenantModule(
+                            tenant_id=tenant.id,
+                            module_name=module_name,
+                            is_active=True,
+                            activated_at=now,
+                        )
+                    )
                     changed = True
             if changed:
                 db.session.commit()
@@ -158,14 +177,15 @@ def bind_tenant_on_g(tenant, *, db_session=None) -> None:
     if db_session is not None:
         try:
             db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_id}'"))
-        except Exception as e:
+        except Exception:
             pass
 
     # Set enabled_modules for module-scoped access control (mirrors middleware)
     try:
         from app.core.module.validators import get_active_modules_for_tenant
+
         g.enabled_modules = get_active_modules_for_tenant(tenant_id)
-    except Exception as e:
+    except Exception:
         g.enabled_modules = set()
 
 
@@ -175,11 +195,14 @@ def login_test_client(client, user, tenant, password: str = 'ValidPass123!'):
 
     _shared_store.clear()
     slug = getattr(tenant, 'slug', None) or ''
-    resp = client.post('/auth/login', data={
-        'username': user.username,
-        'password': password,
-        'tenant_slug': slug,
-    })
+    resp = client.post(
+        '/auth/login',
+        data={
+            'username': user.username,
+            'password': password,
+            'tenant_slug': slug,
+        },
+    )
     tid = getattr(user, 'tenant_id', None) or getattr(tenant, 'id', None)
     version = int(getattr(user, 'session_version', 0) or 0)
     user_id = f'{user.id}:{version}'
@@ -193,15 +216,22 @@ def login_test_client(client, user, tenant, password: str = 'ValidPass123!'):
     return resp
 
 
-def ensure_test_user(db, tenant, *, username: str, role: str, password: str = 'ValidPass123!', **extra):
+def ensure_test_user(
+    db, tenant, *, username: str, role: str, password: str = 'ValidPass123!', **extra
+):
     """Create or fetch a tenant-scoped user for SaaS-mode integration tests."""
     from flask import g
+
     from models.user import User
 
     prev_bypass = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        user = db.session.execute(select(User).filter_by(username=username, tenant_id=tenant.id)).scalars().first()
+        user = (
+            db.session.execute(select(User).filter_by(username=username, tenant_id=tenant.id))
+            .scalars()
+            .first()
+        )
         if not user:
             user = User(
                 username=username,
@@ -226,7 +256,6 @@ def ensure_test_user(db, tenant, *, username: str, role: str, password: str = 'V
 def tenant_test_context(app: Flask, tenant=None, *, bypass: bool = False):
     """Establish tenant context for DB operations in SaaS mode tests."""
     from flask import g
-    from sqlalchemy import text
 
     from app.extensions import db
 

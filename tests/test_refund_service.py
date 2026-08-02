@@ -1,18 +1,18 @@
 """Tests for P3-006: Refund/Reversal vertical slice."""
 
 import pytest
+from sqlalchemy import select
 
+from app.extensions import db
 from app_factory import db as _db
 from models.invoice import Invoice, InvoiceService
 from models.patient import Patient
 from models.payment import Payment, PaymentStatus
 from models.receipt import Receipt
-from models.refund_request import RefundRequest, RefundStatus
+from models.refund_request import RefundStatus
 from models.user import User
 from models.visit import Visit
 from services.refund_service import RefundService
-from sqlalchemy import select
-from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -103,7 +103,9 @@ def refund_invoice(app, test_tenant, refund_visit):
 
 
 @pytest.fixture(scope='function')
-def refund_payment(app, test_tenant, refund_visit, refund_patient, refund_accountant, refund_invoice):
+def refund_payment(
+    app, test_tenant, refund_visit, refund_patient, refund_accountant, refund_invoice
+):
     p = Payment(
         tenant_id=test_tenant.id,
         visit_id=refund_visit.id,
@@ -123,7 +125,9 @@ def refund_payment(app, test_tenant, refund_visit, refund_patient, refund_accoun
 
 
 class TestRefundService:
-    def test_request_refund_creates_pending_request(self, test_tenant, refund_payment, refund_accountant):
+    def test_request_refund_creates_pending_request(
+        self, test_tenant, refund_payment, refund_accountant
+    ):
         ok, req = RefundService.request_refund(
             tenant_id=test_tenant.id,
             payment_id=refund_payment.id,
@@ -136,7 +140,9 @@ class TestRefundService:
         assert float(req.amount) == 50
         _db.session.commit()
 
-    def test_request_refund_rejects_amount_exceeding_payment(self, test_tenant, refund_payment, refund_accountant):
+    def test_request_refund_rejects_amount_exceeding_payment(
+        self, test_tenant, refund_payment, refund_accountant
+    ):
         ok, msg = RefundService.request_refund(
             tenant_id=test_tenant.id,
             payment_id=refund_payment.id,
@@ -147,7 +153,9 @@ class TestRefundService:
         assert ok is False
         assert 'exceeds' in msg.lower()
 
-    def test_request_refund_rejects_non_confirmed_payment(self, test_tenant, refund_payment, refund_accountant):
+    def test_request_refund_rejects_non_confirmed_payment(
+        self, test_tenant, refund_payment, refund_accountant
+    ):
         refund_payment.status = PaymentStatus.PENDING
         _db.session.commit()
         ok, msg = RefundService.request_refund(
@@ -174,9 +182,12 @@ class TestRefundService:
         assert req.status == RefundStatus.APPROVED
         assert req.approved_by == refund_manager.id
 
-    def test_execute_refund_reverses_allocation_and_voids_receipt(self, test_tenant, refund_payment, refund_accountant, refund_manager, refund_invoice):
+    def test_execute_refund_reverses_allocation_and_voids_receipt(
+        self, test_tenant, refund_payment, refund_accountant, refund_manager, refund_invoice
+    ):
         # Create a receipt for the payment.
         from services.billing_state_service import ReceiptService
+
         ReceiptService.issue_receipt(refund_payment.visit, refund_payment)
 
         ok, req = RefundService.request_refund(
@@ -201,5 +212,7 @@ class TestRefundService:
         assert float(refund_invoice.paid_amount) == 70
         assert refund_invoice.status == 'PARTIAL'
 
-        receipt = db.session.execute(select(Receipt).filter_by(payment_id=refund_payment.id)).scalar()
+        receipt = db.session.execute(
+            select(Receipt).filter_by(payment_id=refund_payment.id)
+        ).scalar()
         assert receipt.status == 'voided'

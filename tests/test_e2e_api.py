@@ -14,34 +14,61 @@ tenant provisioning, backups, seeds, cleanup, notifications, SMS, impersonation)
 are EXCLUDED from the *active authenticated* calls (4 & 5) but still covered by
 the anonymous + method contracts (1–3).
 """
+
 from __future__ import annotations
 
 import re
 
-import pytest
-
-from tests.test_phase14_launch import TECHNICAL_LEAK_PATTERNS, _login_as
-from tests.test_e2e_frontend import _fill_path, e2e_seed  # noqa: F401 (fixture re-export)
 from sqlalchemy import select
-from app.extensions import db
+
+from tests.test_e2e_frontend import _fill_path, e2e_seed  # noqa: F401 (fixture re-export)
+from tests.test_phase14_launch import TECHNICAL_LEAK_PATTERNS, _login_as
 
 _MUTATING = {'POST', 'PUT', 'PATCH', 'DELETE'}
 
 # blueprint (endpoint prefix) -> role that may access it (covers API blueprints).
 API_BP_ROLE = {
-    'accountant': 'accountant', 'ai_imaging': 'radiology', 'api_dashboard': 'manager',
-    'api_search': 'reception', 'api_user': 'manager', 'backup': 'super_admin',
-    'backup_restore': 'super_admin', 'barcode': 'lab', 'bed': 'nurse',
-    'biometric': 'manager', 'booking': 'reception', 'clinical_coding': 'doctor',
-    'data_warehouse': 'super_admin', 'dicom': 'radiology', 'doctor': 'doctor',
-    'emar': 'nurse', 'emergency': 'emergency', 'fhir': 'doctor', 'finance': 'accountant',
-    'kiosk': 'reception', 'lab': 'lab', 'main': 'manager', 'manager': 'manager',
-    'medication': 'pharmacist', 'mfa': 'manager', 'nurse': 'nurse',
-    'nursing_assessment': 'nurse', 'owner': 'super_admin', 'patient_education': 'doctor',
-    'payment': 'accountant', 'portal': 'patient', 'quality': 'manager',
-    'radiology': 'radiology', 'reception': 'reception', 'reception_currency': 'reception',
-    'report_builder': 'manager', 'specialty_forms': 'doctor', 'sso': 'super_admin',
-    'super_admin': 'super_admin', 'telemedicine': 'doctor', 'what_if': 'manager',
+    'accountant': 'accountant',
+    'ai_imaging': 'radiology',
+    'api_dashboard': 'manager',
+    'api_search': 'reception',
+    'api_user': 'manager',
+    'backup': 'super_admin',
+    'backup_restore': 'super_admin',
+    'barcode': 'lab',
+    'bed': 'nurse',
+    'biometric': 'manager',
+    'booking': 'reception',
+    'clinical_coding': 'doctor',
+    'data_warehouse': 'super_admin',
+    'dicom': 'radiology',
+    'doctor': 'doctor',
+    'emar': 'nurse',
+    'emergency': 'emergency',
+    'fhir': 'doctor',
+    'finance': 'accountant',
+    'kiosk': 'reception',
+    'lab': 'lab',
+    'main': 'manager',
+    'manager': 'manager',
+    'medication': 'pharmacist',
+    'mfa': 'manager',
+    'nurse': 'nurse',
+    'nursing_assessment': 'nurse',
+    'owner': 'super_admin',
+    'patient_education': 'doctor',
+    'payment': 'accountant',
+    'portal': 'patient',
+    'quality': 'manager',
+    'radiology': 'radiology',
+    'reception': 'reception',
+    'reception_currency': 'reception',
+    'report_builder': 'manager',
+    'specialty_forms': 'doctor',
+    'sso': 'super_admin',
+    'super_admin': 'super_admin',
+    'telemedicine': 'doctor',
+    'what_if': 'manager',
 }
 
 # Intentionally public (no auth) — excluded from the auth-gating assertion (2).
@@ -64,7 +91,7 @@ _DANGER_RE = re.compile(
 
 
 def _is_api(path: str, ep: str) -> bool:
-    return '/api/' in path or path.endswith('/api') or 'api' in ep.split('.')[-1]
+    return '/api/' in path or path.endswith('/api') or 'api' in ep.rsplit('.', maxsplit=1)[-1]
 
 
 def _discover(app):
@@ -103,7 +130,9 @@ class TestApiContract:
             try:
                 resp = client.open(url, method=method, json={} if method == 'POST' else None)
             except Exception as exc:  # noqa: BLE001
-                failures.append(f'  {method} {url} [{ep}] -> EXC {type(exc).__name__}: {str(exc)[:120]}')
+                failures.append(
+                    f'  {method} {url} [{ep}] -> EXC {type(exc).__name__}: {str(exc)[:120]}'
+                )
                 db.session.rollback()
                 continue
             if resp.status_code == 500:
@@ -113,7 +142,9 @@ class TestApiContract:
                 if leak:
                     failures.append(f'  {method} {url} [{ep}] -> LEAK {leak}')
             db.session.rollback()
-        assert not failures, f'{len(failures)} API endpoint(s) errored anonymously:\n' + '\n'.join(failures)
+        assert not failures, f'{len(failures)} API endpoint(s) errored anonymously:\n' + '\n'.join(
+            failures
+        )
 
     # ── 2. auth gating — protected endpoints reject anonymous ───────────
     def test_protected_apis_require_auth(self, app, db):
@@ -125,8 +156,9 @@ class TestApiContract:
             url = _fill_path(path, {})
             method = 'GET' if 'GET' in methods else 'POST'
             db.session.rollback()
-            resp = client.open(url, method=method, json={} if method == 'POST' else None,
-                               follow_redirects=False)
+            resp = client.open(
+                url, method=method, json={} if method == 'POST' else None, follow_redirects=False
+            )
             # Auth-gated => login redirect (301/302/308) or 401/403. A 200 means
             # an anonymous user reached protected data/action.
             if resp.status_code == 200:
@@ -139,8 +171,9 @@ class TestApiContract:
         client = app.test_client()
         bad = []
         for path, methods, ep, _role in _discover(app):
-            disallowed = next((m for m in ('DELETE', 'PATCH', 'PUT', 'POST', 'GET')
-                               if m not in methods), None)
+            disallowed = next(
+                (m for m in ('DELETE', 'PATCH', 'PUT', 'POST', 'GET') if m not in methods), None
+            )
             if disallowed is None:
                 continue
             url = _fill_path(path, {})
@@ -156,8 +189,11 @@ class TestApiContract:
     # ── 4. read robustness — authenticated GET JSON APIs never 500 ──────
     def test_get_json_apis_authenticated(self, app, test_tenant, db, e2e_seed):
         failures = []
-        targets = [(p, m, ep, r) for (p, m, ep, r) in _discover(app)
-                   if _is_api(p, ep) and 'GET' in m and r and not _DANGER_RE.search(p)]
+        targets = [
+            (p, m, ep, r)
+            for (p, m, ep, r) in _discover(app)
+            if _is_api(p, ep) and 'GET' in m and r and not _DANGER_RE.search(p)
+        ]
         by_role: dict[str, list] = {}
         for p, _m, ep, r in targets:
             by_role.setdefault(r, []).append((p, ep))
@@ -171,7 +207,9 @@ class TestApiContract:
                 try:
                     resp = client.get(url, follow_redirects=False)
                 except Exception as exc:  # noqa: BLE001
-                    failures.append(f'  [{role}] GET {url} [{ep}] -> EXC {type(exc).__name__}: {str(exc)[:120]}')
+                    failures.append(
+                        f'  [{role}] GET {url} [{ep}] -> EXC {type(exc).__name__}: {str(exc)[:120]}'
+                    )
                     db.session.rollback()
                     continue
                 if resp.status_code == 500:
@@ -181,23 +219,35 @@ class TestApiContract:
                     if leak:
                         failures.append(f'  [{role}] GET {url} [{ep}] -> LEAK {leak}')
                 db.session.rollback()
-        assert not failures, f'{len(failures)} GET API(s) failed authenticated:\n' + '\n'.join(failures)
+        assert not failures, f'{len(failures)} GET API(s) failed authenticated:\n' + '\n'.join(
+            failures
+        )
 
     # ── 5. input robustness — POST JSON APIs reject bad input as JSON 4xx ─
     def test_post_json_apis_reject_bad_input(self, app, test_tenant, db, e2e_seed):
         failures = []
-        targets = [(p, m, ep, r) for (p, m, ep, r) in _discover(app)
-                   if _is_api(p, ep) and (m & {'POST', 'PUT', 'PATCH', 'DELETE'})
-                   and r and not _DANGER_RE.search(p)]
+        targets = [
+            (p, m, ep, r)
+            for (p, m, ep, r) in _discover(app)
+            if _is_api(p, ep)
+            and (m & {'POST', 'PUT', 'PATCH', 'DELETE'})
+            and r
+            and not _DANGER_RE.search(p)
+        ]
         by_role: dict[str, list] = {}
         for p, m, ep, r in targets:
-            verb = 'POST' if 'POST' in m else ('PUT' if 'PUT' in m else ('PATCH' if 'PATCH' in m else 'DELETE'))
+            verb = (
+                'POST'
+                if 'POST' in m
+                else ('PUT' if 'PUT' in m else ('PATCH' if 'PATCH' in m else 'DELETE'))
+            )
             by_role.setdefault(r, []).append((p, verb, ep))
 
         # A few lenient "create" endpoints (e.g. owner.api_create_bundle) commit a
         # row even for empty input; the session-scoped test DB would then leak that
         # junk into later tests (e.g. SaaS seed). Snapshot + remove anything created.
         from app.core.tenant.models import ProductBundle
+
         pre_bundles = {b.id for b in db.session.execute(select(ProductBundle)).scalars().all()}
         try:
             for role, items in by_role.items():
@@ -209,20 +259,30 @@ class TestApiContract:
                     # (a) empty JSON body, (b) malformed JSON
                     for body, ctype, kwargs in (
                         (None, None, {'json': {}}),
-                        ('{ not json', 'application/json', {'data': '{ not json', 'content_type': 'application/json'}),
+                        (
+                            '{ not json',
+                            'application/json',
+                            {'data': '{ not json', 'content_type': 'application/json'},
+                        ),
                     ):
                         db.session.rollback()
                         try:
                             resp = client.open(url, method=verb, **kwargs)
                         except Exception as exc:  # noqa: BLE001
-                            failures.append(f'  [{role}] {verb} {url} [{ep}] -> EXC {type(exc).__name__}: {str(exc)[:120]}')
+                            failures.append(
+                                f'  [{role}] {verb} {url} [{ep}] -> EXC {type(exc).__name__}: {str(exc)[:120]}'
+                            )
                             db.session.rollback()
                             continue
                         if resp.status_code == 500:
-                            failures.append(f'  [{role}] {verb} {url} [{ep}] (ctype={ctype}) -> 500')
+                            failures.append(
+                                f'  [{role}] {verb} {url} [{ep}] (ctype={ctype}) -> 500'
+                            )
                         elif resp.mimetype == 'text/html' and resp.status_code >= 400:
                             # API errors must be JSON, not an HTML error page.
-                            failures.append(f'  [{role}] {verb} {url} [{ep}] (ctype={ctype}) -> HTML error {resp.status_code}')
+                            failures.append(
+                                f'  [{role}] {verb} {url} [{ep}] (ctype={ctype}) -> HTML error {resp.status_code}'
+                            )
                         else:
                             leak = _leaks(resp)
                             if leak:
@@ -230,9 +290,17 @@ class TestApiContract:
                         db.session.rollback()
         finally:
             db.session.rollback()
-            junk = db.session.execute(select(ProductBundle).filter(ProductBundle.id.notin_(pre_bundles or {-1}))).scalars().all()
+            junk = (
+                db.session.execute(
+                    select(ProductBundle).filter(ProductBundle.id.notin_(pre_bundles or {-1}))
+                )
+                .scalars()
+                .all()
+            )
             for b in junk:
                 db.session.delete(b)
             db.session.commit()
 
-        assert not failures, f'{len(failures)} POST/PUT API(s) mishandled bad input:\n' + '\n'.join(failures)
+        assert not failures, f'{len(failures)} POST/PUT API(s) mishandled bad input:\n' + '\n'.join(
+            failures
+        )

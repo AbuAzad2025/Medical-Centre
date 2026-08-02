@@ -5,11 +5,12 @@ constraints blocking IN_PROGRESS, and that IN_PROGRESS is now a valid
 EmergencyStatus enum value used by the model default.
 """
 
-import pytest
 import uuid
 
-from app_factory import db as _db
+import pytest
+
 from app.shared.enums import EmergencyStatus
+from app_factory import db as _db
 from models.emergency import EmergencyCase
 from models.patient import Patient
 

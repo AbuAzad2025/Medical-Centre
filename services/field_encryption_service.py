@@ -2,16 +2,16 @@
 Field Encryption Service — AES-256-GCM / Fernet field-level encryption at rest
 Encrypts PHI/PII columns transparently with environment key management
 """
-from sqlalchemy import select
-import os
+
 import base64
 import logging
-from typing import Optional, Union
+import os
 
 from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -38,20 +38,20 @@ class FieldEncryptionService:
         decrypted = svc.decrypt(encrypted)
     """
 
-    LEGACY_PREFIX = b"$enc$"
-    GCM_PREFIX = b"$gcm$"
+    LEGACY_PREFIX = b'$enc$'
+    GCM_PREFIX = b'$gcm$'
 
-    def __init__(self, key: Optional[str] = None):
+    def __init__(self, key: str | None = None):
         raw_key = (key or os.environ.get('FIELD_ENCRYPTION_KEY', '')).strip()
         if not raw_key:
             raise EncryptionConfigurationError(
-                "FIELD_ENCRYPTION_KEY environment variable is required. "
-                "Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
+                'FIELD_ENCRYPTION_KEY environment variable is required. '
+                'Generate one with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"'
             )
         try:
             self._fernet = Fernet(raw_key.encode('utf-8'))
         except Exception as exc:
-            raise EncryptionConfigurationError(f"Invalid FIELD_ENCRYPTION_KEY: {exc}") from exc
+            raise EncryptionConfigurationError(f'Invalid FIELD_ENCRYPTION_KEY: {exc}') from exc
         # Derive AES-256-GCM key from same material via PBKDF2 for large payloads
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -61,7 +61,7 @@ class FieldEncryptionService:
         )
         self._gcm_key = kdf.derive(raw_key.encode('utf-8'))
 
-    def encrypt(self, plaintext: Union[str, bytes, None]) -> Optional[str]:
+    def encrypt(self, plaintext: str | bytes | None) -> str | None:
         """
         Encrypt plaintext. Returns base64-encoded ciphertext with prefix.
         None/empty input is returned as-is (allows nullable columns).
@@ -79,10 +79,10 @@ class FieldEncryptionService:
             token = self._fernet.encrypt(data)
             return (self.LEGACY_PREFIX + token).decode('utf-8')
         except Exception as exc:
-            logger.error("Field encryption failed: %s", exc)
+            logger.error('Field encryption failed: %s', exc)
             raise
 
-    def decrypt(self, ciphertext: Union[str, bytes, None]) -> Optional[str]:
+    def decrypt(self, ciphertext: str | bytes | None) -> str | None:
         """
         Decrypt ciphertext. Returns plaintext string.
         Legacy plain-text rows (no prefix) are returned as-is.
@@ -95,24 +95,27 @@ class FieldEncryptionService:
             data = ciphertext
         # Legacy plain-text — return as-is (backward compatible)
         if not data.startswith(self.LEGACY_PREFIX) and not data.startswith(self.GCM_PREFIX):
-            return ciphertext if isinstance(ciphertext, str) else ciphertext.decode('utf-8', errors='replace')
+            return (
+                ciphertext
+                if isinstance(ciphertext, str)
+                else ciphertext.decode('utf-8', errors='replace')
+            )
         try:
             if data.startswith(self.GCM_PREFIX):
-                payload = base64.urlsafe_b64decode(data[len(self.GCM_PREFIX):])
+                payload = base64.urlsafe_b64decode(data[len(self.GCM_PREFIX) :])
                 nonce = payload[:12]
                 ct = payload[12:]
                 aesgcm = AESGCM(self._gcm_key)
                 pt = aesgcm.decrypt(nonce, ct, None)
                 return pt.decode('utf-8')
-            else:
-                token = data[len(self.LEGACY_PREFIX):]
-                pt = self._fernet.decrypt(token)
-                return pt.decode('utf-8')
+            token = data[len(self.LEGACY_PREFIX) :]
+            pt = self._fernet.decrypt(token)
+            return pt.decode('utf-8')
         except Exception as exc:
-            logger.error("Field decryption failed: %s", exc)
+            logger.error('Field decryption failed: %s', exc)
             raise
 
-    def encrypt_large(self, plaintext: Union[str, bytes, None]) -> Optional[str]:
+    def encrypt_large(self, plaintext: str | bytes | None) -> str | None:
         """AES-256-GCM for large payloads (>1KB or binary data)."""
         if plaintext is None or plaintext == '':
             return plaintext
@@ -127,12 +130,12 @@ class FieldEncryptionService:
             nonce = os.urandom(12)
             ct = aesgcm.encrypt(nonce, data, None)
             payload = base64.urlsafe_b64encode(nonce + ct).decode('utf-8')
-            return f"{self.GCM_PREFIX.decode('utf-8')}{payload}"
+            return f'{self.GCM_PREFIX.decode("utf-8")}{payload}'
         except Exception as exc:
-            logger.error("Large field encryption failed: %s", exc)
+            logger.error('Large field encryption failed: %s', exc)
             raise
 
-    def is_encrypted(self, value: Union[str, bytes, None]) -> bool:
+    def is_encrypted(self, value: str | bytes | None) -> bool:
         """Check if a value appears to be already encrypted."""
         if value is None:
             return False
@@ -146,7 +149,9 @@ class FieldEncryptionService:
         return Fernet.generate_key().decode('utf-8')
 
     @classmethod
-    def migrate_column(cls, model_class, column_name: str, batch_size: int = 500, key: Optional[str] = None):
+    def migrate_column(
+        cls, model_class, column_name: str, batch_size: int = 500, key: str | None = None
+    ):
         """
         One-time batch encryption of an existing plaintext column.
         Must run inside an application context.
@@ -157,12 +162,19 @@ class FieldEncryptionService:
         """
         svc = cls(key=key)
         from app.extensions import db
+
         session = db.session
         total = 0
         while True:
-            rows = db.session.execute(select(model_class).filter(
-                getattr(model_class, column_name).isnot(None)
-            ).limit(batch_size)).scalars().all()
+            rows = (
+                db.session.execute(
+                    select(model_class)
+                    .filter(getattr(model_class, column_name).isnot(None))
+                    .limit(batch_size)
+                )
+                .scalars()
+                .all()
+            )
             if not rows:
                 break
             for row in rows:
@@ -171,6 +183,13 @@ class FieldEncryptionService:
                     setattr(row, column_name, svc.encrypt(val))
                     total += 1
             session.commit()
-            logger.info("Batch encrypted %s rows of %s.%s", len(rows), model_class.__name__, column_name)
-        logger.info("Migration complete: %s total rows encrypted for %s.%s", total, model_class.__name__, column_name)
+            logger.info(
+                'Batch encrypted %s rows of %s.%s', len(rows), model_class.__name__, column_name
+            )
+        logger.info(
+            'Migration complete: %s total rows encrypted for %s.%s',
+            total,
+            model_class.__name__,
+            column_name,
+        )
         return total

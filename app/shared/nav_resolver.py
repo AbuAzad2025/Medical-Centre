@@ -1,8 +1,8 @@
 """Dynamic navigation — MODULE_REGISTRY + tenant modules + role scope."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Set
 
 from flask import g
 
@@ -16,7 +16,7 @@ _MODULE_ALIASES = {
 }
 
 # Fallback when ModulePermission rows are missing (standalone / legacy DB)
-_ROLE_MODULE_FALLBACK: dict[str, Optional[Set[str]]] = {
+_ROLE_MODULE_FALLBACK: dict[str, set[str] | None] = {
     'super_admin': None,
     'admin': None,
     'manager': {'reporting', 'billing', 'appointments', 'inventory', 'reception'},
@@ -41,22 +41,22 @@ class NavItem:
     icon: str
     href: str
     active_prefix: str = ''
-    module: Optional[str] = None
-    permission: Optional[str] = None
+    module: str | None = None
+    permission: str | None = None
 
 
 @dataclass
 class NavSection:
     id: str
     title_ar: str
-    items: List[NavItem] = field(default_factory=list)
+    items: list[NavItem] = field(default_factory=list)
 
 
 def _normalize_module(name: str) -> str:
     return _MODULE_ALIASES.get(name, name)
 
 
-def _enabled_modules_for_nav() -> Set[str]:
+def _enabled_modules_for_nav() -> set[str]:
     enabled = set(getattr(g, 'enabled_modules', None) or [])
     if enabled:
         return enabled
@@ -64,13 +64,14 @@ def _enabled_modules_for_nav() -> Set[str]:
     if tenant and getattr(tenant, 'id', None):
         try:
             from app.core.module.validators import get_active_modules_for_tenant
+
             return set(get_active_modules_for_tenant(tenant.id))
-        except Exception as e:
+        except Exception:
             pass
     return set(MODULE_REGISTRY.keys())
 
 
-def _user_allowed_modules(user, enabled: Set[str]) -> Set[str]:
+def _user_allowed_modules(user, enabled: set[str]) -> set[str]:
     role = getattr(user, 'role', None) or ''
     if role in ('super_admin', 'admin'):
         return {m for m in enabled if m != 'owner'}
@@ -80,11 +81,12 @@ def _user_allowed_modules(user, enabled: Set[str]) -> Set[str]:
 
     try:
         from services.permission_scope_service import PermissionScopeService
+
         scoped = PermissionScopeService.get_accessible_module_names(user.id, tenant_id)
         if scoped:
             normalized = {_normalize_module(m) for m in scoped}
             return {m for m in normalized if m in enabled and m != 'owner'}
-    except Exception as e:
+    except Exception:
         pass
 
     fallback = _ROLE_MODULE_FALLBACK.get(role)
@@ -108,6 +110,7 @@ def _active_prefix(meta: ModuleMeta) -> str:
 def _tenant_path(path: str) -> str:
     """Prefix staff paths with /t/<slug>/ in SaaS mode (matches tenant_url_for rules)."""
     from flask import current_app
+
     if not path.startswith('/'):
         return path
     if path.startswith(('/owner/', '/super-admin/', '/auth/', '/static/')):
@@ -131,7 +134,7 @@ def _module_href(meta: ModuleMeta) -> str:
     return _tenant_path(_module_path(meta))
 
 
-def resolve_nav_for_user(user) -> List[NavSection]:
+def resolve_nav_for_user(user) -> list[NavSection]:
     if not user or not getattr(user, 'is_authenticated', False):
         return []
 
@@ -139,24 +142,28 @@ def resolve_nav_for_user(user) -> List[NavSection]:
     allowed = _user_allowed_modules(user, enabled)
     role = getattr(user, 'role', None) or ''
 
-    sections: List[NavSection] = []
+    sections: list[NavSection] = []
 
     main = NavSection(id='main', title_ar='')
-    main.items.append(NavItem(
-        id='home',
-        label_ar='الرئيسية',
-        icon='fas fa-home',
-        href='/',
-        active_prefix='__home__',
-    ))
+    main.items.append(
+        NavItem(
+            id='home',
+            label_ar='الرئيسية',
+            icon='fas fa-home',
+            href='/',
+            active_prefix='__home__',
+        )
+    )
     if role not in ('patient', 'owner'):
-        main.items.append(NavItem(
-            id='inbox',
-            label_ar='صندوق العمل',
-            icon='fas fa-inbox',
-            href=_tenant_path('/inbox'),
-            active_prefix='/inbox',
-        ))
+        main.items.append(
+            NavItem(
+                id='inbox',
+                label_ar='صندوق العمل',
+                icon='fas fa-inbox',
+                href=_tenant_path('/inbox'),
+                active_prefix='/inbox',
+            )
+        )
     sections.append(main)
 
     modules = NavSection(id='modules', title_ar='الوحدات')
@@ -167,42 +174,49 @@ def resolve_nav_for_user(user) -> List[NavSection]:
             continue
         if module_name not in enabled:
             continue
-        modules.items.append(NavItem(
-            id=module_name,
-            label_ar=meta.name_ar,
-            icon=meta.icon or 'fas fa-circle',
-            href=_module_href(meta),
-            active_prefix=_active_prefix(meta),
-            module=module_name,
-        ))
+        modules.items.append(
+            NavItem(
+                id=module_name,
+                label_ar=meta.name_ar,
+                icon=meta.icon or 'fas fa-circle',
+                href=_module_href(meta),
+                active_prefix=_active_prefix(meta),
+                module=module_name,
+            )
+        )
     if modules.items:
         sections.append(modules)
 
     # Gate 6b — manager/admin reporting hub (G-142)
     if role in ('manager', 'admin') and 'reporting' in allowed:
         from app.shared.manager_nav_registry import resolve_manager_nav_sections
+
         sections.extend(resolve_manager_nav_sections())
 
     # G-03: super_admin/admin ≠ platform owner role
     if role in ('super_admin', 'admin'):
         admin = NavSection(id='admin', title_ar='الإدارة')
-        admin.items.append(NavItem(
-            id='super_admin',
-            label_ar='إعدادات المركز',
-            icon='fas fa-cogs',
-            href=_tenant_path('/super-admin/dashboard'),
-            active_prefix='/super-admin',
-        ))
+        admin.items.append(
+            NavItem(
+                id='super_admin',
+                label_ar='إعدادات المركز',
+                icon='fas fa-cogs',
+                href=_tenant_path('/super-admin/dashboard'),
+                active_prefix='/super-admin',
+            )
+        )
         sections.append(admin)
     elif role == 'owner':
         platform = NavSection(id='platform', title_ar='المنصة')
-        platform.items.append(NavItem(
-            id='owner_dashboard',
-            label_ar='لوحة المالك',
-            icon='fas fa-crown',
-            href=_tenant_path('/owner/dashboard'),
-            active_prefix='/owner',
-        ))
+        platform.items.append(
+            NavItem(
+                id='owner_dashboard',
+                label_ar='لوحة المالك',
+                icon='fas fa-crown',
+                href=_tenant_path('/owner/dashboard'),
+                active_prefix='/owner',
+            )
+        )
         sections.append(platform)
 
     return sections

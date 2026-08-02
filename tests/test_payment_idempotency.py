@@ -1,16 +1,15 @@
 """Tests for P3-001: Scoped payment idempotency."""
 
 import pytest
+from sqlalchemy import func, select
 
+from app.extensions import db
 from app_factory import db as _db
-from models.invoice import Invoice
 from models.patient import Patient
 from models.payment import Payment
 from models.user import User
 from models.visit import Visit
 from services.payment_service import PaymentService
-from sqlalchemy import select, func
-from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -47,7 +46,14 @@ def pay_accountant(app, test_tenant):
 @pytest.fixture(scope='function')
 def pay_visit(app, test_tenant, pay_patient, pay_accountant):
     from models.system_config import SystemConfig
-    cfg = db.session.execute(select(SystemConfig).filter_by(config_key='allow_partial_payment_global')).scalars().first()
+
+    cfg = (
+        db.session.execute(
+            select(SystemConfig).filter_by(config_key='allow_partial_payment_global')
+        )
+        .scalars()
+        .first()
+    )
     if not cfg:
         cfg = SystemConfig(
             config_key='allow_partial_payment_global',
@@ -90,7 +96,9 @@ class TestPaymentServiceIdempotency:
         assert payment.operation_type == 'payment'
         assert payment.tenant_id == test_tenant.id
 
-    def test_duplicate_idempotency_key_returns_existing(self, pay_visit, pay_accountant, test_tenant):
+    def test_duplicate_idempotency_key_returns_existing(
+        self, pay_visit, pay_accountant, test_tenant
+    ):
         ok1, p1 = PaymentService.create_payment(
             tenant_id=test_tenant.id,
             operation_type='payment',
@@ -132,19 +140,27 @@ class TestPaymentServiceIdempotency:
             )
             assert ok is True
             _db.session.commit()
-        count = db.session.execute(select(func.count()).select_from(Payment).filter_by(visit_id=pay_visit.id)).scalar()
+        count = db.session.execute(
+            select(func.count()).select_from(Payment).filter_by(visit_id=pay_visit.id)
+        ).scalar()
         assert count == 2
 
 
 class TestPaymentRouteIdempotency:
-    def test_process_payment_is_idempotent(self, app, client, pay_visit, pay_accountant, test_tenant):
+    def test_process_payment_is_idempotent(
+        self, app, client, pay_visit, pay_accountant, test_tenant
+    ):
         from app.core.rate_limiter import _shared_store
+
         _shared_store.clear()
-        client.post('/auth/login', data={
-            'username': 'pay_accountant',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
+        client.post(
+            '/auth/login',
+            data={
+                'username': 'pay_accountant',
+                'password': 'test123',
+                'tenant_slug': test_tenant.slug,
+            },
+        )
         data = {
             'paid_amount': '50',
             'payment_method': 'cash',
@@ -156,7 +172,9 @@ class TestPaymentRouteIdempotency:
         resp2 = client.post(f'/payment/process/{pay_visit.id}', data=data)
         assert resp2.status_code in (200, 302)
 
-        payments = db.session.execute(select(Payment).filter_by(visit_id=pay_visit.id)).scalars().all()
+        payments = (
+            db.session.execute(select(Payment).filter_by(visit_id=pay_visit.id)).scalars().all()
+        )
         assert len(payments) == 1
         assert float(payments[0].amount) == 50
 
@@ -166,12 +184,13 @@ class TestPaymentConcurrentIdempotency:
 
     def test_concurrent_idempotency_returns_single_payment_mocked(self, app):
         """When lock is held, service fetches the existing payment without creating a duplicate."""
-        from app.core.rate_limiter import IdempotencyLock
-        from unittest.mock import MagicMock, patch
         from decimal import Decimal
+        from unittest.mock import MagicMock, patch
+
+        from app.core.rate_limiter import IdempotencyLock
 
         lock = IdempotencyLock(timeout_seconds=5)
-        lock_key = "1:payment:concurrent-idem-key-001"
+        lock_key = '1:payment:concurrent-idem-key-001'
 
         # Pre-acquire the lock to simulate another thread holding it
         assert lock.acquire(lock_key) is True
@@ -186,7 +205,9 @@ class TestPaymentConcurrentIdempotency:
             mock_execute_result = MagicMock()
             mock_execute_result.scalars.return_value.first.return_value = mock_payment
 
-            with patch('services.payment_service.db.session.execute', return_value=mock_execute_result):
+            with patch(
+                'services.payment_service.db.session.execute', return_value=mock_execute_result
+            ):
                 with patch('services.payment_service.db.session.flush'):
                     ok, result = PaymentService.create_payment(
                         tenant_id=1,
@@ -199,7 +220,9 @@ class TestPaymentConcurrentIdempotency:
         finally:
             lock.release(lock_key)
 
-    def test_distinct_idempotency_keys_create_multiple_payments(self, app, pay_visit, pay_accountant, test_tenant):
+    def test_distinct_idempotency_keys_create_multiple_payments(
+        self, app, pay_visit, pay_accountant, test_tenant
+    ):
         """Distinct idempotency keys should each create a separate payment."""
         payment_ids = set()
         for i in range(5):
@@ -219,7 +242,9 @@ class TestPaymentConcurrentIdempotency:
 
         assert len(payment_ids) == 5
 
-    def test_idempotency_lock_prevents_race_condition(self, app, pay_visit, pay_accountant, test_tenant):
+    def test_idempotency_lock_prevents_race_condition(
+        self, app, pay_visit, pay_accountant, test_tenant
+    ):
         """Directly test that the IdempotencyLock serializes access."""
         from app.core.rate_limiter import IdempotencyLock
 

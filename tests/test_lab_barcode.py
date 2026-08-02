@@ -1,90 +1,107 @@
 """
 Tests for lab barcode generation, scanning, and workflow (Phase 4)
 """
+
 import base64
 import secrets
-from datetime import datetime, timezone
 
 import pytest
 from sqlalchemy import select
-from app.extensions import db
 
 
 class TestBarcodeService:
     def test_generate_lab_barcode_format(self, app):
         from services.barcode_service import generate_lab_barcode
+
         barcode_val, b64_img = generate_lab_barcode(1, 42)
-        assert barcode_val.startswith("LAB-1-42-")
+        assert barcode_val.startswith('LAB-1-42-')
         assert len(b64_img) > 100
         png_bytes = base64.b64decode(b64_img)
         assert png_bytes[:8] == b'\x89PNG\r\n\x1a\n'
 
     def test_register_in_barcode_registry(self, app, test_tenant):
-        from services.barcode_service import register_in_barcode_registry
         from app_factory import db
         from models.barcode_tracking import BarcodeRegistry
+        from services.barcode_service import register_in_barcode_registry
+
         barcode_val = f'TEST-{secrets.token_hex(8)}'
-        register_in_barcode_registry(barcode_val, lab_request_id=99,
-                                     generated_by_id=None, tenant_id=test_tenant.id)
+        register_in_barcode_registry(
+            barcode_val, lab_request_id=99, generated_by_id=None, tenant_id=test_tenant.id
+        )
         db.session.commit()
-        reg = db.session.execute(select(BarcodeRegistry).filter_by(barcode_value=barcode_val)).scalars().first()
+        reg = (
+            db.session.execute(select(BarcodeRegistry).filter_by(barcode_value=barcode_val))
+            .scalars()
+            .first()
+        )
         assert reg is not None
         assert reg.entity_type == 'SPECIMEN'
         assert reg.barcode_type == 'QR_CODE'
         assert reg.entity_id == 99
 
     def test_setup_barcode_for_lab_request(self, app, test_tenant, test_patient, test_visit):
-        from models.lab_request import LabRequest
-        from services.barcode_service import setup_barcode_for_lab_request
         from app_factory import db
         from models.barcode_tracking import BarcodeRegistry
-        lr = LabRequest(tenant_id=test_tenant.id, patient_id=test_patient.id,
-                        visit_id=test_visit.id, status='REQUESTED')
+        from models.lab_request import LabRequest
+        from services.barcode_service import setup_barcode_for_lab_request
+
+        lr = LabRequest(
+            tenant_id=test_tenant.id,
+            patient_id=test_patient.id,
+            visit_id=test_visit.id,
+            status='REQUESTED',
+        )
         db.session.add(lr)
         db.session.flush()
         setup_barcode_for_lab_request(lr, tenant_id=test_tenant.id)
         db.session.commit()
         assert lr.barcode is not None
-        assert lr.barcode.startswith(f"LAB-{lr.id}-{test_patient.id}-")
+        assert lr.barcode.startswith(f'LAB-{lr.id}-{test_patient.id}-')
         assert lr.barcode_image is not None
-        reg = db.session.execute(select(BarcodeRegistry).filter_by(entity_type='SPECIMEN', entity_id=lr.id)).scalars().first()
+        reg = (
+            db.session.execute(
+                select(BarcodeRegistry).filter_by(entity_type='SPECIMEN', entity_id=lr.id)
+            )
+            .scalars()
+            .first()
+        )
         assert reg is not None
 
 
 class TestBarcodeScanEndpoint:
     def test_scan_collect(self, app, db, lab_auth_client, lab_request_with_barcode):
         barcode_val = lab_request_with_barcode.barcode
-        resp = lab_auth_client.post(f'/lab/barcode/scan/{barcode_val}',
-                                    json={'action': 'COLLECT'})
+        resp = lab_auth_client.post(f'/lab/barcode/scan/{barcode_val}', json={'action': 'COLLECT'})
         assert resp.status_code == 200
         data = resp.get_json()
         assert data['success'] is True
         assert data['status'] == 'COLLECTED'
         from app_factory import db as _db
+
         _db.session.refresh(lab_request_with_barcode)
         assert lab_request_with_barcode.status == 'COLLECTED'
         assert lab_request_with_barcode.collection_time is not None
 
     def test_scan_receive_after_collect(self, app, db, lab_auth_client, lab_request_with_barcode):
         barcode_val = lab_request_with_barcode.barcode
-        lab_auth_client.post(f'/lab/barcode/scan/{barcode_val}',
-                             json={'action': 'COLLECT'})
-        resp = lab_auth_client.post(f'/lab/barcode/scan/{barcode_val}',
-                                    json={'action': 'RECEIVE'})
+        lab_auth_client.post(f'/lab/barcode/scan/{barcode_val}', json={'action': 'COLLECT'})
+        resp = lab_auth_client.post(f'/lab/barcode/scan/{barcode_val}', json={'action': 'RECEIVE'})
         assert resp.status_code == 200
         data = resp.get_json()
         assert data['status'] == 'RECEIVED'
         from app_factory import db as _db
+
         _db.session.refresh(lab_request_with_barcode)
         assert lab_request_with_barcode.status == 'RECEIVED'
         assert lab_request_with_barcode.received_time is not None
 
     def test_scan_nonexistent_barcode(self, app, db, lab_auth_client):
-        resp = lab_auth_client.post('/lab/barcode/scan/DOES-NOT-EXIST',
-                                    json={'action': 'COLLECT'})
+        resp = lab_auth_client.post('/lab/barcode/scan/DOES-NOT-EXIST', json={'action': 'COLLECT'})
         assert resp.status_code == 404
 
-    def test_scan_get_redirects_to_worklist(self, app, db, lab_auth_client, lab_request_with_barcode):
+    def test_scan_get_redirects_to_worklist(
+        self, app, db, lab_auth_client, lab_request_with_barcode
+    ):
         barcode_val = lab_request_with_barcode.barcode
         resp = lab_auth_client.get(f'/lab/barcode/scan/{barcode_val}')
         assert resp.status_code == 302
@@ -107,18 +124,22 @@ class TestBarcodePrintEndpoint:
         assert resp.status_code == 404
 
     def test_print_regenerates_if_missing(self, app, db, lab_auth_client, test_tenant):
-        from models.lab_request import LabRequest
         from app_factory import db as _db
+        from models.lab_request import LabRequest
         from models.patient import Patient
         from models.visit import Visit
-        p = Patient(tenant_id=test_tenant.id, first_name='Test', last_name='User',
-                    phone='+970599999999')
+
+        p = Patient(
+            tenant_id=test_tenant.id, first_name='Test', last_name='User', phone='+970599999999'
+        )
         _db.session.add(p)
         _db.session.flush()
         v = Visit(tenant_id=test_tenant.id, patient_id=p.id, status='active')
         _db.session.add(v)
         _db.session.flush()
-        lr = LabRequest(tenant_id=test_tenant.id, patient_id=p.id, visit_id=v.id, status='REQUESTED')
+        lr = LabRequest(
+            tenant_id=test_tenant.id, patient_id=p.id, visit_id=v.id, status='REQUESTED'
+        )
         _db.session.add(lr)
         _db.session.commit()
         assert lr.barcode is None
@@ -131,19 +152,25 @@ class TestBarcodePrintEndpoint:
 
 class TestWorkflowCollect:
     def test_collect_action_via_form(self, app, db, lab_auth_client, lab_request_with_barcode):
-        resp = lab_auth_client.post(f'/lab/worklist/request/{lab_request_with_barcode.id}',
-                                    data={'action': 'collect'})
+        resp = lab_auth_client.post(
+            f'/lab/worklist/request/{lab_request_with_barcode.id}', data={'action': 'collect'}
+        )
         assert resp.status_code == 302
         from app_factory import db as _db
+
         _db.session.refresh(lab_request_with_barcode)
         assert lab_request_with_barcode.status == 'COLLECTED'
 
-    def test_receive_action_sets_received_time(self, app, db, lab_auth_client, lab_request_with_barcode):
+    def test_receive_action_sets_received_time(
+        self, app, db, lab_auth_client, lab_request_with_barcode
+    ):
         lab_request_with_barcode.status = 'COLLECTED'
         from app_factory import db as _db
+
         _db.session.commit()
-        resp = lab_auth_client.post(f'/lab/worklist/request/{lab_request_with_barcode.id}',
-                                    data={'action': 'receive'})
+        resp = lab_auth_client.post(
+            f'/lab/worklist/request/{lab_request_with_barcode.id}', data={'action': 'receive'}
+        )
         assert resp.status_code == 302
         _db.session.refresh(lab_request_with_barcode)
         assert lab_request_with_barcode.status == 'RECEIVED'
@@ -152,10 +179,12 @@ class TestWorkflowCollect:
 
 # ── Fixtures ────────────────────────────────────────────────────────
 
+
 @pytest.fixture(scope='function')
 def test_patient(app, test_tenant):
-    from models.patient import Patient
     from app_factory import db
+    from models.patient import Patient
+
     p = Patient(
         tenant_id=test_tenant.id,
         first_name='مريض',
@@ -172,8 +201,9 @@ def test_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def test_visit(app, test_tenant, test_patient):
-    from models.visit import Visit
     from app_factory import db
+    from models.visit import Visit
+
     v = Visit(
         tenant_id=test_tenant.id,
         patient_id=test_patient.id,
@@ -187,9 +217,10 @@ def test_visit(app, test_tenant, test_patient):
 
 @pytest.fixture(scope='function')
 def lab_request_with_barcode(app, test_tenant, test_patient, test_visit):
+    from app_factory import db
     from models.lab_request import LabRequest
     from services.barcode_service import setup_barcode_for_lab_request
-    from app_factory import db
+
     lr = LabRequest(
         tenant_id=test_tenant.id,
         patient_id=test_patient.id,
@@ -205,8 +236,9 @@ def lab_request_with_barcode(app, test_tenant, test_patient, test_visit):
 
 @pytest.fixture(scope='function')
 def lab_user(app, test_tenant):
-    from models.user import User
     from app_factory import db
+    from models.user import User
+
     u = db.session.execute(select(User).filter_by(username='lab_barcode_test')).scalars().first()
     if not u:
         u = User(
@@ -226,10 +258,14 @@ def lab_user(app, test_tenant):
 @pytest.fixture(scope='function')
 def lab_auth_client(app, client, lab_user, test_tenant):
     from app.core.rate_limiter import _shared_store
+
     _shared_store.clear()
-    client.post('/auth/login', data={
-        'username': 'lab_barcode_test',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    })
+    client.post(
+        '/auth/login',
+        data={
+            'username': 'lab_barcode_test',
+            'password': 'test123',
+            'tenant_slug': test_tenant.slug,
+        },
+    )
     return client

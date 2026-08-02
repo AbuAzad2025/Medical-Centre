@@ -3,15 +3,17 @@
 Allows platform users (super_admin, owner) to explicitly and audibly
 assume a tenant identity for cross-tenant operations.
 """
-from sqlalchemy import select
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
+
 from flask import g
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
+from sqlalchemy import select
+
 from app.core.tenant.models import PlatformTenantAssumption
+from app.extensions import db
+from utils.db_safety import safe_commit
 
-
-PLATFORM_ROLES = frozenset({"super_admin", "owner"})
+PLATFORM_ROLES = frozenset({'super_admin', 'owner'})
 
 
 class PlatformAssumptionError(PermissionError):
@@ -19,7 +21,6 @@ class PlatformAssumptionError(PermissionError):
 
 
 class PlatformAssumptionService:
-
     @staticmethod
     def create_assumption(
         user_id: int,
@@ -30,7 +31,7 @@ class PlatformAssumptionService:
         expires_at: datetime | None = None,
     ) -> PlatformTenantAssumption:
         if not reason or len(reason.strip()) < 10:
-            raise PlatformAssumptionError("Reason must be at least 10 characters")
+            raise PlatformAssumptionError('Reason must be at least 10 characters')
 
         assumption = PlatformTenantAssumption(
             user_id=user_id,
@@ -41,7 +42,7 @@ class PlatformAssumptionService:
             expires_at=expires_at,
         )
         db.session.add(assumption)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return assumption
 
     @staticmethod
@@ -57,25 +58,30 @@ class PlatformAssumptionService:
             return assumption
 
         assumption.is_active = False
-        assumption.revoked_at = datetime.now(timezone.utc)
+        assumption.revoked_at = datetime.now(UTC)
         assumption.revoked_by = revoked_by
         assumption.revoke_reason = revoke_reason
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return assumption
 
     @staticmethod
     def has_valid_assumption(user_id: int, tenant_id: int) -> bool:
-        now = datetime.now(timezone.utc)
-        q = select(PlatformTenantAssumption.id).filter(
-            PlatformTenantAssumption.user_id == user_id,
-            PlatformTenantAssumption.assumed_tenant_id == tenant_id,
-            PlatformTenantAssumption.is_active == True,
-        ).filter(
-            db.or_(
-                PlatformTenantAssumption.expires_at.is_(None),
-                PlatformTenantAssumption.expires_at > now,
+        now = datetime.now(UTC)
+        q = (
+            select(PlatformTenantAssumption.id)
+            .filter(
+                PlatformTenantAssumption.user_id == user_id,
+                PlatformTenantAssumption.assumed_tenant_id == tenant_id,
+                PlatformTenantAssumption.is_active == True,
             )
-        ).limit(1)
+            .filter(
+                db.or_(
+                    PlatformTenantAssumption.expires_at.is_(None),
+                    PlatformTenantAssumption.expires_at > now,
+                )
+            )
+            .limit(1)
+        )
         return db.session.execute(q).scalar() is not None
 
     @staticmethod
@@ -83,25 +89,33 @@ class PlatformAssumptionService:
         q = select(PlatformTenantAssumption)
         if user_id is not None:
             q = q.filter_by(user_id=user_id)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         q = q.filter(
             db.or_(
                 PlatformTenantAssumption.expires_at.is_(None),
                 PlatformTenantAssumption.expires_at > now,
             )
         )
-        return db.session.execute(q.order_by(PlatformTenantAssumption.created_at.desc())).scalars().all()
+        return (
+            db.session.execute(q.order_by(PlatformTenantAssumption.created_at.desc()))
+            .scalars()
+            .all()
+        )
 
     @staticmethod
     def is_platform_user() -> bool:
         from flask_login import current_user
-        return current_user.is_authenticated and getattr(current_user, 'role', None) in PLATFORM_ROLES
+
+        return (
+            current_user.is_authenticated and getattr(current_user, 'role', None) in PLATFORM_ROLES
+        )
 
     @staticmethod
     def enforce_tenant_access() -> None:
         """Middleware hook: abort 403 if authenticated user does not match resolved tenant."""
-        from flask import abort, request
+        from flask import abort
         from flask_login import current_user
+
         if not current_user.is_authenticated:
             return
 
@@ -116,7 +130,9 @@ class PlatformAssumptionService:
         if user_tenant_id is not None and user_tenant_id == current_tenant_id:
             return
 
-        if role in PLATFORM_ROLES and PlatformAssumptionService.has_valid_assumption(user_id, current_tenant_id):
+        if role in PLATFORM_ROLES and PlatformAssumptionService.has_valid_assumption(
+            user_id, current_tenant_id
+        ):
             return
 
-        abort(403, description="Cross-tenant access denied — use explicit tenant assumption")
+        abort(403, description='Cross-tenant access denied — use explicit tenant assumption')

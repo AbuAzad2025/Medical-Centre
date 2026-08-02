@@ -3,11 +3,13 @@ PII Redaction tests.
 Verifies that PiiRedactingFormatter scrubs SSN, national ID, email, phone, credit card,
 password, and API keys from log messages.
 """
+
 from __future__ import annotations
 
 import logging
 import re
-from config import PiiRedactingFormatter, PII_PATTERNS
+
+from config import PII_PATTERNS, PiiRedactingFormatter
 
 
 class TestPiiRedaction:

@@ -1,9 +1,10 @@
 """Platform-wide capability flags — hide incomplete integrations until ready."""
+
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable
 
 _TRUTHY = frozenset(('true', 'on', '1', 'yes'))
 
@@ -41,14 +42,18 @@ def require_platform_capability(cap: str) -> Callable:
         @wraps(f)
         def wrapper(*args, **kwargs):
             from flask import abort
+
             if not platform_capability(cap):
                 abort(404)
             return f(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
 def guard_platform_capability(cap: str) -> None:
     from flask import abort
+
     if not platform_capability(cap):
         abort(404)

@@ -1,5 +1,7 @@
-from datetime import datetime, date, timedelta, timezone
-from sqlalchemy import func, and_, desc, select
+from datetime import UTC, date, datetime, timedelta
+
+from sqlalchemy import desc, func, select
+
 from app.extensions import db
 
 
@@ -7,21 +9,29 @@ class ReportCenterService:
     @staticmethod
     def _parse_dates(start_raw, end_raw):
         try:
-            start_date = datetime.strptime((start_raw or '').strip(), '%Y-%m-%d').date() if start_raw else (date.today() - timedelta(days=30))
-        except Exception as e:
+            start_date = (
+                datetime.strptime((start_raw or '').strip(), '%Y-%m-%d').date()
+                if start_raw
+                else (date.today() - timedelta(days=30))
+            )
+        except Exception:
             start_date = date.today() - timedelta(days=30)
         try:
-            end_date = datetime.strptime((end_raw or '').strip(), '%Y-%m-%d').date() if end_raw else date.today()
-        except Exception as e:
+            end_date = (
+                datetime.strptime((end_raw or '').strip(), '%Y-%m-%d').date()
+                if end_raw
+                else date.today()
+            )
+        except Exception:
             end_date = date.today()
-        start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
-        end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
+        start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=UTC)
+        end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=UTC)
         return start_date, end_date, start_dt, end_dt
 
     @staticmethod
     def compare_periods(a_start, a_end, b_start, b_end, department_id=None):
-        from models.visit import Visit
         from models.payment import Payment
+        from models.visit import Visit
 
         def _range_metrics(start_dt, end_dt):
             vq = select(Visit)
@@ -30,11 +40,20 @@ class ReportCenterService:
                 try:
                     dep_id = int(department_id)
                     vq = vq.filter(Visit.department_id == dep_id)
-                    pq = pq.join(Visit, Visit.id == Payment.visit_id).filter(Visit.department_id == dep_id)
-                except Exception as e:
+                    pq = pq.join(Visit, Visit.id == Payment.visit_id).filter(
+                        Visit.department_id == dep_id
+                    )
+                except Exception:
                     pass
-            visits = db.session.execute(select(func.count()).select_from(vq.subquery())).scalar() or 0
-            revenue = db.session.execute(select(func.coalesce(func.sum(Payment.amount), 0)).select_from(pq.subquery())).scalar() or 0
+            visits = (
+                db.session.execute(select(func.count()).select_from(vq.subquery())).scalar() or 0
+            )
+            revenue = (
+                db.session.execute(
+                    select(func.coalesce(func.sum(Payment.amount), 0)).select_from(pq.subquery())
+                ).scalar()
+                or 0
+            )
             return {'visits': int(visits), 'revenue': float(revenue)}
 
         a = _range_metrics(a_start, a_end)
@@ -51,20 +70,25 @@ class ReportCenterService:
 
     @staticmethod
     def department_transfers(start_dt, end_dt):
-        from models.visit_transfer import VisitTransferLog
         from models.department import Department
+        from models.visit_transfer import VisitTransferLog
 
-        rows = db.session.execute(select(
-            VisitTransferLog.from_department_id.label('from_department_id'),
-            VisitTransferLog.to_department_id.label('to_department_id'),
-            func.count(VisitTransferLog.id).label('cnt')
-        ).filter(
-            VisitTransferLog.created_at >= start_dt,
-            VisitTransferLog.created_at <= end_dt
-        ).group_by(
-            VisitTransferLog.from_department_id,
-            VisitTransferLog.to_department_id
-        ).order_by(desc(func.count(VisitTransferLog.id)))).scalars().all()
+        rows = (
+            db.session.execute(
+                select(
+                    VisitTransferLog.from_department_id.label('from_department_id'),
+                    VisitTransferLog.to_department_id.label('to_department_id'),
+                    func.count(VisitTransferLog.id).label('cnt'),
+                )
+                .filter(
+                    VisitTransferLog.created_at >= start_dt, VisitTransferLog.created_at <= end_dt
+                )
+                .group_by(VisitTransferLog.from_department_id, VisitTransferLog.to_department_id)
+                .order_by(desc(func.count(VisitTransferLog.id)))
+            )
+            .scalars()
+            .all()
+        )
 
         dep_ids = set()
         for r in rows:
@@ -74,16 +98,22 @@ class ReportCenterService:
                 dep_ids.add(r.to_department_id)
         deps = {}
         if dep_ids:
-            for d in db.session.execute(select(Department).filter(Department.id.in_(list(dep_ids)))).scalars().all():
+            for d in (
+                db.session.execute(select(Department).filter(Department.id.in_(list(dep_ids))))
+                .scalars()
+                .all()
+            ):
                 deps[d.id] = d.name_ar or d.name
 
         out = []
         for r in rows:
-            out.append({
-                'from': deps.get(r.from_department_id) or 'غير محدد',
-                'to': deps.get(r.to_department_id) or 'غير محدد',
-                'count': int(r.cnt or 0),
-            })
+            out.append(
+                {
+                    'from': deps.get(r.from_department_id) or 'غير محدد',
+                    'to': deps.get(r.to_department_id) or 'غير محدد',
+                    'count': int(r.cnt or 0),
+                }
+            )
         return out
 
     @staticmethod
@@ -94,54 +124,88 @@ class ReportCenterService:
         total = db.session.execute(select(func.count()).select_from(q.subquery())).scalar() or 0
         by_status = {}
         for st in ['pending', 'confirmed', 'cancelled', 'completed', 'no_show']:
-            by_status[st] = db.session.execute(select(func.count()).select_from(q.filter(OnlineBooking.status == st).subquery())).scalar() or 0
+            by_status[st] = (
+                db.session.execute(
+                    select(func.count()).select_from(
+                        q.filter(OnlineBooking.status == st).subquery()
+                    )
+                ).scalar()
+                or 0
+            )
         attended = by_status.get('completed', 0)
         no_show = by_status.get('no_show', 0)
         booked = total - by_status.get('cancelled', 0)
         attendance_rate = round((attended / booked * 100), 2) if booked else 0
         no_show_rate = round((no_show / booked * 100), 2) if booked else 0
-        top_departments = db.session.execute(select(
-            OnlineBooking.department_id,
-            func.count(OnlineBooking.id).label('cnt')
-        ).filter(
-            OnlineBooking.created_at >= start_dt,
-            OnlineBooking.created_at <= end_dt
-        ).group_by(OnlineBooking.department_id).order_by(desc(func.count(OnlineBooking.id))).limit(10)).scalars().all()
+        top_departments = (
+            db.session.execute(
+                select(OnlineBooking.department_id, func.count(OnlineBooking.id).label('cnt'))
+                .filter(OnlineBooking.created_at >= start_dt, OnlineBooking.created_at <= end_dt)
+                .group_by(OnlineBooking.department_id)
+                .order_by(desc(func.count(OnlineBooking.id)))
+                .limit(10)
+            )
+            .scalars()
+            .all()
+        )
 
-        top_doctors = db.session.execute(select(
-            OnlineBooking.doctor_id,
-            func.count(OnlineBooking.id).label('cnt')
-        ).filter(
-            OnlineBooking.created_at >= start_dt,
-            OnlineBooking.created_at <= end_dt,
-            OnlineBooking.doctor_id.isnot(None)
-        ).group_by(OnlineBooking.doctor_id).order_by(desc(func.count(OnlineBooking.id))).limit(10)).scalars().all()
+        top_doctors = (
+            db.session.execute(
+                select(OnlineBooking.doctor_id, func.count(OnlineBooking.id).label('cnt'))
+                .filter(
+                    OnlineBooking.created_at >= start_dt,
+                    OnlineBooking.created_at <= end_dt,
+                    OnlineBooking.doctor_id.isnot(None),
+                )
+                .group_by(OnlineBooking.doctor_id)
+                .order_by(desc(func.count(OnlineBooking.id)))
+                .limit(10)
+            )
+            .scalars()
+            .all()
+        )
 
         return {
             'total': int(total),
             'by_status': by_status,
             'attendance_rate': attendance_rate,
             'no_show_rate': no_show_rate,
-            'top_departments': [(int(r.department_id or 0), int(r.cnt or 0)) for r in top_departments],
+            'top_departments': [
+                (int(r.department_id or 0), int(r.cnt or 0)) for r in top_departments
+            ],
             'top_doctors': [(int(r.doctor_id or 0), int(r.cnt or 0)) for r in top_doctors],
         }
 
     @staticmethod
     def emergency_stage_times(start_dt, end_dt):
-        from models.emergency_status_history import EmergencyStatusHistory
         from models.emergency import EmergencyCase
+        from models.emergency_status_history import EmergencyStatusHistory
 
-        case_ids = [r[0] for r in db.session.execute(select(EmergencyCase.id).filter(
-            EmergencyCase.created_at >= start_dt,
-            EmergencyCase.created_at <= end_dt
-        )).scalars().all()]
+        case_ids = [
+            r[0]
+            for r in db.session.execute(
+                select(EmergencyCase.id).filter(
+                    EmergencyCase.created_at >= start_dt, EmergencyCase.created_at <= end_dt
+                )
+            )
+            .scalars()
+            .all()
+        ]
         if not case_ids:
             return {'avg_minutes': {}, 'cases': 0}
 
-        history = db.session.execute(select(EmergencyStatusHistory).filter(EmergencyStatusHistory.emergency_id.in_(case_ids)).order_by(
-            EmergencyStatusHistory.emergency_id.asc(),
-            EmergencyStatusHistory.created_at.asc()
-        )).scalars().all()
+        history = (
+            db.session.execute(
+                select(EmergencyStatusHistory)
+                .filter(EmergencyStatusHistory.emergency_id.in_(case_ids))
+                .order_by(
+                    EmergencyStatusHistory.emergency_id.asc(),
+                    EmergencyStatusHistory.created_at.asc(),
+                )
+            )
+            .scalars()
+            .all()
+        )
 
         per_stage = {}
         counts = {}
@@ -164,15 +228,32 @@ class ReportCenterService:
         from models.radiology_result import RadiologyResult
 
         q = select(RadiologyResult)
-        reviewed = db.session.execute(select(func.count()).select_from(q.filter(RadiologyResult.reviewed_at.isnot(None)).subquery())).scalar() or 0
-        revised = db.session.execute(select(func.count()).select_from(q.filter(RadiologyResult.reviewed_at.isnot(None), RadiologyResult.revised_after_review == True).subquery())).scalar() or 0
+        reviewed = (
+            db.session.execute(
+                select(func.count()).select_from(
+                    q.filter(RadiologyResult.reviewed_at.isnot(None)).subquery()
+                )
+            ).scalar()
+            or 0
+        )
+        revised = (
+            db.session.execute(
+                select(func.count()).select_from(
+                    q.filter(
+                        RadiologyResult.reviewed_at.isnot(None),
+                        RadiologyResult.revised_after_review == True,
+                    ).subquery()
+                )
+            ).scalar()
+            or 0
+        )
         rate = round((revised / reviewed * 100), 2) if reviewed else 0
         return {'reviewed': int(reviewed), 'revised_after_review': int(revised), 'rate': rate}
 
     @staticmethod
     def capacity_impact(start_date, end_date):
-        from models.user import User, StaffWorkSchedule, StaffAbsence
         from models.department import Department
+        from models.user import StaffAbsence, StaffWorkSchedule, User
 
         start = start_date
         end = end_date
@@ -182,24 +263,47 @@ class ReportCenterService:
             days.append(cur)
             cur = cur + timedelta(days=1)
 
-        users = db.session.execute(select(User).filter(User.role.in_(['doctor', 'lab', 'radiology']))).scalars().all()
-        dept_names = {d.id: (d.name_ar or d.name) for d in db.session.execute(select(Department)).scalars().all()}
+        users = (
+            db.session.execute(select(User).filter(User.role.in_(['doctor', 'lab', 'radiology'])))
+            .scalars()
+            .all()
+        )
+        dept_names = {
+            d.id: (d.name_ar or d.name)
+            for d in db.session.execute(select(Department)).scalars().all()
+        }
 
         by_dept = {}
         for u in users:
             dept_id = getattr(u, 'department_id', None) or 0
             key = dept_id
             if key not in by_dept:
-                by_dept[key] = {'department': dept_names.get(dept_id) or 'غير محدد', 'scheduled_hours': 0.0, 'absence_hours': 0.0}
+                by_dept[key] = {
+                    'department': dept_names.get(dept_id) or 'غير محدد',
+                    'scheduled_hours': 0.0,
+                    'absence_hours': 0.0,
+                }
 
-            schedules = db.session.execute(select(StaffWorkSchedule).filter_by(user_id=u.id, is_active=True)).scalars().all()
+            schedules = (
+                db.session.execute(
+                    select(StaffWorkSchedule).filter_by(user_id=u.id, is_active=True)
+                )
+                .scalars()
+                .all()
+            )
             sched_by_dow = {s.day_of_week: s for s in schedules}
 
-            absences = db.session.execute(select(StaffAbsence).filter(
-                StaffAbsence.user_id == u.id,
-                StaffAbsence.end_date >= start,
-                StaffAbsence.start_date <= end
-            )).scalars().all()
+            absences = (
+                db.session.execute(
+                    select(StaffAbsence).filter(
+                        StaffAbsence.user_id == u.id,
+                        StaffAbsence.end_date >= start,
+                        StaffAbsence.start_date <= end,
+                    )
+                )
+                .scalars()
+                .all()
+            )
             absence_days = set()
             for a in absences:
                 a_start = max(start, a.start_date)
@@ -213,7 +317,9 @@ class ReportCenterService:
                 sched = sched_by_dow.get(d.weekday())
                 if not sched:
                     continue
-                h = (datetime.combine(d, sched.end_time) - datetime.combine(d, sched.start_time)).total_seconds() / 3600.0
+                h = (
+                    datetime.combine(d, sched.end_time) - datetime.combine(d, sched.start_time)
+                ).total_seconds() / 3600.0
                 if h <= 0:
                     continue
                 by_dept[key]['scheduled_hours'] += h
@@ -225,12 +331,13 @@ class ReportCenterService:
             scheduled = float(v['scheduled_hours'] or 0)
             absent = float(v['absence_hours'] or 0)
             impact = round((absent / scheduled * 100), 2) if scheduled else 0
-            out.append({
-                'department': v['department'],
-                'scheduled_hours': round(scheduled, 2),
-                'absence_hours': round(absent, 2),
-                'impact_percent': impact
-            })
+            out.append(
+                {
+                    'department': v['department'],
+                    'scheduled_hours': round(scheduled, 2),
+                    'absence_hours': round(absent, 2),
+                    'impact_percent': impact,
+                }
+            )
         out.sort(key=lambda x: x['impact_percent'], reverse=True)
         return out
-

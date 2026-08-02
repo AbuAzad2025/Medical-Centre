@@ -1,11 +1,8 @@
 """branding routes - extracted from monolithic super_admin.py"""
 
-from routes.super_admin import super_admin_bp
-
 import logging
 import os
 import secrets
-from sqlalchemy import select
 
 from flask import (
     current_app,
@@ -19,11 +16,13 @@ from flask import (
 )
 from flask_login import current_user, login_required
 from flask_wtf.csrf import validate_csrf
+from sqlalchemy import select
 from werkzeug.utils import secure_filename
 
-from utils.decorators import super_admin_required
 from app.extensions import db
+from routes.super_admin import super_admin_bp
 from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import super_admin_required
 
 _DOC_LABELS = {
     'invoice': 'فاتورة',
@@ -66,11 +65,12 @@ def _save_logo_file(branding):
     if tenant and hasattr(tenant, 'logo_url'):
         try:
             from app.extensions import db
+
             rel = f'/static/uploads/branding/{filename}'
             if hasattr(tenant, 'settings') and isinstance(tenant.settings, dict):
                 tenant.settings = {**(tenant.settings or {}), 'logo_path': rel}
             db.session.add(tenant)
-        except Exception as e:
+        except Exception:
             pass
 
 
@@ -80,12 +80,13 @@ def _sync_tenant_colors(branding):
         return
     try:
         from app.extensions import db
+
         if branding.primary_color:
             tenant.primary_color = branding.primary_color
         if branding.organization_name:
             tenant.name = branding.organization_name
         db.session.add(tenant)
-    except Exception as e:
+    except Exception:
         pass
 
 
@@ -100,13 +101,14 @@ def _wants_json():
 # BRANDING ROUTES
 # =============================================
 
+
 @super_admin_bp.route('/branding')
 @login_required
 @super_admin_required
 def branding():
     """إدارة العلامة التجارية والشعارات"""
     try:
-        from models.branding import BrandingSettings, SystemTheme
+        from models.branding import SystemTheme
 
         branding_settings = _get_or_create_branding()
         themes = db.session.execute(select(SystemTheme).filter_by(is_active=True)).scalars().all()
@@ -118,7 +120,7 @@ def branding():
             doc_labels=_DOC_LABELS,
         )
     except Exception as e:
-        logging.error(f"Branding error: {str(e)}")
+        logging.exception(f'Branding error: {e!s}')
         flash('حدث خطأ في تحميل صفحة العلامة التجارية', 'error')
         return redirect(url_for('super_admin.dashboard'))
 
@@ -128,8 +130,8 @@ def branding():
 @super_admin_required
 def branding_print_preview():
     """iframe معاينة ترويسة المستندات (Gate 5)."""
-    from app.shared.print_context import resolve_print_slots
     from app.shared.branding_context import resolve_branding_context
+    from app.shared.print_context import resolve_print_slots
 
     doc_type = request.args.get('doc_type', 'invoice')
     if doc_type not in _DOC_LABELS:
@@ -156,12 +158,16 @@ def branding_print_preview():
 def apply_branding_theme(theme_id):
     """تطبيق ألوان ثيم على إعدادات العلامة التجارية."""
     try:
-        from models.branding import BrandingSettings, SystemTheme
         from app.extensions import db
+        from models.branding import SystemTheme
 
         validate_csrf(request.form.get('csrf_token') or request.headers.get('X-CSRFToken'))
 
-        theme = db.session.execute(select(SystemTheme).filter_by(id=theme_id, is_active=True)).scalars().first()
+        theme = (
+            db.session.execute(select(SystemTheme).filter_by(id=theme_id, is_active=True))
+            .scalars()
+            .first()
+        )
         if not theme:
             return jsonify({'success': False, 'error': 'الثيم غير موجود'}), 404
 
@@ -171,21 +177,24 @@ def apply_branding_theme(theme_id):
         branding.accent_color = theme.accent_color
         branding.updated_by = current_user.id
         _sync_tenant_colors(branding)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         _invalidate_branding_cache()
 
-        return jsonify({
-            'success': True,
-            'colors': {
-                'primary_color': branding.primary_color,
-                'secondary_color': branding.secondary_color,
-                'accent_color': branding.accent_color,
-            },
-        })
+        return jsonify(
+            {
+                'success': True,
+                'colors': {
+                    'primary_color': branding.primary_color,
+                    'secondary_color': branding.secondary_color,
+                    'accent_color': branding.accent_color,
+                },
+            }
+        )
     except Exception as e:
         from app.extensions import db
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Apply theme error: {str(e)}")
+
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Apply theme error: {e!s}')
         return jsonify({'success': False, 'error': str(e)}), 400
 
 
@@ -251,7 +260,7 @@ def update_branding():
         _save_logo_file(branding)
         _sync_tenant_colors(branding)
         branding.updated_by = current_user.id
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         _invalidate_branding_cache()
 
         if _wants_json():
@@ -262,8 +271,9 @@ def update_branding():
 
     except Exception as e:
         from app.extensions import db
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Update branding error: {str(e)}")
+
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Update branding error: {e!s}')
         if _wants_json():
             return jsonify({'success': False, 'error': str(e)}), 400
         flash('حدث خطأ في تحديث إعدادات العلامة التجارية', 'error')

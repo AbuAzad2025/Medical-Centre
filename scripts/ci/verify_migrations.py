@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Create a fresh DB, run all Alembic migrations, verify success."""
+
 from __future__ import annotations
 
 import os
@@ -54,8 +55,7 @@ def main() -> int:
         print('FAIL flask db heads')
         return 1
     head_lines = [
-        ln.strip() for ln in result.stdout.splitlines()
-        if ln.strip() and ALEMBIC_HEAD in ln
+        ln.strip() for ln in result.stdout.splitlines() if ln.strip() and ALEMBIC_HEAD in ln
     ]
     if not head_lines:
         print(f'FAIL head revision is not {ALEMBIC_HEAD}')

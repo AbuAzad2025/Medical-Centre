@@ -6,17 +6,17 @@ and instance attributes are set directly, so every case is sub-millisecond.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from models.unified_mixins import (
     BaseModelMixin,
-    StatusMixin,
-    PermissionBase,
-    FinancialBase,
     FileBase,
+    FinancialBase,
     NotificationBase,
+    PermissionBase,
+    StatusMixin,
 )
 
 
@@ -70,7 +70,7 @@ class DummyNotification(NotificationBase):
 # ---------------------------------------------------------------------------
 class TestToDict:
     def test_datetime_columns_serialized_to_iso(self):
-        dt = datetime(2026, 1, 2, 3, 4, 5, tzinfo=timezone.utc)
+        dt = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
         obj = DummyBase(id=1, created_at=dt, name='x')
         obj.__table__ = _Table(['id', 'created_at', 'name'])
         result = obj.to_dict()
@@ -92,16 +92,19 @@ class TestToDict:
 # ---------------------------------------------------------------------------
 # StatusMixin
 # ---------------------------------------------------------------------------
-@pytest.mark.parametrize("status,display,color", [
-    ('ACTIVE', 'نشط', 'success'),
-    ('INACTIVE', 'غير نشط', 'secondary'),
-    ('PENDING', 'في الانتظار', 'warning'),
-    ('COMPLETED', 'مكتمل', 'success'),
-    ('CANCELLED', 'ملغي', 'danger'),
-    ('IN_PROGRESS', 'قيد التنفيذ', 'info'),
-    ('READY', 'جاهز', 'primary'),
-    ('ARCHIVED', 'مؤرشف', 'dark'),
-])
+@pytest.mark.parametrize(
+    'status,display,color',
+    [
+        ('ACTIVE', 'نشط', 'success'),
+        ('INACTIVE', 'غير نشط', 'secondary'),
+        ('PENDING', 'في الانتظار', 'warning'),
+        ('COMPLETED', 'مكتمل', 'success'),
+        ('CANCELLED', 'ملغي', 'danger'),
+        ('IN_PROGRESS', 'قيد التنفيذ', 'info'),
+        ('READY', 'جاهز', 'primary'),
+        ('ARCHIVED', 'مؤرشف', 'dark'),
+    ],
+)
 def test_status_display_and_color(status, display, color):
     s = DummyStatus(status)
     assert s.get_status_display() == display
@@ -114,12 +117,15 @@ def test_status_unknown_falls_back_to_raw_value_and_secondary():
     assert s.get_status_color() == 'secondary'
 
 
-@pytest.mark.parametrize("status,active,completed", [
-    ('ACTIVE', True, False),
-    ('COMPLETED', False, True),
-    ('PENDING', False, False),
-    ('CANCELLED', False, False),
-])
+@pytest.mark.parametrize(
+    'status,active,completed',
+    [
+        ('ACTIVE', True, False),
+        ('COMPLETED', False, True),
+        ('PENDING', False, False),
+        ('CANCELLED', False, False),
+    ],
+)
 def test_status_predicates(status, active, completed):
     s = DummyStatus(status)
     assert s.is_active() is active
@@ -134,33 +140,39 @@ class TestPermissionExpiry:
         assert DummyPermission(None).is_expired() is False
 
     def test_past_expiry_is_expired(self):
-        past = datetime.now(timezone.utc) - timedelta(days=1)
+        past = datetime.now(UTC) - timedelta(days=1)
         assert DummyPermission(past).is_expired() is True
 
     def test_future_expiry_not_expired(self):
-        future = datetime.now(timezone.utc) + timedelta(days=1)
+        future = datetime.now(UTC) + timedelta(days=1)
         assert DummyPermission(future).is_expired() is False
 
 
 # ---------------------------------------------------------------------------
 # FinancialBase
 # ---------------------------------------------------------------------------
-@pytest.mark.parametrize("amount,currency,expected", [
-    (100, 'EGP', '100 EGP'),
-    (0, 'USD', '0 USD'),
-    ('250.50', 'ILS', '250.50 ILS'),
-])
+@pytest.mark.parametrize(
+    'amount,currency,expected',
+    [
+        (100, 'EGP', '100 EGP'),
+        (0, 'USD', '0 USD'),
+        ('250.50', 'ILS', '250.50 ILS'),
+    ],
+)
 def test_amount_display(amount, currency, expected):
     f = DummyFinancial(amount=amount, currency=currency)
     assert f.get_amount_display() == expected
 
 
-@pytest.mark.parametrize("status,paid,pending", [
-    ('PAID', True, False),
-    ('PENDING', False, True),
-    ('PARTIAL', False, False),
-    ('REFUNDED', False, False),
-])
+@pytest.mark.parametrize(
+    'status,paid,pending',
+    [
+        ('PAID', True, False),
+        ('PENDING', False, True),
+        ('PARTIAL', False, False),
+        ('REFUNDED', False, False),
+    ],
+)
 def test_financial_status_predicates(status, paid, pending):
     f = DummyFinancial(payment_status=status)
     assert f.is_paid() is paid
@@ -170,17 +182,20 @@ def test_financial_status_predicates(status, paid, pending):
 # ---------------------------------------------------------------------------
 # FileBase.get_size_display — unit boundary sweep
 # ---------------------------------------------------------------------------
-@pytest.mark.parametrize("size,expected", [
-    (0, '0.0 B'),
-    (1, '1.0 B'),
-    (1023, '1023.0 B'),
-    (1024, '1.0 KB'),
-    (1536, '1.5 KB'),
-    (1024 * 1024, '1.0 MB'),
-    (1024 * 1024 * 1024, '1.0 GB'),
-    (1024 ** 4, '1.0 TB'),
-    (5 * 1024 ** 4, '5.0 TB'),
-])
+@pytest.mark.parametrize(
+    'size,expected',
+    [
+        (0, '0.0 B'),
+        (1, '1.0 B'),
+        (1023, '1023.0 B'),
+        (1024, '1.0 KB'),
+        (1536, '1.5 KB'),
+        (1024 * 1024, '1.0 MB'),
+        (1024 * 1024 * 1024, '1.0 GB'),
+        (1024**4, '1.0 TB'),
+        (5 * 1024**4, '5.0 TB'),
+    ],
+)
 def test_file_size_display(size, expected):
     assert DummyFile(size).get_size_display() == expected
 
@@ -188,12 +203,15 @@ def test_file_size_display(size, expected):
 # ---------------------------------------------------------------------------
 # NotificationBase.get_priority_color
 # ---------------------------------------------------------------------------
-@pytest.mark.parametrize("priority,color", [
-    ('LOW', 'secondary'),
-    ('NORMAL', 'primary'),
-    ('HIGH', 'warning'),
-    ('URGENT', 'danger'),
-    ('UNKNOWN', 'primary'),
-])
+@pytest.mark.parametrize(
+    'priority,color',
+    [
+        ('LOW', 'secondary'),
+        ('NORMAL', 'primary'),
+        ('HIGH', 'warning'),
+        ('URGENT', 'danger'),
+        ('UNKNOWN', 'primary'),
+    ],
+)
 def test_priority_color(priority, color):
     assert DummyNotification(priority).get_priority_color() == color

@@ -1,8 +1,9 @@
 """Arabic labels for shared enums — Jinja ``enum_label`` filter."""
+
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from app.shared import enums as enums_module
 
@@ -165,7 +166,7 @@ def _member_key(value: Any) -> str:
     return str(value).strip()
 
 
-def _lookup_label(enum_name: str, member_key: str) -> Optional[str]:
+def _lookup_label(enum_name: str, member_key: str) -> str | None:
     table = ENUM_LABELS_AR.get(enum_name, {})
     if member_key in table:
         return table[member_key]

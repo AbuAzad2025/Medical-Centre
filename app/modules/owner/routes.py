@@ -1,27 +1,20 @@
 """
 Owner Blueprint — platform admin routes (SaaS control plane)
 """
-from datetime import date, datetime, timedelta, timezone
-from decimal import Decimal
+
 import json
-from flask import current_app, render_template, render_template_string, jsonify, request, flash, redirect, url_for
-from sqlalchemy import text, select, func
-from flask_login import login_required, current_user
-from app.modules.owner import owner_bp
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from app.core.tenant.models import (
-    Tenant, SubscriptionPlan, TenantSubscriptionHistory,
-    SupportTicket, PlatformAuditLog, ResourceUsage, NotificationRule,
-    ProductBundle, get_bundle_for_profile, check_tenant_limits
-)
+from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
+
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import func, select, text
+
 from app.core.module.models import TenantModule
-from app.core.module.validators import can_activate_module, get_active_modules_for_tenant
 from app.core.module.registry import MODULE_REGISTRY, get_all_module_names
-from app.shared.enums import TenantStatus, SubscriptionType, StorageMode, ProductProfile
+from app.core.module.validators import can_activate_module, get_active_modules_for_tenant
 from app.core.rate_limiter import rate_limit
-from app.modules.owner.decorators import owner_required
-from services.webhook_service import dispatch_webhook, EVENT_TENANT_CREATED, EVENT_TENANT_SUSPENDED, EVENT_TENANT_ACTIVATED, EVENT_MODULE_ACTIVATED, EVENT_MODULE_DEACTIVATED, EVENT_BUNDLE_CHANGED
+from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import (
     Package,
     PackageVersion,
@@ -32,9 +25,34 @@ from app.core.saas.models import (
     SubscriptionLineStatus,
     SubscriptionLineType,
 )
-from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.projection import EntitlementProjectionService
+from app.core.tenant.models import (
+    NotificationRule,
+    PlatformAuditLog,
+    ProductBundle,
+    ResourceUsage,
+    SubscriptionPlan,
+    SupportTicket,
+    Tenant,
+    TenantSubscriptionHistory,
+    check_tenant_limits,
+    get_bundle_for_profile,
+)
+from app.extensions import db
+from app.modules.owner import owner_bp
+from app.modules.owner.decorators import owner_required
+from app.shared.enums import ProductProfile, StorageMode, SubscriptionType, TenantStatus
 from models.backup import Backup
+from services.webhook_service import (
+    EVENT_BUNDLE_CHANGED,
+    EVENT_MODULE_ACTIVATED,
+    EVENT_MODULE_DEACTIVATED,
+    EVENT_TENANT_ACTIVATED,
+    EVENT_TENANT_CREATED,
+    EVENT_TENANT_SUSPENDED,
+    dispatch_webhook,
+)
+from utils.db_safety import safe_commit, safe_rollback
 
 
 def _log_action(action, entity_type, entity_id=None, details=None):
@@ -46,12 +64,12 @@ def _log_action(action, entity_type, entity_id=None, details=None):
             entity_id=entity_id,
             details=details,
             ip_address=request.remote_addr,
-            user_agent=request.user_agent.string[:255] if request.user_agent else None
+            user_agent=request.user_agent.string[:255] if request.user_agent else None,
         )
         db.session.add(log)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-    except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
 
 
 def _compute_platform_revenue():
@@ -75,14 +93,15 @@ def _compute_platform_revenue():
     }
 
 
-@owner_bp.route("/dashboard")
+@owner_bp.route('/dashboard')
 @login_required
 @owner_required
 def owner_dashboard():
     """لوحة تحكم المنصة — SaaS metrics"""
 
-
-    all_tenants = db.session.execute(select(Tenant).order_by(Tenant.created_at.desc())).scalars().all()
+    all_tenants = (
+        db.session.execute(select(Tenant).order_by(Tenant.created_at.desc())).scalars().all()
+    )
     plans = db.session.execute(select(SubscriptionPlan)).scalars().all()
 
     tenant_count = len(all_tenants)
@@ -112,12 +131,24 @@ def owner_dashboard():
     expiring_trials = 0
     if trial_count > 0:
         thirty_days_ago = date.today() - timedelta(days=30)
-        old_trials = [t for t in all_tenants if t.status == TenantStatus.PENDING and t.created_at and t.created_at.date() < thirty_days_ago]
+        old_trials = [
+            t
+            for t in all_tenants
+            if t.status == TenantStatus.PENDING
+            and t.created_at
+            and t.created_at.date() < thirty_days_ago
+        ]
         converted = [t for t in old_trials if t.plan_id]
         conversion_rate = round((len(converted) / max(len(old_trials), 1)) * 100, 1)
         # Expiring this week
         next_week = date.today() + timedelta(days=7)
-        expiring_trials = sum(1 for t in all_tenants if t.status == TenantStatus.PENDING and t.subscription_end and t.subscription_end <= next_week)
+        expiring_trials = sum(
+            1
+            for t in all_tenants
+            if t.status == TenantStatus.PENDING
+            and t.subscription_end
+            and t.subscription_end <= next_week
+        )
 
     # Filter
     filter_status = request.args.get('status', '')
@@ -129,11 +160,36 @@ def owner_dashboard():
     alerts = []
     for t in all_tenants:
         if t.status == TenantStatus.EXPIRED:
-            alerts.append({'type': 'اشتراك', 'color': 'danger', 'message': f'انتهى اشتراك {t.name}', 'tenant': t.name})
-        elif t.grace_period_end and date.today() > t.grace_period_end and t.status == TenantStatus.ACTIVE:
-            alerts.append({'type': 'سماح', 'color': 'warning', 'message': f'انتهت فترة سماح {t.name}', 'tenant': t.name})
+            alerts.append(
+                {
+                    'type': 'اشتراك',
+                    'color': 'danger',
+                    'message': f'انتهى اشتراك {t.name}',
+                    'tenant': t.name,
+                }
+            )
+        elif (
+            t.grace_period_end
+            and date.today() > t.grace_period_end
+            and t.status == TenantStatus.ACTIVE
+        ):
+            alerts.append(
+                {
+                    'type': 'سماح',
+                    'color': 'warning',
+                    'message': f'انتهت فترة سماح {t.name}',
+                    'tenant': t.name,
+                }
+            )
     if suspended_count:
-        alerts.append({'type': 'عميل', 'color': 'secondary', 'message': f'{suspended_count} عميل موقوف', 'tenant': None})
+        alerts.append(
+            {
+                'type': 'عميل',
+                'color': 'secondary',
+                'message': f'{suspended_count} عميل موقوف',
+                'tenant': None,
+            }
+        )
 
     # Chart data: last 6 months
     months = []
@@ -142,29 +198,45 @@ def owner_dashboard():
     churn_spark = []
     user_spark = []
     for i in range(5, -1, -1):
-            month_start = (date.today().replace(day=1) - timedelta(days=i*30)).replace(day=1)
-            month_end = (month_start + timedelta(days=31)).replace(day=1)
-            months.append(month_start.strftime('%Y-%m'))
-            # Count tenants created up to this month
-            count = sum(1 for t in all_tenants if t.created_at and t.created_at.date() <= month_start)
-            tenant_growth.append(count)
-            # MRR at that month
-            monthly_mrr = 0.0
-            for t in all_tenants:
-                if t.is_active_and_paid() and t.plan and t.created_at and t.created_at.date() <= month_start:
-                    price = float(t.plan.base_price or 0)
-                    if t.subscription_type == SubscriptionType.YEARLY:
-                        price = price / 12.0
-                    elif t.subscription_type == SubscriptionType.PERPETUAL:
-                        price = 0
-                    monthly_mrr += price
-            mrr_trend.append(round(monthly_mrr, 2))
-            # Real churn: tenants that expired in this month
-            churn_count = sum(1 for t in all_tenants if t.status == TenantStatus.EXPIRED and t.subscription_end and month_start <= t.subscription_end < month_end)
-            churn_spark.append(churn_count)
-            # Real user growth: users created in this month
-            user_count = sum(1 for t in all_tenants for u in (t.users or []) if u.created_at and month_start <= u.created_at.date() < month_end)
-            user_spark.append(user_count)
+        month_start = (date.today().replace(day=1) - timedelta(days=i * 30)).replace(day=1)
+        month_end = (month_start + timedelta(days=31)).replace(day=1)
+        months.append(month_start.strftime('%Y-%m'))
+        # Count tenants created up to this month
+        count = sum(1 for t in all_tenants if t.created_at and t.created_at.date() <= month_start)
+        tenant_growth.append(count)
+        # MRR at that month
+        monthly_mrr = 0.0
+        for t in all_tenants:
+            if (
+                t.is_active_and_paid()
+                and t.plan
+                and t.created_at
+                and t.created_at.date() <= month_start
+            ):
+                price = float(t.plan.base_price or 0)
+                if t.subscription_type == SubscriptionType.YEARLY:
+                    price = price / 12.0
+                elif t.subscription_type == SubscriptionType.PERPETUAL:
+                    price = 0
+                monthly_mrr += price
+        mrr_trend.append(round(monthly_mrr, 2))
+        # Real churn: tenants that expired in this month
+        churn_count = sum(
+            1
+            for t in all_tenants
+            if t.status == TenantStatus.EXPIRED
+            and t.subscription_end
+            and month_start <= t.subscription_end < month_end
+        )
+        churn_spark.append(churn_count)
+        # Real user growth: users created in this month
+        user_count = sum(
+            1
+            for t in all_tenants
+            for u in (t.users or [])
+            if u.created_at and month_start <= u.created_at.date() < month_end
+        )
+        user_spark.append(user_count)
 
     # Status distribution for chart
     status_labels = ['نشط', 'معلق', 'منتهي', 'موقوف']
@@ -177,52 +249,77 @@ def owner_dashboard():
 
     # Support tickets summary for chart
     ticket_counts = {
-        'open': db.session.execute(select(func.count()).select_from(SupportTicket).filter_by(status='open')).scalar(),
-        'in_progress': db.session.execute(select(func.count()).select_from(SupportTicket).filter_by(status='in_progress')).scalar(),
-        'resolved': db.session.execute(select(func.count()).select_from(SupportTicket).filter_by(status='resolved')).scalar(),
-        'closed': db.session.execute(select(func.count()).select_from(SupportTicket).filter_by(status='closed')).scalar(),
+        'open': db.session.execute(
+            select(func.count()).select_from(SupportTicket).filter_by(status='open')
+        ).scalar(),
+        'in_progress': db.session.execute(
+            select(func.count()).select_from(SupportTicket).filter_by(status='in_progress')
+        ).scalar(),
+        'resolved': db.session.execute(
+            select(func.count()).select_from(SupportTicket).filter_by(status='resolved')
+        ).scalar(),
+        'closed': db.session.execute(
+            select(func.count()).select_from(SupportTicket).filter_by(status='closed')
+        ).scalar(),
     }
     ticket_labels = ['مفتوحة', 'قيد المعالجة', 'محلولة', 'مغلقة']
-    ticket_data = [ticket_counts['open'], ticket_counts['in_progress'], ticket_counts['resolved'], ticket_counts['closed']]
+    ticket_data = [
+        ticket_counts['open'],
+        ticket_counts['in_progress'],
+        ticket_counts['resolved'],
+        ticket_counts['closed'],
+    ]
 
     # Recent audit logs
-    recent_logs = db.session.execute(select(PlatformAuditLog).order_by(PlatformAuditLog.created_at.desc()).limit(5)).scalars().all()
+    recent_logs = (
+        db.session.execute(
+            select(PlatformAuditLog).order_by(PlatformAuditLog.created_at.desc()).limit(5)
+        )
+        .scalars()
+        .all()
+    )
 
     # Top resource consumers
-    top_resources = db.session.execute(select(ResourceUsage).order_by(ResourceUsage.db_size_mb.desc()).limit(5)).scalars().all()
+    top_resources = (
+        db.session.execute(select(ResourceUsage).order_by(ResourceUsage.db_size_mb.desc()).limit(5))
+        .scalars()
+        .all()
+    )
 
-    return render_template('owner/dashboard.html',
-                           tenant_count=tenant_count,
-                           active_today=active_today,
-                           expired_count=expired_count,
-                           suspended_count=suspended_count,
-                           mrr=mrr,
-                           arr=arr,
-                           churn_rate=churn_rate,
-                           total_users_all=total_users_all,
-                           avg_users_per_tenant=avg_users_per_tenant,
-                           trial_count=trial_count,
-                           conversion_rate=conversion_rate,
-                           expiring_trials=expiring_trials,
-                           tenants=tenants,
-                           plans=plans,
-                           alerts=alerts,
-                           filter_status=filter_status,
-                           chart_months=months,
-                           chart_tenant_growth=tenant_growth,
-                           chart_mrr_trend=mrr_trend,
-                           chart_churn_spark=churn_spark,
-                           chart_user_spark=user_spark,
-                           chart_status_labels=status_labels,
-                           chart_status_data=status_data,
-                           chart_ticket_labels=ticket_labels,
-                           chart_ticket_data=ticket_data,
-                           recent_logs=recent_logs,
-                           top_resources=top_resources,
-                           currency='SAR')
+    return render_template(
+        'owner/dashboard.html',
+        tenant_count=tenant_count,
+        active_today=active_today,
+        expired_count=expired_count,
+        suspended_count=suspended_count,
+        mrr=mrr,
+        arr=arr,
+        churn_rate=churn_rate,
+        total_users_all=total_users_all,
+        avg_users_per_tenant=avg_users_per_tenant,
+        trial_count=trial_count,
+        conversion_rate=conversion_rate,
+        expiring_trials=expiring_trials,
+        tenants=tenants,
+        plans=plans,
+        alerts=alerts,
+        filter_status=filter_status,
+        chart_months=months,
+        chart_tenant_growth=tenant_growth,
+        chart_mrr_trend=mrr_trend,
+        chart_churn_spark=churn_spark,
+        chart_user_spark=user_spark,
+        chart_status_labels=status_labels,
+        chart_status_data=status_data,
+        chart_ticket_labels=ticket_labels,
+        chart_ticket_data=ticket_data,
+        recent_logs=recent_logs,
+        top_resources=top_resources,
+        currency='SAR',
+    )
 
 
-@owner_bp.route("/tenants/create", methods=["GET", "POST"])
+@owner_bp.route('/tenants/create', methods=['GET', 'POST'])
 @login_required
 @owner_required
 def owner_create_tenant():
@@ -231,31 +328,38 @@ def owner_create_tenant():
     return redirect(url_for('owner.owner_provision'))
 
 
-@owner_bp.route("/tenants/<int:tenant_id>", methods=["GET", "POST"])
+@owner_bp.route('/tenants/<int:tenant_id>', methods=['GET', 'POST'])
 @login_required
 @owner_required
 def owner_tenant_detail(tenant_id):
 
-
     tenant = db.get_or_404(Tenant, tenant_id)
 
     # Handle POST: create a user for this tenant
-    if request.method == "POST" and request.form.get("action") == "create_user":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "").strip()
-        full_name = request.form.get("full_name", "").strip() or "مستخدم"
+    if request.method == 'POST' and request.form.get('action') == 'create_user':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        full_name = request.form.get('full_name', '').strip() or 'مستخدم'
         if username and password:
             try:
                 from werkzeug.security import generate_password_hash
+
                 from models.user import User as UserModel
-                existing = db.session.execute(select(UserModel).filter_by(tenant_id=tenant_id, username=username)).scalars().first()
+
+                existing = (
+                    db.session.execute(
+                        select(UserModel).filter_by(tenant_id=tenant_id, username=username)
+                    )
+                    .scalars()
+                    .first()
+                )
                 if existing:
-                    flash("اسم المستخدم موجود بالفعل", "error")
+                    flash('اسم المستخدم موجود بالفعل', 'error')
                 else:
                     user = UserModel(
                         tenant_id=tenant_id,
                         username=username,
-                        email=tenant.contact_email or f"{username}@{tenant.slug}.local",
+                        email=tenant.contact_email or f'{username}@{tenant.slug}.local',
                         password_hash=generate_password_hash(password),
                         full_name=full_name,
                         role='admin',
@@ -263,32 +367,70 @@ def owner_tenant_detail(tenant_id):
                         is_active=True,
                     )
                     db.session.add(user)
-                    safe_commit(db.session, error_message="database commit failed", reraise=True)
-                    _log_action("CREATE_USER", "user", user.id, f"tenant={tenant.slug}")
-                    flash(f"تم إنشاء المستخدم {username}", "success")
+                    safe_commit(db.session, error_message='database commit failed', reraise=True)
+                    _log_action('CREATE_USER', 'user', user.id, f'tenant={tenant.slug}')
+                    flash(f'تم إنشاء المستخدم {username}', 'success')
             except Exception as e:
-                safe_rollback(db.session, error_message="database rollback")
-                flash(f"خطأ: {e}", "error")
+                safe_rollback(db.session, error_message='database rollback')
+                flash(f'خطأ: {e}', 'error')
         else:
-            flash("اسم المستخدم وكلمة المرور مطلوبان", "error")
-        return redirect(url_for("owner.owner_tenant_detail", tenant_id=tenant_id))
+            flash('اسم المستخدم وكلمة المرور مطلوبان', 'error')
+        return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
 
     active_modules = get_active_modules_for_tenant(tenant_id)
-    from app.core.tenant.models import TenantFeatureFlag, get_bundle_for_profile, check_tenant_limits
-    feature_flags = db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tenant_id)).scalars().all()
+    from app.core.tenant.models import (
+        TenantFeatureFlag,
+        get_bundle_for_profile,
+    )
+
+    feature_flags = (
+        db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tenant_id)).scalars().all()
+    )
     enabled_feature_keys = {f.feature_key for f in feature_flags if f.is_enabled}
-    from app.core.module.registry import MODULE_REGISTRY, get_all_module_names
     all_modules = get_all_module_names()
-    bundle = get_bundle_for_profile(tenant.product_profile_code) if tenant.product_profile_code else None
-    plans = db.session.execute(select(SubscriptionPlan).filter_by(is_active=True).order_by(SubscriptionPlan.base_price)).scalars().all()
-    bundles = db.session.execute(select(ProductBundle).filter_by(is_active=True).order_by(ProductBundle.name)).scalars().all()
-    available_features = sorted(list(set([
-        'multi_branch', 'advanced_reports', 'patient_portal', 'telemedicine',
-        'insurance_integration', 'lab_integration', 'radiology_integration',
-        'pharmacy_integration', 'emergency_kiosk', 'appointment_reminders',
-        'sms_notifications', 'email_notifications', 'whatsapp_notifications',
-        'api_access', 'white_label', 'custom_domain', 'sso',
-    ] + [f.feature_key for f in feature_flags])))
+    bundle = (
+        get_bundle_for_profile(tenant.product_profile_code) if tenant.product_profile_code else None
+    )
+    plans = (
+        db.session.execute(
+            select(SubscriptionPlan).filter_by(is_active=True).order_by(SubscriptionPlan.base_price)
+        )
+        .scalars()
+        .all()
+    )
+    bundles = (
+        db.session.execute(
+            select(ProductBundle).filter_by(is_active=True).order_by(ProductBundle.name)
+        )
+        .scalars()
+        .all()
+    )
+    available_features = sorted(
+        list(
+            set(
+                [
+                    'multi_branch',
+                    'advanced_reports',
+                    'patient_portal',
+                    'telemedicine',
+                    'insurance_integration',
+                    'lab_integration',
+                    'radiology_integration',
+                    'pharmacy_integration',
+                    'emergency_kiosk',
+                    'appointment_reminders',
+                    'sms_notifications',
+                    'email_notifications',
+                    'whatsapp_notifications',
+                    'api_access',
+                    'white_label',
+                    'custom_domain',
+                    'sso',
+                ]
+                + [f.feature_key for f in feature_flags]
+            )
+        )
+    )
 
     bundle_limits = None
     bundle_name = None
@@ -302,56 +444,79 @@ def owner_tenant_detail(tenant_id):
         bundle_name = bundle.name_ar or bundle.name
     user_count = len(tenant.users)
     from models.patient import Patient
-    patient_count = db.session.execute(select(func.count()).select_from(Patient).filter_by(tenant_id=tenant_id)).scalar()
-    return render_template('owner/tenant_detail.html',
-                           tenant=tenant,
-                           active_modules=list(active_modules),
-                           feature_flags=feature_flags,
-                           enabled_feature_keys=enabled_feature_keys,
-                           available_features=available_features,
-                           all_modules=all_modules,
-                           bundle_limits=bundle_limits,
-                           bundle_name=bundle_name,
-                           user_count=user_count,
-                           patient_count=patient_count,
-                           plans=plans,
-                           bundles=bundles)
+
+    patient_count = db.session.execute(
+        select(func.count()).select_from(Patient).filter_by(tenant_id=tenant_id)
+    ).scalar()
+    return render_template(
+        'owner/tenant_detail.html',
+        tenant=tenant,
+        active_modules=list(active_modules),
+        feature_flags=feature_flags,
+        enabled_feature_keys=enabled_feature_keys,
+        available_features=available_features,
+        all_modules=all_modules,
+        bundle_limits=bundle_limits,
+        bundle_name=bundle_name,
+        user_count=user_count,
+        patient_count=patient_count,
+        plans=plans,
+        bundles=bundles,
+    )
 
 
-@owner_bp.route("/tenants/<int:tenant_id>/activate-modules")
+@owner_bp.route('/tenants/<int:tenant_id>/activate-modules')
 @login_required
 @owner_required
 def owner_activate_default_modules(tenant_id):
     """Activate default modules for a tenant based on their bundle/profile."""
     tenant = db.get_or_404(Tenant, tenant_id)
-    from app.core.tenant.models import get_default_modules_for_profile
     from app.core.module.models import TenantModule
+    from app.core.tenant.models import get_default_modules_for_profile
+
     profile_code = tenant.product_profile_code
     if not profile_code:
-        flash("هذا العميل ليس لديه profile_code — لا يمكن تحديد الوحدات", "error")
-        return redirect(url_for("owner.owner_tenant_detail", tenant_id=tenant_id))
+        flash('هذا العميل ليس لديه profile_code — لا يمكن تحديد الوحدات', 'error')
+        return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
     default_modules = get_default_modules_for_profile(profile_code)
     if not default_modules:
         from app.core.module.registry import get_all_module_names
+
         default_modules = get_all_module_names()
     activated = 0
     for m in default_modules:
-        tm = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name=m)).scalars().first()
+        tm = (
+            db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name=m))
+            .scalars()
+            .first()
+        )
         if tm:
             if not tm.is_active:
                 tm.is_active = True
-                tm.activated_at = datetime.now(timezone.utc)
+                tm.activated_at = datetime.now(UTC)
                 activated += 1
         else:
-            db.session.add(TenantModule(tenant_id=tenant_id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc)))
+            db.session.add(
+                TenantModule(
+                    tenant_id=tenant_id,
+                    module_name=m,
+                    is_active=True,
+                    activated_at=datetime.now(UTC),
+                )
+            )
             activated += 1
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
-    _log_action("ACTIVATE_MODULES", "tenant", tenant_id, f"activated {activated} modules: {','.join(default_modules)}")
-    flash(f"تم تفعيل {activated} وحدة للمستأجر {tenant.name}", "success")
-    return redirect(url_for("owner.owner_tenant_detail", tenant_id=tenant_id))
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
+    _log_action(
+        'ACTIVATE_MODULES',
+        'tenant',
+        tenant_id,
+        f'activated {activated} modules: {",".join(default_modules)}',
+    )
+    flash(f'تم تفعيل {activated} وحدة للمستأجر {tenant.name}', 'success')
+    return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
 
 
-@owner_bp.route("/tenants/<int:tenant_id>/edit", methods=["POST"])
+@owner_bp.route('/tenants/<int:tenant_id>/edit', methods=['POST'])
 @login_required
 @owner_required
 def owner_edit_tenant(tenant_id):
@@ -366,7 +531,11 @@ def owner_edit_tenant(tenant_id):
         tenant.tax_number = data.get('tax_number', '').strip() or tenant.tax_number
         tenant.domain = data.get('domain', '').strip() or tenant.domain
         tenant.subdomain = data.get('subdomain', '').strip() or tenant.subdomain
-        tenant.storage_mode = StorageMode(data.get('storage_mode', tenant.storage_mode.value)) if data.get('storage_mode') else tenant.storage_mode
+        tenant.storage_mode = (
+            StorageMode(data.get('storage_mode', tenant.storage_mode.value))
+            if data.get('storage_mode')
+            else tenant.storage_mode
+        )
         new_plan_id = data.get('plan_id', type=int)
         if new_plan_id:
             tenant.plan_id = new_plan_id
@@ -378,63 +547,114 @@ def owner_edit_tenant(tenant_id):
             tenant.product_profile_code = None
 
         # Sync bundle modules if profile changed
-        profile_changed = (tenant.product_profile_code != old_profile)
+        profile_changed = tenant.product_profile_code != old_profile
         if profile_changed and tenant.product_profile_code:
-            from app.core.tenant.models import get_default_modules_for_profile
             from app.core.module.models import TenantModule
+            from app.core.tenant.models import get_default_modules_for_profile
+
             default_modules = get_default_modules_for_profile(tenant.product_profile_code)
             if not default_modules:
                 from app.core.module.registry import get_all_module_names
+
                 default_modules = get_all_module_names()
             # Deactivate modules not in the new profile
-            active_tms = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)).scalars().all()
+            active_tms = (
+                db.session.execute(
+                    select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)
+                )
+                .scalars()
+                .all()
+            )
             for tm in active_tms:
                 if tm.module_name not in default_modules:
                     tm.is_active = False
             # Activate new profile modules
             for m in default_modules:
-                tm = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name=m)).scalars().first()
+                tm = (
+                    db.session.execute(
+                        select(TenantModule).filter_by(tenant_id=tenant_id, module_name=m)
+                    )
+                    .scalars()
+                    .first()
+                )
                 if tm:
                     if not tm.is_active:
                         tm.is_active = True
-                        tm.activated_at = datetime.now(timezone.utc)
+                        tm.activated_at = datetime.now(UTC)
                 else:
-                    db.session.add(TenantModule(tenant_id=tenant_id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc)))
+                    db.session.add(
+                        TenantModule(
+                            tenant_id=tenant_id,
+                            module_name=m,
+                            is_active=True,
+                            activated_at=datetime.now(UTC),
+                        )
+                    )
             # Sync with ProductBundle modules (more specific than profile defaults)
             try:
-                bundle = db.session.execute(select(ProductBundle).filter_by(profile_code=tenant.product_profile_code, is_active=True)).scalars().first()
+                bundle = (
+                    db.session.execute(
+                        select(ProductBundle).filter_by(
+                            profile_code=tenant.product_profile_code, is_active=True
+                        )
+                    )
+                    .scalars()
+                    .first()
+                )
                 if bundle:
                     bundle_modules = bundle.get_modules()
                     if bundle_modules:
                         from app.core.module.models import TenantModule
-                        active_tms = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)).scalars().all()
+
+                        active_tms = (
+                            db.session.execute(
+                                select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)
+                            )
+                            .scalars()
+                            .all()
+                        )
                         for tm in active_tms:
                             if tm.module_name not in bundle_modules:
                                 tm.is_active = False
                         for m in bundle_modules:
-                            tm = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name=m)).scalars().first()
+                            tm = (
+                                db.session.execute(
+                                    select(TenantModule).filter_by(
+                                        tenant_id=tenant_id, module_name=m
+                                    )
+                                )
+                                .scalars()
+                                .first()
+                            )
                             if tm:
                                 if not tm.is_active:
                                     tm.is_active = True
-                                    tm.activated_at = datetime.now(timezone.utc)
+                                    tm.activated_at = datetime.now(UTC)
                             else:
-                                db.session.add(TenantModule(tenant_id=tenant_id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc)))
-            except Exception as e:
+                                db.session.add(
+                                    TenantModule(
+                                        tenant_id=tenant_id,
+                                        module_name=m,
+                                        is_active=True,
+                                        activated_at=datetime.now(UTC),
+                                    )
+                                )
+            except Exception:
                 pass  # Non-critical; module sync already done via profile
 
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('UPDATE_TENANT', 'tenant', tenant_id, f"Updated tenant {tenant.name}")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('UPDATE_TENANT', 'tenant', tenant_id, f'Updated tenant {tenant.name}')
         if profile_changed:
             flash('تم تحديث بيانات العميل وتزامن وحدات الباقة الجديدة', 'success')
         else:
             flash('تم تحديث بيانات العميل', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ في تحديث العميل: {e}', 'error')
     return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
 
 
-@owner_bp.route("/tenants/<int:tenant_id>/feature/<path:feature_key>/toggle", methods=["POST"])
+@owner_bp.route('/tenants/<int:tenant_id>/feature/<path:feature_key>/toggle', methods=['POST'])
 @login_required
 @owner_required
 def owner_toggle_tenant_feature(tenant_id, feature_key):
@@ -442,34 +662,42 @@ def owner_toggle_tenant_feature(tenant_id, feature_key):
     tenant = db.get_or_404(Tenant, tenant_id)
     try:
         from app.core.tenant.models import TenantFeatureFlag
-        flag = db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tenant_id, feature_key=feature_key)).scalars().first()
+
+        flag = (
+            db.session.execute(
+                select(TenantFeatureFlag).filter_by(tenant_id=tenant_id, feature_key=feature_key)
+            )
+            .scalars()
+            .first()
+        )
         if flag:
             flag.is_enabled = not flag.is_enabled
-            flag.updated_at = datetime.now(timezone.utc)
+            flag.updated_at = datetime.now(UTC)
         else:
             flag = TenantFeatureFlag(
                 tenant_id=tenant_id,
                 feature_key=feature_key,
                 is_enabled=True,
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc)
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC),
             )
             db.session.add(flag)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('TOGGLE_FEATURE', 'tenant', tenant_id, f"{feature_key}={flag.is_enabled}")
-        flash(f"تم تحديث الميزة {feature_key}", 'success')
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('TOGGLE_FEATURE', 'tenant', tenant_id, f'{feature_key}={flag.is_enabled}')
+        flash(f'تم تحديث الميزة {feature_key}', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
 
 
-@owner_bp.route("/users")
+@owner_bp.route('/users')
 @login_required
 @owner_required
 def owner_users():
     """Cross-tenant user management for platform owners."""
     from models.user import User
+
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
     search = (request.args.get('q') or '').strip()
@@ -482,7 +710,7 @@ def owner_users():
             db.or_(
                 User.username.ilike(f'%{search}%'),
                 User.full_name.ilike(f'%{search}%'),
-                User.email.ilike(f'%{search}%')
+                User.email.ilike(f'%{search}%'),
             )
         )
     if role_filter:
@@ -490,19 +718,33 @@ def owner_users():
     if tenant_filter:
         query = query.filter(User.tenant_id == tenant_filter)
 
-    pagination = query.order_by(User.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    pagination = query.order_by(User.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
     users = pagination.items
     tenants = db.session.execute(select(Tenant).order_by(Tenant.name)).scalars().all()
-    roles = sorted({r[0] for r in db.session.execute(select(User.role).distinct()).scalars() if r[0]})
-    return render_template('owner/users.html', users=users, pagination=pagination, tenants=tenants, roles=roles, search=search, role_filter=role_filter, tenant_filter=tenant_filter)
+    roles = sorted(
+        {r[0] for r in db.session.execute(select(User.role).distinct()).scalars() if r[0]}
+    )
+    return render_template(
+        'owner/users.html',
+        users=users,
+        pagination=pagination,
+        tenants=tenants,
+        roles=roles,
+        search=search,
+        role_filter=role_filter,
+        tenant_filter=tenant_filter,
+    )
 
 
-@owner_bp.route("/users/<int:user_id>/edit", methods=["POST"])
+@owner_bp.route('/users/<int:user_id>/edit', methods=['POST'])
 @login_required
 @owner_required
 def owner_edit_user(user_id):
     """Edit a user across tenants."""
     from models.user import User
+
     user = db.get_or_404(User, user_id)
     try:
         data = request.form
@@ -514,28 +756,37 @@ def owner_edit_user(user_id):
         new_tenant_id = data.get('tenant_id', type=int)
         if new_tenant_id and new_tenant_id != user.tenant_id:
             # Ensure username/email uniqueness in new tenant
-            existing = db.session.execute(select(User).filter_by(tenant_id=new_tenant_id, username=user.username)).scalars().first()
+            existing = (
+                db.session.execute(
+                    select(User).filter_by(tenant_id=new_tenant_id, username=user.username)
+                )
+                .scalars()
+                .first()
+            )
             if existing and existing.id != user.id:
                 flash('اسم المستخدم موجود في المنشأة المحددة', 'error')
                 return redirect(url_for('owner.owner_users'))
             user.tenant_id = new_tenant_id
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('UPDATE_USER', 'user', user.id, f"Updated user {user.username}")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('UPDATE_USER', 'user', user.id, f'Updated user {user.username}')
         flash('تم تحديث المستخدم بنجاح', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ في تحديث المستخدم: {e}', 'error')
     return redirect(url_for('owner.owner_users'))
 
 
-@owner_bp.route("/users/<int:user_id>/reset-password", methods=["POST"])
+@owner_bp.route('/users/<int:user_id>/reset-password', methods=['POST'])
 @login_required
 @owner_required
 def owner_reset_user_password(user_id):
     """Reset a user's password."""
-    from models.user import User
-    from werkzeug.security import generate_password_hash
     import secrets
+
+    from werkzeug.security import generate_password_hash
+
+    from models.user import User
+
     user = db.get_or_404(User, user_id)
     try:
         new_password = request.form.get('password', '').strip()
@@ -547,125 +798,150 @@ def owner_reset_user_password(user_id):
             return redirect(ref)
         user.password_hash = generate_password_hash(new_password)
         user.session_version = (user.session_version or 0) + 1
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('RESET_PASSWORD', 'user', user.id, f"Reset password for {user.username}")
-        flash(f'تم إعادة تعيين كلمة المرور لـ {user.username}: <strong>{new_password}</strong>', 'success')
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('RESET_PASSWORD', 'user', user.id, f'Reset password for {user.username}')
+        flash(
+            f'تم إعادة تعيين كلمة المرور لـ {user.username}: <strong>{new_password}</strong>',
+            'success',
+        )
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     ref = request.referrer or url_for('owner.owner_users')
     return redirect(ref)
 
 
-@owner_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@owner_bp.route('/users/<int:user_id>/delete', methods=['POST'])
 @login_required
 @owner_required
 def owner_delete_user(user_id):
     """Delete a user."""
     from models.user import User
+
     user = db.get_or_404(User, user_id)
     try:
         if user.role in ('super_admin', 'owner'):
             flash('لا يمكن حذف مستخدم مالك/سوبر أدمن', 'error')
             return redirect(url_for('owner.owner_users'))
         db.session.delete(user)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('DELETE_USER', 'user', user_id, f"Deleted user {user.username}")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('DELETE_USER', 'user', user_id, f'Deleted user {user.username}')
         flash('تم حذف المستخدم بنجاح', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ في حذف المستخدم: {e}', 'error')
     return redirect(url_for('owner.owner_users'))
 
 
-@owner_bp.route("/users/<int:user_id>/toggle-active", methods=["POST"])
+@owner_bp.route('/users/<int:user_id>/toggle-active', methods=['POST'])
 @login_required
 @owner_required
 def owner_toggle_user_active(user_id):
     """Toggle user active/suspended status."""
     from models.user import User
+
     user = db.get_or_404(User, user_id)
     try:
         if user.role in ('super_admin', 'owner'):
             flash('لا يمكن تعطيل مستخدم مالك/سوبر أدمن', 'error')
         else:
             user.is_active = not user.is_active
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-            _log_action('TOGGLE_USER_ACTIVE', 'user', user.id,
-                        f"{'تفعيل' if user.is_active else 'إيقاف'} {user.username}")
-            flash(f'تم {"تفعيل" if user.is_active else "إيقاف"} المستخدم {user.username}', 'success')
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+            _log_action(
+                'TOGGLE_USER_ACTIVE',
+                'user',
+                user.id,
+                f'{"تفعيل" if user.is_active else "إيقاف"} {user.username}',
+            )
+            flash(
+                f'تم {"تفعيل" if user.is_active else "إيقاف"} المستخدم {user.username}', 'success'
+            )
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     # Redirect back to referring page
     ref = request.referrer or url_for('owner.owner_users')
     return redirect(ref)
 
 
-@owner_bp.route("/users/<int:user_id>/reveal-password", methods=["POST"])
+@owner_bp.route('/users/<int:user_id>/reveal-password', methods=['POST'])
 @login_required
 @owner_required
 def owner_reveal_user_password(user_id):
     """Reveal user's current password via a temporary reset + display."""
-    from models.user import User
-    from werkzeug.security import generate_password_hash
     import secrets
+
+    from werkzeug.security import generate_password_hash
+
+    from models.user import User
+
     user = db.get_or_404(User, user_id)
     try:
         temp_password = secrets.token_urlsafe(8)
         user.password_hash = generate_password_hash(temp_password)
         user.session_version = (user.session_version or 0) + 1
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('REVEAL_PASSWORD', 'user', user.id, f"Reset password for {user.username}")
-        flash(f'كلمة المرور الجديدة لـ {user.username}: <strong>{temp_password}</strong>', 'success')
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('REVEAL_PASSWORD', 'user', user.id, f'Reset password for {user.username}')
+        flash(
+            f'كلمة المرور الجديدة لـ {user.username}: <strong>{temp_password}</strong>', 'success'
+        )
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     ref = request.referrer or url_for('owner.owner_users')
     return redirect(ref)
 
 
-@owner_bp.route("/modules")
+@owner_bp.route('/modules')
 @login_required
 @owner_required
 def owner_modules():
     """Global module management — view registry and toggle global activation."""
     from app.core.module.models import ModuleDefinition, TenantModule
-    from app.core.module.registry import MODULE_REGISTRY
 
     db_modules = {m.name: m for m in db.session.execute(select(ModuleDefinition)).scalars().all()}
     modules = []
     for name, meta in MODULE_REGISTRY.items():
         db_mod = db_modules.get(name)
-        tenant_count = db.session.execute(select(func.count()).select_from(TenantModule).filter_by(module_name=name, is_active=True)).scalar()
-        modules.append({
-            'name': name,
-            'name_ar': meta.name_ar or name,
-            'category': meta.category,
-            'description': meta.description_ar or '',
-            'is_active': db_mod.is_active if db_mod else True,
-            'tenant_count': tenant_count,
-            'capabilities': list(meta.capabilities),
-            'required_modules': list(meta.required_modules),
-        })
+        tenant_count = db.session.execute(
+            select(func.count())
+            .select_from(TenantModule)
+            .filter_by(module_name=name, is_active=True)
+        ).scalar()
+        modules.append(
+            {
+                'name': name,
+                'name_ar': meta.name_ar or name,
+                'category': meta.category,
+                'description': meta.description_ar or '',
+                'is_active': db_mod.is_active if db_mod else True,
+                'tenant_count': tenant_count,
+                'capabilities': list(meta.capabilities),
+                'required_modules': list(meta.required_modules),
+            }
+        )
     return render_template('owner/modules.html', modules=modules)
 
 
-@owner_bp.route("/modules/<module_name>/toggle", methods=["POST"])
+@owner_bp.route('/modules/<module_name>/toggle', methods=['POST'])
 @login_required
 @owner_required
 def owner_toggle_module_global(module_name):
     """Toggle global activation of a module."""
     from app.core.module.models import ModuleDefinition
-    from app.core.module.registry import MODULE_REGISTRY
+
     if module_name not in MODULE_REGISTRY:
         flash('الوحدة غير موجودة', 'error')
         return redirect(url_for('owner.owner_modules'))
     try:
-        mod = db.session.execute(select(ModuleDefinition).filter_by(name=module_name)).scalars().first()
+        mod = (
+            db.session.execute(select(ModuleDefinition).filter_by(name=module_name))
+            .scalars()
+            .first()
+        )
         if mod:
             mod.is_active = not mod.is_active
-            mod.updated_at = datetime.now(timezone.utc)
+            mod.updated_at = datetime.now(UTC)
         else:
             meta = MODULE_REGISTRY[module_name]
             mod = ModuleDefinition(
@@ -674,36 +950,52 @@ def owner_toggle_module_global(module_name):
                 category=meta.category,
                 description=meta.description_ar,
                 is_active=True,
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(UTC),
             )
             db.session.add(mod)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('TOGGLE_MODULE_GLOBAL', 'module_definition', mod.id, f"{module_name} active={mod.is_active}")
-        flash(f"تم تحديث حالة الوحدة {module_name}", 'success')
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action(
+            'TOGGLE_MODULE_GLOBAL',
+            'module_definition',
+            mod.id,
+            f'{module_name} active={mod.is_active}',
+        )
+        flash(f'تم تحديث حالة الوحدة {module_name}', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_modules'))
 
 
-@owner_bp.route("/tenants/<int:tenant_id>/renew")
+@owner_bp.route('/tenants/<int:tenant_id>/renew')
 @login_required
 @owner_required
 def owner_renew_tenant(tenant_id):
-
 
     tenant = db.get_or_404(Tenant, tenant_id)
     try:
         old_plan = tenant.plan_id
         if tenant.plan and tenant.subscription_type == SubscriptionType.MONTHLY:
-            tenant.subscription_end = date.today().replace(month=tenant.subscription_end.month + 1 if tenant.subscription_end and tenant.subscription_end.month < 12 else 1)
+            tenant.subscription_end = date.today().replace(
+                month=tenant.subscription_end.month + 1
+                if tenant.subscription_end and tenant.subscription_end.month < 12
+                else 1
+            )
         elif tenant.plan and tenant.subscription_type == SubscriptionType.YEARLY:
-            tenant.subscription_end = date(tenant.subscription_end.year + 1, tenant.subscription_end.month, tenant.subscription_end.day) if tenant.subscription_end else date.today()
+            tenant.subscription_end = (
+                date(
+                    tenant.subscription_end.year + 1,
+                    tenant.subscription_end.month,
+                    tenant.subscription_end.day,
+                )
+                if tenant.subscription_end
+                else date.today()
+            )
         elif tenant.plan and tenant.subscription_type == SubscriptionType.PERPETUAL:
             tenant.subscription_end = None
 
         tenant.status = TenantStatus.ACTIVE
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         h = TenantSubscriptionHistory(
             tenant_id=tenant_id,
@@ -711,23 +1003,22 @@ def owner_renew_tenant(tenant_id):
             old_plan_id=old_plan,
             new_plan_id=tenant.plan_id,
             performed_by=current_user.id,
-            notes='تجديد الاشتراك من لوحة المنصة'
+            notes='تجديد الاشتراك من لوحة المنصة',
         )
         db.session.add(h)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('RENEW_SUBSCRIPTION', 'tenant', tenant_id, f"Renewed tenant {tenant.name}")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('RENEW_SUBSCRIPTION', 'tenant', tenant_id, f'Renewed tenant {tenant.name}')
         flash('تم تجديد الاشتراك', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
 
 
-@owner_bp.route("/tenants/<int:tenant_id>/suspend")
+@owner_bp.route('/tenants/<int:tenant_id>/suspend')
 @login_required
 @owner_required
 def owner_suspend_tenant(tenant_id):
-
 
     tenant = db.get_or_404(Tenant, tenant_id)
     try:
@@ -736,20 +1027,19 @@ def owner_suspend_tenant(tenant_id):
             reason='owner_suspend',
             performed_by_user_id=current_user.id,
         )
-        _log_action('SUSPEND_TENANT', 'tenant', tenant_id, f"Suspended tenant {tenant.name}")
-        dispatch_webhook(EVENT_TENANT_SUSPENDED, {"tenant_id": tenant_id, "name": tenant.name})
+        _log_action('SUSPEND_TENANT', 'tenant', tenant_id, f'Suspended tenant {tenant.name}')
+        dispatch_webhook(EVENT_TENANT_SUSPENDED, {'tenant_id': tenant_id, 'name': tenant.name})
         flash('تم إيقاف العميل', 'warning')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_dashboard'))
 
 
-@owner_bp.route("/tenants/<int:tenant_id>/activate")
+@owner_bp.route('/tenants/<int:tenant_id>/activate')
 @login_required
 @owner_required
 def owner_activate_tenant(tenant_id):
-
 
     tenant = db.get_or_404(Tenant, tenant_id)
     try:
@@ -760,28 +1050,31 @@ def owner_activate_tenant(tenant_id):
             )
         else:
             tenant.status = TenantStatus.ACTIVE
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             EntitlementProjectionService.calculate(tenant_id)
-        _log_action('ACTIVATE_TENANT', 'tenant', tenant_id, f"Activated tenant {tenant.name}")
-        dispatch_webhook(EVENT_TENANT_ACTIVATED, {"tenant_id": tenant_id, "name": tenant.name})
+        _log_action('ACTIVATE_TENANT', 'tenant', tenant_id, f'Activated tenant {tenant.name}')
+        dispatch_webhook(EVENT_TENANT_ACTIVATED, {'tenant_id': tenant_id, 'name': tenant.name})
         flash('تم تفعيل العميل', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_dashboard'))
 
 
-@owner_bp.route("/plans")
+@owner_bp.route('/plans')
 @login_required
 @owner_required
 def owner_plans():
 
-
-    plans = db.session.execute(select(SubscriptionPlan).order_by(SubscriptionPlan.created_at.desc())).scalars().all()
+    plans = (
+        db.session.execute(select(SubscriptionPlan).order_by(SubscriptionPlan.created_at.desc()))
+        .scalars()
+        .all()
+    )
     return render_template('owner/plans.html', plans=plans)
 
 
-@owner_bp.route("/plans/create", methods=["POST"])
+@owner_bp.route('/plans/create', methods=['POST'])
 @login_required
 @owner_required
 def owner_create_plan():
@@ -798,16 +1091,16 @@ def owner_create_plan():
             modules_included=data.get('modules_included', '').strip() or None,
         )
         db.session.add(plan)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('CREATE_PLAN', 'plan', plan.id, f"Created plan {plan.name}")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('CREATE_PLAN', 'plan', plan.id, f'Created plan {plan.name}')
         flash('تم إنشاء الخطة بنجاح', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ في إنشاء الخطة: {e}', 'error')
     return redirect(url_for('owner.owner_plans'))
 
 
-@owner_bp.route("/plans/<int:plan_id>/edit", methods=["POST"])
+@owner_bp.route('/plans/<int:plan_id>/edit', methods=['POST'])
 @login_required
 @owner_required
 def owner_edit_plan(plan_id):
@@ -822,16 +1115,16 @@ def owner_edit_plan(plan_id):
         plan.currency = data.get('currency', plan.currency)
         plan.is_active = data.get('is_active') == '1'
         plan.modules_included = data.get('modules_included', '').strip() or None
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('UPDATE_PLAN', 'plan', plan.id, f"Updated plan {plan.name}")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('UPDATE_PLAN', 'plan', plan.id, f'Updated plan {plan.name}')
         flash('تم تحديث الخطة بنجاح', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ في تحديث الخطة: {e}', 'error')
     return redirect(url_for('owner.owner_plans'))
 
 
-@owner_bp.route("/plans/<int:plan_id>/delete", methods=["POST"])
+@owner_bp.route('/plans/<int:plan_id>/delete', methods=['POST'])
 @login_required
 @owner_required
 def owner_delete_plan(plan_id):
@@ -842,52 +1135,63 @@ def owner_delete_plan(plan_id):
             flash('لا يمكن حذف الخطة — هناك عملاء مرتبطون بها', 'error')
             return redirect(url_for('owner.owner_plans'))
         db.session.delete(plan)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('DELETE_PLAN', 'plan', plan_id, f"Deleted plan {plan.name}")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('DELETE_PLAN', 'plan', plan_id, f'Deleted plan {plan.name}')
         flash('تم حذف الخطة بنجاح', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ في حذف الخطة: {e}', 'error')
     return redirect(url_for('owner.owner_plans'))
 
 
-@owner_bp.route("/announcements", methods=["GET", "POST"])
+@owner_bp.route('/announcements', methods=['GET', 'POST'])
 @login_required
 @owner_required
 def owner_announcements():
 
-
     announcements = []
     try:
         from models.system_config import SystemConfig
-        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_announcements')).scalars().first()
+
+        cfg = (
+            db.session.execute(select(SystemConfig).filter_by(config_key='owner_announcements'))
+            .scalars()
+            .first()
+        )
         if cfg and cfg.config_value:
             import json
+
             announcements = json.loads(cfg.config_value)
-    except Exception as e:
+    except Exception:
         announcements = []
 
     if request.method == 'POST':
         try:
             new_announcement = {
-                'id': int(datetime.now(timezone.utc).timestamp()),
+                'id': int(datetime.now(UTC).timestamp()),
                 'title': request.form.get('title', '').strip(),
                 'content': request.form.get('content', '').strip(),
                 'priority': request.form.get('priority', 'info'),
                 'target_audience': request.form.get('target_audience', 'all'),
-                'created_at': datetime.now(timezone.utc).isoformat(),
-                'created_by': current_user.id
+                'created_at': datetime.now(UTC).isoformat(),
+                'created_by': current_user.id,
             }
             announcements.insert(0, new_announcement)
             announcements = announcements[:50]
 
             from models.system_config import SystemConfig
-            cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_announcements')).scalars().first()
+
+            cfg = (
+                db.session.execute(select(SystemConfig).filter_by(config_key='owner_announcements'))
+                .scalars()
+                .first()
+            )
             import json
+
             if cfg:
                 cfg.config_value = json.dumps(announcements)
                 cfg.updated_by = current_user.id
-                cfg.updated_at = datetime.now(timezone.utc)
+                cfg.updated_at = datetime.now(UTC)
             else:
                 cfg = SystemConfig(
                     config_key='owner_announcements',
@@ -895,28 +1199,33 @@ def owner_announcements():
                     config_type='json',
                     category='owner',
                     created_by=current_user.id,
-                    updated_by=current_user.id
+                    updated_by=current_user.id,
                 )
                 db.session.add(cfg)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             _log_action('CREATE_ANNOUNCEMENT', 'system', None, new_announcement['title'])
             flash('تم إرسال الإعلان', 'success')
             return redirect(url_for('owner.owner_announcements'))
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+            safe_rollback(db.session, error_message='database rollback')
             flash(f'خطأ: {e}', 'error')
 
     return render_template('owner/announcements.html', announcements=announcements)
 
 
-@owner_bp.route("/announcements/<int:announcement_id>/delete", methods=["POST"])
+@owner_bp.route('/announcements/<int:announcement_id>/delete', methods=['POST'])
 @login_required
 @owner_required
 def owner_delete_announcement(announcement_id):
     """Delete an announcement by id."""
     try:
         from models.system_config import SystemConfig
-        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_announcements')).scalars().first()
+
+        cfg = (
+            db.session.execute(select(SystemConfig).filter_by(config_key='owner_announcements'))
+            .scalars()
+            .first()
+        )
         if not cfg or not cfg.config_value:
             flash('لا توجد إعلانات', 'error')
             return redirect(url_for('owner.owner_announcements'))
@@ -928,12 +1237,14 @@ def owner_delete_announcement(announcement_id):
         else:
             cfg.config_value = json.dumps(announcements)
             cfg.updated_by = current_user.id
-            cfg.updated_at = datetime.now(timezone.utc)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-            _log_action('DELETE_ANNOUNCEMENT', 'system', None, f"Deleted announcement id={announcement_id}")
+            cfg.updated_at = datetime.now(UTC)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+            _log_action(
+                'DELETE_ANNOUNCEMENT', 'system', None, f'Deleted announcement id={announcement_id}'
+            )
             flash('تم حذف الإعلان', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_announcements'))
 
@@ -941,38 +1252,42 @@ def owner_delete_announcement(announcement_id):
 # ─────────────────────────────────────────────
 # Support Tickets
 # ─────────────────────────────────────────────
-@owner_bp.route("/support-tickets")
+@owner_bp.route('/support-tickets')
 @login_required
 @owner_required
 def owner_support_tickets():
-
 
     status_filter = request.args.get('status', '')
     q = SupportTicket.query
     if status_filter:
         q = q.filter_by(status=status_filter)
     tickets = q.order_by(SupportTicket.created_at.desc()).limit(50).all()
-    return render_template('owner/support_tickets.html', tickets=tickets, status_filter=status_filter)
+    return render_template(
+        'owner/support_tickets.html', tickets=tickets, status_filter=status_filter
+    )
 
 
-@owner_bp.route("/support-tickets/<int:ticket_id>/update", methods=["POST"])
+@owner_bp.route('/support-tickets/<int:ticket_id>/update', methods=['POST'])
 @login_required
 @owner_required
 def owner_update_ticket(ticket_id):
-
 
     ticket = db.get_or_404(SupportTicket, ticket_id)
     try:
         ticket.status = request.form.get('status', ticket.status)
         ticket.priority = request.form.get('priority', ticket.priority)
-        ticket.assigned_to = int(request.form.get('assigned_to')) if request.form.get('assigned_to') else ticket.assigned_to
+        ticket.assigned_to = (
+            int(request.form.get('assigned_to'))
+            if request.form.get('assigned_to')
+            else ticket.assigned_to
+        )
         if ticket.status == 'resolved':
-            ticket.resolved_at = datetime.now(timezone.utc)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('UPDATE_TICKET', 'ticket', ticket_id, f"Status: {ticket.status}")
+            ticket.resolved_at = datetime.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('UPDATE_TICKET', 'ticket', ticket_id, f'Status: {ticket.status}')
         flash('تم تحديث التذكرة', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_support_tickets'))
 
@@ -980,11 +1295,10 @@ def owner_update_ticket(ticket_id):
 # ─────────────────────────────────────────────
 # Audit Logs
 # ─────────────────────────────────────────────
-@owner_bp.route("/audit-logs")
+@owner_bp.route('/audit-logs')
 @login_required
 @owner_required
 def owner_audit_logs():
-
 
     entity_type = request.args.get('entity_type', '')
     search = request.args.get('q', '')
@@ -992,41 +1306,49 @@ def owner_audit_logs():
     if entity_type:
         q = q.filter_by(entity_type=entity_type)
     logs = q.order_by(PlatformAuditLog.created_at.desc()).limit(100).all()
-    return render_template('owner/audit_logs.html', logs=logs, entity_type=entity_type,
-                           search=search, pagination=None)
+    return render_template(
+        'owner/audit_logs.html', logs=logs, entity_type=entity_type, search=search, pagination=None
+    )
 
 
 # ─────────────────────────────────────────────
 # Resource Usage
 # ─────────────────────────────────────────────
-@owner_bp.route("/resource-usage")
+@owner_bp.route('/resource-usage')
 @login_required
 @owner_required
 def owner_resource_usage():
 
-
-    usages = db.session.execute(select(ResourceUsage).order_by(ResourceUsage.recorded_at.desc()).limit(100)).scalars().all()
+    usages = (
+        db.session.execute(
+            select(ResourceUsage).order_by(ResourceUsage.recorded_at.desc()).limit(100)
+        )
+        .scalars()
+        .all()
+    )
     return render_template('owner/resource_usage.html', usages=usages)
 
 
 # ─────────────────────────────────────────────
 # Notifications
 # ─────────────────────────────────────────────
-@owner_bp.route("/notifications")
+@owner_bp.route('/notifications')
 @login_required
 @owner_required
 def owner_notifications():
 
-
-    rules = db.session.execute(select(NotificationRule).order_by(NotificationRule.created_at.desc())).scalars().all()
+    rules = (
+        db.session.execute(select(NotificationRule).order_by(NotificationRule.created_at.desc()))
+        .scalars()
+        .all()
+    )
     return render_template('owner/notifications.html', rules=rules)
 
 
-@owner_bp.route("/notifications/create", methods=["POST"])
+@owner_bp.route('/notifications/create', methods=['POST'])
 @login_required
 @owner_required
 def owner_create_notification():
-
 
     try:
         r = NotificationRule(
@@ -1035,19 +1357,19 @@ def owner_create_notification():
             target=request.form.get('target', '').strip(),
             template_subject=request.form.get('template_subject', '').strip() or None,
             template_body=request.form.get('template_body', '').strip() or None,
-            is_active=bool(request.form.get('is_active'))
+            is_active=bool(request.form.get('is_active')),
         )
         db.session.add(r)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         _log_action('CREATE_NOTIFICATION', 'notification', r.id)
         flash('تم إنشاء قاعدة الإشعار', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_notifications'))
 
 
-@owner_bp.route("/notifications/<int:rule_id>/delete", methods=["POST"])
+@owner_bp.route('/notifications/<int:rule_id>/delete', methods=['POST'])
 @login_required
 @owner_required
 def owner_delete_notification(rule_id):
@@ -1055,16 +1377,16 @@ def owner_delete_notification(rule_id):
     rule = db.get_or_404(NotificationRule, rule_id)
     try:
         db.session.delete(rule)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         _log_action('DELETE_NOTIFICATION', 'notification', rule_id)
         flash('تم حذف القاعدة', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_notifications'))
 
 
-@owner_bp.route("/notifications/<int:rule_id>/toggle", methods=["POST"])
+@owner_bp.route('/notifications/<int:rule_id>/toggle', methods=['POST'])
 @login_required
 @owner_required
 def owner_toggle_notification(rule_id):
@@ -1072,11 +1394,11 @@ def owner_toggle_notification(rule_id):
     rule = db.get_or_404(NotificationRule, rule_id)
     try:
         rule.is_active = not rule.is_active
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('TOGGLE_NOTIFICATION', 'notification', rule_id, f"is_active={rule.is_active}")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('TOGGLE_NOTIFICATION', 'notification', rule_id, f'is_active={rule.is_active}')
         flash('تم تغيير حالة القاعدة', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_notifications'))
 
@@ -1084,20 +1406,25 @@ def owner_toggle_notification(rule_id):
 # ─────────────────────────────────────────────
 # Platform Branding (White-label)
 # ─────────────────────────────────────────────
-@owner_bp.route("/branding", methods=["GET", "POST"])
+@owner_bp.route('/branding', methods=['GET', 'POST'])
 @login_required
 @owner_required
 def owner_branding():
 
-
     branding = {}
     try:
         from models.system_config import SystemConfig
-        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_platform_branding')).scalars().first()
+
+        cfg = (
+            db.session.execute(select(SystemConfig).filter_by(config_key='owner_platform_branding'))
+            .scalars()
+            .first()
+        )
         if cfg and cfg.config_value:
             import json
+
             branding = json.loads(cfg.config_value)
-    except Exception as e:
+    except Exception:
         branding = {}
 
     if request.method == 'POST':
@@ -1112,12 +1439,20 @@ def owner_branding():
                 'meta_description': request.form.get('meta_description', '').strip() or None,
             }
             from models.system_config import SystemConfig
-            cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_platform_branding')).scalars().first()
+
+            cfg = (
+                db.session.execute(
+                    select(SystemConfig).filter_by(config_key='owner_platform_branding')
+                )
+                .scalars()
+                .first()
+            )
             import json
+
             if cfg:
                 cfg.config_value = json.dumps(branding)
                 cfg.updated_by = current_user.id
-                cfg.updated_at = datetime.now(timezone.utc)
+                cfg.updated_at = datetime.now(UTC)
             else:
                 cfg = SystemConfig(
                     config_key='owner_platform_branding',
@@ -1125,15 +1460,15 @@ def owner_branding():
                     config_type='json',
                     category='owner',
                     created_by=current_user.id,
-                    updated_by=current_user.id
+                    updated_by=current_user.id,
                 )
                 db.session.add(cfg)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             _log_action('UPDATE_BRANDING', 'system', None, 'Updated platform branding')
             flash('تم حفظ التخصيص', 'success')
             return redirect(url_for('owner.owner_branding'))
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+            safe_rollback(db.session, error_message='database rollback')
             flash(f'خطأ: {e}', 'error')
 
     return render_template('owner/branding.html', branding=branding)
@@ -1142,62 +1477,87 @@ def owner_branding():
 # ─────────────────────────────────────────────
 # Webhooks & API Keys
 # ─────────────────────────────────────────────
-@owner_bp.route("/webhooks", methods=["GET", "POST"])
+@owner_bp.route('/webhooks', methods=['GET', 'POST'])
 @login_required
 @owner_required
 def owner_webhooks():
 
-
     webhooks = []
     try:
         from models.system_config import SystemConfig
-        cfg_wh = db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks')).scalars().first()
+
+        cfg_wh = (
+            db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks'))
+            .scalars()
+            .first()
+        )
         if cfg_wh and cfg_wh.config_value:
             webhooks = json.loads(cfg_wh.config_value)
-    except Exception as e:
+    except Exception:
         pass
 
     if request.method == 'POST':
         try:
             if request.form.get('name') and request.form.get('url'):
                 # Webhook
-                webhooks.insert(0, {
-                    'id': int(datetime.now(timezone.utc).timestamp()),
-                    'name': request.form.get('name', '').strip(),
-                    'url': request.form.get('url', '').strip(),
-                    'events': request.form.get('events', '').strip(),
-                    'secret': request.form.get('secret', '').strip(),
-                    'created_at': datetime.now(timezone.utc).isoformat(),
-                })
+                webhooks.insert(
+                    0,
+                    {
+                        'id': int(datetime.now(UTC).timestamp()),
+                        'name': request.form.get('name', '').strip(),
+                        'url': request.form.get('url', '').strip(),
+                        'events': request.form.get('events', '').strip(),
+                        'secret': request.form.get('secret', '').strip(),
+                        'created_at': datetime.now(UTC).isoformat(),
+                    },
+                )
                 webhooks = webhooks[:50]
                 from models.system_config import SystemConfig
-                cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks')).scalars().first()
+
+                cfg = (
+                    db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks'))
+                    .scalars()
+                    .first()
+                )
                 import json
+
                 if cfg:
                     cfg.config_value = json.dumps(webhooks)
                     cfg.updated_by = current_user.id
                 else:
-                    cfg = SystemConfig(config_key='owner_webhooks', config_value=json.dumps(webhooks), config_type='json', category='owner', created_by=current_user.id, updated_by=current_user.id)
+                    cfg = SystemConfig(
+                        config_key='owner_webhooks',
+                        config_value=json.dumps(webhooks),
+                        config_type='json',
+                        category='owner',
+                        created_by=current_user.id,
+                        updated_by=current_user.id,
+                    )
                     db.session.add(cfg)
-                safe_commit(db.session, error_message="database commit failed", reraise=True)
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
                 _log_action('CREATE_WEBHOOK', 'system', None, request.form.get('name'))
                 flash('تم إضافة الـ Webhook', 'success')
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+            safe_rollback(db.session, error_message='database rollback')
             flash(f'خطأ: {e}', 'error')
         return redirect(url_for('owner.owner_webhooks'))
 
     return render_template('owner/webhooks.html', webhooks=webhooks)
 
 
-@owner_bp.route("/webhooks/<int:webhook_id>/delete", methods=["POST"])
+@owner_bp.route('/webhooks/<int:webhook_id>/delete', methods=['POST'])
 @login_required
 @owner_required
 def owner_delete_webhook(webhook_id):
     """Delete a webhook by id."""
     try:
         from models.system_config import SystemConfig
-        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks')).scalars().first()
+
+        cfg = (
+            db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks'))
+            .scalars()
+            .first()
+        )
         if not cfg or not cfg.config_value:
             flash('لا توجد Webhooks', 'error')
             return redirect(url_for('owner.owner_webhooks'))
@@ -1209,16 +1569,16 @@ def owner_delete_webhook(webhook_id):
         else:
             cfg.config_value = json.dumps(webhooks)
             cfg.updated_by = current_user.id
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-            _log_action('DELETE_WEBHOOK', 'system', None, f"Deleted webhook id={webhook_id}")
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+            _log_action('DELETE_WEBHOOK', 'system', None, f'Deleted webhook id={webhook_id}')
             flash('تم حذف الـ Webhook', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_webhooks'))
 
 
-@owner_bp.route("/api-keys", methods=["GET", "POST"])
+@owner_bp.route('/api-keys', methods=['GET', 'POST'])
 @login_required
 @owner_required
 def owner_api_keys_page():
@@ -1227,35 +1587,48 @@ def owner_api_keys_page():
     tenants = db.session.execute(select(Tenant)).scalars().all()
     try:
         from models.system_config import SystemConfig
-        cfg_key = db.session.execute(select(SystemConfig).filter_by(config_key='owner_api_keys')).scalars().first()
+
+        cfg_key = (
+            db.session.execute(select(SystemConfig).filter_by(config_key='owner_api_keys'))
+            .scalars()
+            .first()
+        )
         if cfg_key and cfg_key.config_value:
             api_keys_raw = json.loads(cfg_key.config_value)
             for k in api_keys_raw:
                 tenant = db.session.get(Tenant, k.get('tenant_id'))
-                api_keys.append({
-                    'name': k.get('name'),
-                    'scopes': k.get('scopes'),
-                    'key': k.get('key'),
-                    'created_at': k.get('created_at'),
-                    'tenant': tenant,
-                })
-    except Exception as e:
+                api_keys.append(
+                    {
+                        'name': k.get('name'),
+                        'scopes': k.get('scopes'),
+                        'key': k.get('key'),
+                        'created_at': k.get('created_at'),
+                        'tenant': tenant,
+                    }
+                )
+    except Exception:
         pass
 
     if request.method == 'POST':
         try:
             import secrets as _secrets
+
             new_key = {
-                'id': int(datetime.now(timezone.utc).timestamp()),
+                'id': int(datetime.now(UTC).timestamp()),
                 'tenant_id': int(request.form.get('tenant_id', 0)),
                 'name': request.form.get('name', '').strip(),
                 'key': 'ak_' + _secrets.token_urlsafe(32),
                 'scopes': request.form.get('scopes', 'read').strip(),
-                'created_at': datetime.now(timezone.utc).isoformat(),
+                'created_at': datetime.now(UTC).isoformat(),
                 'created_by': current_user.id,
             }
             from models.system_config import SystemConfig
-            cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_api_keys')).scalars().first()
+
+            cfg = (
+                db.session.execute(select(SystemConfig).filter_by(config_key='owner_api_keys'))
+                .scalars()
+                .first()
+            )
             keys = []
             if cfg and cfg.config_value:
                 keys = json.loads(cfg.config_value)
@@ -1274,25 +1647,30 @@ def owner_api_keys_page():
                     updated_by=current_user.id,
                 )
                 db.session.add(cfg)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             _log_action('CREATE_API_KEY', 'system', new_key['tenant_id'], new_key['name'])
-            flash(f"تم إنشاء API Key: {new_key['key'][:20]}...", 'success')
+            flash(f'تم إنشاء API Key: {new_key["key"][:20]}...', 'success')
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+            safe_rollback(db.session, error_message='database rollback')
             flash(f'خطأ: {e}', 'error')
         return redirect(url_for('owner.owner_api_keys_page'))
 
     return render_template('owner/api_keys.html', api_keys=api_keys, tenants=tenants)
 
 
-@owner_bp.route("/api-keys/<int:key_id>/delete", methods=["POST"])
+@owner_bp.route('/api-keys/<int:key_id>/delete', methods=['POST'])
 @login_required
 @owner_required
 def owner_delete_api_key(key_id):
     """Delete an API key by id."""
     try:
         from models.system_config import SystemConfig
-        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_api_keys')).scalars().first()
+
+        cfg = (
+            db.session.execute(select(SystemConfig).filter_by(config_key='owner_api_keys'))
+            .scalars()
+            .first()
+        )
         if not cfg or not cfg.config_value:
             flash('لا توجد مفاتيح', 'error')
             return redirect(url_for('owner.owner_api_keys_page'))
@@ -1304,16 +1682,16 @@ def owner_delete_api_key(key_id):
         else:
             cfg.config_value = json.dumps(keys)
             cfg.updated_by = current_user.id
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-            _log_action('DELETE_API_KEY', 'system', None, f"Deleted key id={key_id}")
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+            _log_action('DELETE_API_KEY', 'system', None, f'Deleted key id={key_id}')
             flash('تم حذف المفتاح', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_api_keys_page'))
 
 
-@owner_bp.route("/themes", methods=["GET", "POST"])
+@owner_bp.route('/themes', methods=['GET', 'POST'])
 @login_required
 @owner_required
 def owner_themes():
@@ -1334,56 +1712,64 @@ def owner_themes():
                 is_active=True,
             )
             db.session.add(theme)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             _log_action('CREATE_THEME', 'theme', theme.id, theme.name_ar)
             flash('تم إنشاء الثيم', 'success')
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+            safe_rollback(db.session, error_message='database rollback')
             flash(f'خطأ: {e}', 'error')
         return redirect(url_for('owner.owner_themes'))
 
-    themes = db.session.execute(select(SystemTheme).order_by(SystemTheme.is_default.desc(), SystemTheme.name_ar)).scalars().all()
+    themes = (
+        db.session.execute(
+            select(SystemTheme).order_by(SystemTheme.is_default.desc(), SystemTheme.name_ar)
+        )
+        .scalars()
+        .all()
+    )
     return render_template('owner/themes.html', themes=themes)
 
 
-@owner_bp.route("/themes/<int:theme_id>/delete", methods=["POST"])
+@owner_bp.route('/themes/<int:theme_id>/delete', methods=['POST'])
 @login_required
 @owner_required
 def owner_delete_theme(theme_id):
     """Delete a theme."""
     from models.branding import SystemTheme
+
     theme = db.get_or_404(SystemTheme, theme_id)
     try:
         db.session.delete(theme)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         _log_action('DELETE_THEME', 'theme', theme_id, theme.name_ar)
         flash('تم حذف الثيم', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_themes'))
 
 
-@owner_bp.route("/themes/<int:theme_id>/set-default", methods=["POST"])
+@owner_bp.route('/themes/<int:theme_id>/set-default', methods=['POST'])
 @login_required
 @owner_required
 def owner_set_default_theme(theme_id):
     """Set a theme as the default (unset others)."""
     from models.branding import SystemTheme
+
     try:
         select(SystemTheme).update({'is_default': False})
         theme = db.get_or_404(SystemTheme, theme_id)
         theme.is_default = True
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         _log_action('SET_DEFAULT_THEME', 'theme', theme_id, theme.name_ar)
         flash(f'تم تعيين {theme.name_ar} كافتراضي', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_themes'))
 
 
-@owner_bp.route("/billing")
+@owner_bp.route('/billing')
 @login_required
 @owner_required
 def owner_billing():
@@ -1392,7 +1778,11 @@ def owner_billing():
     plans = db.session.execute(select(SubscriptionPlan)).scalars().all()
     plan_rows = []
     for plan in plans:
-        count = sum(1 for t in db.session.execute(select(Tenant)).scalars().all() if t.plan_id == plan.id and t.is_active_and_paid())
+        count = sum(
+            1
+            for t in db.session.execute(select(Tenant)).scalars().all()
+            if t.plan_id == plan.id and t.is_active_and_paid()
+        )
         plan_rows.append({'plan': plan, 'active_count': count})
     return render_template('owner/billing.html', stats=stats, plan_rows=plan_rows)
 
@@ -1400,146 +1790,183 @@ def owner_billing():
 # ─────────────────────────────────────────────
 # Existing API routes preserved
 # ─────────────────────────────────────────────
-@owner_bp.route("/api/tenants", methods=["GET"])
+@owner_bp.route('/api/tenants', methods=['GET'])
 @login_required
 @owner_required
 def api_tenants():
 
     tenants = db.session.execute(select(Tenant)).scalars().all()
-    return jsonify([{"id": t.id, "name": t.name, "slug": t.slug, "status": str(t.status)} for t in tenants])
+    return jsonify(
+        [{'id': t.id, 'name': t.name, 'slug': t.slug, 'status': str(t.status)} for t in tenants]
+    )
 
 
-@owner_bp.route("/api/tenants/<int:tenant_id>/modules", methods=["GET"])
+@owner_bp.route('/api/tenants/<int:tenant_id>/modules', methods=['GET'])
 @login_required
 @owner_required
 def api_tenant_modules(tenant_id):
 
     active = get_active_modules_for_tenant(tenant_id)
-    return jsonify({"tenant_id": tenant_id, "active_modules": list(active)})
+    return jsonify({'tenant_id': tenant_id, 'active_modules': list(active)})
 
 
-@owner_bp.route("/api/tenants/<int:tenant_id>/modules/<module_name>/activate", methods=["POST"])
+@owner_bp.route('/api/tenants/<int:tenant_id>/modules/<module_name>/activate', methods=['POST'])
 @login_required
 @owner_required
 def api_activate_module(tenant_id, module_name):
 
     ok, err = can_activate_module(tenant_id, module_name)
     if not ok:
-        return jsonify({"error": err}), 400
-    tm = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name=module_name)).scalars().first()
+        return jsonify({'error': err}), 400
+    tm = (
+        db.session.execute(
+            select(TenantModule).filter_by(tenant_id=tenant_id, module_name=module_name)
+        )
+        .scalars()
+        .first()
+    )
     if not tm:
         tm = TenantModule(tenant_id=tenant_id, module_name=module_name)
         db.session.add(tm)
     tm.is_active = True
-    tm.activated_at = datetime.now(timezone.utc)
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
-    dispatch_webhook(EVENT_MODULE_ACTIVATED, {"tenant_id": tenant_id, "module": module_name})
-    return jsonify({"status": "activated", "module": module_name})
+    tm.activated_at = datetime.now(UTC)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
+    dispatch_webhook(EVENT_MODULE_ACTIVATED, {'tenant_id': tenant_id, 'module': module_name})
+    return jsonify({'status': 'activated', 'module': module_name})
 
 
-@owner_bp.route("/api/tenants/<int:tenant_id>/modules/<module_name>/deactivate", methods=["POST"])
+@owner_bp.route('/api/tenants/<int:tenant_id>/modules/<module_name>/deactivate', methods=['POST'])
 @login_required
 @owner_required
 def api_deactivate_module(tenant_id, module_name):
 
-    tm = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name=module_name)).scalars().first()
+    tm = (
+        db.session.execute(
+            select(TenantModule).filter_by(tenant_id=tenant_id, module_name=module_name)
+        )
+        .scalars()
+        .first()
+    )
     if tm:
         tm.is_active = False
-        tm.deactivated_at = datetime.now(timezone.utc)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('DEACTIVATE_MODULE', 'module', tenant_id, f"Deactivated {module_name}")
-        dispatch_webhook(EVENT_MODULE_DEACTIVATED, {"tenant_id": tenant_id, "module": module_name})
-    return jsonify({"status": "deactivated", "module": module_name})
+        tm.deactivated_at = datetime.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('DEACTIVATE_MODULE', 'module', tenant_id, f'Deactivated {module_name}')
+        dispatch_webhook(EVENT_MODULE_DEACTIVATED, {'tenant_id': tenant_id, 'module': module_name})
+    return jsonify({'status': 'deactivated', 'module': module_name})
 
 
-@owner_bp.route("/api/tenants/<int:tenant_id>/profile", methods=["POST"])
+@owner_bp.route('/api/tenants/<int:tenant_id>/profile', methods=['POST'])
 @login_required
 @owner_required
 def api_update_profile(tenant_id):
 
     tenant = db.session.get(Tenant, tenant_id)
     if not tenant:
-        return jsonify({"error": "Tenant not found"}), 404
-    profile_code = request.json.get("product_profile") or request.form.get("product_profile")
+        return jsonify({'error': 'Tenant not found'}), 404
+    profile_code = request.json.get('product_profile') or request.form.get('product_profile')
     from app.core.tenant.models import _PRODUCT_PROFILE_SEED
+
     if profile_code and profile_code not in _PRODUCT_PROFILE_SEED:
-        return jsonify({"error": "Invalid profile"}), 400
+        return jsonify({'error': 'Invalid profile'}), 400
     try:
         tenant.product_profile_code = profile_code
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('UPDATE_PROFILE', 'tenant', tenant_id, f"Profile -> {profile_code}")
-        return jsonify({"status": "updated", "profile": profile_code})
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('UPDATE_PROFILE', 'tenant', tenant_id, f'Profile -> {profile_code}')
+        return jsonify({'status': 'updated', 'profile': profile_code})
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        return jsonify({"error": str(e)}), 400
+        safe_rollback(db.session, error_message='database rollback')
+        return jsonify({'error': str(e)}), 400
 
 
-@owner_bp.route("/api/tenants/<int:tenant_id>/features/<feature_key>/toggle", methods=["POST"])
+@owner_bp.route('/api/tenants/<int:tenant_id>/features/<feature_key>/toggle', methods=['POST'])
 @login_required
 @owner_required
 def api_toggle_feature(tenant_id, feature_key):
 
     from app.core.tenant.models import TenantFeatureFlag
-    flag = db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tenant_id, feature_key=feature_key)).scalars().first()
+
+    flag = (
+        db.session.execute(
+            select(TenantFeatureFlag).filter_by(tenant_id=tenant_id, feature_key=feature_key)
+        )
+        .scalars()
+        .first()
+    )
     if not flag:
         flag = TenantFeatureFlag(tenant_id=tenant_id, feature_key=feature_key, is_enabled=True)
         db.session.add(flag)
     else:
         flag.is_enabled = not flag.is_enabled
     try:
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('TOGGLE_FEATURE', 'feature', tenant_id, f"{feature_key}={flag.is_enabled}")
-        return jsonify({"status": "toggled", "feature": feature_key, "is_enabled": flag.is_enabled})
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('TOGGLE_FEATURE', 'feature', tenant_id, f'{feature_key}={flag.is_enabled}')
+        return jsonify({'status': 'toggled', 'feature': feature_key, 'is_enabled': flag.is_enabled})
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        return jsonify({"error": str(e)}), 400
+        safe_rollback(db.session, error_message='database rollback')
+        return jsonify({'error': str(e)}), 400
 
 
 # ─────────────────────────────────────────────
 # ProductBundle HTML page
 # ─────────────────────────────────────────────
-@owner_bp.route("/bundles")
+@owner_bp.route('/bundles')
 @login_required
 @owner_required
 def owner_bundles():
     """إدارة الباقات (HTML)"""
-    bundles = db.session.execute(select(ProductBundle).order_by(ProductBundle.monthly_price)).scalars().all()
+    bundles = (
+        db.session.execute(select(ProductBundle).order_by(ProductBundle.monthly_price))
+        .scalars()
+        .all()
+    )
     return render_template('owner/bundles.html', bundles=bundles)
 
 
 # ─────────────────────────────────────────────
 # ProductBundle CRUD API
 # ─────────────────────────────────────────────
-@owner_bp.route("/api/bundles", methods=["GET"])
+@owner_bp.route('/api/bundles', methods=['GET'])
 @login_required
 @owner_required
 @rate_limit(max_requests=30, window_seconds=60)
 def api_list_bundles():
     """List all product bundles."""
 
-    bundles = db.session.execute(select(ProductBundle).filter_by(is_active=True).order_by(ProductBundle.monthly_price)).scalars().all()
-    return jsonify([{
-        "id": b.id,
-        "slug": b.slug,
-        "name": b.name,
-        "name_ar": b.name_ar,
-        "description_ar": b.description_ar,
-        "monthly_price": float(b.monthly_price),
-        "yearly_price": float(b.yearly_price),
-        "setup_fee": float(b.setup_fee),
-        "currency": b.currency,
-        "modules": b.get_modules(),
-        "max_users": b.max_users,
-        "max_patients": b.max_patients,
-        "storage_gb": b.storage_gb,
-        "api_calls_per_month": b.api_calls_per_month,
-        "is_public": b.is_public,
-        "is_active": b.is_active,
-        "profile_code": b.profile_code,
-    } for b in bundles])
+    bundles = (
+        db.session.execute(
+            select(ProductBundle).filter_by(is_active=True).order_by(ProductBundle.monthly_price)
+        )
+        .scalars()
+        .all()
+    )
+    return jsonify(
+        [
+            {
+                'id': b.id,
+                'slug': b.slug,
+                'name': b.name,
+                'name_ar': b.name_ar,
+                'description_ar': b.description_ar,
+                'monthly_price': float(b.monthly_price),
+                'yearly_price': float(b.yearly_price),
+                'setup_fee': float(b.setup_fee),
+                'currency': b.currency,
+                'modules': b.get_modules(),
+                'max_users': b.max_users,
+                'max_patients': b.max_patients,
+                'storage_gb': b.storage_gb,
+                'api_calls_per_month': b.api_calls_per_month,
+                'is_public': b.is_public,
+                'is_active': b.is_active,
+                'profile_code': b.profile_code,
+            }
+            for b in bundles
+        ]
+    )
 
 
-@owner_bp.route("/api/bundles/<int:bundle_id>", methods=["GET"])
+@owner_bp.route('/api/bundles/<int:bundle_id>', methods=['GET'])
 @login_required
 @owner_required
 @rate_limit(max_requests=60, window_seconds=60)
@@ -1548,31 +1975,33 @@ def api_get_bundle(bundle_id):
 
     b = db.session.get(ProductBundle, bundle_id)
     if not b:
-        return jsonify({"error": "الباقة غير موجودة"}), 404
-    return jsonify({
-        "id": b.id,
-        "slug": b.slug,
-        "name": b.name,
-        "name_ar": b.name_ar,
-        "description_ar": b.description_ar,
-        "monthly_price": float(b.monthly_price),
-        "yearly_price": float(b.yearly_price),
-        "setup_fee": float(b.setup_fee),
-        "currency": b.currency,
-        "modules": b.get_modules(),
-        "max_users": b.max_users,
-        "max_patients": b.max_patients,
-        "storage_gb": b.storage_gb,
-        "api_calls_per_month": b.api_calls_per_month,
-        "is_public": b.is_public,
-        "is_active": b.is_active,
-        "profile_code": b.profile_code,
-        "created_at": b.created_at.isoformat() if b.created_at else None,
-        "updated_at": b.updated_at.isoformat() if b.updated_at else None,
-    })
+        return jsonify({'error': 'الباقة غير موجودة'}), 404
+    return jsonify(
+        {
+            'id': b.id,
+            'slug': b.slug,
+            'name': b.name,
+            'name_ar': b.name_ar,
+            'description_ar': b.description_ar,
+            'monthly_price': float(b.monthly_price),
+            'yearly_price': float(b.yearly_price),
+            'setup_fee': float(b.setup_fee),
+            'currency': b.currency,
+            'modules': b.get_modules(),
+            'max_users': b.max_users,
+            'max_patients': b.max_patients,
+            'storage_gb': b.storage_gb,
+            'api_calls_per_month': b.api_calls_per_month,
+            'is_public': b.is_public,
+            'is_active': b.is_active,
+            'profile_code': b.profile_code,
+            'created_at': b.created_at.isoformat() if b.created_at else None,
+            'updated_at': b.updated_at.isoformat() if b.updated_at else None,
+        }
+    )
 
 
-@owner_bp.route("/api/bundles", methods=["POST"])
+@owner_bp.route('/api/bundles', methods=['POST'])
 @login_required
 @owner_required
 @rate_limit(max_requests=20, window_seconds=60)
@@ -1582,34 +2011,39 @@ def api_create_bundle():
     try:
         data = request.get_json() or request.form
         b = ProductBundle(
-            slug=data.get("slug", "").strip(),
-            name=data.get("name", "").strip(),
-            name_ar=data.get("name_ar", "").strip(),
-            description_ar=data.get("description_ar", "").strip() or None,
-            monthly_price=Decimal(str(data.get("monthly_price", 0))),
-            yearly_price=Decimal(str(data.get("yearly_price", 0))),
-            setup_fee=Decimal(str(data.get("setup_fee", 0))),
-            currency=data.get("currency", "SAR"),
-            modules=json.dumps(data.get("modules", [])),
-            max_users=int(data.get("max_users")) if data.get("max_users") else None,
-            max_patients=int(data.get("max_patients")) if data.get("max_patients") else None,
-            storage_gb=int(data.get("storage_gb")) if data.get("storage_gb") else None,
-            api_calls_per_month=int(data.get("api_calls_per_month")) if data.get("api_calls_per_month") else None,
-            is_public=bool(data.get("is_public", True)),
-            is_active=bool(data.get("is_active", True)),
-            profile_code=data.get("profile_code", "").strip() or None,
+            slug=data.get('slug', '').strip(),
+            name=data.get('name', '').strip(),
+            name_ar=data.get('name_ar', '').strip(),
+            description_ar=data.get('description_ar', '').strip() or None,
+            monthly_price=Decimal(str(data.get('monthly_price', 0))),
+            yearly_price=Decimal(str(data.get('yearly_price', 0))),
+            setup_fee=Decimal(str(data.get('setup_fee', 0))),
+            currency=data.get('currency', 'SAR'),
+            modules=json.dumps(data.get('modules', [])),
+            max_users=int(data.get('max_users')) if data.get('max_users') else None,
+            max_patients=int(data.get('max_patients')) if data.get('max_patients') else None,
+            storage_gb=int(data.get('storage_gb')) if data.get('storage_gb') else None,
+            api_calls_per_month=int(data.get('api_calls_per_month'))
+            if data.get('api_calls_per_month')
+            else None,
+            is_public=bool(data.get('is_public', True)),
+            is_active=bool(data.get('is_active', True)),
+            profile_code=data.get('profile_code', '').strip() or None,
         )
         db.session.add(b)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('CREATE_BUNDLE', 'bundle', b.id, f"Created bundle {b.name_ar}")
-        dispatch_webhook(EVENT_BUNDLE_CHANGED, {"action": "created", "bundle_id": b.id, "slug": b.slug, "name": b.name_ar})
-        return jsonify({"status": "created", "id": b.id, "slug": b.slug})
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('CREATE_BUNDLE', 'bundle', b.id, f'Created bundle {b.name_ar}')
+        dispatch_webhook(
+            EVENT_BUNDLE_CHANGED,
+            {'action': 'created', 'bundle_id': b.id, 'slug': b.slug, 'name': b.name_ar},
+        )
+        return jsonify({'status': 'created', 'id': b.id, 'slug': b.slug})
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        return jsonify({"error": str(e)}), 400
+        safe_rollback(db.session, error_message='database rollback')
+        return jsonify({'error': str(e)}), 400
 
 
-@owner_bp.route("/api/bundles/<int:bundle_id>", methods=["PUT"])
+@owner_bp.route('/api/bundles/<int:bundle_id>', methods=['PUT'])
 @login_required
 @owner_required
 @rate_limit(max_requests=20, window_seconds=60)
@@ -1618,35 +2052,40 @@ def api_update_bundle(bundle_id):
 
     b = db.session.get(ProductBundle, bundle_id)
     if not b:
-        return jsonify({"error": "الباقة غير موجودة"}), 404
+        return jsonify({'error': 'الباقة غير موجودة'}), 404
     try:
         data = request.get_json(silent=True) or request.form
-        b.name = data.get("name", b.name)
-        b.name_ar = data.get("name_ar", b.name_ar)
-        b.description_ar = data.get("description_ar", b.description_ar)
-        b.monthly_price = Decimal(str(data.get("monthly_price", b.monthly_price)))
-        b.yearly_price = Decimal(str(data.get("yearly_price", b.yearly_price)))
-        b.setup_fee = Decimal(str(data.get("setup_fee", b.setup_fee)))
-        b.currency = data.get("currency", b.currency)
-        if "modules" in data:
-            b.set_modules(data.get("modules"))
-        b.max_users = int(data.get("max_users")) if data.get("max_users") else None
-        b.max_patients = int(data.get("max_patients")) if data.get("max_patients") else None
-        b.storage_gb = int(data.get("storage_gb")) if data.get("storage_gb") else None
-        b.api_calls_per_month = int(data.get("api_calls_per_month")) if data.get("api_calls_per_month") else None
-        b.is_public = bool(data.get("is_public", b.is_public))
-        b.is_active = bool(data.get("is_active", b.is_active))
-        b.profile_code = data.get("profile_code", b.profile_code) or None
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('UPDATE_BUNDLE', 'bundle', bundle_id, f"Updated bundle {b.name_ar}")
-        dispatch_webhook(EVENT_BUNDLE_CHANGED, {"action": "updated", "bundle_id": bundle_id, "slug": b.slug, "name": b.name_ar})
-        return jsonify({"status": "updated", "id": b.id})
+        b.name = data.get('name', b.name)
+        b.name_ar = data.get('name_ar', b.name_ar)
+        b.description_ar = data.get('description_ar', b.description_ar)
+        b.monthly_price = Decimal(str(data.get('monthly_price', b.monthly_price)))
+        b.yearly_price = Decimal(str(data.get('yearly_price', b.yearly_price)))
+        b.setup_fee = Decimal(str(data.get('setup_fee', b.setup_fee)))
+        b.currency = data.get('currency', b.currency)
+        if 'modules' in data:
+            b.set_modules(data.get('modules'))
+        b.max_users = int(data.get('max_users')) if data.get('max_users') else None
+        b.max_patients = int(data.get('max_patients')) if data.get('max_patients') else None
+        b.storage_gb = int(data.get('storage_gb')) if data.get('storage_gb') else None
+        b.api_calls_per_month = (
+            int(data.get('api_calls_per_month')) if data.get('api_calls_per_month') else None
+        )
+        b.is_public = bool(data.get('is_public', b.is_public))
+        b.is_active = bool(data.get('is_active', b.is_active))
+        b.profile_code = data.get('profile_code', b.profile_code) or None
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('UPDATE_BUNDLE', 'bundle', bundle_id, f'Updated bundle {b.name_ar}')
+        dispatch_webhook(
+            EVENT_BUNDLE_CHANGED,
+            {'action': 'updated', 'bundle_id': bundle_id, 'slug': b.slug, 'name': b.name_ar},
+        )
+        return jsonify({'status': 'updated', 'id': b.id})
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        return jsonify({"error": str(e)}), 400
+        safe_rollback(db.session, error_message='database rollback')
+        return jsonify({'error': str(e)}), 400
 
 
-@owner_bp.route("/api/bundles/<int:bundle_id>", methods=["DELETE"])
+@owner_bp.route('/api/bundles/<int:bundle_id>', methods=['DELETE'])
 @login_required
 @owner_required
 @rate_limit(max_requests=10, window_seconds=60)
@@ -1655,22 +2094,25 @@ def api_delete_bundle(bundle_id):
 
     b = db.session.get(ProductBundle, bundle_id)
     if not b:
-        return jsonify({"error": "الباقة غير موجودة"}), 404
+        return jsonify({'error': 'الباقة غير موجودة'}), 404
     try:
         b.is_active = False
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('DELETE_BUNDLE', 'bundle', bundle_id, f"Deactivated bundle {b.name_ar}")
-        dispatch_webhook(EVENT_BUNDLE_CHANGED, {"action": "deleted", "bundle_id": bundle_id, "slug": b.slug, "name": b.name_ar})
-        return jsonify({"status": "deleted", "id": bundle_id})
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('DELETE_BUNDLE', 'bundle', bundle_id, f'Deactivated bundle {b.name_ar}')
+        dispatch_webhook(
+            EVENT_BUNDLE_CHANGED,
+            {'action': 'deleted', 'bundle_id': bundle_id, 'slug': b.slug, 'name': b.name_ar},
+        )
+        return jsonify({'status': 'deleted', 'id': bundle_id})
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        return jsonify({"error": str(e)}), 400
+        safe_rollback(db.session, error_message='database rollback')
+        return jsonify({'error': str(e)}), 400
 
 
 # ─────────────────────────────────────────────
 # Tenant Provisioning with Bundle
 # ─────────────────────────────────────────────
-@owner_bp.route("/api/tenants/provision", methods=["POST"])
+@owner_bp.route('/api/tenants/provision', methods=['POST'])
 @login_required
 @owner_required
 @rate_limit(max_requests=10, window_seconds=60)
@@ -1679,38 +2121,55 @@ def api_provision_tenant():
 
     try:
         data = request.get_json() or request.form
-        slug = data.get("slug", "").strip()
-        name = data.get("name", "").strip()
-        name_ar = data.get("name_ar", "").strip() or None
-        email = data.get("email", "").strip()
-        phone = data.get("phone", "").strip() or None
-        bundle_slug = data.get("bundle_slug", "").strip()
-        domain = data.get("domain", "").strip() or None
-        subdomain = data.get("subdomain", "").strip() or None
-        billing_type = (data.get("billing_type") or "monthly").strip().lower()
+        slug = data.get('slug', '').strip()
+        name = data.get('name', '').strip()
+        name_ar = data.get('name_ar', '').strip() or None
+        email = data.get('email', '').strip()
+        phone = data.get('phone', '').strip() or None
+        bundle_slug = data.get('bundle_slug', '').strip()
+        domain = data.get('domain', '').strip() or None
+        subdomain = data.get('subdomain', '').strip() or None
+        billing_type = (data.get('billing_type') or 'monthly').strip().lower()
 
         if not all([slug, name, email, bundle_slug]):
-            return jsonify({"error": "Missing required fields: slug, name, email, bundle_slug"}), 400
+            return jsonify(
+                {'error': 'Missing required fields: slug, name, email, bundle_slug'}
+            ), 400
 
         if db.session.execute(select(Tenant).filter_by(slug=slug)).scalars().first():
-            return jsonify({"error": "Slug already exists"}), 400
+            return jsonify({'error': 'Slug already exists'}), 400
 
-        bundle = db.session.execute(select(ProductBundle).filter_by(slug=bundle_slug, is_active=True)).scalars().first()
+        bundle = (
+            db.session.execute(select(ProductBundle).filter_by(slug=bundle_slug, is_active=True))
+            .scalars()
+            .first()
+        )
         if not bundle:
-            return jsonify({"error": "Invalid or inactive bundle"}), 400
+            return jsonify({'error': 'Invalid or inactive bundle'}), 400
 
         from app.core.platform_bootstrap import ensure_saas_packages
 
         ensure_saas_packages()
 
-        package = db.session.execute(select(Package).filter_by(slug=bundle_slug, is_active=True)).scalars().first()
+        package = (
+            db.session.execute(select(Package).filter_by(slug=bundle_slug, is_active=True))
+            .scalars()
+            .first()
+        )
         if not package:
-            return jsonify({"error": "Package not found for bundle_slug"}), 400
+            return jsonify({'error': 'Package not found for bundle_slug'}), 400
 
-        package_version = db.session.execute(select(PackageVersion).filter_by(package_id=package.id)
-            .order_by(PackageVersion.id.desc())).scalars().first()
+        package_version = (
+            db.session.execute(
+                select(PackageVersion)
+                .filter_by(package_id=package.id)
+                .order_by(PackageVersion.id.desc())
+            )
+            .scalars()
+            .first()
+        )
         if not package_version:
-            return jsonify({"error": "No package version for bundle"}), 400
+            return jsonify({'error': 'No package version for bundle'}), 400
 
         tenant = TenantProvisioningService.provision_tenant(
             slug=slug,
@@ -1727,34 +2186,41 @@ def api_provision_tenant():
         )
 
         _log_action(
-            'PROVISION_TENANT', 'tenant', tenant.id,
-            f"Provisioned {tenant.name} with bundle {bundle_slug} via package_version={package_version.id}",
+            'PROVISION_TENANT',
+            'tenant',
+            tenant.id,
+            f'Provisioned {tenant.name} with bundle {bundle_slug} via package_version={package_version.id}',
         )
-        dispatch_webhook(EVENT_TENANT_CREATED, {
-            "tenant_id": tenant.id,
-            "name": tenant.name,
-            "slug": tenant.slug,
-            "bundle": bundle_slug,
-            "package_version_id": package_version.id,
-        })
-
-        return jsonify({
-            "status": "provisioned",
-            "tenant": {
-                "id": tenant.id,
-                "slug": tenant.slug,
-                "name": tenant.name,
-                "bundle": bundle.slug,
-                "package_version_id": package_version.id,
-                "status": getattr(tenant.status, 'value', tenant.status),
+        dispatch_webhook(
+            EVENT_TENANT_CREATED,
+            {
+                'tenant_id': tenant.id,
+                'name': tenant.name,
+                'slug': tenant.slug,
+                'bundle': bundle_slug,
+                'package_version_id': package_version.id,
             },
-        })
+        )
+
+        return jsonify(
+            {
+                'status': 'provisioned',
+                'tenant': {
+                    'id': tenant.id,
+                    'slug': tenant.slug,
+                    'name': tenant.name,
+                    'bundle': bundle.slug,
+                    'package_version_id': package_version.id,
+                    'status': getattr(tenant.status, 'value', tenant.status),
+                },
+            }
+        )
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        return jsonify({"error": str(e)}), 400
+        safe_rollback(db.session, error_message='database rollback')
+        return jsonify({'error': str(e)}), 400
 
 
-@owner_bp.route("/api/tenants/<int:tenant_id>/limits", methods=["GET"])
+@owner_bp.route('/api/tenants/<int:tenant_id>/limits', methods=['GET'])
 @login_required
 @owner_required
 def api_tenant_limits(tenant_id):
@@ -1762,18 +2228,28 @@ def api_tenant_limits(tenant_id):
 
     tenant = db.get_or_404(Tenant, tenant_id)
     limits = check_tenant_limits(tenant_id)
-    bundle = get_bundle_for_profile(tenant.product_profile_code or "")
-    latest_usage = db.session.execute(select(ResourceUsage).filter_by(tenant_id=tenant_id).order_by(ResourceUsage.recorded_at.desc())).scalars().first()
-    
-    return jsonify({
-        "tenant_id": tenant_id,
-        "bundle": bundle.slug if bundle else None,
-        "limits": limits,
-        "usage": latest_usage.to_dict() if latest_usage else None,
-    })
+    bundle = get_bundle_for_profile(tenant.product_profile_code or '')
+    latest_usage = (
+        db.session.execute(
+            select(ResourceUsage)
+            .filter_by(tenant_id=tenant_id)
+            .order_by(ResourceUsage.recorded_at.desc())
+        )
+        .scalars()
+        .first()
+    )
+
+    return jsonify(
+        {
+            'tenant_id': tenant_id,
+            'bundle': bundle.slug if bundle else None,
+            'limits': limits,
+            'usage': latest_usage.to_dict() if latest_usage else None,
+        }
+    )
 
 
-@owner_bp.route("/api/tenants/<int:tenant_id>/record-usage", methods=["POST"])
+@owner_bp.route('/api/tenants/<int:tenant_id>/record-usage', methods=['POST'])
 @login_required
 @owner_required
 @rate_limit(max_requests=30, window_seconds=60)
@@ -1781,137 +2257,168 @@ def api_record_usage(tenant_id):
     """Manually trigger a resource usage snapshot for a tenant."""
 
     if not db.session.get(Tenant, tenant_id):
-        return jsonify({"error": "العميل غير موجود"}), 404
+        return jsonify({'error': 'العميل غير موجود'}), 404
     try:
         snapshot = ResourceUsage.record_snapshot(tenant_id)
-        return jsonify({"status": "recorded", "snapshot": snapshot.to_dict()})
-    except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        return jsonify({"error": "تعذر تسجيل الاستهلاك"}), 400
+        return jsonify({'status': 'recorded', 'snapshot': snapshot.to_dict()})
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
+        return jsonify({'error': 'تعذر تسجيل الاستهلاك'}), 400
 
 
 # ---------------------------------------------------------------------------
 # UX0 — SaaS Owner Console
 # ---------------------------------------------------------------------------
 
-@owner_bp.route("/packages")
+
+@owner_bp.route('/packages')
 @login_required
 @owner_required
 def owner_packages():
     """Package Manager UI (UX0-001)."""
-    packages = db.session.execute(select(Package).order_by(Package.category, Package.name)).scalars().all()
-    return render_template("owner/packages.html", packages=packages)
+    packages = (
+        db.session.execute(select(Package).order_by(Package.category, Package.name)).scalars().all()
+    )
+    return render_template('owner/packages.html', packages=packages)
 
 
-@owner_bp.route("/packages/create", methods=["POST"])
+@owner_bp.route('/packages/create', methods=['POST'])
 @login_required
 @owner_required
 def owner_create_package():
     """Create a new Package + initial PackageVersion."""
-    name = request.form.get("name", "").strip()
-    name_ar = request.form.get("name_ar", "").strip()
-    slug = request.form.get("slug", "").strip()
-    category = request.form.get("category", "bundle").strip()
-    version = request.form.get("version", "1.0.0").strip()
+    name = request.form.get('name', '').strip()
+    name_ar = request.form.get('name_ar', '').strip()
+    slug = request.form.get('slug', '').strip()
+    category = request.form.get('category', 'bundle').strip()
+    version = request.form.get('version', '1.0.0').strip()
 
     if not name or not slug:
-        flash("اسم Package وSlug مطلوبان", "error")
-        return redirect(url_for("owner.owner_packages"))
+        flash('اسم Package وSlug مطلوبان', 'error')
+        return redirect(url_for('owner.owner_packages'))
 
     if db.session.execute(select(Package).filter_by(slug=slug)).scalars().first():
-        flash("Slug مستخدم مسبقاً", "error")
-        return redirect(url_for("owner.owner_packages"))
+        flash('Slug مستخدم مسبقاً', 'error')
+        return redirect(url_for('owner.owner_packages'))
 
-    package = Package(name=name, name_ar=name_ar or None, slug=slug, category=category, is_active=True)
+    package = Package(
+        name=name, name_ar=name_ar or None, slug=slug, category=category, is_active=True
+    )
     db.session.add(package)
     db.session.flush()
 
     pv = PackageVersion(
         package_id=package.id,
         version=version,
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
     )
     db.session.add(pv)
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
-    _log_action("CREATE_PACKAGE", "package", package.id, f"slug={slug}")
-    flash("تم إنشاء Package بنجاح", "success")
-    return redirect(url_for("owner.owner_packages"))
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
+    _log_action('CREATE_PACKAGE', 'package', package.id, f'slug={slug}')
+    flash('تم إنشاء Package بنجاح', 'success')
+    return redirect(url_for('owner.owner_packages'))
 
 
-@owner_bp.route("/packages/<int:package_id>/versions/create", methods=["POST"])
+@owner_bp.route('/packages/<int:package_id>/versions/create', methods=['POST'])
 @login_required
 @owner_required
 def owner_create_package_version(package_id):
     """Create a new version of an existing package."""
     package = db.get_or_404(Package, package_id)
-    version = request.form.get("version", "").strip()
-    changelog = request.form.get("changelog", "").strip()
-    copy_from_latest = request.form.get("copy_from_latest") == "on"
+    version = request.form.get('version', '').strip()
+    changelog = request.form.get('changelog', '').strip()
+    copy_from_latest = request.form.get('copy_from_latest') == 'on'
 
     if not version:
-        flash("رقم الإصدار مطلوب", "error")
-        return redirect(url_for("owner.owner_packages"))
+        flash('رقم الإصدار مطلوب', 'error')
+        return redirect(url_for('owner.owner_packages'))
 
-    if db.session.execute(select(PackageVersion).filter_by(package_id=package.id, version=version)).scalars().first():
-        flash("هذا الإصدار موجود مسبقاً", "error")
-        return redirect(url_for("owner.owner_packages"))
+    if (
+        db.session.execute(select(PackageVersion).filter_by(package_id=package.id, version=version))
+        .scalars()
+        .first()
+    ):
+        flash('هذا الإصدار موجود مسبقاً', 'error')
+        return redirect(url_for('owner.owner_packages'))
 
     new_pv = PackageVersion(
         package_id=package.id,
         version=version,
         changelog=changelog or None,
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
     )
     db.session.add(new_pv)
     db.session.flush()
 
     if copy_from_latest:
-        latest = db.session.execute(select(PackageVersion).filter_by(package_id=package.id)
-            .filter(PackageVersion.id != new_pv.id)
-            .order_by(PackageVersion.published_at.desc())).scalars().first()
+        latest = (
+            db.session.execute(
+                select(PackageVersion)
+                .filter_by(package_id=package.id)
+                .filter(PackageVersion.id != new_pv.id)
+                .order_by(PackageVersion.published_at.desc())
+            )
+            .scalars()
+            .first()
+        )
         if latest:
             for ent in latest.entitlements:
-                db.session.add(PackageVersionEntitlement(
-                    package_version_id=new_pv.id,
-                    module_name=ent.module_name,
-                    capability_key=ent.capability_key,
-                ))
+                db.session.add(
+                    PackageVersionEntitlement(
+                        package_version_id=new_pv.id,
+                        module_name=ent.module_name,
+                        capability_key=ent.capability_key,
+                    )
+                )
             for lim in latest.limits:
-                db.session.add(PackageVersionLimit(
-                    package_version_id=new_pv.id,
-                    limit_key=lim.limit_key,
-                    limit_value=lim.limit_value,
-                ))
+                db.session.add(
+                    PackageVersionLimit(
+                        package_version_id=new_pv.id,
+                        limit_key=lim.limit_key,
+                        limit_value=lim.limit_value,
+                    )
+                )
             for prc in latest.pricing:
-                db.session.add(PackageVersionPricing(
-                    package_version_id=new_pv.id,
-                    billing_type=prc.billing_type,
-                    price=prc.price,
-                    setup_fee=prc.setup_fee,
-                    currency=prc.currency,
-                ))
+                db.session.add(
+                    PackageVersionPricing(
+                        package_version_id=new_pv.id,
+                        billing_type=prc.billing_type,
+                        price=prc.price,
+                        setup_fee=prc.setup_fee,
+                        currency=prc.currency,
+                    )
+                )
 
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
-    _log_action("CREATE_PACKAGE_VERSION", "package_version", new_pv.id, f"package={package.slug}, version={version}")
-    flash("تم إنشاء الإصدار بنجاح", "success")
-    return redirect(url_for("owner.owner_packages"))
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
+    _log_action(
+        'CREATE_PACKAGE_VERSION',
+        'package_version',
+        new_pv.id,
+        f'package={package.slug}, version={version}',
+    )
+    flash('تم إنشاء الإصدار بنجاح', 'success')
+    return redirect(url_for('owner.owner_packages'))
 
 
-@owner_bp.route("/packages/versions/<int:version_id>/deprecate", methods=["POST"])
+@owner_bp.route('/packages/versions/<int:version_id>/deprecate', methods=['POST'])
 @login_required
 @owner_required
 def owner_deprecate_package_version(version_id):
     """Deprecate a package version."""
     pv = db.get_or_404(PackageVersion, version_id)
     pv.is_deprecated = True
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
-    _log_action("DEPRECATE_PACKAGE_VERSION", "package_version", pv.id,
-                f"package={pv.package.slug}, version={pv.version}")
-    flash("تم تعطيل الإصدار", "warning")
-    return redirect(url_for("owner.owner_packages"))
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
+    _log_action(
+        'DEPRECATE_PACKAGE_VERSION',
+        'package_version',
+        pv.id,
+        f'package={pv.package.slug}, version={pv.version}',
+    )
+    flash('تم تعطيل الإصدار', 'warning')
+    return redirect(url_for('owner.owner_packages'))
 
 
-@owner_bp.route("/packages/<int:package_id>/edit", methods=["POST"])
+@owner_bp.route('/packages/<int:package_id>/edit', methods=['POST'])
 @login_required
 @owner_required
 def owner_edit_package(package_id):
@@ -1922,25 +2429,25 @@ def owner_edit_package(package_id):
         name_ar = request.form.get('name_ar', '').strip() or None
         category = request.form.get('category', 'bundle').strip()
         is_active = request.form.get('is_active') == '1'
-        
+
         if not name:
-            flash("اسم الحزمة مطلوب", "error")
-            return redirect(url_for("owner.owner_packages"))
-        
+            flash('اسم الحزمة مطلوب', 'error')
+            return redirect(url_for('owner.owner_packages'))
+
         package.name = name
         package.name_ar = name_ar
         package.category = category
         package.is_active = is_active
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action("EDIT_PACKAGE", "package", package.id, f"name={name}")
-        flash("تم تحديث الحزمة", "success")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('EDIT_PACKAGE', 'package', package.id, f'name={name}')
+        flash('تم تحديث الحزمة', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        flash(f"خطأ: {e}", "error")
-    return redirect(url_for("owner.owner_packages"))
+        safe_rollback(db.session, error_message='database rollback')
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_packages'))
 
 
-@owner_bp.route("/packages/<int:package_id>/delete", methods=["POST"])
+@owner_bp.route('/packages/<int:package_id>/delete', methods=['POST'])
 @login_required
 @owner_required
 def owner_delete_package(package_id):
@@ -1949,28 +2456,36 @@ def owner_delete_package(package_id):
     try:
         # Check if package has versions
         if package.versions.count() > 0:
-            flash("لا يمكن حذف حزمة بها إصدارات — أزل الإصدارات أولاً", "error")
-            return redirect(url_for("owner.owner_packages"))
+            flash('لا يمكن حذف حزمة بها إصدارات — أزل الإصدارات أولاً', 'error')
+            return redirect(url_for('owner.owner_packages'))
         # Check if any tenant uses this package via subscription
         from app.core.saas.models import SubscriptionLine, SubscriptionLineType
-        base_line = db.session.execute(select(SubscriptionLine).filter_by(
-            line_type=SubscriptionLineType.BASE
-        ).join(PackageVersion).filter(PackageVersion.package_id == package.id)).scalars().first()
+
+        base_line = (
+            db.session.execute(
+                select(SubscriptionLine)
+                .filter_by(line_type=SubscriptionLineType.BASE)
+                .join(PackageVersion)
+                .filter(PackageVersion.package_id == package.id)
+            )
+            .scalars()
+            .first()
+        )
         if base_line:
-            flash("لا يمكن حذف حزمة عليها اشتراكات — أوقف الاشتراكات أولاً", "error")
-            return redirect(url_for("owner.owner_packages"))
-        
+            flash('لا يمكن حذف حزمة عليها اشتراكات — أوقف الاشتراكات أولاً', 'error')
+            return redirect(url_for('owner.owner_packages'))
+
         db.session.delete(package)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action("DELETE_PACKAGE", "package", package_id, f"slug={package.slug}")
-        flash("تم حذف الحزمة", "success")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('DELETE_PACKAGE', 'package', package_id, f'slug={package.slug}')
+        flash('تم حذف الحزمة', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        flash(f"خطأ: {e}", "error")
-    return redirect(url_for("owner.owner_packages"))
+        safe_rollback(db.session, error_message='database rollback')
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_packages'))
 
 
-@owner_bp.route("/packages/versions/<int:version_id>/edit", methods=["POST"])
+@owner_bp.route('/packages/versions/<int:version_id>/edit', methods=['POST'])
 @login_required
 @owner_required
 def owner_edit_package_version(version_id):
@@ -1980,24 +2495,24 @@ def owner_edit_package_version(version_id):
         version = request.form.get('version', '').strip()
         changelog = request.form.get('changelog', '').strip() or None
         is_deprecated = request.form.get('is_deprecated') == '1'
-        
+
         if not version:
-            flash("رقم الإصدار مطلوب", "error")
-            return redirect(url_for("owner.owner_packages"))
-        
+            flash('رقم الإصدار مطلوب', 'error')
+            return redirect(url_for('owner.owner_packages'))
+
         pv.version = version
         pv.changelog = changelog
         pv.is_deprecated = is_deprecated
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action("EDIT_PACKAGE_VERSION", "package_version", pv.id, f"version={version}")
-        flash("تم تحديث الإصدار", "success")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('EDIT_PACKAGE_VERSION', 'package_version', pv.id, f'version={version}')
+        flash('تم تحديث الإصدار', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        flash(f"خطأ: {e}", "error")
-    return redirect(url_for("owner.owner_packages"))
+        safe_rollback(db.session, error_message='database rollback')
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_packages'))
 
 
-@owner_bp.route("/packages/versions/<int:version_id>/delete", methods=["POST"])
+@owner_bp.route('/packages/versions/<int:version_id>/delete', methods=['POST'])
 @login_required
 @owner_required
 def owner_delete_package_version(version_id):
@@ -2005,35 +2520,48 @@ def owner_delete_package_version(version_id):
     pv = db.get_or_404(PackageVersion, version_id)
     try:
         from app.core.saas.models import SubscriptionLine
-        subs = db.session.execute(select(SubscriptionLine).filter_by(package_version_id=version_id)).scalars().first()
+
+        subs = (
+            db.session.execute(select(SubscriptionLine).filter_by(package_version_id=version_id))
+            .scalars()
+            .first()
+        )
         if subs:
-            flash("لا يمكن حذف إصدار عليه اشتراكات", "error")
-            return redirect(url_for("owner.owner_packages"))
-        
+            flash('لا يمكن حذف إصدار عليه اشتراكات', 'error')
+            return redirect(url_for('owner.owner_packages'))
+
         # Also delete related entitlements, limits, pricing
         pv.entitlements.delete()
         pv.limits.delete()
         pv.pricing.delete()
-        
+
         db.session.delete(pv)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action("DELETE_PACKAGE_VERSION", "package_version", version_id, f"package={pv.package.slug}")
-        flash("تم حذف الإصدار", "success")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action(
+            'DELETE_PACKAGE_VERSION', 'package_version', version_id, f'package={pv.package.slug}'
+        )
+        flash('تم حذف الإصدار', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        flash(f"خطأ: {e}", "error")
-    return redirect(url_for("owner.owner_packages"))
+        safe_rollback(db.session, error_message='database rollback')
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_packages'))
 
 
-@owner_bp.route("/subscriptions")
+@owner_bp.route('/subscriptions')
 @login_required
 @owner_required
 def owner_subscriptions():
     """Subscription Manager UI (UX0-002)."""
     tenants = db.session.execute(select(Tenant).order_by(Tenant.created_at.desc())).scalars().all()
-    package_versions = db.session.execute(select(PackageVersion).join(Package).order_by(Package.name, PackageVersion.version)).scalars().all()
+    package_versions = (
+        db.session.execute(
+            select(PackageVersion).join(Package).order_by(Package.name, PackageVersion.version)
+        )
+        .scalars()
+        .all()
+    )
     return render_template(
-        "owner/subscriptions.html",
+        'owner/subscriptions.html',
         tenants=tenants,
         package_versions=package_versions,
         SubscriptionLineType=SubscriptionLineType,
@@ -2041,102 +2569,120 @@ def owner_subscriptions():
     )
 
 
-@owner_bp.route("/subscriptions/<int:tenant_id>/upgrade", methods=["POST"])
+@owner_bp.route('/subscriptions/<int:tenant_id>/upgrade', methods=['POST'])
 @login_required
 @owner_required
 def owner_upgrade_subscription(tenant_id):
     """Upgrade tenant to a new base package version."""
-    version_id = request.form.get("package_version_id", type=int)
-    billing_type = request.form.get("billing_type", "monthly").strip()
+    version_id = request.form.get('package_version_id', type=int)
+    billing_type = request.form.get('billing_type', 'monthly').strip()
     if not version_id:
-        flash("يجب اختيار Package Version", "error")
-        return redirect(url_for("owner.owner_subscriptions"))
+        flash('يجب اختيار Package Version', 'error')
+        return redirect(url_for('owner.owner_subscriptions'))
     try:
         TenantProvisioningService.upgrade_tenant(
             tenant_id, version_id, billing_type, performed_by_user_id=current_user.id
         )
-        flash("تم ترقية الاشتراك بنجاح", "success")
+        flash('تم ترقية الاشتراك بنجاح', 'success')
     except Exception as e:
-        flash(f"فشل الترقية: {e}", "error")
-    return redirect(url_for("owner.owner_subscriptions"))
+        flash(f'فشل الترقية: {e}', 'error')
+    return redirect(url_for('owner.owner_subscriptions'))
 
 
-@owner_bp.route("/subscriptions/<int:tenant_id>/addon", methods=["POST"])
+@owner_bp.route('/subscriptions/<int:tenant_id>/addon', methods=['POST'])
 @login_required
 @owner_required
 def owner_add_addon(tenant_id):
     """Add an add-on subscription line to a tenant."""
-    version_id = request.form.get("package_version_id", type=int)
-    billing_type = request.form.get("billing_type", "monthly").strip()
+    version_id = request.form.get('package_version_id', type=int)
+    billing_type = request.form.get('billing_type', 'monthly').strip()
     if not version_id:
-        flash("يجب اختيار Package Version", "error")
-        return redirect(url_for("owner.owner_subscriptions"))
+        flash('يجب اختيار Package Version', 'error')
+        return redirect(url_for('owner.owner_subscriptions'))
     try:
         TenantProvisioningService.add_addon(
             tenant_id, version_id, billing_type, performed_by_user_id=current_user.id
         )
-        flash("تمت إضافة الإضافة بنجاح", "success")
+        flash('تمت إضافة الإضافة بنجاح', 'success')
     except Exception as e:
-        flash(f"فشل إضافة الإضافة: {e}", "error")
-    return redirect(url_for("owner.owner_subscriptions"))
+        flash(f'فشل إضافة الإضافة: {e}', 'error')
+    return redirect(url_for('owner.owner_subscriptions'))
 
 
-@owner_bp.route("/subscriptions/<int:tenant_id>/renew", methods=["POST"])
+@owner_bp.route('/subscriptions/<int:tenant_id>/renew', methods=['POST'])
 @login_required
 @owner_required
 def owner_renew_subscription(tenant_id):
     """Renew the active base line for a tenant."""
-    line = db.session.execute(select(SubscriptionLine).filter_by(
-            tenant_id=tenant_id,
-            line_type=SubscriptionLineType.BASE,
-            status=SubscriptionLineStatus.ACTIVE,
+    line = (
+        db.session.execute(
+            select(SubscriptionLine)
+            .filter_by(
+                tenant_id=tenant_id,
+                line_type=SubscriptionLineType.BASE,
+                status=SubscriptionLineStatus.ACTIVE,
+            )
+            .order_by(SubscriptionLine.effective_from.desc())
         )
-        .order_by(SubscriptionLine.effective_from.desc())).scalars().first()
+        .scalars()
+        .first()
+    )
     if not line:
-        flash("لا يوجد اشتراك أساسي نشط للتجديد", "error")
-        return redirect(url_for("owner.owner_subscriptions"))
+        flash('لا يوجد اشتراك أساسي نشط للتجديد', 'error')
+        return redirect(url_for('owner.owner_subscriptions'))
     try:
-        TenantProvisioningService.renew_base_line(line.id, periods=1, performed_by_user_id=current_user.id)
-        flash("تم تجديد الاشتراك بنجاح", "success")
+        TenantProvisioningService.renew_base_line(
+            line.id, periods=1, performed_by_user_id=current_user.id
+        )
+        flash('تم تجديد الاشتراك بنجاح', 'success')
     except Exception as e:
-        flash(f"فشل التجديد: {e}", "error")
-    return redirect(url_for("owner.owner_subscriptions"))
+        flash(f'فشل التجديد: {e}', 'error')
+    return redirect(url_for('owner.owner_subscriptions'))
 
 
-@owner_bp.route("/subscriptions/<int:tenant_id>/cancel", methods=["POST"])
+@owner_bp.route('/subscriptions/<int:tenant_id>/cancel', methods=['POST'])
 @login_required
 @owner_required
 def owner_cancel_subscription(tenant_id):
     """Cancel a tenant subscription."""
     try:
         TenantProvisioningService.cancel_tenant(tenant_id, performed_by_user_id=current_user.id)
-        flash("تم إلغاء الاشتراك بنجاح", "warning")
+        flash('تم إلغاء الاشتراك بنجاح', 'warning')
     except Exception as e:
-        flash(f"فشل الإلغاء: {e}", "error")
-    return redirect(url_for("owner.owner_subscriptions"))
+        flash(f'فشل الإلغاء: {e}', 'error')
+    return redirect(url_for('owner.owner_subscriptions'))
 
 
-@owner_bp.route("/provision", methods=["GET", "POST"])
+@owner_bp.route('/provision', methods=['GET', 'POST'])
 @login_required
 @owner_required
 def owner_provision():
     """Tenant Provisioning UI (UX0-003)."""
-    package_versions = db.session.execute(select(PackageVersion).join(Package).filter(Package.is_active == True).order_by(Package.name)).scalars().all()
+    package_versions = (
+        db.session.execute(
+            select(PackageVersion)
+            .join(Package)
+            .filter(Package.is_active == True)
+            .order_by(Package.name)
+        )
+        .scalars()
+        .all()
+    )
 
-    if request.method == "POST":
-        slug = request.form.get("slug", "").strip()
-        name = request.form.get("name", "").strip()
-        contact_email = request.form.get("contact_email", "").strip()
-        package_version_id = request.form.get("package_version_id", type=int)
-        billing_type = request.form.get("billing_type", "monthly").strip()
-        product_profile_code = request.form.get("product_profile_code", "").strip() or None
-        admin_username = request.form.get("admin_username", "").strip()
-        admin_password = request.form.get("admin_password", "").strip()
-        admin_full_name = request.form.get("admin_full_name", "").strip() or "مدير المنشأة"
+    if request.method == 'POST':
+        slug = request.form.get('slug', '').strip()
+        name = request.form.get('name', '').strip()
+        contact_email = request.form.get('contact_email', '').strip()
+        package_version_id = request.form.get('package_version_id', type=int)
+        billing_type = request.form.get('billing_type', 'monthly').strip()
+        product_profile_code = request.form.get('product_profile_code', '').strip() or None
+        admin_username = request.form.get('admin_username', '').strip()
+        admin_password = request.form.get('admin_password', '').strip()
+        admin_full_name = request.form.get('admin_full_name', '').strip() or 'مدير المنشأة'
 
         if not all([slug, name, contact_email, package_version_id, admin_username, admin_password]):
-            flash("جميع الحقول الأساسية مطلوبة", "error")
-            return redirect(url_for("owner.owner_provision"))
+            flash('جميع الحقول الأساسية مطلوبة', 'error')
+            return redirect(url_for('owner.owner_provision'))
 
         try:
             tenant = TenantProvisioningService.provision_tenant(
@@ -2150,7 +2696,9 @@ def owner_provision():
             )
             # Create admin user for the new tenant
             from werkzeug.security import generate_password_hash
+
             from models.user import User as UserModel
+
             admin = UserModel(
                 tenant_id=tenant.id,
                 username=admin_username,
@@ -2163,69 +2711,103 @@ def owner_provision():
             )
             db.session.add(admin)
             # Activate default modules for this tenant's profile
-            from app.core.tenant.models import get_default_modules_for_profile
             from app.core.module.models import TenantModule
-            mods = get_default_modules_for_profile(product_profile_code) if product_profile_code else []
+            from app.core.tenant.models import get_default_modules_for_profile
+
+            mods = (
+                get_default_modules_for_profile(product_profile_code)
+                if product_profile_code
+                else []
+            )
             if not mods:
                 from app.core.module.registry import get_all_module_names
+
                 mods = get_all_module_names()
             for m in mods:
-                tm = TenantModule(tenant_id=tenant.id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc))
+                tm = TenantModule(
+                    tenant_id=tenant.id,
+                    module_name=m,
+                    is_active=True,
+                    activated_at=datetime.now(UTC),
+                )
                 db.session.add(tm)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-            _log_action("PROVISION_TENANT", "tenant", tenant.id, f"slug={slug}")
-            flash(f"تم إنشاء العميل {tenant.name} بنجاح — مستخدم المدير: {admin_username}", "success")
-            return redirect(url_for("owner.owner_tenant_detail", tenant_id=tenant.id))
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+            _log_action('PROVISION_TENANT', 'tenant', tenant.id, f'slug={slug}')
+            flash(
+                f'تم إنشاء العميل {tenant.name} بنجاح — مستخدم المدير: {admin_username}', 'success'
+            )
+            return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant.id))
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            flash(f"فشل إنشاء العميل: {e}", "error")
-            return redirect(url_for("owner.owner_provision"))
+            safe_rollback(db.session, error_message='database rollback')
+            flash(f'فشل إنشاء العميل: {e}', 'error')
+            return redirect(url_for('owner.owner_provision'))
 
     return render_template(
-        "owner/provision.html",
+        'owner/provision.html',
         package_versions=package_versions,
         profiles=list(ProductProfile),
     )
 
 
-@owner_bp.route("/tenant-usage/<int:tenant_id>")
+@owner_bp.route('/tenant-usage/<int:tenant_id>')
 @login_required
 @owner_required
 def owner_tenant_usage(tenant_id):
     """UX0-006: owner view of a tenant's resource usage dashboard."""
     tenant = db.get_or_404(Tenant, tenant_id)
-    latest = db.session.execute(select(ResourceUsage).filter_by(tenant_id=tenant_id)
-        .order_by(ResourceUsage.recorded_at.desc())).scalars().first()
+    latest = (
+        db.session.execute(
+            select(ResourceUsage)
+            .filter_by(tenant_id=tenant_id)
+            .order_by(ResourceUsage.recorded_at.desc())
+        )
+        .scalars()
+        .first()
+    )
     if not latest:
         latest = ResourceUsage.record_snapshot(tenant_id)
 
-    base_line = db.session.execute(select(SubscriptionLine).filter_by(
-            tenant_id=tenant_id,
-            line_type=SubscriptionLineType.BASE,
-            status=SubscriptionLineStatus.ACTIVE,
+    base_line = (
+        db.session.execute(
+            select(SubscriptionLine)
+            .filter_by(
+                tenant_id=tenant_id,
+                line_type=SubscriptionLineType.BASE,
+                status=SubscriptionLineStatus.ACTIVE,
+            )
+            .order_by(SubscriptionLine.effective_from.desc())
         )
-        .order_by(SubscriptionLine.effective_from.desc())).scalars().first()
+        .scalars()
+        .first()
+    )
 
     limits = {}
     if base_line:
         for lim in base_line.package_version.limits:
             limits[lim.limit_key] = lim.limit_value
     else:
-        bundle = get_bundle_for_profile(tenant.product_profile_code or "")
+        bundle = get_bundle_for_profile(tenant.product_profile_code or '')
         if bundle:
             limits = {
-                "max_users": bundle.max_users,
-                "max_patients": bundle.max_patients,
-                "storage_gb": bundle.storage_gb,
-                "api_calls_per_month": bundle.api_calls_per_month,
+                'max_users': bundle.max_users,
+                'max_patients': bundle.max_patients,
+                'storage_gb': bundle.storage_gb,
+                'api_calls_per_month': bundle.api_calls_per_month,
             }
 
-    snapshots = db.session.execute(select(ResourceUsage).filter_by(tenant_id=tenant_id)
-        .order_by(ResourceUsage.recorded_at.desc())
-        .limit(30)).scalars().all()
+    snapshots = (
+        db.session.execute(
+            select(ResourceUsage)
+            .filter_by(tenant_id=tenant_id)
+            .order_by(ResourceUsage.recorded_at.desc())
+            .limit(30)
+        )
+        .scalars()
+        .all()
+    )
 
     return render_template(
-        "owner/tenant_usage.html",
+        'owner/tenant_usage.html',
         tenant=tenant,
         latest=latest,
         limits=limits,
@@ -2237,29 +2819,41 @@ def owner_tenant_usage(tenant_id):
 # Tasks, Monitoring, Control & Backups
 # ---------------------------------------------------------------------------
 
-@owner_bp.route("/tasks")
+
+@owner_bp.route('/tasks')
 @login_required
 @owner_required
 def owner_tasks():
     """Owner task & project overview across tenants."""
-    from models.task_management import Task, Project, ProjectTask
-    recent_tasks = db.session.execute(select(Task).order_by(Task.created_at.desc()).limit(50)).scalars().all()
-    projects = db.session.execute(select(Project).order_by(Project.created_at.desc()).limit(20)).scalars().all()
+    from models.task_management import Project, Task
+
+    recent_tasks = (
+        db.session.execute(select(Task).order_by(Task.created_at.desc()).limit(50)).scalars().all()
+    )
+    projects = (
+        db.session.execute(select(Project).order_by(Project.created_at.desc()).limit(20))
+        .scalars()
+        .all()
+    )
     stats = {
         'total_tasks': db.session.execute(select(func.count()).select_from(Task)).scalar(),
-        'open_tasks': db.session.execute(select(func.count()).select_from(Task).filter(Task.status.in_(['todo', 'in_progress']))).scalar(),
+        'open_tasks': db.session.execute(
+            select(func.count()).select_from(Task).filter(Task.status.in_(['todo', 'in_progress']))
+        ).scalar(),
         'total_projects': db.session.execute(select(func.count()).select_from(Project)).scalar(),
-        'active_projects': db.session.execute(select(func.count()).select_from(Project).filter_by(status='active')).scalar(),
+        'active_projects': db.session.execute(
+            select(func.count()).select_from(Project).filter_by(status='active')
+        ).scalar(),
     }
     return render_template(
-        "owner/tasks.html",
+        'owner/tasks.html',
         recent_tasks=recent_tasks,
         projects=projects,
         stats=stats,
     )
 
 
-@owner_bp.route("/monitoring")
+@owner_bp.route('/monitoring')
 @login_required
 @owner_required
 def owner_monitoring():
@@ -2267,89 +2861,167 @@ def owner_monitoring():
     checks = []
     try:
         # Database connectivity
-        db.session.execute(text("SELECT 1"))
-        checks.append({'name': 'قاعدة البيانات', 'status': 'ok', 'message': 'متصلة', 'icon': 'fa-database'})
+        db.session.execute(text('SELECT 1'))
+        checks.append(
+            {'name': 'قاعدة البيانات', 'status': 'ok', 'message': 'متصلة', 'icon': 'fa-database'}
+        )
     except Exception as e:
-        checks.append({'name': 'قاعدة البيانات', 'status': 'error', 'message': str(e), 'icon': 'fa-database'})
+        checks.append(
+            {'name': 'قاعدة البيانات', 'status': 'error', 'message': str(e), 'icon': 'fa-database'}
+        )
 
     try:
         tenant_count = db.session.execute(select(func.count()).select_from(Tenant)).scalar()
-        checks.append({'name': 'العملاء', 'status': 'ok', 'message': f'{tenant_count} عميل', 'icon': 'fa-building'})
+        checks.append(
+            {
+                'name': 'العملاء',
+                'status': 'ok',
+                'message': f'{tenant_count} عميل',
+                'icon': 'fa-building',
+            }
+        )
     except Exception as e:
-        checks.append({'name': 'العملاء', 'status': 'warning', 'message': str(e), 'icon': 'fa-building'})
+        checks.append(
+            {'name': 'العملاء', 'status': 'warning', 'message': str(e), 'icon': 'fa-building'}
+        )
 
     try:
         from models.user import User
+
         user_count = db.session.execute(select(func.count()).select_from(User)).scalar()
-        checks.append({'name': 'المستخدمون', 'status': 'ok', 'message': f'{user_count} مستخدم', 'icon': 'fa-users'})
+        checks.append(
+            {
+                'name': 'المستخدمون',
+                'status': 'ok',
+                'message': f'{user_count} مستخدم',
+                'icon': 'fa-users',
+            }
+        )
     except Exception as e:
-        checks.append({'name': 'المستخدمون', 'status': 'warning', 'message': str(e), 'icon': 'fa-users'})
+        checks.append(
+            {'name': 'المستخدمون', 'status': 'warning', 'message': str(e), 'icon': 'fa-users'}
+        )
 
     try:
-        pending_backups = db.session.execute(select(func.count()).select_from(Backup).filter(Backup.backup_status.in_(['PENDING', 'IN_PROGRESS']))).scalar()
-        checks.append({'name': 'النسخ الاحتياطي', 'status': 'ok', 'message': f'{pending_backups} قيد التشغيل', 'icon': 'fa-database'})
+        pending_backups = db.session.execute(
+            select(func.count())
+            .select_from(Backup)
+            .filter(Backup.backup_status.in_(['PENDING', 'IN_PROGRESS']))
+        ).scalar()
+        checks.append(
+            {
+                'name': 'النسخ الاحتياطي',
+                'status': 'ok',
+                'message': f'{pending_backups} قيد التشغيل',
+                'icon': 'fa-database',
+            }
+        )
     except Exception as e:
-        checks.append({'name': 'النسخ الاحتياطي', 'status': 'warning', 'message': str(e), 'icon': 'fa-database'})
+        checks.append(
+            {
+                'name': 'النسخ الاحتياطي',
+                'status': 'warning',
+                'message': str(e),
+                'icon': 'fa-database',
+            }
+        )
 
     metrics = {
         'db_size_mb': 0,
-        'active_tenants': db.session.execute(select(func.count()).select_from(Tenant).filter(Tenant.status.in_((TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING)))).scalar(),
-        'open_tickets': db.session.execute(select(func.count()).select_from(SupportTicket).filter_by(status='open')).scalar(),
+        'active_tenants': db.session.execute(
+            select(func.count())
+            .select_from(Tenant)
+            .filter(
+                Tenant.status.in_((TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING))
+            )
+        ).scalar(),
+        'open_tickets': db.session.execute(
+            select(func.count()).select_from(SupportTicket).filter_by(status='open')
+        ).scalar(),
     }
     try:
-        size = db.session.execute(text(
-            "SELECT pg_database_size(current_database()) / 1024 / 1024 AS size_mb"
-        )).scalar()
+        size = db.session.execute(
+            text('SELECT pg_database_size(current_database()) / 1024 / 1024 AS size_mb')
+        ).scalar()
         metrics['db_size_mb'] = size or 0
-    except Exception as e:
+    except Exception:
         pass
 
-    recent_audit = db.session.execute(select(PlatformAuditLog).order_by(PlatformAuditLog.created_at.desc()).limit(10)).scalars().all()
+    recent_audit = (
+        db.session.execute(
+            select(PlatformAuditLog).order_by(PlatformAuditLog.created_at.desc()).limit(10)
+        )
+        .scalars()
+        .all()
+    )
     return render_template(
-        "owner/monitoring.html",
+        'owner/monitoring.html',
         checks=checks,
         metrics=metrics,
         recent_audit=recent_audit,
     )
 
 
-@owner_bp.route("/system-config")
+@owner_bp.route('/system-config')
 @login_required
 @owner_required
 def owner_system_config():
     """Manage arbitrary system configuration keys."""
     from models.system_config import SystemConfig
+
     category_filter = (request.args.get('category') or '').strip()
     query = SystemConfig.query
     if category_filter:
         query = query.filter(SystemConfig.category == category_filter)
     configs = query.order_by(SystemConfig.category, SystemConfig.config_key).all()
-    categories = sorted({c.category for c in db.session.execute(select(SystemConfig).distinct(SystemConfig.category)).scalars().all() if c.category})
-    return render_template('owner/system_config.html', configs=configs, categories=categories, category_filter=category_filter)
+    categories = sorted(
+        {
+            c.category
+            for c in db.session.execute(select(SystemConfig).distinct(SystemConfig.category))
+            .scalars()
+            .all()
+            if c.category
+        }
+    )
+    return render_template(
+        'owner/system_config.html',
+        configs=configs,
+        categories=categories,
+        category_filter=category_filter,
+    )
 
 
-@owner_bp.route("/system-config/save", methods=["POST"])
+@owner_bp.route('/system-config/save', methods=['POST'])
 @login_required
 @owner_required
 def owner_save_system_config():
     """Save multiple system config values."""
     from models.system_config import SystemConfig
+
     try:
         for key, value in request.form.items():
             if key.startswith('config_'):
                 config_key = key[7:]
-                cfg = db.session.execute(select(SystemConfig).filter_by(config_key=config_key)).scalars().first()
+                cfg = (
+                    db.session.execute(select(SystemConfig).filter_by(config_key=config_key))
+                    .scalars()
+                    .first()
+                )
                 if cfg:
                     cfg.config_value = value
                     cfg.updated_by = current_user.id
-                    cfg.updated_at = datetime.now(timezone.utc)
+                    cfg.updated_at = datetime.now(UTC)
         # Create new config if provided
         new_key = request.form.get('new_config_key', '').strip()
         new_value = request.form.get('new_config_value', '').strip()
         new_type = request.form.get('new_config_type', 'string').strip()
         new_category = request.form.get('new_config_category', 'general').strip()
         if new_key and new_value:
-            existing = db.session.execute(select(SystemConfig).filter_by(config_key=new_key)).scalars().first()
+            existing = (
+                db.session.execute(select(SystemConfig).filter_by(config_key=new_key))
+                .scalars()
+                .first()
+            )
             if existing:
                 flash(f'المفتاح {new_key} موجود مسبقاً', 'error')
             else:
@@ -2360,25 +3032,28 @@ def owner_save_system_config():
                     category=new_category,
                     is_system=True,
                     created_by=current_user.id,
-                    created_at=datetime.now(timezone.utc),
-                    updated_at=datetime.now(timezone.utc)
+                    created_at=datetime.now(UTC),
+                    updated_at=datetime.now(UTC),
                 )
                 db.session.add(cfg)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم حفظ الإعدادات', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_system_config'))
 
 
-@owner_bp.route("/system-config/<config_key>/delete", methods=["POST"])
+@owner_bp.route('/system-config/<config_key>/delete', methods=['POST'])
 @login_required
 @owner_required
 def owner_delete_system_config(config_key):
     """Delete a system config key."""
     from models.system_config import SystemConfig
-    cfg = db.session.execute(select(SystemConfig).filter_by(config_key=config_key)).scalars().first()
+
+    cfg = (
+        db.session.execute(select(SystemConfig).filter_by(config_key=config_key)).scalars().first()
+    )
     if not cfg:
         flash('الإعداد غير موجود', 'error')
         return redirect(url_for('owner.owner_system_config'))
@@ -2387,141 +3062,195 @@ def owner_delete_system_config(config_key):
             flash('لا يمكن حذف إعداد نظام', 'error')
             return redirect(url_for('owner.owner_system_config'))
         db.session.delete(cfg)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        _log_action('DELETE_SYSTEM_CONFIG', 'system', None, f"Deleted config {config_key}")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action('DELETE_SYSTEM_CONFIG', 'system', None, f'Deleted config {config_key}')
         flash('تم حذف الإعداد', 'success')
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_rollback(db.session, error_message='database rollback')
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_system_config'))
     return redirect(url_for('owner.owner_system_config', category=request.args.get('category', '')))
 
 
-@owner_bp.route("/control")
+@owner_bp.route('/control')
 @login_required
 @owner_required
 def owner_control():
     """Owner control panel for platform switches and configuration."""
     from models.system_config import SystemConfig
+
     switches = [
         {'key': 'disable_public_signup', 'label': 'إيقاف التسجيل العام', 'icon': 'fa-user-slash'},
         {'key': 'maintenance_mode', 'label': 'وضع الصيانة', 'icon': 'fa-tools'},
-        {'key': 'enforce_email_verification', 'label': 'إجبار التحقق من البريد', 'icon': 'fa-envelope'},
-        {'key': 'enable_backup_automation', 'label': 'النسخ الاحتياطي التلقائي', 'icon': 'fa-clock'},
+        {
+            'key': 'enforce_email_verification',
+            'label': 'إجبار التحقق من البريد',
+            'icon': 'fa-envelope',
+        },
+        {
+            'key': 'enable_backup_automation',
+            'label': 'النسخ الاحتياطي التلقائي',
+            'icon': 'fa-clock',
+        },
         {'key': 'restrict_new_tenants', 'label': 'حظر إنشاء عملاء جدد', 'icon': 'fa-ban'},
     ]
     values = {}
     for sw in switches:
-        cfg = db.session.execute(select(SystemConfig).filter_by(config_key=sw['key'])).scalars().first()
+        cfg = (
+            db.session.execute(select(SystemConfig).filter_by(config_key=sw['key']))
+            .scalars()
+            .first()
+        )
         values[sw['key']] = bool(cfg and cfg.get_value())
-    return render_template("owner/control.html", switches=switches, values=values)
+    return render_template('owner/control.html', switches=switches, values=values)
 
 
-@owner_bp.route("/control/toggle", methods=["POST"])
+@owner_bp.route('/control/toggle', methods=['POST'])
 @login_required
 @owner_required
 def owner_control_toggle():
     """Toggle a platform-level switch."""
     from models.system_config import SystemConfig
+
     key = request.form.get('key', '').strip()
     if not key:
         return jsonify({'success': False, 'message': 'المفتاح مطلوب'}), 400
     cfg = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
     new_value = request.form.get('value') in ('1', 'true', 'on', 'yes')
     if not cfg:
-        cfg = SystemConfig(config_key=key, config_type='boolean', category='platform_control', is_system=True)
+        cfg = SystemConfig(
+            config_key=key, config_type='boolean', category='platform_control', is_system=True
+        )
         db.session.add(cfg)
     cfg.config_value = 'true' if new_value else 'false'
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
     _log_action('TOGGLE_PLATFORM_SWITCH', 'system_config', cfg.id, f'{key}={new_value}')
     return jsonify({'success': True, 'key': key, 'value': new_value})
 
 
-@owner_bp.route("/emergency-switches")
+@owner_bp.route('/emergency-switches')
 @login_required
 @owner_required
 def owner_emergency_switches():
     """Emergency system switches (kill-switches)."""
     from models.system_config import SystemConfig
+
     switches = [
-        {'key': 'emergency_disable_logins', 'label': 'إيقاف تسجيل الدخول عالمياً', 'color': 'danger', 'icon': 'fa-power-off'},
-        {'key': 'emergency_readonly_mode', 'label': 'وضع القراءة فقط لكل العملاء', 'color': 'warning', 'icon': 'fa-lock'},
-        {'key': 'emergency_disable_payments', 'label': 'إيقاف المدفوعات', 'color': 'danger', 'icon': 'fa-credit-card'},
-        {'key': 'emergency_disable_appointments', 'label': 'إيقاف الحجوزات', 'color': 'warning', 'icon': 'fa-calendar-times'},
+        {
+            'key': 'emergency_disable_logins',
+            'label': 'إيقاف تسجيل الدخول عالمياً',
+            'color': 'danger',
+            'icon': 'fa-power-off',
+        },
+        {
+            'key': 'emergency_readonly_mode',
+            'label': 'وضع القراءة فقط لكل العملاء',
+            'color': 'warning',
+            'icon': 'fa-lock',
+        },
+        {
+            'key': 'emergency_disable_payments',
+            'label': 'إيقاف المدفوعات',
+            'color': 'danger',
+            'icon': 'fa-credit-card',
+        },
+        {
+            'key': 'emergency_disable_appointments',
+            'label': 'إيقاف الحجوزات',
+            'color': 'warning',
+            'icon': 'fa-calendar-times',
+        },
     ]
     values = {}
     for sw in switches:
-        cfg = db.session.execute(select(SystemConfig).filter_by(config_key=sw['key'])).scalars().first()
+        cfg = (
+            db.session.execute(select(SystemConfig).filter_by(config_key=sw['key']))
+            .scalars()
+            .first()
+        )
         values[sw['key']] = bool(cfg and cfg.get_value())
-    return render_template("owner/emergency_switches.html", switches=switches, values=values)
+    return render_template('owner/emergency_switches.html', switches=switches, values=values)
 
 
-@owner_bp.route("/emergency-switches/toggle", methods=["POST"])
+@owner_bp.route('/emergency-switches/toggle', methods=['POST'])
 @login_required
 @owner_required
 def owner_emergency_toggle():
     """Toggle an emergency switch."""
     from models.system_config import SystemConfig
+
     key = request.form.get('key', '').strip()
     if not key:
         return jsonify({'success': False, 'message': 'المفتاح مطلوب'}), 400
     cfg = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
     new_value = request.form.get('value') in ('1', 'true', 'on', 'yes')
     if not cfg:
-        cfg = SystemConfig(config_key=key, config_type='boolean', category='emergency_switch', is_system=True)
+        cfg = SystemConfig(
+            config_key=key, config_type='boolean', category='emergency_switch', is_system=True
+        )
         db.session.add(cfg)
     cfg.config_value = 'true' if new_value else 'false'
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
     _log_action('TOGGLE_EMERGENCY_SWITCH', 'system_config', cfg.id, f'{key}={new_value}')
     return jsonify({'success': True, 'key': key, 'value': new_value})
 
 
-@owner_bp.route("/backups")
+@owner_bp.route('/backups')
 @login_required
 @owner_required
 def owner_backups():
     """Owner view of platform-wide backups."""
-    backups = db.session.execute(select(Backup).order_by(Backup.created_at.desc()).limit(100)).scalars().all()
+    backups = (
+        db.session.execute(select(Backup).order_by(Backup.created_at.desc()).limit(100))
+        .scalars()
+        .all()
+    )
     stats = {
         'total': len(backups),
         'completed': sum(1 for b in backups if b.backup_status == 'COMPLETED'),
         'failed': sum(1 for b in backups if b.backup_status == 'FAILED'),
         'pending': sum(1 for b in backups if b.backup_status in ('PENDING', 'IN_PROGRESS')),
     }
-    return render_template("owner/backups.html", backups=backups, stats=stats)
+    return render_template('owner/backups.html', backups=backups, stats=stats)
 
 
 # ═══════════════════════════════════════════════════════════════
 # MC-005 Platform Tenant Assumption API
 # ═══════════════════════════════════════════════════════════════
 
-@owner_bp.route("/api/assumptions", methods=["GET"])
+
+@owner_bp.route('/api/assumptions', methods=['GET'])
 @login_required
 @owner_required
 def owner_list_assumptions():
     """List active tenant assumptions."""
     from app.core.tenant.assumption_service import PlatformAssumptionService
 
-    user_id = request.args.get("user_id", type=int)
+    user_id = request.args.get('user_id', type=int)
     assumptions = PlatformAssumptionService.get_active_assumptions(user_id=user_id)
-    return jsonify({
-        "assumptions": [a.to_dict() for a in assumptions],
-        "count": len(assumptions),
-    })
+    return jsonify(
+        {
+            'assumptions': [a.to_dict() for a in assumptions],
+            'count': len(assumptions),
+        }
+    )
 
 
-@owner_bp.route("/api/assumptions", methods=["POST"])
+@owner_bp.route('/api/assumptions', methods=['POST'])
 @login_required
 @owner_required
 def owner_create_assumption():
     """Create a new tenant assumption for a platform user."""
-    from app.core.tenant.assumption_service import PlatformAssumptionService, PlatformAssumptionError
+    from app.core.tenant.assumption_service import (
+        PlatformAssumptionError,
+        PlatformAssumptionService,
+    )
 
     data = request.get_json(silent=True) or {}
-    user_id = data.get("user_id")
-    assumed_tenant_id = data.get("assumed_tenant_id")
-    reason = data.get("reason", "")
-    expires_in_hours = data.get("expires_in_hours")
+    user_id = data.get('user_id')
+    assumed_tenant_id = data.get('assumed_tenant_id')
+    reason = data.get('reason', '')
+    expires_in_hours = data.get('expires_in_hours')
     if expires_in_hours is not None:
         try:
             expires_in_hours = int(expires_in_hours)
@@ -2529,11 +3258,11 @@ def owner_create_assumption():
             expires_in_hours = None
 
     if not user_id or not assumed_tenant_id:
-        return jsonify({"error": "user_id and assumed_tenant_id are required"}), 400
+        return jsonify({'error': 'user_id and assumed_tenant_id are required'}), 400
 
     expires_at = None
     if expires_in_hours:
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=expires_in_hours)
+        expires_at = datetime.now(UTC) + timedelta(hours=expires_in_hours)
 
     try:
         assumption = PlatformAssumptionService.create_assumption(
@@ -2543,14 +3272,18 @@ def owner_create_assumption():
             assumed_by=current_user.id,
             expires_at=expires_at,
         )
-        _log_action("CREATE_ASSUMPTION", "platform_tenant_assumption", assumption.id,
-                     f"user={user_id} tenant={assumed_tenant_id} reason={reason}")
-        return jsonify({"assumption": assumption.to_dict()}), 201
+        _log_action(
+            'CREATE_ASSUMPTION',
+            'platform_tenant_assumption',
+            assumption.id,
+            f'user={user_id} tenant={assumed_tenant_id} reason={reason}',
+        )
+        return jsonify({'assumption': assumption.to_dict()}), 201
     except PlatformAssumptionError as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({'error': str(e)}), 400
 
 
-@owner_bp.route("/api/assumptions/<int:assumption_id>/revoke", methods=["POST"])
+@owner_bp.route('/api/assumptions/<int:assumption_id>/revoke', methods=['POST'])
 @login_required
 @owner_required
 def owner_revoke_assumption(assumption_id):
@@ -2558,7 +3291,7 @@ def owner_revoke_assumption(assumption_id):
     from app.core.tenant.assumption_service import PlatformAssumptionService
 
     data = request.get_json(silent=True) or {}
-    revoke_reason = data.get("revoke_reason", "Revoked by owner")
+    revoke_reason = data.get('revoke_reason', 'Revoked by owner')
 
     assumption = PlatformAssumptionService.revoke_assumption(
         assumption_id=assumption_id,
@@ -2566,18 +3299,23 @@ def owner_revoke_assumption(assumption_id):
         revoke_reason=revoke_reason,
     )
     if not assumption:
-        return jsonify({"error": "Assumption not found"}), 404
+        return jsonify({'error': 'Assumption not found'}), 404
 
-    _log_action("REVOKE_ASSUMPTION", "platform_tenant_assumption", assumption_id,
-                 f"revoked_by={current_user.id} reason={revoke_reason}")
-    return jsonify({"assumption": assumption.to_dict()})
+    _log_action(
+        'REVOKE_ASSUMPTION',
+        'platform_tenant_assumption',
+        assumption_id,
+        f'revoked_by={current_user.id} reason={revoke_reason}',
+    )
+    return jsonify({'assumption': assumption.to_dict()})
 
 
 # ════════════════════════════════════════════════════════════════
 # Missing Owner Routes - Added for Complete Platform Management
 # ════════════════════════════════════════════════════════════════
 
-@owner_bp.route("/tenants/")
+
+@owner_bp.route('/tenants/')
 @login_required
 @owner_required
 def owner_tenant_list():
@@ -2585,7 +3323,7 @@ def owner_tenant_list():
     return redirect(url_for('owner.owner_dashboard'))
 
 
-@owner_bp.route("/users-list")
+@owner_bp.route('/users-list')
 @login_required
 @owner_required
 def owner_users_list():
@@ -2593,12 +3331,13 @@ def owner_users_list():
     return redirect(url_for('owner.owner_users'))
 
 
-@owner_bp.route("/error-audit-logs")
+@owner_bp.route('/error-audit-logs')
 @login_required
 @owner_required
 def owner_error_audit_logs():
     """Error audit logs page."""
     from models.audit_trail import AuditTrail
+
     entity_type = request.args.get('entity_type', '')
     q = select(AuditTrail)
     if entity_type:
@@ -2607,118 +3346,167 @@ def owner_error_audit_logs():
     return render_template('owner/error_audit_logs.html', logs=logs, entity_type=entity_type)
 
 
-@owner_bp.route("/company-info")
+@owner_bp.route('/company-info')
 @login_required
 @owner_required
 def owner_company_info():
     """Platform company info page."""
-    from models.system_config import SystemConfig
     import json
-    cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_platform_branding')).scalars().first()
+
+    from models.system_config import SystemConfig
+
+    cfg = (
+        db.session.execute(select(SystemConfig).filter_by(config_key='owner_platform_branding'))
+        .scalars()
+        .first()
+    )
     branding = {}
     if cfg and cfg.config_value:
         import json
+
         branding = json.loads(cfg.config_value)
     return render_template('owner/company_info.html', branding=branding)
 
 
-@owner_bp.route("/integrations")
+@owner_bp.route('/integrations')
 @login_required
 @owner_required
 def owner_integrations():
     """Platform integrations management."""
-    from models.system_config import SystemConfig
     import json
-    cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_integrations')).scalars().first()
+
+    from models.system_config import SystemConfig
+
+    cfg = (
+        db.session.execute(select(SystemConfig).filter_by(config_key='owner_integrations'))
+        .scalars()
+        .first()
+    )
     integrations = []
     if cfg and cfg.config_value:
         import json
+
         integrations = json.loads(cfg.config_value)
     return render_template('owner/integrations.html', integrations=integrations)
 
 
-@owner_bp.route("/cards-vault")
+@owner_bp.route('/cards-vault')
 @login_required
 @owner_required
 def owner_cards_vault():
     """Payment cards vault management."""
     from models.payment import PaymentCard
-    cards = db.session.execute(select(PaymentCard).order_by(PaymentCard.created_at.desc()).limit(100)).scalars().all()
+
+    cards = (
+        db.session.execute(select(PaymentCard).order_by(PaymentCard.created_at.desc()).limit(100))
+        .scalars()
+        .all()
+    )
     return render_template('owner/cards_vault.html', cards=cards)
 
 
-@owner_bp.route("/system-stats")
+@owner_bp.route('/system-stats')
 @login_required
 @owner_required
 def owner_system_stats():
     """Platform system statistics."""
-    from models.user import User
+    from sqlalchemy import func
+
     from app.core.tenant.models import Tenant
     from models.backup import Backup
-    from sqlalchemy import func
-    
+    from models.user import User
+
     stats = {
         'total_tenants': db.session.execute(select(func.count()).select_from(Tenant)).scalar(),
-        'active_tenants': db.session.execute(select(func.count()).select_from(Tenant).filter_by(status='active')).scalar(),
+        'active_tenants': db.session.execute(
+            select(func.count()).select_from(Tenant).filter_by(status='active')
+        ).scalar(),
         'total_users': db.session.execute(select(func.count()).select_from(User)).scalar(),
-        'active_users': db.session.execute(select(func.count()).select_from(User).filter_by(is_active=True)).scalar(),
+        'active_users': db.session.execute(
+            select(func.count()).select_from(User).filter_by(is_active=True)
+        ).scalar(),
         'total_backups': db.session.execute(select(func.count()).select_from(Backup)).scalar(),
-        'completed_backups': db.session.execute(select(func.count()).select_from(Backup).filter_by(backup_status='COMPLETED')).scalar(),
-        'failed_backups': db.session.execute(select(func.count()).select_from(Backup).filter_by(backup_status='FAILED')).scalar(),
+        'completed_backups': db.session.execute(
+            select(func.count()).select_from(Backup).filter_by(backup_status='COMPLETED')
+        ).scalar(),
+        'failed_backups': db.session.execute(
+            select(func.count()).select_from(Backup).filter_by(backup_status='FAILED')
+        ).scalar(),
     }
     return render_template('owner/system_stats.html', stats=stats)
 
 
-@owner_bp.route("/reports")
+@owner_bp.route('/reports')
 @login_required
 @owner_required
 def owner_reports():
     """Platform-wide reports for owner."""
-    from app.core.tenant.models import Tenant
-    from models.user import User
-    from models.medication import PharmacySale
-    from models.visit import Visit
-    from models.patient import Patient
-    from sqlalchemy import func
     from datetime import datetime, timedelta
-    
+
+    from sqlalchemy import func
+
+    from app.core.tenant.models import Tenant
+    from models.medication import PharmacySale
+    from models.patient import Patient
+    from models.user import User
+    from models.visit import Visit
+
     # Tenant stats
     tenant_stats = {
         'total': db.session.execute(select(func.count()).select_from(Tenant)).scalar(),
-        'active': db.session.execute(select(func.count()).select_from(Tenant).filter_by(status='active')).scalar(),
-        'trial': db.session.execute(select(func.count()).select_from(Tenant).filter_by(status='trial')).scalar(),
-        'suspended': db.session.execute(select(func.count()).select_from(Tenant).filter_by(status='suspended')).scalar(),
+        'active': db.session.execute(
+            select(func.count()).select_from(Tenant).filter_by(status='active')
+        ).scalar(),
+        'trial': db.session.execute(
+            select(func.count()).select_from(Tenant).filter_by(status='trial')
+        ).scalar(),
+        'suspended': db.session.execute(
+            select(func.count()).select_from(Tenant).filter_by(status='suspended')
+        ).scalar(),
     }
-    
+
     # User stats
     user_stats = {
         'total': db.session.execute(select(func.count()).select_from(User)).scalar(),
-        'active': db.session.execute(select(func.count()).select_from(User).filter_by(is_active=True)).scalar(),
-        'by_role': dict(db.session.execute(select(User.role, func.count(User.id)).group_by(User.role)).all()),
+        'active': db.session.execute(
+            select(func.count()).select_from(User).filter_by(is_active=True)
+        ).scalar(),
+        'by_role': dict(
+            db.session.execute(select(User.role, func.count(User.id)).group_by(User.role)).all()
+        ),
     }
-    
+
     # Revenue (last 30 days)
     thirty_days_ago = datetime.now() - timedelta(days=30)
-    revenue = db.session.execute(select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
-        PharmacySale.created_at >= thirty_days_ago
-    )).scalar() or 0
-    
+    revenue = (
+        db.session.execute(
+            select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
+                PharmacySale.created_at >= thirty_days_ago
+            )
+        ).scalar()
+        or 0
+    )
+
     # Visits (last 30 days)
-    visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.created_at >= thirty_days_ago)).scalar()
-    
+    visits = db.session.execute(
+        select(func.count()).select_from(Visit).filter(Visit.created_at >= thirty_days_ago)
+    ).scalar()
+
     # Patients
     patients = db.session.execute(select(func.count()).select_from(Patient)).scalar()
-    
-    return render_template('owner/reports.html', 
-                           tenant_stats=tenant_stats,
-                           user_stats=user_stats,
-                           revenue=revenue,
-                           visits=visits,
-                           patients=patients)
+
+    return render_template(
+        'owner/reports.html',
+        tenant_stats=tenant_stats,
+        user_stats=user_stats,
+        revenue=revenue,
+        visits=visits,
+        patients=patients,
+    )
 
 
 # Payment Vault - Alias for cards-vault
-@owner_bp.route("/payment-vault")
+@owner_bp.route('/payment-vault')
 @login_required
 @owner_required
 def owner_payment_vault():
@@ -2727,10 +3515,9 @@ def owner_payment_vault():
 
 
 # Error Audit Logs - Alias
-@owner_bp.route("/error-logs")
+@owner_bp.route('/error-logs')
 @login_required
 @owner_required
 def owner_error_logs():
     """Error logs - alias for error-audit-logs."""
     return redirect(url_for('owner.owner_error_audit_logs'))
-

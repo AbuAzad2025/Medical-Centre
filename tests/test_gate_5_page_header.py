@@ -9,15 +9,16 @@ class TestPageHeaderMacro:
     def test_renders_title_subtitle_and_actions(self, app):
         with app.app_context():
             from flask import render_template_string
+
             html = render_template_string(
                 "{% from 'partials/_page_header.html' import page_header %}"
-                "{{ page_header("
+                '{{ page_header('
                 "title='عنوان', subtitle='وصف', icon='fas fa-star',"
                 "breadcrumbs=[{'label': 'الرئيسية', 'url': '/'}, {'label': 'الحالي'}],"
-                "actions=["
+                'actions=['
                 "  {'url': '/new', 'label': 'جديد', 'icon': 'fas fa-plus'},"
                 "  {'type': 'button', 'label': 'تصدير', 'data_action': 'export-visits', 'style': 'success'}"
-                "]) }}"
+                ']) }}'
             )
         assert 'clinical-page-header' in html
         assert 'عنوان' in html
@@ -207,6 +208,7 @@ class TestMedicalHeaderDebt:
 
     def test_migrated_templates_drop_medical_header(self):
         from pathlib import Path
+
         root = Path(__file__).parent.parent / 'templates'
         for rel in self.MIGRATED:
             text = (root / rel).read_text(encoding='utf-8')
@@ -218,6 +220,7 @@ class TestMedicalHeaderDebt:
         """Self-maintaining: every template importing page_header must call it
         and must not retain legacy header markers."""
         from pathlib import Path
+
         root = Path(__file__).parent.parent / 'templates'
         for path in root.rglob('*.html'):
             text = path.read_text(encoding='utf-8')
@@ -232,6 +235,7 @@ class TestMedicalHeaderDebt:
     def test_all_macro_importers_compile(self, app):
         """Every template using the macro must compile (Jinja syntax check)."""
         from pathlib import Path
+
         root = Path(__file__).parent.parent / 'templates'
         errors = []
         with app.app_context():
@@ -251,6 +255,7 @@ class TestMedicalHeaderDebt:
         template must be registered in the URL map."""
         import re
         from pathlib import Path
+
         root = Path(__file__).parent.parent / 'templates'
         known = set(app.url_map._rules_by_endpoint.keys())
         pattern = re.compile(r"url_for\(\s*['\"]([a-zA-Z0-9_.]+)['\"]")
@@ -271,6 +276,7 @@ class TestPageHeaderFormAndHero:
 
     def test_form_action_renders_post_with_csrf(self, app):
         from flask import render_template_string
+
         tmpl = (
             "{% from 'partials/_page_header.html' import page_header %}"
             "{{ page_header('عنوان', actions=["
@@ -286,6 +292,7 @@ class TestPageHeaderFormAndHero:
 
     def test_hero_variant_renders_gradient(self, app):
         from flask import render_template_string
+
         tmpl = (
             "{% from 'partials/_page_header.html' import page_header %}"
             "{{ page_header('قسم المختبر', subtitle='وصف', icon='fas fa-flask', "
@@ -299,8 +306,10 @@ class TestPageHeaderFormAndHero:
         assert 'btn-light' in html
 
     def test_view_appointment_uses_macro_form(self, app):
-        from flask import render_template
         from types import SimpleNamespace
+
+        from flask import render_template
+
         appt = SimpleNamespace(
             id=42,
             status='SCHEDULED',
@@ -312,7 +321,10 @@ class TestPageHeaderFormAndHero:
         with app.test_request_context():
             html = render_template(
                 'reception/view_appointment.html',
-                appointment=appt, appt_type='كشف', symptoms=None, base_notes=None,
+                appointment=appt,
+                appt_type='كشف',
+                symptoms=None,
+                base_notes=None,
             )
         assert 'clinical-page-header' in html
         assert 'تفاصيل الموعد' in html
@@ -324,16 +336,20 @@ class TestPageHeaderFormAndHero:
 class TestDashboardHeroAndInfoPagesRender:
     def test_legacy_dashboard_heroes_render_with_hero_header(self, app):
         from pathlib import Path
-        for tmpl, cls in [('lab/dashboard_new.html', 'lab-gradient'),
-                          ('accountant/dashboard_new.html', 'acc-gradient')]:
+
+        for tmpl, cls in [
+            ('lab/dashboard_new.html', 'lab-gradient'),
+            ('accountant/dashboard_new.html', 'acc-gradient'),
+        ]:
             # header-only smoke: confirm the migrated hero header compiles + emits gradient
             src = (Path(__file__).parent.parent / 'templates' / tmpl).read_text(encoding='utf-8')
-            assert "import page_header" in src
+            assert 'import page_header' in src
             assert "hero_class='" + cls + "'" in src
 
     @pytest.mark.parametrize('tmpl', ['main/about.html', 'main/terms.html', 'main/privacy.html'])
     def test_public_info_pages_render(self, app, tmpl):
         from flask import render_template
+
         with app.test_request_context():
             html = render_template(tmpl)
         assert 'card' in html and '</div>' in html

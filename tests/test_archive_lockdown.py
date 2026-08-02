@@ -1,16 +1,12 @@
 """Tests for archive, settlement, and financial mutation lockdown (Ticket 4)."""
-import pytest
-from unittest.mock import patch
 
-from models.visit import Visit
-from models.patient import Patient
-from models.payment import Payment
-from models.invoice import Invoice
-from models.queue_management import QueueManagement
-from app_factory import db as _db
-from app.shared.enums import PaymentStatus, VisitState
 from sqlalchemy import select
+
 from app.extensions import db
+from app_factory import db as _db
+from models.invoice import Invoice
+from models.patient import Patient
+from models.visit import Visit
 
 
 class TestArchiveGatekeeperLockdown:
@@ -21,17 +17,22 @@ class TestArchiveGatekeeperLockdown:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='OPEN',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='OPEN',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
-            financial_locked=False
+            financial_locked=False,
         )
         _db.session.add(v)
         _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             can, msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is False
@@ -44,18 +45,23 @@ class TestArchiveGatekeeperLockdown:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
-            archive_status='ARCHIVED'
+            archive_status='ARCHIVED',
         )
         _db.session.add(v)
         _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             can, msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is False
@@ -68,17 +74,22 @@ class TestArchiveGatekeeperLockdown:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
-            financial_locked=False
+            financial_locked=False,
         )
         _db.session.add(v)
         _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             can, msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is True
@@ -92,10 +103,13 @@ class TestReceptionArchiveRoute:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='OPEN',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='OPEN',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
-            financial_locked=False
+            financial_locked=False,
         )
         _db.session.add(v)
         _db.session.commit()
@@ -104,6 +118,7 @@ class TestReceptionArchiveRoute:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             resp = client.post(f'/reception/visits/{v.id}/archive', follow_redirects=False)
         assert resp.status_code == 302
@@ -118,11 +133,14 @@ class TestReceptionArchiveRoute:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
-            archive_status='ARCHIVED'
+            archive_status='ARCHIVED',
         )
         _db.session.add(v)
         _db.session.commit()
@@ -131,6 +149,7 @@ class TestReceptionArchiveRoute:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             resp = client.post(f'/reception/visits/{v.id}/archive', follow_redirects=False)
         assert resp.status_code == 302
@@ -138,17 +157,22 @@ class TestReceptionArchiveRoute:
         v_after = _db.session.get(Visit, v.id)
         assert v_after.archived_by is None  # not re-archived
 
-    def test_reception_archive_success_when_conditions_met(self, app, test_tenant, client, login_as):
+    def test_reception_archive_success_when_conditions_met(
+        self, app, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
-            financial_locked=False
+            financial_locked=False,
         )
         _db.session.add(v)
         _db.session.commit()
@@ -157,6 +181,7 @@ class TestReceptionArchiveRoute:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             resp = client.post(f'/reception/visits/{v.id}/archive', follow_redirects=False)
         assert resp.status_code == 302
@@ -173,10 +198,13 @@ class TestFinanceArchiveRoute:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
-            financial_locked=False
+            financial_locked=False,
         )
         _db.session.add(v)
         _db.session.commit()
@@ -185,6 +213,7 @@ class TestFinanceArchiveRoute:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             resp = client.post(f'/finance/visits/{v.id}/archive', follow_redirects=False)
         # Accountant should be blocked (403) because role list excludes accountant
@@ -197,10 +226,13 @@ class TestFinanceArchiveRoute:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
-            financial_locked=False
+            financial_locked=False,
         )
         _db.session.add(v)
         _db.session.commit()
@@ -209,6 +241,7 @@ class TestFinanceArchiveRoute:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             resp = client.post(f'/finance/visits/{v.id}/archive', follow_redirects=False)
         # Ticket 1: finance archive route disabled for admin/manager
@@ -226,11 +259,14 @@ class TestPaymentMutationBlockedAfterArchive:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
-            archive_status='ARCHIVED'
+            archive_status='ARCHIVED',
         )
         _db.session.add(v)
         _db.session.commit()
@@ -239,8 +275,11 @@ class TestPaymentMutationBlockedAfterArchive:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
-            resp = client.post(f'/reception/visits/{v.id}/send-to-accounting', follow_redirects=False)
+            resp = client.post(
+                f'/reception/visits/{v.id}/send-to-accounting', follow_redirects=False
+            )
         # Must redirect with error, not 200/302 success
         assert resp.status_code == 302
         # Verify no new invoice was created
@@ -254,11 +293,14 @@ class TestPaymentMutationBlockedAfterArchive:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
-            archive_status='ARCHIVED'
+            archive_status='ARCHIVED',
         )
         _db.session.add(v)
         _db.session.commit()
@@ -267,6 +309,7 @@ class TestPaymentMutationBlockedAfterArchive:
 
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             resp = client.get(f'/payment/process/{v.id}', follow_redirects=False)
         # Must get 422 (archive block) or 404, not 200 success
@@ -279,18 +322,23 @@ class TestPaymentMutationBlockedAfterArchive:
         _db.session.commit()
 
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
-            archive_status='ARCHIVED'
+            archive_status='ARCHIVED',
         )
         _db.session.add(v)
         _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             ok, msg = GatekeeperService.create_system_receipt(v.id, 1, 50)
         assert ok is False
@@ -303,18 +351,25 @@ class TestTicket1ArchiveSettlementLockdown:
     def test_unpaid_completed_visit_cannot_archive(self, app, test_tenant):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
-        _db.session.add(p); _db.session.commit()
+        _db.session.add(p)
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=0,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=0,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             can, msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is False
@@ -323,18 +378,25 @@ class TestTicket1ArchiveSettlementLockdown:
     def test_partially_paid_completed_visit_cannot_archive(self, app, test_tenant):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
-        _db.session.add(p); _db.session.commit()
+        _db.session.add(p)
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=50,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=50,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             can, msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is False
@@ -342,88 +404,146 @@ class TestTicket1ArchiveSettlementLockdown:
     def test_fully_paid_reconciled_visit_can_archive(self, app, test_tenant):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
-        _db.session.add(p); _db.session.commit()
+        _db.session.add(p)
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             can, msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is True
 
     def test_reception_can_archive_service(self, app, test_tenant):
-        from models.user import User
         import uuid
+
+        from models.user import User
+
         tenant_id = test_tenant.id
         u_suffix = uuid.uuid4().hex[:8]
         p = Patient(first_name='ت', last_name='ت')
-        rec = User(username=f'rec_arch_{u_suffix}', password_hash='x', full_name='Rec', email=f'rec_arch_{u_suffix}@t.com', role='reception', tenant_id=tenant_id, is_active=True)
-        _db.session.add_all([p, rec]); _db.session.commit()
+        rec = User(
+            username=f'rec_arch_{u_suffix}',
+            password_hash='x',
+            full_name='Rec',
+            email=f'rec_arch_{u_suffix}@t.com',
+            role='reception',
+            tenant_id=tenant_id,
+            is_active=True,
+        )
+        _db.session.add_all([p, rec])
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=0, paid_amount=0,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=0,
+            paid_amount=0,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             ok, msg = GatekeeperService.archive_visit(v.id, rec.id)
         assert ok is True
 
     def test_manager_cannot_archive_service(self, app, test_tenant):
-        from models.user import User
         import uuid
+
+        from models.user import User
+
         tenant_id = test_tenant.id
         u_suffix = uuid.uuid4().hex[:8]
         p = Patient(first_name='ت', last_name='ت')
-        mgr = User(username=f'mgr_arch_{u_suffix}', password_hash='x', full_name='Mgr', email=f'mgr_arch_{u_suffix}@t.com', role='manager', tenant_id=tenant_id, is_active=True)
-        _db.session.add_all([p, mgr]); _db.session.commit()
+        mgr = User(
+            username=f'mgr_arch_{u_suffix}',
+            password_hash='x',
+            full_name='Mgr',
+            email=f'mgr_arch_{u_suffix}@t.com',
+            role='manager',
+            tenant_id=tenant_id,
+            is_active=True,
+        )
+        _db.session.add_all([p, mgr])
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=0, paid_amount=0,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=0,
+            paid_amount=0,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             ok, msg = GatekeeperService.archive_visit(v.id, mgr.id)
         assert ok is False
         assert 'صلاحية' in msg or 'authorized' in msg.lower()
 
     def test_accountant_cannot_archive_service(self, app, test_tenant):
-        from models.user import User
         import uuid
+
+        from models.user import User
+
         tenant_id = test_tenant.id
         u_suffix = uuid.uuid4().hex[:8]
         p = Patient(first_name='ت', last_name='ت')
-        acc = User(username=f'acc_arch_{u_suffix}', password_hash='x', full_name='Acc', email=f'acc_arch_{u_suffix}@t.com', role='accountant', tenant_id=tenant_id, is_active=True)
-        _db.session.add_all([p, acc]); _db.session.commit()
+        acc = User(
+            username=f'acc_arch_{u_suffix}',
+            password_hash='x',
+            full_name='Acc',
+            email=f'acc_arch_{u_suffix}@t.com',
+            role='accountant',
+            tenant_id=tenant_id,
+            is_active=True,
+        )
+        _db.session.add_all([p, acc])
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=0, paid_amount=0,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=0,
+            paid_amount=0,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             ok, msg = GatekeeperService.archive_visit(v.id, acc.id)
         assert ok is False
@@ -431,18 +551,24 @@ class TestTicket1ArchiveSettlementLockdown:
     def test_finance_archive_route_returns_403(self, app, test_tenant, client, login_as):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
-        _db.session.add(p); _db.session.commit()
+        _db.session.add(p)
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=0, paid_amount=0,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=0,
+            paid_amount=0,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         login_as(client, 'fin_mgr_arch', 'manager')
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             resp = client.post(f'/finance/visits/{v.id}/archive')
         assert resp.status_code == 403
@@ -454,18 +580,25 @@ class TestCore1ArchiveBlocksUnpaid:
     def test_fully_paid_completed_can_archive(self, app, test_tenant):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
-        _db.session.add(p); _db.session.commit()
+        _db.session.add(p)
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             can, msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is True
@@ -473,18 +606,25 @@ class TestCore1ArchiveBlocksUnpaid:
     def test_unpaid_completed_cannot_archive(self, app, test_tenant):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
-        _db.session.add(p); _db.session.commit()
+        _db.session.add(p)
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=0,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=0,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             can, msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is False
@@ -492,59 +632,85 @@ class TestCore1ArchiveBlocksUnpaid:
     def test_partially_paid_completed_cannot_archive(self, app, test_tenant):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
-        _db.session.add(p); _db.session.commit()
+        _db.session.add(p)
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=50,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=50,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             can, msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is False
 
     def test_reconciled_lines_with_outstanding_blocked(self, app, test_tenant):
         from models.invoice import InvoiceService
+
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
-        _db.session.add(p); _db.session.commit()
+        _db.session.add(p)
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=0,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=0,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         svc = __import__('models.service', fromlist=['ServiceMaster']).ServiceMaster(
             code=f'LINE-REC-{__import__("uuid").uuid4().hex[:6].upper()}',
-            name='Line Reconcile Test', category='lab',
-            base_price=100, is_active=True, tenant_id=tenant_id,
-            department_id=None
+            name='Line Reconcile Test',
+            category='lab',
+            base_price=100,
+            is_active=True,
+            tenant_id=tenant_id,
+            department_id=None,
         )
-        _db.session.add(svc); _db.session.commit()
+        _db.session.add(svc)
+        _db.session.commit()
 
         from models.invoice import Invoice
+
         inv = Invoice(
-            invoice_number=f'INV-REC-{v.id}', visit_id=v.id, total_amount=100,
-            status='ISSUED'
+            invoice_number=f'INV-REC-{v.id}', visit_id=v.id, total_amount=100, status='ISSUED'
         )
-        _db.session.add(inv); _db.session.flush()
+        _db.session.add(inv)
+        _db.session.flush()
         line = InvoiceService(
-            invoice_id=inv.id, visit_id=v.id, service_master_id=svc.id,
-            service_code=svc.code, service_name=svc.name,
-            quantity=1, unit_price=100, total_price=100
+            invoice_id=inv.id,
+            visit_id=v.id,
+            service_master_id=svc.id,
+            service_code=svc.code,
+            service_name=svc.name,
+            quantity=1,
+            unit_price=100,
+            total_price=100,
         )
-        _db.session.add(line); _db.session.commit()
+        _db.session.add(line)
+        _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             can, msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is False
@@ -553,19 +719,26 @@ class TestCore1ArchiveBlocksUnpaid:
     def test_already_archived_cannot_archive_again(self, app, test_tenant):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
-        _db.session.add(p); _db.session.commit()
+        _db.session.add(p)
+        _db.session.commit()
         v = Visit(
-            patient_id=p.id, tenant_id=tenant_id, status='COMPLETED',
-            total_amount=100, paid_amount=100,
+            patient_id=p.id,
+            tenant_id=tenant_id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
             gl_posted_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
             financial_locked=False,
-            archive_status='ARCHIVED'
+            archive_status='ARCHIVED',
         )
-        _db.session.add(v); _db.session.commit()
+        _db.session.add(v)
+        _db.session.commit()
 
         from services.gatekeeper_service import GatekeeperService
+
         with app.test_request_context():
             from flask import g
+
             g.tenant_id = tenant_id
             can, msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is False

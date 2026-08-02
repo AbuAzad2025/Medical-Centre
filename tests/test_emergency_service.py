@@ -10,16 +10,17 @@ Covers latent bugs fixed in this change (all against the live schema):
   - assign_doctor: wrote to a non-existent `doctor_id` column + invalid status.
 All DB work runs under ``rollback_db`` isolation.
 """
+
 import json
 import types
 import uuid
 
 import pytest
 
-from services.emergency_service import EmergencyService as ES
+from app.extensions import db
 from models.emergency import EmergencyCase
 from models.patient import Patient
-from app.extensions import db
+from services.emergency_service import EmergencyService as ES
 
 
 @pytest.fixture
@@ -32,8 +33,7 @@ def fx(rollback_db):
         db.session.commit()
         return p
 
-    def case(patient_id=None, severity='MODERATE', status='WAITING',
-             chief='ألم', diagnosis=None):
+    def case(patient_id=None, severity='MODERATE', status='WAITING', chief='ألم', diagnosis=None):
         pid = patient_id or patient().id
         c = EmergencyCase(
             patient_id=pid,

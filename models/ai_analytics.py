@@ -3,67 +3,70 @@
 Medical System AI Analytics Model
 """
 
-from datetime import datetime, timezone
-from app_factory import db
+from datetime import UTC, datetime
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class AIRecommendation(TenantMixin, db.Model):
     """نموذج توصية الذكاء الصناعي"""
-    
+
     __tablename__ = 'ai_recommendations'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    recommendation_type = db.Column(db.String(100), nullable=False)  # diagnosis, treatment, medication, test
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    recommendation_type = db.Column(
+        db.String(100), nullable=False
+    )  # diagnosis, treatment, medication, test
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     confidence_score = db.Column(db.Float, nullable=False)  # 0-1
     source_data = db.Column(db.Text, nullable=True)  # JSON format
     is_accepted = db.Column(db.Boolean, nullable=True)
-    accepted_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    accepted_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     accepted_at = db.Column(db.DateTime, nullable=True)
     feedback = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+
     # العلاقات
     patient = db.relationship('Patient', back_populates='ai_recommendations')
     visit = db.relationship('Visit', back_populates='ai_recommendations')
     accepter = db.relationship('User')
-    
+
     def __repr__(self):
         return f'<AIRecommendation {self.title}>'
-    
+
     def get_recommendation_type_display(self):
         """نوع التوصية للعرض"""
-        type_map = {
-            'diagnosis': 'تشخيص',
-            'treatment': 'علاج',
-            'medication': 'دواء',
-            'test': 'فحص'
-        }
+        type_map = {'diagnosis': 'تشخيص', 'treatment': 'علاج', 'medication': 'دواء', 'test': 'فحص'}
         return type_map.get(self.recommendation_type, self.recommendation_type)
-    
+
     def get_confidence_display(self):
         """درجة الثقة للعرض"""
         if self.confidence_score >= 0.9:
-            return "عالية جداً"
-        elif self.confidence_score >= 0.7:
-            return "عالية"
-        elif self.confidence_score >= 0.5:
-            return "متوسطة"
-        else:
-            return "منخفضة"
-    
+            return 'عالية جداً'
+        if self.confidence_score >= 0.7:
+            return 'عالية'
+        if self.confidence_score >= 0.5:
+            return 'متوسطة'
+        return 'منخفضة'
+
     def get_confidence_color(self):
         """لون درجة الثقة"""
         if self.confidence_score >= 0.7:
-            return "success"
-        elif self.confidence_score >= 0.5:
-            return "warning"
-        else:
-            return "danger"
-    
+            return 'success'
+        if self.confidence_score >= 0.5:
+            return 'warning'
+        return 'danger'
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -84,14 +87,15 @@ class AIRecommendation(TenantMixin, db.Model):
             'accepter_name': self.accepter.full_name if self.accepter else None,
             'accepted_at': self.accepted_at.isoformat() if self.accepted_at else None,
             'feedback': self.feedback,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
         }
+
 
 class DiseasePattern(TenantMixin, db.Model):
     """نموذج نمط المرض"""
-    
+
     __tablename__ = 'disease_patterns'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     disease_name = db.Column(db.String(200), nullable=False)
     icd_code = db.Column(db.String(20), nullable=True)
@@ -104,32 +108,29 @@ class DiseasePattern(TenantMixin, db.Model):
     severity_level = db.Column(db.String(50), nullable=True)
     treatment_protocols = db.Column(db.Text, nullable=True)  # JSON format
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
     def __repr__(self):
         return f'<DiseasePattern {self.disease_name}>'
-    
+
     def get_severity_display(self):
         """مستوى الخطورة للعرض"""
-        severity_map = {
-            'mild': 'خفيف',
-            'moderate': 'متوسط',
-            'severe': 'شديد',
-            'critical': 'حرج'
-        }
+        severity_map = {'mild': 'خفيف', 'moderate': 'متوسط', 'severe': 'شديد', 'critical': 'حرج'}
         return severity_map.get(self.severity_level, self.severity_level)
-    
+
     def get_severity_color(self):
         """لون مستوى الخطورة"""
         color_map = {
             'mild': 'success',
             'moderate': 'warning',
             'severe': 'danger',
-            'critical': 'dark'
+            'critical': 'dark',
         }
         return color_map.get(self.severity_level, 'secondary')
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -148,14 +149,15 @@ class DiseasePattern(TenantMixin, db.Model):
             'treatment_protocols': self.treatment_protocols,
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'updated_at': self.updated_at.isoformat(),
         }
+
 
 class PerformanceAnalytics(TenantMixin, db.Model):
     """نموذج تحليل الأداء"""
-    
+
     __tablename__ = 'performance_analytics'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     metric_name = db.Column(db.String(200), nullable=False)
     metric_type = db.Column(db.String(100), nullable=False)  # daily, weekly, monthly, yearly
@@ -163,52 +165,43 @@ class PerformanceAnalytics(TenantMixin, db.Model):
     target_value = db.Column(db.Float, nullable=True)
     unit = db.Column(db.String(50), nullable=True)
     department = db.Column(db.String(100), nullable=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    doctor_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     period_start = db.Column(db.DateTime, nullable=False)
     period_end = db.Column(db.DateTime, nullable=False)
     additional_data = db.Column(db.Text, nullable=True)  # JSON format
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+
     # العلاقات
     doctor = db.relationship('User')
-    
+
     def __repr__(self):
         return f'<PerformanceAnalytics {self.metric_name}>'
-    
+
     def get_metric_type_display(self):
         """نوع المقياس للعرض"""
-        type_map = {
-            'daily': 'يومي',
-            'weekly': 'أسبوعي',
-            'monthly': 'شهري',
-            'yearly': 'سنوي'
-        }
+        type_map = {'daily': 'يومي', 'weekly': 'أسبوعي', 'monthly': 'شهري', 'yearly': 'سنوي'}
         return type_map.get(self.metric_type, self.metric_type)
-    
+
     def get_performance_status(self):
         """حالة الأداء"""
         if self.target_value:
             if self.metric_value >= self.target_value:
-                return "ممتاز"
-            elif self.metric_value >= (self.target_value * 0.8):
-                return "جيد"
-            elif self.metric_value >= (self.target_value * 0.6):
-                return "متوسط"
-            else:
-                return "ضعيف"
-        return "غير محدد"
-    
+                return 'ممتاز'
+            if self.metric_value >= (self.target_value * 0.8):
+                return 'جيد'
+            if self.metric_value >= (self.target_value * 0.6):
+                return 'متوسط'
+            return 'ضعيف'
+        return 'غير محدد'
+
     def get_performance_color(self):
         """لون الأداء"""
         status = self.get_performance_status()
-        color_map = {
-            "ممتاز": "success",
-            "جيد": "info",
-            "متوسط": "warning",
-            "ضعيف": "danger"
-        }
+        color_map = {'ممتاز': 'success', 'جيد': 'info', 'متوسط': 'warning', 'ضعيف': 'danger'}
         return color_map.get(status, 'secondary')
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -227,34 +220,41 @@ class PerformanceAnalytics(TenantMixin, db.Model):
             'additional_data': self.additional_data,
             'performance_status': self.get_performance_status(),
             'performance_color': self.get_performance_color(),
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
         }
+
 
 class PatientInsight(TenantMixin, db.Model):
     """نموذج رؤى المريض"""
-    
+
     __tablename__ = 'patient_insights'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
-    insight_type = db.Column(db.String(100), nullable=False)  # health_risk, treatment_effectiveness, etc.
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True
+    )
+    insight_type = db.Column(
+        db.String(100), nullable=False
+    )  # health_risk, treatment_effectiveness, etc.
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     risk_level = db.Column(db.String(50), nullable=True)  # low, medium, high, critical
     confidence_score = db.Column(db.Float, nullable=True)
     recommendations = db.Column(db.Text, nullable=True)  # JSON format
     is_acknowledged = db.Column(db.Boolean, default=False)
-    acknowledged_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    acknowledged_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     acknowledged_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+
     # العلاقات
     patient = db.relationship('Patient', back_populates='patient_insights')
     acknowledger = db.relationship('User')
-    
+
     def __repr__(self):
         return f'<PatientInsight {self.title}>'
-    
+
     def get_insight_type_display(self):
         """نوع الرؤية للعرض"""
         type_map = {
@@ -262,30 +262,20 @@ class PatientInsight(TenantMixin, db.Model):
             'treatment_effectiveness': 'فعالية العلاج',
             'medication_adherence': 'التزام الدواء',
             'lifestyle_factors': 'عوامل نمط الحياة',
-            'preventive_care': 'الرعاية الوقائية'
+            'preventive_care': 'الرعاية الوقائية',
         }
         return type_map.get(self.insight_type, self.insight_type)
-    
+
     def get_risk_level_display(self):
         """مستوى المخاطر للعرض"""
-        risk_map = {
-            'low': 'منخفض',
-            'medium': 'متوسط',
-            'high': 'عالي',
-            'critical': 'حرج'
-        }
+        risk_map = {'low': 'منخفض', 'medium': 'متوسط', 'high': 'عالي', 'critical': 'حرج'}
         return risk_map.get(self.risk_level, self.risk_level)
-    
+
     def get_risk_color(self):
         """لون مستوى المخاطر"""
-        color_map = {
-            'low': 'success',
-            'medium': 'warning',
-            'high': 'danger',
-            'critical': 'dark'
-        }
+        color_map = {'low': 'success', 'medium': 'warning', 'high': 'danger', 'critical': 'dark'}
         return color_map.get(self.risk_level, 'secondary')
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -305,7 +295,7 @@ class PatientInsight(TenantMixin, db.Model):
             'acknowledged_by': self.acknowledged_by,
             'acknowledger_name': self.acknowledger.full_name if self.acknowledger else None,
             'acknowledged_at': self.acknowledged_at.isoformat() if self.acknowledged_at else None,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
         }
 
 
@@ -314,12 +304,14 @@ class ModelPrediction(TenantMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     model_name = db.Column(db.String(100), nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     input_data = db.Column(db.Text, nullable=True)
     output_data = db.Column(db.Text, nullable=True)
     confidence_score = db.Column(db.Float, nullable=True)
     is_accepted = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     accepted_at = db.Column(db.DateTime, nullable=True)
 
     patient = db.relationship('Patient', back_populates='model_predictions')

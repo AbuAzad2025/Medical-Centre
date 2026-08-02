@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import json
 import re
+from datetime import UTC
 from pathlib import Path
 
 import pytest
 from sqlalchemy import select
-from app.extensions import db
 
 ROOT = Path(__file__).parent.parent
 
@@ -57,12 +56,17 @@ BS4_DEBT_CEILING = 350
 def _ensure_role_user(db, tenant, role: str):
     username = f'phase14_{role}'
     from flask import g
+
     from models.user import User
 
     prev_bypass = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        user = db.session.execute(select(User).filter_by(username=username, tenant_id=tenant.id)).scalars().first()
+        user = (
+            db.session.execute(select(User).filter_by(username=username, tenant_id=tenant.id))
+            .scalars()
+            .first()
+        )
         if not user:
             user = User(
                 username=username,
@@ -151,18 +155,22 @@ class TestG134ScreenAudit:
     def test_no_technical_leaks_on_sample_screens(self, client, test_tenant, path, role, db):
         # SaaS mode is on in tests; ensure sample-screen routes gated by
         # @require_entitlement can be reached by their role's tenant.
-        from datetime import datetime, timezone
+        from datetime import datetime
+
         from app.core.saas.models import TenantEntitlement
+
         for _cap in ('lab_order', 'radiology_order'):
-            if not db.session.execute(select(TenantEntitlement).filter_by(
-                tenant_id=test_tenant.id, capability_key=_cap
-            )).scalar():
-                db.session.add(TenantEntitlement(
-                    tenant_id=test_tenant.id,
-                    capability_key=_cap,
-                    effective_from=datetime.now(timezone.utc),
-                    is_effective=True,
-                ))
+            if not db.session.execute(
+                select(TenantEntitlement).filter_by(tenant_id=test_tenant.id, capability_key=_cap)
+            ).scalar():
+                db.session.add(
+                    TenantEntitlement(
+                        tenant_id=test_tenant.id,
+                        capability_key=_cap,
+                        effective_from=datetime.now(UTC),
+                        is_effective=True,
+                    )
+                )
         db.session.commit()
 
         c = _login_as(client, test_tenant, role, db)
@@ -228,7 +236,17 @@ class TestStatusLocalization:
     def test_no_raw_displayed_status_in_clinical_templates(self):
         """No raw `>{{ x.status }}<` display leaks in clinical/patient-facing dirs."""
         import re
-        dirs = ['doctor', 'reception', 'nurse', 'lab', 'radiology', 'emergency', 'portal', 'pharmacy']
+
+        dirs = [
+            'doctor',
+            'reception',
+            'nurse',
+            'lab',
+            'radiology',
+            'emergency',
+            'portal',
+            'pharmacy',
+        ]
         pattern = re.compile(r'>\s*\{\{\s*[a-zA-Z_][\w.]*\.status\s*\}\}\s*<')
         offenders = []
         for d in dirs:

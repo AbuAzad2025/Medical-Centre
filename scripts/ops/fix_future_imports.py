@@ -1,4 +1,5 @@
 """Fix __future__ import ordering in files where it was displaced by migration."""
+
 import os
 
 FILES = [
@@ -15,7 +16,7 @@ for fp in FILES:
     if not os.path.exists(fp):
         print(f'MISSING: {fp}')
         continue
-    with open(fp, 'r', encoding='utf-8') as f:
+    with open(fp, encoding='utf-8') as f:
         lines = f.readlines()
     future_idx = None
     for i, line in enumerate(lines):

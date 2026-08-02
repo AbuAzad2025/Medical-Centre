@@ -1,9 +1,11 @@
 """
 Pharmacy POS, catalog, suppliers, and purchase tests.
 """
-import pytest
-from decimal import Decimal
+
+from datetime import UTC
+
 from sqlalchemy import select
+
 from app.extensions import db
 
 
@@ -17,20 +19,29 @@ class TestMedicationCatalog:
 
     def test_add_medication(self, auth_client, test_tenant):
         import secrets
+
         unique_name = 'دواء تجريبي ' + secrets.token_hex(4)
-        resp = auth_client.post('/medication/add', data={
-            'trade_name': unique_name,
-            'scientific_name': 'Test Drug',
-            'dosage_form': 'capsule',
-            'strength': '250mg',
-            'price': 12.00,
-            'stock_quantity': 50,
-            'minimum_stock': 10,
-            'category': 'antibiotic',
-        })
+        resp = auth_client.post(
+            '/medication/add',
+            data={
+                'trade_name': unique_name,
+                'scientific_name': 'Test Drug',
+                'dosage_form': 'capsule',
+                'strength': '250mg',
+                'price': 12.00,
+                'stock_quantity': 50,
+                'minimum_stock': 10,
+                'category': 'antibiotic',
+            },
+        )
         assert resp.status_code == 302
         from models.medication import Medication
-        m = db.session.execute(select(Medication).filter_by(trade_name=unique_name)).scalars().first()
+
+        m = (
+            db.session.execute(select(Medication).filter_by(trade_name=unique_name))
+            .scalars()
+            .first()
+        )
         assert m is not None
         assert m.tenant_id == test_tenant.id
 
@@ -57,23 +68,30 @@ class TestPharmacyPOS:
     def test_pos_sell_with_customer(self, auth_client, test_tenant, test_medications):
         med = test_medications[0]
         original_stock = med.stock_quantity
-        resp = auth_client.post('/medication/pos/sell', json={
-            'items': [
-                {'medication_id': med.id, 'quantity': 2, 'unit_price': float(med.price)}
-            ],
-            'customer_name': 'عميل تجريبي',
-            'payment_method': 'cash',
-        }, content_type='application/json')
+        resp = auth_client.post(
+            '/medication/pos/sell',
+            json={
+                'items': [{'medication_id': med.id, 'quantity': 2, 'unit_price': float(med.price)}],
+                'customer_name': 'عميل تجريبي',
+                'payment_method': 'cash',
+            },
+            content_type='application/json',
+        )
 
-        from models.medication import PharmacySale, Medication
-        sale = db.session.execute(select(PharmacySale).filter_by(customer_name='عميل تجريبي')).scalars().first()
+        from models.medication import Medication, PharmacySale
+
+        sale = (
+            db.session.execute(select(PharmacySale).filter_by(customer_name='عميل تجريبي'))
+            .scalars()
+            .first()
+        )
         if sale is None and resp.status_code == 200:
             data = resp.get_json()
             assert data is not None
             assert data.get('success') or data.get('sale_id')
             sale = db.session.get(PharmacySale, data.get('sale_id'))
 
-        assert sale is not None, "Sale was not created"
+        assert sale is not None, 'Sale was not created'
         assert float(sale.total_amount) > 0
         med_updated = db.session.get(Medication, med.id)
         assert med_updated.stock_quantity == original_stock - 2
@@ -81,28 +99,33 @@ class TestPharmacyPOS:
     def test_pos_sell_without_customer(self, auth_client, test_tenant, test_medications):
         """POS sale must work WITHOUT customer name (standalone retail)."""
         med = test_medications[1]
-        resp = auth_client.post('/medication/pos/sell', json={
-            'items': [
-                {'medication_id': med.id, 'quantity': 1, 'unit_price': float(med.price)}
-            ],
-            'payment_method': 'cash',
-        }, content_type='application/json')
+        resp = auth_client.post(
+            '/medication/pos/sell',
+            json={
+                'items': [{'medication_id': med.id, 'quantity': 1, 'unit_price': float(med.price)}],
+                'payment_method': 'cash',
+            },
+            content_type='application/json',
+        )
         assert resp.status_code in (200, 302)
         from models.medication import PharmacySale
+
         sale = db.session.execute(select(PharmacySale).order_by(PharmacySale.id.desc())).scalar()
         assert sale is not None
         assert sale.customer_name is None or sale.customer_name == ''
 
     def test_sales_history(self, auth_client, test_medications):
+        from datetime import datetime
+
         from app_factory import db
         from models.medication import PharmacySale
-        from datetime import datetime, timezone
+
         sale = PharmacySale(
             tenant_id=test_medications[0].tenant_id,
             total_amount=25.00,
             status='completed',
             customer_name='عميل تاريخ',
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         db.session.add(sale)
         db.session.commit()
@@ -112,6 +135,7 @@ class TestPharmacyPOS:
     def test_sale_receipt(self, auth_client, test_medications):
         from app_factory import db
         from models.medication import PharmacySale
+
         sale = PharmacySale(
             tenant_id=test_medications[0].tenant_id,
             total_amount=15.00,
@@ -131,15 +155,19 @@ class TestSuppliers:
         assert resp.status_code == 200
 
     def test_add_supplier(self, auth_client, test_tenant):
-        resp = auth_client.post('/medication/suppliers/add', data={
-            'name': 'مورد تجريبي',
-            'contact_person': 'شخص اتصال',
-            'phone': '0599000000',
-            'email': 'supplier@test.local',
-            'address': 'عنوان تجريبي',
-        })
+        resp = auth_client.post(
+            '/medication/suppliers/add',
+            data={
+                'name': 'مورد تجريبي',
+                'contact_person': 'شخص اتصال',
+                'phone': '0599000000',
+                'email': 'supplier@test.local',
+                'address': 'عنوان تجريبي',
+            },
+        )
         assert resp.status_code == 302
         from models.medication import Supplier
+
         s = db.session.execute(select(Supplier).filter_by(name='مورد تجريبي')).scalars().first()
         assert s is not None
         assert s.tenant_id == test_tenant.id
@@ -147,14 +175,18 @@ class TestSuppliers:
     def test_edit_supplier(self, auth_client, test_tenant):
         from app_factory import db
         from models.medication import Supplier
+
         s = Supplier(name='مورد قابل للتعديل', tenant_id=test_tenant.id)
         db.session.add(s)
         db.session.commit()
-        resp = auth_client.post('/medication/suppliers/%d/edit' % s.id, data={
-            'name': 'مورد معدل',
-            'contact_person': 'شخص معدل',
-            'phone': '0599111111',
-        })
+        resp = auth_client.post(
+            '/medication/suppliers/%d/edit' % s.id,
+            data={
+                'name': 'مورد معدل',
+                'contact_person': 'شخص معدل',
+                'phone': '0599111111',
+            },
+        )
         assert resp.status_code == 302
         updated = db.session.get(Supplier, s.id)
         assert updated.name == 'مورد معدل'
@@ -163,6 +195,7 @@ class TestSuppliers:
         """Pharmacist cannot delete suppliers (admin/manager only)."""
         from app_factory import db
         from models.medication import Supplier
+
         s = Supplier(name='مورد للحذف', tenant_id=test_tenant.id)
         db.session.add(s)
         db.session.commit()
@@ -181,24 +214,33 @@ class TestPurchases:
 
     def test_add_purchase(self, auth_client, test_tenant, test_medications):
         import secrets
+
         from app_factory import db
-        from models.medication import Supplier, MedicationPurchase, Medication
+        from models.medication import Medication, MedicationPurchase, Supplier
+
         s = Supplier(name='مورد مشتريات', tenant_id=test_tenant.id)
         db.session.add(s)
         db.session.commit()
         med = test_medications[0]
         original_stock = med.stock_quantity
         batch_number = 'BATCH-' + secrets.token_hex(6).upper()
-        resp = auth_client.post('/medication/purchases/add', data={
-            'supplier_id': s.id,
-            'medication_id': med.id,
-            'quantity': 100,
-            'purchase_price': 10.00,
-            'batch_number': batch_number,
-            'expiry_date': '2027-12-31',
-        })
+        resp = auth_client.post(
+            '/medication/purchases/add',
+            data={
+                'supplier_id': s.id,
+                'medication_id': med.id,
+                'quantity': 100,
+                'purchase_price': 10.00,
+                'batch_number': batch_number,
+                'expiry_date': '2027-12-31',
+            },
+        )
         assert resp.status_code == 302
-        purchase = db.session.execute(select(MedicationPurchase).filter_by(batch_number=batch_number)).scalars().first()
+        purchase = (
+            db.session.execute(select(MedicationPurchase).filter_by(batch_number=batch_number))
+            .scalars()
+            .first()
+        )
         assert purchase is not None
         assert purchase.tenant_id == test_tenant.id
         assert float(purchase.purchase_price * purchase.quantity) == 1000.00
@@ -212,8 +254,10 @@ class TestTenantIsolation:
     def test_tenant_filter_on_medications(self, app, test_tenant, test_medications):
         """Medications should be scoped to tenant."""
         from flask import g
+
         g.tenant_id = test_tenant.id
         from models.medication import Medication
+
         meds = db.session.execute(select(Medication)).scalars().all()
         for m in meds:
             assert m.tenant_id == test_tenant.id
@@ -222,22 +266,32 @@ class TestTenantIsolation:
     def test_cross_tenant_isolation(self, app, test_tenant):
         """Data from different tenant should not be visible."""
         from flask import g
+
+        from app.core.tenant.models import Tenant
         from app_factory import db
         from models.medication import Medication
-        from app.core.tenant.models import Tenant
 
         g._tenant_filter_bypass = True
         try:
-            other = db.session.execute(select(Tenant).filter_by(slug='other-test')).scalars().first()
+            other = (
+                db.session.execute(select(Tenant).filter_by(slug='other-test')).scalars().first()
+            )
             if not other:
-                other = Tenant(slug='other-test', name='Other Test', status='active', contact_email='other@test.com')
+                other = Tenant(
+                    slug='other-test',
+                    name='Other Test',
+                    status='active',
+                    contact_email='other@test.com',
+                )
                 db.session.add(other)
                 db.session.commit()
             other_tenant_id = other.id
 
-            m = db.session.execute(select(Medication).filter_by(
-                tenant_id=other_tenant_id, trade_name='دواء منشأة أخرى'
-            )).scalar()
+            m = db.session.execute(
+                select(Medication).filter_by(
+                    tenant_id=other_tenant_id, trade_name='دواء منشأة أخرى'
+                )
+            ).scalar()
             if not m:
                 m = Medication(
                     tenant_id=other_tenant_id,
@@ -255,6 +309,12 @@ class TestTenantIsolation:
             g.pop('_tenant_filter_bypass', None)
 
         g.tenant_id = test_tenant.id
-        meds = db.session.execute(select(Medication).filter(Medication.trade_name == 'دواء منشأة أخرى')).scalars().all()
+        meds = (
+            db.session.execute(
+                select(Medication).filter(Medication.trade_name == 'دواء منشأة أخرى')
+            )
+            .scalars()
+            .all()
+        )
         assert len(meds) == 0
         g.tenant_id = None

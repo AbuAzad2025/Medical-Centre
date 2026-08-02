@@ -1,12 +1,11 @@
 """Smoke tests for UI/UX mobile refactoring — templates render without errors."""
 
 import os
-import pytest
 
 
 def _template_contains(template_path: str, *fragments: str) -> bool:
     full = os.path.join(os.path.dirname(os.path.dirname(__file__)), template_path)
-    with open(full, 'r', encoding='utf-8') as f:
+    with open(full, encoding='utf-8') as f:
         content = f.read()
     return all(frag in content for frag in fragments)
 

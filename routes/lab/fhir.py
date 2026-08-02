@@ -1,31 +1,28 @@
 """fhir routes - extracted from monolithic lab.py"""
 
-from routes.lab import lab_bp, _log_lab_workflow
+import logging
+from datetime import UTC, datetime
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response, g
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
-from models.lab_request import LabRequest
-from models.lab_request import LabResult
-from models.lab_quality import LabQualityControlEntry
-from models.lab_reagent import LabReagent
-from models.audit_trail import AuditTrail
-from app.shared.enums import LabResultStatus
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-import logging, json, base64
-from datetime import datetime, date, timezone, timedelta
-from io import BytesIO
+from flask import (
+    g,
+    jsonify,
+    request,
+)
+from flask_login import current_user, login_required
 from sqlalchemy import select
 
+from app.extensions import db
+from app.shared.enums import LabResultStatus
+from models.lab_request import LabRequest, LabResult
+from routes.lab import _log_lab_workflow, lab_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required
 
 # =============================================
 # FHIR ROUTES
 # =============================================
+
 
 @lab_bp.route('/api/worklist')
 @login_required
@@ -42,17 +39,20 @@ def api_worklist():
         reqs = q.order_by(LabRequest.created_at.desc()).limit(50).all()
         data = []
         for r in reqs:
-            data.append({
-                'id': r.id,
-                'visit_id': r.visit_id,
-                'patient_id': r.patient_id,
-                'status': r.status,
-                'request_number': getattr(r, 'request_number', None)
-            })
+            data.append(
+                {
+                    'id': r.id,
+                    'visit_id': r.visit_id,
+                    'patient_id': r.patient_id,
+                    'status': r.status,
+                    'request_number': getattr(r, 'request_number', None),
+                }
+            )
         return jsonify({'success': True, 'requests': data})
     except Exception as e:
-        logging.error(f"Error loading lab api worklist: {str(e)}")
+        logging.exception(f'Error loading lab api worklist: {e!s}')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
+
 
 @lab_bp.route('/api/fhir/servicerequest', methods=['POST'])
 @login_required
@@ -65,19 +65,29 @@ def api_fhir_lab_service_request():
         requester_id = data.get('requester_id') or getattr(current_user, 'id', None)
         tests = data.get('tests') or []
         if not patient_id or not visit_id:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'patient_id and visit_id مطلوبان'}]}), 400
+            return jsonify(
+                {
+                    'resourceType': 'OperationOutcome',
+                    'issue': [
+                        {'severity': 'error', 'diagnostics': 'patient_id and visit_id مطلوبان'}
+                    ],
+                }
+            ), 400
         req = LabRequest(
             visit_id=visit_id,
             patient_id=patient_id,
             requested_by=requester_id,
             status='REQUESTED',
-            notes=data.get('notes')
+            notes=data.get('notes'),
         )
-        req.request_number = f"LAB-{int(datetime.now(timezone.utc).timestamp())}"
+        req.request_number = f'LAB-{int(datetime.now(UTC).timestamp())}'
         db.session.add(req)
         db.session.flush()
         from services.barcode_service import setup_barcode_for_lab_request
-        setup_barcode_for_lab_request(req, current_user=current_user, tenant_id=getattr(current_user, 'tenant_id', None))
+
+        setup_barcode_for_lab_request(
+            req, current_user=current_user, tenant_id=getattr(current_user, 'tenant_id', None)
+        )
         for t in tests:
             if not isinstance(t, dict):
                 continue
@@ -85,20 +95,36 @@ def api_fhir_lab_service_request():
             name = (t.get('test_name') or '').strip() or code or 'Test'
             if not code and not name:
                 continue
-            db.session.add(LabResult(
-                request_id=req.id,
-                patient_id=patient_id,
-                test_code=code or name,
-                test_name=name,
-                status='PENDING'
-            ))
+            db.session.add(
+                LabResult(
+                    request_id=req.id,
+                    patient_id=patient_id,
+                    test_code=code or name,
+                    test_name=name,
+                    status='PENDING',
+                )
+            )
         _log_lab_workflow(req.id, 'REQUESTED', 'fhir_service_request')
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        return jsonify({'resourceType': 'ServiceRequest', 'id': str(req.id), 'status': 'active', 'subject': {'reference': f'Patient/{patient_id}'}, 'encounter': {'reference': f'Encounter/{visit_id}'}}), 201
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        return jsonify(
+            {
+                'resourceType': 'ServiceRequest',
+                'id': str(req.id),
+                'status': 'active',
+                'subject': {'reference': f'Patient/{patient_id}'},
+                'encounter': {'reference': f'Encounter/{visit_id}'},
+            }
+        ), 201
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error importing FHIR ServiceRequest: {str(e)}")
-        return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر استيراد طلب المختبر'}]}), 500
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error importing FHIR ServiceRequest: {e!s}')
+        return jsonify(
+            {
+                'resourceType': 'OperationOutcome',
+                'issue': [{'severity': 'error', 'diagnostics': 'تعذر استيراد طلب المختبر'}],
+            }
+        ), 500
+
 
 @lab_bp.route('/api/fhir/observation', methods=['POST'])
 @login_required
@@ -114,20 +140,46 @@ def api_fhir_lab_observation_import():
         unit = data.get('unit')
         reference_range = data.get('reference_range')
         if not request_id or not patient_id:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'request_id and patient_id مطلوبان'}]}), 400
-        req = db.session.execute(select(LabRequest).filter(LabRequest.id == int(request_id), LabRequest.tenant_id == g.tenant_id)).scalars().first()
+            return jsonify(
+                {
+                    'resourceType': 'OperationOutcome',
+                    'issue': [
+                        {'severity': 'error', 'diagnostics': 'request_id and patient_id مطلوبان'}
+                    ],
+                }
+            ), 400
+        req = (
+            db.session.execute(
+                select(LabRequest).filter(
+                    LabRequest.id == int(request_id), LabRequest.tenant_id == g.tenant_id
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not req:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'طلب المختبر غير موجود'}]}), 404
+            return jsonify(
+                {
+                    'resourceType': 'OperationOutcome',
+                    'issue': [{'severity': 'error', 'diagnostics': 'طلب المختبر غير موجود'}],
+                }
+            ), 404
         res = None
         if test_code:
-            res = db.session.execute(select(LabResult).filter_by(request_id=req.id, test_code=test_code)).scalars().first()
+            res = (
+                db.session.execute(
+                    select(LabResult).filter_by(request_id=req.id, test_code=test_code)
+                )
+                .scalars()
+                .first()
+            )
         if not res:
             res = LabResult(
                 request_id=req.id,
                 patient_id=patient_id,
                 test_code=test_code or test_name,
                 test_name=test_name,
-                status='READY'
+                status='READY',
             )
             db.session.add(res)
         res.value = value
@@ -135,14 +187,20 @@ def api_fhir_lab_observation_import():
         res.reference_range = reference_range
         res.status = LabResultStatus.VALIDATED
         res.performed_by = getattr(current_user, 'id', None)
-        req.updated_at = datetime.now(timezone.utc)
+        req.updated_at = datetime.now(UTC)
         _log_lab_workflow(req.id, req.status, 'fhir_observation')
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'resourceType': 'Observation', 'id': str(res.id), 'status': 'final'}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error importing FHIR Observation: {str(e)}")
-        return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر استيراد نتيجة المختبر'}]}), 500
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error importing FHIR Observation: {e!s}')
+        return jsonify(
+            {
+                'resourceType': 'OperationOutcome',
+                'issue': [{'severity': 'error', 'diagnostics': 'تعذر استيراد نتيجة المختبر'}],
+            }
+        ), 500
+
 
 @lab_bp.route('/api/hl7/import', methods=['POST'])
 @login_required
@@ -160,35 +218,41 @@ def api_hl7_import():
             patient_id=patient_id,
             requested_by=getattr(current_user, 'id', None),
             status='REQUESTED',
-            notes=data.get('notes')
+            notes=data.get('notes'),
         )
-        req.request_number = f"HL7-{int(datetime.now(timezone.utc).timestamp())}"
+        req.request_number = f'HL7-{int(datetime.now(UTC).timestamp())}'
         db.session.add(req)
         db.session.flush()
         from services.barcode_service import setup_barcode_for_lab_request
-        setup_barcode_for_lab_request(req, current_user=current_user, tenant_id=getattr(current_user, 'tenant_id', None))
+
+        setup_barcode_for_lab_request(
+            req, current_user=current_user, tenant_id=getattr(current_user, 'tenant_id', None)
+        )
         for t in tests:
             if not isinstance(t, dict):
                 continue
             code = (t.get('test_code') or '').strip()
             name = (t.get('test_name') or '').strip() or code or 'Test'
-            db.session.add(LabResult(
-                request_id=req.id,
-                patient_id=patient_id,
-                test_code=code or name,
-                test_name=name,
-                value=t.get('value'),
-                unit=t.get('unit'),
-                reference_range=t.get('reference_range'),
-                status='PENDING'
-            ))
+            db.session.add(
+                LabResult(
+                    request_id=req.id,
+                    patient_id=patient_id,
+                    test_code=code or name,
+                    test_name=name,
+                    value=t.get('value'),
+                    unit=t.get('unit'),
+                    reference_range=t.get('reference_range'),
+                    status='PENDING',
+                )
+            )
         _log_lab_workflow(req.id, 'REQUESTED', 'hl7_import')
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'request_id': req.id}), 201
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error importing HL7 lab payload: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error importing HL7 lab payload: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر استيراد HL7'}), 500
+
 
 @lab_bp.route('/api/fhir/observation/lab/<int:result_id>')
 @login_required
@@ -196,18 +260,35 @@ def api_hl7_import():
 def api_fhir_lab_observation(result_id):
     """تصدير نتيجة مختبر بصيغة FHIR Observation وربطها بـ Encounter"""
     try:
-        res = db.session.execute(select(LabResult).filter(LabResult.id == result_id, LabResult.tenant_id == g.tenant_id)).scalars().first()
+        res = (
+            db.session.execute(
+                select(LabResult).filter(
+                    LabResult.id == result_id, LabResult.tenant_id == g.tenant_id
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not res:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'LabResult not found'}]}), 404
-        req = db.session.execute(select(LabRequest).filter(LabRequest.id == res.request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
+            return jsonify(
+                {
+                    'resourceType': 'OperationOutcome',
+                    'issue': [{'severity': 'error', 'diagnostics': 'LabResult not found'}],
+                }
+            ), 404
+        req = (
+            db.session.execute(
+                select(LabRequest).filter(
+                    LabRequest.id == res.request_id, LabRequest.tenant_id == g.tenant_id
+                )
+            )
+            .scalars()
+            .first()
+        )
         visit_id = req.visit_id if req else None
 
         # تحويل الحالة إلى FHIR
-        status_map = {
-            'PENDING': 'preliminary',
-            'READY': 'final',
-            'VALIDATED': 'final'
-        }
+        status_map = {'PENDING': 'preliminary', 'READY': 'final', 'VALIDATED': 'final'}
         status = status_map.get((res.status or '').upper(), 'unknown')
 
         # محاولة تحويل القيمة إلى رقم
@@ -215,31 +296,54 @@ def api_fhir_lab_observation(result_id):
         value_num = None
         try:
             value_num = float(value_str)
-        except Exception as e:
+        except Exception:
             value_num = None
 
         resource = {
             'resourceType': 'Observation',
             'id': str(res.id),
             'status': status,
-            'category': [{'coding': [{'system': 'http://terminology.hl7.org/CodeSystem/observation-category', 'code': 'laboratory'}]}],
+            'category': [
+                {
+                    'coding': [
+                        {
+                            'system': 'http://terminology.hl7.org/CodeSystem/observation-category',
+                            'code': 'laboratory',
+                        }
+                    ]
+                }
+            ],
             'code': {
                 'coding': [{'system': 'urn:medical-system:test-code', 'code': res.test_code}],
-                'text': res.test_name
+                'text': res.test_name,
             },
             'subject': {'reference': f'Patient/{res.patient_id}'},
             **({'encounter': {'reference': f'Encounter/{visit_id}'}} if visit_id else {}),
             'effectiveDateTime': (res.created_at.isoformat() if res.created_at else None),
-            **({'valueQuantity': {'value': value_num, 'unit': res.unit}} if value_num is not None else {'valueString': value_str}),
+            **(
+                {'valueQuantity': {'value': value_num, 'unit': res.unit}}
+                if value_num is not None
+                else {'valueString': value_str}
+            ),
             'referenceRange': ([{'text': res.reference_range}] if res.reference_range else []),
-            **({'performer': [{'reference': f'Practitioner/{res.performed_by}'}]} if res.performed_by else {}),
-            'note': ([{'text': res.notes}] if res.notes else [])
+            **(
+                {'performer': [{'reference': f'Practitioner/{res.performed_by}'}]}
+                if res.performed_by
+                else {}
+            ),
+            'note': ([{'text': res.notes}] if res.notes else []),
         }
 
         return jsonify(resource)
     except Exception as e:
-        logging.error(f"Error exporting FHIR Lab Observation: {str(e)}")
-        return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير نتائج المختبر حالياً'}]}), 500
+        logging.exception(f'Error exporting FHIR Lab Observation: {e!s}')
+        return jsonify(
+            {
+                'resourceType': 'OperationOutcome',
+                'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير نتائج المختبر حالياً'}],
+            }
+        ), 500
+
 
 @lab_bp.route('/api/fhir/diagnosticreport/lab/<int:result_id>')
 @login_required
@@ -247,38 +351,79 @@ def api_fhir_lab_observation(result_id):
 def api_fhir_lab_diagnostic_report(result_id):
     """تصدير تقرير مختبر بصيغة FHIR DiagnosticReport وربطه بـ Encounter"""
     try:
-        res = db.session.execute(select(LabResult).filter(LabResult.id == result_id, LabResult.tenant_id == g.tenant_id)).scalars().first()
+        res = (
+            db.session.execute(
+                select(LabResult).filter(
+                    LabResult.id == result_id, LabResult.tenant_id == g.tenant_id
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not res:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على نتيجة المختبر المطلوبة'}]}), 404
-        req = db.session.execute(select(LabRequest).filter(LabRequest.id == res.request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
+            return jsonify(
+                {
+                    'resourceType': 'OperationOutcome',
+                    'issue': [
+                        {
+                            'severity': 'error',
+                            'diagnostics': 'تعذر العثور على نتيجة المختبر المطلوبة',
+                        }
+                    ],
+                }
+            ), 404
+        req = (
+            db.session.execute(
+                select(LabRequest).filter(
+                    LabRequest.id == res.request_id, LabRequest.tenant_id == g.tenant_id
+                )
+            )
+            .scalars()
+            .first()
+        )
         visit_id = req.visit_id if req else None
 
-        status_map = {
-            'PENDING': 'preliminary',
-            'READY': 'final',
-            'VALIDATED': 'final'
-        }
+        status_map = {'PENDING': 'preliminary', 'READY': 'final', 'VALIDATED': 'final'}
         status = status_map.get((res.status or '').upper(), 'unknown')
 
         resource = {
             'resourceType': 'DiagnosticReport',
             'id': str(res.id),
             'status': status,
-            'category': [{'coding': [{'system': 'http://terminology.hl7.org/CodeSystem/v2-0074', 'code': 'LAB'}]}],
+            'category': [
+                {
+                    'coding': [
+                        {'system': 'http://terminology.hl7.org/CodeSystem/v2-0074', 'code': 'LAB'}
+                    ]
+                }
+            ],
             'code': {
                 'coding': [{'system': 'urn:medical-system:test-code', 'code': res.test_code}],
-                'text': res.test_name
+                'text': res.test_name,
             },
             'subject': {'reference': f'Patient/{res.patient_id}'},
             **({'encounter': {'reference': f'Encounter/{visit_id}'}} if visit_id else {}),
             'effectiveDateTime': (res.created_at.isoformat() if res.created_at else None),
-            'issued': (res.updated_at.isoformat() if hasattr(res, 'updated_at') and res.updated_at else None),
+            'issued': (
+                res.updated_at.isoformat()
+                if hasattr(res, 'updated_at') and res.updated_at
+                else None
+            ),
             'result': [{'reference': f'Observation/{res.id}'}],
             'conclusion': (res.notes or ''),
-            **({'performer': [{'reference': f'Practitioner/{res.performed_by}'}]} if res.performed_by else {})
+            **(
+                {'performer': [{'reference': f'Practitioner/{res.performed_by}'}]}
+                if res.performed_by
+                else {}
+            ),
         }
 
         return jsonify(resource)
     except Exception as e:
-        logging.error(f"Error exporting FHIR Lab DiagnosticReport: {str(e)}")
-        return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير تقرير المختبر حالياً'}]}), 500
+        logging.exception(f'Error exporting FHIR Lab DiagnosticReport: {e!s}')
+        return jsonify(
+            {
+                'resourceType': 'OperationOutcome',
+                'issue': [{'severity': 'error', 'diagnostics': 'تعذر تصدير تقرير المختبر حالياً'}],
+            }
+        ), 500

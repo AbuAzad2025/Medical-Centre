@@ -1,24 +1,27 @@
 """Role assignment policy — clinical staff roles vs privileged operators."""
+
 from __future__ import annotations
 
 # Roles that may be assigned through admin user-management endpoints.
-ASSIGNABLE_ROLES: frozenset[str] = frozenset({
-    'super_admin',
-    'owner',
-    'admin',
-    'manager',
-    'doctor',
-    'nurse',
-    'reception',
-    'accountant',
-    'pharmacist',
-    'lab',
-    'radiology',
-    'emergency',
-    'technician',
-    'user',
-    'patient',
-})
+ASSIGNABLE_ROLES: frozenset[str] = frozenset(
+    {
+        'super_admin',
+        'owner',
+        'admin',
+        'manager',
+        'doctor',
+        'nurse',
+        'reception',
+        'accountant',
+        'pharmacist',
+        'lab',
+        'radiology',
+        'emergency',
+        'technician',
+        'user',
+        'patient',
+    }
+)
 
 # Only these operators may create users or change role fields.
 PRIVILEGED_ROLE_MANAGERS: frozenset[str] = frozenset({'super_admin', 'owner'})

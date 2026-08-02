@@ -27,7 +27,7 @@ def stripe_webhook():
         return jsonify({'received': True, **result}), 200
     except StripeWebhookError as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'webhook_processing_failed'}), 500
 
 
@@ -42,13 +42,15 @@ def create_checkout():
             tenant_id,
             int(data.get('package_version_id')),
             (data.get('billing_type') or 'monthly').strip().lower(),
-            success_url=data.get('success_url') or request.host_url.rstrip('/') + '/finance/dashboard',
-            cancel_url=data.get('cancel_url') or request.host_url.rstrip('/') + '/finance/dashboard',
+            success_url=data.get('success_url')
+            or request.host_url.rstrip('/') + '/finance/dashboard',
+            cancel_url=data.get('cancel_url')
+            or request.host_url.rstrip('/') + '/finance/dashboard',
         )
         return jsonify(result), 201
     except (StripeBillingError, ValueError, TypeError) as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'checkout_failed'}), 500
 
 
@@ -61,12 +63,13 @@ def billing_portal():
         tenant_id = _tenant_id_from_context()
         result = StripeBillingService.create_billing_portal_session(
             tenant_id,
-            return_url=data.get('return_url') or request.host_url.rstrip('/') + '/finance/dashboard',
+            return_url=data.get('return_url')
+            or request.host_url.rstrip('/') + '/finance/dashboard',
         )
         return jsonify(result), 200
     except StripeBillingError as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'portal_failed'}), 500
 
 
@@ -84,7 +87,7 @@ def cancel_subscription():
         return jsonify(result), 200
     except StripeBillingError as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'cancel_failed'}), 500
 
 
@@ -104,5 +107,5 @@ def change_plan():
         return jsonify(result), 200
     except (StripeBillingError, ValueError, TypeError) as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'change_plan_failed'}), 500

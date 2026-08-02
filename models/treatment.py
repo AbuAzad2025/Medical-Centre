@@ -3,42 +3,49 @@
 Medical System Treatment Model
 """
 
-from datetime import datetime, timezone
-from sqlalchemy import Index, CheckConstraint
-from app_factory import db
+from datetime import UTC, datetime
+
+from sqlalchemy import CheckConstraint, Index
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class Treatment(TenantMixin, db.Model):
     """نموذج العلاج"""
-    
+
     __tablename__ = 'treatments'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='RESTRICT'), nullable=False, index=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='RESTRICT'), nullable=False, index=True
+    )
+    doctor_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     # الأعراض
     symptoms = db.Column(db.Text, nullable=True)
-    
+
     # الفحص السريري
     blood_pressure = db.Column(db.String(50), nullable=True)
     pulse = db.Column(db.String(50), nullable=True)
     temperature = db.Column(db.String(50), nullable=True)
     weight = db.Column(db.String(50), nullable=True)
     examination_results = db.Column(db.Text, nullable=True)
-    
+
     # التشخيص
     primary_diagnosis = db.Column(db.String(500), nullable=False)
     secondary_diagnosis = db.Column(db.String(500), nullable=True)
     diagnosis_notes = db.Column(db.Text, nullable=True)
-    
+
     # العلاج
     treatment_plan = db.Column(db.Text, nullable=True)
-    
+
     # المتابعة
     follow_up_date = db.Column(db.Date, nullable=True)
     follow_up_instructions = db.Column(db.Text, nullable=True)
-    
+
     # الفحوصات المطلوبة (free-text)
     # P2-000: These fields are temporary/legacy. They must remain writable until
     # P2-001 (LabRequest) and P2-003 (RadiologyRequest) vertical slices are fully
@@ -46,18 +53,23 @@ class Treatment(TenantMixin, db.Model):
     # should be created in addition to, not instead of, the original text.
     requested_labs = db.Column(db.Text, nullable=True)
     requested_radiology = db.Column(db.Text, nullable=True)
-    
+
     # الحالة
     status = db.Column(db.String(50), default='pending')  # pending, completed, follow_up
-    
+
     # التواريخ
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
     # Constraints and Indexes
     __table_args__ = (
-        CheckConstraint("status IN ('pending', 'active', 'completed', 'cancelled', 'follow_up')", name='chk_treatment_status'),
-        CheckConstraint("visit_id > 0", name='chk_treatment_visit_id'),
+        CheckConstraint(
+            "status IN ('pending', 'active', 'completed', 'cancelled', 'follow_up')",
+            name='chk_treatment_status',
+        ),
+        CheckConstraint('visit_id > 0', name='chk_treatment_visit_id'),
         Index('idx_treatment_visit', 'visit_id'),
         Index('idx_treatment_doctor', 'doctor_id'),
         Index('idx_treatment_status', 'status'),
@@ -65,44 +77,36 @@ class Treatment(TenantMixin, db.Model):
         Index('idx_treatment_visit_status', 'visit_id', 'status'),
         Index('idx_treatment_doctor_status', 'doctor_id', 'status'),
     )
-    
+
     # العلاقات
     visit = db.relationship('Visit', back_populates='treatments')
     doctor = db.relationship('User', foreign_keys=[doctor_id])
-    
+
     def __repr__(self):
         return f'<Treatment {self.id} - {self.primary_diagnosis}>'
-    
+
     def get_status_display(self):
         """حالة العلاج للعرض"""
-        status_map = {
-            'pending': 'معلق',
-            'completed': 'مكتمل',
-            'follow_up': 'متابعة'
-        }
+        status_map = {'pending': 'معلق', 'completed': 'مكتمل', 'follow_up': 'متابعة'}
         return status_map.get(self.status, self.status)
-    
+
     def get_status_color(self):
         """لون الحالة"""
-        color_map = {
-            'pending': 'warning',
-            'completed': 'success',
-            'follow_up': 'info'
-        }
+        color_map = {'pending': 'warning', 'completed': 'success', 'follow_up': 'info'}
         return color_map.get(self.status, 'secondary')
-    
+
     def is_completed(self):
         """هل تم إكمال العلاج"""
         return self.status == 'completed'
-    
+
     def is_pending(self):
         """هل العلاج معلق"""
         return self.status == 'pending'
-    
+
     def is_follow_up(self):
         """هل العلاج يحتاج متابعة"""
         return self.status == 'follow_up'
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -131,5 +135,5 @@ class Treatment(TenantMixin, db.Model):
             'is_pending': self.is_pending(),
             'is_follow_up': self.is_follow_up(),
             'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'updated_at': self.updated_at.isoformat(),
         }

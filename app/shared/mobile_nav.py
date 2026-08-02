@@ -1,7 +1,6 @@
 """Mobile bottom navigation items by role — §25.3."""
-from __future__ import annotations
 
-from typing import List, Optional
+from __future__ import annotations
 
 from flask import request, url_for
 
@@ -43,7 +42,7 @@ _ROLE_MOBILE_NAV = {
 }
 
 
-def resolve_mobile_nav_items(user) -> List[dict]:
+def resolve_mobile_nav_items(user) -> list[dict]:
     if not user or not getattr(user, 'is_authenticated', False):
         return []
     role = getattr(user, 'role', None) or ''
@@ -53,8 +52,12 @@ def resolve_mobile_nav_items(user) -> List[dict]:
             href = url_for(ep)
             active = request.endpoint == ep
             if not active and request.endpoint:
-                active = request.endpoint.startswith(ep.split('.')[0] + '.') and ep.split('.')[-1] in (request.endpoint or '')
-            items.append({'href': href, 'icon': icon, 'label': label, 'active': active, 'endpoint': ep})
-        except Exception as e:
+                active = request.endpoint.startswith(ep.split('.')[0] + '.') and ep.split('.')[
+                    -1
+                ] in (request.endpoint or '')
+            items.append(
+                {'href': href, 'icon': icon, 'label': label, 'active': active, 'endpoint': ep}
+            )
+        except Exception:
             continue
     return items[:4]

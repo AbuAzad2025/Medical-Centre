@@ -4,14 +4,12 @@ SaaS seeding utilities — S0-006
 Provides idempotent conversion of legacy ProductBundle seed data into the new
 Package / PackageVersion / Entitlement catalog.
 """
+
+from datetime import UTC, datetime
+from decimal import Decimal
+
 from sqlalchemy import select
 
-from datetime import datetime, timezone
-from decimal import Decimal
-from typing import Optional
-
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
 from app.core.module.registry import MODULE_REGISTRY
 from app.core.saas.models import (
     Package,
@@ -22,6 +20,8 @@ from app.core.saas.models import (
     PackageVersionLimit,
     PackageVersionPricing,
 )
+from app.extensions import db
+from utils.db_safety import safe_commit
 
 
 class SeedError(Exception):
@@ -30,7 +30,7 @@ class SeedError(Exception):
 
 def seed_packages_from_product_bundles(
     *,
-    created_package_ids: Optional[list[int]] = None,
+    created_package_ids: list[int] | None = None,
 ) -> list[int]:
     """Idempotently create Package/PackageVersion records from ProductBundle seeds.
 
@@ -69,11 +69,11 @@ def seed_packages_from_product_bundles(
 
         version = PackageVersion(
             package_id=package.id,
-            version="1.0.0",
-            changelog="Migrated from ProductBundle seed",
+            version='1.0.0',
+            changelog='Migrated from ProductBundle seed',
             trial_days=0,
             grace_days=0,
-            published_at=datetime.now(timezone.utc),
+            published_at=datetime.now(UTC),
         )
         db.session.add(version)
         db.session.flush()
@@ -82,28 +82,28 @@ def seed_packages_from_product_bundles(
         db.session.add(
             PackageVersionPricing(
                 package_version_id=version.id,
-                billing_type="monthly",
+                billing_type='monthly',
                 price=bundle.monthly_price or Decimal(0),
                 setup_fee=bundle.setup_fee or Decimal(0),
-                currency=bundle.currency or "SAR",
+                currency=bundle.currency or 'SAR',
             )
         )
         db.session.add(
             PackageVersionPricing(
                 package_version_id=version.id,
-                billing_type="yearly",
+                billing_type='yearly',
                 price=bundle.yearly_price or Decimal(0),
                 setup_fee=bundle.setup_fee or Decimal(0),
-                currency=bundle.currency or "SAR",
+                currency=bundle.currency or 'SAR',
             )
         )
 
         # Limits
         limit_map = {
-            "max_users": bundle.max_users,
-            "max_patients": bundle.max_patients,
-            "storage_gb": bundle.storage_gb,
-            "api_calls_per_month": bundle.api_calls_per_month,
+            'max_users': bundle.max_users,
+            'max_patients': bundle.max_patients,
+            'storage_gb': bundle.storage_gb,
+            'api_calls_per_month': bundle.api_calls_per_month,
         }
         for key, value in limit_map.items():
             if value is None:
@@ -134,11 +134,11 @@ def seed_packages_from_product_bundles(
             PackageVersionAvailability(
                 package_version_id=version.id,
                 availability_status=PackageVersionAvailabilityStatus.AVAILABLE,
-                effective_from=datetime.now(timezone.utc),
+                effective_from=datetime.now(UTC),
             )
         )
 
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         created_ids.append(package.id)
         if created_package_ids is not None:
             created_package_ids.append(package.id)
@@ -150,5 +150,5 @@ def _category_for_bundle(bundle) -> str:
     """Heuristic category for a legacy ProductBundle."""
     modules = bundle.get_modules()
     if len(modules) == 1:
-        return "standalone"
-    return "bundle"
+        return 'standalone'
+    return 'bundle'

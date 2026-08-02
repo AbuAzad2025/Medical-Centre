@@ -2,19 +2,21 @@
 نموذج العلامة التجارية - Branding Model
 Medical System Branding Management
 """
+
+from datetime import UTC, datetime
+
 from sqlalchemy import select
 
-from datetime import datetime, timezone
 from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
-import os
+from utils.db_safety import safe_commit, safe_rollback
+
 
 class BrandingSettings(TenantMixin, db.Model):
     """نموذج إعدادات العلامة التجارية"""
-    
+
     __tablename__ = 'branding_settings'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     organization_name = db.Column(db.String(200), nullable=False, default='المركز الصحي المتخصص')
     organization_name_en = db.Column(db.String(200), nullable=True)
@@ -22,17 +24,17 @@ class BrandingSettings(TenantMixin, db.Model):
     organization_phone = db.Column(db.String(50), nullable=True)
     organization_email = db.Column(db.String(100), nullable=True)
     organization_website = db.Column(db.String(200), nullable=True)
-    
+
     # الشعارات
     logo_path = db.Column(db.String(500), nullable=True)
     favicon_path = db.Column(db.String(500), nullable=True)
     watermark_path = db.Column(db.String(500), nullable=True)
-    
+
     # الألوان
     primary_color = db.Column(db.String(7), default='#2563eb')
     secondary_color = db.Column(db.String(7), default='#10b981')
     accent_color = db.Column(db.String(7), default='#f59e0b')
-    
+
     # ترويسة التقارير
     report_header_html = db.Column(db.Text, nullable=True)
     report_footer_html = db.Column(db.Text, nullable=True)
@@ -45,18 +47,20 @@ class BrandingSettings(TenantMixin, db.Model):
     prescription_footer_html = db.Column(db.Text, nullable=True)
     tax_number = db.Column(db.String(50), nullable=True)
     license_number = db.Column(db.String(50), nullable=True)
-    
+
     # إعدادات إضافية
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
     created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
     updated_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
-    
+
     # العلاقات
     creator = db.relationship('User', foreign_keys=[created_by])
     updater = db.relationship('User', foreign_keys=[updated_by])
-    
+
     def __repr__(self):
         return f'<BrandingSettings {self.organization_name}>'
 
@@ -70,10 +74,11 @@ class BrandingSettings(TenantMixin, db.Model):
             return path
         try:
             from flask import url_for
+
             return url_for('static', filename=path.lstrip('/'))
-        except Exception as e:
+        except Exception:
             return path
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -102,15 +107,16 @@ class BrandingSettings(TenantMixin, db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
-    
+
     @classmethod
     def _tenant_id(cls):
         try:
             from flask import g
+
             tenant = getattr(g, 'current_tenant', None)
             if tenant and getattr(tenant, 'id', None):
                 return tenant.id
-        except Exception as e:
+        except Exception:
             pass
         return None
 
@@ -129,6 +135,7 @@ class BrandingSettings(TenantMixin, db.Model):
     def create_default(cls, user_id):
         """إنشاء إعدادات افتراضية"""
         import logging
+
         try:
             tenant_id = cls._tenant_id()
             default_branding = cls(
@@ -139,47 +146,50 @@ class BrandingSettings(TenantMixin, db.Model):
                 organization_phone='+970-123456789',
                 organization_email='info@medical-center.com',
                 created_by=user_id,
-                updated_by=user_id
+                updated_by=user_id,
             )
             db.session.add(default_branding)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             return default_branding
-        except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error("BrandingSettings.create_default failed")
+        except Exception:
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception('BrandingSettings.create_default failed')
             raise
 
 
 class SystemTheme(TenantMixin, db.Model):
     """نموذج الثيمات"""
-    
+
     __tablename__ = 'system_themes'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     name_ar = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    
+
     # ألوان الثيم
     primary_color = db.Column(db.String(7), nullable=False)
     secondary_color = db.Column(db.String(7), nullable=False)
     accent_color = db.Column(db.String(7), nullable=False)
     background_color = db.Column(db.String(7), nullable=False)
     text_color = db.Column(db.String(7), nullable=False)
-    
+
     # إعدادات إضافية
     is_default = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
     def __repr__(self):
         return f'<SystemTheme {self.name}>'
-    
+
     @classmethod
     def create_default_themes(cls):
         """إنشاء الثيمات الافتراضية"""
         import logging
+
         try:
             themes = [
                 {
@@ -190,7 +200,7 @@ class SystemTheme(TenantMixin, db.Model):
                     'secondary_color': '#10b981',
                     'accent_color': '#f59e0b',
                     'background_color': '#f8fafc',
-                    'text_color': '#1f2937'
+                    'text_color': '#1f2937',
                 },
                 {
                     'name': 'Green Health',
@@ -200,7 +210,7 @@ class SystemTheme(TenantMixin, db.Model):
                     'secondary_color': '#0d9488',
                     'accent_color': '#d97706',
                     'background_color': '#f0fdf4',
-                    'text_color': '#064e3b'
+                    'text_color': '#064e3b',
                 },
                 {
                     'name': 'Professional Gray',
@@ -210,20 +220,24 @@ class SystemTheme(TenantMixin, db.Model):
                     'secondary_color': '#6b7280',
                     'accent_color': '#f59e0b',
                     'background_color': '#f9fafb',
-                    'text_color': '#111827'
-                }
+                    'text_color': '#111827',
+                },
             ]
-            
+
             for theme_data in themes:
-                existing = db.session.execute(select(cls).filter_by(name=theme_data['name'])).scalars().first()
+                existing = (
+                    db.session.execute(select(cls).filter_by(name=theme_data['name']))
+                    .scalars()
+                    .first()
+                )
                 if not existing:
                     theme = cls(**theme_data)
                     if theme_data['name'] == 'Medical Blue':
                         theme.is_default = True
                     db.session.add(theme)
-            
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error("SystemTheme.create_default_themes failed")
+
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+        except Exception:
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception('SystemTheme.create_default_themes failed')
             raise

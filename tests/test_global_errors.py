@@ -3,11 +3,8 @@ Global error handler tests for custom exceptions.
 Tests that ModuleNotEnabledError, TenantIsolationError, TenantContextError,
 PermissionError, and IdempotencyError are properly caught and return correct HTTP responses.
 """
-from __future__ import annotations
 
-import pytest
-from utils.exceptions import ModuleNotEnabledError, TenantContextError, IdempotencyError
-from app.shared.tenant_filter import TenantIsolationError
+from __future__ import annotations
 
 
 class TestGlobalErrorHandlers:

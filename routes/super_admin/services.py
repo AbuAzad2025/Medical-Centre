@@ -1,24 +1,21 @@
 """services routes - extracted from monolithic super_admin.py"""
 
-from routes.super_admin import super_admin_bp
+import logging
 
 # Imports
- 
+from flask import abort, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import select
 
-from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, abort
-from flask_login import login_required, current_user
-from utils.decorators import super_admin_required
-from services.access_control_service import AccessControlService
-from services.super_admin_service import super_admin_service
-import logging
-from sqlalchemy import func, select
 from app.extensions import db
+from routes.super_admin import super_admin_bp
 from utils.db_safety import safe_commit, safe_rollback
-
+from utils.decorators import super_admin_required
 
 # =============================================
 # SERVICES ROUTES
 # =============================================
+
 
 @super_admin_bp.route('/pricing')
 @login_required
@@ -26,17 +23,24 @@ from utils.db_safety import safe_commit, safe_rollback
 def pricing():
     """إدارة الأسعار المركزية (واجهة متطورة)"""
     try:
-        from models.service import ServiceMaster
         from models.department import Department
-        
-        services = db.session.execute(select(ServiceMaster).order_by(ServiceMaster.updated_at.desc())).scalars().all()
-        departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
-        
+        from models.service import ServiceMaster
+
+        services = (
+            db.session.execute(select(ServiceMaster).order_by(ServiceMaster.updated_at.desc()))
+            .scalars()
+            .all()
+        )
+        departments = (
+            db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+        )
+
         return render_template('manager/pricing.html', services=services, departments=departments)
     except Exception as e:
-        logging.error(f"Error loading pricing for super admin: {str(e)}")
+        logging.exception(f'Error loading pricing for super admin: {e!s}')
         flash('حدث خطأ في تحميل إدارة الأسعار', 'error')
         return redirect(url_for('super_admin.dashboard'))
+
 
 @super_admin_bp.route('/services')
 @login_required
@@ -44,14 +48,20 @@ def pricing():
 def services():
     """إدارة الخدمات"""
     try:
-        from models.service import ServiceMaster
         from models.department import Department
+        from models.service import ServiceMaster
+
         services = db.session.execute(select(ServiceMaster)).scalars().all()
-        departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
-        return render_template('super_admin/services.html', services=services, departments=departments)
+        departments = (
+            db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+        )
+        return render_template(
+            'super_admin/services.html', services=services, departments=departments
+        )
     except Exception as e:
-        logging.error(f"Services error: {str(e)}")
+        logging.exception(f'Services error: {e!s}')
         return render_template('super_admin/services.html', services=[], departments=[])
+
 
 @super_admin_bp.route('/services/create', methods=['POST'])
 @login_required
@@ -59,15 +69,19 @@ def services():
 def create_service():
     """إنشاء خدمة جديدة"""
     try:
-        from models.service import ServiceMaster
+        import re
+        import time
+
         from app.extensions import db
-        import re, time
-        
+        from models.service import ServiceMaster
+
         # التوافق والتحقق من حقول النموذج
         name = request.form.get('name')
         name_ar = request.form.get('name_ar')
         if not name or not name_ar:
-            return jsonify({'success': False, 'message': 'اسم الخدمة (إنجليزي) والاسم العربي مطلوبان'}), 400
+            return jsonify(
+                {'success': False, 'message': 'اسم الخدمة (إنجليزي) والاسم العربي مطلوبان'}
+            ), 400
 
         price_value_raw = request.form.get('base_price') or request.form.get('price') or '0'
         try:
@@ -97,7 +111,9 @@ def create_service():
             try:
                 duration_int = int(duration_val)
                 if duration_int < 1:
-                    return jsonify({'success': False, 'message': 'المدة يجب أن تكون 1 دقيقة على الأقل'}), 400
+                    return jsonify(
+                        {'success': False, 'message': 'المدة يجب أن تكون 1 دقيقة على الأقل'}
+                    ), 400
             except ValueError:
                 return jsonify({'success': False, 'message': 'المدة يجب أن تكون عددًا صحيحًا'}), 400
         else:
@@ -108,17 +124,21 @@ def create_service():
             try:
                 max_daily_int = int(max_daily_val)
                 if max_daily_int < 1:
-                    return jsonify({'success': False, 'message': 'الحد اليومي يجب أن يكون 1 على الأقل'}), 400
+                    return jsonify(
+                        {'success': False, 'message': 'الحد اليومي يجب أن يكون 1 على الأقل'}
+                    ), 400
             except ValueError:
-                return jsonify({'success': False, 'message': 'الحد اليومي يجب أن يكون عددًا صحيحًا'}), 400
+                return jsonify(
+                    {'success': False, 'message': 'الحد اليومي يجب أن يكون عددًا صحيحًا'}
+                ), 400
         else:
             max_daily_int = None
 
         # توليد رمز فريد للخدمة إذا لم يتم إرساله
         code = request.form.get('code')
         if not code:
-            base = re.sub(r"[^A-Za-z0-9]+", "_", (name or "SERVICE").upper()).strip('_')
-            code = f"{(category or 'GENERAL').upper()}_{base}_{int(time.time())}"
+            base = re.sub(r'[^A-Za-z0-9]+', '_', (name or 'SERVICE').upper()).strip('_')
+            code = f'{(category or "GENERAL").upper()}_{base}_{int(time.time())}'
 
         service = ServiceMaster(
             code=code,
@@ -132,19 +152,23 @@ def create_service():
             duration=duration_int,
             max_daily=max_daily_int,
             is_required=bool(request.form.get('is_required')),
-            is_active=True
+            is_active=True,
         )
-        
+
         db.session.add(service)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        
-        return jsonify({'success': True, 'message': 'تم إنشاء الخدمة بنجاح', 'service_id': service.id}), 200
-        
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+
+        return jsonify(
+            {'success': True, 'message': 'تم إنشاء الخدمة بنجاح', 'service_id': service.id}
+        ), 200
+
     except Exception as e:
         from app.extensions import db
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Create service error: {str(e)}")
+
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Create service error: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر إنشاء الخدمة حالياً'}), 500
+
 
 @super_admin_bp.route('/service/<int:service_id>')
 @login_required
@@ -152,16 +176,18 @@ def create_service():
 def view_service(service_id):
     """عرض تفاصيل خدمة"""
     try:
-        from models.service import ServiceMaster
         from app.extensions import db
+        from models.service import ServiceMaster
+
         service = db.session.get(ServiceMaster, service_id)
         if not service:
             abort(404)
         return render_template('super_admin/service_detail.html', service=service)
     except Exception as e:
-        logging.error(f"View service error: {str(e)}")
+        logging.exception(f'View service error: {e!s}')
         flash('حدث خطأ في عرض الخدمة', 'error')
         return redirect(url_for('super_admin.services'))
+
 
 @super_admin_bp.route('/edit-service/<int:service_id>', methods=['GET', 'POST'])
 @login_required
@@ -169,13 +195,13 @@ def view_service(service_id):
 def edit_service(service_id):
     """تعديل خدمة"""
     try:
-        from models.service import ServiceMaster
         from app.extensions import db
-        
+        from models.service import ServiceMaster
+
         service = db.session.get(ServiceMaster, service_id)
         if not service:
             abort(404)
-        
+
         if request.method == 'POST':
             service.name_ar = request.form.get('name')
             service.name = request.form.get('name_en')
@@ -184,25 +210,36 @@ def edit_service(service_id):
             dep_id = request.form.get('department_id') or None
             service.department_id = int(dep_id) if dep_id else None
             service.currency = request.form.get('currency') or service.currency
-            service.duration = int(request.form.get('duration')) if request.form.get('duration') else None
-            service.max_daily = int(request.form.get('max_daily')) if request.form.get('max_daily') else None
+            service.duration = (
+                int(request.form.get('duration')) if request.form.get('duration') else None
+            )
+            service.max_daily = (
+                int(request.form.get('max_daily')) if request.form.get('max_daily') else None
+            )
             service.is_required = bool(request.form.get('is_required'))
             service.base_price = float(request.form.get('base_price', 0))
             service.is_active = bool(request.form.get('is_active'))
-            
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم تحديث الخدمة بنجاح', 'success')
             return redirect(url_for('super_admin.services'))
-        
+
         from models.department import Department
-        departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
-        return render_template('super_admin/edit_service.html', service=service, departments=departments)
+
+        departments = (
+            db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+        )
+        return render_template(
+            'super_admin/edit_service.html', service=service, departments=departments
+        )
     except Exception as e:
         from app.extensions import db
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Edit service error: {str(e)}")
+
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Edit service error: {e!s}')
         flash('حدث خطأ في تعديل الخدمة', 'error')
         return redirect(url_for('super_admin.services'))
+
 
 @super_admin_bp.route('/service-pricing/<int:service_id>', methods=['GET', 'POST'])
 @login_required
@@ -210,25 +247,65 @@ def edit_service(service_id):
 def service_pricing(service_id):
     """إدارة تسعير الخدمة"""
     try:
-        from models.service import ServiceMaster
-        from models.pricing_management import PricingManagement
         from app.extensions import db
-        
+        from models.pricing_management import PricingManagement
+        from models.service import ServiceMaster
+
         service = db.session.get(ServiceMaster, service_id)
         if not service:
             abort(404)
-        pricing_records = db.session.execute(select(PricingManagement).filter_by(service_id=service_id)).scalars().all()
+        pricing_records = (
+            db.session.execute(select(PricingManagement).filter_by(service_id=service_id))
+            .scalars()
+            .all()
+        )
         pricing = []
         for rec in pricing_records:
             if rec.base_price:
-                pricing.append({'id': rec.id, 'price_type': 'standard', 'price': float(rec.base_price or 0), 'discount_percentage': float(rec.discount_percentage or 0), 'discount_amount': float(rec.discount_amount or 0), 'description': ''})
+                pricing.append(
+                    {
+                        'id': rec.id,
+                        'price_type': 'standard',
+                        'price': float(rec.base_price or 0),
+                        'discount_percentage': float(rec.discount_percentage or 0),
+                        'discount_amount': float(rec.discount_amount or 0),
+                        'description': '',
+                    }
+                )
             if rec.emergency_price:
-                pricing.append({'id': rec.id, 'price_type': 'urgent', 'price': float(rec.emergency_price or 0), 'discount_percentage': float(rec.discount_percentage or 0), 'discount_amount': float(rec.discount_amount or 0), 'description': ''})
+                pricing.append(
+                    {
+                        'id': rec.id,
+                        'price_type': 'urgent',
+                        'price': float(rec.emergency_price or 0),
+                        'discount_percentage': float(rec.discount_percentage or 0),
+                        'discount_amount': float(rec.discount_amount or 0),
+                        'description': '',
+                    }
+                )
             if rec.private_price:
-                pricing.append({'id': rec.id, 'price_type': 'vip', 'price': float(rec.private_price or 0), 'discount_percentage': float(rec.discount_percentage or 0), 'discount_amount': float(rec.discount_amount or 0), 'description': ''})
+                pricing.append(
+                    {
+                        'id': rec.id,
+                        'price_type': 'vip',
+                        'price': float(rec.private_price or 0),
+                        'discount_percentage': float(rec.discount_percentage or 0),
+                        'discount_amount': float(rec.discount_amount or 0),
+                        'description': '',
+                    }
+                )
             if rec.insurance_price:
-                pricing.append({'id': rec.id, 'price_type': 'insurance', 'price': float(rec.insurance_price or 0), 'discount_percentage': float(rec.discount_percentage or 0), 'discount_amount': float(rec.discount_amount or 0), 'description': ''})
-        
+                pricing.append(
+                    {
+                        'id': rec.id,
+                        'price_type': 'insurance',
+                        'price': float(rec.insurance_price or 0),
+                        'discount_percentage': float(rec.discount_percentage or 0),
+                        'discount_amount': float(rec.discount_amount or 0),
+                        'description': '',
+                    }
+                )
+
         if request.method == 'POST':
             price_type = request.form.get('price_type')
             price_value = float(request.form.get('price', 0))
@@ -237,12 +314,28 @@ def service_pricing(service_id):
             discount_percentage_raw = request.form.get('discount_percentage')
             discount_amount_raw = request.form.get('discount_amount')
             try:
-                discount_percentage = float(discount_percentage_raw) if discount_percentage_raw not in (None, '',) else 0.0
-            except Exception as e:
+                discount_percentage = (
+                    float(discount_percentage_raw)
+                    if discount_percentage_raw
+                    not in (
+                        None,
+                        '',
+                    )
+                    else 0.0
+                )
+            except Exception:
                 discount_percentage = 0.0
             try:
-                discount_amount = float(discount_amount_raw) if discount_amount_raw not in (None, '',) else 0.0
-            except Exception as e:
+                discount_amount = (
+                    float(discount_amount_raw)
+                    if discount_amount_raw
+                    not in (
+                        None,
+                        '',
+                    )
+                    else 0.0
+                )
+            except Exception:
                 discount_amount = 0.0
 
             new_pricing = PricingManagement(
@@ -253,23 +346,25 @@ def service_pricing(service_id):
                 private_price=price_value if price_type == 'vip' else None,
                 currency=currency,
                 created_by=current_user.id,
-                is_active=True
+                is_active=True,
             )
             new_pricing.discount_percentage = discount_percentage
             new_pricing.discount_amount = discount_amount
 
             db.session.add(new_pricing)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إضافة التسعير بنجاح', 'success')
             return redirect(url_for('super_admin.service_pricing', service_id=service_id))
-        
+
         return render_template('super_admin/service_pricing.html', service=service, pricing=pricing)
     except Exception as e:
         from app.extensions import db
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Service pricing error: {str(e)}")
+
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Service pricing error: {e!s}')
         flash('حدث خطأ في إدارة التسعير', 'error')
         return redirect(url_for('super_admin.services'))
+
 
 @super_admin_bp.route('/activate-service/<int:service_id>', methods=['POST'])
 @login_required
@@ -277,21 +372,23 @@ def service_pricing(service_id):
 def activate_service(service_id):
     """تفعيل خدمة"""
     try:
-        from models.service import ServiceMaster
         from app.extensions import db
-        
+        from models.service import ServiceMaster
+
         service = db.session.get(ServiceMaster, service_id)
         if not service:
             abort(404)
         service.is_active = True
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+
         return jsonify({'success': True, 'message': 'تم تفعيل الخدمة'}), 200
     except Exception as e:
         from app.extensions import db
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Activate service error: {str(e)}")
+
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Activate service error: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر تفعيل الخدمة حالياً'}), 500
+
 
 @super_admin_bp.route('/deactivate-service/<int:service_id>', methods=['POST'])
 @login_required
@@ -299,21 +396,23 @@ def activate_service(service_id):
 def deactivate_service(service_id):
     """إلغاء تفعيل خدمة"""
     try:
-        from models.service import ServiceMaster
         from app.extensions import db
-        
+        from models.service import ServiceMaster
+
         service = db.session.get(ServiceMaster, service_id)
         if not service:
             abort(404)
         service.is_active = False
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-        
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل الخدمة'}), 200
     except Exception as e:
         from app.extensions import db
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Deactivate service error: {str(e)}")
+
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Deactivate service error: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل الخدمة حالياً'}), 500
+
 
 @super_admin_bp.route('/export-services')
 @login_required
@@ -321,33 +420,37 @@ def deactivate_service(service_id):
 def export_services():
     """تصدير الخدمات"""
     try:
-        from models.service import ServiceMaster
         import csv
         from io import StringIO
+
         from flask import make_response
-        
+
+        from models.service import ServiceMaster
+
         services = db.session.execute(select(ServiceMaster)).scalars().all()
-        
+
         si = StringIO()
         writer = csv.writer(si)
         writer.writerow(['ID', 'الاسم', 'الاسم بالإنجليزية', 'الوصف', 'السعر الأساسي', 'نشط'])
-        
+
         for service in services:
-            writer.writerow([
-                service.id,
-                service.name_ar or '',
-                service.name or '',
-                service.description or '',
-                service.base_price or 0,
-                'نعم' if service.is_active else 'لا'
-            ])
-        
+            writer.writerow(
+                [
+                    service.id,
+                    service.name_ar or '',
+                    service.name or '',
+                    service.description or '',
+                    service.base_price or 0,
+                    'نعم' if service.is_active else 'لا',
+                ]
+            )
+
         output = make_response(si.getvalue())
-        output.headers["Content-Disposition"] = "attachment; filename=services_export.csv"
-        output.headers["Content-type"] = "text/csv; charset=utf-8"
+        output.headers['Content-Disposition'] = 'attachment; filename=services_export.csv'
+        output.headers['Content-type'] = 'text/csv; charset=utf-8'
         return output
-        
+
     except Exception as e:
-        logging.error(f"Export services error: {str(e)}")
+        logging.exception(f'Export services error: {e!s}')
         flash('حدث خطأ في تصدير الخدمات', 'error')
         return redirect(url_for('super_admin.services'))

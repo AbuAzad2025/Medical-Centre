@@ -1,10 +1,13 @@
 """
 Security hardening middleware — headers, CSP, HSTS, rate-limit stubs
 """
+
 import logging
-from flask import request, g
+
+from flask import g, request
 
 logger = logging.getLogger(__name__)
+
 
 class SecurityHeadersMiddleware:
     """Adds security headers to every response."""
@@ -28,7 +31,9 @@ class SecurityHeadersMiddleware:
             response.headers['X-XSS-Protection'] = '1; mode=block'
             # HSTS (only in production with HTTPS)
             if not app.debug:
-                response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+                response.headers['Strict-Transport-Security'] = (
+                    'max-age=31536000; includeSubDomains'
+                )
             # Referrer policy
             response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
             # Permissions policy
@@ -47,9 +52,13 @@ class AuditLogMiddleware:
                     user_id = getattr(g, 'current_user_id', None)
                     tenant_id = getattr(g, 'tenant_id', None)
                     logger.info(
-                        "AUDIT %s %s user=%s tenant=%s status=%s",
-                        request.method, request.path, user_id, tenant_id, response.status_code
+                        'AUDIT %s %s user=%s tenant=%s status=%s',
+                        request.method,
+                        request.path,
+                        user_id,
+                        tenant_id,
+                        response.status_code,
                     )
-                except Exception as e:
+                except Exception:
                     pass
             return response

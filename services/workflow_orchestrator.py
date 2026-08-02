@@ -4,13 +4,14 @@ WorkflowOrchestrator — unified workflow facade over VisitStateMachineService.
 Clinical visit.status transitions are validated by VisitStateMachineService.
 Administrative archival is owned exclusively by GatekeeperService (P1-002).
 """
-from sqlalchemy import select
-from datetime import datetime, timezone
+
 from flask import g
+from sqlalchemy import select
+
 from app.extensions import db
-from app.shared.enums import VisitState, VisitArchiveStatus, QueueState
-from utils.db_safety import safe_commit
+from app.shared.enums import QueueState, VisitArchiveStatus, VisitState
 from services.visit_state_machine_service import VisitStateMachineService
+from utils.db_safety import safe_commit
 
 
 class WorkflowOrchestrator:
@@ -28,8 +29,10 @@ class WorkflowOrchestrator:
     def can_transition(current_state: str, next_state: str) -> bool:
         if next_state == VisitArchiveStatus.ARCHIVED:
             return current_state == VisitState.COMPLETED
+
         class _VisitProxy:
             status = current_state
+
         try:
             target = VisitState(next_state)
         except ValueError:
@@ -37,11 +40,14 @@ class WorkflowOrchestrator:
         return VisitStateMachineService.can_transition(_VisitProxy(), target)
 
     @staticmethod
-    def transition(visit, next_state: str, user_id: int | None = None, note: str = "") -> bool:
+    def transition(visit, next_state: str, user_id: int | None = None, note: str = '') -> bool:
         old_state = visit.status
         if next_state == VisitArchiveStatus.ARCHIVED:
             ok, _ = VisitStateMachineService.transition_or_archive(
-                visit, VisitArchiveStatus.ARCHIVED, actor=user_id, user_id=user_id,
+                visit,
+                VisitArchiveStatus.ARCHIVED,
+                actor=user_id,
+                user_id=user_id,
             )
             if ok:
                 WorkflowOrchestrator._emit_event(visit, old_state, next_state, user_id, note)
@@ -62,7 +68,7 @@ class WorkflowOrchestrator:
         except ValueError:
             state = VisitState.OPEN
         VisitStateMachineService.initialize(visit, state)
-        WorkflowOrchestrator._emit_event(visit, None, state.value, user_id, "Case created")
+        WorkflowOrchestrator._emit_event(visit, None, state.value, user_id, 'Case created')
 
     @staticmethod
     def next_actions(visit) -> list[str]:
@@ -71,9 +77,9 @@ class WorkflowOrchestrator:
     @staticmethod
     def current_owner(visit) -> str | None:
         ownership_map = {
-            VisitState.OPEN: "reception",
-            VisitState.CHECKED_IN: "reception",
-            VisitState.IN_PROGRESS: "doctor",
+            VisitState.OPEN: 'reception',
+            VisitState.CHECKED_IN: 'reception',
+            VisitState.IN_PROGRESS: 'doctor',
             VisitState.COMPLETED: None,
             VisitState.CANCELLED: None,
         }
@@ -82,27 +88,29 @@ class WorkflowOrchestrator:
     @staticmethod
     def required_fields(visit) -> list[str]:
         field_map = {
-            VisitState.OPEN: ["patient_id"],
-            VisitState.CHECKED_IN: ["patient_id", "doctor_id"],
-            VisitState.IN_PROGRESS: ["patient_id", "doctor_id", "diagnosis"],
-            VisitState.COMPLETED: ["patient_id", "doctor_id"],
+            VisitState.OPEN: ['patient_id'],
+            VisitState.CHECKED_IN: ['patient_id', 'doctor_id'],
+            VisitState.IN_PROGRESS: ['patient_id', 'doctor_id', 'diagnosis'],
+            VisitState.COMPLETED: ['patient_id', 'doctor_id'],
         }
         return field_map.get(visit.status, [])
 
     @staticmethod
-    def _emit_event(visit, old_state, new_state, user_id, note=""):
+    def _emit_event(visit, old_state, new_state, user_id, note=''):
         try:
             from models.workflow import VisitWorkflowEvent
+
             event = VisitWorkflowEvent(
                 visit_id=visit.id,
                 tenant_id=getattr(g, 'tenant_id', None) or getattr(visit, 'tenant_id', None),
                 from_status=old_state,
                 to_status=new_state,
-                performed_by=user_id or getattr(g, 'current_user', None) and getattr(g.current_user, 'id', None),
+                performed_by=user_id
+                or (getattr(g, 'current_user', None) and getattr(g.current_user, 'id', None)),
                 notes=note,
             )
             db.session.add(event)
-        except Exception as e:
+        except Exception:
             pass
 
 
@@ -110,6 +118,7 @@ class QueueService:
     @staticmethod
     def add_to_queue(visit, station: str, tenant_id: int):
         from models.queue_management import QueueManagement
+
         q = QueueManagement(
             tenant_id=tenant_id,
             visit_id=visit.id,
@@ -118,25 +127,39 @@ class QueueService:
             status=QueueState.WAITING,
         )
         db.session.add(q)
-        safe_commit(db.session, error_message="Failed to add to queue", reraise=True)
+        safe_commit(db.session, error_message='Failed to add to queue', reraise=True)
 
     @staticmethod
     def call_next(station: str, tenant_id: int):
         from models.queue_management import QueueManagement
-        entry = db.session.execute(select(QueueManagement).filter_by(
-            tenant_id=tenant_id, station=station, status=QueueState.WAITING
-        ).order_by(QueueManagement.id.asc())).scalars().first()
+
+        entry = (
+            db.session.execute(
+                select(QueueManagement)
+                .filter_by(tenant_id=tenant_id, station=station, status=QueueState.WAITING)
+                .order_by(QueueManagement.id.asc())
+            )
+            .scalars()
+            .first()
+        )
         if entry:
             entry.status = QueueState.CALLED
-            safe_commit(db.session, error_message="Failed to call next queue entry", reraise=True)
+            safe_commit(db.session, error_message='Failed to call next queue entry', reraise=True)
         return entry
 
     @staticmethod
     def complete(visit, station: str, tenant_id: int):
         from models.queue_management import QueueManagement
-        entry = db.session.execute(select(QueueManagement).filter_by(
-            tenant_id=tenant_id, visit_id=visit.id, station=station
-        ).order_by(QueueManagement.id.desc())).scalars().first()
+
+        entry = (
+            db.session.execute(
+                select(QueueManagement)
+                .filter_by(tenant_id=tenant_id, visit_id=visit.id, station=station)
+                .order_by(QueueManagement.id.desc())
+            )
+            .scalars()
+            .first()
+        )
         if entry:
             entry.status = QueueState.COMPLETED
-            safe_commit(db.session, error_message="Failed to complete queue entry", reraise=True)
+            safe_commit(db.session, error_message='Failed to complete queue entry', reraise=True)

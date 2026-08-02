@@ -4,15 +4,14 @@ import uuid
 from unittest.mock import patch
 
 import pytest
+from flask import g
 
-from app.extensions import db
-from app.shared.enums import VisitState, VisitArchiveStatus, VisitWorkflowStatus
 from app.modules.workflows.visit import VisitWorkflowService
+from app.shared.enums import VisitArchiveStatus, VisitState, VisitWorkflowStatus
 from models.patient import Patient
 from models.visit import Visit
-from services.workflow_orchestrator import WorkflowOrchestrator
 from services.visit_state_machine_service import VisitStateMachineService, set_vsm_authorized
-from flask import g
+from services.workflow_orchestrator import WorkflowOrchestrator
 from tests.tenant_context import ensure_default_test_tenant
 
 
@@ -47,7 +46,9 @@ def wf_visit(rollback_db, monkeypatch, app):
     g.tenant_id = tenant.id
     g.current_tenant = tenant
     g.tenant_slug = tenant.slug
-    p = Patient(first_name='و', last_name='س', phone='050' + format(uuid.uuid4().int % 10**7, '07d'))
+    p = Patient(
+        first_name='و', last_name='س', phone='050' + format(uuid.uuid4().int % 10**7, '07d')
+    )
     rollback_db.session.add(p)
     rollback_db.session.commit()
     v = Visit(patient_id=p.id, status=VisitState.OPEN)
@@ -66,7 +67,9 @@ class TestWorkflowOrchestrator:
 
     def test_archive_delegates_to_gatekeeper(self, wf_visit):
         _complete_visit(wf_visit)
-        with patch('services.gatekeeper_service.GatekeeperService.archive_visit', return_value=(True, 'ok')) as arch:
+        with patch(
+            'services.gatekeeper_service.GatekeeperService.archive_visit', return_value=(True, 'ok')
+        ) as arch:
             ok = WorkflowOrchestrator.transition(wf_visit, VisitArchiveStatus.ARCHIVED, user_id=1)
         assert ok is True
         arch.assert_called_once_with(wf_visit.id, 1)
@@ -92,7 +95,9 @@ class TestVisitWorkflowService:
     def test_archive_via_gatekeeper(self, wf_visit):
         _complete_visit(wf_visit)
         wf_visit.payment_status = 'PAID'
-        with patch('services.gatekeeper_service.GatekeeperService.archive_visit', return_value=(True, 'ok')) as arch:
+        with patch(
+            'services.gatekeeper_service.GatekeeperService.archive_visit', return_value=(True, 'ok')
+        ) as arch:
             VisitWorkflowService.transition(wf_visit, VisitWorkflowStatus.ARCHIVED, performed_by=1)
         arch.assert_called_once_with(wf_visit.id, 1)
 

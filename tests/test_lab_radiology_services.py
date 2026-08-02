@@ -6,22 +6,23 @@ Covers latent bugs fixed in this change:
   - RadiologyService.create_or_update_result (wrote to non-existent report_text/conclusion)
 All DB work runs under ``rollback_db`` isolation.
 """
+
 import types
 import uuid
 
 import pytest
+from sqlalchemy import select
 
+from app.extensions import db
+from models.audit_trail import AuditTrail
+from models.lab_reagent import LabReagent
+from models.lab_request import LabRequest, LabResult
+from models.lab_test_catalog import LabTestCatalog
+from models.patient import Patient
+from models.radiology_request import RadiologyRequest
+from models.visit import Visit
 from services.lab_service import LabService as LAB
 from services.radiology_service import RadiologyService as RAD
-from models.patient import Patient
-from models.visit import Visit
-from models.lab_test_catalog import LabTestCatalog
-from models.lab_request import LabRequest, LabResult
-from models.lab_reagent import LabReagent
-from models.radiology_request import RadiologyRequest
-from models.audit_trail import AuditTrail
-from sqlalchemy import select
-from app.extensions import db
 
 
 @pytest.fixture
@@ -43,24 +44,28 @@ def fx(rollback_db):
 
     def catalog(code=None, active=True):
         code = code or 'C' + uuid.uuid4().hex[:6]
-        c = LabTestCatalog(code=code, name_ar='تحليل', name_en='Test',
-                           unit='mg', is_active=active)
+        c = LabTestCatalog(code=code, name_ar='تحليل', name_en='Test', unit='mg', is_active=active)
         db.session.add(c)
         db.session.commit()
         return c
 
     def reagent(name=None, qty=5, minimum=10):
-        r = LabReagent(name=(name or 'Reagent' + uuid.uuid4().hex[:4]),
-                       stock_quantity=qty, minimum_stock=minimum)
+        r = LabReagent(
+            name=(name or 'Reagent' + uuid.uuid4().hex[:4]),
+            stock_quantity=qty,
+            minimum_stock=minimum,
+        )
         db.session.add(r)
         db.session.commit()
         return r
 
-    return types.SimpleNamespace(db=db, patient=patient, visit=visit,
-                                 catalog=catalog, reagent=reagent)
+    return types.SimpleNamespace(
+        db=db, patient=patient, visit=visit, catalog=catalog, reagent=reagent
+    )
 
 
 # ════════════════════════════ LabService ════════════════════════════
+
 
 class TestLabCreateRequest:
     def test_no_test_ids(self, fx):
@@ -82,7 +87,11 @@ class TestLabCreateRequest:
         ok, res = LAB.create_request(v.id, [c1.id, c2.id], notes='n')
         assert ok is True
         assert res['request_number'].startswith('LR-')
-        results = db.session.execute(select(LabResult).filter_by(request_id=res['lab_request_id'])).scalars().all()
+        results = (
+            db.session.execute(select(LabResult).filter_by(request_id=res['lab_request_id']))
+            .scalars()
+            .all()
+        )
         assert len(results) == 2
         assert all(r.status == 'PENDING' for r in results)
 
@@ -121,27 +130,47 @@ class TestLabResultForm:
         v = fx.visit()
         c = fx.catalog()
         ok, res = LAB.create_request(v.id, [c.id])
-        existing = db.session.execute(select(LabResult).filter_by(request_id=res['lab_request_id'])).scalars().first()
+        existing = (
+            db.session.execute(select(LabResult).filter_by(request_id=res['lab_request_id']))
+            .scalars()
+            .first()
+        )
         req = db.session.get(LabRequest, res['lab_request_id'])
-        created, errors = LAB.create_results_from_form(req, {
-            'result_ids': [str(existing.id)],
-            'test_names': ['T'], 'values': ['12'], 'units': ['mg'],
-            'ranges': ['1-20'], 'statuses': ['COMPLETED'], 'notes_list': ['ok'],
-        })
+        created, errors = LAB.create_results_from_form(
+            req,
+            {
+                'result_ids': [str(existing.id)],
+                'test_names': ['T'],
+                'values': ['12'],
+                'units': ['mg'],
+                'ranges': ['1-20'],
+                'statuses': ['COMPLETED'],
+                'notes_list': ['ok'],
+            },
+        )
         assert errors == []
         assert created == [existing.id]
         assert db.session.get(LabResult, existing.id).value == '12'
 
     def test_create_new_result_sets_required_fields(self, fx):
         v = fx.visit()
-        req = LabRequest(visit_id=v.id, patient_id=v.patient_id,
-                         request_number='LR-x', status='REQUESTED')
+        req = LabRequest(
+            visit_id=v.id, patient_id=v.patient_id, request_number='LR-x', status='REQUESTED'
+        )
         fx.db.session.add(req)
         fx.db.session.commit()
-        created, errors = LAB.create_results_from_form(req, {
-            'result_ids': [], 'test_names': ['Glucose'], 'values': ['90'],
-            'units': ['mg'], 'ranges': [''], 'statuses': ['PENDING'], 'notes_list': [''],
-        })
+        created, errors = LAB.create_results_from_form(
+            req,
+            {
+                'result_ids': [],
+                'test_names': ['Glucose'],
+                'values': ['90'],
+                'units': ['mg'],
+                'ranges': [''],
+                'statuses': ['PENDING'],
+                'notes_list': [''],
+            },
+        )
         assert errors == []
         new = db.session.get(LabResult, created[0])
         assert new.patient_id == v.patient_id
@@ -162,22 +191,39 @@ class TestLabResultForm:
         assert LAB.finalize_results(res['lab_request_id']) is True
         req = db.session.get(LabRequest, res['lab_request_id'])
         assert req.status == 'DONE'
-        assert all(r.status == 'COMPLETED' for r in
-                   db.session.execute(select(LabResult).filter_by(request_id=req.id)).scalars().all())
+        assert all(
+            r.status == 'COMPLETED'
+            for r in db.session.execute(select(LabResult).filter_by(request_id=req.id))
+            .scalars()
+            .all()
+        )
 
 
 class TestLabQualityAndReagents:
     def test_create_and_get_quality_entry(self, fx):
-        entry = LAB.create_quality_entry({
-            'test_code': 'QC1', 'measured_value': 5.0,
-            'control_level': 'NORMAL', 'status': 'PASS',
-        })
+        entry = LAB.create_quality_entry(
+            {
+                'test_code': 'QC1',
+                'measured_value': 5.0,
+                'control_level': 'NORMAL',
+                'status': 'PASS',
+            }
+        )
         assert entry is not None
         assert any(e.id == entry.id for e in LAB.get_quality_entries())
 
     def test_create_quality_entry_invalid_returns_none(self, fx):
-        assert LAB.create_quality_entry({'test_code': 'QC2', 'measured_value': 1.0,
-                                         'control_level': 'BAD', 'status': 'PASS'}) is None
+        assert (
+            LAB.create_quality_entry(
+                {
+                    'test_code': 'QC2',
+                    'measured_value': 1.0,
+                    'control_level': 'BAD',
+                    'status': 'PASS',
+                }
+            )
+            is None
+        )
 
     def test_reagents_listing_and_low_stock(self, fx):
         r = fx.reagent(qty=2, minimum=10)
@@ -214,8 +260,9 @@ class TestLabMisc:
     def test_log_action_persists(self, fx):
         p = fx.patient()
         LAB.log_action('result_finalized', 'details here', user_id=None)
-        row = db.session.execute(select(AuditTrail).filter_by(entity_type='lab_test').order_by(
-            AuditTrail.id.desc())).scalar()
+        row = db.session.execute(
+            select(AuditTrail).filter_by(entity_type='lab_test').order_by(AuditTrail.id.desc())
+        ).scalar()
         assert row is not None
         assert 'result_finalized' in row.description
 
@@ -228,6 +275,7 @@ class TestLabMisc:
 
 
 # ════════════════════════════ RadiologyService ════════════════════════════
+
 
 class TestRadCreateRequest:
     def test_visit_not_found(self, fx):
@@ -290,8 +338,9 @@ class TestRadResults:
         v = fx.visit()
         ok, res = RAD.create_request(v.id)
         rid = res['radiology_request_id']
-        result = RAD.create_or_update_result(rid, 'my findings', conclusion='my impression',
-                                             is_critical=True)
+        result = RAD.create_or_update_result(
+            rid, 'my findings', conclusion='my impression', is_critical=True
+        )
         assert result is not None
         assert result.findings == 'my findings'
         assert result.impression == 'my impression'
@@ -340,8 +389,11 @@ class TestRadResults:
 class TestRadMisc:
     def test_log_action_persists(self, fx):
         RAD.log_action('report_approved', 'critical', user_id=None)
-        row = db.session.execute(select(AuditTrail).filter_by(entity_type='radiology_test').order_by(
-            AuditTrail.id.desc())).scalar()
+        row = db.session.execute(
+            select(AuditTrail)
+            .filter_by(entity_type='radiology_test')
+            .order_by(AuditTrail.id.desc())
+        ).scalar()
         assert row is not None and 'report_approved' in row.description
 
     def test_notify_complete_no_raise(self, fx):
@@ -354,6 +406,7 @@ class TestRadMisc:
 
     def test_save_uploaded_files(self, fx, tmp_path, monkeypatch):
         from flask import current_app
+
         monkeypatch.setitem(current_app.config, 'UPLOAD_FOLDER', str(tmp_path))
 
         class FakeFile:
@@ -371,6 +424,7 @@ class TestRadMisc:
 
 def _make_user(db):
     from models.user import User
+
     un = 'lr_' + uuid.uuid4().hex[:8]
     u = User(username=un, email=un + '@x.com', full_name='u', role='lab', is_active=True)
     u.set_password('p')

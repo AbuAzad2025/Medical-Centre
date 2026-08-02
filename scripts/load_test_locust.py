@@ -16,13 +16,14 @@ Environment overrides:
   LOCUST_PASSWORD   default: ValidPass123!
   LOCUST_TENANT     default: pharmacy-shifa
 """
+
 from __future__ import annotations
 
 import os
 import random
 from datetime import datetime
 
-from locust import HttpUser, task, between
+from locust import HttpUser, between, task
 
 
 class MedicalPlatformUser(HttpUser):
@@ -32,9 +33,9 @@ class MedicalPlatformUser(HttpUser):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.username = os.getenv("LOCUST_USERNAME", "accountant_test")
-        self.password = os.getenv("LOCUST_PASSWORD", "ValidPass123!")
-        self.tenant_slug = os.getenv("LOCUST_TENANT", "pharmacy-shifa")
+        self.username = os.getenv('LOCUST_USERNAME', 'accountant_test')
+        self.password = os.getenv('LOCUST_PASSWORD', 'ValidPass123!')
+        self.tenant_slug = os.getenv('LOCUST_TENANT', 'pharmacy-shifa')
         self._csrf_token: str | None = None
         self._logged_in = False
 
@@ -45,30 +46,31 @@ class MedicalPlatformUser(HttpUser):
     def on_stop(self):
         """Logout at end of session."""
         if self._logged_in:
-            self.client.get("/auth/logout", name="logout")
+            self.client.get('/auth/logout', name='logout')
 
     def _do_login(self):
         """Authenticate via standard form login."""
         # 1. GET login page to grab CSRF token
-        resp = self.client.get("/auth/login", name="login_page")
+        resp = self.client.get('/auth/login', name='login_page')
         if resp.status_code != 200:
             return
 
         # Extract csrf token from hidden input
         import re
+
         match = re.search(r'name="csrf_token"[^>]+value="([^"]+)"', resp.text)
-        csrf = match.group(1) if match else ""
+        csrf = match.group(1) if match else ''
 
         # 2. POST credentials
         login_resp = self.client.post(
-            "/auth/login",
+            '/auth/login',
             data={
-                "username": self.username,
-                "password": self.password,
-                "tenant_slug": self.tenant_slug,
-                "csrf_token": csrf,
+                'username': self.username,
+                'password': self.password,
+                'tenant_slug': self.tenant_slug,
+                'csrf_token': csrf,
             },
-            name="login_post",
+            name='login_post',
             allow_redirects=True,
         )
         if login_resp.status_code in (200, 302):
@@ -80,11 +82,11 @@ class MedicalPlatformUser(HttpUser):
         """Search for patients — high-frequency operation."""
         if not self._logged_in:
             return
-        search_terms = ["أحمد", "محمد", "علي", "فاطمة", "Ahmad", "test"]
+        search_terms = ['أحمد', 'محمد', 'علي', 'فاطمة', 'Ahmad', 'test']
         term = random.choice(search_terms)
         self.client.get(
-            f"/api/patients/search?q={term}",
-            name="patient_search",
+            f'/api/patients/search?q={term}',
+            name='patient_search',
         )
 
     @task(3)
@@ -92,10 +94,10 @@ class MedicalPlatformUser(HttpUser):
         """List today's visits."""
         if not self._logged_in:
             return
-        today = datetime.now().strftime("%Y-%m-%d")
+        today = datetime.now().strftime('%Y-%m-%d')
         self.client.get(
-            f"/reception/visits?date={today}",
-            name="visit_list_today",
+            f'/reception/visits?date={today}',
+            name='visit_list_today',
         )
 
     @task(2)
@@ -109,14 +111,14 @@ class MedicalPlatformUser(HttpUser):
         # middleware + DB lookup path, which is the valuable load metric.
         visit_id = random.randint(1, 10000)
         self.client.post(
-            f"/payment/process/{visit_id}",
+            f'/payment/process/{visit_id}',
             data={
-                "paid_amount": str(random.randint(10, 500)),
-                "payment_method": random.choice(["cash", "card"]),
-                "payment_currency": "ILS",
-                "csrf_token": self._csrf_token or "",
+                'paid_amount': str(random.randint(10, 500)),
+                'payment_method': random.choice(['cash', 'card']),
+                'payment_currency': 'ILS',
+                'csrf_token': self._csrf_token or '',
             },
-            name="payment_process",
+            name='payment_process',
             allow_redirects=True,
         )
 
@@ -127,14 +129,14 @@ class MedicalPlatformUser(HttpUser):
         # would require Twilio credentials and cost money per request.
         if not self._logged_in:
             return
-        self.client.get("/mfa/verify", name="mfa_verify_page")
+        self.client.get('/mfa/verify', name='mfa_verify_page')
 
     @task(1)
     def dashboard_load(self):
         """Load the main dashboard — heavy template with many DB queries."""
         if not self._logged_in:
             return
-        self.client.get("/", name="dashboard")
+        self.client.get('/', name='dashboard')
 
 
 class AnonymousUser(HttpUser):
@@ -144,8 +146,8 @@ class AnonymousUser(HttpUser):
 
     @task(1)
     def login_page(self):
-        self.client.get("/auth/login", name="anon_login_page")
+        self.client.get('/auth/login', name='anon_login_page')
 
     @task(1)
     def health_check(self):
-        self.client.get("/health", name="health_check")
+        self.client.get('/health', name='health_check')

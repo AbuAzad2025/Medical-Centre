@@ -7,20 +7,20 @@ import time
 import uuid
 
 import pytest
-
 from sqlalchemy import select
-from app.extensions import db
-from app.core.saas.resolver import EntitlementResolver
+
 from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import StripeWebhookEvent, StripeWebhookEventStatus
+from app.core.saas.resolver import EntitlementResolver
 from app.core.tenant.models import TenantStatus
+from app.extensions import db
 from services.stripe_subscription_service import StripeSubscriptionService, StripeWebhookError
 from tests.test_saas_tenant_lifecycle import _make_package_version
 
 
 def _sign(payload: bytes, secret: str) -> str:
     ts = str(int(time.time()))
-    signed = f'{ts}.{payload.decode("utf-8")}'.encode('utf-8')
+    signed = f'{ts}.{payload.decode("utf-8")}'.encode()
     digest = hmac.new(secret.encode('utf-8'), signed, hashlib.sha256).hexdigest()
     return f't={ts},v1={digest}'
 
@@ -94,7 +94,9 @@ class TestStripeWebhookCheckoutCompleted:
 
 class TestStripeWebhookSubscriptionUpdated:
     def test_past_due_suspends_tenant(self, app, billed_tenant):
-        event = _event('customer.subscription.updated', billed_tenant, id='sub_pd', status='past_due')
+        event = _event(
+            'customer.subscription.updated', billed_tenant, id='sub_pd', status='past_due'
+        )
 
         result = StripeSubscriptionService.handle_event(event)
 
@@ -105,7 +107,9 @@ class TestStripeWebhookSubscriptionUpdated:
         assert EntitlementResolver.is_entitled(billed_tenant.id, 'lab.order') is False
 
     def test_unpaid_suspends_tenant(self, app, billed_tenant):
-        event = _event('customer.subscription.updated', billed_tenant, id='sub_unpaid', status='unpaid')
+        event = _event(
+            'customer.subscription.updated', billed_tenant, id='sub_unpaid', status='unpaid'
+        )
 
         StripeSubscriptionService.handle_event(event)
 
@@ -114,7 +118,9 @@ class TestStripeWebhookSubscriptionUpdated:
 
     def test_active_reactivates_suspended_tenant(self, app, billed_tenant):
         TenantProvisioningService.suspend_tenant(billed_tenant.id, 'stripe:past_due')
-        event = _event('customer.subscription.updated', billed_tenant, id='sub_active', status='active')
+        event = _event(
+            'customer.subscription.updated', billed_tenant, id='sub_active', status='active'
+        )
 
         result = StripeSubscriptionService.handle_event(event)
 
@@ -125,7 +131,9 @@ class TestStripeWebhookSubscriptionUpdated:
 
     def test_trialing_keeps_active(self, app, billed_tenant):
         TenantProvisioningService.suspend_tenant(billed_tenant.id, 'test')
-        event = _event('customer.subscription.updated', billed_tenant, id='sub_trial', status='trialing')
+        event = _event(
+            'customer.subscription.updated', billed_tenant, id='sub_trial', status='trialing'
+        )
 
         StripeSubscriptionService.handle_event(event)
 
@@ -133,7 +141,9 @@ class TestStripeWebhookSubscriptionUpdated:
         assert billed_tenant.status == TenantStatus.ACTIVE
 
     def test_canceled_cancels_tenant(self, app, billed_tenant):
-        event = _event('customer.subscription.updated', billed_tenant, id='sub_cancel', status='canceled')
+        event = _event(
+            'customer.subscription.updated', billed_tenant, id='sub_cancel', status='canceled'
+        )
 
         StripeSubscriptionService.handle_event(event)
 
@@ -185,7 +195,10 @@ class TestStripeWebhookInvoices:
 class TestStripeWebhookTenantResolution:
     def test_resolves_tenant_by_stripe_customer_id(self, app, billed_tenant):
         customer_id = f'cus_{uuid.uuid4().hex[:12]}'
-        billed_tenant.settings = {**(billed_tenant.settings or {}), 'stripe_customer_id': customer_id}
+        billed_tenant.settings = {
+            **(billed_tenant.settings or {}),
+            'stripe_customer_id': customer_id,
+        }
         db.session.commit()
 
         event = {
@@ -209,13 +222,17 @@ class TestStripeWebhookUnsupported:
 
 
 class TestStripeWebhookIngestIdempotency:
-    def test_duplicate_event_returns_already_processed(self, app, stripe_secret, billed_tenant, monkeypatch):
+    def test_duplicate_event_returns_already_processed(
+        self, app, stripe_secret, billed_tenant, monkeypatch
+    ):
         event_id = f'evt_{uuid.uuid4().hex}'
-        payload = json.dumps({
-            'id': event_id,
-            'type': 'invoice.payment_failed',
-            'data': {'object': {'metadata': {'tenant_id': str(billed_tenant.id)}}},
-        }).encode('utf-8')
+        payload = json.dumps(
+            {
+                'id': event_id,
+                'type': 'invoice.payment_failed',
+                'data': {'object': {'metadata': {'tenant_id': str(billed_tenant.id)}}},
+            }
+        ).encode('utf-8')
         sig = _sign(payload, stripe_secret)
         monkeypatch.setattr(
             'services.stripe_subscription_service.stripe.Webhook.construct_event',
@@ -251,19 +268,32 @@ class TestStripeWebhookIngestIdempotency:
             StripeSubscriptionService.webhook_secret()
 
     def test_tenant_not_found_paths_return_ignored(self, app):
-        missing = {'type': 'customer.subscription.updated', 'data': {'object': {'metadata': {'tenant_id': '99999999'}}}}
+        missing = {
+            'type': 'customer.subscription.updated',
+            'data': {'object': {'metadata': {'tenant_id': '99999999'}}},
+        }
         result = StripeSubscriptionService.handle_event(missing)
         assert result['reason'] == 'tenant_not_found'
 
     def test_invoice_paid_renew_base_line(self, app, billed_tenant, monkeypatch):
         TenantProvisioningService.suspend_tenant(billed_tenant.id, 'test')
-        from app.core.saas.models import SubscriptionLine, SubscriptionLineStatus, SubscriptionLineType
-        line = db.session.execute(select(SubscriptionLine).filter_by(
-            tenant_id=billed_tenant.id,
-            line_type=SubscriptionLineType.BASE,
-            status=SubscriptionLineStatus.ACTIVE,
-        )).scalar()
-        billed_tenant.settings = {**(billed_tenant.settings or {}), 'stripe_base_line_id': str(line.id)}
+        from app.core.saas.models import (
+            SubscriptionLine,
+            SubscriptionLineStatus,
+            SubscriptionLineType,
+        )
+
+        line = db.session.execute(
+            select(SubscriptionLine).filter_by(
+                tenant_id=billed_tenant.id,
+                line_type=SubscriptionLineType.BASE,
+                status=SubscriptionLineStatus.ACTIVE,
+            )
+        ).scalar()
+        billed_tenant.settings = {
+            **(billed_tenant.settings or {}),
+            'stripe_base_line_id': str(line.id),
+        }
         db.session.commit()
 
         called = []
@@ -287,13 +317,17 @@ class TestStripeWebhookIngestFailures:
         with pytest.raises(StripeWebhookError, match='invalid_event_payload'):
             StripeSubscriptionService.ingest_webhook(payload, _sign(payload, stripe_secret))
 
-    def test_ingest_marks_failed_on_handler_error(self, app, stripe_secret, billed_tenant, monkeypatch):
+    def test_ingest_marks_failed_on_handler_error(
+        self, app, stripe_secret, billed_tenant, monkeypatch
+    ):
         event_id = f'evt_{uuid.uuid4().hex}'
-        payload = json.dumps({
-            'id': event_id,
-            'type': 'invoice.paid',
-            'data': {'object': {'metadata': {'tenant_id': str(billed_tenant.id)}}},
-        }).encode('utf-8')
+        payload = json.dumps(
+            {
+                'id': event_id,
+                'type': 'invoice.paid',
+                'data': {'object': {'metadata': {'tenant_id': str(billed_tenant.id)}}},
+            }
+        ).encode('utf-8')
         monkeypatch.setattr(
             'services.stripe_subscription_service.stripe.Webhook.construct_event',
             lambda p, s, sec: json.loads(p),

@@ -1,7 +1,9 @@
-from datetime import datetime, timezone
-from sqlalchemy import Index, CheckConstraint
-from app_factory import db
+from datetime import UTC, datetime
+
+from sqlalchemy import CheckConstraint, Index
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
 
 
 class FollowUpRequest(TenantMixin, db.Model):
@@ -9,22 +11,44 @@ class FollowUpRequest(TenantMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    source_visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.id', ondelete='SET NULL'), nullable=True, index=True)
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    doctor_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    source_visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    appointment_id = db.Column(
+        db.Integer, db.ForeignKey('appointments.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     suggested_date = db.Column(db.Date, nullable=False, index=True)
     notes = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(16), nullable=False, default='PENDING', index=True)
 
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
 
     __table_args__ = (
-        CheckConstraint("status IN ('PENDING','SCHEDULED','DONE','CANCELLED')", name='chk_follow_up_requests_status'),
-        Index('idx_follow_up_requests_patient_status_date', 'patient_id', 'status', 'suggested_date'),
+        CheckConstraint(
+            "status IN ('PENDING','SCHEDULED','DONE','CANCELLED')",
+            name='chk_follow_up_requests_status',
+        ),
+        Index(
+            'idx_follow_up_requests_patient_status_date', 'patient_id', 'status', 'suggested_date'
+        ),
         Index('idx_follow_up_requests_doctor_status_date', 'doctor_id', 'status', 'suggested_date'),
     )
 
@@ -48,4 +72,3 @@ class FollowUpRequest(TenantMixin, db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
-

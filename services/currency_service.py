@@ -2,10 +2,13 @@
 خدمة تحويل العملات — Currency Conversion Service
 Priority: Manual Rate → External API → Modal Prompt (fallback)
 """
-from sqlalchemy import select
+
 import logging
-from decimal import Decimal, ROUND_HALF_UP
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
+
+from sqlalchemy import select
+
 from app.extensions import db
 from utils.db_safety import safe_commit
 
@@ -29,43 +32,67 @@ class CurrencyConverter:
         from models.exchange_rate import ExchangeRate
 
         # 1. السعر اليدوي الأحدث النشط
-        rate = db.session.execute(select(ExchangeRate).filter(
-            ExchangeRate.from_currency == from_currency,
-            ExchangeRate.to_currency == to_currency,
-            ExchangeRate.is_active == True,
-            ExchangeRate.source == 'MANUAL'
-        ).order_by(ExchangeRate.effective_date.desc())).scalars().first()
+        rate = (
+            db.session.execute(
+                select(ExchangeRate)
+                .filter(
+                    ExchangeRate.from_currency == from_currency,
+                    ExchangeRate.to_currency == to_currency,
+                    ExchangeRate.is_active == True,
+                    ExchangeRate.source == 'MANUAL',
+                )
+                .order_by(ExchangeRate.effective_date.desc())
+            )
+            .scalars()
+            .first()
+        )
 
         if rate:
-            logger.info(f"Using MANUAL rate {from_currency}->{to_currency}: {rate.sell_rate}")
+            logger.info(f'Using MANUAL rate {from_currency}->{to_currency}: {rate.sell_rate}')
             return Decimal(str(rate.sell_rate))
 
         # 2. سعر API الأحدث (أقل من 24 ساعة)
-        api_rate = db.session.execute(select(ExchangeRate).filter(
-            ExchangeRate.from_currency == from_currency,
-            ExchangeRate.to_currency == to_currency,
-            ExchangeRate.is_active == True,
-            ExchangeRate.source == 'API',
-            ExchangeRate.effective_date >= (datetime.now(timezone.utc) - timedelta(hours=24))
-        ).order_by(ExchangeRate.effective_date.desc())).scalars().first()
+        api_rate = (
+            db.session.execute(
+                select(ExchangeRate)
+                .filter(
+                    ExchangeRate.from_currency == from_currency,
+                    ExchangeRate.to_currency == to_currency,
+                    ExchangeRate.is_active == True,
+                    ExchangeRate.source == 'API',
+                    ExchangeRate.effective_date >= (datetime.now(UTC) - timedelta(hours=24)),
+                )
+                .order_by(ExchangeRate.effective_date.desc())
+            )
+            .scalars()
+            .first()
+        )
 
         if api_rate:
-            logger.info(f"Using API rate {from_currency}->{to_currency}: {api_rate.sell_rate}")
+            logger.info(f'Using API rate {from_currency}->{to_currency}: {api_rate.sell_rate}')
             return Decimal(str(api_rate.sell_rate))
 
         # 3. السعر العكسي (inverse) إن وجد
-        inverse = db.session.execute(select(ExchangeRate).filter(
-            ExchangeRate.from_currency == to_currency,
-            ExchangeRate.to_currency == from_currency,
-            ExchangeRate.is_active == True
-        ).order_by(ExchangeRate.effective_date.desc())).scalars().first()
+        inverse = (
+            db.session.execute(
+                select(ExchangeRate)
+                .filter(
+                    ExchangeRate.from_currency == to_currency,
+                    ExchangeRate.to_currency == from_currency,
+                    ExchangeRate.is_active == True,
+                )
+                .order_by(ExchangeRate.effective_date.desc())
+            )
+            .scalars()
+            .first()
+        )
 
         if inverse:
             inv = Decimal('1.0') / Decimal(str(inverse.buy_rate))
-            logger.info(f"Using INVERSE rate {from_currency}->{to_currency}: {inv}")
+            logger.info(f'Using INVERSE rate {from_currency}->{to_currency}: {inv}')
             return inv.quantize(Decimal('0.000001'), rounding=ROUND_HALF_UP)
 
-        logger.warning(f"No rate found for {from_currency}->{to_currency}")
+        logger.warning(f'No rate found for {from_currency}->{to_currency}')
         return None
 
     @classmethod
@@ -87,6 +114,7 @@ class CurrencyConverter:
     def ensure_manual_rate(cls, from_currency, to_currency, sell_rate, buy_rate=None, user_id=None):
         """إنشاء/تحديث سعر يدوي"""
         from models.exchange_rate import ExchangeRate
+
         buy = buy_rate or sell_rate
         rate = ExchangeRate(
             from_currency=from_currency,
@@ -96,15 +124,16 @@ class CurrencyConverter:
             source='MANUAL',
             is_active=True,
             created_by=user_id,
-            effective_date=datetime.now(timezone.utc),
+            effective_date=datetime.now(UTC),
         )
         # ألغِ السعر اليدوي القديم
         from sqlalchemy import update
+
         db.session.execute(
             update(ExchangeRate).where(ExchangeRate.is_active == True).values(is_active=False)
         )
         db.session.add(rate)
-        safe_commit(db.session, error_message="Failed to save manual rate", reraise=True)
+        safe_commit(db.session, error_message='Failed to save manual rate', reraise=True)
         return rate
 
     @classmethod
@@ -112,14 +141,16 @@ class CurrencyConverter:
         """جلب سعر خارجي من API مجاني ( exchangerate-api.com أو Frankfurter )"""
         try:
             import requests
+
             # استخدم Frankfurter API (مجاني، لا يحتاج مفتاح)
-            url = f"https://api.frankfurter.app/latest?from={from_currency}&to={to_currency}"
+            url = f'https://api.frankfurter.app/latest?from={from_currency}&to={to_currency}'
             resp = requests.get(url, timeout=10)
             if resp.status_code == 200:
                 data = resp.json()
                 rate_val = data.get('rates', {}).get(to_currency)
                 if rate_val:
                     from models.exchange_rate import ExchangeRate
+
                     rate = ExchangeRate(
                         from_currency=from_currency,
                         to_currency=to_currency,
@@ -127,23 +158,34 @@ class CurrencyConverter:
                         sell_rate=Decimal(str(rate_val)),
                         source='API',
                         is_active=True,
-                        effective_date=datetime.now(timezone.utc),
+                        effective_date=datetime.now(UTC),
                     )
                     db.session.add(rate)
-                    safe_commit(db.session, error_message="Failed to save external rate")
-                    logger.info(f"Fetched external rate {from_currency}->{to_currency}: {rate_val}")
+                    safe_commit(db.session, error_message='Failed to save external rate')
+                    logger.info(f'Fetched external rate {from_currency}->{to_currency}: {rate_val}')
                     return Decimal(str(rate_val))
         except Exception as e:
-            logger.warning(f"External API failed: {e}")
+            logger.warning(f'External API failed: {e}')
         return None
 
     @classmethod
     def get_all_active_rates(cls):
         """جلب كل الأسعار النشطة"""
         from models.exchange_rate import ExchangeRate
-        rates = db.session.execute(select(ExchangeRate).filter(
-            ExchangeRate.is_active == True
-        ).order_by(ExchangeRate.from_currency, ExchangeRate.to_currency, ExchangeRate.effective_date.desc())).scalars().all()
+
+        rates = (
+            db.session.execute(
+                select(ExchangeRate)
+                .filter(ExchangeRate.is_active == True)
+                .order_by(
+                    ExchangeRate.from_currency,
+                    ExchangeRate.to_currency,
+                    ExchangeRate.effective_date.desc(),
+                )
+            )
+            .scalars()
+            .all()
+        )
         # أزل التكرارات (احتفظ بالأحدث لكل pair)
         seen = set()
         unique = []
@@ -158,6 +200,7 @@ class CurrencyConverter:
     def get_missing_pairs(cls, base_currency='ILS'):
         """الأزواج التي لا يوجد لها سعر"""
         from models.exchange_rate import CurrencySettings
+
         codes = list(CurrencySettings.SUPPORTED_CURRENCIES.keys())
         missing = []
         for c in codes:

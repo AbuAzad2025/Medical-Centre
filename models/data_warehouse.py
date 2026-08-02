@@ -1,9 +1,12 @@
 """
 Data Warehouse / Analytics Summary Tables
 """
-from datetime import datetime, timezone
-from app_factory import db
+
+from datetime import UTC, datetime
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class DataWarehouseSync(TenantMixin, db.Model):
     __tablename__ = 'data_warehouse_syncs'
@@ -23,10 +26,10 @@ class DataWarehouseSync(TenantMixin, db.Model):
     target_rows = db.Column(db.Integer, nullable=True)
     error_message = db.Column(db.Text, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
 
     def __repr__(self):
-        return f"<DataWarehouseSync {self.sync_name} {self.status}>"
+        return f'<DataWarehouseSync {self.sync_name} {self.status}>'
 
 
 class DailyVisitSummary(TenantMixin, db.Model):
@@ -47,12 +50,16 @@ class DailyVisitSummary(TenantMixin, db.Model):
     revenue_cash = db.Column(db.Numeric(12, 2), default=0, nullable=False)
     revenue_insurance = db.Column(db.Numeric(12, 2), default=0, nullable=False)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
-                           onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
 
     def __repr__(self):
-        return f"<DailyVisitSummary {self.date} visits={self.total_visits}>"
+        return f'<DailyVisitSummary {self.date} visits={self.total_visits}>'
 
 
 class MonthlyFinanceSummary(TenantMixin, db.Model):
@@ -70,13 +77,15 @@ class MonthlyFinanceSummary(TenantMixin, db.Model):
     revenue_by_department = db.Column(db.Text, nullable=True)  # JSON
     top_services = db.Column(db.Text, nullable=True)  # JSON
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
-                           onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-
-    __table_args__ = (
-        db.UniqueConstraint('year', 'month', name='uq_dw_monthly_finance'),
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
     )
 
+    __table_args__ = (db.UniqueConstraint('year', 'month', name='uq_dw_monthly_finance'),)
+
     def __repr__(self):
-        return f"<MonthlyFinanceSummary {self.year}-{self.month}>"
+        return f'<MonthlyFinanceSummary {self.year}-{self.month}>'

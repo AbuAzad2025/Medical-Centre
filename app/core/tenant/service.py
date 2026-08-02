@@ -2,9 +2,11 @@
 Tenant Context Service
 Provides helpers for tenant-scoped queries and validation.
 """
-from flask import g, current_app
+
+from flask import g
+
 from app.core.tenant.models import Tenant
-from app.extensions import db
+
 
 class TenantContextService:
     """Thread-safe tenant context utilities."""
@@ -36,9 +38,9 @@ class TenantContextService:
     def ensure_tenant_active(tenant: Tenant | None = None):
         t = tenant or TenantContextService.get_current_tenant()
         if not t:
-            raise PermissionError("No tenant context found.")
+            raise PermissionError('No tenant context found.')
         if not t.is_active_and_paid():
-            raise PermissionError("Tenant is not active or subscription expired.")
+            raise PermissionError('Tenant is not active or subscription expired.')
 
     @staticmethod
     def is_cross_tenant_allowed() -> bool:
@@ -53,4 +55,5 @@ class TenantContextService:
         record_tenant = getattr(record, 'tenant_id', None)
         if record_tenant and record_tenant != tenant_id:
             from flask import abort
-            abort(403, description="Cross-tenant access denied")
+
+            abort(403, description='Cross-tenant access denied')

@@ -10,6 +10,7 @@ A minimal platform-level allowlist excludes tables that *do* have a
 ``tenant_id`` column but are cross-tenant by design (auth tables, tenant
 registry, system configs, etc.).
 """
+
 from __future__ import annotations
 
 import os
@@ -24,30 +25,40 @@ if not DATABASE_URL:
 
 # Tables that DO have a tenant_id column but are platform-level (no RLS
 # expected because they are cross-tenant by design).
-PLATFORM_TENANT_TABLES = frozenset({
-    'tenants',
-    'roles', 'permissions', 'role_permissions', 'user_permissions',
-    'module_permissions', 'department_permissions',
-    'system_configs', 'branding_settings',
-    'platform_audit_logs',  # has tenant_id column but is cross-tenant audit trail
-})
+PLATFORM_TENANT_TABLES = frozenset(
+    {
+        'tenants',
+        'roles',
+        'permissions',
+        'role_permissions',
+        'user_permissions',
+        'module_permissions',
+        'department_permissions',
+        'system_configs',
+        'branding_settings',
+        'platform_audit_logs',  # has tenant_id column but is cross-tenant audit trail
+    }
+)
 
 
 def _get_public_tables(conn) -> list[tuple[str, bool, bool]]:
     """Return (name, relrowsecurity, relforcerowsecurity) for all public tables."""
-    return conn.execute(sa.text("""
+    return conn.execute(
+        sa.text("""
         SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity
         FROM pg_catalog.pg_class c
         JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
         WHERE n.nspname = 'public'
           AND c.relkind = 'r'
         ORDER BY c.relname
-    """)).fetchall()
+    """)
+    ).fetchall()
 
 
 def _get_tables_with_tenant_id(conn) -> set[str]:
     """Return the set of table names that have a ``tenant_id`` column."""
-    rows = conn.execute(sa.text("""
+    rows = conn.execute(
+        sa.text("""
         SELECT DISTINCT c.relname
         FROM pg_catalog.pg_class c
         JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
@@ -57,7 +68,8 @@ def _get_tables_with_tenant_id(conn) -> set[str]:
         WHERE n.nspname = 'public'
           AND c.relkind = 'r'
           AND col.column_name = 'tenant_id'
-    """)).fetchall()
+    """)
+    ).fetchall()
     return {row[0] for row in rows}
 
 
@@ -75,11 +87,11 @@ def main() -> int:
     for name, rls, force in tables:
         if name not in tables_with_tenant_id:
             global_count += 1
-            continue   # No tenant_id column → inherently global, skip RLS check
+            continue  # No tenant_id column → inherently global, skip RLS check
 
         if name in PLATFORM_TENANT_TABLES:
             platform_count += 1
-            continue   # Has tenant_id but is platform-level, skip RLS check
+            continue  # Has tenant_id but is platform-level, skip RLS check
 
         tenant_count += 1
         if not rls:

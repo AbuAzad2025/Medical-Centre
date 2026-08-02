@@ -1,53 +1,89 @@
- 
-
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, current_app
-from flask_login import login_required, current_user
-from utils.decorators import role_required, role_required_json
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
-from models.department import Department
-from models.medication import Prescription
-from models.lab_request import LabRequest
-from models.radiology_request import RadiologyRequest
-from models.medical_record import MedicalRecord
-from models.appointment import Appointment
-from models.follow_up import FollowUpRequest
-from models.drug_interaction import DrugInteraction
-from models.audit_trail import AuditTrail
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-import logging
 import json
-from datetime import datetime, date, timedelta, timezone
-from sqlalchemy import and_, or_, desc, func, case, select
+import logging
 import secrets
-from app.shared.enums import AppointmentState
+from datetime import UTC, date, datetime, timedelta, timezone
 
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from flask_login import current_user, login_required
+from sqlalchemy import and_, case, desc, func, or_, select
+
+from app.extensions import db
+from app.shared.enums import AppointmentState
+from models.appointment import Appointment
+from models.audit_trail import AuditTrail
+from models.department import Department
+from models.drug_interaction import DrugInteraction
+from models.follow_up import FollowUpRequest
+from models.lab_request import LabRequest
+from models.medical_record import MedicalRecord
+from models.medication import Prescription
+from models.patient import Patient
+from models.radiology_request import RadiologyRequest
 from models.system_config import SystemConfig
+from models.user import User
+from models.visit import Visit
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required, role_required_json
 
 doctor_bp = Blueprint('doctor', __name__)
 
 from services.feature_gate_service import guard_module
 
+
 @doctor_bp.before_request
 def _guard_doctor_module():
     guard_module('doctor')
+
 
 @doctor_bp.route('/')
 @login_required
 def index():
     return redirect(url_for('doctor.dashboard'))
 
+
 def _doctor_note_templates_cfg():
-    return db.session.execute(select(SystemConfig).filter_by(config_key='doctor_note_templates').filter(SystemConfig.tenant_id == current_user.tenant_id)).scalars().first()
+    return (
+        db.session.execute(
+            select(SystemConfig)
+            .filter_by(config_key='doctor_note_templates')
+            .filter(SystemConfig.tenant_id == current_user.tenant_id)
+        )
+        .scalars()
+        .first()
+    )
+
 
 def _default_doctor_note_templates():
     return [
-        {'id': secrets.token_hex(8), 'name': 'SOAP قالب', 'text': 'S:\nO:\nA:\nP:\n', 'is_active': True},
-        {'id': secrets.token_hex(8), 'name': 'تعليمات خروج', 'text': 'تعليمات للمريض:\n- \n- \n', 'is_active': True},
-        {'id': secrets.token_hex(8), 'name': 'متابعة', 'text': 'يوصى بالمتابعة خلال ____ أيام.\nعلامات إنذار: ________\n', 'is_active': True},
+        {
+            'id': secrets.token_hex(8),
+            'name': 'SOAP قالب',
+            'text': 'S:\nO:\nA:\nP:\n',
+            'is_active': True,
+        },
+        {
+            'id': secrets.token_hex(8),
+            'name': 'تعليمات خروج',
+            'text': 'تعليمات للمريض:\n- \n- \n',
+            'is_active': True,
+        },
+        {
+            'id': secrets.token_hex(8),
+            'name': 'متابعة',
+            'text': 'يوصى بالمتابعة خلال ____ أيام.\nعلامات إنذار: ________\n',
+            'is_active': True,
+        },
     ]
+
 
 def _get_doctor_note_templates():
     cfg = _doctor_note_templates_cfg()
@@ -68,9 +104,9 @@ def _get_doctor_note_templates():
         templates = _default_doctor_note_templates()
         cfg.set_value(templates)
         try:
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+        except Exception:
+            safe_rollback(db.session, error_message='database rollback')
             raise
         return templates
 
@@ -82,11 +118,12 @@ def _get_doctor_note_templates():
         cfg.set_value(templates)
         cfg.updated_by = getattr(current_user, 'id', None)
         try:
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+        except Exception:
+            safe_rollback(db.session, error_message='database rollback')
             raise
     return templates
+
 
 def _save_doctor_note_templates(templates):
     cfg = _doctor_note_templates_cfg()
@@ -110,23 +147,34 @@ def _save_doctor_note_templates(templates):
     cfg.set_value(templates)
     cfg.updated_by = getattr(current_user, 'id', None)
     try:
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-    except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
         raise
+
 
 def _doctor_dashboard_layout_cfg_key():
     return f'doctor_dashboard_layout_{current_user.id}'
+
 
 def _default_doctor_dashboard_layout():
     return [
         {'id': 'stats_overview', 'title': 'الإحصائيات السريعة', 'order': 1, 'enabled': True},
         {'id': 'patients_actions', 'title': 'المرضى والإجراءات', 'order': 2, 'enabled': True},
-        {'id': 'smart_insights', 'title': 'الدعم الذكي والتحليلات', 'order': 3, 'enabled': True}
+        {'id': 'smart_insights', 'title': 'الدعم الذكي والتحليلات', 'order': 3, 'enabled': True},
     ]
 
+
 def _get_doctor_dashboard_layout():
-    cfg = db.session.execute(select(SystemConfig).filter_by(config_key=_doctor_dashboard_layout_cfg_key()).filter(SystemConfig.tenant_id == current_user.tenant_id)).scalars().first()
+    cfg = (
+        db.session.execute(
+            select(SystemConfig)
+            .filter_by(config_key=_doctor_dashboard_layout_cfg_key())
+            .filter(SystemConfig.tenant_id == current_user.tenant_id)
+        )
+        .scalars()
+        .first()
+    )
     if not cfg:
         cfg = SystemConfig(
             config_key=_doctor_dashboard_layout_cfg_key(),
@@ -144,9 +192,9 @@ def _get_doctor_dashboard_layout():
         layout = _default_doctor_dashboard_layout()
         cfg.set_value(layout)
         try:
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+        except Exception:
+            safe_rollback(db.session, error_message='database rollback')
             raise
         return layout
     layout = cfg.get_value() if cfg.config_type == 'json' else []
@@ -156,14 +204,23 @@ def _get_doctor_dashboard_layout():
         cfg.set_value(layout)
         cfg.updated_by = getattr(current_user, 'id', None)
         try:
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+        except Exception:
+            safe_rollback(db.session, error_message='database rollback')
             raise
     return layout
 
+
 def _save_doctor_dashboard_layout(items):
-    cfg = db.session.execute(select(SystemConfig).filter_by(config_key=_doctor_dashboard_layout_cfg_key()).filter(SystemConfig.tenant_id == current_user.tenant_id)).scalars().first()
+    cfg = (
+        db.session.execute(
+            select(SystemConfig)
+            .filter_by(config_key=_doctor_dashboard_layout_cfg_key())
+            .filter(SystemConfig.tenant_id == current_user.tenant_id)
+        )
+        .scalars()
+        .first()
+    )
     if not cfg:
         cfg = SystemConfig(
             config_key=_doctor_dashboard_layout_cfg_key(),
@@ -182,9 +239,9 @@ def _save_doctor_dashboard_layout(items):
     cfg.set_value(items)
     cfg.updated_by = getattr(current_user, 'id', None)
     try:
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
-    except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
         raise
 
 
@@ -193,7 +250,17 @@ def _sync_follow_up_request_for_visit(visit: Visit, actor_user_id: int):
     required = bool(getattr(visit, 'follow_up_required', False))
     tid = visit.tenant_id
     if required and suggested:
-        existing = db.session.execute(select(FollowUpRequest).filter(FollowUpRequest.source_visit_id == visit.id, FollowUpRequest.tenant_id == tid).order_by(FollowUpRequest.created_at.desc())).scalars().first()
+        existing = (
+            db.session.execute(
+                select(FollowUpRequest)
+                .filter(
+                    FollowUpRequest.source_visit_id == visit.id, FollowUpRequest.tenant_id == tid
+                )
+                .order_by(FollowUpRequest.created_at.desc())
+            )
+            .scalars()
+            .first()
+        )
         if existing and existing.status in {'CANCELLED', 'DONE'}:
             existing = None
         if existing:
@@ -201,71 +268,47 @@ def _sync_follow_up_request_for_visit(visit: Visit, actor_user_id: int):
             existing.doctor_id = visit.doctor_id
             existing.suggested_date = suggested
             existing.notes = getattr(visit, 'follow_up_notes', None) or existing.notes
-            existing.status = existing.status if existing.status == AppointmentState.SCHEDULED else 'PENDING'
-            existing.updated_at = datetime.now(timezone.utc)
+            existing.status = (
+                existing.status if existing.status == AppointmentState.SCHEDULED else 'PENDING'
+            )
+            existing.updated_at = datetime.now(UTC)
         else:
-            db.session.add(FollowUpRequest(
-                tenant_id=tid,
-                patient_id=visit.patient_id,
-                doctor_id=visit.doctor_id,
-                source_visit_id=visit.id,
-                suggested_date=suggested,
-                notes=getattr(visit, 'follow_up_notes', None),
-                status='PENDING',
-                created_by=actor_user_id
-            ))
+            db.session.add(
+                FollowUpRequest(
+                    tenant_id=tid,
+                    patient_id=visit.patient_id,
+                    doctor_id=visit.doctor_id,
+                    source_visit_id=visit.id,
+                    suggested_date=suggested,
+                    notes=getattr(visit, 'follow_up_notes', None),
+                    status='PENDING',
+                    created_by=actor_user_id,
+                )
+            )
         return
 
-    existing = db.session.execute(select(FollowUpRequest).filter(FollowUpRequest.source_visit_id == visit.id, FollowUpRequest.tenant_id == tid).order_by(FollowUpRequest.created_at.desc())).scalars().first()
+    existing = (
+        db.session.execute(
+            select(FollowUpRequest)
+            .filter(FollowUpRequest.source_visit_id == visit.id, FollowUpRequest.tenant_id == tid)
+            .order_by(FollowUpRequest.created_at.desc())
+        )
+        .scalars()
+        .first()
+    )
     if existing and existing.status in {'PENDING'}:
         existing.status = 'CANCELLED'
-        existing.updated_at = datetime.now(timezone.utc)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        existing.updated_at = datetime.now(UTC)
 
 
 def calculate_medical_performance_score(completion_rate, avg_duration):
     """حساب نقاط الأداء الطبي"""
     # نقاط الإنجاز
     completion_score = completion_rate
-    
+
     # نقاط الكفاءة (كلما قل الوقت كلما زادت النقاط)
     efficiency_score = max(0, 100 - (avg_duration / 60 * 20))
-    
+
     return (completion_score + efficiency_score) / 2
 
 
@@ -273,13 +316,15 @@ def calculate_medical_performance_score(completion_rate, avg_duration):
 # SUBMODULE IMPORTS
 # ═══════════════════════════════════════
 
-from . import dashboard
-from . import queue
-from . import visits
-from . import diagnosis
-from . import prescriptions
-from . import lab
-from . import radiology
-from . import notes
-from . import patients
-from . import appointments
+from . import (
+    appointments,
+    dashboard,
+    diagnosis,
+    lab,
+    notes,
+    patients,
+    prescriptions,
+    queue,
+    radiology,
+    visits,
+)

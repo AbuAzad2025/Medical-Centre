@@ -104,50 +104,64 @@
 # قائمة العلاقات المطلوبة لكل نموذج
 REQUIRED_RELATIONSHIPS = {
     'User': [
-        'department_obj', 'head_department', 'doctor_visits', 'patient_visits',
-        'doctor_appointments', 'created_appointments', 'created_invoices',
-        'created_payments', 'created_financial_payments', 'updated_invoices',
-        'force_payment_approvals'
+        'department_obj',
+        'head_department',
+        'doctor_visits',
+        'patient_visits',
+        'doctor_appointments',
+        'created_appointments',
+        'created_invoices',
+        'created_payments',
+        'created_financial_payments',
+        'updated_invoices',
+        'force_payment_approvals',
     ],
     'Patient': [
-        'visits', 'appointments', 'medical_records', 'lab_results',
-        'radiology_results', 'medical_reports', 'prescriptions',
-        'lab_requests', 'radiology_requests', 'invoices', 'payments',
-        'patient_visits', 'medical_history_records', 'allergy_records',
-        'medication_records', 'financial_payments'
+        'visits',
+        'appointments',
+        'medical_records',
+        'lab_results',
+        'radiology_results',
+        'medical_reports',
+        'prescriptions',
+        'lab_requests',
+        'radiology_requests',
+        'invoices',
+        'payments',
+        'patient_visits',
+        'medical_history_records',
+        'allergy_records',
+        'medication_records',
+        'financial_payments',
     ],
     'Visit': [
-        'patient', 'doctor', 'department', 'patient_visits', 'payments',
-        'medical_records', 'treatments', 'lab_requests', 'radiology_requests',
-        'invoices', 'financial_payments'
+        'patient',
+        'doctor',
+        'department',
+        'patient_visits',
+        'payments',
+        'medical_records',
+        'treatments',
+        'lab_requests',
+        'radiology_requests',
+        'invoices',
+        'financial_payments',
     ],
     'Department': [
-        'head_doctor', 'users', 'staff', 'appointments', 'visits',
-        'patient_visits', 'invoice_services'
+        'head_doctor',
+        'users',
+        'staff',
+        'appointments',
+        'visits',
+        'patient_visits',
+        'invoice_services',
     ],
-    'Appointment': [
-        'patient', 'doctor', 'department', 'creator', 'financial_payments'
-    ],
-    'Payment': [
-        'patient', 'visit', 'invoice', 'creator'
-    ],
-    'FinancialPayment': [
-        'patient', 'visit', 'appointment', 'creator'
-    ],
-    'Invoice': [
-        'patient', 'visit', 'creator', 'updater', 'force_approver',
-        'payments', 'services'
-    ],
-    'PatientVisit': [
-        'patient', 'visit', 'doctor', 'department'
-    ],
-    'PatientMedicalHistory': [
-        'patient'
-    ],
-    'PatientAllergy': [
-        'patient'
-    ],
-    'PatientMedication': [
-        'patient'
-    ]
+    'Appointment': ['patient', 'doctor', 'department', 'creator', 'financial_payments'],
+    'Payment': ['patient', 'visit', 'invoice', 'creator'],
+    'FinancialPayment': ['patient', 'visit', 'appointment', 'creator'],
+    'Invoice': ['patient', 'visit', 'creator', 'updater', 'force_approver', 'payments', 'services'],
+    'PatientVisit': ['patient', 'visit', 'doctor', 'department'],
+    'PatientMedicalHistory': ['patient'],
+    'PatientAllergy': ['patient'],
+    'PatientMedication': ['patient'],
 }

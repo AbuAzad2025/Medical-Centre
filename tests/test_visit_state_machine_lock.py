@@ -14,6 +14,7 @@ from services.visit_state_machine_service import (
 @pytest.fixture
 def visit_with_patient(app, test_tenant):
     from models.patient import Patient
+
     p = Patient(
         tenant_id=test_tenant.id,
         first_name='Test',
@@ -39,7 +40,7 @@ def visit_with_patient(app, test_tenant):
 class TestVisitStateMachineLock:
     def test_direct_status_assignment_raises(self, app, visit_with_patient):
         """Direct assignment to visit.status raises ValueError."""
-        with pytest.raises(ValueError, match="Direct Visit.status assignment is blocked"):
+        with pytest.raises(ValueError, match='Direct Visit.status assignment is blocked'):
             visit_with_patient.status = 'IN_PROGRESS'
 
     def test_vsm_transition_succeeds(self, app, visit_with_patient):
@@ -52,12 +53,13 @@ class TestVisitStateMachineLock:
 
     def test_vsm_invalid_transition_raises_value_error(self, app, visit_with_patient):
         """Invalid transitions through VSM raise ValueError about invalid transition."""
-        with pytest.raises(ValueError, match="Invalid visit transition"):
+        with pytest.raises(ValueError, match='Invalid visit transition'):
             VisitStateMachineService.transition(visit_with_patient, VisitState.COMPLETED)
 
     def test_vsm_initialize_works(self, app, test_tenant):
         """VisitStateMachineService.initialize() sets status on new visit."""
         from models.patient import Patient
+
         p = Patient(
             tenant_id=test_tenant.id,
             first_name='Init',

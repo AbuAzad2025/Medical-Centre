@@ -1,18 +1,29 @@
 """
 Telemedicine / Remote Consultation Appointments
 """
-from datetime import datetime, timezone
-from app_factory import db
+
+from datetime import UTC, datetime
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class TelemedicineAppointment(TenantMixin, db.Model):
     __tablename__ = 'telemedicine_appointments'
 
     id = db.Column(db.Integer, primary_key=True)
-    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.id', ondelete='CASCADE'), nullable=True, index=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    appointment_id = db.Column(
+        db.Integer, db.ForeignKey('appointments.id', ondelete='CASCADE'), nullable=True, index=True
+    )
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    doctor_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     # Meeting details
     meeting_url = db.Column(db.String(500), nullable=True)  # Zoom, Teams, Jitsi, etc.
@@ -40,10 +51,16 @@ class TelemedicineAppointment(TenantMixin, db.Model):
     recording_url = db.Column(db.String(500), nullable=True)
     recording_consent = db.Column(db.Boolean, default=False, nullable=False)
 
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
-                           onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
 
     appointment = db.relationship('Appointment', lazy='selectin')
     visit = db.relationship('Visit', lazy='selectin')
@@ -52,4 +69,4 @@ class TelemedicineAppointment(TenantMixin, db.Model):
     creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
 
     def __repr__(self):
-        return f"<TelemedicineAppointment patient={self.patient_id} status={self.status}>"
+        return f'<TelemedicineAppointment patient={self.patient_id} status={self.status}>'

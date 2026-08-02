@@ -3,7 +3,6 @@
 import pytest
 
 from app_factory import db as _db
-from models.user import User
 
 
 @pytest.fixture(autouse=True)
@@ -17,13 +16,17 @@ def _no_bundle_limits(monkeypatch):
 class TestProfileRoleEscalationBlocked:
     def test_profile_ignores_role_spoof_payload(self, auth_client, test_user, test_tenant):
         original_role = test_user.role
-        resp = auth_client.post('/auth/profile', data={
-            'full_name': test_user.full_name,
-            'email': test_user.email or 'pharmacist@test.local',
-            'phone': test_user.phone or '',
-            'department_id': '',
-            'role': 'super_admin',
-        }, follow_redirects=False)
+        resp = auth_client.post(
+            '/auth/profile',
+            data={
+                'full_name': test_user.full_name,
+                'email': test_user.email or 'pharmacist@test.local',
+                'phone': test_user.phone or '',
+                'department_id': '',
+                'role': 'super_admin',
+            },
+            follow_redirects=False,
+        )
 
         assert resp.status_code in (200, 302)
         _db.session.refresh(test_user)
@@ -36,12 +39,16 @@ class TestProfileRoleEscalationBlocked:
         assert page.status_code == 200
         assert b'name="role"' not in page.data
 
-        auth_client.post('/auth/profile', data={
-            'full_name': 'صيدلي محدّث',
-            'email': test_user.email or 'pharmacist@test.local',
-            'phone': '0500000001',
-            'department_id': '',
-        }, follow_redirects=True)
+        auth_client.post(
+            '/auth/profile',
+            data={
+                'full_name': 'صيدلي محدّث',
+                'email': test_user.email or 'pharmacist@test.local',
+                'phone': '0500000001',
+                'department_id': '',
+            },
+            follow_redirects=True,
+        )
 
         _db.session.refresh(test_user)
         assert test_user.role == before

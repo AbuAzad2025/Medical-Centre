@@ -4,8 +4,9 @@ import random
 import string
 import threading
 import time
-from app.integrations.sms import get_sms_provider
+
 from app.core.rate_limiter import RateLimiter, _get_redis
+from app.integrations.sms import get_sms_provider
 from utils.circuit_breaker import circuit_breaker_call
 
 logger = logging.getLogger(__name__)
@@ -26,18 +27,25 @@ class SMSService:
         return result
 
     @staticmethod
-    def send_appointment_reminder(patient_name: str, patient_phone: str, doctor_name: str, dept_name: str,
-                                  appointment_date: str, appointment_time: str, tenant=None) -> dict:
+    def send_appointment_reminder(
+        patient_name: str,
+        patient_phone: str,
+        doctor_name: str,
+        dept_name: str,
+        appointment_date: str,
+        appointment_time: str,
+        tenant=None,
+    ) -> dict:
         message = (
-            f"عزيزي {patient_name}، لديك موعد "
-            f"{'مع الدكتور ' + doctor_name if doctor_name else ''} "
-            f"في {dept_name} بتاريخ {appointment_date} الساعة {appointment_time}."
+            f'عزيزي {patient_name}، لديك موعد '
+            f'{"مع الدكتور " + doctor_name if doctor_name else ""} '
+            f'في {dept_name} بتاريخ {appointment_date} الساعة {appointment_time}.'
         )
         return SMSService.send_sms(patient_phone, message, tenant=tenant)
 
     @staticmethod
     def send_lab_result_notification(patient_name: str, patient_phone: str, test_name: str) -> dict:
-        message = f"عزيزي {patient_name}، نتيجة فحص {test_name} جاهزة. يمكنك الاطلاع عليها من خلال بوابة المريض."
+        message = f'عزيزي {patient_name}، نتيجة فحص {test_name} جاهزة. يمكنك الاطلاع عليها من خلال بوابة المريض.'
         return SMSService.send_sms(patient_phone, message)
 
     @staticmethod
@@ -96,7 +104,7 @@ class SMSService:
 
         # 3. Generate and send OTP
         otp_code = ''.join(random.choices(string.digits, k=6))
-        message = f"Your verification code is: {otp_code}"
+        message = f'Your verification code is: {otp_code}'
         result = SMSService.send_sms(phone, message, tenant=tenant)
 
         if result.get('success'):

@@ -3,18 +3,24 @@ Bare Exception Audit Script
 Scans the codebase for dangerous bare `except:` and `except: pass` blocks
 and reports them for immediate remediation with structured logging.
 """
+
 import os
-import sys
 import re
+import sys
 from pathlib import Path
-from typing import List, Dict
 
 # Force UTF-8 stdout on Windows to avoid UnicodeEncodeError
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
 SCAN_DIRS = [
-    'models', 'routes', 'services', 'app', 'utils', 'app_factory.py', 'config.py',
+    'models',
+    'routes',
+    'services',
+    'app',
+    'utils',
+    'app_factory.py',
+    'config.py',
 ]
 
 # Patterns that flag dangerous exception handling
@@ -42,10 +48,10 @@ def _is_allowed_line(line: str) -> bool:
     return False
 
 
-def scan_file(filepath: Path) -> List[Dict]:
+def scan_file(filepath: Path) -> list[dict]:
     findings = []
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding='utf-8') as f:
             lines = f.readlines()
     except Exception:
         return findings
@@ -57,19 +63,21 @@ def scan_file(filepath: Path) -> List[Dict]:
         for pattern, label in DANGEROUS_PATTERNS:
             if re.search(pattern, stripped):
                 if not _is_allowed_line(stripped):
-                    findings.append({
-                        'file': str(filepath),
-                        'line': lineno,
-                        'code': stripped,
-                        'pattern': label,
-                    })
+                    findings.append(
+                        {
+                            'file': str(filepath),
+                            'line': lineno,
+                            'code': stripped,
+                            'pattern': label,
+                        }
+                    )
                 break
     return findings
 
 
 def main() -> int:
     root = Path(__file__).resolve().parent.parent.parent
-    all_findings: List[Dict] = []
+    all_findings: list[dict] = []
 
     for subdir in SCAN_DIRS:
         target = root / subdir if not subdir.endswith('.py') else root / subdir
@@ -83,30 +91,30 @@ def main() -> int:
                 findings = scan_file(pyfile)
                 all_findings.extend(findings)
 
-    by_file: Dict[str, List[Dict]] = {}
+    by_file: dict[str, list[dict]] = {}
     for f in all_findings:
         by_file.setdefault(f['file'], []).append(f)
 
-    print("=" * 70)
-    print("Bare Exception Audit Report")
-    print("=" * 70)
-    print(f"Total dangerous exception blocks found: {len(all_findings)}")
-    print(f"Files affected: {len(by_file)}")
+    print('=' * 70)
+    print('Bare Exception Audit Report')
+    print('=' * 70)
+    print(f'Total dangerous exception blocks found: {len(all_findings)}')
+    print(f'Files affected: {len(by_file)}')
     print()
 
     if not all_findings:
-        print("[OK] No bare exception blocks detected.")
+        print('[OK] No bare exception blocks detected.')
         return 0
 
     for filepath, findings in sorted(by_file.items()):
         rel = os.path.relpath(filepath, root)
-        print(f"\n[FILE] {rel}  ({len(findings)} occurrence(s))")
+        print(f'\n[FILE] {rel}  ({len(findings)} occurrence(s))')
         for f in findings:
-            print(f"   L{f['line']:4d}  [{f['pattern']}]  {f['code'][:80]}")
+            print(f'   L{f["line"]:4d}  [{f["pattern"]}]  {f["code"][:80]}')
 
-    print("\n" + "=" * 70)
-    print("REMEDIATION TEMPLATE")
-    print("=" * 70)
+    print('\n' + '=' * 70)
+    print('REMEDIATION TEMPLATE')
+    print('=' * 70)
     print("""
 Replace:
     except:

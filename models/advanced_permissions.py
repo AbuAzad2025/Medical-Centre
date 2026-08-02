@@ -3,20 +3,27 @@
 Medical System Advanced Permissions Models
 """
 
-from datetime import datetime, timezone
-from sqlalchemy import Index, CheckConstraint
-from app_factory import db
+from datetime import UTC, datetime
+
+from sqlalchemy import CheckConstraint, Index
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class ModulePermission(TenantMixin, db.Model):
     """نموذج صلاحيات الوحدات"""
-    
+
     __tablename__ = 'module_permissions'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id', ondelete='SET NULL'), nullable=True, index=True)
-    module_name = db.Column(db.String(50), nullable=False)  # reception, doctor, lab, radiology, emergency, accounting, admin, manager, pharmacy, billing, nursing, appointments, inventory, portal, dicom, ai_imaging
-    
+    role_id = db.Column(
+        db.Integer, db.ForeignKey('roles.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    module_name = db.Column(
+        db.String(50), nullable=False
+    )  # reception, doctor, lab, radiology, emergency, accounting, admin, manager, pharmacy, billing, nursing, appointments, inventory, portal, dicom, ai_imaging
+
     # صلاحيات الوحدة
     can_view = db.Column(db.Boolean, default=False)
     can_create = db.Column(db.Boolean, default=False)
@@ -24,31 +31,36 @@ class ModulePermission(TenantMixin, db.Model):
     can_delete = db.Column(db.Boolean, default=False)
     can_approve = db.Column(db.Boolean, default=False)
     can_archive = db.Column(db.Boolean, default=False)
-    
+
     # صلاحيات خاصة
     can_force_payment = db.Column(db.Boolean, default=False)
     can_override_limits = db.Column(db.Boolean, default=False)
     can_access_reports = db.Column(db.Boolean, default=False)
     can_manage_users = db.Column(db.Boolean, default=False)
-    
+
     # التواريخ
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
     # Constraints and Indexes
     __table_args__ = (
-        CheckConstraint("module_name IN ('reception', 'doctor', 'lab', 'radiology', 'emergency', 'accounting', 'admin', 'manager', 'pharmacy', 'billing', 'nursing', 'appointments', 'inventory', 'portal', 'dicom', 'ai_imaging')", name='chk_module_name'),
+        CheckConstraint(
+            "module_name IN ('reception', 'doctor', 'lab', 'radiology', 'emergency', 'accounting', 'admin', 'manager', 'pharmacy', 'billing', 'nursing', 'appointments', 'inventory', 'portal', 'dicom', 'ai_imaging')",
+            name='chk_module_name',
+        ),
         Index('idx_module_permission_role', 'role_id'),
         Index('idx_module_permission_module', 'module_name'),
         Index('idx_module_permission_created', 'created_at'),
     )
-    
+
     # العلاقات
     role = db.relationship('Role', back_populates='module_permissions', lazy='selectin')
-    
+
     def __repr__(self):
         return f'<ModulePermission {self.role.name_ar} - {self.module_name}>'
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -67,48 +79,54 @@ class ModulePermission(TenantMixin, db.Model):
             'can_access_reports': self.can_access_reports,
             'can_manage_users': self.can_manage_users,
             'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'updated_at': self.updated_at.isoformat(),
         }
 
 
 class DepartmentPermission(TenantMixin, db.Model):
     """نموذج صلاحيات الأقسام"""
-    
+
     __tablename__ = 'department_permissions'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id', ondelete='SET NULL'), nullable=True, index=True)
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)  # None = جميع الأقسام
-    
+    role_id = db.Column(
+        db.Integer, db.ForeignKey('roles.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    department_id = db.Column(
+        db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True
+    )  # None = جميع الأقسام
+
     # صلاحيات القسم
     can_access = db.Column(db.Boolean, default=False)
     can_manage_patients = db.Column(db.Boolean, default=False)
     can_manage_visits = db.Column(db.Boolean, default=False)
     can_manage_appointments = db.Column(db.Boolean, default=False)
     can_manage_staff = db.Column(db.Boolean, default=False)
-    
+
     # صلاحيات خاصة
     can_override_department_limits = db.Column(db.Boolean, default=False)
     can_manage_department_settings = db.Column(db.Boolean, default=False)
-    
+
     # التواريخ
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
     # Constraints and Indexes
     __table_args__ = (
         Index('idx_department_permission_role', 'role_id'),
         Index('idx_department_permission_department', 'department_id'),
         Index('idx_department_permission_created', 'created_at'),
     )
-    
+
     # العلاقات
     role = db.relationship('Role', back_populates='department_permissions', lazy='selectin')
     department = db.relationship('Department', back_populates='role_permissions', lazy='selectin')
-    
+
     def __repr__(self):
         return f'<DepartmentPermission {self.role.name_ar} - {self.department.name_ar if self.department else "All"}>'
-    
+
     def to_dict(self):
         """تحويل إلى قاموس"""
         return {
@@ -125,7 +143,7 @@ class DepartmentPermission(TenantMixin, db.Model):
             'can_override_department_limits': self.can_override_department_limits,
             'can_manage_department_settings': self.can_manage_department_settings,
             'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'updated_at': self.updated_at.isoformat(),
         }
 
 

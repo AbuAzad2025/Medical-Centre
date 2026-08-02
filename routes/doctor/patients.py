@@ -1,30 +1,21 @@
 """patients routes - extracted from monolithic doctor.py"""
 
-from routes.doctor import doctor_bp
+import json
+import logging
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, current_app, g
-from flask_login import login_required, current_user
-from utils.decorators import role_required, role_required_json
+from flask import flash, g, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import desc, select
+
+from app.extensions import db
+from models.medical_record import MedicalRecord
+from models.medication import Prescription
 from models.patient import Patient
 from models.visit import Visit
-from models.user import User
-from models.department import Department
-from models.medication import Prescription
-from models.lab_request import LabRequest
-from models.radiology_request import RadiologyRequest
-from models.medical_record import MedicalRecord
-from models.appointment import Appointment
-from models.follow_up import FollowUpRequest
-from models.drug_interaction import DrugInteraction
-from models.audit_trail import AuditTrail
-from models.system_config import SystemConfig
-from app.extensions import db
+from routes.doctor import doctor_bp
 from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import and_, or_, desc, func, case, select
-import logging, json, secrets
-from datetime import datetime, date, timedelta, timezone
-
+from utils.decorators import role_required, role_required_json
 
 # =============================================
 # PATIENTS ROUTES
@@ -32,89 +23,140 @@ from datetime import datetime, date, timedelta, timezone
 
 # مسارات إضافية للطبيب الاحترافي
 
+
 @doctor_bp.route('/medical-history/<int:patient_id>')
 @login_required
 @role_required('doctor', 'admin', 'manager')
 def medical_history(patient_id):
     """السجل الطبي للمريض"""
-    
+
     try:
-        patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)).scalars().first()
+        patient = (
+            db.session.execute(
+                select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)
+            )
+            .scalars()
+            .first()
+        )
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('doctor.patients'))
-        
+
         # جلب السجل الطبي الكامل
-        medical_records = db.session.execute(select(MedicalRecord).filter(
-            MedicalRecord.patient_id == patient_id,
-            MedicalRecord.tenant_id == g.tenant_id
-        ).order_by(desc(MedicalRecord.created_at))).scalars().all()
-        
-        previous_visits = db.session.execute(select(Visit).filter(
-            Visit.patient_id == patient_id,
-            Visit.tenant_id == g.tenant_id
-        ).order_by(desc(Visit.visit_date)).limit(10)).scalars().all()
-        
-        return render_template('doctor/medical_history.html',
-                             patient=patient,
-                             medical_records=medical_records,
-                             previous_visits=previous_visits)
+        medical_records = (
+            db.session.execute(
+                select(MedicalRecord)
+                .filter(
+                    MedicalRecord.patient_id == patient_id, MedicalRecord.tenant_id == g.tenant_id
+                )
+                .order_by(desc(MedicalRecord.created_at))
+            )
+            .scalars()
+            .all()
+        )
+
+        previous_visits = (
+            db.session.execute(
+                select(Visit)
+                .filter(Visit.patient_id == patient_id, Visit.tenant_id == g.tenant_id)
+                .order_by(desc(Visit.visit_date))
+                .limit(10)
+            )
+            .scalars()
+            .all()
+        )
+
+        return render_template(
+            'doctor/medical_history.html',
+            patient=patient,
+            medical_records=medical_records,
+            previous_visits=previous_visits,
+        )
     except Exception as e:
-        logging.error(f"Error loading medical history: {str(e)}")
+        logging.exception(f'Error loading medical history: {e!s}')
         flash('حدث خطأ في تحميل السجل الطبي', 'error')
         return redirect(url_for('doctor.patient_queue'))
+
 
 @doctor_bp.route('/prescriptions-history/<int:patient_id>')
 @login_required
 @role_required('doctor', 'admin', 'manager')
 def prescriptions_history(patient_id):
     """تاريخ الوصفات الطبية للمريض"""
-    
+
     try:
-        patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)).scalars().first()
+        patient = (
+            db.session.execute(
+                select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)
+            )
+            .scalars()
+            .first()
+        )
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('doctor.patients'))
-        
+
         # جلب الوصفات السابقة
-        prescriptions = db.session.execute(select(Prescription).filter(
-            Prescription.patient_id == patient_id,
-            Prescription.tenant_id == g.tenant_id
-        ).order_by(desc(Prescription.created_at))).scalars().all()
-        
-        return render_template('doctor/prescriptions_history.html',
-                             patient=patient,
-                             prescriptions=prescriptions)
+        prescriptions = (
+            db.session.execute(
+                select(Prescription)
+                .filter(
+                    Prescription.patient_id == patient_id, Prescription.tenant_id == g.tenant_id
+                )
+                .order_by(desc(Prescription.created_at))
+            )
+            .scalars()
+            .all()
+        )
+
+        return render_template(
+            'doctor/prescriptions_history.html', patient=patient, prescriptions=prescriptions
+        )
     except Exception as e:
-        logging.error(f"Error loading prescriptions history: {str(e)}")
+        logging.exception(f'Error loading prescriptions history: {e!s}')
         flash('حدث خطأ في تحميل تاريخ الوصفات', 'error')
         return redirect(url_for('doctor.patient_queue'))
+
 
 @doctor_bp.route('/print-medical-report/<int:visit_id>')
 @login_required
 @role_required('doctor', 'admin', 'manager')
 def print_medical_report(visit_id):
     """طباعة التقرير الطبي"""
-    
+
     try:
-        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)).scalars().first()
+        visit = (
+            db.session.execute(
+                select(Visit).filter(
+                    Visit.id == visit_id,
+                    Visit.tenant_id == g.tenant_id,
+                    Visit.doctor_id == current_user.id,
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not visit:
             flash('الزيارة غير موجودة', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        
+
         # Generate QR for verification
         from app.shared.print_context import generate_qr_data_uri
-        qr_payload = f"MEDICAL_REPORT|{visit.id}|{visit.tenant_id}|{visit.doctor_id}"
+
+        qr_payload = f'MEDICAL_REPORT|{visit.id}|{visit.tenant_id}|{visit.doctor_id}'
         qr_data_uri = generate_qr_data_uri(qr_payload)
-        
-        return render_template('print/doctor_medical_report.html',
-                             visit=visit, qr_data_uri=qr_data_uri)
+
+        return render_template(
+            'print/doctor_medical_report.html', visit=visit, qr_data_uri=qr_data_uri
+        )
     except Exception as e:
-        logging.error(f"Error printing medical report: {str(e)}")
+        logging.exception(f'Error printing medical report: {e!s}')
         flash('حدث خطأ في طباعة التقرير الطبي', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
+
 # ==================== الميزات الذكية للطبيب ====================
+
 
 @doctor_bp.route('/patients')
 @login_required
@@ -124,11 +166,11 @@ def patients():
 
     try:
         q = (request.args.get('q') or '').strip()
-        from sqlalchemy import or_, func
+        from sqlalchemy import func, or_
 
         base_query = select(Patient)
         if q:
-            like = f"%{q}%"
+            like = f'%{q}%'
             base_query = base_query.filter(
                 or_(
                     Patient.first_name.ilike(like),
@@ -136,39 +178,46 @@ def patients():
                     Patient.phone.ilike(like),
                     Patient.national_id.ilike(like),
                     Patient.first_name_ar.ilike(like),
-                    Patient.last_name_ar.ilike(like)
+                    Patient.last_name_ar.ilike(like),
                 )
             )
 
         # إحصائيات الزيارات: العدد وآخر زيارة
-        visits_count_sub = select(
-            Visit.patient_id.label('pid'),
-            func.count(Visit.id).label('visits_count'),
-            func.max(Visit.visit_date).label('last_visit')
-        ).group_by(Visit.patient_id).subquery()
+        visits_count_sub = (
+            select(
+                Visit.patient_id.label('pid'),
+                func.count(Visit.id).label('visits_count'),
+                func.max(Visit.visit_date).label('last_visit'),
+            )
+            .group_by(Visit.patient_id)
+            .subquery()
+        )
 
-        patients = db.session.execute(base_query.outerjoin(
-            visits_count_sub, visits_count_sub.c.pid == Patient.id
-        ).add_columns(
-            visits_count_sub.c.visits_count, visits_count_sub.c.last_visit
-        ).order_by(Patient.id.desc()).limit(100)).all()
+        patients = db.session.execute(
+            base_query.outerjoin(visits_count_sub, visits_count_sub.c.pid == Patient.id)
+            .add_columns(visits_count_sub.c.visits_count, visits_count_sub.c.last_visit)
+            .order_by(Patient.id.desc())
+            .limit(100)
+        ).all()
 
         # صياغة النتائج لواجهة العرض
         results = []
         for p, visits_count, last_visit in patients:
-            results.append({
-                'id': p.id,
-                'full_name': p.full_name,
-                'phone': p.phone,
-                'national_id': p.national_id,
-                'age': p.age,
-                'visits_count': int(visits_count or 0),
-                'last_visit': last_visit,
-            })
+            results.append(
+                {
+                    'id': p.id,
+                    'full_name': p.full_name,
+                    'phone': p.phone,
+                    'national_id': p.national_id,
+                    'age': p.age,
+                    'visits_count': int(visits_count or 0),
+                    'last_visit': last_visit,
+                }
+            )
 
         return render_template('doctor/patients.html', q=q, results=results)
     except Exception as e:
-        logging.error(f"Error loading doctor patients search: {str(e)}")
+        logging.exception(f'Error loading doctor patients search: {e!s}')
         flash('حدث خطأ في تحميل البحث عن المرضى', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -180,7 +229,13 @@ def patient_timeline(patient_id: int):
     try:
         from services.patient_timeline_service import PatientTimelineService
 
-        patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)).scalars().first()
+        patient = (
+            db.session.execute(
+                select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)
+            )
+            .scalars()
+            .first()
+        )
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('doctor.patients'))
@@ -201,9 +256,10 @@ def patient_timeline(patient_id: int):
             event_summary=summary,
         )
     except Exception as e:
-        logging.error(f"Error in patient timeline: {str(e)}")
+        logging.exception(f'Error in patient timeline: {e!s}')
         flash('حدث خطأ في تحميل الخط الزمني', 'error')
         return redirect(url_for('doctor.patients'))
+
 
 @doctor_bp.route('/medical-records')
 @login_required
@@ -211,6 +267,7 @@ def patient_timeline(patient_id: int):
 def medical_records():
     """السجلات الطبية — تُحوِّل لقائمة المرضى لاختيار مريض (لا قالب تفاصيل بلا بيانات)."""
     return redirect(url_for('doctor.patients'))
+
 
 @doctor_bp.route('/api/patient-search')
 @login_required
@@ -224,66 +281,92 @@ def api_patient_search():
                 Patient.first_name.ilike(f'%{q}%'),
                 Patient.last_name.ilike(f'%{q}%'),
                 Patient.national_id.ilike(f'%{q}%'),
-                Patient.phone.ilike(f'%{q}%')
+                Patient.phone.ilike(f'%{q}%'),
             )
         )
-    patients = db.session.execute(query.order_by(Patient.created_at.desc()).limit(10)).scalars().all()
+    patients = (
+        db.session.execute(query.order_by(Patient.created_at.desc()).limit(10)).scalars().all()
+    )
     results = []
     for p in patients:
-        results.append({
-            'id': p.id,
-            'full_name': p.full_name,
-            'national_id': p.national_id,
-            'phone': p.phone,
-            'visit_count': getattr(p, 'visit_count', 0)
-        })
+        results.append(
+            {
+                'id': p.id,
+                'full_name': p.full_name,
+                'national_id': p.national_id,
+                'phone': p.phone,
+                'visit_count': getattr(p, 'visit_count', 0),
+            }
+        )
     return jsonify({'patients': results})
+
 
 @doctor_bp.route('/dental-chart/<int:patient_id>')
 @login_required
 @role_required('doctor', 'admin', 'manager')
 def dental_chart(patient_id):
     """خريطة الأسنان التفاعلية"""
+    from models.dental import TOOTH_STATES, DentalChart
     from models.patient import Patient
-    from models.dental import DentalChart, DentalTooth, TOOTH_STATES
-    import json
 
-    patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)).scalars().first()
+    patient = (
+        db.session.execute(
+            select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)
+        )
+        .scalars()
+        .first()
+    )
     if not patient:
         flash('المريض غير موجود', 'error')
         return redirect(url_for('doctor.patients'))
 
-    upper_right = [{'fdi': f'1{i}', 'x': i*38, 'y': 0} for i in range(8, 0, -1)]
-    upper_left = [{'fdi': f'2{i}', 'x': 160 + i*38, 'y': 0} for i in range(1, 9)]
-    lower_left = [{'fdi': f'3{i}', 'x': i*38, 'y': 0} for i in range(8, 0, -1)]
-    lower_right = [{'fdi': f'4{i}', 'x': 160 + i*38, 'y': 0} for i in range(1, 9)]
+    upper_right = [{'fdi': f'1{i}', 'x': i * 38, 'y': 0} for i in range(8, 0, -1)]
+    upper_left = [{'fdi': f'2{i}', 'x': 160 + i * 38, 'y': 0} for i in range(1, 9)]
+    lower_left = [{'fdi': f'3{i}', 'x': i * 38, 'y': 0} for i in range(8, 0, -1)]
+    lower_right = [{'fdi': f'4{i}', 'x': 160 + i * 38, 'y': 0} for i in range(1, 9)]
 
-    chart = db.session.execute(select(DentalChart).filter(DentalChart.patient_id == patient_id, DentalChart.tenant_id == g.tenant_id).order_by(DentalChart.created_at.desc())).scalars().first()
+    chart = (
+        db.session.execute(
+            select(DentalChart)
+            .filter(DentalChart.patient_id == patient_id, DentalChart.tenant_id == g.tenant_id)
+            .order_by(DentalChart.created_at.desc())
+        )
+        .scalars()
+        .first()
+    )
     teeth_map = {}
     if chart:
         for tooth in chart.teeth:
             teeth_map[tooth.fdi_number] = {
                 'state': tooth.state,
                 'surfaces': tooth.surfaces or {},
-                'notes': tooth.notes or ''
+                'notes': tooth.notes or '',
             }
 
     def make_tooth_list(layout):
         return [
             {
-                'fdi': t['fdi'], 'x': t['x'], 'y': t['y'],
+                'fdi': t['fdi'],
+                'x': t['x'],
+                'y': t['y'],
                 'state': teeth_map.get(t['fdi'], {}).get('state', 'sound'),
-                'color': TOOTH_STATES.get(teeth_map.get(t['fdi'], {}).get('state', 'sound'), {}).get('color', '#10b981')
+                'color': TOOTH_STATES.get(
+                    teeth_map.get(t['fdi'], {}).get('state', 'sound'), {}
+                ).get('color', '#10b981'),
             }
             for t in layout
         ]
 
-    return render_template('doctor/dental_chart.html',
-                           patient=patient, visit_id=None,
-                           states=TOOTH_STATES, states_json=json.dumps(TOOTH_STATES),
-                           teeth_json=json.dumps(teeth_map),
-                           upper_teeth=make_tooth_list(upper_right + upper_left),
-                           lower_teeth=make_tooth_list(lower_left + lower_right))
+    return render_template(
+        'doctor/dental_chart.html',
+        patient=patient,
+        visit_id=None,
+        states=TOOTH_STATES,
+        states_json=json.dumps(TOOTH_STATES),
+        teeth_json=json.dumps(teeth_map),
+        upper_teeth=make_tooth_list(upper_right + upper_left),
+        lower_teeth=make_tooth_list(lower_left + lower_right),
+    )
 
 
 @doctor_bp.route('/dental-chart/save', methods=['POST'])
@@ -292,9 +375,10 @@ def dental_chart(patient_id):
 def save_dental_chart():
     """حفظ خريطة الأسنان"""
     from models.dental import DentalChart, DentalTooth
+
     data = request.get_json(silent=True) or request.form
 
-    raw_patient_id = (data.get('patient_id') if hasattr(data, 'get') else None)
+    raw_patient_id = data.get('patient_id') if hasattr(data, 'get') else None
     try:
         patient_id = int(str(raw_patient_id).strip())
     except (TypeError, ValueError):
@@ -319,7 +403,7 @@ def save_dental_chart():
             patient_id=patient_id,
             visit_id=visit_id,
             doctor_id=current_user.id,
-            notes=notes
+            notes=notes,
         )
         db.session.add(chart)
         db.session.flush()
@@ -334,13 +418,13 @@ def save_dental_chart():
                 fdi_number=str(fdi),
                 state=info.get('state', 'sound'),
                 surfaces=info.get('surfaces') or {},
-                notes=info.get('notes', '')
+                notes=info.get('notes', ''),
             )
             db.session.add(tooth)
 
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'chart_id': chart.id})
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error saving dental chart: {e}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error saving dental chart: {e}')
         return jsonify({'success': False, 'message': 'تعذّر حفظ خريطة الأسنان'}), 500

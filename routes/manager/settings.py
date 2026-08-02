@@ -1,14 +1,14 @@
-from routes.manager import manager_bp
-
-from flask import render_template, request, jsonify
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from app.core.platform_capabilities import require_platform_capability
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from app.core.tenant.models import Tenant
 import logging
-import json
+
+from flask import jsonify, render_template, request
+from flask_login import current_user, login_required
+
+from app.core.platform_capabilities import require_platform_capability
+from app.core.tenant.models import Tenant
+from app.extensions import db
+from routes.manager import manager_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required
 
 logger = logging.getLogger(__name__)
 
@@ -52,10 +52,10 @@ def manager_settings():
 
         tenant.settings = settings
         try:
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error("Failed to save manager settings")
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+        except Exception:
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception('Failed to save manager settings')
             return jsonify({'success': False, 'message': 'تعذر حفظ الإعدادات'}), 500
 
         return jsonify({'success': True, 'message': 'تم حفظ الإعدادات بنجاح'})
@@ -83,15 +83,13 @@ def manager_test_sms():
         tenant = db.session.get(Tenant, tenant_id) if tenant_id else None
 
         from services.sms_service import SMSService
+
         result = SMSService.send_sms(
-            phone=phone_number,
-            message='هذه رسالة تجريبية من إعدادات المركز',
-            tenant=tenant
+            phone=phone_number, message='هذه رسالة تجريبية من إعدادات المركز', tenant=tenant
         )
         if result.get('success'):
             return jsonify({'success': True, 'message': 'تم إرسال الرسالة التجريبية بنجاح'}), 200
-        else:
-            return jsonify({'success': False, 'message': result.get('error', 'فشل الإرسال')}), 500
+        return jsonify({'success': False, 'message': result.get('error', 'فشل الإرسال')}), 500
     except Exception as e:
-        logging.error(f"Manager test SMS error: {str(e)}")
-        return jsonify({'success': False, 'message': f'خطأ: {str(e)}'}), 500
+        logging.exception(f'Manager test SMS error: {e!s}')
+        return jsonify({'success': False, 'message': f'خطأ: {e!s}'}), 500

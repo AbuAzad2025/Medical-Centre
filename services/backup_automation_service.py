@@ -1,17 +1,18 @@
 """Automated PostgreSQL backup scheduling and encrypted cloud upload."""
+
 from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
+
+from sqlalchemy import select
 
 from app.extensions import db
 from app.shared.enums import BackupStatus
-from utils.db_safety import safe_commit
 from models.backup import Backup
 from services.pg_backup_service import PgBackupError, build_backup_path, run_pg_dump_sql_gz
-from sqlalchemy import select
+from utils.db_safety import safe_commit
 
 logger = logging.getLogger(__name__)
 
@@ -24,17 +25,27 @@ class BackupAutomationService:
     """Run pg_dump backups on a schedule and optionally upload to object storage."""
 
     @classmethod
-    def _resolve_created_by(cls, created_by: Optional[int]) -> Optional[int]:
+    def _resolve_created_by(cls, created_by: int | None) -> int | None:
         if created_by is not None:
             return created_by
         env_id = os.environ.get('BACKUP_SYSTEM_USER_ID', '').strip()
         if env_id.isdigit():
             return int(env_id)
         from models.user import User
-        actor = db.session.execute(select(User).filter_by(role='super_admin', is_active=True)
-            .order_by(User.id)).scalars().first()
+
+        actor = (
+            db.session.execute(
+                select(User).filter_by(role='super_admin', is_active=True).order_by(User.id)
+            )
+            .scalars()
+            .first()
+        )
         if actor is None:
-            actor = db.session.execute(select(User).filter_by(is_active=True).order_by(User.id)).scalars().first()
+            actor = (
+                db.session.execute(select(User).filter_by(is_active=True).order_by(User.id))
+                .scalars()
+                .first()
+            )
         return actor.id if actor else None
 
     @classmethod
@@ -46,8 +57,8 @@ class BackupAutomationService:
         return max(3600, int(os.environ.get('BACKUP_INTERVAL_SECONDS', '86400')))
 
     @classmethod
-    def run_scheduled_backup(cls, *, created_by: Optional[int] = None) -> Backup:
-        name = f'auto_backup_{datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")}'
+    def run_scheduled_backup(cls, *, created_by: int | None = None) -> Backup:
+        name = f'auto_backup_{datetime.now(UTC).strftime("%Y%m%d_%H%M%S")}'
         path = build_backup_path(os.environ.get('BACKUP_LOCAL_DIR', 'backups'), name)
         record = Backup(
             backup_name=name,
@@ -55,33 +66,33 @@ class BackupAutomationService:
             backup_path=path,
             backup_status=BackupStatus.IN_PROGRESS,
             is_scheduled=True,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
             created_by=cls._resolve_created_by(created_by),
             description='Automated PostgreSQL pg_dump backup',
         )
         db.session.add(record)
-        safe_commit(db.session, error_message="Failed to save backup record", reraise=True)
+        safe_commit(db.session, error_message='Failed to save backup record', reraise=True)
 
         try:
             size = run_pg_dump_sql_gz(path)
             record.backup_size = size
             record.backup_status = BackupStatus.COMPLETED
-            record.completed_at = datetime.now(timezone.utc)
+            record.completed_at = datetime.now(UTC)
             cloud_uri = cls.upload_to_cloud(path)
             if cloud_uri:
                 record.backup_notes = f'cloud_uri={cloud_uri}'
-            safe_commit(db.session, error_message="Failed to finalise backup record", reraise=True)
+            safe_commit(db.session, error_message='Failed to finalise backup record', reraise=True)
             logger.info('Automated backup completed id=%s path=%s', record.id, path)
             return record
         except PgBackupError as exc:
             record.backup_status = BackupStatus.FAILED
             record.backup_notes = str(exc)
-            safe_commit(db.session, error_message="Failed to save backup failure status")
+            safe_commit(db.session, error_message='Failed to save backup failure status')
             logger.error('Automated backup failed id=%s: %s', record.id, exc)
             raise BackupAutomationError(str(exc)) from exc
 
     @classmethod
-    def upload_to_cloud(cls, local_path: str) -> Optional[str]:
+    def upload_to_cloud(cls, local_path: str) -> str | None:
         bucket = os.environ.get('BACKUP_S3_BUCKET', '').strip()
         if not bucket:
             return None

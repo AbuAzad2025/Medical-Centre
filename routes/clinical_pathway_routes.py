@@ -1,13 +1,19 @@
 """
 Clinical Pathways / Care Plans Routes
 """
+
+from flask import Blueprint, render_template
+from flask_login import login_required
 from sqlalchemy import select
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
-from flask_login import login_required, current_user
-from utils.decorators import handle_route_errors, role_required
-from models.clinical_pathway import ClinicalPathway, ClinicalPathwayStep, PatientCarePlan, CarePlanTask
-from models.patient import Patient
+
 from app.extensions import db
+from models.clinical_pathway import (
+    ClinicalPathway,
+    ClinicalPathwayStep,
+    PatientCarePlan,
+)
+from models.patient import Patient
+from utils.decorators import handle_route_errors, role_required
 
 pathway_bp = Blueprint('pathway', __name__)
 
@@ -17,8 +23,15 @@ pathway_bp = Blueprint('pathway', __name__)
 @role_required('doctor', 'admin', 'manager')
 @handle_route_errors
 def pathways():
-    items = db.session.execute(select(ClinicalPathway).filter_by(is_active=True).order_by(ClinicalPathway.name)).scalars().all()
+    items = (
+        db.session.execute(
+            select(ClinicalPathway).filter_by(is_active=True).order_by(ClinicalPathway.name)
+        )
+        .scalars()
+        .all()
+    )
     return render_template('pathway/pathways.html', pathways=items)
+
 
 @pathway_bp.route('/pathway/<int:pathway_id>')
 @login_required
@@ -26,10 +39,17 @@ def pathways():
 @handle_route_errors
 def pathway_detail(pathway_id):
     pathway = db.get_or_404(ClinicalPathway, pathway_id)
-    steps = db.session.execute(select(ClinicalPathwayStep).filter_by(pathway_id=pathway_id, is_active=True).order_by(
-        ClinicalPathwayStep.step_number
-    )).scalars().all()
+    steps = (
+        db.session.execute(
+            select(ClinicalPathwayStep)
+            .filter_by(pathway_id=pathway_id, is_active=True)
+            .order_by(ClinicalPathwayStep.step_number)
+        )
+        .scalars()
+        .all()
+    )
     return render_template('pathway/pathway_detail.html', pathway=pathway, steps=steps)
+
 
 @pathway_bp.route('/patient/<int:patient_id>/care-plans')
 @login_required
@@ -37,7 +57,13 @@ def pathway_detail(pathway_id):
 @handle_route_errors
 def patient_care_plans(patient_id):
     patient = db.get_or_404(Patient, patient_id)
-    plans = db.session.execute(select(PatientCarePlan).filter_by(patient_id=patient_id, is_active=True).order_by(
-        PatientCarePlan.start_date.desc()
-    )).scalars().all()
+    plans = (
+        db.session.execute(
+            select(PatientCarePlan)
+            .filter_by(patient_id=patient_id, is_active=True)
+            .order_by(PatientCarePlan.start_date.desc())
+        )
+        .scalars()
+        .all()
+    )
     return render_template('pathway/patient_care_plans.html', patient=patient, plans=plans)

@@ -1,17 +1,18 @@
 """Lab barcode scan and print routes."""
-from datetime import datetime, timezone
 
-from flask import jsonify, redirect, render_template, request, url_for, g
+from datetime import UTC, datetime
+
+from flask import g, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import select
 
 from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
 from models.barcode_tracking import BarcodeRegistry, BarcodeScanLog
 from models.lab_request import LabRequest
 from routes.lab import lab_bp
 from services.barcode_service import generate_lab_barcode, register_in_barcode_registry
+from utils.db_safety import safe_commit
 from utils.decorators import role_required
-from sqlalchemy import select
 
 
 @lab_bp.route('/barcode/scan/<barcode>', methods=['GET', 'POST'])
@@ -19,7 +20,9 @@ from sqlalchemy import select
 @role_required('lab', 'technician', 'nurse', 'admin')
 def barcode_scan(barcode):
     """Scan a barcode — lookup LabRequest, log scan, optionally update status."""
-    lab_request = db.session.execute(select(LabRequest).filter_by(barcode=barcode)).scalars().first()
+    lab_request = (
+        db.session.execute(select(LabRequest).filter_by(barcode=barcode)).scalars().first()
+    )
 
     if request.method == 'GET':
         if lab_request:
@@ -33,9 +36,15 @@ def barcode_scan(barcode):
     if not lab_request:
         return jsonify({'success': False, 'message': 'لم يتم العثور على طلب'}), 404
 
-    registry = db.session.execute(select(BarcodeRegistry).filter_by(
-        barcode_value=barcode, entity_type='SPECIMEN', is_active=True
-    )).scalars().first()
+    registry = (
+        db.session.execute(
+            select(BarcodeRegistry).filter_by(
+                barcode_value=barcode, entity_type='SPECIMEN', is_active=True
+            )
+        )
+        .scalars()
+        .first()
+    )
 
     scan_log = BarcodeScanLog(
         barcode_registry_id=registry.id if registry else None,
@@ -49,19 +58,21 @@ def barcode_scan(barcode):
 
     if action == 'COLLECT' and lab_request.status == 'REQUESTED':
         lab_request.status = 'COLLECTED'
-        lab_request.collection_time = datetime.now(timezone.utc)
+        lab_request.collection_time = datetime.now(UTC)
     elif action == 'RECEIVE' and lab_request.status == 'COLLECTED':
         lab_request.status = 'RECEIVED'
-        lab_request.received_time = datetime.now(timezone.utc)
+        lab_request.received_time = datetime.now(UTC)
 
-    lab_request.updated_at = datetime.now(timezone.utc)
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    lab_request.updated_at = datetime.now(UTC)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
 
-    return jsonify({
-        'success': True,
-        'request_id': lab_request.id,
-        'status': lab_request.status,
-    })
+    return jsonify(
+        {
+            'success': True,
+            'request_id': lab_request.id,
+            'status': lab_request.status,
+        }
+    )
 
 
 @lab_bp.route('/barcode/print/<int:request_id>')
@@ -69,7 +80,15 @@ def barcode_scan(barcode):
 @role_required('lab', 'technician', 'nurse', 'admin')
 def barcode_print(request_id):
     """Show a print page with the barcode QR image."""
-    lab_request = db.session.execute(select(LabRequest).filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
+    lab_request = (
+        db.session.execute(
+            select(LabRequest).filter(
+                LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id
+            )
+        )
+        .scalars()
+        .first()
+    )
     if not lab_request:
         return jsonify({'success': False, 'message': 'الطلب غير موجود'}), 404
 
@@ -83,6 +102,6 @@ def barcode_print(request_id):
             generated_by_id=current_user.id,
             tenant_id=getattr(current_user, 'tenant_id', None),
         )
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
 
     return render_template('lab/barcode_print.html', lab_request=lab_request)

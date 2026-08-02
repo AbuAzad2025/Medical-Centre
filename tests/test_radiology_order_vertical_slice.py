@@ -1,15 +1,15 @@
 """Tests for P2-003: Radiology Order Vertical Slice."""
 
 import pytest
+from sqlalchemy import func, select
 
+from app.extensions import db
 from app_factory import db as _db
 from models.patient import Patient
 from models.radiology_request import RadiologyRequest
 from models.user import User
 from models.visit import Visit
 from services.radiology_service import RadiologyService
-from sqlalchemy import select, func
-from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -92,18 +92,27 @@ class TestRadiologyServiceCreateRequest:
 
 
 class TestDoctorRadiologyRequestRoute:
-    def test_creates_structured_radiology_request(self, app, client, rad_visit, rad_doctor, test_tenant):
+    def test_creates_structured_radiology_request(
+        self, app, client, rad_visit, rad_doctor, test_tenant
+    ):
         from tests.tenant_context import login_test_client
 
         login_test_client(client, rad_doctor, test_tenant)
-        resp = client.post(f'/doctor/radiology-request/{rad_visit.id}', data={
-            'modality': 'XRAY',
-            'body_part': 'Chest',
-            'notes': 'PA view',
-        })
+        resp = client.post(
+            f'/doctor/radiology-request/{rad_visit.id}',
+            data={
+                'modality': 'XRAY',
+                'body_part': 'Chest',
+                'notes': 'PA view',
+            },
+        )
         assert resp.status_code in (200, 302)
 
-        req = db.session.execute(select(RadiologyRequest).filter_by(visit_id=rad_visit.id)).scalars().first()
+        req = (
+            db.session.execute(select(RadiologyRequest).filter_by(visit_id=rad_visit.id))
+            .scalars()
+            .first()
+        )
         assert req is not None
         assert req.modality == 'XRAY'
         assert req.body_part == 'Chest'
@@ -112,12 +121,20 @@ class TestDoctorRadiologyRequestRoute:
         from tests.tenant_context import login_test_client
 
         login_test_client(client, rad_doctor, test_tenant)
-        resp = client.post(f'/doctor/radiology-request/{rad_visit.id}', data={
-            'test_name': 'Custom scan',
-            'notes': 'Please schedule',
-        })
+        resp = client.post(
+            f'/doctor/radiology-request/{rad_visit.id}',
+            data={
+                'test_name': 'Custom scan',
+                'notes': 'Please schedule',
+            },
+        )
         assert resp.status_code in (200, 302)
-        assert db.session.execute(select(func.count()).select_from(RadiologyRequest).filter_by(visit_id=rad_visit.id)).scalar() == 0
+        assert (
+            db.session.execute(
+                select(func.count()).select_from(RadiologyRequest).filter_by(visit_id=rad_visit.id)
+            ).scalar()
+            == 0
+        )
         _db.session.refresh(rad_visit)
         assert rad_visit.radiology_ordered is True
         assert 'مذكرة تصوير' in (rad_visit.notes or '')

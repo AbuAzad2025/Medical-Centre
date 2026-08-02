@@ -1,17 +1,19 @@
 """
 Report Scope Service - scopes reports by tenant, module, and user role
 """
+
+from typing import Any
+
 from sqlalchemy import select
-from typing import Optional, List, Dict, Any
-from datetime import datetime, timedelta
 
 
 class ReportScopeService:
     """Provides scoped report data respecting tenant/module boundaries."""
 
     @staticmethod
-    def get_report_data(report_type: str, tenant_id: Optional[int] = None,
-                       module: Optional[str] = None, **filters) -> Dict[str, Any]:
+    def get_report_data(
+        report_type: str, tenant_id: int | None = None, module: str | None = None, **filters
+    ) -> dict[str, Any]:
         """Get report data scoped by tenant and module."""
         query_filters = []
         if tenant_id:
@@ -19,20 +21,20 @@ class ReportScopeService:
 
         if report_type == 'visit_stats':
             return ReportScopeService._visit_stats(tenant_id, **filters)
-        elif report_type == 'lab_volume':
+        if report_type == 'lab_volume':
             return ReportScopeService._lab_volume(tenant_id, **filters)
-        elif report_type == 'revenue':
+        if report_type == 'revenue':
             return ReportScopeService._revenue(tenant_id, **filters)
-        elif report_type == 'inventory':
+        if report_type == 'inventory':
             return ReportScopeService._inventory(tenant_id, **filters)
-        elif report_type == 'referral':
+        if report_type == 'referral':
             return ReportScopeService._referral(tenant_id, **filters)
         return {}
 
     @staticmethod
-    def _visit_stats(tenant_id: Optional[int], **filters) -> Dict[str, Any]:
-        from models.visit import Visit
+    def _visit_stats(tenant_id: int | None, **filters) -> dict[str, Any]:
         from app.extensions import db
+        from models.visit import Visit
 
         q = Visit.query
         if tenant_id:
@@ -42,37 +44,46 @@ class ReportScopeService:
         if 'date_to' in filters:
             q = q.filter(Visit.created_at <= filters['date_to'])
         total = q.count()
-        by_status = db.session.execute(select(Visit.status, db.func.count()).group_by(Visit.status)).all()
+        by_status = db.session.execute(
+            select(Visit.status, db.func.count()).group_by(Visit.status)
+        ).all()
         return {'total_visits': total, 'by_status': dict(by_status)}
 
     @staticmethod
-    def _lab_volume(tenant_id: Optional[int], **filters) -> Dict[str, Any]:
-        from models.lab_request import LabRequest
+    def _lab_volume(tenant_id: int | None, **filters) -> dict[str, Any]:
         from app.extensions import db
+        from models.lab_request import LabRequest
 
         q = LabRequest.query
         if tenant_id:
             q = q.filter_by(tenant_id=tenant_id)
         total = q.count()
-        by_status = db.session.execute(select(LabRequest.status, db.func.count()).group_by(LabRequest.status)).all()
+        by_status = db.session.execute(
+            select(LabRequest.status, db.func.count()).group_by(LabRequest.status)
+        ).all()
         return {'total_lab_requests': total, 'by_status': dict(by_status)}
 
     @staticmethod
-    def _revenue(tenant_id: Optional[int], **filters) -> Dict[str, Any]:
-        from models.payment import Payment
+    def _revenue(tenant_id: int | None, **filters) -> dict[str, Any]:
         from app.extensions import db
+        from models.payment import Payment
 
         q = Payment.query
         if tenant_id:
             q = q.filter_by(tenant_id=tenant_id)
-        total = db.session.execute(select(db.func.sum(Payment.amount_paid)).filter(
-            *([Payment.tenant_id == tenant_id] if tenant_id else []))).scalar() or 0
+        total = (
+            db.session.execute(
+                select(db.func.sum(Payment.amount_paid)).filter(
+                    *([Payment.tenant_id == tenant_id] if tenant_id else [])
+                )
+            ).scalar()
+            or 0
+        )
         return {'total_revenue': float(total)}
 
     @staticmethod
-    def _inventory(tenant_id: Optional[int], **filters) -> Dict[str, Any]:
+    def _inventory(tenant_id: int | None, **filters) -> dict[str, Any]:
         from models.medication import Medication
-        from app.extensions import db
 
         q = Medication.query
         if tenant_id:
@@ -82,9 +93,8 @@ class ReportScopeService:
         return {'total_medications': total, 'low_stock': low_stock}
 
     @staticmethod
-    def _referral(tenant_id: Optional[int], **filters) -> Dict[str, Any]:
+    def _referral(tenant_id: int | None, **filters) -> dict[str, Any]:
         from models.visit import Visit
-        from app.extensions import db
 
         q = Visit.query
         if tenant_id:

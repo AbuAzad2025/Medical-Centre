@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 from flask import url_for
-
-from app.shared.manager_nav_registry import REQUIRED_MANAGER_ENDPOINTS, resolve_manager_nav_sections
-from app.shared.nav_audit import audit_manager_nav_coverage, audit_nav_link_endpoints, manager_nav_endpoints
-from app.shared.nav_resolver import resolve_nav_for_user
 from sqlalchemy import select
 
 from app.extensions import db
+from app.shared.manager_nav_registry import REQUIRED_MANAGER_ENDPOINTS, resolve_manager_nav_sections
+from app.shared.nav_audit import (
+    audit_manager_nav_coverage,
+    audit_nav_link_endpoints,
+    manager_nav_endpoints,
+)
+from app.shared.nav_resolver import resolve_nav_for_user
 
 
 class TestManagerNavRegistry:
@@ -39,6 +42,7 @@ class TestNavResolverManager:
     def test_manager_role_gets_manager_sections(self, app, manager_user, test_tenant):
         with app.app_context():
             from flask import g
+
             g.current_tenant = test_tenant
             g.enabled_modules = {'reporting', 'billing', 'reception', 'appointments', 'inventory'}
             sections = resolve_nav_for_user(manager_user)
@@ -47,8 +51,8 @@ class TestNavResolverManager:
             assert 'تقارير' in titles
 
     def test_super_admin_nav_has_no_owner_endpoints(self, app, client, test_tenant):
-        from models.user import User
         from app.core.rate_limiter import _shared_store
+        from models.user import User
 
         u = db.session.execute(select(User).filter_by(username='sa_gate6b')).scalars().first()
         if not u:
@@ -64,13 +68,15 @@ class TestNavResolverManager:
             db.session.add(u)
             db.session.commit()
         _shared_store.clear()
-        client.post('/auth/login', data={
-            'username': 'sa_gate6b',
-            'password': 'ValidPass123!',
-            'tenant_slug': test_tenant.slug,
-        })
+        client.post(
+            '/auth/login',
+            data={
+                'username': 'sa_gate6b',
+                'password': 'ValidPass123!',
+                'tenant_slug': test_tenant.slug,
+            },
+        )
         with app.app_context():
-            from flask_login import login_user
             sections = resolve_nav_for_user(u)
             for section in sections:
                 for item in section.items:

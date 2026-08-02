@@ -1,11 +1,11 @@
- 
-
-from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, abort
-from flask_login import login_required, current_user
-from utils.decorators import super_admin_required
-from services.access_control_service import AccessControlService
 import logging
+
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from sqlalchemy import func
+
+from services.access_control_service import AccessControlService
+from utils.decorators import super_admin_required
 
 # إنشاء Blueprint للسوبر أدمن
 super_admin_bp = Blueprint('super_admin', __name__)
@@ -17,17 +17,19 @@ super_admin_bp = Blueprint('super_admin', __name__)
 # SUBMODULE IMPORTS
 # ═══════════════════════════════════════
 
-from . import dashboard
-from . import users
-from . import roles
-from . import departments
-from . import services
-from . import system
-from . import analytics
-from . import branding
-from . import security
-from . import backup
-from . import data
-from . import api
-from . import subscription
-from . import usage
+from . import (
+    analytics,
+    api,
+    backup,
+    branding,
+    dashboard,
+    data,
+    departments,
+    roles,
+    security,
+    services,
+    subscription,
+    system,
+    usage,
+    users,
+)

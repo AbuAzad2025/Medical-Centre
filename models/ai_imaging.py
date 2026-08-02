@@ -1,17 +1,26 @@
 """
 AI Radiology / Imaging Analysis Results
 """
-from datetime import datetime, timezone
-from app_factory import db
+
+from datetime import UTC, datetime
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class AIImagingAnalysis(TenantMixin, db.Model):
     __tablename__ = 'ai_imaging_analyses'
 
     id = db.Column(db.Integer, primary_key=True)
-    study_id = db.Column(db.Integer, db.ForeignKey('dicom_studies.id', ondelete='CASCADE'), nullable=True, index=True)
-    series_id = db.Column(db.Integer, db.ForeignKey('dicom_series.id', ondelete='CASCADE'), nullable=True, index=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
+    study_id = db.Column(
+        db.Integer, db.ForeignKey('dicom_studies.id', ondelete='CASCADE'), nullable=True, index=True
+    )
+    series_id = db.Column(
+        db.Integer, db.ForeignKey('dicom_series.id', ondelete='CASCADE'), nullable=True, index=True
+    )
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True
+    )
 
     # AI provider
     provider = db.Column(db.String(50), nullable=False, index=True)
@@ -26,7 +35,9 @@ class AIImagingAnalysis(TenantMixin, db.Model):
     # Results
     findings = db.Column(db.Text, nullable=True)  # JSON structured findings
     confidence_score = db.Column(db.Numeric(5, 4), nullable=True)  # 0.0000 - 1.0000
-    severity = db.Column(db.String(20), nullable=True)  # normal | mild | moderate | severe | critical
+    severity = db.Column(
+        db.String(20), nullable=True
+    )  # normal | mild | moderate | severe | critical
 
     # Detailed annotations
     annotations = db.Column(db.Text, nullable=True)  # JSON array of bounding boxes / masks
@@ -37,7 +48,9 @@ class AIImagingAnalysis(TenantMixin, db.Model):
     status = db.Column(db.String(20), default='pending', nullable=False, index=True)
     # pending | processing | completed | failed | reviewed
     processed_at = db.Column(db.DateTime, nullable=True)
-    reviewed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    reviewed_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     review_notes = db.Column(db.Text, nullable=True)
 
     # Raw response from AI service
@@ -48,9 +61,13 @@ class AIImagingAnalysis(TenantMixin, db.Model):
     processing_time_ms = db.Column(db.Integer, nullable=True)
     cost_usd = db.Column(db.Numeric(10, 4), nullable=True)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
-                           onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
 
     study = db.relationship('DICOMStudy', lazy='selectin')
     series = db.relationship('DICOMSeries', lazy='selectin')
@@ -58,4 +75,4 @@ class AIImagingAnalysis(TenantMixin, db.Model):
     reviewer = db.relationship('User', lazy='selectin')
 
     def __repr__(self):
-        return f"<AIImagingAnalysis patient={self.patient_id} type={self.analysis_type} status={self.status}>"
+        return f'<AIImagingAnalysis patient={self.patient_id} type={self.analysis_type} status={self.status}>'

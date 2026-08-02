@@ -5,6 +5,7 @@ The guard in app_factory.py checks that the current database role does NOT
 have SUPERUSER or BYPASSRLS when ENABLE_SAAS_MODE is true.  If `RLS_BYPASS_ALLOWED`
 is not set, it raises RuntimeError.
 """
+
 from __future__ import annotations
 
 import os
@@ -43,7 +44,10 @@ def main() -> int:
 
     result = subprocess.run(
         [sys.executable, '-c', _PROBE],
-        capture_output=True, text=True, timeout=30, env=env,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        env=env,
     )
     print(result.stdout, end='')
     if result.returncode != 0:

@@ -1,24 +1,21 @@
 """security routes - extracted from monolithic super_admin.py"""
 
-from routes.super_admin import super_admin_bp
+import logging
+from datetime import UTC, datetime, timedelta
 
 # Imports
- 
-
-from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, abort
-from flask_login import login_required, current_user
-from utils.decorators import super_admin_required
-from services.access_control_service import AccessControlService
-from services.super_admin_service import super_admin_service
-import logging
+from flask import flash, redirect, render_template, request, url_for
+from flask_login import login_required
 from sqlalchemy import func, select
-from datetime import datetime, timedelta, timezone
-from app.extensions import db
 
+from app.extensions import db
+from routes.super_admin import super_admin_bp
+from utils.decorators import super_admin_required
 
 # =============================================
 # SECURITY ROUTES
 # =============================================
+
 
 @super_admin_bp.route('/security-logs')
 @login_required
@@ -28,9 +25,10 @@ def security_logs():
     try:
         return render_template('super_admin/security_logs.html')
     except Exception as e:
-        logging.error(f"Security logs error: {str(e)}")
+        logging.exception(f'Security logs error: {e!s}')
         flash('حدث خطأ في تحميل سجلات الأمان', 'error')
         return redirect(url_for('super_admin.dashboard'))
+
 
 @super_admin_bp.route('/audit-trail')
 @login_required
@@ -39,7 +37,7 @@ def audit_trail():
     """سجل التدقيق - PHI Audit Log Viewer"""
     page = request.args.get('page', 1, type=int)
     per_page = 25
-    
+
     # Filter parameters
     action_filter = request.args.get('action_filter', '')
     user_filter = request.args.get('user_filter', '')
@@ -47,15 +45,17 @@ def audit_trail():
     date_to = request.args.get('date_to', '')
     model_filter = request.args.get('model_filter', '')
     patient_id_filter = request.args.get('patient_id_filter', '')
-    
+
     try:
+        from datetime import datetime
+
+        from sqlalchemy import func, select
+
         from models.phi_audit_log import PHIAuditLog
         from models.user import User
-        from sqlalchemy import select, func
-        from datetime import datetime
-        
+
         query = select(PHIAuditLog)
-        
+
         # Apply filters
         if action_filter:
             query = query.filter(PHIAuditLog.action == action_filter)
@@ -78,26 +78,26 @@ def audit_trail():
                 query = query.filter(PHIAuditLog.created_at <= dt_to)
             except ValueError:
                 pass
-        
+
         # Order by most recent first
         query = query.order_by(PHIAuditLog.created_at.desc())
-        
+
         total = db.session.execute(select(func.count()).select_from(query.subquery())).scalar()
         pages = (total + per_page - 1) // per_page
-        
-        audit_logs = db.session.execute(
-            query.offset((page - 1) * per_page).limit(per_page)
-        ).scalars().all()
-        
+
+        audit_logs = (
+            db.session.execute(query.offset((page - 1) * per_page).limit(per_page)).scalars().all()
+        )
+
         # Get unique users for filter dropdown
         users = db.session.execute(select(User).order_by(User.full_name)).scalars().all()
-        
+
         # Get unique actions and models for filter dropdowns
         actions = db.session.execute(select(PHIAuditLog.action).distinct()).scalars().all()
         models = db.session.execute(select(PHIAuditLog.target_model).distinct()).scalars().all()
-        
+
     except Exception as e:
-        logging.error(f"PHI Audit trail error: {str(e)}")
+        logging.exception(f'PHI Audit trail error: {e!s}')
         audit_logs = []
         total = 0
         pages = 0
@@ -120,19 +120,25 @@ def audit_trail():
         for log in audit_logs
     ]
 
-    return render_template('super_admin/audit_trail.html', 
-                           audit_logs=audit_logs,
-                           audit_logs_json=audit_logs_json, 
-                           page=page, pages=pages, total=total,
-                           users=users, actions=actions, models=models,
-                           filters={
-                               'action_filter': action_filter,
-                               'user_filter': user_filter,
-                               'date_from': date_from,
-                               'date_to': date_to,
-                               'model_filter': model_filter,
-                               'patient_id_filter': patient_id_filter,
-                           })
+    return render_template(
+        'super_admin/audit_trail.html',
+        audit_logs=audit_logs,
+        audit_logs_json=audit_logs_json,
+        page=page,
+        pages=pages,
+        total=total,
+        users=users,
+        actions=actions,
+        models=models,
+        filters={
+            'action_filter': action_filter,
+            'user_filter': user_filter,
+            'date_from': date_from,
+            'date_to': date_to,
+            'model_filter': model_filter,
+            'patient_id_filter': patient_id_filter,
+        },
+    )
 
 
 @super_admin_bp.route('/security-center')
@@ -140,20 +146,40 @@ def audit_trail():
 @super_admin_required
 def security_center():
     try:
-        from models.audit_trail import LoginAttempt, SystemLog, SecurityEvent
-        start_24h = datetime.now(timezone.utc) - timedelta(hours=24)
-        failed_logins = db.session.execute(select(func.count()).select_from(LoginAttempt).filter(LoginAttempt.success == False, LoginAttempt.created_at >= start_24h)).scalar()
-        critical_logs = db.session.execute(select(func.count()).select_from(SystemLog).filter(SystemLog.log_level.in_(['ERROR', 'CRITICAL']), SystemLog.created_at >= start_24h)).scalar()
-        unresolved = db.session.execute(select(func.count()).select_from(SecurityEvent).filter(SecurityEvent.is_resolved == False)).scalar()
-        latest_events = db.session.execute(select(SecurityEvent).order_by(SecurityEvent.created_at.desc()).limit(20)).scalars().all()
+        from models.audit_trail import LoginAttempt, SecurityEvent, SystemLog
+
+        start_24h = datetime.now(UTC) - timedelta(hours=24)
+        failed_logins = db.session.execute(
+            select(func.count())
+            .select_from(LoginAttempt)
+            .filter(LoginAttempt.success == False, LoginAttempt.created_at >= start_24h)
+        ).scalar()
+        critical_logs = db.session.execute(
+            select(func.count())
+            .select_from(SystemLog)
+            .filter(
+                SystemLog.log_level.in_(['ERROR', 'CRITICAL']), SystemLog.created_at >= start_24h
+            )
+        ).scalar()
+        unresolved = db.session.execute(
+            select(func.count())
+            .select_from(SecurityEvent)
+            .filter(SecurityEvent.is_resolved == False)
+        ).scalar()
+        latest_events = (
+            db.session.execute(
+                select(SecurityEvent).order_by(SecurityEvent.created_at.desc()).limit(20)
+            )
+            .scalars()
+            .all()
+        )
         stats = {
             'failed_logins_24h': int(failed_logins or 0),
             'critical_logs_24h': int(critical_logs or 0),
             'unresolved_security_events': int(unresolved or 0),
-            'latest_security_events': latest_events
+            'latest_security_events': latest_events,
         }
         return render_template('super_admin/security_center.html', stats=stats)
     except Exception as e:
-        logging.error(f"Security center error: {str(e)}")
+        logging.exception(f'Security center error: {e!s}')
         return render_template('super_admin/security_center.html', stats={})
-

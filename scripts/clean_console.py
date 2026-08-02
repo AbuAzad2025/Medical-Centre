@@ -1,6 +1,8 @@
-import re, glob, os
+import glob
+import re
 
 console_pattern = re.compile(r'console\.(log|warn|error|debug)\s*\([^;]*\);?', re.DOTALL)
+
 
 def repl(m):
     call = m.group(0)
@@ -16,8 +18,9 @@ def repl(m):
         return '/* ' + text + ' */'
     return '/* تم التقاط خطأ */'
 
+
 for path in glob.glob('static/js/**/*.js', recursive=True):
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, encoding='utf-8') as f:
         content = f.read()
     new_content = console_pattern.sub(repl, content)
     if new_content != content:

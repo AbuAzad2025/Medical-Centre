@@ -1,12 +1,14 @@
 """
 Hook notifications into workflow state transitions
 """
+
 from app.core.notifications import NotificationDispatcher
+
 
 def notify_on_visit_status_change(visit, old_status: str, new_status: str, tenant=None):
     """Send notifications when visit status changes."""
     dispatcher = NotificationDispatcher(tenant)
-    if new_status == "completed":
+    if new_status == 'completed':
         patient = getattr(visit, 'patient', None)
         if patient and getattr(patient, 'phone', None):
             dispatcher.notify_lab_results_ready(
@@ -14,6 +16,7 @@ def notify_on_visit_status_change(visit, old_status: str, new_status: str, tenan
                 patient_name=getattr(patient, 'full_name', ''),
                 visit_number=str(getattr(visit, 'visit_number', visit.id)),
             )
+
 
 def notify_on_lab_approved(lab_order, tenant=None):
     """Send WhatsApp when lab results are approved."""
@@ -27,6 +30,7 @@ def notify_on_lab_approved(lab_order, tenant=None):
             visit_number=str(getattr(visit, 'visit_number', getattr(visit, 'id', ''))),
         )
 
+
 def notify_on_invoice_posted(invoice, tenant=None):
     """Send WhatsApp when invoice is posted."""
     dispatcher = NotificationDispatcher(tenant)
@@ -38,6 +42,7 @@ def notify_on_invoice_posted(invoice, tenant=None):
             patient_name=getattr(patient, 'full_name', ''),
             amount=str(getattr(invoice, 'total_amount', '')),
         )
+
 
 def notify_on_prescription_dispensed(prescription, tenant=None):
     """Send WhatsApp when prescription is dispensed."""

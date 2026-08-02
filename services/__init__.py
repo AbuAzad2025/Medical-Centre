@@ -1,28 +1,29 @@
 # Medical System Services
 
-from services.billing_state_service import BillingStateService, ReceiptService
-from services.booking_conversion_service import AppointmentCheckinService, OnlineBookingConversionService
-from services.clinical_context_service import ClinicalContextService
-from services.feature_gate_service import FeatureGateService
-from services.file_service import FileService
-from services.inventory_ledger_service import InventoryLedgerService
-from services.permission_scope_service import PermissionScopeService
-from services.report_scope_service import ReportScopeService
-from services.workflow_orchestrator import WorkflowOrchestrator, QueueService
-from services.pharmacy_sale_service import PharmacySaleService
 from services.ai_governance_service import AIRecommendationGovernanceService
-from services.core_queries import core_queries, CoreQueryService
-from services.prescription_service import prescription_service
-from services.emergency_service import emergency_service
-from services.nursing_service import nursing_service
-from services.financial_service import financial_service
-from services.reception_service import reception_service
-from services.manager_service import manager_service
-from services.super_admin_service import super_admin_service
-from services.lab_service import lab_service
-from services.radiology_service import radiology_service
-from services.fhir_service import fhir_service
+from services.billing_state_service import BillingStateService, ReceiptService
+from services.booking_conversion_service import (
+    AppointmentCheckinService,
+    OnlineBookingConversionService,
+)
+from services.clinical_context_service import ClinicalContextService
+from services.core_queries import CoreQueryService, core_queries
 from services.dicom_service import dicom_service
+from services.emergency_service import emergency_service
+from services.feature_gate_service import FeatureGateService
+from services.fhir_service import fhir_service
+from services.file_service import FileService
+from services.financial_service import financial_service
+from services.inventory_ledger_service import InventoryLedgerService
+from services.lab_service import lab_service
+from services.manager_service import manager_service
+from services.nursing_service import nursing_service
+from services.permission_scope_service import PermissionScopeService
+from services.pharmacy_sale_service import PharmacySaleService
+from services.prescription_service import prescription_service
+from services.radiology_service import radiology_service
+from services.reception_service import reception_service
+from services.report_scope_service import ReportScopeService
 from services.sso_service import sso_service
-
-
+from services.super_admin_service import super_admin_service
+from services.workflow_orchestrator import QueueService, WorkflowOrchestrator

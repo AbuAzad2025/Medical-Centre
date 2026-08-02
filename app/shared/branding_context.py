@@ -1,11 +1,13 @@
 """Tenant/platform UI branding — single source for template ``ui.*`` vars."""
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import Any, Optional
+from typing import Any
 
 from flask import g, url_for
 from sqlalchemy import select
+
 from app.extensions import db
 
 DEFAULT_PRIMARY = '#0f4c81'
@@ -39,7 +41,7 @@ def _default_logo_url() -> str:
     return url_for('static', filename='img/azad_logo.png')
 
 
-def _media_url(path: Optional[str]) -> Optional[str]:
+def _media_url(path: str | None) -> str | None:
     if not path:
         return None
     if path.startswith(('http://', 'https://', '/')):
@@ -54,13 +56,17 @@ def get_branding_row():
 
         tenant = getattr(g, 'current_tenant', None)
         if tenant and getattr(tenant, 'id', None):
-            row = db.session.execute(select(BrandingSettings).filter_by(
-                tenant_id=tenant.id, is_active=True
-            )).scalars().first()
+            row = (
+                db.session.execute(
+                    select(BrandingSettings).filter_by(tenant_id=tenant.id, is_active=True)
+                )
+                .scalars()
+                .first()
+            )
             if row:
                 return row
         return BrandingSettings.get_active_settings()
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -122,9 +128,11 @@ def resolve_ui_context() -> dict[str, str]:
     return resolve_branding_context().to_dict()
 
 
-def load_developer_defaults(db, engine) -> dict[str, Optional[str]]:
+def load_developer_defaults(db, engine) -> dict[str, str | None]:
     """Platform developer footer fields from ``SystemConfig``."""
-    from sqlalchemy import inspect as sa_inspect, select
+    from sqlalchemy import inspect as sa_inspect
+    from sqlalchemy import select
+
     from models.system_config import SystemConfig
 
     out = dict(_DEVELOPER_DEFAULTS)
@@ -138,15 +146,23 @@ def load_developer_defaults(db, engine) -> dict[str, Optional[str]]:
                 'developer_location': 'developer_location',
             }
             for out_key, cfg_key in keys.items():
-                row = db.session.execute(select(SystemConfig).filter_by(config_key=cfg_key)).scalars().first()
+                row = (
+                    db.session.execute(select(SystemConfig).filter_by(config_key=cfg_key))
+                    .scalars()
+                    .first()
+                )
                 if row:
                     val = row.get_value()
                     if val:
                         out[out_key] = val
-            dl = db.session.execute(select(SystemConfig).filter_by(config_key='developer_logo_url')).scalars().first()
+            dl = (
+                db.session.execute(select(SystemConfig).filter_by(config_key='developer_logo_url'))
+                .scalars()
+                .first()
+            )
             if dl:
                 dev_logo = dl.get_value()
-    except Exception as e:
+    except Exception:
         pass
     out['developer_logo_url'] = dev_logo
     return out

@@ -1,19 +1,35 @@
 """
 FileService — secure file management with tenant isolation
 """
-from sqlalchemy import select
-import os
+
 import hashlib
-from datetime import datetime, timezone
-from flask import g, current_app
+import os
+from datetime import UTC, datetime
+
+from flask import current_app, g
+from sqlalchemy import select
 from werkzeug.utils import secure_filename
+
 from app.extensions import db
 from utils.db_safety import safe_commit
-from utils.tenant_query import get_tenant_record, TenantContextError
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 
 class FileService:
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'csv', 'dcm'}
+    ALLOWED_EXTENSIONS = {
+        'png',
+        'jpg',
+        'jpeg',
+        'gif',
+        'pdf',
+        'doc',
+        'docx',
+        'xls',
+        'xlsx',
+        'txt',
+        'csv',
+        'dcm',
+    }
 
     @staticmethod
     def _sha256(file_data: bytes) -> str:
@@ -21,7 +37,7 @@ class FileService:
 
     @staticmethod
     def _tenant_path(tenant_id: int | None, filename: str) -> str:
-        tenant_part = f"tenant_{tenant_id}" if tenant_id else "no_tenant"
+        tenant_part = f'tenant_{tenant_id}' if tenant_id else 'no_tenant'
         return os.path.join(tenant_part, filename)
 
     @staticmethod
@@ -30,7 +46,9 @@ class FileService:
         return ext in FileService.ALLOWED_EXTENSIONS
 
     @staticmethod
-    def upload(file_storage, related_entity_type: str, related_entity_id: int, description: str = "") -> dict | None:
+    def upload(
+        file_storage, related_entity_type: str, related_entity_id: int, description: str = ''
+    ) -> dict | None:
         if not file_storage or not file_storage.filename:
             return None
         if not FileService.allowed_file(file_storage.filename):
@@ -42,19 +60,19 @@ class FileService:
         tenant_id = getattr(g, 'tenant_id', None)
 
         upload_dir = os.path.join(
-            current_app.root_path, 'uploads',
-            FileService._tenant_path(tenant_id, '')
+            current_app.root_path, 'uploads', FileService._tenant_path(tenant_id, '')
         )
         os.makedirs(upload_dir, exist_ok=True)
 
-        ts = datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
-        stored_name = f"{ts}_{file_hash[:12]}_{original_name}"
+        ts = datetime.now(UTC).strftime('%Y%m%d%H%M%S')
+        stored_name = f'{ts}_{file_hash[:12]}_{original_name}'
         file_path = os.path.join(upload_dir, stored_name)
 
         with open(file_path, 'wb') as f:
             f.write(file_data)
 
         from models.file_management import FileUpload
+
         upload = FileUpload(
             tenant_id=tenant_id,
             filename=stored_name,
@@ -66,16 +84,19 @@ class FileService:
             file_extension=original_name.rsplit('.', 1)[-1].lower(),
             related_entity_type=related_entity_type,
             related_entity_id=related_entity_id,
-            uploaded_by=getattr(g, 'current_user', None) and g.current_user.id or 0,
+            uploaded_by=(getattr(g, 'current_user', None) and g.current_user.id) or 0,
             description=description,
         )
         db.session.add(upload)
-        safe_commit(db.session, error_message="Failed to save file upload record", reraise=True)
-        return {"id": upload.id, "filename": original_name, "hash": file_hash}
+        safe_commit(db.session, error_message='Failed to save file upload record', reraise=True)
+        return {'id': upload.id, 'filename': original_name, 'hash': file_hash}
 
     @staticmethod
-    def get_by_entity(related_entity_type: str, related_entity_id: int, tenant_id: int | None = None) -> list:
+    def get_by_entity(
+        related_entity_type: str, related_entity_id: int, tenant_id: int | None = None
+    ) -> list:
         from models.file_management import FileUpload
+
         tid = tenant_id or getattr(g, 'tenant_id', None)
         query = select(FileUpload)
         if tid:
@@ -85,6 +106,7 @@ class FileService:
     @staticmethod
     def delete(file_id: int) -> bool:
         from models.file_management import FileUpload
+
         try:
             upload = get_tenant_record(FileUpload, file_id)
         except TenantContextError:
@@ -93,6 +115,6 @@ class FileService:
             if os.path.exists(upload.file_path):
                 os.remove(upload.file_path)
             db.session.delete(upload)
-            return safe_commit(db.session, error_message="Failed to delete file record")
-        except Exception as e:
+            return safe_commit(db.session, error_message='Failed to delete file record')
+        except Exception:
             return False

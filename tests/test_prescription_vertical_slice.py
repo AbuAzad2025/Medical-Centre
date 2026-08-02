@@ -1,15 +1,15 @@
 """Tests for P2-002: Prescription Vertical Slice."""
 
 import pytest
+from sqlalchemy import select
 
-from app_factory import db as _db
 from app.extensions import db
+from app_factory import db as _db
 from models.medication import Medication, Prescription, PrescriptionItem
 from models.patient import Patient
 from models.user import User
 from models.visit import Visit
 from services.prescription_service import PrescriptionService
-from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
@@ -27,7 +27,11 @@ def rx_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def rx_doctor(app, test_tenant):
-    u = db.session.execute(select(User).filter_by(username='rx_doctor', tenant_id=test_tenant.id)).scalars().first()
+    u = (
+        db.session.execute(select(User).filter_by(username='rx_doctor', tenant_id=test_tenant.id))
+        .scalars()
+        .first()
+    )
     if not u:
         u = User(
             username='rx_doctor',
@@ -60,7 +64,13 @@ def rx_visit(app, test_tenant, rx_patient, rx_doctor):
 def rx_medications(app, test_tenant):
     meds = []
     for trade, price in [('RxAmoxicillin', 15), ('RxParacetamol', 5)]:
-        m = db.session.execute(select(Medication).filter_by(tenant_id=test_tenant.id, trade_name=trade)).scalars().first()
+        m = (
+            db.session.execute(
+                select(Medication).filter_by(tenant_id=test_tenant.id, trade_name=trade)
+            )
+            .scalars()
+            .first()
+        )
         if not m:
             m = Medication(
                 tenant_id=test_tenant.id,
@@ -80,7 +90,9 @@ def rx_medications(app, test_tenant):
 
 
 class TestPrescriptionServiceCreatePrescription:
-    def test_creates_prescription_with_items(self, rx_visit, rx_doctor, rx_medications, test_tenant):
+    def test_creates_prescription_with_items(
+        self, rx_visit, rx_doctor, rx_medications, test_tenant
+    ):
         items = [
             {
                 'medication_id': rx_medications[0].id,
@@ -106,7 +118,11 @@ class TestPrescriptionServiceCreatePrescription:
         assert prescription.tenant_id == test_tenant.id
         assert prescription.status == 'active'
 
-        item = db.session.execute(select(PrescriptionItem).filter_by(prescription_id=prescription.id)).scalars().first()
+        item = (
+            db.session.execute(select(PrescriptionItem).filter_by(prescription_id=prescription.id))
+            .scalars()
+            .first()
+        )
         assert item is not None
         assert item.medication_id == rx_medications[0].id
         assert item.quantity == 2
@@ -116,10 +132,22 @@ class TestPrescriptionServiceCreatePrescription:
         assert item.tenant_id == test_tenant.id
         assert prescription.total_cost == 30
 
-    def test_computes_total_for_multiple_items(self, rx_visit, rx_doctor, rx_medications, test_tenant):
+    def test_computes_total_for_multiple_items(
+        self, rx_visit, rx_doctor, rx_medications, test_tenant
+    ):
         items = [
-            {'medication_id': rx_medications[0].id, 'dosage': '1', 'quantity': 1, 'duration_days': 5},
-            {'medication_id': rx_medications[1].id, 'dosage': '1', 'quantity': 2, 'duration_days': 3},
+            {
+                'medication_id': rx_medications[0].id,
+                'dosage': '1',
+                'quantity': 1,
+                'duration_days': 5,
+            },
+            {
+                'medication_id': rx_medications[1].id,
+                'dosage': '1',
+                'quantity': 2,
+                'duration_days': 3,
+            },
         ]
         ok, result = PrescriptionService.create_prescription(
             patient_id=rx_visit.patient_id,
@@ -145,41 +173,67 @@ class TestPrescriptionServiceCreatePrescription:
 
 
 class TestDoctorPrescriptionRoute:
-    def test_creates_prescription_via_route(self, app, client, rx_visit, rx_doctor, rx_medications, test_tenant):
+    def test_creates_prescription_via_route(
+        self, app, client, rx_visit, rx_doctor, rx_medications, test_tenant
+    ):
         from tests.tenant_context import login_test_client
 
         login_test_client(client, rx_doctor, test_tenant)
-        resp = client.post(f'/doctor/prescription/{rx_visit.id}', data={
-            'item_medication_id[]': [str(rx_medications[0].id)],
-            'item_dosage[]': ['1 tablet'],
-            'item_frequency[]': ['3 times daily'],
-            'item_duration_days[]': ['7'],
-            'item_quantity[]': ['2'],
-            'item_instructions[]': ['After food'],
-        })
+        resp = client.post(
+            f'/doctor/prescription/{rx_visit.id}',
+            data={
+                'item_medication_id[]': [str(rx_medications[0].id)],
+                'item_dosage[]': ['1 tablet'],
+                'item_frequency[]': ['3 times daily'],
+                'item_duration_days[]': ['7'],
+                'item_quantity[]': ['2'],
+                'item_instructions[]': ['After food'],
+            },
+        )
         assert resp.status_code in (200, 302)
 
-        prescription = db.session.execute(select(Prescription).filter_by(visit_id=rx_visit.id)).scalars().first()
+        prescription = (
+            db.session.execute(select(Prescription).filter_by(visit_id=rx_visit.id))
+            .scalars()
+            .first()
+        )
         assert prescription is not None
         assert prescription.tenant_id == test_tenant.id
-        items = db.session.execute(select(PrescriptionItem).filter_by(prescription_id=prescription.id)).scalars().all()
+        items = (
+            db.session.execute(select(PrescriptionItem).filter_by(prescription_id=prescription.id))
+            .scalars()
+            .all()
+        )
         assert len(items) == 1
         assert items[0].total_price == 30
 
-    def test_legacy_single_medication_form(self, app, client, rx_visit, rx_doctor, rx_medications, test_tenant):
+    def test_legacy_single_medication_form(
+        self, app, client, rx_visit, rx_doctor, rx_medications, test_tenant
+    ):
         from tests.tenant_context import login_test_client
 
         login_test_client(client, rx_doctor, test_tenant)
-        resp = client.post(f'/doctor/prescription/{rx_visit.id}', data={
-            'medication_name': rx_medications[1].trade_name,
-            'dosage': '1 tablet',
-            'frequency': 'twice daily',
-            'duration': '5 days',
-            'instructions': 'With water',
-        })
+        resp = client.post(
+            f'/doctor/prescription/{rx_visit.id}',
+            data={
+                'medication_name': rx_medications[1].trade_name,
+                'dosage': '1 tablet',
+                'frequency': 'twice daily',
+                'duration': '5 days',
+                'instructions': 'With water',
+            },
+        )
         assert resp.status_code in (200, 302)
-        prescription = db.session.execute(select(Prescription).filter_by(visit_id=rx_visit.id)).scalars().first()
+        prescription = (
+            db.session.execute(select(Prescription).filter_by(visit_id=rx_visit.id))
+            .scalars()
+            .first()
+        )
         assert prescription is not None
-        items = db.session.execute(select(PrescriptionItem).filter_by(prescription_id=prescription.id)).scalars().all()
+        items = (
+            db.session.execute(select(PrescriptionItem).filter_by(prescription_id=prescription.id))
+            .scalars()
+            .all()
+        )
         assert len(items) == 1
         assert items[0].medication_id in {m.id for m in rx_medications}

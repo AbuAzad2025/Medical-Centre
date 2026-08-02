@@ -2,9 +2,11 @@
 EncryptedString — SQLAlchemy TypeDecorator for transparent field-level encryption.
 Wraps FieldEncryptionService so that reads decrypt and writes encrypt automatically.
 """
-import os
+
 import logging
-from sqlalchemy import String, TypeDecorator, Text
+import os
+
+from sqlalchemy import Text, TypeDecorator
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,7 @@ class EncryptedString(TypeDecorator):
     When FIELD_ENCRYPTION_KEY is not set, the column behaves as plain text
     (graceful degradation for development and testing).
     """
+
     impl = Text
     cache_ok = True
 
@@ -38,8 +41,9 @@ class EncryptedString(TypeDecorator):
             return None
         try:
             from services.field_encryption_service import FieldEncryptionService
+
             return FieldEncryptionService()
-        except Exception as e:
+        except Exception:
             return None
 
     def process_bind_param(self, value, dialect):
@@ -56,5 +60,5 @@ class EncryptedString(TypeDecorator):
         svc = self._get_service()
         if svc is None:
             return value
-        logger.debug("PHI field decrypted")
+        logger.debug('PHI field decrypted')
         return svc.decrypt(value)

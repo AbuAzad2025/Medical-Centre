@@ -2,18 +2,21 @@
 Admin Alert Hook tests.
 Verifies that critical errors trigger the alert sink with trace_id and tenant_id.
 """
+
 from __future__ import annotations
 
-import pytest
 from unittest.mock import Mock
 
+import pytest
 from flask import Flask
 from sqlalchemy import select
+
 from app.extensions import db
 
 
 def _reset_sinks():
     from app_factory import _ALERT_SINKS
+
     _ALERT_SINKS.clear()
 
 
@@ -45,17 +48,18 @@ class TestAdminAlertHook:
     def test_alert_sink_registered(self, app):
         """Alert sink can be registered and called."""
         _reset_sinks()
-        from app_factory import register_alert_sink, _alert_admin
+        from app_factory import _alert_admin, register_alert_sink
 
         mock_sink = Mock()
         register_alert_sink(mock_sink)
 
         with app.test_request_context('/test'):
             from flask import g
+
             g.trace_id = 'alert-test-123'
-            from tests.tenant_context import bind_tenant_on_g
-            from app.extensions import db
             from app.core.tenant.models import Tenant
+            from app.extensions import db
+            from tests.tenant_context import bind_tenant_on_g
 
             tenant = db.session.execute(select(Tenant)).scalar()
             if tenant:
@@ -106,17 +110,16 @@ class TestAdminAlertHook:
     def test_alert_includes_tenant_id(self, app):
         """Alert context includes tenant_id when available."""
         _reset_sinks()
-        from app_factory import register_alert_sink, _alert_admin
-        from tests.tenant_context import bind_tenant_on_g
-        from app.extensions import db
         from app.core.tenant.models import Tenant
+        from app_factory import _alert_admin, register_alert_sink
+        from tests.tenant_context import bind_tenant_on_g
 
         mock_sink = Mock()
         register_alert_sink(mock_sink)
 
         tenant = db.session.execute(select(Tenant)).scalar()
         if not tenant:
-            pytest.skip("no tenant seeded")
+            pytest.skip('no tenant seeded')
 
         with app.test_request_context('/test', headers={'X-Request-ID': 'ctx-test-456'}):
             bind_tenant_on_g(tenant, db_session=db.session)

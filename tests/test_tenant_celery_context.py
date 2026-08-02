@@ -1,7 +1,7 @@
 """Tests for Celery / background tenant context binding."""
 
 import uuid
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -11,14 +11,15 @@ from models.backup import Backup
 
 
 def _unique_slug(prefix):
-    return f"{prefix}-{uuid.uuid4().hex[:8]}"
+    return f'{prefix}-{uuid.uuid4().hex[:8]}'
 
 
 class TestWithTenantContext:
     def test_with_tenant_context_sets_g_tenant_id(self, app):
-        from services.tenant_job_runner import with_tenant_context
-        from app.core.tenant.models import Tenant, TenantStatus
         from flask import g
+
+        from app.core.tenant.models import Tenant, TenantStatus
+        from services.tenant_job_runner import with_tenant_context
 
         with app.app_context():
             tenant = Tenant(
@@ -47,11 +48,14 @@ class TestRunSystemBackupTenantContext:
         monkeypatch.setenv('CELERY_ENABLED', 'true')
         monkeypatch.setenv('CELERY_TASK_ALWAYS_EAGER', 'true')
         from celery_app import get_celery_app
+
         get_celery_app().conf.task_always_eager = True
 
-    def test_run_system_backup_uses_tenant_context(self, app, test_user, celery_eager, monkeypatch, tmp_path):
-        from celery_app import init_celery_app
+    def test_run_system_backup_uses_tenant_context(
+        self, app, test_user, celery_eager, monkeypatch, tmp_path
+    ):
         from app.core.tenant.models import Tenant, TenantStatus
+        from celery_app import init_celery_app
         from services.pg_backup_service import build_backup_path
         from tasks.system_tasks import run_system_backup
 
@@ -87,6 +91,7 @@ class TestRunSystemBackupTenantContext:
 
         def fake_execute(backup_id_arg):
             from flask import g
+
             tenant_ids_seen.append(g.get('tenant_id'))
             backup_row = db.session.get(Backup, backup_id_arg)
             backup_row.backup_status = BackupStatus.COMPLETED
@@ -94,7 +99,9 @@ class TestRunSystemBackupTenantContext:
             db.session.commit()
             return backup_row
 
-        with patch('services.backup_execution_service.execute_backup_by_id', side_effect=fake_execute):
+        with patch(
+            'services.backup_execution_service.execute_backup_by_id', side_effect=fake_execute
+        ):
             result = run_system_backup(backup_id)
 
         assert result['backup_id'] == backup_id
@@ -104,8 +111,9 @@ class TestRunSystemBackupTenantContext:
 class TestTenantTaskDecorator:
     def test_tenant_task_wraps_with_context(self, app):
         from flask import g
-        from services.tenant_job_runner import bind_flask_app, tenant_task, with_tenant_context
+
         from app.core.tenant.models import Tenant, TenantStatus
+        from services.tenant_job_runner import bind_flask_app, tenant_task
 
         bind_flask_app(app)
         with app.app_context():
@@ -153,8 +161,9 @@ class TestWithTenantContextEdgeCases:
 
     def test_reuses_existing_app_context(self, app):
         from flask import g
-        from services.tenant_job_runner import with_tenant_context
+
         from app.core.tenant.models import Tenant, TenantStatus
+        from services.tenant_job_runner import with_tenant_context
 
         with app.app_context():
             tenant = Tenant(
@@ -173,9 +182,9 @@ class TestWithTenantContextEdgeCases:
 
 class TestForEachTenantResilience:
     def test_continues_when_single_tenant_job_fails(self, app, monkeypatch):
-        from services.tenant_job_runner import for_each_tenant
         from app.core.tenant.models import Tenant, TenantStatus
         from app.extensions import db
+        from services.tenant_job_runner import for_each_tenant
 
         with app.app_context():
             t_ok = Tenant(
@@ -206,9 +215,10 @@ class TestForEachTenantResilience:
 
     def test_tenant_task_uses_current_app_when_unbound(self, app):
         from flask import g
-        from services.tenant_job_runner import tenant_task, with_tenant_context
+
         from app.core.tenant.models import Tenant, TenantStatus
         from app.extensions import db
+        from services.tenant_job_runner import tenant_task
 
         with app.app_context():
             tenant = Tenant(

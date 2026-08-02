@@ -4,20 +4,20 @@ All DB-mutating cases run under the ``rollback_db`` fixture (savepoint isolation
 so the destructive ``seed_*`` / ``cleanup_*`` / ``purge_*`` methods can be
 exercised in full without polluting the session-scoped test database.
 """
-import pytest
 
-from services.pricing_service import PricingService
+from sqlalchemy import delete, func, select
+
 import services.pricing_service as ps_mod
-from models.pricing import ServicePrice, DoctorPricing, PricingCatalog
+from app.extensions import db
 from models.department import Department
-from models.user import User
-from models.patient import Patient
-from models.visit import Visit
 from models.lab_request import LabRequest
+from models.patient import Patient
+from models.pricing import DoctorPricing, PricingCatalog, ServicePrice
 from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
-from sqlalchemy import select, func, delete
-from app.extensions import db
+from models.user import User
+from models.visit import Visit
+from services.pricing_service import PricingService
 
 
 class _Boom:
@@ -25,15 +25,16 @@ class _Boom:
 
     class _Q:
         def __getattr__(self, _):
-            raise RuntimeError("boom")
+            raise RuntimeError('boom')
 
     query = _Q()
 
     def __init__(self, *a, **k):
-        raise RuntimeError("boom")
+        raise RuntimeError('boom')
 
 
 # ───────────────────────── pure logic: aliases ─────────────────────────
+
 
 class TestNormalizeAliases:
     def test_lab_key_match_returns_values_then_original(self):
@@ -66,11 +67,18 @@ class TestNormalizeAliases:
 
 # ───────────────────────── get_service_price ─────────────────────────
 
+
 class TestGetServicePrice:
     def _mk(self, db, **kw):
-        defaults = dict(service_name='ZZ_SVC_UNIQUE', service_type='lab_test',
-                        base_price=10, cash_price=20, insurance_price=15,
-                        vip_price=40, is_active=True)
+        defaults = dict(
+            service_name='ZZ_SVC_UNIQUE',
+            service_type='lab_test',
+            base_price=10,
+            cash_price=20,
+            insurance_price=15,
+            vip_price=40,
+            is_active=True,
+        )
         defaults.update(kw)
         sp = ServicePrice(**defaults)
         db.session.add(sp)
@@ -83,27 +91,40 @@ class TestGetServicePrice:
 
     def test_direct_match_insurance(self, rollback_db):
         self._mk(rollback_db)
-        assert float(PricingService.get_service_price('ZZ_SVC_UNIQUE', 'lab_test', 'insurance')) == 15.0
+        assert (
+            float(PricingService.get_service_price('ZZ_SVC_UNIQUE', 'lab_test', 'insurance'))
+            == 15.0
+        )
 
     def test_direct_match_vip(self, rollback_db):
         self._mk(rollback_db)
         assert float(PricingService.get_service_price('ZZ_SVC_UNIQUE', 'lab_test', 'vip')) == 40.0
 
     def test_falls_back_to_base_when_method_price_missing(self, rollback_db):
-        self._mk(rollback_db, service_name='ZZ_BASE_ONLY', cash_price=None,
-                 insurance_price=None, vip_price=None, base_price=12)
+        self._mk(
+            rollback_db,
+            service_name='ZZ_BASE_ONLY',
+            cash_price=None,
+            insurance_price=None,
+            vip_price=None,
+            base_price=12,
+        )
         assert float(PricingService.get_service_price('ZZ_BASE_ONLY', 'lab_test', 'cash')) == 12.0
 
     def test_department_id_param_is_accepted_noop(self, rollback_db):
         # ServicePrice is not department-scoped; the param must not crash and
         # the canonical price is still returned.
         self._mk(rollback_db, service_name='ZZ_DEPT_NOOP', cash_price=77)
-        got = PricingService.get_service_price('ZZ_DEPT_NOOP', 'lab_test', 'cash', department_id=12345)
+        got = PricingService.get_service_price(
+            'ZZ_DEPT_NOOP', 'lab_test', 'cash', department_id=12345
+        )
         assert float(got) == 77.0
 
     def test_alias_branch_resolves_to_canonical(self, rollback_db):
         # Remove pre-existing CBC rows in-transaction so the alias resolves to ours.
-        db.session.execute(delete(ServicePrice).filter_by(service_name='CBC', service_type='lab_test'))
+        db.session.execute(
+            delete(ServicePrice).filter_by(service_name='CBC', service_type='lab_test')
+        )
         rollback_db.session.commit()
         self._mk(rollback_db, service_name='CBC', cash_price=99)
         got = PricingService.get_service_price('complete blood count', 'lab_test', 'cash')
@@ -119,10 +140,17 @@ class TestGetServicePrice:
 
 # ───────────────────────── get_doctor_price ─────────────────────────
 
+
 class TestGetDoctorPrice:
     def _doctor(self, db, dept_id=None):
-        u = User(username='zz_doc_price', email='zz_doc_price@x.com',
-                 full_name='د', role='doctor', is_active=True, department_id=dept_id)
+        u = User(
+            username='zz_doc_price',
+            email='zz_doc_price@x.com',
+            full_name='د',
+            role='doctor',
+            is_active=True,
+            department_id=dept_id,
+        )
         u.set_password('p')
         db.session.add(u)
         db.session.commit()
@@ -130,8 +158,14 @@ class TestGetDoctorPrice:
 
     def test_direct_doctor_pricing(self, rollback_db):
         doc = self._doctor(rollback_db)
-        dp = DoctorPricing(doctor_id=doc.id, consultation_price=50, follow_up_price=30,
-                           emergency_price=80, vip_price=120, is_active=True)
+        dp = DoctorPricing(
+            doctor_id=doc.id,
+            consultation_price=50,
+            follow_up_price=30,
+            emergency_price=80,
+            vip_price=120,
+            is_active=True,
+        )
         rollback_db.session.add(dp)
         rollback_db.session.commit()
         assert float(PricingService.get_doctor_price(doc.id, 'consultation', 'cash')) == 50.0
@@ -163,11 +197,16 @@ class TestGetDoctorPrice:
 
 # ───────────────────────── create / update ─────────────────────────
 
+
 class TestCreateUpdate:
     def test_create_service_price_success(self, rollback_db):
-        res = PricingService.create_service_price({
-            'service_name': 'ZZ_CREATE', 'service_type': 'lab_test', 'base_price': 5,
-        })
+        res = PricingService.create_service_price(
+            {
+                'service_name': 'ZZ_CREATE',
+                'service_type': 'lab_test',
+                'base_price': 5,
+            }
+        )
         assert res['success'] is True
         assert res['service_price_id']
         assert db.session.get(ServicePrice, res['service_price_id']) is not None
@@ -178,8 +217,13 @@ class TestCreateUpdate:
         assert res['success'] is False
 
     def test_create_doctor_pricing_success(self, rollback_db):
-        doc = User(username='zz_doc_cp', email='zz_doc_cp@x.com', full_name='د',
-                   role='doctor', is_active=True)
+        doc = User(
+            username='zz_doc_cp',
+            email='zz_doc_cp@x.com',
+            full_name='د',
+            role='doctor',
+            is_active=True,
+        )
         doc.set_password('p')
         rollback_db.session.add(doc)
         rollback_db.session.commit()
@@ -193,10 +237,14 @@ class TestCreateUpdate:
         assert res['success'] is False
 
     def test_update_service_price_success(self, rollback_db):
-        sp = ServicePrice(service_name='ZZ_UPD', service_type='lab_test', base_price=1, cash_price=1)
+        sp = ServicePrice(
+            service_name='ZZ_UPD', service_type='lab_test', base_price=1, cash_price=1
+        )
         rollback_db.session.add(sp)
         rollback_db.session.commit()
-        res = PricingService.update_service_price(sp.id, {'cash_price': 55, 'bogus_attr': 'ignored'})
+        res = PricingService.update_service_price(
+            sp.id, {'cash_price': 55, 'bogus_attr': 'ignored'}
+        )
         assert res['success'] is True
         assert float(db.session.get(ServicePrice, sp.id).cash_price) == 55.0
 
@@ -209,16 +257,21 @@ class TestCreateUpdate:
         rollback_db.session.add(sp)
         rollback_db.session.commit()
         # commit raises during update
-        monkeypatch.setattr(ps_mod.db.session, 'commit', lambda: (_ for _ in ()).throw(RuntimeError('x')))
+        monkeypatch.setattr(
+            ps_mod.db.session, 'commit', lambda: (_ for _ in ()).throw(RuntimeError('x'))
+        )
         res = PricingService.update_service_price(sp.id, {'cash_price': 9})
         assert res['success'] is False
 
 
 # ───────────────────────── summary ─────────────────────────
 
+
 class TestPricingSummary:
     def test_summary_structure_and_includes_created(self, rollback_db):
-        sp = ServicePrice(service_name='ZZ_SUMMARY', service_type='lab_test', base_price=30, cash_price=30)
+        sp = ServicePrice(
+            service_name='ZZ_SUMMARY', service_type='lab_test', base_price=30, cash_price=30
+        )
         rollback_db.session.add(sp)
         rollback_db.session.commit()
         res = PricingService.get_pricing_summary()
@@ -232,13 +285,22 @@ class TestPricingSummary:
         dept = Department(name='ZZ_SUM_DEPT', name_ar='قسم', is_active=True)
         rollback_db.session.add(dept)
         rollback_db.session.commit()
-        doc = User(username='zz_doc_sum', email='zz_doc_sum@x.com', full_name='د',
-                   role='doctor', is_active=True, department_id=dept.id)
+        doc = User(
+            username='zz_doc_sum',
+            email='zz_doc_sum@x.com',
+            full_name='د',
+            role='doctor',
+            is_active=True,
+            department_id=dept.id,
+        )
         doc.set_password('p')
         rollback_db.session.add(doc)
         rollback_db.session.commit()
-        rollback_db.session.add(DoctorPricing(doctor_id=doc.id, department_id=dept.id,
-                                              consultation_price=50, is_active=True))
+        rollback_db.session.add(
+            DoctorPricing(
+                doctor_id=doc.id, department_id=dept.id, consultation_price=50, is_active=True
+            )
+        )
         rollback_db.session.commit()
         res = PricingService.get_pricing_summary(department_id=dept.id)
         assert res['success'] is True
@@ -253,6 +315,7 @@ class TestPricingSummary:
 
 # ───────────────────────── calculate_visit_cost ─────────────────────────
 
+
 class TestCalculateVisitCost:
     def test_empty_visit_zero(self, rollback_db):
         res = PricingService.calculate_visit_cost({})
@@ -261,30 +324,56 @@ class TestCalculateVisitCost:
         assert res['services'] == []
 
     def test_doctor_cost_included(self, rollback_db):
-        doc = User(username='zz_doc_visit', email='zz_doc_visit@x.com', full_name='د',
-                   role='doctor', is_active=True)
+        doc = User(
+            username='zz_doc_visit',
+            email='zz_doc_visit@x.com',
+            full_name='د',
+            role='doctor',
+            is_active=True,
+        )
         doc.set_password('p')
         rollback_db.session.add(doc)
         rollback_db.session.commit()
-        rollback_db.session.add(DoctorPricing(doctor_id=doc.id, consultation_price=70, is_active=True))
+        rollback_db.session.add(
+            DoctorPricing(doctor_id=doc.id, consultation_price=70, is_active=True)
+        )
         rollback_db.session.commit()
-        res = PricingService.calculate_visit_cost({'doctor_id': doc.id, 'visit_type': 'consultation'})
+        res = PricingService.calculate_visit_cost(
+            {'doctor_id': doc.id, 'visit_type': 'consultation'}
+        )
         assert res['total_cost'] == 70.0
         assert any(s['type'] == 'consultation' for s in res['services'])
 
     def test_nonexistent_lab_and_radiology_ids_skipped(self, rollback_db):
-        res = PricingService.calculate_visit_cost({
-            'lab_tests': [99999999], 'radiology_tests': [99999999],
-        })
+        res = PricingService.calculate_visit_cost(
+            {
+                'lab_tests': [99999999],
+                'radiology_tests': [99999999],
+            }
+        )
         assert res['success'] is True
         assert res['total_cost'] == 0.0
 
     def test_lab_and_radiology_priced_via_fallback(self, rollback_db):
         # ensure at least one active price exists for each type
-        rollback_db.session.add(ServicePrice(service_name='ZZ_LAB_FALLBACK', service_type='lab_test',
-                                             base_price=18, cash_price=18, is_active=True))
-        rollback_db.session.add(ServicePrice(service_name='ZZ_RAD_FALLBACK', service_type='radiology_scan',
-                                             base_price=88, cash_price=88, is_active=True))
+        rollback_db.session.add(
+            ServicePrice(
+                service_name='ZZ_LAB_FALLBACK',
+                service_type='lab_test',
+                base_price=18,
+                cash_price=18,
+                is_active=True,
+            )
+        )
+        rollback_db.session.add(
+            ServicePrice(
+                service_name='ZZ_RAD_FALLBACK',
+                service_type='radiology_scan',
+                base_price=88,
+                cash_price=88,
+                is_active=True,
+            )
+        )
         p = Patient(first_name='ز', last_name='ت')
         rollback_db.session.add(p)
         rollback_db.session.commit()
@@ -299,22 +388,30 @@ class TestCalculateVisitCost:
         rad = RadiologyResult(request_id=rr.id, patient_id=p.id)
         rollback_db.session.add(rad)
         rollback_db.session.commit()
-        res = PricingService.calculate_visit_cost({
-            'lab_tests': [lab.id], 'radiology_tests': [rad.id], 'payment_method': 'cash',
-        })
+        res = PricingService.calculate_visit_cost(
+            {
+                'lab_tests': [lab.id],
+                'radiology_tests': [rad.id],
+                'payment_method': 'cash',
+            }
+        )
         assert res['success'] is True
         assert res['total_cost'] > 0
         types = {s['type'] for s in res['services']}
         assert 'lab_test' in types and 'radiology_scan' in types
 
     def test_exception_returns_failure(self, monkeypatch):
-        monkeypatch.setattr(PricingService, 'get_doctor_price',
-                            staticmethod(lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x'))))
+        monkeypatch.setattr(
+            PricingService,
+            'get_doctor_price',
+            staticmethod(lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x'))),
+        )
         res = PricingService.calculate_visit_cost({'doctor_id': 1})
         assert res['success'] is False
 
 
 # ───────────────────────── seeders ─────────────────────────
+
 
 class TestSeeders:
     def test_seed_departments(self, rollback_db):
@@ -351,10 +448,18 @@ class TestSeeders:
 
     def test_seed_pricing_catalog(self, rollback_db):
         # needs an admin/manager user present
-        if not db.session.execute(select(User).filter(User.role.in_(['admin', 'manager', 'super_admin']),
-                                 User.is_active == True)).scalar():
-            u = User(username='zz_admin_seed', email='zz_admin_seed@x.com', full_name='م',
-                     role='manager', is_active=True)
+        if not db.session.execute(
+            select(User).filter(
+                User.role.in_(['admin', 'manager', 'super_admin']), User.is_active == True
+            )
+        ).scalar():
+            u = User(
+                username='zz_admin_seed',
+                email='zz_admin_seed@x.com',
+                full_name='م',
+                role='manager',
+                is_active=True,
+            )
             u.set_password('p')
             rollback_db.session.add(u)
             rollback_db.session.commit()
@@ -363,10 +468,18 @@ class TestSeeders:
 
     def test_seed_all(self, rollback_db):
         # ensure an admin exists so catalog seeding succeeds
-        if not db.session.execute(select(User).filter(User.role.in_(['admin', 'manager', 'super_admin']),
-                                 User.is_active == True)).scalar():
-            u = User(username='zz_admin_all', email='zz_admin_all@x.com', full_name='م',
-                     role='manager', is_active=True)
+        if not db.session.execute(
+            select(User).filter(
+                User.role.in_(['admin', 'manager', 'super_admin']), User.is_active == True
+            )
+        ).scalar():
+            u = User(
+                username='zz_admin_all',
+                email='zz_admin_all@x.com',
+                full_name='م',
+                role='manager',
+                is_active=True,
+            )
             u.set_password('p')
             rollback_db.session.add(u)
             rollback_db.session.commit()
@@ -381,41 +494,72 @@ class TestSeeders:
 
 # ───────────────────────── cleanup / purge ─────────────────────────
 
+
 class TestCleanup:
     def test_cleanup_service_prices_removes_duplicates(self, rollback_db):
         for _ in range(3):
-            rollback_db.session.add(ServicePrice(service_name='ZZ_DUP', service_type='lab_test', base_price=1))
+            rollback_db.session.add(
+                ServicePrice(service_name='ZZ_DUP', service_type='lab_test', base_price=1)
+            )
         rollback_db.session.commit()
         res = PricingService.cleanup_service_prices()
         assert res['success'] is True
         assert res['removed'] >= 2
-        assert db.session.execute(select(func.count()).select_from(ServicePrice).filter_by(service_name='ZZ_DUP', service_type='lab_test')).scalar() == 1
+        assert (
+            db.session.execute(
+                select(func.count())
+                .select_from(ServicePrice)
+                .filter_by(service_name='ZZ_DUP', service_type='lab_test')
+            ).scalar()
+            == 1
+        )
 
     def test_cleanup_pricing_catalog_removes_duplicates(self, rollback_db):
-        u = db.session.execute(select(User).filter(User.role.in_(['admin', 'manager', 'super_admin']))).scalar()
+        u = db.session.execute(
+            select(User).filter(User.role.in_(['admin', 'manager', 'super_admin']))
+        ).scalar()
         if not u:
-            u = User(username='zz_admin_cat', email='zz_admin_cat@x.com', full_name='م',
-                     role='manager', is_active=True)
+            u = User(
+                username='zz_admin_cat',
+                email='zz_admin_cat@x.com',
+                full_name='م',
+                role='manager',
+                is_active=True,
+            )
             u.set_password('p')
             rollback_db.session.add(u)
             rollback_db.session.commit()
         for _ in range(2):
-            rollback_db.session.add(PricingCatalog(service_type='lab', service_name='ZZ_DUP_CAT',
-                                                   service_name_ar='تكرار', base_price=1,
-                                                   created_by=u.id, is_active=True))
+            rollback_db.session.add(
+                PricingCatalog(
+                    service_type='lab',
+                    service_name='ZZ_DUP_CAT',
+                    service_name_ar='تكرار',
+                    base_price=1,
+                    created_by=u.id,
+                    is_active=True,
+                )
+            )
         rollback_db.session.commit()
         res = PricingService.cleanup_pricing_catalog()
         assert res['success'] is True
         assert res['removed'] >= 1
 
     def test_cleanup_doctor_pricing_removes_duplicates(self, rollback_db):
-        doc = User(username='zz_doc_dup', email='zz_doc_dup@x.com', full_name='د',
-                   role='doctor', is_active=True)
+        doc = User(
+            username='zz_doc_dup',
+            email='zz_doc_dup@x.com',
+            full_name='د',
+            role='doctor',
+            is_active=True,
+        )
         doc.set_password('p')
         rollback_db.session.add(doc)
         rollback_db.session.commit()
         for _ in range(2):
-            rollback_db.session.add(DoctorPricing(doctor_id=doc.id, consultation_price=10, is_active=True))
+            rollback_db.session.add(
+                DoctorPricing(doctor_id=doc.id, consultation_price=10, is_active=True)
+            )
         rollback_db.session.commit()
         res = PricingService.cleanup_doctor_pricing()
         assert res['success'] is True

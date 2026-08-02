@@ -1,14 +1,13 @@
 """Tests for services.currency_service.CurrencyConverter (Wave 3)."""
+
 import types
-import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
 
-from services.currency_service import CurrencyConverter as CC
 from models.exchange_rate import ExchangeRate
-from app.extensions import db
+from services.currency_service import CurrencyConverter as CC
 
 
 @pytest.fixture
@@ -23,7 +22,7 @@ def fx(rollback_db):
             sell_rate=Decimal(str(sell)),
             source=source,
             is_active=active,
-            effective_date=datetime.now(timezone.utc) - timedelta(hours=hours_ago),
+            effective_date=datetime.now(UTC) - timedelta(hours=hours_ago),
         )
         db.session.add(r)
         db.session.commit()
@@ -98,8 +97,10 @@ class TestHelpers:
     def test_fetch_external_rate_mocked(self, fx, monkeypatch):
         class FakeResp:
             status_code = 200
+
             def json(self):
                 return {'rates': {'ILS': 3.55}}
+
         monkeypatch.setattr('requests.get', lambda *a, **k: FakeResp())
         val = CC.fetch_external_rate('USD', 'ILS')
         assert val == Decimal('3.55')

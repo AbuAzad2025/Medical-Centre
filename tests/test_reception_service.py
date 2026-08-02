@@ -1,7 +1,8 @@
 """Tests for services.reception_service.ReceptionService (live schema)."""
+
 import types
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -10,7 +11,6 @@ from models.appointment import Appointment
 from models.patient import Patient
 from models.visit import Visit
 from services.reception_service import ReceptionService
-from app.extensions import db
 
 
 @pytest.fixture(autouse=True)
@@ -37,6 +37,7 @@ def rfx(rollback_db):
 
     def department_id():
         from models.department import Department
+
         tag = uuid.uuid4().hex[:6]
         d = Department(name='Dept-' + tag, name_ar='قسم-' + tag)
         db.session.add(d)
@@ -44,7 +45,7 @@ def rfx(rollback_db):
         return d.id
 
     def appointment(patient_id, department_id=None, status='SCHEDULED', days_ahead=0):
-        starts = datetime.now(timezone.utc) + timedelta(days=days_ahead)
+        starts = datetime.now(UTC) + timedelta(days=days_ahead)
         apt = Appointment(
             patient_id=patient_id,
             department_id=department_id,
@@ -55,7 +56,9 @@ def rfx(rollback_db):
         db.session.commit()
         return apt
 
-    return types.SimpleNamespace(db=db, patient=patient, department_id=department_id, appointment=appointment)
+    return types.SimpleNamespace(
+        db=db, patient=patient, department_id=department_id, appointment=appointment
+    )
 
 
 class TestTodayStats:

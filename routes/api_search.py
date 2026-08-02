@@ -1,13 +1,23 @@
 """Unified search API routes (G-84)."""
+
 from flask import Blueprint, jsonify, request
-from flask_login import login_required, current_user
+from flask_login import login_required
+
 from utils.decorators import role_required_json
 
 api_search_bp = Blueprint('api_search', __name__)
 
-_ALLOWED_PATIENT_ROLES = frozenset({
-    'reception', 'super_admin', 'admin', 'manager', 'doctor', 'nurse', 'emergency',
-})
+_ALLOWED_PATIENT_ROLES = frozenset(
+    {
+        'reception',
+        'super_admin',
+        'admin',
+        'manager',
+        'doctor',
+        'nurse',
+        'emergency',
+    }
+)
 
 
 @api_search_bp.route('/patients')

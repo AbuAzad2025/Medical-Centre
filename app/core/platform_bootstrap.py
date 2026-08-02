@@ -1,4 +1,5 @@
 """Idempotent platform bootstrap — single entry for production catalog setup."""
+
 from __future__ import annotations
 
 import logging
@@ -8,7 +9,7 @@ from typing import Any
 from sqlalchemy import select
 
 from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
+from utils.db_safety import safe_commit
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ def ensure_module_definitions() -> int:
         )
         added += 1
     if added:
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
     return added
 
 
@@ -68,11 +69,11 @@ def ensure_saas_packages() -> int:
 
 
 _DEVELOPER_DEFAULTS = [
-    {"key": "developer_company", "value": "شركة آزاد للأنظمة الذكية", "type": "string"},
-    {"key": "developer_name", "value": "المهندس أحمد غنام", "type": "string"},
-    {"key": "developer_logo_url", "value": "", "type": "string"},
-    {"key": "developer_mobile", "value": "+ --------", "type": "string"},
-    {"key": "developer_location", "value": "رام الله - فلسطين", "type": "string"},
+    {'key': 'developer_company', 'value': 'شركة آزاد للأنظمة الذكية', 'type': 'string'},
+    {'key': 'developer_name', 'value': 'المهندس أحمد غنام', 'type': 'string'},
+    {'key': 'developer_logo_url', 'value': '', 'type': 'string'},
+    {'key': 'developer_mobile', 'value': '+ --------', 'type': 'string'},
+    {'key': 'developer_location', 'value': 'رام الله - فلسطين', 'type': 'string'},
 ]
 
 
@@ -82,19 +83,23 @@ def ensure_developer_config() -> int:
 
     added = 0
     for d in _DEVELOPER_DEFAULTS:
-        if not db.session.execute(select(SystemConfig).filter_by(config_key=d["key"])).scalars().first():
+        if (
+            not db.session.execute(select(SystemConfig).filter_by(config_key=d['key']))
+            .scalars()
+            .first()
+        ):
             db.session.add(
                 SystemConfig(
-                    config_key=d["key"],
-                    config_value=d["value"],
-                    config_type=d["type"],
-                    category="general",
+                    config_key=d['key'],
+                    config_value=d['value'],
+                    config_type=d['type'],
+                    category='general',
                     is_system=True,
                 )
             )
             added += 1
     if added:
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
     return added
 
 

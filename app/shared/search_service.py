@@ -1,19 +1,18 @@
 """Unified search layer — tenant-scoped (G-84)."""
+
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, List
+from typing import Any
 
 from sqlalchemy import or_
-
-from app_factory import db
 
 
 class SearchService:
     """Single entry for patient/staff search APIs."""
 
     @staticmethod
-    def search_patients(query: str, *, limit: int = 20) -> List[dict[str, Any]]:
+    def search_patients(query: str, *, limit: int = 20) -> list[dict[str, Any]]:
         query = (query or '').strip()
         if not query:
             return []

@@ -1,25 +1,25 @@
 """Stripe subscription webhook integration for SaaS billing lifecycle."""
+
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import os
 import time as _time
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import stripe
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from app.extensions import db
 from app.core.rate_limiter import IdempotencyLock
-from utils.db_safety import safe_commit
 from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import StripeWebhookEvent, StripeWebhookEventStatus
 from app.core.saas.projection import EntitlementProjectionService
 from app.core.tenant.models import Tenant, TenantStatus
-from sqlalchemy import select
+from app.extensions import db
+from utils.db_safety import safe_commit
 
 logger = logging.getLogger(__name__)
 
@@ -50,21 +50,29 @@ class StripeSubscriptionService:
         return event
 
     @classmethod
-    def _tenant_from_event(cls, event: dict[str, Any]) -> Optional[Tenant]:
+    def _tenant_from_event(cls, event: dict[str, Any]) -> Tenant | None:
         obj = event.get('data', {}).get('object', {})
         metadata = obj.get('metadata') or {}
         tenant_id = metadata.get('tenant_id')
         if tenant_id:
-            return db.session.get(Tenant, int(tenant_id))  # global reference table - no tenant scope
+            return db.session.get(
+                Tenant, int(tenant_id)
+            )  # global reference table - no tenant scope
         customer_id = obj.get('customer')
         if customer_id:
-            for candidate in db.session.execute(select(Tenant).filter(Tenant.settings.isnot(None))).scalars().all():
+            for candidate in (
+                db.session.execute(select(Tenant).filter(Tenant.settings.isnot(None)))
+                .scalars()
+                .all()
+            ):
                 if (candidate.settings or {}).get('stripe_customer_id') == customer_id:
                     return candidate
         return None
 
     @classmethod
-    def _store_stripe_refs(cls, tenant: Tenant, *, customer_id: str | None = None, subscription_id: str | None = None) -> None:
+    def _store_stripe_refs(
+        cls, tenant: Tenant, *, customer_id: str | None = None, subscription_id: str | None = None
+    ) -> None:
         settings = dict(tenant.settings or {})
         if customer_id:
             settings['stripe_customer_id'] = customer_id
@@ -88,7 +96,9 @@ class StripeSubscriptionService:
                 subscription_id=obj.get('subscription'),
             )
             tenant.status = TenantStatus.ACTIVE
-            safe_commit(db.session, error_message="فشل معالجة checkout.session.completed", reraise=True)
+            safe_commit(
+                db.session, error_message='فشل معالجة checkout.session.completed', reraise=True
+            )
             EntitlementProjectionService.calculate(tenant.id)
             return {'tenant_id': tenant.id, 'action': 'checkout_completed'}
 
@@ -102,7 +112,9 @@ class StripeSubscriptionService:
             )
             if obj.get('status') in ('active', 'trialing'):
                 tenant.status = TenantStatus.ACTIVE
-            safe_commit(db.session, error_message="فشل معالجة customer.subscription.created", reraise=True)
+            safe_commit(
+                db.session, error_message='فشل معالجة customer.subscription.created', reraise=True
+            )
             EntitlementProjectionService.calculate(tenant.id)
             return {'tenant_id': tenant.id, 'action': 'subscription_created'}
 
@@ -117,15 +129,23 @@ class StripeSubscriptionService:
                 TenantProvisioningService.suspend_tenant(tenant.id, reason=f'stripe:{status}')
             elif status == 'canceled':
                 TenantProvisioningService.cancel_tenant(tenant.id)
-            safe_commit(db.session, error_message="فشل معالجة customer.subscription.updated", reraise=True)
+            safe_commit(
+                db.session, error_message='فشل معالجة customer.subscription.updated', reraise=True
+            )
             EntitlementProjectionService.calculate(tenant.id)
-            return {'tenant_id': tenant.id, 'action': 'subscription_updated', 'stripe_status': status}
+            return {
+                'tenant_id': tenant.id,
+                'action': 'subscription_updated',
+                'stripe_status': status,
+            }
 
         if event_type == 'customer.subscription.deleted':
             if tenant is None:
                 return {'ignored': True, 'reason': 'tenant_not_found'}
             TenantProvisioningService.cancel_tenant(tenant.id)
-            safe_commit(db.session, error_message="فشل معالجة customer.subscription.deleted", reraise=True)
+            safe_commit(
+                db.session, error_message='فشل معالجة customer.subscription.deleted', reraise=True
+            )
             EntitlementProjectionService.calculate(tenant.id)
             return {'tenant_id': tenant.id, 'action': 'subscription_deleted'}
 
@@ -133,7 +153,7 @@ class StripeSubscriptionService:
             if tenant is None:
                 return {'ignored': True, 'reason': 'tenant_not_found'}
             TenantProvisioningService.suspend_tenant(tenant.id, reason='stripe:payment_failed')
-            safe_commit(db.session, error_message="فشل معالجة invoice.payment_failed", reraise=True)
+            safe_commit(db.session, error_message='فشل معالجة invoice.payment_failed', reraise=True)
             EntitlementProjectionService.calculate(tenant.id)
             return {'tenant_id': tenant.id, 'action': 'payment_failed'}
 
@@ -147,16 +167,17 @@ class StripeSubscriptionService:
                     TenantProvisioningService.renew_base_line(int(line_id))
                 except Exception as exc:
                     logger.warning('Stripe renew_base_line skipped tenant=%s: %s', tenant.id, exc)
-            safe_commit(db.session, error_message="فشل معالجة invoice.paid", reraise=True)
+            safe_commit(db.session, error_message='فشل معالجة invoice.paid', reraise=True)
             EntitlementProjectionService.calculate(tenant.id)
             return {'tenant_id': tenant.id, 'action': 'invoice_paid'}
 
         return {'ignored': True, 'reason': 'unsupported_event', 'type': event_type}
 
     @classmethod
-    def _check_idempotency(cls, event_id: str) -> Optional[StripeWebhookEvent]:
+    def _check_idempotency(cls, event_id: str) -> StripeWebhookEvent | None:
         try:
             from app.core.rate_limiter import _get_redis
+
             _redis = _get_redis()
             if _redis:
                 cached = _redis.get(f'wh_idemp:{event_id}')
@@ -214,16 +235,21 @@ class StripeSubscriptionService:
                 db.session.rollback()
                 existing = cls._check_idempotency(event_id)
                 if existing:
-                    return {'already_processed': True, 'event_id': event_id, 'status': existing.status}
+                    return {
+                        'already_processed': True,
+                        'event_id': event_id,
+                        'status': existing.status,
+                    }
                 raise StripeWebhookError('duplicate_event_id')
 
             try:
                 result = cls.handle_event(event)
                 record.status = StripeWebhookEventStatus.PROCESSED
-                record.processed_at = datetime.now(timezone.utc)
-                safe_commit(db.session, error_message="فشل تسجيل معالجة webhook", reraise=True)
+                record.processed_at = datetime.now(UTC)
+                safe_commit(db.session, error_message='فشل تسجيل معالجة webhook', reraise=True)
                 try:
                     from app.core.rate_limiter import _get_redis
+
                     _redis = _get_redis()
                     if _redis:
                         _redis.setex(f'wh_idemp:{event_id}', 86400, '1')
@@ -232,19 +258,23 @@ class StripeSubscriptionService:
                 return result
             except Exception as exc:
                 try:
-                    failed_record = db.session.get(StripeWebhookEvent, event_id)  # global reference table - no tenant scope
+                    failed_record = db.session.get(
+                        StripeWebhookEvent, event_id
+                    )  # global reference table - no tenant scope
                     if failed_record:
                         failed_record.status = StripeWebhookEventStatus.FAILED
                         failed_record.error_message = str(exc)[:1000]
                     else:
-                        db.session.add(StripeWebhookEvent(
-                            event_id=event_id,
-                            status=StripeWebhookEventStatus.FAILED,
-                            payload_hash=payload_hash,
-                            error_message=str(exc)[:1000],
-                        ))
-                    safe_commit(db.session, error_message="فشل تسجيل فشل webhook")
-                except Exception as e:
+                        db.session.add(
+                            StripeWebhookEvent(
+                                event_id=event_id,
+                                status=StripeWebhookEventStatus.FAILED,
+                                payload_hash=payload_hash,
+                                error_message=str(exc)[:1000],
+                            )
+                        )
+                    safe_commit(db.session, error_message='فشل تسجيل فشل webhook')
+                except Exception:
                     pass
                 raise
         finally:

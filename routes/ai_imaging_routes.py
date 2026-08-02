@@ -1,15 +1,18 @@
 """
 AI Imaging Analysis Routes
 """
-from sqlalchemy import select
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import handle_route_errors
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from models import AIImagingAnalysis, DICOMStudy
-from datetime import datetime, timezone
+
 import random
+from datetime import UTC, datetime
+
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import select
+
+from app.extensions import db
+from models import AIImagingAnalysis, DICOMStudy
+from utils.db_safety import safe_commit
+from utils.decorators import handle_route_errors
 
 ai_imaging_bp = Blueprint('ai_imaging', __name__)
 
@@ -18,7 +21,13 @@ ai_imaging_bp = Blueprint('ai_imaging', __name__)
 @login_required
 @handle_route_errors
 def index():
-    analyses = db.session.execute(select(AIImagingAnalysis).order_by(AIImagingAnalysis.created_at.desc()).limit(50)).scalars().all()
+    analyses = (
+        db.session.execute(
+            select(AIImagingAnalysis).order_by(AIImagingAnalysis.created_at.desc()).limit(50)
+        )
+        .scalars()
+        .all()
+    )
     return render_template('ai_imaging/index.html', analyses=analyses)
 
 
@@ -35,18 +44,20 @@ def request_analysis():
         patient_id=study.patient_id if study.patient_id else 0,
         provider=provider,
         analysis_type=analysis_type,
-        status='pending'
+        status='pending',
     )
     db.session.add(ai)
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
 
     ai.status = 'completed'
-    ai.processed_at = datetime.now(timezone.utc)
+    ai.processed_at = datetime.now(UTC)
     ai.confidence_score = round(random.uniform(0.7, 0.99), 4)
     ai.severity = random.choice(['normal', 'mild', 'moderate', 'severe'])
-    ai.suggested_report_text = "AI Analysis: No significant abnormalities detected. Recommend clinical correlation."
+    ai.suggested_report_text = (
+        'AI Analysis: No significant abnormalities detected. Recommend clinical correlation.'
+    )
     ai.processing_time_ms = random.randint(500, 3000)
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
     flash('تم إرسال الطلب للتحليل الذكي واكتماله', 'success')
     return redirect(url_for('ai_imaging.index'))
 
@@ -59,6 +70,6 @@ def review(ai_id):
     ai.status = 'reviewed'
     ai.reviewed_by = current_user.id
     ai.review_notes = request.form.get('review_notes', '')
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
     flash('تم مراجعة التحليل', 'success')
     return redirect(url_for('ai_imaging.index'))

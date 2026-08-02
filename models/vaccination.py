@@ -2,12 +2,16 @@
 Vaccination / Immunization Registry
 Track patient vaccinations with schedules and boosters
 """
-from datetime import datetime, timezone, date
-from app_factory import db
+
+from datetime import UTC, datetime
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class Vaccine(TenantMixin, db.Model):
     """Vaccine master data"""
+
     __tablename__ = 'vaccines'
     __table_args__ = {'extend_existing': True}
 
@@ -23,27 +27,33 @@ class Vaccine(TenantMixin, db.Model):
     target_age_months = db.Column(db.String(200), nullable=True)  # JSON: [2, 4, 6]
     contraindications = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
 
     immunizations = db.relationship('Immunization', back_populates='vaccine', lazy='dynamic')
     schedules = db.relationship('VaccinationSchedule', back_populates='vaccine')
 
-
     def __repr__(self):
-        return f"<Vaccine {self.name}>"
+        return f'<Vaccine {self.name}>'
 
 
 class Immunization(TenantMixin, db.Model):
     """Patient immunization record"""
+
     __tablename__ = 'immunizations'
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
-    vaccine_id = db.Column(db.Integer, db.ForeignKey('vaccines.id', ondelete='RESTRICT'), nullable=False, index=True)
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True
+    )
+    vaccine_id = db.Column(
+        db.Integer, db.ForeignKey('vaccines.id', ondelete='RESTRICT'), nullable=False, index=True
+    )
     dose_number = db.Column(db.Integer, default=1)
     administration_date = db.Column(db.Date, nullable=False)
-    administration_site = db.Column(db.String(100), nullable=True)  # Left Arm, Right Arm, Left Thigh, etc.
+    administration_site = db.Column(
+        db.String(100), nullable=True
+    )  # Left Arm, Right Arm, Left Thigh, etc.
     route = db.Column(db.String(50), default='IM')  # IM, SC, PO, ID, INTRANASAL
     dosage = db.Column(db.String(100), nullable=True)  # 0.5 mL, etc.
     lot_number = db.Column(db.String(100), nullable=True)
@@ -51,7 +61,9 @@ class Immunization(TenantMixin, db.Model):
     manufacturer = db.Column(db.String(200), nullable=True)
 
     # Provider
-    administered_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    administered_by_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     facility = db.Column(db.String(200), nullable=True)
 
     # Status
@@ -63,25 +75,29 @@ class Immunization(TenantMixin, db.Model):
     next_due_date = db.Column(db.Date, nullable=True)
     is_overdue = db.Column(db.Boolean, default=False)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
 
     patient = db.relationship('Patient', back_populates='immunizations')
     administered_by = db.relationship('User', foreign_keys=[administered_by_id])
     vaccine = db.relationship('Vaccine', back_populates='immunizations')
 
-
     def __repr__(self):
-        return f"<Immunization {self.dose_number}>"
+        return f'<Immunization {self.dose_number}>'
 
 
 class VaccinationSchedule(TenantMixin, db.Model):
     """Recommended vaccination schedule (e.g., WHO Expanded Programme)"""
+
     __tablename__ = 'vaccination_schedules'
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    vaccine_id = db.Column(db.Integer, db.ForeignKey('vaccines.id', ondelete='RESTRICT'), nullable=False, index=True)
+    vaccine_id = db.Column(
+        db.Integer, db.ForeignKey('vaccines.id', ondelete='RESTRICT'), nullable=False, index=True
+    )
     schedule_name = db.Column(db.String(100), default='STANDARD')  # STANDARD, CATCH_UP, TRAVEL
     dose_number = db.Column(db.Integer, nullable=False)
     recommended_age_months = db.Column(db.Integer, nullable=False)
@@ -89,6 +105,6 @@ class VaccinationSchedule(TenantMixin, db.Model):
     max_age_months = db.Column(db.Integer, nullable=True)
     interval_from_previous_days = db.Column(db.Integer, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
 
     vaccine = db.relationship('Vaccine', back_populates='schedules')

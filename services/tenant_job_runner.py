@@ -4,19 +4,22 @@ Tenant-aware background job utilities.
 All background workers must process one tenant at a time and enforce
  tenant_id on every tenant-scoped query.
 """
+
 from __future__ import annotations
-from sqlalchemy import select
 
 import functools
 import logging
-from typing import Callable, Optional, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 from flask import Flask
+from sqlalchemy import select
+
 from app.extensions import db
 
 T = TypeVar('T')
 
-_flask_app: Optional[Flask] = None
+_flask_app: Flask | None = None
 
 
 def bind_flask_app(app: Flask) -> None:
@@ -25,7 +28,7 @@ def bind_flask_app(app: Flask) -> None:
     _flask_app = app
 
 
-def get_flask_app() -> Optional[Flask]:
+def get_flask_app() -> Flask | None:
     return _flask_app
 
 
@@ -44,20 +47,27 @@ def for_each_tenant(app: Flask, job: Callable[[int], None]) -> None:
         from app.core.tenant.models import Tenant
 
         try:
-            active_tenants = db.session.execute(select(Tenant.id).filter(Tenant.status.in_(_operational_tenant_statuses()))
-                .order_by(Tenant.id)).scalars().all()
-        except Exception as e:
-            logging.exception("Failed to load active tenants for background job")
+            active_tenants = (
+                db.session.execute(
+                    select(Tenant.id)
+                    .filter(Tenant.status.in_(_operational_tenant_statuses()))
+                    .order_by(Tenant.id)
+                )
+                .scalars()
+                .all()
+            )
+        except Exception:
+            logging.exception('Failed to load active tenants for background job')
             return
 
         for tenant_id in active_tenants:
             try:
                 with_tenant_context(app, tenant_id, lambda: job(tenant_id))
-            except Exception as e:
-                logging.exception(f"Background job failed for tenant {tenant_id}")
+            except Exception:
+                logging.exception(f'Background job failed for tenant {tenant_id}')
 
 
-def with_tenant_context(app: Flask, tenant_id: int, job: Callable[[], T]) -> Optional[T]:
+def with_tenant_context(app: Flask, tenant_id: int, job: Callable[[], T]) -> T | None:
     """Run ``job()`` inside an app context scoped to ``tenant_id``.
 
     Binds full tenant context (including PostgreSQL RLS session var).
@@ -65,7 +75,7 @@ def with_tenant_context(app: Flask, tenant_id: int, job: Callable[[], T]) -> Opt
     """
     from flask import g, has_app_context
 
-    def _run_scoped() -> Optional[T]:
+    def _run_scoped() -> T | None:
         from app.core.tenant.middleware import bind_g_tenant
         from app.core.tenant.models import Tenant
 
@@ -74,18 +84,19 @@ def with_tenant_context(app: Flask, tenant_id: int, job: Callable[[], T]) -> Opt
             return None
         bind_g_tenant(tenant)
         from app.extensions import db as _ext_db
+
         _ext_db.session.info['_tenant_id'] = tenant.id
         try:
             return job()
         finally:
             try:
                 _ext_db.session.info.pop('_tenant_id', None)
-            except Exception as e:
+            except Exception:
                 pass
             for key in ('tenant_id', 'current_tenant', 'tenant_slug', '_tenant_filter_bypass'):
                 try:
                     g.pop(key, None)
-                except Exception as e:
+                except Exception:
                     pass
 
     if has_app_context():
@@ -104,6 +115,7 @@ def tenant_task(tenant_id_param: str = 'tenant_id'):
             app = get_flask_app()
             if app is None:
                 from flask import current_app
+
                 app = current_app._get_current_object()
 
             def _run():

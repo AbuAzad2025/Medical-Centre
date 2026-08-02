@@ -8,7 +8,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from services.pg_backup_service import (
-    BACKUP_CHUNK_SIZE,
     PgBackupError,
     build_backup_path,
     parse_database_url,
@@ -48,8 +47,10 @@ class TestPgDumpExecution:
         fake_proc.wait = MagicMock(return_value=0)
         fake_proc.poll = MagicMock(return_value=0)
 
-        with patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/pg_dump'), \
-             patch('services.pg_backup_service.subprocess.Popen', return_value=fake_proc) as popen:
+        with (
+            patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/pg_dump'),
+            patch('services.pg_backup_service.subprocess.Popen', return_value=fake_proc) as popen,
+        ):
             size = run_pg_dump_sql_gz(out)
 
         assert size > 0
@@ -74,8 +75,10 @@ class TestPgDumpExecution:
         fake_proc.poll = MagicMock(return_value=1)
         fake_proc.stderr.read = MagicMock(return_value=b'connection refused')
 
-        with patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/pg_dump'), \
-             patch('services.pg_backup_service.subprocess.Popen', return_value=fake_proc):
+        with (
+            patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/pg_dump'),
+            patch('services.pg_backup_service.subprocess.Popen', return_value=fake_proc),
+        ):
             with pytest.raises(PgBackupError, match='connection refused'):
                 run_pg_dump_sql_gz(out)
 
@@ -101,8 +104,10 @@ class TestPgDumpExecution:
         fake_proc.kill = MagicMock()
         fake_proc.poll = MagicMock(return_value=-9)
 
-        with patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/pg_dump'), \
-             patch('services.pg_backup_service.subprocess.Popen', return_value=fake_proc):
+        with (
+            patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/pg_dump'),
+            patch('services.pg_backup_service.subprocess.Popen', return_value=fake_proc),
+        ):
             with pytest.raises(PgBackupError, match='timed out'):
                 run_pg_dump_sql_gz(out)
         fake_proc.kill.assert_called()
@@ -120,8 +125,10 @@ class TestPgRestoreExecution:
         fake_proc.stdout = b''
         fake_proc.stderr = b''
 
-        with patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/psql'), \
-             patch('services.pg_backup_service.subprocess.run', return_value=fake_proc) as run:
+        with (
+            patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/psql'),
+            patch('services.pg_backup_service.subprocess.run', return_value=fake_proc) as run,
+        ):
             restore_pg_sql_gz(str(path))
 
         run.assert_called_once()

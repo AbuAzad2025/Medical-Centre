@@ -1,10 +1,12 @@
 """
 BillingStateService — unified billing state management
 """
-from sqlalchemy import select
+
+from datetime import UTC, datetime
 from decimal import Decimal
-from datetime import datetime, timezone
-from flask import g
+
+from sqlalchemy import select
+
 from app.extensions import db
 from app.shared.enums import BillingState, PaymentStatus
 from utils.db_safety import safe_commit
@@ -14,15 +16,18 @@ from utils.tenant_query import get_tenant_record
 class BillingStateService:
     @staticmethod
     def get_billing_state(visit) -> str:
-        from models.payment import Payment
         from models.invoice import Invoice
+        from models.payment import Payment
+
         payments = db.session.execute(select(Payment).filter_by(visit_id=visit.id)).scalars().all()
         invoices = db.session.execute(select(Invoice).filter_by(visit_id=visit.id)).scalars().all()
-        total_paid = sum(float(p.amount or 0) for p in payments if p.status == PaymentStatus.CONFIRMED)
+        total_paid = sum(
+            float(p.amount or 0) for p in payments if p.status == PaymentStatus.CONFIRMED
+        )
         total_invoiced = sum(float(i.total_amount or 0) for i in invoices)
         if total_paid <= 0 and total_invoiced <= 0:
             return BillingState.PENDING
-        if total_paid >= total_invoiced and total_invoiced > 0:
+        if total_paid >= total_invoiced > 0:
             return BillingState.PAID
         if total_paid > total_invoiced:
             return BillingState.PAID
@@ -40,9 +45,9 @@ class BillingStateService:
         if state == BillingState.DEBT:
             if getattr(visit, 'debt_approved', False):
                 return True, None
-            return False, "Debt requires approval"
+            return False, 'Debt requires approval'
         if state == BillingState.PARTIAL:
-            return False, "Outstanding balance remaining"
+            return False, 'Outstanding balance remaining'
         return True, None
 
 
@@ -60,8 +65,9 @@ class ReceiptService:
 
     @staticmethod
     def issue_receipt(visit, payment) -> dict:
-        from models.receipt import Receipt
         from decimal import Decimal
+
+        from models.receipt import Receipt
 
         receipt = Receipt(
             tenant_id=visit.tenant_id,
@@ -75,31 +81,33 @@ class ReceiptService:
             payment_status='PAID',
             status='issued',
             created_by=payment.received_by,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         receipt.generate_receipt_number()
         db.session.add(receipt)
-        safe_commit(db.session, error_message="Failed to issue receipt", reraise=True)
-        return {"receipt_id": receipt.id, "status": "issued"}
+        safe_commit(db.session, error_message='Failed to issue receipt', reraise=True)
+        return {'receipt_id': receipt.id, 'status': 'issued'}
 
     @staticmethod
     def mark_printed(receipt_id: int):
         from models.receipt import Receipt
+
         receipt = get_tenant_record(Receipt, receipt_id)
         if receipt:
             receipt.status = 'printed'
             receipt.is_printed = True
-            receipt.printed_at = datetime.now(timezone.utc)
-            safe_commit(db.session, error_message="Failed to mark receipt printed", reraise=True)
+            receipt.printed_at = datetime.now(UTC)
+            safe_commit(db.session, error_message='Failed to mark receipt printed', reraise=True)
 
     @staticmethod
-    def void_receipt(receipt_id: int, reason: str = ""):
+    def void_receipt(receipt_id: int, reason: str = ''):
         from models.receipt import Receipt
+
         receipt = get_tenant_record(Receipt, receipt_id)
         if receipt:
             receipt.status = 'voided'
             receipt.void_reason = reason
-            safe_commit(db.session, error_message="Failed to void receipt", reraise=True)
+            safe_commit(db.session, error_message='Failed to void receipt', reraise=True)
 
 
 class PaymentAllocationService:
@@ -112,7 +120,14 @@ class PaymentAllocationService:
         payment creation.
         """
         from models.invoice import Invoice
-        invoices = db.session.execute(select(Invoice).filter_by(visit_id=visit.id).order_by(Invoice.created_at.asc())).scalars().all()
+
+        invoices = (
+            db.session.execute(
+                select(Invoice).filter_by(visit_id=visit.id).order_by(Invoice.created_at.asc())
+            )
+            .scalars()
+            .all()
+        )
         remaining = Decimal(str(payment.amount))
         for inv in invoices:
             due = Decimal(str(inv.total_amount or 0)) - Decimal(str(inv.paid_amount or 0))

@@ -1,32 +1,31 @@
 """quality routes - extracted from monolithic lab.py"""
 
-from routes.lab import lab_bp
+import logging
+from datetime import UTC, date, datetime, timedelta
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
-from models.lab_request import LabRequest
-from models.lab_request import LabResult
-from models.lab_quality import LabQualityControlEntry
-from models.lab_reagent import LabReagent
-from models.audit_trail import AuditTrail
-from app.shared.enums import OrderState, LabResultStatus
-from services.lab_service import lab_service
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-import logging, json, base64
-from datetime import datetime, date, timezone, timedelta
-from io import BytesIO
-from sqlalchemy import select, func
+from flask import (
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from flask_login import current_user, login_required
+from sqlalchemy import func, select
 
+from app.extensions import db
+from app.shared.enums import LabResultStatus, OrderState
+from models.lab_quality import LabQualityControlEntry
+from models.lab_request import LabRequest, LabResult
+from routes.lab import lab_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required
 
 # =============================================
 # QUALITY ROUTES
 # =============================================
+
 
 @lab_bp.route('/quality')
 @login_required
@@ -35,110 +34,170 @@ def quality():
     start_raw = (request.args.get('start_date') or '').strip()
     end_raw = (request.args.get('end_date') or '').strip()
     try:
-        start_date = datetime.strptime(start_raw, '%Y-%m-%d').date() if start_raw else (date.today() - timedelta(days=30))
-    except Exception as e:
+        start_date = (
+            datetime.strptime(start_raw, '%Y-%m-%d').date()
+            if start_raw
+            else (date.today() - timedelta(days=30))
+        )
+    except Exception:
         start_date = date.today() - timedelta(days=30)
     try:
         end_date = datetime.strptime(end_raw, '%Y-%m-%d').date() if end_raw else date.today()
-    except Exception as e:
+    except Exception:
         end_date = date.today()
 
-    start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
-    end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
+    start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=UTC)
+    end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=UTC)
 
-    total_done_requests = db.session.scalar(
-        select(func.count()).select_from(LabRequest)
-    )
+    total_done_requests = db.session.scalar(select(func.count()).select_from(LabRequest))
 
     try:
-        avg_tat_seconds = db.session.execute(select(
-            db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
-        ).filter(
-            LabRequest.status == OrderState.DONE,
-            LabRequest.completed_at.isnot(None),
-        )).scalar()
-    except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
+        avg_tat_seconds = db.session.execute(
+            select(
+                db.func.avg(
+                    db.func.extract('epoch', LabRequest.completed_at)
+                    - db.func.extract('epoch', LabRequest.created_at)
+                )
+            ).filter(
+                LabRequest.status == OrderState.DONE,
+                LabRequest.completed_at.isnot(None),
+            )
+        ).scalar()
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
         avg_tat_seconds = None
-    
+
     avg_tat_minutes = float(avg_tat_seconds or 0) / 60.0 if avg_tat_seconds is not None else 0.0
 
-    total_validated_results = db.session.execute(select(db.func.count(LabResult.id)).join(
-        LabRequest, LabRequest.id == LabResult.request_id
-    ).filter(
-        LabRequest.status == OrderState.DONE,
-        LabRequest.completed_at.isnot(None),
-        LabRequest.completed_at >= start_dt,
-        LabRequest.completed_at <= end_dt,
-        LabResult.status == LabResultStatus.VALIDATED
-    )).scalar() or 0
+    total_validated_results = (
+        db.session.execute(
+            select(db.func.count(LabResult.id))
+            .join(LabRequest, LabRequest.id == LabResult.request_id)
+            .filter(
+                LabRequest.status == OrderState.DONE,
+                LabRequest.completed_at.isnot(None),
+                LabRequest.completed_at >= start_dt,
+                LabRequest.completed_at <= end_dt,
+                LabResult.status == LabResultStatus.VALIDATED,
+            )
+        ).scalar()
+        or 0
+    )
 
-    critical_validated_results = db.session.execute(select(db.func.count(LabResult.id)).join(
-        LabRequest, LabRequest.id == LabResult.request_id
-    ).filter(
-        LabRequest.status == OrderState.DONE,
-        LabRequest.completed_at.isnot(None),
-        LabRequest.completed_at >= start_dt,
-        LabRequest.completed_at <= end_dt,
-        LabResult.status == LabResultStatus.VALIDATED,
-        LabResult.is_critical == True
-    )).scalar() or 0
+    critical_validated_results = (
+        db.session.execute(
+            select(db.func.count(LabResult.id))
+            .join(LabRequest, LabRequest.id == LabResult.request_id)
+            .filter(
+                LabRequest.status == OrderState.DONE,
+                LabRequest.completed_at.isnot(None),
+                LabRequest.completed_at >= start_dt,
+                LabRequest.completed_at <= end_dt,
+                LabResult.status == LabResultStatus.VALIDATED,
+                LabResult.is_critical == True,
+            )
+        ).scalar()
+        or 0
+    )
 
-    critical_ratio = (float(critical_validated_results) / float(total_validated_results)) if total_validated_results else 0.0
+    critical_ratio = (
+        (float(critical_validated_results) / float(total_validated_results))
+        if total_validated_results
+        else 0.0
+    )
 
     repeats = []
     try:
-        dup_groups = db.session.execute(select(
-            LabResult.patient_id.label('patient_id'),
-            LabResult.test_code.label('test_code'),
-            db.func.count(LabResult.id).label('cnt')
-        ).join(
-            LabRequest, LabRequest.id == LabResult.request_id
-        ).filter(
-            LabRequest.status == OrderState.DONE,
-            LabRequest.completed_at.isnot(None),
-            LabRequest.completed_at >= start_dt,
-            LabRequest.completed_at <= end_dt,
-            LabResult.status == LabResultStatus.VALIDATED
-        ).group_by(LabResult.patient_id, LabResult.test_code).having(db.func.count(LabResult.id) > 1).order_by(db.func.count(LabResult.id).desc()).limit(25)).scalars().all()
+        dup_groups = (
+            db.session.execute(
+                select(
+                    LabResult.patient_id.label('patient_id'),
+                    LabResult.test_code.label('test_code'),
+                    db.func.count(LabResult.id).label('cnt'),
+                )
+                .join(LabRequest, LabRequest.id == LabResult.request_id)
+                .filter(
+                    LabRequest.status == OrderState.DONE,
+                    LabRequest.completed_at.isnot(None),
+                    LabRequest.completed_at >= start_dt,
+                    LabRequest.completed_at <= end_dt,
+                    LabResult.status == LabResultStatus.VALIDATED,
+                )
+                .group_by(LabResult.patient_id, LabResult.test_code)
+                .having(db.func.count(LabResult.id) > 1)
+                .order_by(db.func.count(LabResult.id).desc())
+                .limit(25)
+            )
+            .scalars()
+            .all()
+        )
         for g in dup_groups:
-            repeats.append({'patient_id': g.patient_id, 'test_code': g.test_code, 'count': int(g.cnt or 0)})
-    except Exception as e:
+            repeats.append(
+                {'patient_id': g.patient_id, 'test_code': g.test_code, 'count': int(g.cnt or 0)}
+            )
+    except Exception:
         repeats = []
 
     test_tat_rows = []
     try:
-        rows = db.session.execute(select(
-            LabResult.test_code.label('test_code'),
-            db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at)).label('avg_sec'),
-            db.func.count(db.func.distinct(LabRequest.id)).label('requests_count'),
-        ).join(
-            LabRequest, LabRequest.id == LabResult.request_id
-        ).filter(
-            LabRequest.status == OrderState.DONE,
-            LabRequest.completed_at.isnot(None),
-            LabRequest.completed_at >= start_dt,
-            LabRequest.completed_at <= end_dt,
-            LabResult.status == LabResultStatus.VALIDATED
-        ).group_by(LabResult.test_code).order_by(db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at)).desc()).limit(30)).scalars().all()
+        rows = (
+            db.session.execute(
+                select(
+                    LabResult.test_code.label('test_code'),
+                    db.func.avg(
+                        db.func.extract('epoch', LabRequest.completed_at)
+                        - db.func.extract('epoch', LabRequest.created_at)
+                    ).label('avg_sec'),
+                    db.func.count(db.func.distinct(LabRequest.id)).label('requests_count'),
+                )
+                .join(LabRequest, LabRequest.id == LabResult.request_id)
+                .filter(
+                    LabRequest.status == OrderState.DONE,
+                    LabRequest.completed_at.isnot(None),
+                    LabRequest.completed_at >= start_dt,
+                    LabRequest.completed_at <= end_dt,
+                    LabResult.status == LabResultStatus.VALIDATED,
+                )
+                .group_by(LabResult.test_code)
+                .order_by(
+                    db.func.avg(
+                        db.func.extract('epoch', LabRequest.completed_at)
+                        - db.func.extract('epoch', LabRequest.created_at)
+                    ).desc()
+                )
+                .limit(30)
+            )
+            .scalars()
+            .all()
+        )
         for r in rows:
-            test_tat_rows.append({
-                'test_code': r.test_code,
-                'avg_minutes': float(r.avg_sec or 0) / 60.0,
-                'requests_count': int(r.requests_count or 0)
-            })
-    except Exception as e:
+            test_tat_rows.append(
+                {
+                    'test_code': r.test_code,
+                    'avg_minutes': float(r.avg_sec or 0) / 60.0,
+                    'requests_count': int(r.requests_count or 0),
+                }
+            )
+    except Exception:
         test_tat_rows = []
 
-    qc_fail_count = db.session.execute(select(func.count()).select_from(LabQualityControlEntry).filter(
-        LabQualityControlEntry.recorded_at >= start_dt,
-        LabQualityControlEntry.recorded_at <= end_dt,
-        LabQualityControlEntry.status == 'FAIL'
-    )).scalar()
-    qc_total_count = db.session.execute(select(func.count()).select_from(LabQualityControlEntry).filter(
-        LabQualityControlEntry.recorded_at >= start_dt,
-        LabQualityControlEntry.recorded_at <= end_dt
-    )).scalar()
+    qc_fail_count = db.session.execute(
+        select(func.count())
+        .select_from(LabQualityControlEntry)
+        .filter(
+            LabQualityControlEntry.recorded_at >= start_dt,
+            LabQualityControlEntry.recorded_at <= end_dt,
+            LabQualityControlEntry.status == 'FAIL',
+        )
+    ).scalar()
+    qc_total_count = db.session.execute(
+        select(func.count())
+        .select_from(LabQualityControlEntry)
+        .filter(
+            LabQualityControlEntry.recorded_at >= start_dt,
+            LabQualityControlEntry.recorded_at <= end_dt,
+        )
+    ).scalar()
 
     return render_template(
         'lab/quality.html',
@@ -152,7 +211,7 @@ def quality():
         repeats=repeats,
         test_tat_rows=test_tat_rows,
         qc_fail_count=qc_fail_count,
-        qc_total_count=qc_total_count
+        qc_total_count=qc_total_count,
     )
 
 
@@ -179,26 +238,36 @@ def quality_control():
             if status_val not in {'PASS', 'FAIL'}:
                 status_val = 'PASS'
 
-            db.session.add(LabQualityControlEntry(
-                test_code=test_code,
-                test_name=test_name,
-                control_level=control_level,
-                measured_value=measured_value,
-                unit=unit,
-                expected_range=expected_range,
-                status=status_val,
-                notes=notes,
-                recorded_by=current_user.id,
-                recorded_at=datetime.now(timezone.utc)
-            ))
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            db.session.add(
+                LabQualityControlEntry(
+                    test_code=test_code,
+                    test_name=test_name,
+                    control_level=control_level,
+                    measured_value=measured_value,
+                    unit=unit,
+                    expected_range=expected_range,
+                    status=status_val,
+                    notes=notes,
+                    recorded_by=current_user.id,
+                    recorded_at=datetime.now(UTC),
+                )
+            )
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم تسجيل ضبط الجودة', 'success')
             return redirect(url_for('lab.quality_control'))
         except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
-            logging.error(f"Error saving lab QC: {str(e)}")
+            safe_rollback(db.session, error_message='database rollback')
+            logging.exception(f'Error saving lab QC: {e!s}')
             flash('حدث خطأ أثناء الحفظ', 'error')
             return redirect(url_for('lab.quality_control'))
 
-    entries = db.session.execute(select(LabQualityControlEntry).order_by(LabQualityControlEntry.recorded_at.desc()).limit(300)).scalars().all()
+    entries = (
+        db.session.execute(
+            select(LabQualityControlEntry)
+            .order_by(LabQualityControlEntry.recorded_at.desc())
+            .limit(300)
+        )
+        .scalars()
+        .all()
+    )
     return render_template('lab/quality_control.html', entries=entries)

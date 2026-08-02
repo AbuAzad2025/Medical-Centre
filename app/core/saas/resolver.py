@@ -7,22 +7,21 @@ Entitlement ≠ Authorization. This resolver answers only:
 It does NOT check user roles, branch scope, resource ownership, or API scopes.
 Those remain the responsibility of the existing permission/ownership layers.
 """
-from sqlalchemy import select
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Optional
 
 from flask import g
 from flask_login import current_user
+from sqlalchemy import select
 
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
 from app.core.saas.exceptions import EntitlementDeniedError
 from app.core.saas.legacy_adapter import LegacyEntitlementAdapter
+from app.extensions import db
+from utils.db_safety import safe_commit, safe_rollback
 
-
-HARD_LIMIT_KEYS = frozenset({"max_users", "max_patients", "api_calls_per_month"})
-WARN_LIMIT_KEYS = frozenset({"storage_gb"})
+HARD_LIMIT_KEYS = frozenset({'max_users', 'max_patients', 'api_calls_per_month'})
+WARN_LIMIT_KEYS = frozenset({'storage_gb'})
 
 
 class EntitlementResolver:
@@ -33,12 +32,12 @@ class EntitlementResolver:
         cls,
         tenant_id: int,
         capability_key: str,
-        at: Optional[datetime] = None,
+        at: datetime | None = None,
         audit: bool = True,
     ) -> bool:
         """Return True if tenant has an active, effective entitlement for capability_key."""
         if at is None:
-            at = datetime.now(timezone.utc)
+            at = datetime.now(UTC)
 
         from app.core.tenant.models import Tenant
 
@@ -46,9 +45,9 @@ class EntitlementResolver:
         tenant_status = tenant.status if tenant else None
 
         # Request-local memoization: resolve once per request per (tenant, status, capability)
-        cache_key = ("entitlement", tenant_id, capability_key, tenant_status)
+        cache_key = ('entitlement', tenant_id, capability_key, tenant_status)
         if _has_request_context():
-            cache = getattr(g, "_entitlement_cache", None)
+            cache = getattr(g, '_entitlement_cache', None)
             if cache is None:
                 cache = {}
                 g._entitlement_cache = cache
@@ -70,14 +69,14 @@ class EntitlementResolver:
         cls,
         tenant_id: int,
         capability_key: str,
-        at: Optional[datetime] = None,
+        at: datetime | None = None,
     ) -> None:
         """Raise EntitlementDeniedError if tenant is not entitled."""
         from app.core.tenant.models import Tenant
 
         tenant = db.session.get(Tenant, tenant_id)
         if not cls.is_entitled(tenant_id, capability_key, at=at, audit=True):
-            _, reason = cls._evaluate(tenant, capability_key, at or datetime.now(timezone.utc))
+            _, reason = cls._evaluate(tenant, capability_key, at or datetime.now(UTC))
             raise EntitlementDeniedError(tenant_id, capability_key, reason)
 
     @classmethod
@@ -91,70 +90,91 @@ class EntitlementResolver:
         from app.core.tenant.models import TenantStatus
 
         if tenant is None:
-            return False, "tenant_not_found"
+            return False, 'tenant_not_found'
 
-        status_raw = getattr(tenant.status, "value", tenant.status)
-        status_norm = str(status_raw or "").lower()
+        status_raw = getattr(tenant.status, 'value', tenant.status)
+        status_norm = str(status_raw or '').lower()
         if status_norm not in (TenantStatus.ACTIVE.value, TenantStatus.TRIAL.value):
-            return False, f"tenant_status_{status_norm}"
+            return False, f'tenant_status_{status_norm}'
 
         if not tenant.is_active_and_paid():
-            return False, "subscription_expired"
+            return False, 'subscription_expired'
 
-        projection = db.session.execute(select(TenantEntitlement).filter_by(
-                tenant_id=tenant.id,
-                capability_key=capability_key,
-                is_effective=True,
+        projection = (
+            db.session.execute(
+                select(TenantEntitlement)
+                .filter_by(
+                    tenant_id=tenant.id,
+                    capability_key=capability_key,
+                    is_effective=True,
+                )
+                .filter(TenantEntitlement.effective_from <= at)
+                .filter(
+                    (TenantEntitlement.effective_to.is_(None))
+                    | (TenantEntitlement.effective_to >= at)
+                )
             )
-            .filter(TenantEntitlement.effective_from <= at)
-            .filter(
-                (TenantEntitlement.effective_to.is_(None))
-                | (TenantEntitlement.effective_to >= at)
-            )).scalars().first()
+            .scalars()
+            .first()
+        )
 
         if projection is None:
             if LegacyEntitlementAdapter.is_entitled(tenant, capability_key):
-                return True, ""
-            return False, "capability_not_entitled"
+                return True, ''
+            return False, 'capability_not_entitled'
 
-        return True, ""
+        return True, ''
 
     @classmethod
-    def get_effective_limits(cls, tenant_id: int, at: Optional[datetime] = None) -> dict[str, Optional[int]]:
+    def get_effective_limits(
+        cls, tenant_id: int, at: datetime | None = None
+    ) -> dict[str, int | None]:
         """Merged limits from active subscription package versions, legacy bundle fallback."""
         if at is None:
-            at = datetime.now(timezone.utc)
+            at = datetime.now(UTC)
 
-        cache_key = ("limits", tenant_id)
+        cache_key = ('limits', tenant_id)
         if _has_request_context():
-            cache = getattr(g, "_entitlement_limit_cache", None)
+            cache = getattr(g, '_entitlement_limit_cache', None)
             if cache is None:
                 cache = {}
                 g._entitlement_limit_cache = cache
             if cache_key in cache:
                 return cache[cache_key]
 
-        from app.core.saas.models import PackageVersionLimit, SubscriptionLine, SubscriptionLineStatus
+        from app.core.saas.models import (
+            SubscriptionLine,
+            SubscriptionLineStatus,
+        )
 
-        limits: dict[str, Optional[int]] = {}
-        lines = db.session.execute(select(SubscriptionLine).filter_by(tenant_id=tenant_id)
-            .filter(
-                SubscriptionLine.status.in_(
-                    [SubscriptionLineStatus.ACTIVE, SubscriptionLineStatus.SCHEDULED]
-                ),
-                SubscriptionLine.effective_from <= at,
+        limits: dict[str, int | None] = {}
+        lines = (
+            db.session.execute(
+                select(SubscriptionLine)
+                .filter_by(tenant_id=tenant_id)
+                .filter(
+                    SubscriptionLine.status.in_(
+                        [SubscriptionLineStatus.ACTIVE, SubscriptionLineStatus.SCHEDULED]
+                    ),
+                    SubscriptionLine.effective_from <= at,
+                )
+                .filter(
+                    (SubscriptionLine.effective_to.is_(None))
+                    | (SubscriptionLine.effective_to >= at)
+                )
             )
-            .filter(
-                (SubscriptionLine.effective_to.is_(None))
-                | (SubscriptionLine.effective_to >= at)
-            )).scalars().all()
+            .scalars()
+            .all()
+        )
         for line in lines:
             version = line.package_version
             if version is None:
                 continue
             for lim in version.limits:
                 prev = limits.get(lim.limit_key)
-                if prev is None or (lim.limit_value is not None and (prev is None or lim.limit_value > prev)):
+                if prev is None or (
+                    lim.limit_value is not None and (prev is None or lim.limit_value > prev)
+                ):
                     limits[lim.limit_key] = lim.limit_value
 
         if not limits:
@@ -165,7 +185,7 @@ class EntitlementResolver:
         return limits
 
     @classmethod
-    def get_limit(cls, tenant_id: int, limit_key: str, at: Optional[datetime] = None) -> Optional[int]:
+    def get_limit(cls, tenant_id: int, limit_key: str, at: datetime | None = None) -> int | None:
         return cls.get_effective_limits(tenant_id, at=at).get(limit_key)
 
     @classmethod
@@ -179,49 +199,56 @@ class EntitlementResolver:
     ) -> tuple[bool, str]:
         """Return (ok, reason). Hard limits block; storage_gb warns only (always ok)."""
         if limit_key in WARN_LIMIT_KEYS:
-            return True, ""
+            return True, ''
         cap = cls.get_limit(tenant_id, limit_key)
         if cap is None:
-            return True, ""
+            return True, ''
         if current_count + increment > cap:
-            return False, f"limit_exceeded_{limit_key}"
-        return True, ""
+            return False, f'limit_exceeded_{limit_key}'
+        return True, ''
 
     @classmethod
     def check_usage_limits(cls, tenant_id: int) -> dict[str, bool]:
         """Snapshot of tenant usage vs limits (storage is warn-only, never False)."""
         from app.core.tenant.models import ResourceUsage
 
-        latest = db.session.execute(select(ResourceUsage).filter_by(tenant_id=tenant_id).order_by(
-            ResourceUsage.recorded_at.desc()
-        )).scalars().first()
+        latest = (
+            db.session.execute(
+                select(ResourceUsage)
+                .filter_by(tenant_id=tenant_id)
+                .order_by(ResourceUsage.recorded_at.desc())
+            )
+            .scalars()
+            .first()
+        )
         if not latest:
             latest = ResourceUsage.record_snapshot(tenant_id)
 
         limits = cls.get_effective_limits(tenant_id)
-        users_cap = limits.get("max_users")
-        patients_cap = limits.get("max_patients")
-        storage_cap = limits.get("storage_gb")
-        api_cap = limits.get("api_calls_per_month")
+        users_cap = limits.get('max_users')
+        patients_cap = limits.get('max_patients')
+        storage_cap = limits.get('storage_gb')
+        api_cap = limits.get('api_calls_per_month')
 
-        users_ok = latest.total_users <= (users_cap if users_cap is not None else float("inf"))
-        patients_ok = latest.total_patients <= (patients_cap if patients_cap is not None else float("inf"))
+        users_ok = latest.total_users <= (users_cap if users_cap is not None else float('inf'))
+        patients_ok = latest.total_patients <= (
+            patients_cap if patients_cap is not None else float('inf')
+        )
         storage_ok = True
         if storage_cap is not None:
             storage_gb = float(latest.storage_mb or 0) / 1024
             if storage_gb > storage_cap:
                 storage_ok = True  # warn-only per S0-004 decision #22
         api_monthly = int(latest.api_calls_24h or 0) * 30
-        api_ok = api_monthly <= (api_cap if api_cap is not None else float("inf"))
+        api_ok = api_monthly <= (api_cap if api_cap is not None else float('inf'))
 
         return {
-            "users_ok": users_ok,
-            "patients_ok": patients_ok,
-            "storage_ok": storage_ok,
-            "api_ok": api_ok,
-            "storage_warning": (
-                storage_cap is not None
-                and (float(latest.storage_mb or 0) / 1024) > storage_cap
+            'users_ok': users_ok,
+            'patients_ok': patients_ok,
+            'storage_ok': storage_ok,
+            'api_ok': api_ok,
+            'storage_warning': (
+                storage_cap is not None and (float(latest.storage_mb or 0) / 1024) > storage_cap
             ),
         }
 
@@ -246,7 +273,7 @@ class EntitlementResolver:
         when templates check the same capability repeatedly.
         """
         if _has_request_context():
-            seen = getattr(g, "_entitlement_audit_seen", None)
+            seen = getattr(g, '_entitlement_audit_seen', None)
             if seen is None:
                 seen = set()
                 g._entitlement_audit_seen = seen
@@ -259,22 +286,23 @@ class EntitlementResolver:
             from app.core.tenant.models import PlatformAuditLog
 
             log = PlatformAuditLog(
-                user_id=getattr(current_user, "id", None) if _has_request_context() else None,
+                user_id=getattr(current_user, 'id', None) if _has_request_context() else None,
                 tenant_id=tenant_id,
-                action="ENTITLEMENT_DENIED",
-                entity_type="capability",
+                action='ENTITLEMENT_DENIED',
+                entity_type='capability',
                 entity_id=None,
-                details=f"capability={capability_key}, reason={reason}",
+                details=f'capability={capability_key}, reason={reason}',
             )
             db.session.add(log)
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception as e:
-            safe_rollback(db.session, error_message="database rollback")
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+        except Exception:
+            safe_rollback(db.session, error_message='database rollback')
 
 
 def _has_request_context() -> bool:
     try:
         from flask import has_request_context
+
         return has_request_context()
-    except Exception as e:
+    except Exception:
         return False

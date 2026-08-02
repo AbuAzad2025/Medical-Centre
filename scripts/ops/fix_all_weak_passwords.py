@@ -1,12 +1,22 @@
 """Comprehensive weak password scanner and fixer for all test files."""
+
 import os
 
 WEAK_PASSWORDS = [
-    "set_password('p')", "set_password('test')", "set_password('test123')",
-    "set_password('x')", "set_password('password')", "set_password('admin')",
-    "set_password('123456')", "set_password('owner123')", "set_password('sa123456')",
-    "set_password('short')", "set_password('docpass1')", "set_password('sapass1')",
-    'set_password("test123")', 'set_password("p")',
+    "set_password('p')",
+    "set_password('test')",
+    "set_password('test123')",
+    "set_password('x')",
+    "set_password('password')",
+    "set_password('admin')",
+    "set_password('123456')",
+    "set_password('owner123')",
+    "set_password('sa123456')",
+    "set_password('short')",
+    "set_password('docpass1')",
+    "set_password('sapass1')",
+    'set_password("test123")',
+    'set_password("p")',
 ]
 
 matches = []
@@ -14,7 +24,7 @@ for root, dirs, files in os.walk('tests'):
     for f in files:
         if f.endswith('.py'):
             fp = os.path.join(root, f)
-            with open(fp, 'r', encoding='utf-8') as fh:
+            with open(fp, encoding='utf-8') as fh:
                 content = fh.read()
             found = False
             for pw in WEAK_PASSWORDS:

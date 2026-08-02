@@ -1,12 +1,13 @@
 """ReportTemplate persistence for report_builder — §21.3."""
+
 from __future__ import annotations
 
 import json
 from typing import Any
 
 from app_factory import db
-from utils.db_safety import safe_commit, safe_rollback
 from models.reporting import ReportTemplate
+from utils.db_safety import safe_commit
 
 REPORT_ENTITIES = {
     'patients': {
@@ -15,7 +16,15 @@ REPORT_ENTITIES = {
     },
     'visits': {
         'label': 'الزيارات',
-        'fields': ['id', 'patient_id', 'visit_type', 'status', 'visit_date', 'total_amount', 'created_at'],
+        'fields': [
+            'id',
+            'patient_id',
+            'visit_type',
+            'status',
+            'visit_date',
+            'total_amount',
+            'created_at',
+        ],
     },
     'appointments': {
         'label': 'المواعيد',
@@ -80,7 +89,7 @@ def template_config(tpl: ReportTemplate) -> dict[str, Any]:
     try:
         if tpl.template_content and tpl.template_content.strip().startswith('{'):
             return json.loads(tpl.template_content)
-    except Exception as e:
+    except Exception:
         pass
     return tpl.get_template_variables_dict() or {}
 
@@ -120,7 +129,7 @@ def save_builder_template(
         )
         tpl.set_template_variables_dict(payload)
         db.session.add(tpl)
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
     return tpl
 
 

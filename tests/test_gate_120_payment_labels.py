@@ -5,29 +5,30 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
+from sqlalchemy import select
 
+from app.extensions import db
 from app.shared.enum_labels import (
     ENUM_LABELS_AR,
     enum_label,
     resolve_visit_payment_status_badge,
 )
 
-from sqlalchemy import select
-
-from app.extensions import db
-
 
 class TestPaymentStatusEnumLabels:
     """Unit coverage for PaymentStatus Arabic labels — not duplicated in test_payment_enum_unification."""
 
-    @pytest.mark.parametrize('code,expected_ar', [
-        ('PENDING', 'قيد الانتظار'),
-        ('PAID', 'مدفوع'),
-        ('PARTIAL', 'دفع جزئي'),
-        ('DEBT', 'دين'),
-        ('EMERGENCY_DEBT', 'دين طوارئ'),
-        ('REFUNDED', 'مسترد'),
-    ])
+    @pytest.mark.parametrize(
+        'code,expected_ar',
+        [
+            ('PENDING', 'قيد الانتظار'),
+            ('PAID', 'مدفوع'),
+            ('PARTIAL', 'دفع جزئي'),
+            ('DEBT', 'دين'),
+            ('EMERGENCY_DEBT', 'دين طوارئ'),
+            ('REFUNDED', 'مسترد'),
+        ],
+    )
     def test_payment_status_has_arabic_label(self, code, expected_ar):
         assert enum_label(code, 'PaymentStatus') == expected_ar
         assert code not in enum_label(code, 'PaymentStatus')
@@ -71,6 +72,7 @@ class TestPaymentStatusBadgeTemplate:
         )
         with app.app_context():
             from flask import render_template_string
+
             html = render_template_string(
                 '{% from "partials/_payment_status_badge.html" import payment_status_badge %}'
                 '{{ payment_status_badge(visit) }}',
@@ -105,7 +107,11 @@ class TestReceptionVisitsPageLabels:
             _db.session.add(u)
             _db.session.commit()
 
-        p = db.session.execute(select(Patient).filter_by(national_id='G120TEST01')).scalars().first()
+        p = (
+            db.session.execute(select(Patient).filter_by(national_id='G120TEST01'))
+            .scalars()
+            .first()
+        )
         if not p:
             p = Patient(
                 tenant_id=test_tenant.id,
@@ -127,17 +133,20 @@ class TestReceptionVisitsPageLabels:
         _db.session.add(v)
         _db.session.commit()
 
-        client.post('/auth/login', data={
-            'username': 'reception_g120',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
+        client.post(
+            '/auth/login',
+            data={
+                'username': 'reception_g120',
+                'password': 'test123',
+                'tenant_slug': test_tenant.slug,
+            },
+        )
         yield client, v.id
         try:
             _db.session.delete(v)
             _db.session.delete(p)
             _db.session.commit()
-        except Exception as e:
+        except Exception:
             _db.session.rollback()
 
     def test_visits_list_shows_arabic_payment_status(self, reception_client):

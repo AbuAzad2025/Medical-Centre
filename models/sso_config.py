@@ -1,9 +1,12 @@
 """
 SSO / LDAP / Active Directory Configuration
 """
-from datetime import datetime, timezone
-from app_factory import db
+
+from datetime import UTC, datetime
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class SSOConfiguration(TenantMixin, db.Model):
     __tablename__ = 'sso_configurations'
@@ -50,35 +53,48 @@ class SSOConfiguration(TenantMixin, db.Model):
     # Auto-provisioning
     auto_create_user = db.Column(db.Boolean, default=True, nullable=False)
     default_role = db.Column(db.String(50), default='user', nullable=False)
-    default_department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
+    default_department_id = db.Column(
+        db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     # SSL/TLS
     use_ssl = db.Column(db.Boolean, default=True, nullable=False)
     verify_ssl = db.Column(db.Boolean, default=True, nullable=False)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
-                           onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
 
     def __repr__(self):
-        return f"<SSOConfiguration {self.name} type={self.provider_type}>"
+        return f'<SSOConfiguration {self.name} type={self.provider_type}>'
 
 
 class SSOUserMapping(TenantMixin, db.Model):
     __tablename__ = 'sso_user_mappings'
 
     id = db.Column(db.Integer, primary_key=True)
-    sso_config_id = db.Column(db.Integer, db.ForeignKey('sso_configurations.id', ondelete='CASCADE'), nullable=False, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    sso_config_id = db.Column(
+        db.Integer,
+        db.ForeignKey('sso_configurations.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
+    user_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True
+    )
 
     external_id = db.Column(db.String(255), nullable=False, index=True)
     external_username = db.Column(db.String(120), nullable=True)
     last_sync_at = db.Column(db.DateTime, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
 
     sso_config = db.relationship('SSOConfiguration', lazy='selectin')
     user = db.relationship('User', lazy='selectin')
 
     def __repr__(self):
-        return f"<SSOUserMapping user={self.user_id} external={self.external_id}>"
+        return f'<SSOUserMapping user={self.user_id} external={self.external_id}>'

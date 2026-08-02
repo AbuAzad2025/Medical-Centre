@@ -19,7 +19,7 @@ from app.core.tenant.service import TenantContextService
 def fake_g(monkeypatch):
     """Replace the module-level `g` with a controllable namespace (getattr-based)."""
     ns = SimpleNamespace()
-    monkeypatch.setattr(S, "g", ns)
+    monkeypatch.setattr(S, 'g', ns)
     return ns
 
 
@@ -102,7 +102,7 @@ def test_apply_to_model_noop_without_column(fake_g):
     fake_g.tenant_id = 9
     inst = _ModelNoTenant()
     TenantContextService.apply_to_model(inst)
-    assert not hasattr(inst, "tenant_id")
+    assert not hasattr(inst, 'tenant_id')
 
 
 # ---------------------------------------------------------------------------
@@ -127,12 +127,15 @@ def test_ensure_tenant_active_passes_when_active(fake_g):
 # ---------------------------------------------------------------------------
 # is_cross_tenant_allowed
 # ---------------------------------------------------------------------------
-@pytest.mark.parametrize("role,allowed", [
-    ("super_admin", True),
-    ("owner", True),
-    ("doctor", False),
-    ("manager", False),
-])
+@pytest.mark.parametrize(
+    'role,allowed',
+    [
+        ('super_admin', True),
+        ('owner', True),
+        ('doctor', False),
+        ('manager', False),
+    ],
+)
 def test_is_cross_tenant_allowed(fake_g, role, allowed):
     fake_g.current_user = SimpleNamespace(role=role)
     assert TenantContextService.is_cross_tenant_allowed() is allowed
@@ -158,6 +161,7 @@ def test_assert_tenant_access_same_tenant_ok(fake_g):
 
 def test_assert_tenant_access_cross_tenant_aborts(fake_g):
     from werkzeug.exceptions import Forbidden
+
     fake_g.tenant_id = 3
     rec = SimpleNamespace(tenant_id=4)
     with pytest.raises(Forbidden):

@@ -7,18 +7,21 @@ Features:
 - Background processing for non-blocking dispatch
 - HMAC-SHA256 signature verification
 """
-from sqlalchemy import select
+
 import hashlib
 import hmac
 import json
 import logging
-import time
 import threading
-from datetime import datetime, timezone
-from urllib.request import Request, urlopen
-from urllib.error import URLError, HTTPError
-from queue import Queue, Empty
+import time
+from datetime import UTC, datetime
+from queue import Empty, Queue
 from threading import Lock
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+from sqlalchemy import select
+
 from utils.circuit_breaker import circuit_breaker_call
 
 logger = logging.getLogger(__name__)
@@ -32,16 +35,18 @@ EVENT_MODULE_ACTIVATED = 'module.activated'
 EVENT_MODULE_DEACTIVATED = 'module.deactivated'
 EVENT_HIGH_RESOURCE_USAGE = 'resource.high_usage'
 
-SUPPORTED_EVENTS = frozenset({
-    EVENT_TENANT_CREATED,
-    EVENT_TENANT_SUSPENDED,
-    EVENT_TENANT_ACTIVATED,
-    EVENT_TENANT_DELETED,
-    EVENT_BUNDLE_CHANGED,
-    EVENT_MODULE_ACTIVATED,
-    EVENT_MODULE_DEACTIVATED,
-    EVENT_HIGH_RESOURCE_USAGE,
-})
+SUPPORTED_EVENTS = frozenset(
+    {
+        EVENT_TENANT_CREATED,
+        EVENT_TENANT_SUSPENDED,
+        EVENT_TENANT_ACTIVATED,
+        EVENT_TENANT_DELETED,
+        EVENT_BUNDLE_CHANGED,
+        EVENT_MODULE_ACTIVATED,
+        EVENT_MODULE_DEACTIVATED,
+        EVENT_HIGH_RESOURCE_USAGE,
+    }
+)
 
 # Retry configuration
 MAX_RETRIES = 3
@@ -61,9 +66,14 @@ _thread_running = False
 
 
 def _load_webhooks():
-    from models.system_config import SystemConfig
     from app.extensions import db
-    cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks')).scalars().first()
+    from models.system_config import SystemConfig
+
+    cfg = (
+        db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks'))
+        .scalars()
+        .first()
+    )
     if cfg and cfg.config_value:
         try:
             return json.loads(cfg.config_value)
@@ -97,22 +107,22 @@ def _dispatch_single(webhook: dict, event: str, payload: dict, retry_count: int 
 
     try:
         status = circuit_breaker_call('webhook_dispatch', _do_request)
-        logger.info("Webhook %s event=%s status=%s", url, event, status)
+        logger.info('Webhook %s event=%s status=%s', url, event, status)
         return 200 <= status < 300
     except HTTPError as e:
-        logger.warning("Webhook HTTP error %s event=%s status=%s", url, event, e.code)
+        logger.warning('Webhook HTTP error %s event=%s status=%s', url, event, e.code)
         return False
     except URLError as e:
-        logger.warning("Webhook connection error %s event=%s %s", url, event, e.reason)
+        logger.warning('Webhook connection error %s event=%s %s', url, event, e.reason)
         return False
     except Exception as e:
-        logger.error("Webhook unexpected error %s event=%s %s", url, event, e)
+        logger.error('Webhook unexpected error %s event=%s %s', url, event, e)
         return False
 
 
 def _enqueue_for_retry(webhook: dict, event: str, payload: dict, retry_count: int):
     """Add webhook to retry queue with backoff delay."""
-    delay = min(INITIAL_RETRY_DELAY * (2 ** retry_count), MAX_RETRY_DELAY)
+    delay = min(INITIAL_RETRY_DELAY * (2**retry_count), MAX_RETRY_DELAY)
     retry_item = {
         'webhook': webhook,
         'event': event,
@@ -122,7 +132,12 @@ def _enqueue_for_retry(webhook: dict, event: str, payload: dict, retry_count: in
         'total_attempts': retry_count + 1,
     }
     _retry_queue.put(retry_item)
-    logger.info("Webhook queued for retry %s (attempt %s, delay %.1fs)", webhook.get('url'), retry_count + 1, delay)
+    logger.info(
+        'Webhook queued for retry %s (attempt %s, delay %.1fs)',
+        webhook.get('url'),
+        retry_count + 1,
+        delay,
+    )
 
 
 def _enqueue_to_dead_letter(webhook: dict, event: str, payload: dict, error: str):
@@ -132,10 +147,12 @@ def _enqueue_to_dead_letter(webhook: dict, event: str, payload: dict, error: str
         'event': event,
         'payload': payload,
         'error': error,
-        'failed_at': datetime.now(timezone.utc).isoformat(),
+        'failed_at': datetime.now(UTC).isoformat(),
     }
     _dead_letter_queue.put(dead_item)
-    logger.error("Webhook moved to dead letter: %s event=%s error=%s", webhook.get('url'), event, error)
+    logger.error(
+        'Webhook moved to dead letter: %s event=%s error=%s', webhook.get('url'), event, error
+    )
 
 
 def _process_retry_queue():
@@ -151,24 +168,24 @@ def _process_retry_queue():
 
             success = _dispatch_single(item['webhook'], item['event'], item['payload'])
             if success:
-                logger.info("Webhook retry succeeded: %s", item['webhook'].get('url'))
+                logger.info('Webhook retry succeeded: %s', item['webhook'].get('url'))
+            elif item['retry_count'] + 1 >= MAX_RETRIES:
+                _enqueue_to_dead_letter(
+                    item['webhook'],
+                    item['event'],
+                    item['payload'],
+                    f'Failed after {MAX_RETRIES} attempts',
+                )
             else:
-                if item['retry_count'] + 1 >= MAX_RETRIES:
-                    _enqueue_to_dead_letter(
-                        item['webhook'], item['event'], item['payload'],
-                        f"Failed after {MAX_RETRIES} attempts"
-                    )
-                else:
-                    _enqueue_for_retry(
-                        item['webhook'], item['event'], item['payload'],
-                        item['retry_count'] + 1
-                    )
+                _enqueue_for_retry(
+                    item['webhook'], item['event'], item['payload'], item['retry_count'] + 1
+                )
 
             _retry_queue.task_done()
         except Empty:
             continue
         except Exception as e:
-            logger.error("Error processing retry queue: %s", e)
+            logger.error('Error processing retry queue: %s', e)
 
 
 def _process_dispatch_queue():
@@ -188,7 +205,7 @@ def _process_dispatch_queue():
         except Empty:
             continue
         except Exception as e:
-            logger.error("Error processing dispatch queue: %s", e)
+            logger.error('Error processing dispatch queue: %s', e)
 
 
 def _start_background_threads():
@@ -205,7 +222,7 @@ def _start_background_threads():
         retry_thread = threading.Thread(target=_process_retry_queue, daemon=True)
         retry_thread.start()
 
-        logger.info("Webhook service background threads started")
+        logger.info('Webhook service background threads started')
 
 
 def _stop_background_threads():
@@ -216,13 +233,13 @@ def _stop_background_threads():
         if _processing_thread:
             _processing_thread.join(timeout=5)
             _processing_thread = None
-        logger.info("Webhook service background threads stopped")
+        logger.info('Webhook service background threads stopped')
 
 
 def dispatch_webhook(event: str, data: dict = None):
     """Fire all webhooks registered for the given event with retry support."""
     if event not in SUPPORTED_EVENTS:
-        logger.warning("Unknown webhook event: %s", event)
+        logger.warning('Unknown webhook event: %s', event)
         return
 
     webhooks = _load_webhooks()
@@ -231,7 +248,7 @@ def dispatch_webhook(event: str, data: dict = None):
 
     payload = {
         'event': event,
-        'timestamp': datetime.now(timezone.utc).isoformat(),
+        'timestamp': datetime.now(UTC).isoformat(),
         'data': data or {},
     }
 
@@ -248,7 +265,7 @@ def dispatch_webhook(event: str, data: dict = None):
 
         _dispatch_queue.put({'webhook': wh, 'event': event, 'payload': payload})
 
-    logger.debug("Enqueued %d webhooks for event %s", len(webhooks), event)
+    logger.debug('Enqueued %d webhooks for event %s', len(webhooks), event)
 
 
 def get_queue_stats():
@@ -263,10 +280,10 @@ def get_queue_stats():
 def init_webhook_service():
     """Initialize webhook service with background threads."""
     _start_background_threads()
-    logger.info("Webhook service initialized")
+    logger.info('Webhook service initialized')
 
 
 def shutdown_webhook_service():
     """Shutdown webhook service and background threads."""
     _stop_background_threads()
-    logger.info("Webhook service shutdown")
+    logger.info('Webhook service shutdown')

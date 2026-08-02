@@ -1,17 +1,26 @@
 """
 Nursing Assessment Scales: Braden, Glasgow Coma, Fall Risk, Pain Scale
 """
-from datetime import datetime, timezone
-from app_factory import db
+
+from datetime import UTC, datetime
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
+
 
 class NursingAssessment(TenantMixin, db.Model):
     __tablename__ = 'nursing_assessments'
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='CASCADE'), nullable=True, index=True)
-    nurse_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='CASCADE'), nullable=True, index=True
+    )
+    nurse_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     # Assessment type
     assessment_type = db.Column(db.String(30), nullable=False, index=True)
@@ -55,22 +64,29 @@ class NursingAssessment(TenantMixin, db.Model):
     norton_incontinence = db.Column(db.Integer, nullable=True)
 
     notes = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True
+    )
 
     patient = db.relationship('Patient', lazy='selectin')
     visit = db.relationship('Visit', lazy='selectin')
     nurse = db.relationship('User', lazy='selectin')
 
     def __repr__(self):
-        return f"<NursingAssessment {self.assessment_type} patient={self.patient_id} score={self.total_score}>"
+        return f'<NursingAssessment {self.assessment_type} patient={self.patient_id} score={self.total_score}>'
 
     @property
     def braden_total(self):
         if self.assessment_type != 'braden':
             return None
-        vals = [self.braden_sensory_perception, self.braden_moisture,
-                self.braden_activity, self.braden_mobility,
-                self.braden_nutrition, self.braden_friction_shear]
+        vals = [
+            self.braden_sensory_perception,
+            self.braden_moisture,
+            self.braden_activity,
+            self.braden_mobility,
+            self.braden_nutrition,
+            self.braden_friction_shear,
+        ]
         if None in vals:
             return None
         return sum(vals)
@@ -88,9 +104,14 @@ class NursingAssessment(TenantMixin, db.Model):
     def morse_total(self):
         if self.assessment_type != 'fall_risk':
             return None
-        vals = [self.fall_history, self.fall_secondary_diagnosis,
-                self.fall_ambulatory_aid, self.fall_iv_saline,
-                self.fall_gait, self.fall_mental_status]
+        vals = [
+            self.fall_history,
+            self.fall_secondary_diagnosis,
+            self.fall_ambulatory_aid,
+            self.fall_iv_saline,
+            self.fall_gait,
+            self.fall_mental_status,
+        ]
         if None in vals:
             return None
         return sum(vals)
@@ -99,8 +120,13 @@ class NursingAssessment(TenantMixin, db.Model):
     def norton_total(self):
         if self.assessment_type != 'norton':
             return None
-        vals = [self.norton_physical_condition, self.norton_mental_condition,
-                self.norton_activity, self.norton_mobility, self.norton_incontinence]
+        vals = [
+            self.norton_physical_condition,
+            self.norton_mental_condition,
+            self.norton_activity,
+            self.norton_mobility,
+            self.norton_incontinence,
+        ]
         if None in vals:
             return None
         return sum(vals)

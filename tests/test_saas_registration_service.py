@@ -1,12 +1,11 @@
 """Unit tests for services.saas_registration_service.SaasRegistrationService."""
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.extensions import db
 from app.core.saas.models import (
     Package,
     PackageVersion,
@@ -16,8 +15,8 @@ from app.core.saas.models import (
     PackageVersionPricing,
 )
 from app.core.tenant.models import Tenant
+from app.extensions import db
 from app.shared.enums import TenantStatus
-from models.user import User
 from services.saas_registration_service import SaasRegistrationError, SaasRegistrationService
 from tests.tenant_context import tenant_test_context
 
@@ -35,27 +34,33 @@ def _seed_package_version(*, trial_days=7, price=100):
         package_id=pkg.id,
         version='1.0.0',
         trial_days=trial_days,
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
     )
     db.session.add(version)
     db.session.flush()
-    db.session.add(PackageVersionPricing(
-        package_version_id=version.id,
-        billing_type='monthly',
-        price=price,
-        setup_fee=0,
-        currency='SAR',
-    ))
-    db.session.add(PackageVersionEntitlement(
-        package_version_id=version.id,
-        module_name='reception',
-        capability_key='reception.access',
-    ))
-    db.session.add(PackageVersionAvailability(
-        package_version_id=version.id,
-        availability_status=PackageVersionAvailabilityStatus.AVAILABLE,
-        effective_from=datetime.now(timezone.utc),
-    ))
+    db.session.add(
+        PackageVersionPricing(
+            package_version_id=version.id,
+            billing_type='monthly',
+            price=price,
+            setup_fee=0,
+            currency='SAR',
+        )
+    )
+    db.session.add(
+        PackageVersionEntitlement(
+            package_version_id=version.id,
+            module_name='reception',
+            capability_key='reception.access',
+        )
+    )
+    db.session.add(
+        PackageVersionAvailability(
+            package_version_id=version.id,
+            availability_status=PackageVersionAvailabilityStatus.AVAILABLE,
+            effective_from=datetime.now(UTC),
+        )
+    )
     db.session.commit()
     return version
 
@@ -127,7 +132,9 @@ class TestPaymentRequiredPending:
         version = _seed_package_version(trial_days=0)
         slug = f'paid-{uuid.uuid4().hex[:6]}'
         with tenant_test_context(app, bypass=True):
-            result = SaasRegistrationService.register_organization(**_signup_kwargs(version.id, slug))
+            result = SaasRegistrationService.register_organization(
+                **_signup_kwargs(version.id, slug)
+            )
         assert result.tenant.status == TenantStatus.PENDING
 
     def test_env_flag_forces_payment_required(self, app, monkeypatch):
@@ -135,7 +142,9 @@ class TestPaymentRequiredPending:
         version = _seed_package_version(trial_days=14)
         slug = f'envpay-{uuid.uuid4().hex[:6]}'
         with tenant_test_context(app, bypass=True):
-            result = SaasRegistrationService.register_organization(**_signup_kwargs(version.id, slug))
+            result = SaasRegistrationService.register_organization(
+                **_signup_kwargs(version.id, slug)
+            )
         assert result.tenant.status == TenantStatus.PENDING
 
     def test_checkout_url_when_stripe_configured(self, app, monkeypatch):
@@ -148,7 +157,9 @@ class TestPaymentRequiredPending:
                 '_maybe_create_checkout',
                 return_value='https://checkout.stripe.test/session',
             ):
-                result = SaasRegistrationService.register_organization(**_signup_kwargs(version.id, slug))
+                result = SaasRegistrationService.register_organization(
+                    **_signup_kwargs(version.id, slug)
+                )
         assert result.checkout_url == 'https://checkout.stripe.test/session'
 
 
@@ -166,16 +177,18 @@ class TestSignupAbuseProtections:
     def test_email_flood_limit(self, app):
         version = _seed_package_version()
         email = f'flood-{uuid.uuid4().hex[:6]}@example.com'
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         with tenant_test_context(app, bypass=True):
             for i in range(3):
-                db.session.add(Tenant(
-                    slug=f'pending-{uuid.uuid4().hex[:8]}',
-                    name=f'Pending {i}',
-                    contact_email=email,
-                    status=TenantStatus.PENDING,
-                    created_at=now,
-                ))
+                db.session.add(
+                    Tenant(
+                        slug=f'pending-{uuid.uuid4().hex[:8]}',
+                        name=f'Pending {i}',
+                        contact_email=email,
+                        status=TenantStatus.PENDING,
+                        created_at=now,
+                    )
+                )
             db.session.commit()
             with pytest.raises(SaasRegistrationError, match='signup_flood_email'):
                 SaasRegistrationService.register_organization(
@@ -191,17 +204,19 @@ class TestSignupAbuseProtections:
     def test_ip_flood_limit(self, app):
         version = _seed_package_version()
         client_ip = f'10.99.{uuid.uuid4().hex[:2]}.{uuid.uuid4().hex[:2]}'
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         with tenant_test_context(app, bypass=True):
             for i in range(10):
-                db.session.add(Tenant(
-                    slug=f'ip-{uuid.uuid4().hex[:8]}',
-                    name=f'IP {i}',
-                    contact_email=f'ip{i}@example.com',
-                    status=TenantStatus.PENDING,
-                    created_at=now,
-                    settings={'signup_ip': client_ip},
-                ))
+                db.session.add(
+                    Tenant(
+                        slug=f'ip-{uuid.uuid4().hex[:8]}',
+                        name=f'IP {i}',
+                        contact_email=f'ip{i}@example.com',
+                        status=TenantStatus.PENDING,
+                        created_at=now,
+                        settings={'signup_ip': client_ip},
+                    )
+                )
             db.session.commit()
             with pytest.raises(SaasRegistrationError, match='signup_flood_ip'):
                 SaasRegistrationService.register_organization(
@@ -222,14 +237,16 @@ class TestRegistrationProvisioning:
 
         version = _seed_package_version()
         slug = f'prov-{uuid.uuid4().hex[:6]}'
-        with tenant_test_context(app, bypass=True):
-            with patch.object(
+        with (
+            tenant_test_context(app, bypass=True),
+            patch.object(
                 TenantProvisioningService,
                 'provision_tenant',
                 side_effect=ProvisioningError('package_unavailable'),
-            ):
-                with pytest.raises(SaasRegistrationError, match='package_unavailable'):
-                    SaasRegistrationService.register_organization(**_signup_kwargs(version.id, slug))
+            ),
+            pytest.raises(SaasRegistrationError, match='package_unavailable'),
+        ):
+            SaasRegistrationService.register_organization(**_signup_kwargs(version.id, slug))
 
     def test_client_ip_stored_in_tenant_settings(self, app):
         version = _seed_package_version()
@@ -252,7 +269,9 @@ class TestResolveDefaultPackage:
         monkeypatch.delenv('SAAS_DEFAULT_PACKAGE_VERSION_ID', raising=False)
         fake_result = MagicMock()
         fake_result.scalars.return_value.first.return_value = None
-        with patch('services.saas_registration_service.db.session.execute', return_value=fake_result):
+        with patch(
+            'services.saas_registration_service.db.session.execute', return_value=fake_result
+        ):
             with pytest.raises(SaasRegistrationError, match='no_default_package'):
                 SaasRegistrationService.resolve_default_package_version_id()
 
@@ -281,12 +300,16 @@ class TestMaybeCreateCheckout:
         version = _seed_package_version(trial_days=0)
         slug = f'co-{uuid.uuid4().hex[:6]}'
         with tenant_test_context(app, bypass=True):
-            result = SaasRegistrationService.register_organization(**_signup_kwargs(version.id, slug))
+            result = SaasRegistrationService.register_organization(
+                **_signup_kwargs(version.id, slug)
+            )
         with patch(
             'services.stripe_billing_service.StripeBillingService.create_checkout_session',
             return_value={'url': 'https://checkout.stripe.test/x'},
         ):
             url = SaasRegistrationService._maybe_create_checkout(
-                result.tenant, version.id, 'monthly',
+                result.tenant,
+                version.id,
+                'monthly',
             )
         assert url == 'https://checkout.stripe.test/x'

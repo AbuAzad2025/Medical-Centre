@@ -1,26 +1,24 @@
 """external routes - extracted from monolithic medication_routes.py"""
 
-from routes.medication_routes import medication_bp
+import logging
+from datetime import UTC, date, datetime, timedelta
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for
-from flask_login import login_required, current_user
-from utils.decorators import role_required
-from models.medication import Medication, Prescription
-from models.patient import Patient
-from models.visit import Visit
-from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
-from models.drug_interaction import DrugInteraction
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-import logging, json
-from datetime import datetime, timezone, timedelta, date
+from flask import jsonify, render_template, request
+from flask_login import current_user, login_required
 from sqlalchemy import func, select
 
+from app.extensions import db
+from models.medication import Medication, Prescription
+from models.visit import Visit
+from routes.medication_routes import medication_bp
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import role_required
 
 # =============================================
 # EXTERNAL ROUTES
 # =============================================
+
 
 @medication_bp.route('/api/external-drug-import', methods=['POST'])
 @login_required
@@ -38,10 +36,16 @@ def api_external_drug_import():
             scientific_name = (item.get('scientific_name') or '').strip() or trade_name
             if not trade_name:
                 continue
-            med = db.session.execute(select(Medication).filter(
-                Medication.trade_name == trade_name,
-                Medication.tenant_id == current_user.tenant_id
-            )).scalars().first()
+            med = (
+                db.session.execute(
+                    select(Medication).filter(
+                        Medication.trade_name == trade_name,
+                        Medication.tenant_id == current_user.tenant_id,
+                    )
+                )
+                .scalars()
+                .first()
+            )
             if not med:
                 med = Medication(
                     trade_name=trade_name,
@@ -72,7 +76,9 @@ def api_external_drug_import():
                     med.price = item.get('price')
                 med.category = item.get('category') or med.category
                 med.description = item.get('description') or med.description
-                med.standard_instructions = item.get('standard_instructions') or med.standard_instructions
+                med.standard_instructions = (
+                    item.get('standard_instructions') or med.standard_instructions
+                )
                 med.side_effects = item.get('side_effects') or med.side_effects
                 med.contraindications = item.get('contraindications') or med.contraindications
                 med.drug_interactions = item.get('drug_interactions') or med.drug_interactions
@@ -81,12 +87,13 @@ def api_external_drug_import():
                 if item.get('minimum_stock') is not None:
                     med.minimum_stock = item.get('minimum_stock')
                 updated += 1
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'imported': imported, 'updated': updated}), 200
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error importing external drug catalog: {str(e)}")
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error importing external drug catalog: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر استيراد الدليل الدوائي'}), 500
+
 
 @medication_bp.route('/api/external-drug-search')
 @login_required
@@ -96,65 +103,128 @@ def api_external_drug_search():
         q = (request.args.get('q') or '').strip()
         if not q:
             return jsonify({'success': True, 'items': []}), 200
-        meds = db.session.execute(select(Medication).filter(
-            Medication.trade_name.contains(q) |
-            Medication.scientific_name.contains(q) |
-            Medication.generic_name.contains(q),
-            Medication.tenant_id == current_user.tenant_id
-        ).order_by(Medication.trade_name.asc()).limit(20)).scalars().all()
+        meds = (
+            db.session.execute(
+                select(Medication)
+                .filter(
+                    Medication.trade_name.contains(q)
+                    | Medication.scientific_name.contains(q)
+                    | Medication.generic_name.contains(q),
+                    Medication.tenant_id == current_user.tenant_id,
+                )
+                .order_by(Medication.trade_name.asc())
+                .limit(20)
+            )
+            .scalars()
+            .all()
+        )
         return jsonify({'success': True, 'items': [m.to_dict() for m in meds]}), 200
     except Exception as e:
-        logging.error(f"Error searching external drug catalog: {str(e)}")
+        logging.exception(f'Error searching external drug catalog: {e!s}')
         return jsonify({'success': False, 'message': 'تعذر البحث حالياً'}), 500
+
 
 @medication_bp.route('/consumption-report')
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def consumption_report():
-    from models.medication import Prescription, PrescriptionItem, PrescriptionDispenseLog
     from models.department import Department
+    from models.medication import PrescriptionDispenseLog, PrescriptionItem
     from models.user import User
 
     group = (request.args.get('group') or 'medication').strip().lower()
     start_raw = (request.args.get('start_date') or '').strip()
     end_raw = (request.args.get('end_date') or '').strip()
     try:
-        start_date = datetime.strptime(start_raw, '%Y-%m-%d').date() if start_raw else (date.today() - timedelta(days=30))
-    except Exception as e:
+        start_date = (
+            datetime.strptime(start_raw, '%Y-%m-%d').date()
+            if start_raw
+            else (date.today() - timedelta(days=30))
+        )
+    except Exception:
         start_date = date.today() - timedelta(days=30)
     try:
         end_date = datetime.strptime(end_raw, '%Y-%m-%d').date() if end_raw else date.today()
-    except Exception as e:
+    except Exception:
         end_date = date.today()
 
-    start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
-    end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
+    start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=UTC)
+    end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=UTC)
 
-    q = select(
-        func.sum(PrescriptionItem.quantity).label('total_qty'),
-        func.sum(PrescriptionItem.total_price).label('total_value'),
-        func.count(func.distinct(Prescription.id)).label('rx_count')
-    ).select_from(PrescriptionDispenseLog).join(
-        Prescription, Prescription.id == PrescriptionDispenseLog.prescription_id
-    ).join(
-        PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
-    ).filter(
-        PrescriptionDispenseLog.dispensed_at >= start_dt,
-        PrescriptionDispenseLog.dispensed_at <= end_dt,
-        Prescription.tenant_id == current_user.tenant_id
+    q = (
+        select(
+            func.sum(PrescriptionItem.quantity).label('total_qty'),
+            func.sum(PrescriptionItem.total_price).label('total_value'),
+            func.count(func.distinct(Prescription.id)).label('rx_count'),
+        )
+        .select_from(PrescriptionDispenseLog)
+        .join(Prescription, Prescription.id == PrescriptionDispenseLog.prescription_id)
+        .join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id)
+        .filter(
+            PrescriptionDispenseLog.dispensed_at >= start_dt,
+            PrescriptionDispenseLog.dispensed_at <= end_dt,
+            Prescription.tenant_id == current_user.tenant_id,
+        )
     )
 
     rows = []
     if group == 'doctor':
-        q2 = q.add_columns(User.id.label('key_id'), User.full_name.label('label')).join(User, User.id == Prescription.doctor_id).group_by(User.id, User.full_name).order_by(func.sum(PrescriptionItem.total_price).desc())
-        rows = [{'label': r.label, 'total_qty': int(r.total_qty or 0), 'total_value': float(r.total_value or 0), 'rx_count': int(r.rx_count or 0)} for r in db.session.execute(q2).all()]
+        q2 = (
+            q.add_columns(User.id.label('key_id'), User.full_name.label('label'))
+            .join(User, User.id == Prescription.doctor_id)
+            .group_by(User.id, User.full_name)
+            .order_by(func.sum(PrescriptionItem.total_price).desc())
+        )
+        rows = [
+            {
+                'label': r.label,
+                'total_qty': int(r.total_qty or 0),
+                'total_value': float(r.total_value or 0),
+                'rx_count': int(r.rx_count or 0),
+            }
+            for r in db.session.execute(q2).all()
+        ]
     elif group == 'department':
-        q2 = q.add_columns(Department.id.label('key_id'), Department.name_ar.label('label')).join(Visit, Visit.id == PrescriptionDispenseLog.visit_id).join(Department, Department.id == Visit.department_id).group_by(Department.id, Department.name_ar).order_by(func.sum(PrescriptionItem.total_price).desc())
-        rows = [{'label': (r.label or 'غير محدد'), 'total_qty': int(r.total_qty or 0), 'total_value': float(r.total_value or 0), 'rx_count': int(r.rx_count or 0)} for r in db.session.execute(q2).all()]
+        q2 = (
+            q.add_columns(Department.id.label('key_id'), Department.name_ar.label('label'))
+            .join(Visit, Visit.id == PrescriptionDispenseLog.visit_id)
+            .join(Department, Department.id == Visit.department_id)
+            .group_by(Department.id, Department.name_ar)
+            .order_by(func.sum(PrescriptionItem.total_price).desc())
+        )
+        rows = [
+            {
+                'label': (r.label or 'غير محدد'),
+                'total_qty': int(r.total_qty or 0),
+                'total_value': float(r.total_value or 0),
+                'rx_count': int(r.rx_count or 0),
+            }
+            for r in db.session.execute(q2).all()
+        ]
     else:
-        q2 = q.add_columns(Medication.id.label('key_id'), Medication.trade_name.label('label')).join(Medication, Medication.id == PrescriptionItem.medication_id).group_by(Medication.id, Medication.trade_name).order_by(func.sum(PrescriptionItem.total_price).desc())
-        rows = [{'label': r.label, 'total_qty': int(r.total_qty or 0), 'total_value': float(r.total_value or 0), 'rx_count': int(r.rx_count or 0)} for r in db.session.execute(q2).all()]
+        q2 = (
+            q.add_columns(Medication.id.label('key_id'), Medication.trade_name.label('label'))
+            .join(Medication, Medication.id == PrescriptionItem.medication_id)
+            .group_by(Medication.id, Medication.trade_name)
+            .order_by(func.sum(PrescriptionItem.total_price).desc())
+        )
+        rows = [
+            {
+                'label': r.label,
+                'total_qty': int(r.total_qty or 0),
+                'total_value': float(r.total_value or 0),
+                'rx_count': int(r.rx_count or 0),
+            }
+            for r in db.session.execute(q2).all()
+        ]
 
-    return render_template('medication/consumption_report.html', rows=rows, group=group, start_date=start_date, end_date=end_date)
+    return render_template(
+        'medication/consumption_report.html',
+        rows=rows,
+        group=group,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
 
 # ==================== الميزات الذكية للصيدلية ====================

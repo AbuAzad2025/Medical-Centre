@@ -5,14 +5,15 @@ Used as a controlled fallback while tenants migrate from product_profile_code
 bundles to PackageVersion subscription lines. Same capability vocabulary as
 EntitlementResolver; does not check subscription payment state (caller handles).
 """
+
 from __future__ import annotations
-from sqlalchemy import select
-from app.extensions import db
 
 import json
-from typing import Optional
+
+from sqlalchemy import select
 
 from app.core.module.registry import MODULE_REGISTRY
+from app.extensions import db
 
 
 class LegacyEntitlementAdapter:
@@ -43,23 +44,23 @@ class LegacyEntitlementAdapter:
         if module_name is None:
             return True  # Unknown capability — don't block
 
-        profile_code = getattr(tenant, "product_profile_code", None)
+        profile_code = getattr(tenant, 'product_profile_code', None)
         if not profile_code:
             return True  # No profile — don't block
 
-        from app.core.tenant.models import get_bundle_for_profile, _PRODUCT_PROFILE_SEED
+        from app.core.tenant.models import _PRODUCT_PROFILE_SEED, get_bundle_for_profile
 
         bundle = get_bundle_for_profile(profile_code)
         if bundle:
             bundle_modules = bundle.get_modules()
         else:
             profile = _PRODUCT_PROFILE_SEED.get(profile_code, {})
-            bundle_modules = profile.get("modules", [])
+            bundle_modules = profile.get('modules', [])
 
         return module_name in bundle_modules
 
     @classmethod
-    def get_limits(cls, tenant_id: int) -> dict[str, Optional[int]]:
+    def get_limits(cls, tenant_id: int) -> dict[str, int | None]:
         from app.core.tenant.models import Tenant, get_bundle_for_profile
 
         tenant = db.session.get(Tenant, tenant_id)
@@ -69,10 +70,10 @@ class LegacyEntitlementAdapter:
         if bundle is None:
             return {}
         return {
-            "max_users": bundle.max_users,
-            "max_patients": bundle.max_patients,
-            "storage_gb": bundle.storage_gb,
-            "api_calls_per_month": bundle.api_calls_per_month,
+            'max_users': bundle.max_users,
+            'max_patients': bundle.max_patients,
+            'storage_gb': bundle.storage_gb,
+            'api_calls_per_month': bundle.api_calls_per_month,
         }
 
     @classmethod
@@ -81,12 +82,18 @@ class LegacyEntitlementAdapter:
         try:
             from app.core.module.models import TenantModule
 
-            rows = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)).scalars().all()
+            rows = (
+                db.session.execute(
+                    select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)
+                )
+                .scalars()
+                .all()
+            )
             names.update(r.module_name for r in rows if r.module_name)
-        except Exception as e:
+        except Exception:
             pass
 
-        profile = getattr(tenant, "product_profile_code", None)
+        profile = getattr(tenant, 'product_profile_code', None)
         if profile:
             from app.core.tenant.models import get_bundle_for_profile
 
@@ -94,18 +101,18 @@ class LegacyEntitlementAdapter:
             if bundle:
                 names.update(bundle.get_modules())
 
-        plan_id = getattr(tenant, "plan_id", None)
+        plan_id = getattr(tenant, 'plan_id', None)
         if plan_id:
             try:
                 from app.core.tenant.models import SubscriptionPlan
 
                 plan = db.session.get(SubscriptionPlan, plan_id)
-                raw = getattr(plan, "modules_included", None) if plan else None
+                raw = getattr(plan, 'modules_included', None) if plan else None
                 if raw:
                     mods = json.loads(raw) if isinstance(raw, str) else raw
                     if isinstance(mods, list):
                         names.update(mods)
-            except Exception as e:
+            except Exception:
                 pass
 
         return names

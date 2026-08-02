@@ -1,73 +1,73 @@
 """notes routes - extracted from monolithic doctor.py"""
 
-from routes.doctor import (
-    doctor_bp,
-    _get_doctor_note_templates,
-    _save_doctor_note_templates,
-    _get_doctor_dashboard_layout,
-    _save_doctor_dashboard_layout,
-    _default_doctor_dashboard_layout,
-)
+import logging
+import secrets
+from datetime import UTC, datetime
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, current_app, g
-from flask_login import login_required, current_user
-from utils.decorators import role_required, role_required_json
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
-from models.department import Department
-from models.medication import Prescription
-from models.lab_request import LabRequest
-from models.radiology_request import RadiologyRequest
-from models.medical_record import MedicalRecord
-from models.appointment import Appointment
-from models.follow_up import FollowUpRequest
-from models.drug_interaction import DrugInteraction
-from models.audit_trail import AuditTrail
-from models.system_config import SystemConfig
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from app.shared.enums import VisitState, VisitArchiveStatus
-from sqlalchemy import and_, or_, desc, func, case, select
-import logging, json, secrets
-from datetime import datetime, date, timedelta, timezone
+from flask import current_app, flash, g, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import select
 
+from app.extensions import db
+from models.audit_trail import AuditTrail
+from models.visit import Visit
+from routes.doctor import (
+    _default_doctor_dashboard_layout,
+    _get_doctor_dashboard_layout,
+    _get_doctor_note_templates,
+    _save_doctor_dashboard_layout,
+    _save_doctor_note_templates,
+    doctor_bp,
+)
+from utils.db_safety import safe_commit
+from utils.decorators import role_required
 
 # =============================================
 # NOTES ROUTES
 # =============================================
+
 
 @doctor_bp.route('/notes/<int:visit_id>', methods=['GET', 'POST'])
 @login_required
 @role_required('doctor', 'admin', 'manager')
 def notes(visit_id):
     """كتابة الملاحظات الطبية"""
-    
+
     try:
-        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)).scalars().first()
+        visit = (
+            db.session.execute(
+                select(Visit).filter(
+                    Visit.id == visit_id,
+                    Visit.tenant_id == g.tenant_id,
+                    Visit.doctor_id == current_user.id,
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not visit:
             flash('الزيارة غير موجودة', 'error')
             return redirect(url_for('doctor.patient_queue'))
         if visit.is_archived:
             flash('لا يمكن إضافة ملاحظات بعد أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))
-        
+
         note_type = request.args.get('type') or request.form.get('note_type')
         prefill_notes = None
         if note_type == 'lab':
-            prefill_notes = "مذكرة تحاليل:\nنوع الفحص:\nسبب الفحص:\nتعليمات إضافية:"
+            prefill_notes = 'مذكرة تحاليل:\nنوع الفحص:\nسبب الفحص:\nتعليمات إضافية:'
         elif note_type == 'radiology':
-            prefill_notes = "مذكرة تصوير:\nنوع التصوير:\nمنطقة التصوير:\nتعليمات إضافية:"
+            prefill_notes = 'مذكرة تصوير:\nنوع التصوير:\nمنطقة التصوير:\nتعليمات إضافية:'
         elif note_type == 'general':
-            prefill_notes = "مذكرة عامة:\nالموضوع:\nتفاصيل:\nتعليمات للمريض:"
-        
+            prefill_notes = 'مذكرة عامة:\nالموضوع:\nتفاصيل:\nتعليمات للمريض:'
+
         if request.method == 'POST':
             medical_notes = request.form.get('medical_notes')
             if medical_notes:
                 # إضافة الملاحظات الطبية
                 if not visit.notes:
-                    visit.notes = ""
+                    visit.notes = ''
                 label = '[ملاحظات طبية]'
                 if note_type == 'lab':
                     label = '[مذكرة تحاليل]'
@@ -75,29 +75,31 @@ def notes(visit_id):
                     label = '[مذكرة تصوير]'
                 elif note_type == 'general':
                     label = '[مذكرة عامة]'
-                from datetime import timezone
-                visit.notes += f"\n{label} - {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')} - الطبيب: {current_user.full_name}\n{medical_notes}"
-                safe_commit(db.session, error_message="database commit failed", reraise=True)
+                visit.notes += f'\n{label} - {datetime.now(UTC).strftime("%Y-%m-%d %H:%M")} - الطبيب: {current_user.full_name}\n{medical_notes}'
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
                 try:
-                    db.session.add(AuditTrail(
-                        entity_type='visit',
-                        entity_id=visit_id,
-                        action='update',
-                        user_id=current_user.id,
-                        user_ip=request.remote_addr,
-                        user_agent=request.headers.get('User-Agent'),
-                        description='إضافة ملاحظات طبية'
-                    ))
-                    safe_commit(db.session, error_message="database commit failed", reraise=True)
+                    db.session.add(
+                        AuditTrail(
+                            entity_type='visit',
+                            entity_id=visit_id,
+                            action='update',
+                            user_id=current_user.id,
+                            user_ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent'),
+                            description='إضافة ملاحظات طبية',
+                        )
+                    )
+                    safe_commit(db.session, error_message='database commit failed', reraise=True)
                 except Exception as e:
-
-                    logging.warning(f"Error in {__name__}: {e}")
+                    logging.warning(f'Error in {__name__}: {e}')
                 flash('تم حفظ الملاحظات الطبية بنجاح', 'success')
                 return redirect(url_for('doctor.patient_queue'))
-        
-        return render_template('doctor/notes.html', visit=visit, note_type=note_type, prefill_notes=prefill_notes)
-    except Exception as e:
-        logging.exception("Error in notes")
+
+        return render_template(
+            'doctor/notes.html', visit=visit, note_type=note_type, prefill_notes=prefill_notes
+        )
+    except Exception:
+        logging.exception('Error in notes')
         if current_app.config.get('TESTING'):
             raise
         flash('حدث خطأ في حفظ الملاحظات', 'error')
@@ -109,7 +111,12 @@ def notes(visit_id):
 @role_required('doctor', 'admin', 'manager', 'super_admin')
 def api_note_templates():
     templates = _get_doctor_note_templates()
-    active_only = (request.args.get('active_only') or 'true').strip().lower() in {'1', 'true', 'yes', 'on'}
+    active_only = (request.args.get('active_only') or 'true').strip().lower() in {
+        '1',
+        'true',
+        'yes',
+        'on',
+    }
     out = []
     for t in templates:
         if not isinstance(t, dict):
@@ -118,6 +125,7 @@ def api_note_templates():
             continue
         out.append(t)
     return jsonify({'success': True, 'templates': out}), 200
+
 
 @doctor_bp.route('/api/dashboard-layout', methods=['GET', 'POST'])
 @login_required
@@ -139,12 +147,14 @@ def api_dashboard_layout():
             order_val = int(item.get('order') or 0)
         except (TypeError, ValueError):
             order_val = 0
-        normalized.append({
-            'id': panel_id,
-            'title': item.get('title') or '',
-            'order': order_val,
-            'enabled': bool(item.get('enabled', True))
-        })
+        normalized.append(
+            {
+                'id': panel_id,
+                'title': item.get('title') or '',
+                'order': order_val,
+                'enabled': bool(item.get('enabled', True)),
+            }
+        )
     if not normalized:
         normalized = _default_doctor_dashboard_layout()
     _save_doctor_dashboard_layout(normalized)

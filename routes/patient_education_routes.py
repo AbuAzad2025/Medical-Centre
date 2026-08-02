@@ -1,21 +1,26 @@
 """
 Patient Education Materials Routes
 """
-from sqlalchemy import select
-from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory
-from flask_login import login_required, current_user
-from utils.decorators import handle_route_errors, role_required
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from models import PatientEducationMaterial, PatientEducationAssignment, Patient
-import os
+
 import logging
+import os
+
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import select
 from werkzeug.utils import secure_filename
+
+from app.extensions import db
+from models import Patient, PatientEducationAssignment, PatientEducationMaterial
+from utils.db_safety import safe_commit, safe_rollback
+from utils.decorators import handle_route_errors, role_required
 
 patient_education_bp = Blueprint('patient_education', __name__)
 
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads', 'education')
+UPLOAD_FOLDER = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads', 'education'
+)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'gif', 'mp4', 'webm'}
@@ -33,10 +38,18 @@ def index():
     query = PatientEducationMaterial.query
     if category:
         query = query.filter_by(category=category)
-    materials = query.filter_by(is_active=True).order_by(PatientEducationMaterial.created_at.desc()).all()
-    categories = db.session.execute(select(PatientEducationMaterial.category).distinct()).scalars().all()
-    return render_template('patient_education/index.html', materials=materials,
-                           categories=[c[0] for c in categories], current_category=category)
+    materials = (
+        query.filter_by(is_active=True).order_by(PatientEducationMaterial.created_at.desc()).all()
+    )
+    categories = (
+        db.session.execute(select(PatientEducationMaterial.category).distinct()).scalars().all()
+    )
+    return render_template(
+        'patient_education/index.html',
+        materials=materials,
+        categories=[c[0] for c in categories],
+        current_category=category,
+    )
 
 
 @patient_education_bp.route('/material/<int:material_id>')
@@ -46,13 +59,23 @@ def view_material(material_id):
     material = db.get_or_404(PatientEducationMaterial, material_id)
     try:
         material.view_count += 1
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
     except Exception as e:
-        safe_rollback(db.session, error_message="database rollback")
-        logging.error(f"Error updating view count: {e}")
-    assignments = db.session.execute(select(PatientEducationAssignment).filter_by(material_id=material_id).order_by(
-        PatientEducationAssignment.created_at.desc()).limit(20)).scalars().all()
-    return render_template('patient_education/view.html', material=material, assignments=assignments)
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception(f'Error updating view count: {e}')
+    assignments = (
+        db.session.execute(
+            select(PatientEducationAssignment)
+            .filter_by(material_id=material_id)
+            .order_by(PatientEducationAssignment.created_at.desc())
+            .limit(20)
+        )
+        .scalars()
+        .all()
+    )
+    return render_template(
+        'patient_education/view.html', material=material, assignments=assignments
+    )
 
 
 @patient_education_bp.route('/new', methods=['GET', 'POST'])
@@ -73,7 +96,7 @@ def new_material():
             content_html=content_html,
             content_text=content_text,
             language=language,
-            created_by=current_user.id
+            created_by=current_user.id,
         )
 
         file = request.files.get('file')
@@ -85,7 +108,7 @@ def new_material():
             material.file_type = filename.rsplit('.', 1)[1].lower()
 
         db.session.add(material)
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم إضافة المادة التعليمية بنجاح', 'success')
         return redirect(url_for('patient_education.view_material', material_id=material.id))
 
@@ -114,7 +137,7 @@ def edit_material(material_id):
             material.file_path = f'/static/uploads/education/{filename}'
             material.file_type = filename.rsplit('.', 1)[1].lower()
 
-        safe_commit(db.session, error_message="database commit failed", reraise=True)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم تحديث المادة التعليمية', 'success')
         return redirect(url_for('patient_education.view_material', material_id=material.id))
 
@@ -135,13 +158,10 @@ def assign_material():
         return redirect(url_for('patient_education.index'))
 
     assignment = PatientEducationAssignment(
-        patient_id=patient_id,
-        material_id=material_id,
-        assigned_by=current_user.id,
-        notes=notes
+        patient_id=patient_id, material_id=material_id, assigned_by=current_user.id, notes=notes
     )
     db.session.add(assignment)
-    safe_commit(db.session, error_message="database commit failed", reraise=True)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
     flash('تم إسناد المادة التعليمية للمريض', 'success')
     return redirect(url_for('patient_education.view_material', material_id=material_id))
 
@@ -151,8 +171,23 @@ def assign_material():
 @handle_route_errors
 def patient_materials(patient_id):
     patient = db.get_or_404(Patient, patient_id)
-    assignments = db.session.execute(select(PatientEducationAssignment).filter_by(patient_id=patient_id).order_by(
-        PatientEducationAssignment.created_at.desc())).scalars().all()
-    materials = db.session.execute(select(PatientEducationMaterial).filter_by(is_active=True)).scalars().all()
-    return render_template('patient_education/patient.html', patient=patient,
-                           assignments=assignments, materials=materials)
+    assignments = (
+        db.session.execute(
+            select(PatientEducationAssignment)
+            .filter_by(patient_id=patient_id)
+            .order_by(PatientEducationAssignment.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
+    materials = (
+        db.session.execute(select(PatientEducationMaterial).filter_by(is_active=True))
+        .scalars()
+        .all()
+    )
+    return render_template(
+        'patient_education/patient.html',
+        patient=patient,
+        assignments=assignments,
+        materials=materials,
+    )

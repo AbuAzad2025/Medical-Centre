@@ -1,6 +1,6 @@
-import os
 import json
-from urllib import request, error
+import os
+from urllib import error, request
 
 
 class PosTerminalService:
@@ -18,15 +18,15 @@ class PosTerminalService:
         if not PosTerminalService.is_enabled():
             return {
                 'success': False,
-                'message': 'خدمة الدفع الإلكتروني غير مفعلة حالياً (not enabled)'
+                'message': 'خدمة الدفع الإلكتروني غير مفعلة حالياً (not enabled)',
             }
         try:
             payload = json.dumps({'amount': amount, 'currency': currency}).encode('utf-8')
             req = request.Request(
-                url=f"{PosTerminalService.base_url().rstrip('/')}/charge",
+                url=f'{PosTerminalService.base_url().rstrip("/")}/charge',
                 data=payload,
                 headers={'Content-Type': 'application/json', 'Accept': 'application/json'},
-                method='POST'
+                method='POST',
             )
             with request.urlopen(req, timeout=15) as resp:
                 data = resp.read().decode('utf-8')
@@ -39,11 +39,11 @@ class PosTerminalService:
                     'card_holder_name': parsed.get('card_holder_name'),
                     'amount': parsed.get('amount', amount),
                     'currency': parsed.get('currency', currency),
-                    'message': parsed.get('message')
+                    'message': parsed.get('message'),
                 }
-        except error.HTTPError as e:
+        except error.HTTPError:
             return {'success': False, 'message': 'تعذر تنفيذ عملية الدفع عبر الجهاز حالياً'}
-        except error.URLError as e:
+        except error.URLError:
             return {'success': False, 'message': 'تعذر الاتصال بجهاز الدفع حالياً (conn)'}
-        except Exception as e:
+        except Exception:
             return {'success': False, 'message': 'تعذر تنفيذ عملية الدفع حالياً'}

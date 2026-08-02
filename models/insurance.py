@@ -1,10 +1,13 @@
 """
 التأمين - شركة ومطالبات (نسخة نهائية مبسطة)
 """
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
+
 from sqlalchemy import Index
-from app_factory import db
+
 from app.shared.mixins import TenantMixin
+from app_factory import db
 
 
 class InsuranceCompany(TenantMixin, db.Model):
@@ -18,35 +21,64 @@ class InsuranceCompany(TenantMixin, db.Model):
     address = db.Column(db.String(200), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+        index=True,
+    )
 
-    claims = db.relationship('InsuranceClaim', back_populates='company', lazy='selectin', passive_deletes=True)
+    claims = db.relationship(
+        'InsuranceClaim', back_populates='company', lazy='selectin', passive_deletes=True
+    )
 
     __table_args__ = (
         db.UniqueConstraint('tenant_id', 'name', name='uq_insurance_company_tenant_name'),
     )
 
     def __repr__(self) -> str:
-        return f"<InsuranceCompany {self.name}>"
+        return f'<InsuranceCompany {self.name}>'
 
 
 class InsuranceClaim(TenantMixin, db.Model):
     __tablename__ = 'insurance_claims'
 
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('insurance_companies.id', ondelete='SET NULL'), nullable=True, index=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    invoice_id = db.Column(db.Integer, db.ForeignKey('invoices.id', ondelete='SET NULL'), nullable=True, index=True)
+    company_id = db.Column(
+        db.Integer,
+        db.ForeignKey('insurance_companies.id', ondelete='SET NULL'),
+        nullable=True,
+        index=True,
+    )
+    visit_id = db.Column(
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    invoice_id = db.Column(
+        db.Integer, db.ForeignKey('invoices.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     claim_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
-    status = db.Column(db.String(20), default='DRAFT', index=True)  # DRAFT|SUBMITTED|APPROVED|REJECTED|PAID
+    status = db.Column(
+        db.String(20), default='DRAFT', index=True
+    )  # DRAFT|SUBMITTED|APPROVED|REJECTED|PAID
     total_claim = db.Column(db.Numeric(12, 2), default=0)
     approved_amount = db.Column(db.Numeric(12, 2), default=0)
     notes = db.Column(db.Text, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+        index=True,
+    )
 
     __table_args__ = (
         Index('idx_insurance_claim_company_status', 'company_id', 'status'),
@@ -59,4 +91,4 @@ class InsuranceClaim(TenantMixin, db.Model):
     invoice = db.relationship('Invoice', lazy='selectin')
 
     def __repr__(self) -> str:
-        return f"<InsuranceClaim #{self.claim_number or self.id}>"
+        return f'<InsuranceClaim #{self.claim_number or self.id}>'

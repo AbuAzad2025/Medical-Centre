@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from services.smart_ai_engine import SmartAIEngine
-from app.extensions import db
 
 
 @pytest.fixture
@@ -53,72 +52,102 @@ class TestProcessQueryRouting:
         assert '15' in res['response']
 
     def test_routes_analysis_users_errors(self, engine):
-        with patch.object(engine, '_analyze_user_errors', return_value={'response': 'تحليل', 'actions': []}):
+        with patch.object(
+            engine, '_analyze_user_errors', return_value={'response': 'تحليل', 'actions': []}
+        ):
             res = engine.process_query('حلل أخطاء المستخدمين')
         assert res['response'] == 'تحليل'
 
     def test_routes_analysis_doctors(self, engine):
-        with patch.object(engine, '_analyze_doctor_problems', return_value={'response': 'أطباء', 'actions': []}):
+        with patch.object(
+            engine, '_analyze_doctor_problems', return_value={'response': 'أطباء', 'actions': []}
+        ):
             res = engine.process_query('حلل مشاكل الأطباء')
         assert res['response'] == 'أطباء'
 
     def test_routes_department_problems(self, engine):
-        with patch.object(engine, '_analyze_department_problems', return_value={'response': 'أقسام', 'actions': []}):
+        with patch.object(
+            engine,
+            '_analyze_department_problems',
+            return_value={'response': 'أقسام', 'actions': []},
+        ):
             res = engine.process_query('مشاكل الأقسام')
         assert res['response'] == 'أقسام'
 
     def test_routes_count_query(self, engine):
-        with patch.object(engine, '_handle_count_query', return_value={'response': 'عدد', 'actions': []}):
+        with patch.object(
+            engine, '_handle_count_query', return_value={'response': 'عدد', 'actions': []}
+        ):
             res = engine.process_query('كم عدد المرضى')
         assert res['response'] == 'عدد'
 
     def test_routes_user_query(self, engine):
-        with patch.object(engine, '_handle_user_query', return_value={'response': 'users', 'actions': []}):
+        with patch.object(
+            engine, '_handle_user_query', return_value={'response': 'users', 'actions': []}
+        ):
             res = engine.process_query('أظهر المستخدمين')
         assert res['response'] == 'users'
 
     def test_routes_doctor_query(self, engine):
-        with patch.object(engine, '_handle_doctor_query', return_value={'response': 'docs', 'actions': []}):
+        with patch.object(
+            engine, '_handle_doctor_query', return_value={'response': 'docs', 'actions': []}
+        ):
             res = engine.process_query('doctor performance report')
         assert res['response'] == 'docs'
 
     def test_routes_patient_query(self, engine):
-        with patch.object(engine, '_handle_patient_query', return_value={'response': 'pats', 'actions': []}):
+        with patch.object(
+            engine, '_handle_patient_query', return_value={'response': 'pats', 'actions': []}
+        ):
             res = engine.process_query('معلومات المريض')
         assert res['response'] == 'pats'
 
     def test_routes_visit_query(self, engine):
-        with patch.object(engine, '_handle_visit_query', return_value={'response': 'vis', 'actions': []}):
+        with patch.object(
+            engine, '_handle_visit_query', return_value={'response': 'vis', 'actions': []}
+        ):
             res = engine.process_query('زيارات اليوم')
         assert res['response'] == 'vis'
 
     def test_routes_appointment_query(self, engine):
-        with patch.object(engine, '_handle_appointment_query', return_value={'response': 'appt', 'actions': []}):
+        with patch.object(
+            engine, '_handle_appointment_query', return_value={'response': 'appt', 'actions': []}
+        ):
             res = engine.process_query('مواعيد الغد')
         assert res['response'] == 'appt'
 
     def test_routes_service_query(self, engine):
-        with patch.object(engine, '_handle_service_query', return_value={'response': 'svc', 'actions': []}):
+        with patch.object(
+            engine, '_handle_service_query', return_value={'response': 'svc', 'actions': []}
+        ):
             res = engine.process_query('الخدمات المتاحة')
         assert res['response'] == 'svc'
 
     def test_routes_system_analysis(self, engine):
-        with patch.object(engine, '_handle_system_analysis', return_value={'response': 'sys', 'actions': []}):
+        with patch.object(
+            engine, '_handle_system_analysis', return_value={'response': 'sys', 'actions': []}
+        ):
             res = engine.process_query('حلل النظام')
         assert res['response'] == 'sys'
 
     def test_routes_report_generation(self, engine):
-        with patch.object(engine, '_handle_report_generation', return_value={'response': 'rep', 'actions': []}):
+        with patch.object(
+            engine, '_handle_report_generation', return_value={'response': 'rep', 'actions': []}
+        ):
             res = engine.process_query('أنشئ تقرير')
         assert res['response'] == 'rep'
 
     def test_routes_database_query(self, engine):
-        with patch.object(engine, '_handle_database_query', return_value={'response': 'db', 'actions': []}):
+        with patch.object(
+            engine, '_handle_database_query', return_value={'response': 'db', 'actions': []}
+        ):
             res = engine.process_query('جداول قاعدة البيانات')
         assert res['response'] == 'db'
 
     def test_fallback_general_search(self, engine):
-        with patch.object(engine, '_handle_general_search', return_value={'response': 'search', 'actions': []}):
+        with patch.object(
+            engine, '_handle_general_search', return_value={'response': 'search', 'actions': []}
+        ):
             res = engine.process_query('xyz غير معروف')
         assert res['response'] == 'search'
 
@@ -131,7 +160,15 @@ class TestProcessQueryRouting:
 class TestAnalyzeUserErrors:
     def test_analyze_user_errors_with_data(self, engine, rollback_db, test_tenant):
         from models.user import User
-        u = User(username='aiu_' + str(id(engine)), email='ai@test.local', full_name='AI', role='doctor', is_active=False, tenant_id=test_tenant.id)
+
+        u = User(
+            username='aiu_' + str(id(engine)),
+            email='ai@test.local',
+            full_name='AI',
+            role='doctor',
+            is_active=False,
+            tenant_id=test_tenant.id,
+        )
         u.set_password('x')
         rollback_db.session.add(u)
         rollback_db.session.commit()
@@ -158,9 +195,19 @@ class TestAnalyzeUserErrors:
         assert 'response' in res
 
     def test_handle_system_analysis(self, engine):
-        with patch.object(engine, '_analyze_user_errors', return_value={'response': 'u', 'actions': []}), \
-             patch.object(engine, '_analyze_doctor_problems', return_value={'response': 'd', 'actions': []}), \
-             patch.object(engine, '_analyze_department_problems', return_value={'response': 'dept', 'actions': []}):
+        with (
+            patch.object(
+                engine, '_analyze_user_errors', return_value={'response': 'u', 'actions': []}
+            ),
+            patch.object(
+                engine, '_analyze_doctor_problems', return_value={'response': 'd', 'actions': []}
+            ),
+            patch.object(
+                engine,
+                '_analyze_department_problems',
+                return_value={'response': 'dept', 'actions': []},
+            ),
+        ):
             res = engine._handle_system_analysis()
         assert 'response' in res
 
@@ -209,6 +256,7 @@ class TestHandlerImplementations:
 
     def test_handle_user_query_name_search(self, engine, rollback_db, test_tenant):
         from models.user import User
+
         u = User(
             username='ai_search_' + str(id(engine)),
             email='search@test.local',
@@ -271,6 +319,7 @@ class TestHandlerImplementations:
 class TestAnalyzeWithFixtureData:
     def test_analyze_doctor_problems_with_inactive_doctor(self, engine, rollback_db, test_tenant):
         from models.user import User
+
         d = User(
             username='aidoc_' + str(id(engine)),
             email='doc@test.local',
@@ -287,6 +336,7 @@ class TestAnalyzeWithFixtureData:
 
     def test_analyze_department_problems_inactive_dept(self, engine, rollback_db, test_tenant):
         from models.department import Department
+
         dept = Department(
             name='AI Inactive Dept ' + str(id(engine)),
             name_ar='قسم غير نشط',
@@ -326,6 +376,7 @@ class TestAnalyzeWithFixtureData:
 
     def test_handle_department_query_by_name(self, engine, rollback_db, test_tenant):
         from models.department import Department
+
         dept = Department(
             name='Cardiology ' + str(id(engine)),
             name_ar='قلب',
@@ -340,12 +391,41 @@ class TestAnalyzeWithFixtureData:
 
     def test_analyze_user_errors_comprehensive(self, engine, rollback_db, test_tenant):
         from models.user import User
+
         tid = test_tenant.id
         users = [
-            User(username='aie1_' + str(id(engine)), email='', full_name='No Email', role='nurse', is_active=True, tenant_id=tid),
-            User(username='aie2_' + str(id(engine)), email='e2@test.local', full_name='No Login', role='admin', is_active=True, tenant_id=tid),
-            User(username='aie3_' + str(id(engine)), email='e3@test.local', full_name='No Role', role='', is_active=True, tenant_id=tid),
-            User(username='aie4_' + str(id(engine)), email='e4@test.local', full_name='No Dept Doc', role='doctor', is_active=True, tenant_id=tid),
+            User(
+                username='aie1_' + str(id(engine)),
+                email='',
+                full_name='No Email',
+                role='nurse',
+                is_active=True,
+                tenant_id=tid,
+            ),
+            User(
+                username='aie2_' + str(id(engine)),
+                email='e2@test.local',
+                full_name='No Login',
+                role='admin',
+                is_active=True,
+                tenant_id=tid,
+            ),
+            User(
+                username='aie3_' + str(id(engine)),
+                email='e3@test.local',
+                full_name='No Role',
+                role='',
+                is_active=True,
+                tenant_id=tid,
+            ),
+            User(
+                username='aie4_' + str(id(engine)),
+                email='e4@test.local',
+                full_name='No Dept Doc',
+                role='doctor',
+                is_active=True,
+                tenant_id=tid,
+            ),
         ]
         for u in users:
             u.set_password('x')

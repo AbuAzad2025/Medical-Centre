@@ -1,7 +1,9 @@
 """Tests for P3-004: Receipt relationship repair and lifecycle."""
 
 import pytest
+from sqlalchemy import select
 
+from app.extensions import db
 from app_factory import db as _db
 from models.patient import Patient
 from models.payment import Payment
@@ -9,8 +11,6 @@ from models.receipt import Receipt
 from models.user import User
 from models.visit import Visit
 from services.billing_state_service import ReceiptService
-from sqlalchemy import select
-from app.extensions import db
 
 
 @pytest.fixture(scope='function')

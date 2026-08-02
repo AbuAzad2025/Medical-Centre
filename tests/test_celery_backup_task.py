@@ -16,6 +16,7 @@ def celery_eager(monkeypatch):
     monkeypatch.setenv('CELERY_ENABLED', 'true')
     monkeypatch.setenv('CELERY_TASK_ALWAYS_EAGER', 'true')
     from celery_app import get_celery_app
+
     get_celery_app().conf.task_always_eager = True
 
 
@@ -26,8 +27,11 @@ class TestCeleryBackupTask:
         with pytest.raises(BackupQueueError):
             queue_system_backup(1)
 
-    def test_run_system_backup_executes_pg_dump(self, app, test_user, celery_eager, monkeypatch, tmp_path):
+    def test_run_system_backup_executes_pg_dump(
+        self, app, test_user, celery_eager, monkeypatch, tmp_path
+    ):
         from celery_app import init_celery_app
+
         init_celery_app(app)
         monkeypatch.setenv('DATABASE_URL', 'postgresql://u:p@localhost:5432/medical')
         monkeypatch.setenv('BACKUP_LOCAL_DIR', str(tmp_path))
@@ -42,8 +46,13 @@ class TestCeleryBackupTask:
         db.session.add(backup)
         db.session.commit()
 
-        with patch('services.backup_execution_service.run_pg_dump_sql_gz', return_value=128), \
-             patch('services.backup_execution_service.BackupAutomationService.upload_to_cloud', return_value=None):
+        with (
+            patch('services.backup_execution_service.run_pg_dump_sql_gz', return_value=128),
+            patch(
+                'services.backup_execution_service.BackupAutomationService.upload_to_cloud',
+                return_value=None,
+            ),
+        ):
             task_id = queue_system_backup(backup.id)
 
         assert task_id

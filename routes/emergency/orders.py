@@ -1,45 +1,38 @@
 """orders routes - extracted from monolithic emergency.py"""
 
-from routes.emergency import emergency_bp
+import logging
+from datetime import UTC, datetime
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, g
-from flask_login import login_required, current_user
-from utils.decorators import role_required, role_required_json
-from models.patient import Patient
-from models.visit import Visit
-from models.user import User
-from models.department import Department
-from models.emergency import EmergencyCase
-from models.medication import Prescription
-from models.lab_request import LabRequest
-from models.radiology_request import RadiologyRequest
-from models.medical_record import MedicalRecord
-from services.emergency_service import emergency_service
-from app.extensions import db
-from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import and_, or_, desc, case, select
-import logging, json
-from datetime import datetime, date, timedelta, timezone
-from app.shared.print_context import generate_qr_data_uri
+from flask import flash, g, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import select
 
+from app.extensions import db
+from app.shared.print_context import generate_qr_data_uri
+from models.medication import Prescription
+from routes.emergency import emergency_bp
+from services.emergency_service import emergency_service
+from utils.db_safety import safe_commit
+from utils.decorators import role_required
 
 # =============================================
 # ORDERS ROUTES
 # =============================================
+
 
 @emergency_bp.route('/prescription/<int:emergency_id>', methods=['GET', 'POST'])
 @login_required
 @role_required('emergency', 'manager')
 def prescription(emergency_id):
     """وصفة طبية للطوارئ"""
-    
+
     try:
         emergency = emergency_service.get_case(emergency_id)
         if not emergency:
             flash('حالة الطوارئ غير موجودة', 'error')
             return redirect(url_for('emergency.patient_queue'))
-        
+
         if request.method == 'POST':
             # جمع بيانات الوصفة
             medications = request.form.getlist('medications[]')
@@ -47,32 +40,35 @@ def prescription(emergency_id):
             frequencies = request.form.getlist('frequencies[]')
             durations = request.form.getlist('durations[]')
             instructions = request.form.getlist('instructions[]')
-            
+
             # إنشاء الوصفة
             prescription_data = []
             for i, medication in enumerate(medications):
                 if medication:
-                    prescription_data.append({
-                        'medication': medication,
-                        'dosage': dosages[i] if i < len(dosages) else '',
-                        'frequency': frequencies[i] if i < len(frequencies) else '',
-                        'duration': durations[i] if i < len(durations) else '',
-                        'instructions': instructions[i] if i < len(instructions) else ''
-                    })
-            
+                    prescription_data.append(
+                        {
+                            'medication': medication,
+                            'dosage': dosages[i] if i < len(dosages) else '',
+                            'frequency': frequencies[i] if i < len(frequencies) else '',
+                            'duration': durations[i] if i < len(durations) else '',
+                            'instructions': instructions[i] if i < len(instructions) else '',
+                        }
+                    )
+
             emergency.prescription = prescription_data
             emergency.prescribed_by = current_user.id
-            emergency.prescribed_at = datetime.now(timezone.utc)
-            
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            emergency.prescribed_at = datetime.now(UTC)
+
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إنشاء الوصفة بنجاح', 'success')
             return redirect(url_for('emergency.patient_queue'))
-        
+
         return render_template('emergency/prescription.html', emergency=emergency)
     except Exception as e:
-        logging.error(f"Error in emergency prescription: {str(e)}")
+        logging.exception(f'Error in emergency prescription: {e!s}')
         flash('حدث خطأ في إنشاء الوصفة', 'error')
         return redirect(url_for('emergency.patient_queue'))
+
 
 @emergency_bp.route('/lab-request/<int:emergency_id>', methods=['GET', 'POST'])
 @login_required
@@ -82,38 +78,39 @@ def lab_request(emergency_id):
     if 'lab' not in getattr(g, 'enabled_modules', set()):
         flash('وحدة المختبر غير مفعلة في باقة العيادة', 'error')
         return redirect(url_for('emergency.patient_queue'))
-    
+
     try:
         emergency = emergency_service.get_case(emergency_id)
         if not emergency:
             flash('حالة الطوارئ غير موجودة', 'error')
             return redirect(url_for('emergency.patient_queue'))
-        
+
         if request.method == 'POST':
             # جمع بيانات طلب الفحوصات
             tests_requested = request.form.getlist('tests[]')
             urgency = request.form.get('urgency')
             notes = request.form.get('notes')
-            
+
             # إنشاء طلب الفحوصات
             lab_request_data = {
                 'tests': tests_requested,
                 'urgency': urgency,
                 'notes': notes,
                 'requested_by': current_user.id,
-                'requested_at': datetime.now(timezone.utc)
+                'requested_at': datetime.now(UTC),
             }
-            
+
             emergency.lab_request = lab_request_data
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إرسال طلب الفحوصات بنجاح', 'success')
             return redirect(url_for('emergency.patient_queue'))
-        
+
         return render_template('emergency/lab_request.html', emergency=emergency)
     except Exception as e:
-        logging.error(f"Error in emergency lab request: {str(e)}")
+        logging.exception(f'Error in emergency lab request: {e!s}')
         flash('حدث خطأ في إرسال طلب الفحوصات', 'error')
         return redirect(url_for('emergency.patient_queue'))
+
 
 @emergency_bp.route('/radiology-request/<int:emergency_id>', methods=['GET', 'POST'])
 @login_required
@@ -123,13 +120,13 @@ def radiology_request(emergency_id):
     if 'radiology' not in getattr(g, 'enabled_modules', set()):
         flash('وحدة الأشعة غير مفعلة في باقة العيادة', 'error')
         return redirect(url_for('emergency.patient_queue'))
-    
+
     try:
         emergency = emergency_service.get_case(emergency_id)
         if not emergency:
             flash('حالة الطوارئ غير موجودة', 'error')
             return redirect(url_for('emergency.patient_queue'))
-        
+
         if request.method == 'POST':
             # جمع بيانات طلب الأشعة
             imaging_type = request.form.get('imaging_type')
@@ -137,7 +134,7 @@ def radiology_request(emergency_id):
             urgency = request.form.get('urgency')
             clinical_question = request.form.get('clinical_question')
             notes = request.form.get('notes')
-            
+
             # إنشاء طلب الأشعة
             radiology_request_data = {
                 'imaging_type': imaging_type,
@@ -146,39 +143,42 @@ def radiology_request(emergency_id):
                 'clinical_question': clinical_question,
                 'notes': notes,
                 'requested_by': current_user.id,
-                'requested_at': datetime.now(timezone.utc)
+                'requested_at': datetime.now(UTC),
             }
-            
+
             emergency.radiology_request = radiology_request_data
-            safe_commit(db.session, error_message="database commit failed", reraise=True)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إرسال طلب الأشعة بنجاح', 'success')
             return redirect(url_for('emergency.patient_queue'))
-        
+
         return render_template('emergency/radiology_request.html', emergency=emergency)
     except Exception as e:
-        logging.error(f"Error in emergency radiology request: {str(e)}")
+        logging.exception(f'Error in emergency radiology request: {e!s}')
         flash('حدث خطأ في إرسال طلب الأشعة', 'error')
         return redirect(url_for('emergency.patient_queue'))
+
 
 @emergency_bp.route('/print-prescription/<int:prescription_id>')
 @login_required
 @role_required('emergency', 'manager')
 def print_prescription(prescription_id):
     """طباعة الوصفة الطبية للطوارئ"""
-    
+
     try:
-        prescription = db.session.execute(select(Prescription).filter_by(id=prescription_id)).scalars().first()
+        prescription = (
+            db.session.execute(select(Prescription).filter_by(id=prescription_id)).scalars().first()
+        )
         if not prescription:
             flash('الوصفة غير موجودة', 'error')
             return redirect(url_for('emergency.patient_queue'))
-        
+
         qr_data_uri = generate_qr_data_uri(
-            f"RX|{prescription.id}|{prescription.patient_id}|{prescription.created_at.isoformat() if prescription.created_at else ''}"
+            f'RX|{prescription.id}|{prescription.patient_id}|{prescription.created_at.isoformat() if prescription.created_at else ""}'
         )
-        return render_template('print/prescription.html',
-                             prescription=prescription,
-                             qr_data_uri=qr_data_uri)
+        return render_template(
+            'print/prescription.html', prescription=prescription, qr_data_uri=qr_data_uri
+        )
     except Exception as e:
-        logging.error(f"Error printing prescription: {str(e)}")
+        logging.exception(f'Error printing prescription: {e!s}')
         flash('حدث خطأ في طباعة الوصفة', 'error')
         return redirect(url_for('emergency.patient_queue'))

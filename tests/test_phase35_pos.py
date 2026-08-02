@@ -6,12 +6,11 @@ import json
 from unittest.mock import patch
 
 import pytest
-
-from app.shared.user_messages import localize_pos_message, user_message
-from models.medication import PharmacySale
 from sqlalchemy import select
 
 from app.extensions import db
+from app.shared.user_messages import localize_pos_message, user_message
+from models.medication import PharmacySale
 
 
 class TestUserMessages:
@@ -31,10 +30,16 @@ class TestUserMessages:
 
 @pytest.fixture
 def reception_user(app, test_tenant):
-    from models.user import User
     from app_factory import db as _db
+    from models.user import User
 
-    u = db.session.execute(select(User).filter_by(username='reception_pos_test', tenant_id=test_tenant.id)).scalars().first()
+    u = (
+        db.session.execute(
+            select(User).filter_by(username='reception_pos_test', tenant_id=test_tenant.id)
+        )
+        .scalars()
+        .first()
+    )
     if not u:
         u = User(
             username='reception_pos_test',
@@ -98,10 +103,12 @@ class TestPharmacyPosSell:
         med = test_medications[0]
         resp = auth_client.post(
             '/medication/pos/sell',
-            data=json.dumps({
-                'items': [{'medication_id': med.id, 'quantity': 1}],
-                'payment_method': 'cash',
-            }),
+            data=json.dumps(
+                {
+                    'items': [{'medication_id': med.id, 'quantity': 1}],
+                    'payment_method': 'cash',
+                }
+            ),
             content_type='application/json',
         )
         assert resp.status_code == 200
@@ -114,10 +121,12 @@ class TestPharmacyPosSell:
         med = test_medications[0]
         resp = auth_client.post(
             '/medication/pos/sell',
-            data=json.dumps({
-                'items': [{'medication_id': med.id, 'quantity': 1}],
-                'payment_method': 'card',
-            }),
+            data=json.dumps(
+                {
+                    'items': [{'medication_id': med.id, 'quantity': 1}],
+                    'payment_method': 'card',
+                }
+            ),
             content_type='application/json',
         )
         assert resp.status_code == 400
@@ -127,12 +136,14 @@ class TestPharmacyPosSell:
         med = test_medications[0]
         resp = auth_client.post(
             '/medication/pos/sell',
-            data=json.dumps({
-                'items': [{'medication_id': med.id, 'quantity': 1}],
-                'payment_method': 'card',
-                'transaction_id': 'TXN-99',
-                'card_last_digits': '4321',
-            }),
+            data=json.dumps(
+                {
+                    'items': [{'medication_id': med.id, 'quantity': 1}],
+                    'payment_method': 'card',
+                    'transaction_id': 'TXN-99',
+                    'card_last_digits': '4321',
+                }
+            ),
             content_type='application/json',
         )
         assert resp.status_code == 200
@@ -152,6 +163,7 @@ class TestPaymentMethodMacro:
     def test_macro_renders_arabic_options(self, app):
         with app.app_context():
             from flask import render_template_string
+
             html = render_template_string(
                 "{% from 'partials/_payment_method_select.html' import payment_method_select %}"
                 "{{ payment_method_select(id='pm', include_force=true) }}"
@@ -167,6 +179,7 @@ class TestProcessPaymentTemplate:
     def test_no_duplicate_insurance_provider_field(self, app):
         with app.app_context():
             from flask import render_template_string
+
             html = render_template_string(
                 "{% from 'partials/_payment_method_select.html' import payment_method_select %}"
                 "{{ payment_method_select(id='paymentMethodSelect') }}"
@@ -192,10 +205,12 @@ class TestPharmacyPosPage:
         med = test_medications[2]  # low stock ibuprofen (5 units)
         resp = auth_client.post(
             '/medication/pos/sell',
-            data=json.dumps({
-                'items': [{'medication_id': med.id, 'quantity': 99}],
-                'payment_method': 'cash',
-            }),
+            data=json.dumps(
+                {
+                    'items': [{'medication_id': med.id, 'quantity': 99}],
+                    'payment_method': 'cash',
+                }
+            ),
             content_type='application/json',
         )
         assert resp.status_code == 400

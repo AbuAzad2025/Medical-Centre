@@ -1,13 +1,16 @@
 """Platform bootstrap smoke tests."""
-from sqlalchemy import select, func
 
-from app.extensions import db
+from datetime import UTC
+
+from sqlalchemy import func, select
+
 from app.core.platform_bootstrap import (
     ensure_module_definitions,
     ensure_product_bundles,
     ensure_saas_packages,
     run_platform_bootstrap,
 )
+from app.extensions import db
 
 
 def test_run_platform_bootstrap_idempotent(app, monkeypatch):
@@ -33,16 +36,17 @@ def test_create_app_does_not_seed_developer_configs(app):
     from models.system_config import SystemConfig
 
     keys = [
-        'developer_company', 'developer_name', 'developer_logo_url',
-        'developer_mobile', 'developer_location',
+        'developer_company',
+        'developer_name',
+        'developer_logo_url',
+        'developer_mobile',
+        'developer_location',
     ]
     found = db.session.execute(
-        select(func.count()).select_from(SystemConfig)
-        .filter(SystemConfig.config_key.in_(keys))
+        select(func.count()).select_from(SystemConfig).filter(SystemConfig.config_key.in_(keys))
     ).scalar()
     assert found == 0, (
-        f'Found {found} developer_* rows in system_configs — '
-        'startup should be read-only.'
+        f'Found {found} developer_* rows in system_configs — startup should be read-only.'
     )
 
 
@@ -55,11 +59,13 @@ def test_auto_assign_tenant_works_after_prior_commit(app, db, monkeypatch):
     app.tenant_id session variable.  The before_flush hook must re-assert
     it on every flush so the next INSERT passes the RLS WITH CHECK.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
+
     from flask import g
-    from models.notification import Notification
-    from app.core.tenant.models import Tenant
     from sqlalchemy import text
+
+    from app.core.tenant.models import Tenant
+    from models.notification import Notification
 
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_create',
@@ -75,8 +81,11 @@ def test_auto_assign_tenant_works_after_prior_commit(app, db, monkeypatch):
 
         # First insert — verify tenant_id assigned by hook
         n1 = Notification(
-            title='First', message='First', notification_type='info',
-            recipient_role='admin', sent_at=datetime.now(timezone.utc),
+            title='First',
+            message='First',
+            notification_type='info',
+            recipient_role='admin',
+            sent_at=datetime.now(UTC),
         )
         db.session.add(n1)
         db.session.flush()
@@ -85,8 +94,11 @@ def test_auto_assign_tenant_works_after_prior_commit(app, db, monkeypatch):
 
         # Second insert after prior commit — would fail RLS without re-assert
         n2 = Notification(
-            title='Second', message='Second', notification_type='info',
-            recipient_role='admin', sent_at=datetime.now(timezone.utc),
+            title='Second',
+            message='Second',
+            notification_type='info',
+            recipient_role='admin',
+            sent_at=datetime.now(UTC),
         )
         db.session.add(n2)
         db.session.flush()

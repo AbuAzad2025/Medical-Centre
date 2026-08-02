@@ -5,15 +5,9 @@ from __future__ import annotations
 import re
 
 USER_MESSAGES: dict[str, str] = {
-    'pos_not_enabled': (
-        'جهاز البطاقة غير مفعّل في هذا المركز. تواصل مع المدير أو اختر الدفع نقداً.'
-    ),
-    'pos_connection_failed': (
-        'تعذّر الاتصال بجهاز البطاقة. تأكد أن الجهاز يعمل وحاول مرة أخرى.'
-    ),
-    'pos_charge_failed': (
-        'لم تتم عملية البطاقة. يمكنك المحاولة مجدداً أو اختيار طريقة دفع أخرى.'
-    ),
+    'pos_not_enabled': ('جهاز البطاقة غير مفعّل في هذا المركز. تواصل مع المدير أو اختر الدفع نقداً.'),
+    'pos_connection_failed': ('تعذّر الاتصال بجهاز البطاقة. تأكد أن الجهاز يعمل وحاول مرة أخرى.'),
+    'pos_charge_failed': ('لم تتم عملية البطاقة. يمكنك المحاولة مجدداً أو اختيار طريقة دفع أخرى.'),
     'sale_failed': 'تعذّر إتمام البيع. راجع السلة وحاول مرة أخرى.',
     'pos_amount_invalid': 'قيمة المبلغ غير صحيحة',
     'pos_unauthorized': 'غير مصرح لك بهذا الإجراء.',
@@ -64,7 +58,7 @@ def resolve_user_message(value: str | None) -> str:
 
 
 def _looks_arabic(text: str) -> bool:
-    return any('\u0600' <= ch <= '\u06FF' for ch in text)
+    return any('\u0600' <= ch <= '\u06ff' for ch in text)
 
 
 def localize_pos_message(raw: str | None) -> str:
