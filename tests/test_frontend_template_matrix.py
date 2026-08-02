@@ -19,6 +19,7 @@ from werkzeug.routing import RequestRedirect
 
 from tests.test_e2e_frontend import (
     _discover_pages,
+    e2e_seed,  # noqa: F401 (fixture re-export)
 )
 from tests.test_phase14_launch import (
     SCREEN_SAMPLES,
