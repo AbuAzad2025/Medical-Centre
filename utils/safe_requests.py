@@ -4,6 +4,7 @@ Prevents indefinite hangs when Stripe, Twilio, WhatsApp, or FHIR servers are slo
 """
 
 import logging
+import time
 from functools import wraps
 
 import requests
@@ -52,8 +53,6 @@ def safe_request(
         except (requests.Timeout, requests.ConnectionError) as exc:
             last_exception = exc
             if attempt < retries:
-                import time
-
                 wait = retry_backoff * (attempt + 1)
                 logger.warning(
                     'Request %s %s timeout (attempt %s/%s), retrying in %ss: %s',

@@ -155,9 +155,15 @@ def _login(client, user, tenant_slug: str | None = None):
     # User-Agent) produces the same _id as the subsequent client.get().
     # Under session_protection='strong', a mismatch would cause an
     # immediate logout on the next request.
+    try:
+        import importlib.metadata as importlib_metadata
+
+        _werkzeug_version = importlib_metadata.version('werkzeug')
+    except Exception:
+        _werkzeug_version = 'unknown'
     _test_client_environ = {
         'REMOTE_ADDR': '127.0.0.1',
-        'HTTP_USER_AGENT': f'Werkzeug/{werkzeug.__version__}',
+        'HTTP_USER_AGENT': f'Werkzeug/{_werkzeug_version}',
     }
 
     with (
