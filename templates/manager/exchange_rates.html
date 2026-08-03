@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros/forms.html" import csrf %}
 {% block title %}إدارة أسعار الصرف{% endblock %}
 {% block content %}
 <div class="container-fluid py-3">
@@ -31,6 +32,7 @@
         <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-plus text-primary me-2"></i>إضافة/تحديث سعر يدوي</h6></div>
         <div class="card-body">
           <form method="POST" action="{{ url_for('manager.exchange_rates') }}">
+            {{ csrf() }}
             <div class="row g-2">
               <div class="col-md-3">
                 <label class="form-label small">من</label>
@@ -69,6 +71,7 @@
         <div class="card-body">
           <p class="text-muted small mb-2">جلب أسعار الصرف من Frankfurter API (مجاني). يُعتمد عند غياب السعر اليدوي.</p>
           <form method="POST" action="{{ url_for('manager.fetch_api_exchange_rates') }}">
+            {{ csrf() }}
             <div class="input-group">
               <select name="base_currency" class="form-select" title="العملة الأساسية">
                 {% for code, info in currencies.items() %}<option value="{{ code }}" {{ 'selected' if code == 'ILS' else '' }}>{{ code }}</option>{% endfor %}
@@ -113,6 +116,7 @@
                   <td class="small">{{ r.notes or '—' }}</td>
                   <td>
                     <form method="POST" action="{{ url_for('manager.deactivate_exchange_rate', rate_id=r.id) }}" class="d-inline" onsubmit="return confirm('تعطيل هذا السعر؟');">
+                      {{ csrf() }}
                       <button type="submit" class="btn btn-sm btn-outline-danger" title="تعطيل السعر" aria-label="تعطيل السعر"><i class="fas fa-ban"></i> <span class="btn-label">منع</span></button>
                     </form>
                   </td>

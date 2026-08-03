@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
+{% from "macros/forms.html" import csrf %}
 {% block content %}
 <div class="container py-4">
   <h4><i class="bi bi-calculator me-2"></i>سيناريو What-If جديد</h4>
   <div class="card shadow-sm">
     <div class="card-body">
       <form method="post">
+        {{ csrf() }}
         <div class="mb-3">
           <label for="name" class="form-label">اسم السيناريو</label>
           <input type="text" class="form-control" id="name" name="name" required>

@@ -115,6 +115,7 @@
         </div>
         <div class="owner-card-body">
             <form method="post" action="{{ url_for('owner.owner_save_system_config', category=category_filter) }}" class="row g-3">
+                {{ csrf() }}
                 <div class="col-md-3">
                     <div class="owner-form-group">
                         <label class="owner-form-label">المفتاح (Key)</label>

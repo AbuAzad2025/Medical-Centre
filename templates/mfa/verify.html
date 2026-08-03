@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from "macros/forms.html" import csrf %}
 {% block content %}
 <div class="container py-5">
   <div class="row justify-content-center">
@@ -10,6 +11,7 @@
         <div class="card-body">
           <p class="text-muted text-center">أدخل رمز التحقق من تطبيقك</p>
           <form method="post">
+            {{ csrf() }}
             <div class="mb-3">
               <input type="text" class="form-control text-center fs-3" name="code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="000000" required autofocus autocomplete="off" title="أدخل رمز TOTP المكون من 6 أرقام">
             </div>

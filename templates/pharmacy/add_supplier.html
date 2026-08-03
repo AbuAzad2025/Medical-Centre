@@ -1,10 +1,12 @@
 ﻿{% extends "base.html" %}
+{% from "macros/forms.html" import csrf %}
 {% block title %}{% if supplier %}تعديل مورد{% else %}إضافة مورد{% endif %}{% endblock %}
 {% block content %}
 <div class="card">
     <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-truck ms-2"></i>{% if supplier %}تعديل مورد{% else %}إضافة مورد جديد{% endif %}</h5></div>
     <div class="card-body">
         <form method="POST">
+            {{ csrf() }}
             <div class="row g-3">
                 <div class="col-md-6"><label class="form-label">الاسم <span class="text-danger">*</span></label><input name="name" class="form-control" required value="{{ supplier.name if supplier else '' }}"></div>
                 <div class="col-md-6"><label class="form-label">جهة الاتصال</label><input name="contact_person" class="form-control" value="{{ supplier.contact_person if supplier else '' }}"></div>

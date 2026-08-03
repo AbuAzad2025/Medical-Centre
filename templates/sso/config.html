@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from "macros/forms.html" import csrf %}
 {% block content %}
 <div class="container py-4">
   <h4><i class="bi bi-globe me-2"></i>إعدادات SSO / LDAP</h4>
@@ -8,6 +9,7 @@
         <div class="card-header bg-primary text-white">إضافة إعداد جديد</div>
         <div class="card-body">
           <form method="post">
+            {{ csrf() }}
             <div class="mb-3">
               <label for="name" class="form-label">الاسم</label>
               <input type="text" class="form-control" id="name" name="name" required>
@@ -66,6 +68,7 @@
                 <td>{% if c.is_active %}<span class="badge bg-success">مفعّل</span>{% else %}<span class="badge bg-secondary">معطّل</span>{% endif %}</td>
                 <td>
                   <form method="post" action="{{ url_for('sso.toggle', config_id=c.id) }}" class="d-inline">
+                    {{ csrf() }}
                     <button type="submit" class="btn btn-sm btn-outline-primary">تبديل</button>
                   </form>
                 </td>

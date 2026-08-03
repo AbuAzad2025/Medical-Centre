@@ -1,10 +1,12 @@
 ﻿{% extends "base.html" %}
+{% from "macros/forms.html" import csrf %}
 {% block title %}إضافة مشتريات{% endblock %}
 {% block content %}
 <div class="card">
     <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-boxes ms-2"></i>إضافة مشتريات جديدة</h5></div>
     <div class="card-body">
         <form method="POST">
+            {{ csrf() }}
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label">الدواء <span class="text-danger">*</span></label>

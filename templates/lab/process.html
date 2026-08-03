@@ -377,6 +377,7 @@
                                             <div class="d-inline-flex gap-2">
                                                 {% if st == 'REQUESTED' %}
                                                 <form method="post" action="{{ url_for('lab.worklist_claim', request_id=r.id) }}">
+                                                    {{ forms.csrf() }}
                                                     <button type="submit" class="btn btn-sm btn-warning">استلام</button>
                                                 </form>
                                                 {% endif %}

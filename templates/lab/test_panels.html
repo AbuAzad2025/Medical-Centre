@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
+{% from "macros/forms.html" import csrf %}
 {% block title %}باقات الفحوصات المخبرية{% endblock %}
 {% block content %}
 <div class="container-fluid">
@@ -35,9 +36,10 @@
         </div>
         <div class="card-footer d-flex gap-2">
           <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ p.id }}"><i class="fas fa-edit"></i> تعديل</button>
-          <form method="post" action="{{ url_for('lab.test_panels_delete', id=p.id) }}" class="d-inline" onsubmit="return confirm('حذف الباقة؟')">
-            <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-          </form>
+<form method="post" action="{{ url_for('lab.test_panels_delete', id=p.id) }}" class="d-inline" onsubmit="return confirm('حذف الباقة؟')">
+              {{ csrf() }}
+              <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+            </form>
         </div>
       </div>
     </div>
@@ -45,6 +47,7 @@
     <div class="modal fade" id="editModal{{ p.id }}" tabindex="-1">
       <div class="modal-dialog modal-lg">
         <form method="post" action="{{ url_for('lab.test_panels_edit', id=p.id) }}">
+          {{ csrf() }}
           <div class="modal-content">
             <div class="modal-header"><h5>تعديل الباقة: {{ p.name_ar }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
@@ -67,6 +70,7 @@
 <div class="modal fade" id="addModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <form method="post" action="{{ url_for('lab.test_panels_add') }}">
+      {{ csrf() }}
       <div class="modal-content">
         <div class="modal-header"><h5>إضافة باقة جديدة</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
