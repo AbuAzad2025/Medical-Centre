@@ -30,7 +30,7 @@ celery==5.3.6
 stripe==7.12.0
 boto3==1.34.162
 twilio==9.3.1
-cryptography==49.0.0
+cryptography==50.0.0
 
 # Dev / load-testing (install separately: pip install locust)
 # locust==2.31.6
