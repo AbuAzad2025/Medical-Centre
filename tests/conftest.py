@@ -269,6 +269,17 @@ def db(app):
 
 
 @pytest.fixture(scope='function')
+def client(app):
+    # NOTE: intentionally NOT a context manager (no ``with app.test_client()``).
+    # pytest-flask's ``client`` fixture enters a context manager that pushes an
+    # extra app context, which corrupts the request-context stack when combined
+    # with the autouse ``_saas_default_tenant_context`` (and tests) that already
+    # push ``app.test_request_context()``. Returning the bare client keeps context
+    # push/pop balanced. (Matches the pre-094e217 conftest definition.)
+    return app.test_client()
+
+
+@pytest.fixture(scope='function')
 def login_as(test_tenant, db):
     """Factory fixture: ``login_as(client, username, role)`` → authenticated client."""
     from tests.tenant_context import ensure_test_user, login_test_client
@@ -553,16 +564,11 @@ def _saas_default_tenant_context(app, request, monkeypatch):
         lambda *_a, **_k: None,
     )
 
-    ensure_default_test_tenant(app)
+    tenant = ensure_default_test_tenant(app)
     with app.test_request_context():
-        from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
+        from tests.tenant_context import bind_tenant_on_g as _bind_tenant
 
-        tenant = (
-            _db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG))
-            .scalars()
-            .first()
-        )
-        bind_tenant_on_g(tenant, db_session=_db.session)
+        _bind_tenant(tenant, db_session=_db.session)
         yield
     clear_tenant_g()
 
