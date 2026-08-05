@@ -25,6 +25,8 @@ os.environ['ENABLE_SAAS_MODE'] = 'false'
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+import contextlib
+
 from flask import g
 from sqlalchemy import select
 
@@ -60,10 +62,8 @@ def app():
             db.session.commit()
         yield app
         db.session.remove()
-        try:
+        with contextlib.suppress(Exception):
             db.drop_all()
-        except Exception:
-            pass
 
 
 @pytest.fixture(scope='function')
@@ -205,7 +205,7 @@ class TestPrescriptionHardStops:
         db.session.commit()
 
         # Debug direct safety call
-        is_safe, alerts = ClinicalSafetyService.check_prescription_safety(
+        _is_safe, alerts = ClinicalSafetyService.check_prescription_safety(
             patient_id=test_patient.id,
             medication_id=amox.id,
             proposed_items=[
@@ -213,9 +213,6 @@ class TestPrescriptionHardStops:
             ],
             doctor_id=test_doctor.id,
             tenant_id=1,
-        )
-        print(
-            'DEBUG allergy alerts:', [(a.check_type, a.severity.value, a.message) for a in alerts]
         )
 
         ok, result = PrescriptionService.create_prescription(
@@ -273,7 +270,7 @@ class TestPrescriptionHardStops:
         db.session.commit()
 
         # Debug direct safety call
-        is_safe, alerts = ClinicalSafetyService.check_prescription_safety(
+        _is_safe, alerts = ClinicalSafetyService.check_prescription_safety(
             patient_id=test_patient.id,
             medication_id=amox.id,
             proposed_items=[
@@ -281,10 +278,6 @@ class TestPrescriptionHardStops:
             ],
             doctor_id=test_doctor.id,
             tenant_id=1,
-        )
-        print(
-            'DEBUG interaction alerts:',
-            [(a.check_type, a.severity.value, a.message) for a in alerts],
         )
 
         # Now try to prescribe amoxicillin → should hit interaction hard stop

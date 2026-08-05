@@ -164,7 +164,7 @@ def dispense_prescription(prescription_id):
                 rows = (
                     db.session.execute(
                         select(DrugInteraction)
-                        .filter(DrugInteraction.is_active == True)
+                        .filter(DrugInteraction.is_active)
                         .filter(or_(*conds))
                     )
                     .scalars()

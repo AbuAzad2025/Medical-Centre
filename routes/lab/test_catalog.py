@@ -167,7 +167,7 @@ def test_panels():
     tests = (
         db.session.execute(
             select(LabTestCatalog)
-            .filter(_tenant_filter(), LabTestCatalog.is_active == True)
+            .filter(_tenant_filter(), LabTestCatalog.is_active)
             .order_by(LabTestCatalog.sort_order, LabTestCatalog.code)
         )
         .scalars()
@@ -292,7 +292,7 @@ def test_panels_delete(id):
 @lab_bp.route('/api/test-catalog')
 @login_required
 def api_test_catalog():
-    stmt = select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.is_active == True)
+    stmt = select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.is_active)
     stmt = stmt.order_by(LabTestCatalog.sort_order, LabTestCatalog.code)
     tests = db.session.execute(stmt).scalars().all()
     return jsonify(

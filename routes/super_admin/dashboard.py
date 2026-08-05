@@ -67,7 +67,7 @@ def _get_super_admin_security_stats():
             db.session.execute(
                 select(func.count())
                 .select_from(LoginAttempt)
-                .filter(LoginAttempt.success == False, LoginAttempt.created_at >= start_24h)
+                .filter(not LoginAttempt.success, LoginAttempt.created_at >= start_24h)
             ).scalar()
             or 0
         ),
@@ -75,7 +75,7 @@ def _get_super_admin_security_stats():
             db.session.execute(
                 select(func.count())
                 .select_from(LoginAttempt)
-                .filter(LoginAttempt.success == False, LoginAttempt.created_at >= start_1h)
+                .filter(not LoginAttempt.success, LoginAttempt.created_at >= start_1h)
             ).scalar()
             or 0
         ),
@@ -102,7 +102,7 @@ def _get_super_admin_security_stats():
             db.session.execute(
                 select(func.count())
                 .select_from(SecurityEvent)
-                .filter(SecurityEvent.is_resolved == False)
+                .filter(not SecurityEvent.is_resolved)
             ).scalar()
             or 0
         ),

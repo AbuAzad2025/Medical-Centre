@@ -404,8 +404,8 @@ def system_cleanup():
         elif cleanup_type == 'harmonize':
             from services.pricing_service import PricingService
 
-            r_all = PricingService.cleanup_all(max_keep_per_role=1)
-            r_purge = PricingService.purge_users_keep_policy()
+            PricingService.cleanup_all(max_keep_per_role=1)
+            PricingService.purge_users_keep_policy()
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم توحيد وتنظيف البيانات بدون إنشاء أي بيانات افتراضية', 'success')
 

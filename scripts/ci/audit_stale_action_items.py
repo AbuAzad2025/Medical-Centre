@@ -47,7 +47,6 @@ MONTH_NAMES = {
     'feb': 2,
     'mar': 3,
     'apr': 4,
-    'may': 5,
     'jun': 6,
     'jul': 7,
     'aug': 8,
@@ -131,7 +130,6 @@ def parse_action_items(markdown: str) -> list[ActionItem]:
     # Find the Action Items table header
     in_section = False
     in_table = False
-    headers = []
 
     for i, line in enumerate(lines, start=1):
         stripped = line.strip()
@@ -151,7 +149,7 @@ def parse_action_items(markdown: str) -> list[ActionItem]:
         # Detect table header row (| # | Incident ID | ...)
         if stripped.startswith('|') and 'Incident ID' in stripped:
             in_table = True
-            headers = [h.strip() for h in stripped.strip('|').split('|')]
+            [h.strip() for h in stripped.strip('|').split('|')]
             continue
 
         # Skip separator row (| --- | --- | ...)

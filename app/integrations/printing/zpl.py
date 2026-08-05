@@ -35,5 +35,4 @@ class ZPLLabelPrinter:
     def print_patient_label(
         self, patient_name: str, visit_number: str, barcode: str | None = None
     ) -> str:
-        zpl = self._build_label([patient_name, f'Visit: {visit_number}'], barcode=barcode)
-        return zpl
+        return self._build_label([patient_name, f'Visit: {visit_number}'], barcode=barcode)

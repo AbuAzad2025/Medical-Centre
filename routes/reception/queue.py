@@ -50,7 +50,7 @@ def queue_management():
         from models.queue_management import QueueSettings
         from services.queue_management_service import QueueManagementService
 
-        queue_service = QueueManagementService()
+        QueueManagementService()
         all_departments = (
             db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         )
@@ -1195,7 +1195,7 @@ def add_patient_to_queue_auto(visit_id, department_id, doctor_id=None):
         )
 
         # إضافة المريض للطابور
-        result = queue_service.add_patient_to_queue(
+        return queue_service.add_patient_to_queue(
             patient_id=visit.patient_id,
             department_id=department_id,
             doctor_id=doctor_id,
@@ -1205,7 +1205,6 @@ def add_patient_to_queue_auto(visit_id, department_id, doctor_id=None):
             emergency_reason=emergency_reason,
         )
 
-        return result
     except Exception as e:
         logging.exception(f'Error adding patient to queue: {e!s}')
         return False, f'خطأ في النظام: {e!s}'

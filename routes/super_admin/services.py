@@ -309,7 +309,7 @@ def service_pricing(service_id):
         if request.method == 'POST':
             price_type = request.form.get('price_type')
             price_value = float(request.form.get('price', 0))
-            description = request.form.get('description')
+            request.form.get('description')
             currency = request.form.get('currency') or 'ILS'
             discount_percentage_raw = request.form.get('discount_percentage')
             discount_amount_raw = request.form.get('discount_amount')

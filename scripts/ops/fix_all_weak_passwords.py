@@ -20,7 +20,7 @@ WEAK_PASSWORDS = [
 ]
 
 matches = []
-for root, dirs, files in os.walk('tests'):
+for root, _dirs, files in os.walk('tests'):
     for f in files:
         if f.endswith('.py'):
             fp = os.path.join(root, f)

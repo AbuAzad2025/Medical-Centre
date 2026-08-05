@@ -33,7 +33,7 @@ def patient_queue():
 
     try:
         # جلب الحالات الطارئة مع تفاصيل إضافية
-        severity_order = case(
+        case(
             (EmergencyCase.severity == 'CRITICAL', 4),
             (EmergencyCase.severity == 'HIGH', 3),
             (EmergencyCase.severity == 'MODERATE', 2),

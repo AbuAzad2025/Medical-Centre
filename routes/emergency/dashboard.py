@@ -112,7 +112,7 @@ def reports():
             per_case = {}
             for h in history:
                 per_case.setdefault(h.emergency_id, []).append(h)
-            for eid, rows in per_case.items():
+            for _eid, rows in per_case.items():
                 for i, h in enumerate(rows):
                     nxt = rows[i + 1] if i + 1 < len(rows) else None
                     if not nxt or not h.created_at or not nxt.created_at:
@@ -262,7 +262,7 @@ def dashboard():
         )
 
         # الحالات القادمة (أولوية عالية)
-        upcoming_cases = (
+        (
             db.session.execute(
                 select(EmergencyCase)
                 .filter(
@@ -285,7 +285,7 @@ def dashboard():
         )
 
         # الإحصائيات
-        stats = {
+        {
             'today_emergencies': today_emergencies,
             'active_emergencies': active_emergencies,
             'completed_today': completed_today,

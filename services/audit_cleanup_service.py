@@ -94,7 +94,7 @@ class AuditCleanupService:
             ).scalar()
             return int(result or 0)
         except Exception as e:
-            logger.error(f'Audit cleanup: count failed for {table_name}: {e}')
+            logger.exception(f'Audit cleanup: count failed for {table_name}: {e}')
             return 0
 
     @staticmethod
@@ -198,7 +198,7 @@ class AuditCleanupService:
 
         except Exception as e:
             error_msg = str(e)
-            logger.error(f'Audit cleanup failed for {table_name}: {error_msg}')
+            logger.exception(f'Audit cleanup failed for {table_name}: {error_msg}')
             return {
                 'table': table_name,
                 'deleted': total_deleted,

@@ -148,7 +148,7 @@ def client_a(app, client, manager_a, tenant_a):
     from app.core.rate_limiter import _shared_store
 
     _shared_store.clear()
-    resp = client.post(
+    client.post(
         '/auth/login',
         data={
             'username': manager_a.username,

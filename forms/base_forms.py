@@ -45,7 +45,7 @@ class SearchFormBase(FormBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # إضافة خيارات الحالة الديناميكية
-        self.status.choices = [('', 'جميع الحالات')] + self.get_status_choices()
+        self.status.choices = [('', 'جميع الحالات'), *self.get_status_choices()]
 
     def get_status_choices(self):
         """الحصول على خيارات الحالة - يجب تخصيصها في كل نموذج"""

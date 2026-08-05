@@ -1,38 +1,43 @@
-import json
-import logging
+import json as json
+import logging as logging
 import secrets
-from datetime import UTC, date, datetime, timedelta, timezone
+from datetime import UTC, datetime
+from datetime import date as date
+from datetime import timedelta as timedelta
+from datetime import timezone as timezone
 
-from flask import (
-    Blueprint,
-    current_app,
-    flash,
-    jsonify,
-    redirect,
-    render_template,
-    request,
-    url_for,
-)
+from flask import Blueprint, redirect, url_for
+from flask import current_app as current_app
+from flask import flash as flash
+from flask import jsonify as jsonify
+from flask import render_template as render_template
+from flask import request as request
 from flask_login import current_user, login_required
-from sqlalchemy import and_, case, desc, func, or_, select
+from sqlalchemy import and_ as and_
+from sqlalchemy import case as case
+from sqlalchemy import desc as desc
+from sqlalchemy import func as func
+from sqlalchemy import or_ as or_
+from sqlalchemy import select
 
 from app.extensions import db
 from app.shared.enums import AppointmentState
-from models.appointment import Appointment
-from models.audit_trail import AuditTrail
-from models.department import Department
-from models.drug_interaction import DrugInteraction
+from models.appointment import Appointment as Appointment
+from models.audit_trail import AuditTrail as AuditTrail
+from models.department import Department as Department
+from models.drug_interaction import DrugInteraction as DrugInteraction
 from models.follow_up import FollowUpRequest
-from models.lab_request import LabRequest
-from models.medical_record import MedicalRecord
-from models.medication import Prescription
-from models.patient import Patient
-from models.radiology_request import RadiologyRequest
+from models.lab_request import LabRequest as LabRequest
+from models.medical_record import MedicalRecord as MedicalRecord
+from models.medication import Prescription as Prescription
+from models.patient import Patient as Patient
+from models.radiology_request import RadiologyRequest as RadiologyRequest
 from models.system_config import SystemConfig
-from models.user import User
+from models.user import User as User
 from models.visit import Visit
 from utils.db_safety import safe_commit, safe_rollback
-from utils.decorators import role_required, role_required_json
+from utils.decorators import role_required as role_required
+from utils.decorators import role_required_json as role_required_json
 
 doctor_bp = Blueprint('doctor', __name__)
 
@@ -316,15 +321,13 @@ def calculate_medical_performance_score(completion_rate, avg_duration):
 # SUBMODULE IMPORTS
 # ═══════════════════════════════════════
 
-from . import (
-    appointments,
-    dashboard,
-    diagnosis,
-    lab,
-    notes,
-    patients,
-    prescriptions,
-    queue,
-    radiology,
-    visits,
-)
+from . import appointments as appointments
+from . import dashboard as dashboard
+from . import diagnosis as diagnosis
+from . import lab as lab
+from . import notes as notes
+from . import patients as patients
+from . import prescriptions as prescriptions
+from . import queue as queue
+from . import radiology as radiology
+from . import visits as visits

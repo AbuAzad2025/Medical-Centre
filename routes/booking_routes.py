@@ -519,7 +519,7 @@ def api_available_doctors():
     """API لجلب الأطباء المتاحين مع تصفية حسب القسم ونوع الموعد (اختياري)"""
     try:
         department_id = request.args.get('department_id', type=int)
-        appointment_type = request.args.get('appointment_type', type=str)
+        request.args.get('appointment_type', type=str)
 
         query = select(User)
         if department_id:
@@ -600,7 +600,7 @@ def api_available_times():
                     select(StaffWorkSchedule).filter(
                         StaffWorkSchedule.user_id == doctor_id,
                         StaffWorkSchedule.day_of_week == dow,
-                        StaffWorkSchedule.is_active == True,
+                        StaffWorkSchedule.is_active,
                     )
                 )
                 .scalars()
@@ -666,7 +666,7 @@ def api_smart_slots():
                     select(StaffWorkSchedule).filter(
                         StaffWorkSchedule.user_id == doctor_id,
                         StaffWorkSchedule.day_of_week == dow,
-                        StaffWorkSchedule.is_active == True,
+                        StaffWorkSchedule.is_active,
                     )
                 )
                 .scalars()
@@ -689,10 +689,7 @@ def api_smart_slots():
         for t in available_times:
             if t.startswith('10') or t.startswith('11'):
                 suggested.append(t)
-        if not suggested:
-            suggested = available_times[:3]
-        else:
-            suggested = suggested[:3]
+        suggested = available_times[:3] if not suggested else suggested[:3]
         return jsonify(
             {'success': True, 'suggested_times': suggested, 'available_times': available_times}
         ), 200

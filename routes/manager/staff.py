@@ -242,7 +242,7 @@ def staff_schedule():
             select(User).filter(
                 User.tenant_id == current_user.tenant_id,
                 User.role.in_(['doctor', 'lab', 'radiology']),
-                User.is_active == True,
+                User.is_active,
             )
         )
         .scalars()
@@ -298,7 +298,7 @@ def staff_absence():
             select(User).filter(
                 User.tenant_id == current_user.tenant_id,
                 User.role.in_(['doctor', 'lab', 'radiology']),
-                User.is_active == True,
+                User.is_active,
             )
         )
         .scalars()

@@ -35,14 +35,13 @@ def stripe_secret(monkeypatch):
 @pytest.fixture
 def billed_tenant(app):
     version = _make_package_version([('lab', 'lab.order')])
-    tenant = TenantProvisioningService.provision_tenant(
+    return TenantProvisioningService.provision_tenant(
         slug=f'wh-{uuid.uuid4().hex[:8]}',
         name='Webhook Lifecycle Tenant',
         contact_email='webhook@test.local',
         package_version_id=version.id,
         billing_type='monthly',
     )
-    return tenant
 
 
 def _event(event_type, tenant, **obj_extra):
@@ -300,7 +299,7 @@ class TestStripeWebhookIngestIdempotency:
         monkeypatch.setattr(
             TenantProvisioningService,
             'renew_base_line',
-            lambda line_id: called.append(line_id),
+            called.append,
         )
         event = _event('invoice.paid', billed_tenant)
         StripeSubscriptionService.handle_event(event)

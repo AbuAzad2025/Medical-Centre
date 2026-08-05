@@ -113,7 +113,7 @@ class ReceptionService:
         try:
             from models.department import Department
 
-            dept = get_tenant_record(Department, department_id)
+            get_tenant_record(Department, department_id)
             visit = Visit(
                 patient_id=patient_id,
                 department_id=department_id,

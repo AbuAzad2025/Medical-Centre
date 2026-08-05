@@ -1,5 +1,6 @@
 """Pharmacy POS and Sales routes"""
 
+import contextlib
 import logging
 from datetime import UTC, date, datetime
 from decimal import Decimal
@@ -29,7 +30,7 @@ def pos():
             select(Medication)
             .filter(
                 Medication.tenant_id == current_user.tenant_id,
-                Medication.is_active == True,
+                Medication.is_active,
                 Medication.stock_quantity > 0,
             )
             .order_by(Medication.trade_name)
@@ -69,7 +70,7 @@ def api_medications_search():
             select(Medication)
             .filter(
                 Medication.tenant_id == current_user.tenant_id,
-                Medication.is_active == True,
+                Medication.is_active,
                 Medication.stock_quantity > 0,
                 db.or_(
                     Medication.trade_name.ilike(f'%{q}%'),
@@ -139,7 +140,7 @@ def pos_sell():
 
         total = Decimal('0.00')
         sale_items = []
-        for idx, item in enumerate(items_data):
+        for _idx, item in enumerate(items_data):
             med_id = item.get('medication_id')
             qty = int(item.get('quantity', 0))
             if not med_id or qty < 1:
@@ -301,18 +302,14 @@ def api_sales_list():
         PharmacySale.tenant_id == current_user.tenant_id,
     )
     if date_from:
-        try:
+        with contextlib.suppress(ValueError):
             q = q.filter(PharmacySale.created_at >= datetime.strptime(date_from, '%Y-%m-%d'))
-        except ValueError:
-            pass
     if date_to:
-        try:
+        with contextlib.suppress(ValueError):
             q = q.filter(
                 PharmacySale.created_at
                 <= datetime.strptime(date_to, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
             )
-        except ValueError:
-            pass
     stmt = q.order_by(PharmacySale.created_at.desc())
     pagination = db.paginate(stmt, page=page, per_page=per_page, error_out=False)
     data = [
@@ -383,20 +380,16 @@ def api_sales_report():
         func.sum(PharmacySale.total_amount).label('total'),
     ).filter(PharmacySale.tenant_id == current_user.tenant_id)
     if from_date:
-        try:
+        with contextlib.suppress(ValueError):
             q = q.filter(
                 func.date(PharmacySale.created_at)
                 >= datetime.strptime(from_date, '%Y-%m-%d').date()
             )
-        except ValueError:
-            pass
     if to_date:
-        try:
+        with contextlib.suppress(ValueError):
             q = q.filter(
                 func.date(PharmacySale.created_at) <= datetime.strptime(to_date, '%Y-%m-%d').date()
             )
-        except ValueError:
-            pass
     rows = (
         db.session.execute(
             q.group_by(func.date(PharmacySale.created_at)).order_by(

@@ -55,10 +55,10 @@ def dashboard():
         base = core_queries.get_basic_dashboard_stats()
         today = datetime.now(UTC).date()
         start_of_today = datetime.combine(today, datetime.min.time(), tzinfo=UTC)
-        end_of_today = datetime.combine(today, datetime.max.time(), tzinfo=UTC)
+        datetime.combine(today, datetime.max.time(), tzinfo=UTC)
 
-        total_patients = base['total_patients']
-        patients_today = db.session.execute(
+        base['total_patients']
+        db.session.execute(
             select(func.count()).select_from(Patient).filter(Patient.created_at >= start_of_today)
         ).scalar()
 
@@ -67,7 +67,7 @@ def dashboard():
         if dept_ids is not None and dept_ids:
             active_visits_query = active_visits_query.filter(Visit.department_id.in_(dept_ids))
 
-        active_visits = (
+        (
             db.session.execute(
                 select(func.count()).select_from(active_visits_query.subquery())
             ).scalar()
@@ -79,17 +79,17 @@ def dashboard():
             .all()
         )
 
-        today_visits = db.session.execute(
+        db.session.execute(
             select(func.count()).select_from(Visit).filter(Visit.visit_date == today)
         ).scalar()
-        recent_visits = (
+        (
             db.session.execute(select(Visit).order_by(desc(Visit.created_at)).limit(20))
             .scalars()
             .all()
         )
 
         # الأدوية المطلوبة
-        medications_needed = db.session.execute(
+        db.session.execute(
             select(func.count())
             .select_from(Medication)
             .filter(Medication.stock_quantity <= Medication.minimum_stock)
@@ -205,7 +205,7 @@ def dashboard():
                     }
                 )
 
-        pending_tasks = int(len(open_tasks) + vital_due_count + meds_due_count)
+        int(len(open_tasks) + vital_due_count + meds_due_count)
 
         def _vitals_flags(vs: VitalSigns):
             sys = getattr(vs, 'blood_pressure_systolic', None)
@@ -305,7 +305,7 @@ def dashboard():
             .all()
         )
 
-        safety_alerts = {
+        {
             'vitals_alerts': vitals_alerts[:10],
             'vitals_alerts_count': len(vitals_alerts),
             'overdue_tasks_count': int(overdue_tasks_count or 0),
@@ -314,33 +314,17 @@ def dashboard():
         }
 
         # الميزات الذكية
-        smart_analytics = get_nursing_smart_analytics()
-        patient_care_optimization = get_patient_care_optimization()
-        vital_signs_monitoring = get_vital_signs_monitoring()
-        medication_management = get_medication_management()
-        workflow_automation = get_nursing_workflow_automation()
-        predictive_insights = get_nursing_predictive_insights()
-        smart_recommendations = get_nursing_smart_recommendations()
-        quality_indicators = get_nursing_quality_indicators()
-        nursing_protocols = _get_nursing_protocols()
-        workload_prediction = get_nursing_workload_prediction()
+        get_nursing_smart_analytics()
+        get_patient_care_optimization()
+        get_vital_signs_monitoring()
+        get_medication_management()
+        get_nursing_workflow_automation()
+        get_nursing_predictive_insights()
+        get_nursing_smart_recommendations()
+        get_nursing_quality_indicators()
+        _get_nursing_protocols()
+        get_nursing_workload_prediction()
 
-        stats = {
-            'patients_today': patients_today,
-            'active_visits': active_visits,
-            'medications_needed': medications_needed,
-            'pending_tasks': pending_tasks,
-            'smart_analytics': smart_analytics,
-            'patient_care_optimization': patient_care_optimization,
-            'vital_signs_monitoring': vital_signs_monitoring,
-            'medication_management': medication_management,
-            'workflow_automation': workflow_automation,
-            'predictive_insights': predictive_insights,
-            'smart_recommendations': smart_recommendations,
-            'quality_indicators': quality_indicators,
-            'nursing_protocols': nursing_protocols,
-            'workload_prediction': workload_prediction,
-        }
 
         from app.shared.dashboard_service import render_command_center
 

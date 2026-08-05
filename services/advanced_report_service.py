@@ -549,7 +549,7 @@ class AdvancedReportService:
             active_users = (
                 db.session.execute(
                     select(func.count()).select_from(
-                        users_query.filter(User.is_active == True).subquery()
+                        users_query.filter(User.is_active).subquery()
                     )
                 ).scalar()
                 or 0

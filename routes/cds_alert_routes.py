@@ -34,7 +34,7 @@ def rules():
 @role_required('doctor', 'nurse', 'admin', 'manager')
 @handle_route_errors
 def alerts():
-    status = request.args.get('status', 'ACTIVE')
+    request.args.get('status', 'ACTIVE')
     items = (
         db.session.execute(
             select(CDSFiredAlert)

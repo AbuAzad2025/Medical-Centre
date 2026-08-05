@@ -42,10 +42,7 @@ ALLOWED_PATTERNS = [
 
 
 def _is_allowed_line(line: str) -> bool:
-    for pat in ALLOWED_PATTERNS:
-        if re.search(pat, line):
-            return True
-    return False
+    return any(re.search(pat, line) for pat in ALLOWED_PATTERNS)
 
 
 def scan_file(filepath: Path) -> list[dict]:

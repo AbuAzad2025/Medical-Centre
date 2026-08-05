@@ -1,19 +1,31 @@
-import json
+import json as json
 import logging
-from datetime import UTC, date, datetime, timedelta, timezone
+from datetime import UTC, datetime
+from datetime import date as date
+from datetime import timedelta as timedelta
+from datetime import timezone as timezone
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
-from flask_login import current_user, login_required
+from flask import Blueprint
+from flask import flash as flash
+from flask import jsonify as jsonify
+from flask import redirect as redirect
+from flask import render_template as render_template
+from flask import request as request
+from flask import url_for as url_for
+from flask_login import current_user
+from flask_login import login_required as login_required
 from sqlalchemy import func, select
 
 from app.extensions import db
 from app.shared.enums import PrescriptionState
-from models.drug_interaction import DrugInteraction
-from models.medication import Medication, Prescription
-from models.patient import Patient
-from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
-from models.visit import Visit
-from utils.decorators import role_required
+from models.drug_interaction import DrugInteraction as DrugInteraction
+from models.medication import Medication
+from models.medication import Prescription as Prescription
+from models.patient import Patient as Patient
+from models.supply_request import MedicationSupplyRequest as MedicationSupplyRequest
+from models.supply_request import MedicationSupplyRequestItem as MedicationSupplyRequestItem
+from models.visit import Visit as Visit
+from utils.decorators import role_required as role_required
 
 medication_bp = Blueprint('medication', __name__)
 
@@ -33,7 +45,8 @@ def _generate_supply_request_number():
 def get_pharmacy_smart_analytics():
     """التحليلات الذكية للصيدلية"""
     try:
-        from datetime import datetime, timedelta
+        from datetime import datetime as datetime
+        from datetime import timedelta as timedelta
 
         from sqlalchemy import func
 
@@ -46,7 +59,7 @@ def get_pharmacy_smart_analytics():
         active_medications = db.session.execute(
             select(func.count())
             .select_from(Medication)
-            .filter(Medication.is_active == True, Medication.tenant_id == current_user.tenant_id)
+            .filter(Medication.is_active, Medication.tenant_id == current_user.tenant_id)
         ).scalar()
         low_stock_medications = db.session.execute(
             select(func.count())
@@ -432,9 +445,10 @@ def get_drug_interaction_checker():
 def get_pharmacy_workflow_automation():
     """أتمتة سير عمل الصيدلية"""
     try:
-        from datetime import datetime, timedelta
+        from datetime import datetime as datetime
+        from datetime import timedelta as timedelta
 
-        from sqlalchemy import func
+        from sqlalchemy import func as func
 
         # تحليل المهام المؤتمتة
         automated_tasks = 0  # يمكن إضافة نموذج للمهام المؤتمتة
@@ -530,7 +544,7 @@ def get_pharmacy_smart_recommendations():
 
         # تحليل البيانات الحالية
         analytics = get_pharmacy_smart_analytics()
-        inventory = get_inventory_optimization()
+        get_inventory_optimization()
         safety = get_medication_safety_monitoring()
         prescriptions = get_prescription_analytics()
         interactions = get_drug_interaction_checker()
@@ -699,4 +713,11 @@ def calculate_demand_forecast_accuracy():
 # SUBMODULE IMPORTS
 # ═══════════════════════════════════════
 
-from . import catalog, dashboard, external, interactions, inventory, pos, prescriptions, suppliers
+from . import catalog as catalog
+from . import dashboard as dashboard
+from . import external as external
+from . import interactions as interactions
+from . import inventory as inventory
+from . import pos as pos
+from . import prescriptions as prescriptions
+from . import suppliers as suppliers

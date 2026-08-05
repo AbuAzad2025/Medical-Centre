@@ -4,7 +4,7 @@ import os
 
 scan_dir = 'tests'
 fixed = 0
-for root, dirs, files in os.walk(scan_dir):
+for root, _dirs, files in os.walk(scan_dir):
     for f in files:
         if f.startswith('test_') and f.endswith('.py'):
             fp = os.path.join(root, f)

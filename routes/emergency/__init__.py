@@ -3,26 +3,38 @@
 Medical System Professional Emergency Routes
 """
 
-import json
-import logging
-from datetime import UTC, date, datetime, timedelta, timezone
+import json as json
+import logging as logging
+from datetime import UTC, date, datetime, timedelta
+from datetime import timezone as timezone
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
-from flask_login import current_user, login_required
-from sqlalchemy import and_, case, desc, func, or_, select
+from flask import Blueprint
+from flask import flash as flash
+from flask import jsonify as jsonify
+from flask import redirect as redirect
+from flask import render_template as render_template
+from flask import request as request
+from flask import url_for as url_for
+from flask_login import current_user
+from flask_login import login_required as login_required
+from sqlalchemy import and_ as and_
+from sqlalchemy import case as case
+from sqlalchemy import desc as desc
+from sqlalchemy import func, select
+from sqlalchemy import or_ as or_
 
 from app.extensions import db
 from app.shared.enums import EmergencyStatus
-from models.department import Department
+from models.department import Department as Department
 from models.emergency import EmergencyCase
-from models.lab_request import LabRequest
-from models.medical_record import MedicalRecord
-from models.medication import Prescription
-from models.patient import Patient
-from models.radiology_request import RadiologyRequest
-from models.user import User
-from models.visit import Visit
-from utils.decorators import role_required_json
+from models.lab_request import LabRequest as LabRequest
+from models.medical_record import MedicalRecord as MedicalRecord
+from models.medication import Prescription as Prescription
+from models.patient import Patient as Patient
+from models.radiology_request import RadiologyRequest as RadiologyRequest
+from models.user import User as User
+from models.visit import Visit as Visit
+from utils.decorators import role_required_json as role_required_json
 
 emergency_bp = Blueprint('emergency', __name__)
 
@@ -326,4 +338,12 @@ def calculate_emergency_performance_score(completion_rate, avg_treatment_time):
 # SUBMODULE IMPORTS
 # ═══════════════════════════════════════
 
-from . import analytics, api, cases, dashboard, orders, patients, queue, reports, treatment
+from . import analytics as analytics
+from . import api as api
+from . import cases as cases
+from . import dashboard as dashboard
+from . import orders as orders
+from . import patients as patients
+from . import queue as queue
+from . import reports as reports
+from . import treatment as treatment

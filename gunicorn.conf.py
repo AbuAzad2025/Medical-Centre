@@ -2,8 +2,8 @@
 Gunicorn Configuration for Medical System Production Deployment
 """
 
-import os
 import multiprocessing
+import os
 
 # Server socket
 bind = os.environ.get('GUNICORN_BIND', '0.0.0.0:8000')

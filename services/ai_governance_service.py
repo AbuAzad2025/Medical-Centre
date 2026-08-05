@@ -25,7 +25,7 @@ class AIRecommendationGovernanceService:
     ) -> dict:
         from models.ai_analytics import ModelPrediction
 
-        tenant_id = getattr(g, 'tenant_id', None)
+        getattr(g, 'tenant_id', None)
         prediction = ModelPrediction(
             model_name=model_name,
             patient_id=patient_id,

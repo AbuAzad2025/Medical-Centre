@@ -3,6 +3,7 @@
 Medical System Authentication Routes
 """
 
+import contextlib
 import logging
 from datetime import UTC, datetime, timedelta
 
@@ -87,10 +88,7 @@ def login() -> ResponseReturnValue:
             # التحقق من نوع الطلب
             is_ajax = request.headers.get('Content-Type') == 'application/json' or request.is_json
 
-            if is_ajax:
-                data = request.get_json()
-            else:
-                data = request.form
+            data = request.get_json() if is_ajax else request.form
 
             csrf_enabled = current_app.config.get('WTF_CSRF_ENABLED', True)
             if csrf_enabled:
@@ -168,7 +166,7 @@ def login() -> ResponseReturnValue:
                     .select_from(LoginAttempt)
                     .filter(
                         LoginAttempt.username == username,
-                        LoginAttempt.success == False,
+                        not LoginAttempt.success,
                         LoginAttempt.created_at >= window_start,
                     )
                 ).scalar()
@@ -178,7 +176,7 @@ def login() -> ResponseReturnValue:
                         db.session.execute(
                             select(LoginAttempt)
                             .filter(
-                                LoginAttempt.username == username, LoginAttempt.success == False
+                                LoginAttempt.username == username, not LoginAttempt.success
                             )
                             .order_by(LoginAttempt.created_at.desc())
                         )
@@ -311,10 +309,8 @@ def login() -> ResponseReturnValue:
                             db.session, error_message='database commit failed', reraise=True
                         )
                     except Exception as e:
-                        try:
+                        with contextlib.suppress(Exception):
                             safe_rollback(db.session, error_message='database rollback')
-                        except Exception:
-                            pass
                         logging.warning(f'Session log error: {e}')
                     remember_flag = str(data.get('remember') or '').lower() in {
                         '1',
@@ -531,7 +527,7 @@ def profile():
         login_attempts = (
             db.session.execute(
                 select(LoginAttempt)
-                .filter(LoginAttempt.user_id == current_user.id, LoginAttempt.success == True)
+                .filter(LoginAttempt.user_id == current_user.id, LoginAttempt.success)
                 .order_by(LoginAttempt.created_at.desc())
                 .limit(10)
             )
@@ -542,7 +538,7 @@ def profile():
             db.session.execute(
                 select(LoginAttempt)
                 .filter(
-                    LoginAttempt.username == current_user.username, LoginAttempt.success == False
+                    LoginAttempt.username == current_user.username, not LoginAttempt.success
                 )
                 .order_by(LoginAttempt.created_at.desc())
                 .limit(10)

@@ -31,7 +31,7 @@ class TestValidatePaymentMethod:
         assert ok is False and 'تحديد' in msg
 
     def test_invalid_method(self):
-        ok, msg = GK.validate_payment_method('bitcoin')
+        ok, _msg = GK.validate_payment_method('bitcoin')
         assert ok is False
 
     def test_cash_within_limit(self):
@@ -93,20 +93,20 @@ class TestValidateCardPayment:
 
 class TestCheckPaymentRules:
     def _visit(self, **kw):
-        base = dict(
-            total_amount=100,
-            paid_amount=100,
-            payment_method='cash',
-            insurance_provider=None,
-            insurance_policy_number=None,
-            insurance_coverage_percentage=None,
-            patient_share=None,
-            is_force_payment=False,
-            force_payment_reason=None,
-            force_payment_approved_by=None,
-            card_number_last_digits=None,
-            card_holder_name=None,
-        )
+        base = {
+            'total_amount': 100,
+            'paid_amount': 100,
+            'payment_method': 'cash',
+            'insurance_provider': None,
+            'insurance_policy_number': None,
+            'insurance_coverage_percentage': None,
+            'patient_share': None,
+            'is_force_payment': False,
+            'force_payment_reason': None,
+            'force_payment_approved_by': None,
+            'card_number_last_digits': None,
+            'card_holder_name': None,
+        }
         base.update(kw)
         return types.SimpleNamespace(**base)
 
@@ -119,7 +119,7 @@ class TestCheckPaymentRules:
         assert ok is False and any('الإجمالي' in i for i in issues)
 
     def test_overpaid(self):
-        ok, issues = GK.check_payment_rules(self._visit(total_amount=50, paid_amount=80))
+        ok, _issues = GK.check_payment_rules(self._visit(total_amount=50, paid_amount=80))
         assert ok is False
 
     def test_insurance_missing_fields(self):
@@ -176,15 +176,15 @@ def make_visit(rollback_db):
             rollback_db.session.add(p)
             rollback_db.session.commit()
             created['patient'] = p
-        defaults = dict(
-            patient_id=created['patient'].id,
-            total_amount=100,
-            paid_amount=0,
-            is_emergency=False,
-            is_strong_pay=False,
-            financial_locked=False,
-            receipt_printed=False,
-        )
+        defaults = {
+            'patient_id': created['patient'].id,
+            'total_amount': 100,
+            'paid_amount': 0,
+            'is_emergency': False,
+            'is_strong_pay': False,
+            'financial_locked': False,
+            'receipt_printed': False,
+        }
         defaults.update(kw)
         v = Visit(**defaults)
         rollback_db.session.add(v)
@@ -206,7 +206,7 @@ class TestCanEnqueueVisit:
 
     def test_emergency_with_liability_locks(self, make_visit):
         v = make_visit(is_emergency=True, liability_acknowledged_at=datetime.now(UTC))
-        ok, msg = GK.can_enqueue_visit(v.id, 1)
+        ok, _msg = GK.can_enqueue_visit(v.id, 1)
         assert ok is True
         assert v.financial_locked is True
 
@@ -449,7 +449,7 @@ class TestValidateForcePayment:
         rollback_db.session.add(creator)
         rollback_db.session.commit()
         v = make_visit(created_by=creator.id, is_force_payment=False)
-        ok, msg = GK.validate_force_payment(v.id, u.id, 'a valid long reason here')
+        ok, _msg = GK.validate_force_payment(v.id, u.id, 'a valid long reason here')
         assert ok is True
 
     def test_percentage_exceeded(self, rollback_db, monkeypatch):
@@ -457,7 +457,6 @@ class TestValidateForcePayment:
 
         fake_visit = types.SimpleNamespace(created_by=12345)
 
-        real_execute = gk_mod.db.session.execute
 
         class _FakeResult:
             def scalar(self_inner):

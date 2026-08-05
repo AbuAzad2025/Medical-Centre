@@ -9,20 +9,23 @@ pharmacy), and a linked clinical flow:
 Designed for local development and demos. Idempotent.
 """
 
+import contextlib
 import uuid
 
+from sqlalchemy import select
+
+from app.core.module.models import TenantModule
 from app.core.module.registry import MODULE_REGISTRY
 from app.core.tenant.models import Tenant
-from app.core.module.models import TenantModule
 from app.extensions import db
-from models.user import User
-from models.patient import Patient
-from models.visit import Visit
+from models.invoice import Invoice
 from models.lab_request import LabRequest
 from models.medication import Prescription
-from models.invoice import Invoice
+from models.patient import Patient
+from models.user import User
+from models.visit import Visit
+
 from . import tenant_bypass
-from sqlalchemy import select
 
 DEV_TENANT_ID = 1
 DEV_TENANT_SLUG = 'azad-dev'
@@ -41,15 +44,13 @@ DEV_PASSWORD = 'dev12345'
 
 def _sync_tenant_sequence(tenant_id: int) -> None:
     """Ensure the tenants.id sequence is past any explicitly-set id."""
-    try:
+    with contextlib.suppress(Exception):
         db.session.execute(
             db.text(
                 "SELECT setval(pg_get_serial_sequence('tenants','id'), "
                 'GREATEST(:tid, (SELECT MAX(id) FROM tenants)), true)'
             ).bindparams(tid=tenant_id)
         )
-    except Exception as e:
-        pass
 
 
 def seed_dev_tenant(session=None):
@@ -79,7 +80,7 @@ def activate_modules(tenant, session=None):
     with tenant_bypass():
         import datetime
 
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
         count = 0
         for name in MODULE_REGISTRY:
             if name == 'owner':
@@ -216,12 +217,7 @@ def run(app=None, with_clinical: bool = True):
         app = create_app()
     with app.app_context():
         tenant = seed_dev_tenant()
-        modules = activate_modules(tenant)
+        activate_modules(tenant)
         staff = seed_staff(tenant)
-        flow = seed_clinical_flow(tenant, staff) if with_clinical else {}
-        print(
-            f"[local_dev_story] tenant='{tenant.name}' (id={tenant.id}), "
-            f'modules={modules}, staff={len(staff)}, '
-            f'clinical={len(flow)}'
-        )
+        seed_clinical_flow(tenant, staff) if with_clinical else {}
         return tenant

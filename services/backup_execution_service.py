@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 from datetime import UTC, datetime
@@ -43,10 +44,8 @@ def execute_backup_by_id(backup_id: int) -> Backup:
         backup.backup_status = BackupStatus.FAILED
         backup.backup_notes = str(exc)
         if os.path.exists(backup.backup_path):
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(backup.backup_path)
-            except OSError:
-                pass
         safe_commit(db.session, error_message='Failed to save backup failure status')
-        logger.error('Backup failed id=%s: %s', backup.id, exc)
+        logger.exception('Backup failed id=%s: %s', backup.id, exc)
         raise BackupAutomationError(str(exc)) from exc

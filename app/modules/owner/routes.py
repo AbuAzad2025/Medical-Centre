@@ -406,8 +406,7 @@ def owner_tenant_detail(tenant_id):
         .all()
     )
     available_features = sorted(
-        list(
-            set(
+        set(
                 [
                     'multi_branch',
                     'advanced_reports',
@@ -429,7 +428,6 @@ def owner_tenant_detail(tenant_id):
                 ]
                 + [f.feature_key for f in feature_flags]
             )
-        )
     )
 
     bundle_limits = None
@@ -659,7 +657,7 @@ def owner_edit_tenant(tenant_id):
 @owner_required
 def owner_toggle_tenant_feature(tenant_id, feature_key):
     """Toggle a feature flag for a tenant."""
-    tenant = db.get_or_404(Tenant, tenant_id)
+    db.get_or_404(Tenant, tenant_id)
     try:
         from app.core.tenant.models import TenantFeatureFlag
 
@@ -2661,7 +2659,7 @@ def owner_provision():
         db.session.execute(
             select(PackageVersion)
             .join(Package)
-            .filter(Package.is_active == True)
+            .filter(Package.is_active)
             .order_by(Package.name)
         )
         .scalars()

@@ -58,7 +58,7 @@ def main() -> int:
     _run_upgrade()
 
     admin = sa.create_engine(ADMIN_URL, isolation_level='AUTOCOMMIT')
-    db_name = DATABASE_URL.rsplit('/', 1)[-1]
+    DATABASE_URL.rsplit('/', 1)[-1]
 
     with admin.connect() as c:
         c.execute(sa.text('SET session_replication_role = replica'))

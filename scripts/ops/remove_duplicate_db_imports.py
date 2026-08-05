@@ -5,7 +5,7 @@ import os
 scan_dirs = ['routes', 'services', 'app', 'utils']
 fixed = 0
 for scan_dir in scan_dirs:
-    for root, dirs, files in os.walk(scan_dir):
+    for root, _dirs, files in os.walk(scan_dir):
         for f in files:
             if not f.endswith('.py'):
                 continue

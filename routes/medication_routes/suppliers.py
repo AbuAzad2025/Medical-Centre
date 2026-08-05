@@ -226,7 +226,7 @@ def add_purchase():
     medications = (
         db.session.execute(
             select(Medication)
-            .filter(Medication.tenant_id == current_user.tenant_id, Medication.is_active == True)
+            .filter(Medication.tenant_id == current_user.tenant_id, Medication.is_active)
             .order_by(Medication.trade_name)
         )
         .scalars()
@@ -235,7 +235,7 @@ def add_purchase():
     suppliers = (
         db.session.execute(
             select(Supplier)
-            .filter(Supplier.tenant_id == current_user.tenant_id, Supplier.is_active == True)
+            .filter(Supplier.tenant_id == current_user.tenant_id, Supplier.is_active)
             .order_by(Supplier.name)
         )
         .scalars()

@@ -17,6 +17,7 @@ wrongly scoped or rejected by the fail-closed auto-assign guard.
 """
 
 from contextlib import contextmanager
+
 from flask import g
 
 

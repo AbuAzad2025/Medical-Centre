@@ -26,7 +26,7 @@ def dashboard():
     try:
         today = date.today()
         week_ago = today - timedelta(days=7)
-        month_ago = today - timedelta(days=30)
+        today - timedelta(days=30)
 
         from models.audit_trail import AuditTrail
         from models.emergency import EmergencyCase

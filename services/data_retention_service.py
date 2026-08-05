@@ -342,7 +342,7 @@ class DataRetentionService:
         if not policy:
             return 0, []
 
-        cutoff = datetime.now(UTC) - timedelta(days=policy.retain_years * 365)
+        datetime.now(UTC) - timedelta(days=policy.retain_years * 365)
         query = select(SessionLog)
 
         if dry_run:
@@ -361,7 +361,7 @@ class DataRetentionService:
     def generate_retention_report(self, tenant_id: int) -> dict:
         """Generate a compliance report of retention status for a tenant."""
         expired = self.identify_expired_records(tenant_id)
-        report = {
+        return {
             'tenant_id': tenant_id,
             'generated_at': datetime.now(UTC).isoformat(),
             'policies': [
@@ -384,4 +384,3 @@ class DataRetentionService:
                 for cat, records in expired.items()
             },
         }
-        return report

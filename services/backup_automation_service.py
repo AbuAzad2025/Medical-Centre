@@ -88,7 +88,7 @@ class BackupAutomationService:
             record.backup_status = BackupStatus.FAILED
             record.backup_notes = str(exc)
             safe_commit(db.session, error_message='Failed to save backup failure status')
-            logger.error('Automated backup failed id=%s: %s', record.id, exc)
+            logger.exception('Automated backup failed id=%s: %s', record.id, exc)
             raise BackupAutomationError(str(exc)) from exc
 
     @classmethod
@@ -142,4 +142,4 @@ class BackupAutomationService:
             try:
                 cls.run_scheduled_backup()
             except BackupAutomationError as exc:
-                logger.error('Backup automation tick failed: %s', exc)
+                logger.exception('Backup automation tick failed: %s', exc)

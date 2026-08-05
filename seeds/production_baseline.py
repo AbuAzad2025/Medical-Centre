@@ -5,12 +5,15 @@ the master ``platform_owner`` account. Idempotent — safe to run repeatedly.
 """
 
 from datetime import datetime
-from app.core.module.registry import MODULE_REGISTRY
+
+from sqlalchemy import select
+
 from app.core.module.models import ModuleDefinition
+from app.core.module.registry import MODULE_REGISTRY
 from app.extensions import db
 from models.user import User
+
 from . import tenant_bypass
-from sqlalchemy import select
 
 # 14 application modules (everything except the internal 'owner' entry).
 APPLICATION_MODULES = [name for name in MODULE_REGISTRY if name != 'owner']
@@ -97,13 +100,8 @@ def run(app=None):
 
         app = create_app()
     with app.app_context():
-        seeded = seed_module_definitions()
-        master = seed_master_account()
-        print(
-            f'[production_baseline] modules seeded={seeded}, '
-            f"master='{master.username}' (id={master.id})"
-        )
-        return master
+        seed_module_definitions()
+        return seed_master_account()
 
 
 if __name__ == '__main__':

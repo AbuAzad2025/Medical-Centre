@@ -267,7 +267,7 @@ class TestAggregatorsWithData:
         p = Patient(first_name='a', last_name='b')
         fx.db.session.add(p)
         fx.db.session.commit()
-        params = dict(patient_id=p.id, total_amount=200, paid_amount=0)
+        params = {'patient_id': p.id, 'total_amount': 200, 'paid_amount': 0}
         params.update(kw)
         v = Visit(**params)
         fx.db.session.add(v)

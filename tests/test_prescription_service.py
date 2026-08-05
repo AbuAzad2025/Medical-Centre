@@ -220,7 +220,7 @@ class TestPrescriptionQueries:
         p = rxfx.patient()
         doc = rxfx.doctor()
         m = rxfx.med()
-        ok, pres = RX.create_prescription(p.id, doc.id)
+        _ok, pres = RX.create_prescription(p.id, doc.id)
         assert RX.get_prescription(pres.id).id == pres.id
         assert RX.get_medication(m.id).id == m.id
 

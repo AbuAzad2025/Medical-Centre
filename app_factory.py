@@ -2,32 +2,24 @@
 Medical System Flask Application Factory
 """
 
-from flask import (
-    Flask,
-    jsonify,
-    render_template_string,
-    render_template,
-    redirect,
-    url_for,
-    request,
-    abort,
-    g,
-)
-from flask.json.provider import DefaultJSONProvider
-from decimal import Decimal, ROUND_HALF_UP
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
-from flask_migrate import Migrate
-from flask_mail import Mail
-from flask_wtf.csrf import CSRFProtect
-from flask_socketio import SocketIO
-import os, logging, click
-from logging.handlers import RotatingFileHandler
-from sqlalchemy import inspect as _sa_inspect, select, func
-from logging import StreamHandler
-from datetime import datetime
-from pathlib import Path
+import logging
+import os
+from datetime import UTC
 from datetime import datetime as _dt
+from decimal import ROUND_HALF_UP, Decimal
+
+import click
+from flask import Flask, redirect, render_template, request, url_for
+from flask.json.provider import DefaultJSONProvider
+from flask_login import LoginManager
+from flask_mail import Mail
+from flask_migrate import Migrate
+from flask_socketio import SocketIO
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
+from sqlalchemy import inspect as _sa_inspect
+from sqlalchemy import select
+
 from utils.db_safety import safe_commit, safe_rollback
 
 # ============================================================
@@ -58,7 +50,7 @@ def _alert_admin(level, message, **ctx):
     for sink in _ALERT_SINKS:
         try:
             sink(level, {'message': message, **ctx})
-        except Exception as e:
+        except Exception:
             pass  # Never let alerting break the response
 
 
@@ -101,7 +93,7 @@ def create_app(config_name: str | None = None) -> Flask:
             warnings.filterwarnings('ignore', category=DeprecationWarning)
             if os.getenv('SUPPRESS_LOGGING') in {'1', 'true', 'yes', 'on'} or app.testing:
                 logging.disable(logging.CRITICAL)
-        except Exception as e:
+        except Exception:
             pass
 
     # تهيئة Logging مركزي مع PII Redaction + Trace ID
@@ -156,10 +148,10 @@ def create_app(config_name: str | None = None) -> Flask:
                     import sys as _sys
 
                     _sys.stderr.write(
-                        "\n!!! FATAL: Application database role '%s' has "
-                        'SUPERUSER=%s BYPASSRLS=%s.  RLS would be bypassed.\n'
+                        f"\n!!! FATAL: Application database role '{who}' has "
+                        f'SUPERUSER={is_super} BYPASSRLS={bypass}.  RLS would be bypassed.\n'
                         '!!! Set RLS_BYPASS_ALLOWED=1 in env (local dev only) or '
-                        'switch to a restricted role.\n' % (who, is_super, bypass)
+                        'switch to a restricted role.\n'
                     )
                     raise RuntimeError(
                         f'RLS startup guard rejected superuser/BYPASSRLS role '
@@ -167,7 +159,7 @@ def create_app(config_name: str | None = None) -> Flask:
                     )
     except RuntimeError:
         raise
-    except Exception as e:
+    except Exception:
         pass  # Table may not exist yet (first migration); guard is best-effort.
 
     # Startup guard: FIELD_ENCRYPTION_KEY is required in production.
@@ -223,7 +215,7 @@ def create_app(config_name: str | None = None) -> Flask:
             )
             if tcfg:
                 tf = str(tcfg.config_value).lower()
-        except Exception as e:
+        except Exception:
             df = None
             tf = None
         date_map = {'dd/mm/yyyy': '%d/%m/%Y', 'mm/dd/yyyy': '%m/%d/%Y', 'yyyy-mm-dd': '%Y-%m-%d'}
@@ -238,10 +230,10 @@ def create_app(config_name: str | None = None) -> Flask:
         dfmt, _, _ = _get_format_map()
         try:
             return (val if hasattr(val, 'strftime') else _dt.fromisoformat(str(val))).strftime(dfmt)
-        except Exception as e:
+        except Exception:
             try:
                 return _dt.utcfromtimestamp(float(val)).strftime(dfmt)
-            except Exception as e:
+            except Exception:
                 return str(val)
 
     def _fmt_time(val):
@@ -250,10 +242,10 @@ def create_app(config_name: str | None = None) -> Flask:
         _, tfmt, _ = _get_format_map()
         try:
             return (val if hasattr(val, 'strftime') else _dt.fromisoformat(str(val))).strftime(tfmt)
-        except Exception as e:
+        except Exception:
             try:
                 return _dt.utcfromtimestamp(float(val)).strftime(tfmt)
-            except Exception as e:
+            except Exception:
                 return str(val)
 
     def _fmt_datetime(val):
@@ -264,10 +256,10 @@ def create_app(config_name: str | None = None) -> Flask:
             return (val if hasattr(val, 'strftime') else _dt.fromisoformat(str(val))).strftime(
                 dfull
             )
-        except Exception as e:
+        except Exception:
             try:
                 return _dt.utcfromtimestamp(float(val)).strftime(dfull)
-            except Exception as e:
+            except Exception:
                 return str(val)
 
     app.jinja_env.filters['format_date'] = _fmt_date
@@ -281,7 +273,7 @@ def create_app(config_name: str | None = None) -> Flask:
             cur = currency or app.config.get('DEFAULT_CURRENCY', 'ILS')
             q = Decimal(str(amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             return f'{q:.2f} {cur}'
-        except Exception as e:
+        except Exception:
             return f'{amount} {currency or app.config.get("DEFAULT_CURRENCY", "ILS")}'
 
     app.jinja_env.filters['format_money'] = _fmt_money
@@ -294,8 +286,8 @@ def create_app(config_name: str | None = None) -> Flask:
     app.jinja_env.globals['resolve_visit_payment_status_badge'] = resolve_visit_payment_status_badge
     app.jinja_env.globals['_'] = lambda s: s
 
-    from app.shared.print_context import resolve_print_context
     from app.shared.branding_context import get_branding_row
+    from app.shared.print_context import resolve_print_context
 
     @app.template_global('get_print_context')
     def get_print_context(doc_type='report'):
@@ -314,7 +306,7 @@ def create_app(config_name: str | None = None) -> Flask:
                     response.set_data(compressed)
                     response.headers['Content-Encoding'] = 'gzip'
                     response.headers['Vary'] = 'Accept-Encoding'
-        except Exception as e:
+        except Exception:
             pass
         return response
 
@@ -330,84 +322,27 @@ def create_app(config_name: str | None = None) -> Flask:
             importlib.import_module('app.core.saas.models')
             importlib.import_module('app.modules.workflows.stock_models')
             # استيراد النماذج الأساسية أولاً
-            import models.department
-            import models.user
-            import models.patient
-            import models.visit
-            import models.treatment
-            import models.appointment
-            import models.payment
-            import models.invoice
-            import models.lab_request
-            import models.radiology_request
-            import models.medical_report
-            import models.service
-            import models.insurance
 
             # استيراد النماذج المتقدمة
-            import models.audit_trail
-            import models.system_config
-            import models.permissions
-            import models.notification
-            import models.branding
-            import models.dental
-            import models.cash_register
-            import models.budget
-            import models.nurse
-            import models.queue_management
-            import models.pricing_management
-            import models.reporting
 
             # نماذج إضافية لضمان اكتمال تسجيل الـ metadata
-            import models.medication
-            import models.emergency
-            import models.backup
-            import models.receipt
-            import models.pricing
-            import models.radiology_result
-            import models.whatsapp_integration
-            import models.file_management
-            import models.online_booking
-            import models.patient_account
-            import models.patient_visit_counter
-            import models.relationships_map
-            import models.request_workflow
-            import models.task_management
-            import models.workflow
-            import models.ai_analytics
-            import models.advanced_permissions
-            import models.follow_up
-            import models.drug_interaction
-            import models.supply_request
-            import models.user_department_access
-            import models.visit_transfer
-            import models.emergency_status_history
-            import models.lab_quality
-            import models.lab_reagent
-            import models.lab_test_catalog
-            import models.exchange_rate
-            import models.specialty_form
-            import models.expense
-            import models.biometric_auth
-            import models.barcode_tracking
-            import models.bed_management
-            import models.phi_audit_log
         except Exception as e:
             app.logger.warning(f'Model import registration skipped: {e}')
 
         # Register tracked models + event listeners for PHI audit logging
         try:
+            from sqlalchemy import event
+
+            from models.consent_management import PatientConsent
+            from models.online_booking import OnlineBooking
+            from models.patient import Patient
             from models.phi_audit_log import (
                 TRACKED_MODELS,
                 PHIAuditLog,
-                _phi_audit_before_flush,
                 _phi_audit_after_flush,
+                _phi_audit_before_flush,
                 _raise_on_modify,
             )
-            from models.patient import Patient
-            from models.online_booking import OnlineBooking
-            from models.consent_management import PatientConsent
-            from sqlalchemy import event
 
             TRACKED_MODELS.update({Patient, OnlineBooking, PatientConsent})
             # Session-level listeners: PHI audit logging (two-phase for autoincrement PK resolution)
@@ -428,9 +363,10 @@ def create_app(config_name: str | None = None) -> Flask:
     @login_manager.user_loader
     def load_user(user_id):
         from flask import g
-        from models.user import User
-        from app.core.tenant.models import Tenant
+
         from app.core.tenant.middleware import bind_g_tenant
+        from app.core.tenant.models import Tenant
+        from models.user import User
 
         raw = str(user_id or '')
         if not raw:
@@ -438,13 +374,13 @@ def create_app(config_name: str | None = None) -> Flask:
         parts = raw.split(':', 1)
         try:
             uid = int(parts[0])
-        except Exception as e:
+        except Exception:
             return None
         expected_version = 0
         if len(parts) == 2:
             try:
                 expected_version = int(parts[1])
-            except Exception as e:
+            except Exception:
                 expected_version = 0
         prev_bypass = g.get('_tenant_filter_bypass', False)
         # Always bypass tenant filter when loading a user — otherwise the
@@ -485,15 +421,8 @@ def create_app(config_name: str | None = None) -> Flask:
         return redirect(url_for('static', filename='img/azad_logo.png'), code=302)
 
     # Global error handlers for custom exceptions (MUST precede generic handlers)
-    from utils.exceptions import (
-        ModuleNotEnabledError,
-        TenantContextError,
-        IdempotencyError,
-        InsufficientPermissionsError,
-    )
     from app.shared.tenant_filter import TenantIsolationError
-    from utils.exceptions import ModuleNotEnabledError, TenantContextError, IdempotencyError
-    from app.shared.tenant_filter import TenantIsolationError
+    from utils.exceptions import IdempotencyError, ModuleNotEnabledError, TenantContextError
 
     @app.errorhandler(ModuleNotEnabledError)
     def handle_module_not_enabled(e):
@@ -542,14 +471,14 @@ def create_app(config_name: str | None = None) -> Flask:
     def handle_403(error):
         try:
             return render_template('errors/403.html'), 403
-        except Exception as e:
+        except Exception:
             return jsonify(error='لا يمكن عرض الصفحة حالياً'), 403
 
     @app.errorhandler(404)
     def handle_404(error):
         try:
             return render_template('errors/404.html'), 404
-        except Exception as e:
+        except Exception:
             return jsonify(error='الصفحة غير متاحة حالياً'), 404
 
     # Wire critical error alerts (uses module-level _alert_admin)
@@ -558,7 +487,7 @@ def create_app(config_name: str | None = None) -> Flask:
         _alert_admin('CRITICAL', 'Internal server error', error=str(error))
         try:
             return render_template('errors/500.html'), 500
-        except Exception as e:
+        except Exception:
             return jsonify(error='تعذر تنفيذ الطلب حالياً'), 500
 
     # تهيئة بيانات افتراضية (محميّة ضد غياب الجداول أثناء أوامر Alembic)
@@ -582,7 +511,6 @@ def create_app(config_name: str | None = None) -> Flask:
                 # developer_* config seeding moved to platform_bootstrap.ensure_developer_config()
                 # (privileged bootstrap path — normal startup is read-only)
             if insp.has_table('users'):
-                from models.user import User
 
                 # من الآمن استيراد Department فقط عند الحاجة
                 # from models.department import Department
@@ -614,7 +542,9 @@ def create_app(config_name: str | None = None) -> Flask:
     def inject_branding():
         try:
             import time
+
             from flask import g
+
             from app.shared.branding_context import build_branding_payload, get_branding_row
 
             tenant = getattr(g, 'current_tenant', None)
@@ -635,7 +565,7 @@ def create_app(config_name: str | None = None) -> Flask:
             data = dict(caches[cache_key]['data'])
             data['branding'] = get_branding_row()
             return data
-        except Exception as e:
+        except Exception:
             return {}
 
     @app.context_processor
@@ -645,7 +575,7 @@ def create_app(config_name: str | None = None) -> Flask:
                 'APP_ENV': (config_name or os.getenv('APP_ENV') or 'development'),
                 'FLASK_ENV': app.env,
             }
-        except Exception as e:
+        except Exception:
             return {
                 'APP_ENV': os.getenv('APP_ENV', 'development'),
                 'FLASK_ENV': 'production',
@@ -655,82 +585,83 @@ def create_app(config_name: str | None = None) -> Flask:
     def inject_user_preferences():
         try:
             from flask_login import current_user
+
             from app.shared.user_preferences import get_user_preferences
 
             if current_user.is_authenticated:
                 return {'user_preferences': get_user_preferences(current_user)}
-        except Exception as e:
+        except Exception:
             pass
         return {'user_preferences': {'theme': 'light'}}
 
     # تسجيل الـ blueprints المتاحة فقط
-    from routes.main import main_bp
-    from routes.auth_routes import auth_bp
-    from routes.super_admin import super_admin_bp
-    from routes.reception import reception_bp
-    from routes.doctor import doctor_bp
-    from routes.emergency import emergency_bp
-    from routes.lab import lab_bp
-    from routes.radiology import radiology_bp
-    from routes.finance import finance_bp
+    from app.modules.owner import owner_bp
     from routes.accountant import accountant_bp
+    from routes.ai_imaging_routes import ai_imaging_bp
+    from routes.auth_routes import auth_bp
+    from routes.backup_restore_routes import backup_restore_bp
     from routes.backup_routes import backup_bp
-    from routes.manager import manager_bp
+    from routes.barcode_routes import barcode_bp
+    from routes.bed_management_routes import bed_bp
+    from routes.biometric_routes import biometric_bp
 
     # from routes.ai_routes import ai_bp  # REMOVED - AI now integrated in super_admin
     from routes.booking_routes import booking_bp
-    from routes.medication_routes import medication_bp
-    from routes.payment_routes import payment_bp
-    from routes.nurse_routes import nurse_bp
-    from app.modules.owner import owner_bp
-    from routes.clinical_coding import clinical_coding_bp
-    from routes.bed_management_routes import bed_bp
-    from routes.or_management_routes import or_bp
-    from routes.emar_routes import emar_bp
-    from routes.vaccination_routes import vaccination_bp
-    from routes.referral_routes import referral_bp
-    from routes.clinical_pathway_routes import pathway_bp
     from routes.cds_alert_routes import cds_bp
-    from routes.barcode_routes import barcode_bp
-    from routes.fhir_api_routes import fhir_bp
-    from routes.dicom_routes import dicom_bp
-    from routes.patient_portal import portal_bp
-    from routes.population_health_routes import pop_health_bp
+    from routes.clinical_coding import clinical_coding_bp
+    from routes.clinical_pathway_routes import pathway_bp
     from routes.custom_report_builder_routes import report_builder_bp
-    from routes.security_advanced_routes import security_bp
-    from routes.mfa_routes import mfa_bp
-    from routes.nursing_assessment_routes import nursing_assessment_bp
-    from routes.patient_education_routes import patient_education_bp
-    from routes.backup_restore_routes import backup_restore_bp
-    from routes.telemedicine_routes import telemedicine_bp
-    from routes.sso_routes import sso_bp
-    from routes.ai_imaging_routes import ai_imaging_bp
-    from routes.biometric_routes import biometric_bp
     from routes.data_warehouse_routes import data_warehouse_bp
-    from routes.what_if_routes import what_if_bp
-    from routes.quality_compliance import quality_bp
-    from routes.reception_currency import reception_currency_bp
+    from routes.dicom_routes import dicom_bp
+    from routes.doctor import doctor_bp
+    from routes.emar_routes import emar_bp
+    from routes.emergency import emergency_bp
+    from routes.fhir_api_routes import fhir_bp
+    from routes.finance import finance_bp
     from routes.inbox import inbox_bp
-    from routes.saas_routes import saas_bp
-    from routes.saas_billing_routes import saas_billing_bp
-    from routes.specialty_forms import specialty_forms_bp
+    from routes.lab import lab_bp
+    from routes.main import main_bp
+    from routes.manager import manager_bp
+    from routes.medication_routes import medication_bp
+    from routes.mfa_routes import mfa_bp
     from routes.monitoring_routes import monitoring_bp
+    from routes.nurse_routes import nurse_bp
+    from routes.nursing_assessment_routes import nursing_assessment_bp
+    from routes.or_management_routes import or_bp
+    from routes.patient_education_routes import patient_education_bp
+    from routes.patient_portal import portal_bp
+    from routes.payment_routes import payment_bp
+    from routes.population_health_routes import pop_health_bp
+    from routes.quality_compliance import quality_bp
+    from routes.radiology import radiology_bp
+    from routes.reception import reception_bp
+    from routes.reception_currency import reception_currency_bp
+    from routes.referral_routes import referral_bp
+    from routes.saas_billing_routes import saas_billing_bp
+    from routes.saas_routes import saas_bp
+    from routes.security_advanced_routes import security_bp
+    from routes.specialty_forms import specialty_forms_bp
+    from routes.sso_routes import sso_bp
+    from routes.super_admin import super_admin_bp
+    from routes.telemedicine_routes import telemedicine_bp
+    from routes.vaccination_routes import vaccination_bp
+    from routes.what_if_routes import what_if_bp
 
     # Module guards — must be added BEFORE register_blueprint, and only ONCE
     def _guard_factory(module_name):
         def _guard():
-            from flask import g, abort
+            from flask import abort, g
             from werkzeug.exceptions import HTTPException
 
             if not app.config.get('ENABLE_SAAS_MODE', False):
-                return None
+                return
             # Admin bypass: global admins pass through all module guards
             try:
                 from flask_login import current_user
 
                 if current_user.is_authenticated and current_user.role == 'super_admin':
-                    return None
-            except Exception as e:
+                    return
+            except Exception:
                 pass
             tenant = getattr(g, 'current_tenant', None)
             if not tenant:
@@ -776,7 +707,7 @@ def create_app(config_name: str | None = None) -> Flask:
         def module_active(name):
             return name in getattr(g, 'enabled_modules', set())
 
-        return dict(module_active=module_active)
+        return {'module_active': module_active}
 
     @app.context_processor
     def _inject_platform_capabilities():
@@ -797,7 +728,8 @@ def create_app(config_name: str | None = None) -> Flask:
         production HTML without requiring every template to use
         ``tenant_url_for`` instead of ``url_for``.
         """
-        from flask import url_for as _flask_url_for, g
+        from flask import g
+        from flask import url_for as _flask_url_for
 
         def _tenant_url_for(endpoint, **values):
             if not app.config.get('ENABLE_SAAS_MODE', False):
@@ -812,10 +744,10 @@ def create_app(config_name: str | None = None) -> Flask:
                 return url
             return f'/t/{tenant_slug}{url}'
 
-        return dict(
-            tenant_url_for=_tenant_url_for,
-            url_for=_tenant_url_for,
-        )
+        return {
+            'tenant_url_for': _tenant_url_for,
+            'url_for': _tenant_url_for,
+        }
 
     _add_guard_once(reception_bp, 'reception')
     _add_guard_once(doctor_bp, 'doctor')
@@ -926,8 +858,9 @@ def create_app(config_name: str | None = None) -> Flask:
     # Request tracing — inject X-Request-ID into g and response headers
     @app.before_request
     def _inject_trace_id():
-        from flask import g
         import uuid
+
+        from flask import g
 
         g.trace_id = (
             request.headers.get('X-Request-ID')
@@ -939,7 +872,7 @@ def create_app(config_name: str | None = None) -> Flask:
     @app.before_request
     def _set_tenant_context():
         try:
-            from app.core.tenant.middleware import set_tenant_context, TenantResolutionError
+            from app.core.tenant.middleware import TenantResolutionError, set_tenant_context
 
             result = set_tenant_context()
             if result is not None:
@@ -949,7 +882,7 @@ def create_app(config_name: str | None = None) -> Flask:
                 from flask import abort
 
                 abort(403, description=str(exc))
-        except Exception as e:
+        except Exception:
             if app.config.get('ENABLE_SAAS_MODE', False) and not app.config.get('TESTING'):
                 app.logger.exception('Tenant resolution failed')
                 from flask import abort
@@ -967,7 +900,7 @@ def create_app(config_name: str | None = None) -> Flask:
         ghost_mode_middleware()
 
     # Ghost Mode test/debug route - registered before requests
-    from flask import jsonify, g
+    from flask import g, jsonify
     from flask_login import current_user
 
     @app.route('/_ghost_whoami')
@@ -1015,12 +948,12 @@ def create_app(config_name: str | None = None) -> Flask:
                 .scalars()
                 .first()
             )
-            from datetime import datetime, timedelta, timezone
+            from datetime import datetime, timedelta
 
-            if last and (datetime.now(timezone.utc) - last.recorded_at) < timedelta(hours=1):
+            if last and (datetime.now(UTC) - last.recorded_at) < timedelta(hours=1):
                 return response
             ResourceUsage.record_snapshot(tid)
-        except Exception as e:
+        except Exception:
             pass
         return response
 
@@ -1038,6 +971,7 @@ def create_app(config_name: str | None = None) -> Flask:
     @app.context_processor
     def _inject_modules():
         from flask import g
+
         from app.core.module.registry import MODULE_REGISTRY
 
         tenant = getattr(g, 'current_tenant', None)
@@ -1048,7 +982,7 @@ def create_app(config_name: str | None = None) -> Flask:
                     from app.core.module.validators import get_active_modules_for_tenant
 
                     mods = get_active_modules_for_tenant(tenant.id)
-                except Exception as e:
+                except Exception:
                     mods = set()
             return {
                 'enabled_modules': mods,
@@ -1073,9 +1007,10 @@ def create_app(config_name: str | None = None) -> Flask:
     @app.context_processor
     def _inject_access_helpers():
         from flask import g
-        from app.core.saas.resolver import EntitlementResolver
-        from app.core.permission.service import PermissionService
         from flask_login import current_user
+
+        from app.core.permission.service import PermissionService
+        from app.core.saas.resolver import EntitlementResolver
 
         tenant = getattr(g, 'current_tenant', None)
 
@@ -1101,17 +1036,18 @@ def create_app(config_name: str | None = None) -> Flask:
             usage = EntitlementResolver.check_usage_limits(tenant.id)
             return bool(usage.get('storage_warning'))
 
-        return dict(
-            is_entitled=is_entitled,
-            has_permission=has_permission,
-            can=can,
-            tenant_limit=tenant_limit,
-            storage_limit_warning=storage_limit_warning,
-        )
+        return {
+            'is_entitled': is_entitled,
+            'has_permission': has_permission,
+            'can': can,
+            'tenant_limit': tenant_limit,
+            'storage_limit_warning': storage_limit_warning,
+        }
 
     @app.context_processor
     def inject_nav():
         from flask_login import current_user
+
         from app.shared.nav_resolver import resolve_nav_for_user
 
         if current_user.is_authenticated:
@@ -1121,18 +1057,19 @@ def create_app(config_name: str | None = None) -> Flask:
     @app.context_processor
     def inject_mobile_nav():
         from flask_login import current_user
+
         from app.shared.mobile_nav import resolve_mobile_nav_items
 
         return {'mobile_nav_items': resolve_mobile_nav_items(current_user)}
 
     @app.context_processor
     def inject_workflow_helpers():
-        from services.workflow_orchestrator import WorkflowOrchestrator
         from services.visit_workflow_validator import (
             VisitStage,
             VisitWorkflowValidator,
             resolve_visit_status_badge_class,
         )
+        from services.workflow_orchestrator import WorkflowOrchestrator
 
         return {
             'visit_next_actions': WorkflowOrchestrator.next_actions,
@@ -1147,7 +1084,8 @@ def create_app(config_name: str | None = None) -> Flask:
     @app.context_processor
     def inject_owner_nav():
         from flask_login import current_user
-        from app.shared.owner_nav_registry import resolve_owner_nav, owner_nav_href
+
+        from app.shared.owner_nav_registry import owner_nav_href, resolve_owner_nav
 
         if current_user.is_authenticated and getattr(current_user, 'role', None) in (
             'owner',
@@ -1170,8 +1108,9 @@ def create_app(config_name: str | None = None) -> Flask:
     def inject_enum_helpers():
         """Provide enum label/color lookups from app/shared/enums.py to all templates."""
         try:
-            from app.shared.enums import get_enum_values, get_all_enums_json
             import time
+
+            from app.shared.enums import get_all_enums_json, get_enum_values
 
             cache = getattr(app, '_enums_json_cache', None)
             now = time.time()
@@ -1184,11 +1123,11 @@ def create_app(config_name: str | None = None) -> Flask:
                 'enum_values': get_enum_values,
                 'enums_json': app._enums_json_cache['data'],
             }
-        except Exception as e:
+        except Exception:
             return {}
 
     # Security & audit middleware
-    from app.core.security_middleware import SecurityHeadersMiddleware, AuditLogMiddleware
+    from app.core.security_middleware import AuditLogMiddleware, SecurityHeadersMiddleware
 
     SecurityHeadersMiddleware().init_app(app)
     AuditLogMiddleware().init_app(app)
@@ -1235,7 +1174,7 @@ def create_app(config_name: str | None = None) -> Flask:
         try:
             db.session.remove()
             # Do NOT dispose engine here — it destroys the connection pool
-        except Exception as e:
+        except Exception:
             pass
 
     with app.app_context():
@@ -1243,12 +1182,12 @@ def create_app(config_name: str | None = None) -> Flask:
             insp = _sa_inspect(db.engine)
             if insp.has_table('permissions') and insp.has_table('roles'):
                 from models.permissions import (
+                    Permission,
+                    Role,
+                    RolePermission,
+                    assign_super_admin_permissions,
                     create_default_permissions,
                     create_default_roles,
-                    assign_super_admin_permissions,
-                    Role,
-                    Permission,
-                    RolePermission,
                 )
 
                 create_default_permissions()
@@ -1349,32 +1288,28 @@ def create_app(config_name: str | None = None) -> Flask:
                 _assign('pharmacist', ['medical_records_read', 'reports_view'])
 
             pass
-        except Exception as e:
+        except Exception:
             pass
 
     # CLI commands for module/tenant management
     @app.cli.command('module-seed')
     def module_seed():
         """Seed ModuleDefinition from registry and activate for all tenants."""
-        from app.core.module.models import ModuleDefinition, TenantModule
+        from app.core.module.models import TenantModule
         from app.core.module.registry import MODULE_REGISTRY
         from app.core.platform_bootstrap import ensure_module_definitions
         from app.core.tenant.models import Tenant
         from app.extensions import db
         from models.user import User
 
-        added = ensure_module_definitions()
-        print(
-            f'ModuleDefinition added: {added}; total: {db.session.execute(select(func.count()).select_from(ModuleDefinition)).scalar()}'
-        )
+        ensure_module_definitions()
 
         # Seed TenantModule for all tenants
         admin = db.session.execute(select(User)).scalars().first()
         if not admin:
-            print('No admin user found')
             return
         for tenant in db.session.execute(select(Tenant)).scalars().all():
-            for name in MODULE_REGISTRY.keys():
+            for name in MODULE_REGISTRY:
                 tm = (
                     db.session.execute(
                         select(TenantModule).filter_by(tenant_id=tenant.id, module_name=name)
@@ -1392,9 +1327,6 @@ def create_app(config_name: str | None = None) -> Flask:
                     )
                     db.session.add(tm)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        print(
-            f'TenantModule seeded for {db.session.execute(select(func.count()).select_from(Tenant)).scalar()} tenants'
-        )
 
     @app.cli.command('tenant-create')
     @click.option('--slug', required=True)
@@ -1403,19 +1335,18 @@ def create_app(config_name: str | None = None) -> Flask:
     @click.option('--bundle', default='multi_department_center')
     def tenant_create(slug, name, email, bundle):
         """Create a new tenant with modules from bundle."""
+        from app.core.module.models import TenantModule
+        from app.core.module.registry import MODULE_REGISTRY
         from app.core.tenant.models import (
             Tenant,
             TenantStatus,
             get_bundle_for_profile,
             get_default_modules_for_profile,
         )
-        from app.core.module.models import TenantModule
-        from app.core.module.registry import MODULE_REGISTRY
         from app.extensions import db
         from models.user import User
 
         if db.session.execute(select(Tenant).filter_by(slug=slug)).scalars().first():
-            print(f'Tenant {slug} already exists')
             return
 
         bundle = get_bundle_for_profile(bundle)
@@ -1450,14 +1381,14 @@ def create_app(config_name: str | None = None) -> Flask:
                 )
             )
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        print(f'Created tenant {tenant.id} ({slug}) with {len(modules)} modules')
 
     @app.cli.command('tenant-backfill')
     @click.option('--tenant-id', default=11, type=int, help='Default tenant ID for backfill')
     def tenant_backfill(tenant_id):
         """Backfill tenant_id for existing records that have NULL tenant_id."""
-        from app.extensions import db
         from sqlalchemy import text
+
+        from app.extensions import db
 
         # Tables to backfill (only those with data)
         tables = [
@@ -1531,11 +1462,9 @@ def create_app(config_name: str | None = None) -> Flask:
                 affected = r.rowcount
                 if affected:
                     total_updated += affected
-                    print(f'  {tbl}: {affected} rows updated')
                 safe_commit(db.session, error_message='database commit failed', reraise=True)
-            except Exception as e:
+            except Exception:
                 safe_rollback(db.session, error_message='database rollback')
-        print(f'\nBackfill complete: {total_updated} total rows updated')
 
     @app.cli.command('seed-default-bundles')
     def seed_default_bundles_cmd():
@@ -1566,8 +1495,9 @@ def create_app(config_name: str | None = None) -> Flask:
           AUDIT_CLEANUP_BATCH_SIZE        (5000)
           AUDIT_CLEANUP_SLEEP_MS          (100)
         """
-        from services.audit_cleanup_service import AuditCleanupService
         import os
+
+        from services.audit_cleanup_service import AuditCleanupService
 
         dry_run = os.getenv('AUDIT_CLEANUP_DRY_RUN', '').strip().lower() in (
             '1',
@@ -1596,11 +1526,11 @@ def create_app(config_name: str | None = None) -> Flask:
         import time
 
         def _run_loop():
-            from services.tenant_job_runner import for_each_tenant
             from services.notification_service import (
-                process_notification_queue,
                 NotificationService,
+                process_notification_queue,
             )
+            from services.tenant_job_runner import for_each_tenant
 
             while True:
                 time.sleep(60)  # delay first+every run — startup must not write data
@@ -1621,7 +1551,7 @@ def create_app(config_name: str | None = None) -> Flask:
                             NotificationService.send_appointment_reminders(tenant_id=tenant_id),
                         ),
                     )
-                except Exception as e:
+                except Exception:
                     pass
 
         thread = threading.Thread(target=_run_loop, daemon=True, name='notif-processor')
@@ -1640,6 +1570,7 @@ def create_app(config_name: str | None = None) -> Flask:
             def _start_backup_automation(app_ctx):
                 import threading
                 import time
+
                 from services.backup_automation_service import BackupAutomationService
 
                 def _run_backup_loop():
@@ -1654,7 +1585,7 @@ def create_app(config_name: str | None = None) -> Flask:
                                     BackupAutomationService.tick(app_ctx)
                                     last_run = now
                         except Exception as exc:
-                            app_ctx.logger.error('Backup automation loop error: %s', exc)
+                            app_ctx.logger.exception('Backup automation loop error: %s', exc)
                         time.sleep(60)
 
                 thread = threading.Thread(

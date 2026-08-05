@@ -94,7 +94,7 @@ class TestStripeBillingOutbound:
     def test_change_plan_upgrade_refreshes_entitlements(
         self, app, stripe_api_key, billing_tenant, monkeypatch
     ):
-        tenant, old_version = billing_tenant
+        tenant, _old_version = billing_tenant
         new_version = _make_package_version(
             [('lab', 'lab.order'), ('radiology', 'radiology.order')]
         )

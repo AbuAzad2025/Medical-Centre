@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from datetime import UTC
 from typing import TYPE_CHECKING
 
@@ -47,10 +47,8 @@ def clear_tenant_g() -> None:
     from flask import g
 
     for key in _TENANT_G_KEYS:
-        try:
+        with suppress(Exception):
             g.pop(key, None)
-        except Exception:
-            pass
 
 
 def ensure_default_test_tenant(app: Flask):
@@ -175,10 +173,8 @@ def bind_tenant_on_g(tenant, *, db_session=None) -> None:
     g.current_tenant = bound
     g.tenant_slug = bound.slug
     if db_session is not None:
-        try:
+        with suppress(Exception):
             db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_id}'"))
-        except Exception:
-            pass
 
     # Set enabled_modules for module-scoped access control (mirrors middleware)
     try:

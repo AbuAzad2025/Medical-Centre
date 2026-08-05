@@ -34,14 +34,13 @@ def stripe_secret(monkeypatch):
 @pytest.fixture
 def billed_tenant(app):
     version = _make_package_version([('lab', 'lab.order')])
-    tenant = TenantProvisioningService.provision_tenant(
+    return TenantProvisioningService.provision_tenant(
         slug=f'bill-{uuid.uuid4().hex[:8]}',
         name='Billing Tenant',
         contact_email='bill@test.local',
         package_version_id=version.id,
         billing_type='monthly',
     )
-    return tenant
 
 
 class TestStripeWebhookSecurity:

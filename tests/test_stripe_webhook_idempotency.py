@@ -41,10 +41,9 @@ class TestStripeWebhookIdempotency:
     def test_ingest_webhook_creates_event_record(self, app, mock_payload, mock_stripe_event):
         with patch.object(
             StripeSubscriptionService, 'verify_signature', return_value=mock_stripe_event
-        ):
-            with patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
-                result = StripeSubscriptionService.ingest_webhook(mock_payload, 'sig_header')
-                assert result.get('ignored') is True
+        ), patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
+            result = StripeSubscriptionService.ingest_webhook(mock_payload, 'sig_header')
+            assert result.get('ignored') is True
 
         # Record should exist
         record = db.session.get(StripeWebhookEvent, mock_stripe_event['id'])
@@ -56,10 +55,9 @@ class TestStripeWebhookIdempotency:
     ):
         with patch.object(
             StripeSubscriptionService, 'verify_signature', return_value=mock_stripe_event
-        ):
-            with patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
-                r1 = StripeSubscriptionService.ingest_webhook(mock_payload, 'sig_header')
-                r2 = StripeSubscriptionService.ingest_webhook(mock_payload, 'sig_header')
+        ), patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
+            r1 = StripeSubscriptionService.ingest_webhook(mock_payload, 'sig_header')
+            r2 = StripeSubscriptionService.ingest_webhook(mock_payload, 'sig_header')
 
         assert r1.get('ignored') is True
         assert r2.get('already_processed') is True
@@ -96,13 +94,12 @@ class TestStripeWebhookIdempotency:
 
             with patch.object(
                 StripeSubscriptionService, '_check_idempotency', return_value=mock_record
+            ), patch.object(
+                StripeSubscriptionService, 'verify_signature', return_value=event
             ):
-                with patch.object(
-                    StripeSubscriptionService, 'verify_signature', return_value=event
-                ):
-                    result = StripeSubscriptionService.ingest_webhook(payload, 'sig_header')
-                    assert result.get('already_processed') is True
-                    assert result['event_id'] == event_id
+                result = StripeSubscriptionService.ingest_webhook(payload, 'sig_header')
+                assert result.get('already_processed') is True
+                assert result['event_id'] == event_id
         finally:
             lock.release(event_id)
 
@@ -148,13 +145,12 @@ class TestStripeWebhookIdempotency:
         # poisoning every subsequent test in the process.
         with patch.object(
             StripeSubscriptionService, 'verify_signature', side_effect=lambda p, s: json.loads(p)
-        ):
-            with patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
-                threads = [threading.Thread(target=ingest, args=(p,)) for p in payloads]
-                for t in threads:
-                    t.start()
-                for t in threads:
-                    t.join()
+        ), patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
+            threads = [threading.Thread(target=ingest, args=(p,)) for p in payloads]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
 
         errors = [r for r in results if r.get('error')]
         assert len(errors) == 0, f'Unexpected errors: {errors}'
@@ -173,21 +169,20 @@ class TestStripeWebhookIdempotency:
         try:
             with patch.object(
                 StripeSubscriptionService, 'verify_signature', return_value=mock_stripe_event
+            ), patch.object(
+                StripeSubscriptionService, '_tenant_from_event', return_value=None
             ):
-                with patch.object(
-                    StripeSubscriptionService, '_tenant_from_event', return_value=None
-                ):
-                    # Pre-seed the record so the retry finds it
-                    record = StripeWebhookEvent(
-                        event_id=mock_stripe_event['id'],
-                        status=StripeWebhookEventStatus.PROCESSED,
-                        payload_hash='abc',
-                        processed_at=datetime.now(UTC),
-                    )
-                    db.session.add(record)
-                    db.session.commit()
+                # Pre-seed the record so the retry finds it
+                record = StripeWebhookEvent(
+                    event_id=mock_stripe_event['id'],
+                    status=StripeWebhookEventStatus.PROCESSED,
+                    payload_hash='abc',
+                    processed_at=datetime.now(UTC),
+                )
+                db.session.add(record)
+                db.session.commit()
 
-                    result = StripeSubscriptionService.ingest_webhook(mock_payload, 'sig_header')
-                    assert result.get('already_processed') is True
+                result = StripeSubscriptionService.ingest_webhook(mock_payload, 'sig_header')
+                assert result.get('already_processed') is True
         finally:
             lock.release(mock_stripe_event['id'])

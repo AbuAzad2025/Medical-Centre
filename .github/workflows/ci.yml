@@ -556,7 +556,7 @@ jobs:
             --cov-report=
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: cov-data-unit
           path: .coverage.unit
@@ -629,7 +629,7 @@ jobs:
             --cov-report=
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: cov-data-integration
           path: .coverage.integration
@@ -702,7 +702,7 @@ jobs:
             --cov-report=
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: cov-data-clinical
           path: .coverage.clinical
@@ -783,7 +783,7 @@ jobs:
             --cov-report=
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: cov-data-core-${{ matrix.shard }}
           path: .coverage.core.${{ matrix.shard }}
@@ -808,7 +808,7 @@ jobs:
         run: pip install coverage
 
       - name: Download coverage data
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           pattern: cov-data-*
           path: covdata

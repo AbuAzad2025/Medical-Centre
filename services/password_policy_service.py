@@ -137,10 +137,7 @@ class PasswordPolicyService:
         """
         from werkzeug.security import check_password_hash
 
-        for old_hash in history_hashes:
-            if check_password_hash(old_hash, password):
-                return False
-        return True
+        return all(not check_password_hash(old_hash, password) for old_hash in history_hashes)
 
     def generate_password(self, length: int = 16) -> str:
         """Generate a compliant random password."""

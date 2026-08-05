@@ -48,7 +48,7 @@ def _check_drug_interaction_warnings(used_med_ids):
             rows = (
                 db.session.execute(
                     select(DrugInteraction)
-                    .filter(DrugInteraction.is_active == True)
+                    .filter(DrugInteraction.is_active)
                     .filter(or_(*conds))
                 )
                 .scalars()
@@ -192,7 +192,7 @@ def prescription(visit_id):
                         legacy_duration_days = int(part)
                         break
 
-            any_item = any([(x or '').strip() for x in item_med_ids])
+            any_item = any((x or '').strip() for x in item_med_ids)
             if (not any_item) and legacy_medication_name:
                 try:
                     med = (

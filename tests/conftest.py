@@ -32,6 +32,8 @@ if not _test_db_url:
 else:
     os.environ['SQLALCHEMY_DATABASE_URI'] = _test_db_url
 
+import contextlib
+
 from sqlalchemy import select
 
 from app.core.tenant.models import Tenant
@@ -191,18 +193,14 @@ def rollback_db(app):
 
         tenant = ensure_default_test_tenant(app)
         bind_tenant_on_g(tenant, db_session=_db.session)
-        try:
+        with contextlib.suppress(Exception):
             _db.session.info['_tenant_id'] = tenant.id
-        except Exception:
-            pass
     try:
         yield _db
     finally:
         _FSASession.get_bind = _original_get_bind
-        try:
+        with contextlib.suppress(Exception):
             _db.session.remove()
-        except Exception:
-            pass
         try:
             transaction.rollback()
         except Exception:
@@ -313,10 +311,8 @@ def _clear_flask_login_state():
         '_tenant_filter_bypass',
     )
     for _k in _TENANT_GHOST_KEYS:
-        try:
+        with contextlib.suppress(Exception):
             g.pop(_k, None)
-        except Exception:
-            pass
     # ``bind_g_tenant`` also stashes the tenant on ``db.session.info['_tenant_id']``
     # (read first by ``tenant_filter._current_tenant_id``). This dict lives on the
     # session-scoped session and survives ``rollback_db``'s transaction rollback,
@@ -330,10 +326,8 @@ def _clear_flask_login_state():
         pass
     yield
     for _k in _TENANT_GHOST_KEYS:
-        try:
+        with contextlib.suppress(Exception):
             g.pop(_k, None)
-        except Exception:
-            pass
     try:
         from app.extensions import db
 

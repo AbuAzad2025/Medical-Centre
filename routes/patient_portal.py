@@ -40,6 +40,7 @@ def _require_patient_role():
     if not current_user.is_authenticated or current_user.role != 'patient':
         flash('بوابة المريض متاحة لحسابات المرضى الموثّقة فقط', 'error')
         return redirect(url_for('main.dashboard'))
+    return None
 
 
 def _get_patient_from_user():
@@ -173,7 +174,7 @@ def link_account():
     if request.method == 'POST':
         national_id = request.form.get('national_id')
         phone = request.form.get('phone') or current_user.phone
-        linked, err = verify_and_link_patient(
+        _linked, err = verify_and_link_patient(
             current_user,
             national_id=national_id,
             phone=phone,

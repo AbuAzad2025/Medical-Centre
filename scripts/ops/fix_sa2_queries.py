@@ -135,7 +135,6 @@ def migrate_file(filepath):
 
         # Add imports
         lines = content.split('\n')
-        import_inserted = False
 
         # Find existing sqlalchemy import
         sa_import_idx = None

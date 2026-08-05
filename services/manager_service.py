@@ -87,7 +87,7 @@ class ManagerService:
             active = db.session.execute(
                 select(func.count())
                 .select_from(User)
-                .filter(User.role != 'patient', User.is_active == True)
+                .filter(User.role != 'patient', User.is_active)
             ).scalar()
             return {'total': total, 'active': active}
         except Exception:

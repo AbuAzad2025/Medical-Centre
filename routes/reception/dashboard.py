@@ -83,7 +83,7 @@ def reception_staff_schedule():
     users = (
         db.session.execute(
             select(User).filter(
-                User.role.in_(['doctor', 'lab', 'radiology']), User.is_active == True
+                User.role.in_(['doctor', 'lab', 'radiology']), User.is_active
             )
         )
         .scalars()
@@ -132,7 +132,7 @@ def reception_staff_absence():
     users = (
         db.session.execute(
             select(User).filter(
-                User.role.in_(['doctor', 'lab', 'radiology']), User.is_active == True
+                User.role.in_(['doctor', 'lab', 'radiology']), User.is_active
             )
         )
         .scalars()

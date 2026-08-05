@@ -40,7 +40,7 @@ def settlements():
                 .filter(
                     User.tenant_id == current_user.tenant_id,
                     User.role == 'doctor',
-                    User.is_active == True,
+                    User.is_active,
                 )
                 .order_by(User.full_name.asc())
             )
@@ -51,7 +51,7 @@ def settlements():
             db.session.execute(
                 select(Department)
                 .filter(
-                    Department.tenant_id == current_user.tenant_id, Department.is_active == True
+                    Department.tenant_id == current_user.tenant_id, Department.is_active
                 )
                 .order_by(Department.name.asc())
             )
@@ -63,7 +63,7 @@ def settlements():
         doctor_id = request.args.get('doctor_id', type=int)
         department_id = request.args.get('department_id', type=int)
         month = request.args.get('month')  # yyyy-mm
-        start_date = request.args.get('start_date')
+        request.args.get('start_date')
         end_date = request.args.get('end_date')
 
         # تحديد المدى الزمني
@@ -113,7 +113,7 @@ def settlements():
                         .filter(
                             DoctorPricing.doctor_id == v.doctor_id,
                             DoctorPricing.department_id == v.department_id,
-                            DoctorPricing.is_active == True,
+                            DoctorPricing.is_active,
                             DoctorPricing.tenant_id == current_user.tenant_id,
                         )
                         .order_by(DoctorPricing.effective_from.desc())
@@ -207,7 +207,7 @@ def settlements_export():
         doctor_id = request.args.get('doctor_id', type=int)
         department_id = request.args.get('department_id', type=int)
         month = request.args.get('month')
-        start_date = request.args.get('start_date')
+        request.args.get('start_date')
         end_date = request.args.get('end_date')
         today = date.today()
         if month:
@@ -246,7 +246,7 @@ def settlements_export():
                         .filter(
                             DoctorPricing.doctor_id == v.doctor_id,
                             DoctorPricing.department_id == v.department_id,
-                            DoctorPricing.is_active == True,
+                            DoctorPricing.is_active,
                         )
                         .order_by(DoctorPricing.effective_from.desc())
                     )
@@ -351,10 +351,7 @@ def budget_dashboard():
             return redirect(url_for('manager.budget_dashboard', year=year, month=month))
 
     start = date(year, month, 1)
-    if month == 12:
-        end = date(year + 1, 1, 1)
-    else:
-        end = date(year, month + 1, 1)
+    end = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
 
     actual_revenue = (
         db.session.execute(
@@ -426,10 +423,7 @@ def monthly_comparison():
             m += 12
             y -= 1
         start = date(y, m, 1)
-        if m == 12:
-            end = date(y + 1, 1, 1)
-        else:
-            end = date(y, m + 1, 1)
+        end = date(y + 1, 1, 1) if m == 12 else date(y, m + 1, 1)
 
         rev = (
             db.session.execute(
@@ -493,7 +487,7 @@ def exchange_rates():
             to_currency = request.form.get('to_currency', '').strip().upper()
             sell_rate = request.form.get('sell_rate', '').strip()
             buy_rate = request.form.get('buy_rate', '').strip() or sell_rate
-            notes = request.form.get('notes', '').strip()
+            request.form.get('notes', '').strip()
 
             if not from_currency or not to_currency or not sell_rate:
                 flash('جميع الحقول المطلوبة يجب تعبئتها', 'error')

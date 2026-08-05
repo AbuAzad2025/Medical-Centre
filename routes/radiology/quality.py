@@ -93,7 +93,7 @@ def quality():
                 RadiologyRequest.updated_at >= start_dt,
                 RadiologyRequest.updated_at <= end_dt,
                 RadiologyResult.status == RadiologyResultStatus.VALIDATED,
-                RadiologyResult.is_critical == True,
+                RadiologyResult.is_critical,
             )
         ).scalar()
         or 0

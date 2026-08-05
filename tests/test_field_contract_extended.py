@@ -6,17 +6,12 @@ Frontend-Backend Field Contract Tests — covers:
 """
 
 import re
-import json
 from pathlib import Path
-from typing import Dict, Set, List, Tuple, Optional
 
 import pytest
 from sqlalchemy import inspect
-from sqlalchemy.orm import declarative_base
 
-from app.extensions import db
 from app_factory import create_app
-
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -26,8 +21,8 @@ def get_model_columns():
     app = create_app('testing')
     with app.app_context():
         # Get all model classes from db.Model registry
-        from models import __all__ as model_names
         import models
+        from models import __all__ as model_names
 
         columns_info = {}  # model_name -> {col_name: {type, length, nullable, enum_values}}
 
@@ -56,7 +51,7 @@ def get_model_columns():
         return columns_info
 
 
-def parse_template_forms(template_path: Path) -> List[Dict]:
+def parse_template_forms(template_path: Path) -> list[dict]:
     """Parse a template file and extract form fields with their attributes."""
     content = template_path.read_text(encoding='utf-8', errors='ignore')
     forms = []
@@ -127,7 +122,7 @@ def parse_template_forms(template_path: Path) -> List[Dict]:
     return forms
 
 
-def extract_attrs(tag: str) -> Dict[str, str]:
+def extract_attrs(tag: str) -> dict[str, str]:
     """Extract attributes from an HTML tag."""
     attrs = {}
     # Match attr="value" or attr='value' or attr=value
@@ -173,7 +168,6 @@ SEMANTIC_HTML_TYPES = {
     'color',
     'range',
     'search',
-    'tel',
     'password',
     'hidden',
     'checkbox',
@@ -183,7 +177,6 @@ SEMANTIC_HTML_TYPES = {
     'button',
     'reset',
     'image',
-    'submit',
 }
 
 
@@ -320,24 +313,18 @@ class TestInputTypeContract:
                                     'hidden': 'number',
                                     'radio': 'number',
                                 }
-                                if base_map.get(html_type) == expected_type:
-                                    compatible = True
-                                elif expected_type == 'text' and html_type in (
+                                if base_map.get(html_type) == expected_type or (expected_type == 'text' and html_type in (
                                     'tel',
                                     'email',
                                     'url',
                                     'color',
                                     'password',
                                     'hidden',
-                                ):
-                                    compatible = True
-                                elif expected_type == 'number' and html_type == 'range':
-                                    compatible = True
-                                elif expected_type == 'date' and html_type in (
+                                )) or (expected_type == 'number' and html_type == 'range') or (expected_type == 'date' and html_type in (
                                     'datetime-local',
                                     'month',
                                     'week',
-                                ):
+                                )):
                                     compatible = True
 
                             if not compatible:
@@ -375,7 +362,7 @@ class TestEnumSelectContract:
                             col_info = cols[field_name]
                             enum_values = col_info['enum_values']
                             if enum_values:
-                                enum_set = set(str(v) for v in enum_values)
+                                enum_set = {str(v) for v in enum_values}
                                 # Check if template options are subset of enum (allow subset)
                                 extra = options - enum_set
                                 if extra:

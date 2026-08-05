@@ -30,6 +30,8 @@ os.environ['ENABLE_SAAS_MODE'] = 'false'
 _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, _project_root)
 
+import contextlib
+
 from flask import Flask
 
 # ── Results tracking ──
@@ -206,10 +208,8 @@ def _phase3():
 
     # Trigger 3 failures
     for i in range(3):
-        try:
+        with contextlib.suppress(ValueError):
             cb.call(lambda: (_ for _ in ()).throw(ValueError(f'fail {i}')))
-        except ValueError:
-            pass
     _assert('Circuit breaker opens after 3 failures', cb.state == CircuitState.OPEN)
 
     # Fast-fail
@@ -223,10 +223,8 @@ def _phase3():
     cb2 = CircuitBreaker(
         'test_svc2', failure_threshold=1, recovery_timeout=0.1, success_threshold=1
     )
-    try:
+    with contextlib.suppress(ValueError):
         cb2.call(lambda: (_ for _ in ()).throw(ValueError('fail')))
-    except ValueError:
-        pass
     _assert('CB2 is OPEN after 1 failure', cb2.state == CircuitState.OPEN)
     time.sleep(0.15)
     _assert('CB2 transitions to HALF_OPEN after timeout', cb2.state == CircuitState.HALF_OPEN)
@@ -267,10 +265,8 @@ def _phase3():
 
     with patch('utils.background_worker_safety.logger') as mock_logger:
         mock_logger.error = capture_log
-        try:
+        with contextlib.suppress(RuntimeError):
             safe_background_loop(failing_func, error_message='Test worker')
-        except RuntimeError:
-            pass
         _assert('Background worker logs errors', len(err_log) > 0)
 
     # API security decorators — use separate Flask apps to avoid "route already handled" error

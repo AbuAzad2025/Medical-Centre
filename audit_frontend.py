@@ -1,12 +1,8 @@
 import re
 from pathlib import Path
-from urllib.parse import urlparse
 
 BASE = Path(r'D:\Data\MED-2-7-2025\medical_system')
 
-print('=' * 80)
-print('COMPREHENSIVE FRONTEND AUDIT: Dropdowns, Forms, Fetch/GET/POST')
-print('=' * 80)
 
 # 1. Collect all template form actions and selects
 template_issues = []
@@ -96,29 +92,16 @@ for js in BASE.glob('static/js/**/*.js'):
             fetch_issues.append(f'{rel}: hardcoded external URL "{url}"')
 
 # Print results
-print(f'\n{"=" * 80}')
-print('TEMPLATE ISSUES')
-print(f'{"=" * 80}')
 if template_issues:
-    for i, issue in enumerate(template_issues, 1):
-        print(f'  {i}. {issue}')
+    for _i, _issue in enumerate(template_issues, 1):
+        pass
 else:
-    print('  None')
+    pass
 
-print(f'\n{"=" * 80}')
-print('FETCH/JS ISSUES')
-print(f'{"=" * 80}')
 if fetch_issues:
-    for i, issue in enumerate(fetch_issues, 1):
-        print(f'  {i}. {issue}')
+    for _i, _issue in enumerate(fetch_issues, 1):
+        pass
 else:
-    print('  None')
+    pass
 
 # Summary
-print(f'\n{"=" * 80}')
-print('SUMMARY')
-print(f'{"=" * 80}')
-print(f'  Template issues: {len(template_issues)}')
-print(f'  Fetch/JS issues: {len(fetch_issues)}')
-print(f'  Known endpoints: {len(known_endpoints)}')
-print(f'  Known paths: {len(known_paths)}')

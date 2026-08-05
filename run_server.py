@@ -2,17 +2,20 @@
 تشغيل السيرفر مع لوجز واضحة
 """
 
-import sys
+import io
 import logging
 import os
-import io
+import sys
+
 from dotenv import load_dotenv
 
 # تحميل متغيرات البيئة من .env
 load_dotenv()
 
+import threading
+import time
+
 from app_factory import create_app, socketio
-import threading, time
 
 # Force UTF-8 encoding on stdout/stderr to handle emoji in log messages
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -42,8 +45,8 @@ if __name__ == '__main__':
         logger.info('=' * 60)
 
         def _alerts_worker(flask_app):
-            from services.tenant_job_runner import for_each_tenant
             from services.notification_service import NotificationService
+            from services.tenant_job_runner import for_each_tenant
 
             while True:
                 time.sleep(3600)  # delay first+every run — startup must not write data
@@ -56,7 +59,7 @@ if __name__ == '__main__':
                     )
                     logger.info('⏰ تم تنفيذ مهمة التنبيهات المجدولة')
                 except Exception as e:
-                    logger.error(f'خطأ في مهمة التنبيهات المجدولة: {str(e)}')
+                    logger.exception(f'خطأ في مهمة التنبيهات المجدولة: {e!s}')
 
         t = threading.Thread(target=_alerts_worker, args=(app,), daemon=True)
         t.start()
@@ -68,5 +71,5 @@ if __name__ == '__main__':
         )
 
     except Exception as e:
-        logger.error(f'❌ خطأ في تشغيل السيرفر: {str(e)}', exc_info=True)
+        logger.error(f'❌ خطأ في تشغيل السيرفر: {e!s}', exc_info=True)
         sys.exit(1)

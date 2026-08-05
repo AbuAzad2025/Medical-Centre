@@ -115,7 +115,7 @@ class TestLabWorklistAndCounts:
     def test_get_request_by_id_and_results(self, fx):
         v = fx.visit()
         c = fx.catalog()
-        ok, res = LAB.create_request(v.id, [c.id])
+        _ok, res = LAB.create_request(v.id, [c.id])
         rid = res['lab_request_id']
         assert LAB.get_request_by_id(rid).id == rid
         assert len(LAB.get_results_by_request(rid)) == 1
@@ -129,7 +129,7 @@ class TestLabResultForm:
     def test_update_existing_result(self, fx):
         v = fx.visit()
         c = fx.catalog()
-        ok, res = LAB.create_request(v.id, [c.id])
+        _ok, res = LAB.create_request(v.id, [c.id])
         existing = (
             db.session.execute(select(LabResult).filter_by(request_id=res['lab_request_id']))
             .scalars()
@@ -187,7 +187,7 @@ class TestLabResultForm:
     def test_finalize_results(self, fx):
         v = fx.visit()
         c = fx.catalog()
-        ok, res = LAB.create_request(v.id, [c.id])
+        _ok, res = LAB.create_request(v.id, [c.id])
         assert LAB.finalize_results(res['lab_request_id']) is True
         req = db.session.get(LabRequest, res['lab_request_id'])
         assert req.status == 'DONE'
@@ -258,7 +258,7 @@ class TestLabCatalogAndDashboard:
 
 class TestLabMisc:
     def test_log_action_persists(self, fx):
-        p = fx.patient()
+        fx.patient()
         LAB.log_action('result_finalized', 'details here', user_id=None)
         row = db.session.execute(
             select(AuditTrail).filter_by(entity_type='lab_test').order_by(AuditTrail.id.desc())
@@ -270,7 +270,7 @@ class TestLabMisc:
         p = fx.patient()
         v = fx.visit(patient_id=p.id)
         c = fx.catalog()
-        ok, res = LAB.create_request(v.id, [c.id])
+        _ok, res = LAB.create_request(v.id, [c.id])
         LAB.notify_results_ready(p.id, res['lab_request_id'])
 
 
@@ -295,7 +295,7 @@ class TestRadCreateRequest:
 class TestRadWorklist:
     def _make(self, fx, status='REQUESTED'):
         v = fx.visit()
-        ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id)
         req = db.session.get(RadiologyRequest, res['radiology_request_id'])
         req.status = status
         fx.db.session.commit()
@@ -336,7 +336,7 @@ class TestRadResults:
 
     def test_create_result_maps_to_findings(self, fx):
         v = fx.visit()
-        ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id)
         rid = res['radiology_request_id']
         result = RAD.create_or_update_result(
             rid, 'my findings', conclusion='my impression', is_critical=True
@@ -348,7 +348,7 @@ class TestRadResults:
 
     def test_create_or_update_result_updates_existing(self, fx):
         v = fx.visit()
-        ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id)
         rid = res['radiology_request_id']
         RAD.create_or_update_result(rid, 'first')
         again = RAD.create_or_update_result(rid, 'second')
@@ -356,7 +356,7 @@ class TestRadResults:
 
     def test_finalize_result(self, fx):
         v = fx.visit()
-        ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id)
         rid = res['radiology_request_id']
         RAD.create_or_update_result(rid, 'report')
         assert RAD.finalize_result(rid) is True
@@ -368,7 +368,7 @@ class TestRadResults:
     def test_claim_request(self, fx):
         v = fx.visit()
         u = _make_user(fx.db)
-        ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id)
         rid = res['radiology_request_id']
         assert RAD.claim_request(rid, u.id) is True
         req = db.session.get(RadiologyRequest, rid)
@@ -377,7 +377,7 @@ class TestRadResults:
     def test_claim_request_wrong_status(self, fx):
         v = fx.visit()
         u = _make_user(fx.db)
-        ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id)
         rid = res['radiology_request_id']
         RAD.claim_request(rid, u.id)
         assert RAD.claim_request(rid, u.id) is False

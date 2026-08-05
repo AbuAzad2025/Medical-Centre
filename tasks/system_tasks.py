@@ -44,7 +44,7 @@ def _purge_expired_tokens() -> dict:
 
     g._tenant_filter_bypass = True
     try:
-        now = datetime.utcnow()
+        datetime.utcnow()
         deleted = 0
 
         # Expired OAuth tokens
@@ -71,7 +71,7 @@ def _purge_expired_tokens() -> dict:
         }
     except Exception as e:
         db.session.rollback()
-        logger.error(f'Failed to purge expired tokens: {e}')
+        logger.exception(f'Failed to purge expired tokens: {e}')
         raise
     finally:
         g.pop('_tenant_filter_bypass', None)
@@ -85,7 +85,7 @@ def _purge_old_audit_logs() -> dict:
     from models.audit_trail import AuditTrail
 
     retention_days = 90  # Configurable via env later
-    cutoff = datetime.utcnow() - timedelta(days=retention_days)
+    datetime.utcnow() - timedelta(days=retention_days)
 
     g._tenant_filter_bypass = True
     try:
@@ -95,7 +95,7 @@ def _purge_old_audit_logs() -> dict:
         return {'deleted': deleted, 'retention_days': retention_days}
     except Exception as e:
         db.session.rollback()
-        logger.error(f'Failed to purge old audit logs: {e}')
+        logger.exception(f'Failed to purge old audit logs: {e}')
         raise
     finally:
         g.pop('_tenant_filter_bypass', None)
@@ -111,8 +111,8 @@ def _purge_stale_notifications() -> dict:
 
     g._tenant_filter_bypass = True
     try:
-        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        datetime.utcnow() - timedelta(days=30)
+        datetime.utcnow() - timedelta(days=7)
 
         # Old read notifications
         deleted_notifs = select(Notification).delete(synchronize_session=False)
@@ -127,7 +127,7 @@ def _purge_stale_notifications() -> dict:
         return {'notifications': deleted_notifs, 'failed_retries': failed_retries}
     except Exception as e:
         db.session.rollback()
-        logger.error(f'Failed to purge stale notifications: {e}')
+        logger.exception(f'Failed to purge stale notifications: {e}')
         raise
     finally:
         g.pop('_tenant_filter_bypass', None)
@@ -156,7 +156,7 @@ def run_system_backup(self, backup_id: int) -> dict:
         else:
             outcome = _backup_result_tuple(execute_backup_by_id, backup_id)
     except BackupAutomationError as exc:
-        logger.error('Celery backup task failed backup_id=%s: %s', backup_id, exc)
+        logger.exception('Celery backup task failed backup_id=%s: %s', backup_id, exc)
         raise
 
     if outcome is None:
@@ -190,7 +190,7 @@ def purge_expired_tokens_task(self) -> dict:
         result['task_id'] = self.request.id
         return result
     except Exception as e:
-        logger.error(f'Expired tokens purge failed: {e}')
+        logger.exception(f'Expired tokens purge failed: {e}')
         raise
 
 
@@ -203,7 +203,7 @@ def purge_old_audit_logs_task(self) -> dict:
         result['task_id'] = self.request.id
         return result
     except Exception as e:
-        logger.error(f'Audit logs purge failed: {e}')
+        logger.exception(f'Audit logs purge failed: {e}')
         raise
 
 
@@ -216,7 +216,7 @@ def purge_stale_notifications_task(self) -> dict:
         result['task_id'] = self.request.id
         return result
     except Exception as e:
-        logger.error(f'Stale notifications purge failed: {e}')
+        logger.exception(f'Stale notifications purge failed: {e}')
         raise
 
 
@@ -229,19 +229,19 @@ def run_all_maintenance_task(self) -> dict:
     try:
         results['expired_tokens'] = _purge_expired_tokens()
     except Exception as e:
-        logger.error(f'Token purge failed: {e}')
+        logger.exception(f'Token purge failed: {e}')
         results['expired_tokens'] = {'error': str(e)}
 
     try:
         results['audit_logs'] = _purge_old_audit_logs()
     except Exception as e:
-        logger.error(f'Audit logs purge failed: {e}')
+        logger.exception(f'Audit logs purge failed: {e}')
         results['audit_logs'] = {'error': str(e)}
 
     try:
         results['stale_notifications'] = _purge_stale_notifications()
     except Exception as e:
-        logger.error(f'Stale notifications purge failed: {e}')
+        logger.exception(f'Stale notifications purge failed: {e}')
         results['stale_notifications'] = {'error': str(e)}
 
     results['task_id'] = self.request.id
@@ -296,7 +296,7 @@ def run_system_backup(self, backup_id: int) -> dict:
         else:
             outcome = _backup_result_tuple(execute_backup_by_id, backup_id)
     except BackupAutomationError as exc:
-        logger.error('Celery backup task failed backup_id=%s: %s', backup_id, exc)
+        logger.exception('Celery backup task failed backup_id=%s: %s', backup_id, exc)
         raise
 
     if outcome is None:

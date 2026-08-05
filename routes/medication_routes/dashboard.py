@@ -31,10 +31,10 @@ def dashboard():
     """لوحة تحكم الأدوية"""
     try:
         tid = current_user.tenant_id
-        total_medications = db.session.execute(
+        db.session.execute(
             select(func.count()).select_from(Medication).filter(Medication.tenant_id == tid)
         ).scalar()
-        low_stock_medications = db.session.execute(
+        db.session.execute(
             select(func.count())
             .select_from(Medication)
             .filter(
@@ -42,19 +42,19 @@ def dashboard():
             )
         ).scalar()
         today = date.today()
-        today_sales = db.session.execute(
+        db.session.execute(
             select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
                 func.date(PharmacySale.created_at) == today, PharmacySale.tenant_id == tid
             )
         ).scalar()
-        month_sales = db.session.execute(
+        db.session.execute(
             select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
                 func.extract('month', PharmacySale.created_at) == today.month,
                 func.extract('year', PharmacySale.created_at) == today.year,
                 PharmacySale.tenant_id == tid,
             )
         ).scalar()
-        expired = db.session.execute(
+        db.session.execute(
             select(func.count())
             .select_from(Medication)
             .filter(
@@ -63,12 +63,12 @@ def dashboard():
                 Medication.tenant_id == tid,
             )
         ).scalar()
-        today_prescriptions = db.session.execute(
+        db.session.execute(
             select(func.count())
             .select_from(Prescription)
             .filter(func.date(Prescription.created_at) == today, Prescription.tenant_id == tid)
         ).scalar()
-        low_stock_list = (
+        (
             db.session.execute(
                 select(Medication)
                 .filter(
@@ -81,7 +81,7 @@ def dashboard():
             .all()
         )
 
-        pending_prescriptions = (
+        (
             db.session.execute(
                 select(Prescription)
                 .filter(Prescription.status == 'active', Prescription.tenant_id == tid)
@@ -92,7 +92,7 @@ def dashboard():
             .all()
         )
 
-        recent_sales = (
+        (
             db.session.execute(
                 select(PharmacySale)
                 .filter(func.date(PharmacySale.created_at) == today, PharmacySale.tenant_id == tid)

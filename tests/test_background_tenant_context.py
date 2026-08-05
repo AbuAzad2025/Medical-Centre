@@ -13,7 +13,6 @@ from models.visit import Visit
 class TestAutoAssignFailClosed:
     def test_tenant_scoped_record_without_context_raises(self, app, test_tenant):
         """Creating a tenant-scoped record without g.tenant_id must raise."""
-        tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
         _db.session.commit()

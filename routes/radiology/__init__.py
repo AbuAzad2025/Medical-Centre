@@ -3,41 +3,41 @@
 Medical System Radiology Routes
 """
 
-import base64
-import json
+import base64 as base64
+import json as json
 import logging
-import os
+import os as os
 import secrets
-from datetime import UTC, date, datetime, timedelta, timezone
-from io import BytesIO
+from datetime import UTC, date, datetime, timedelta
+from datetime import timezone as timezone
+from io import BytesIO as BytesIO
 
-import qrcode
-from flask import (
-    Blueprint,
-    current_app,
-    flash,
-    jsonify,
-    redirect,
-    render_template,
-    request,
-    send_file,
-    url_for,
-)
-from flask_login import current_user, login_required
+import qrcode as qrcode
+from flask import Blueprint
+from flask import current_app as current_app
+from flask import flash as flash
+from flask import jsonify as jsonify
+from flask import redirect as redirect
+from flask import render_template as render_template
+from flask import request as request
+from flask import send_file as send_file
+from flask import url_for as url_for
+from flask_login import current_user
+from flask_login import login_required as login_required
 from sqlalchemy import func, select
-from werkzeug.utils import secure_filename
+from werkzeug.utils import secure_filename as secure_filename
 
 from app.extensions import db
 from app.shared.enums import LabResultStatus, OrderState
-from models.file_management import FileUpload
-from models.patient import Patient
+from models.file_management import FileUpload as FileUpload
+from models.patient import Patient as Patient
 from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
 from models.system_config import SystemConfig
-from models.user import User
-from models.visit import Visit
+from models.user import User as User
+from models.visit import Visit as Visit
 from utils.db_safety import safe_commit, safe_rollback
-from utils.decorators import role_required
+from utils.decorators import role_required as role_required
 
 radiology_bp = Blueprint('radiology', __name__)
 
@@ -347,7 +347,7 @@ def get_radiology_quality_assurance():
         critical = db.session.execute(
             select(func.count())
             .select_from(RadiologyResult)
-            .filter(RadiologyResult.is_critical == True)
+            .filter(RadiologyResult.is_critical)
         ).scalar()
         quality_score = (reviewed / total_done * 100) if total_done else 100
         return {
@@ -357,7 +357,7 @@ def get_radiology_quality_assurance():
             'recheck_requests': db.session.execute(
                 select(func.count())
                 .select_from(RadiologyResult)
-                .filter(RadiologyResult.revised_after_review == True)
+                .filter(RadiologyResult.revised_after_review)
             ).scalar(),
         }
     except Exception as e:
@@ -403,7 +403,7 @@ def get_radiology_report_analysis():
         critical_reports = db.session.execute(
             select(func.count())
             .select_from(RadiologyResult)
-            .filter(RadiologyResult.is_critical == True)
+            .filter(RadiologyResult.is_critical)
         ).scalar()
         abnormal_rate = (abnormal_findings / total_reports * 100) if total_reports else 0
         last_7 = db.session.execute(
@@ -482,7 +482,7 @@ def get_radiology_predictive_insights():
             )
         ).scalar()
         growth_rate = ((weekly_requests - prev_week) / prev_week * 100) if prev_week else 0
-        predicted_demand = int(round((weekly_requests / 7) * 7))
+        predicted_demand = round((weekly_requests / 7) * 7)
         return {
             'weekly_requests': weekly_requests,
             'monthly_requests': monthly_requests,
@@ -535,4 +535,11 @@ def generate_imaging_optimization_suggestions(avg_time):
 # SUBMODULE IMPORTS
 # ═══════════════════════════════════════
 
-from . import dashboard, fhir, images, quality, reports, requests, templates, worklist
+from . import dashboard as dashboard
+from . import fhir as fhir
+from . import images as images
+from . import quality as quality
+from . import reports as reports
+from . import requests as requests
+from . import templates as templates
+from . import worklist as worklist

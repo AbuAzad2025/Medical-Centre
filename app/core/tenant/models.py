@@ -1194,7 +1194,6 @@ def seed_default_bundles() -> None:
         )
         db.session.add(b)
     safe_commit(db.session, error_message='database commit failed', reraise=True)
-    print(f'Seeded {len(bundle_defs)} default ProductBundles')
 
 
 def get_bundle_for_profile(profile_code: str) -> ProductBundle | None:

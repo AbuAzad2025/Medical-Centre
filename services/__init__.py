@@ -1,29 +1,36 @@
 # Medical System Services
 
-from services.ai_governance_service import AIRecommendationGovernanceService
-from services.billing_state_service import BillingStateService, ReceiptService
-from services.booking_conversion_service import (
-    AppointmentCheckinService,
-    OnlineBookingConversionService,
+from services.ai_governance_service import (
+    AIRecommendationGovernanceService as AIRecommendationGovernanceService,
 )
-from services.clinical_context_service import ClinicalContextService
-from services.core_queries import CoreQueryService, core_queries
-from services.dicom_service import dicom_service
-from services.emergency_service import emergency_service
-from services.feature_gate_service import FeatureGateService
-from services.fhir_service import fhir_service
-from services.file_service import FileService
-from services.financial_service import financial_service
-from services.inventory_ledger_service import InventoryLedgerService
-from services.lab_service import lab_service
-from services.manager_service import manager_service
-from services.nursing_service import nursing_service
-from services.permission_scope_service import PermissionScopeService
-from services.pharmacy_sale_service import PharmacySaleService
-from services.prescription_service import prescription_service
-from services.radiology_service import radiology_service
-from services.reception_service import reception_service
-from services.report_scope_service import ReportScopeService
-from services.sso_service import sso_service
-from services.super_admin_service import super_admin_service
-from services.workflow_orchestrator import QueueService, WorkflowOrchestrator
+from services.billing_state_service import BillingStateService as BillingStateService
+from services.billing_state_service import ReceiptService as ReceiptService
+from services.booking_conversion_service import (
+    AppointmentCheckinService as AppointmentCheckinService,
+)
+from services.booking_conversion_service import (
+    OnlineBookingConversionService as OnlineBookingConversionService,
+)
+from services.clinical_context_service import ClinicalContextService as ClinicalContextService
+from services.core_queries import CoreQueryService as CoreQueryService
+from services.core_queries import core_queries as core_queries
+from services.dicom_service import dicom_service as dicom_service
+from services.emergency_service import emergency_service as emergency_service
+from services.feature_gate_service import FeatureGateService as FeatureGateService
+from services.fhir_service import fhir_service as fhir_service
+from services.file_service import FileService as FileService
+from services.financial_service import financial_service as financial_service
+from services.inventory_ledger_service import InventoryLedgerService as InventoryLedgerService
+from services.lab_service import lab_service as lab_service
+from services.manager_service import manager_service as manager_service
+from services.nursing_service import nursing_service as nursing_service
+from services.permission_scope_service import PermissionScopeService as PermissionScopeService
+from services.pharmacy_sale_service import PharmacySaleService as PharmacySaleService
+from services.prescription_service import prescription_service as prescription_service
+from services.radiology_service import radiology_service as radiology_service
+from services.reception_service import reception_service as reception_service
+from services.report_scope_service import ReportScopeService as ReportScopeService
+from services.sso_service import sso_service as sso_service
+from services.super_admin_service import super_admin_service as super_admin_service
+from services.workflow_orchestrator import QueueService as QueueService
+from services.workflow_orchestrator import WorkflowOrchestrator as WorkflowOrchestrator

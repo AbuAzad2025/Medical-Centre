@@ -240,7 +240,7 @@ class ClinicalSafetyService:
         proposed_drug_ids.discard(None)
 
         # Check interactions between proposed and current
-        all_drug_ids = current_drug_ids | proposed_drug_ids
+        current_drug_ids | proposed_drug_ids
         for drug_a in proposed_drug_ids:
             for drug_b in current_drug_ids:
                 if drug_a == drug_b:

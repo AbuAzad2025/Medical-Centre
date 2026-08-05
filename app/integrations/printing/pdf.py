@@ -2,6 +2,7 @@
 PDF Report Printer — A4 medical reports with Arabic support
 """
 
+import contextlib
 import logging
 import os
 from datetime import UTC, date, datetime
@@ -50,7 +51,7 @@ class PDFReportPrinter:
 
         y_top = 297 * mm - 15 * mm
         if logo_path and os.path.exists(logo_path):
-            try:
+            with contextlib.suppress(Exception):
                 c.drawImage(
                     logo_path,
                     15 * mm,
@@ -59,8 +60,6 @@ class PDFReportPrinter:
                     height=20 * mm,
                     preserveAspectRatio=True,
                 )
-            except Exception:
-                pass
         c.setFont(_FONT_NAME if self._font_registered else 'Helvetica-Bold', 16)
         c.drawString(40 * mm if not logo_path else 42 * mm, y_top, self._arabic(title))
         if subtitle:
@@ -135,7 +134,7 @@ class PDFReportPrinter:
         c.drawString(x, y, self._arabic('نتائج التحاليل:'))
         y -= 6 * mm
         cols = [x, x + 50 * mm, x + 100 * mm, x + 130 * mm]
-        col_widths = [48 * mm, 48 * mm, 28 * mm, 35 * mm]
+        [48 * mm, 48 * mm, 28 * mm, 35 * mm]
         headers = ['اسم التحليل', 'النتيجة', 'الوحدة', 'النطاق الطبيعي']
         c.setFont(_FONT_NAME if self._font_registered else 'Helvetica-Bold', 8)
         for i, h in enumerate(headers):

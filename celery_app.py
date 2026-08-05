@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import os
 from datetime import timedelta
-from typing import Optional
 
 from celery import Celery
 
-_celery: Optional[Celery] = None
+_celery: Celery | None = None
 
 
 def broker_url() -> str:

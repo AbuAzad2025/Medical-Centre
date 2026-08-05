@@ -48,8 +48,7 @@ def safe_request(
     last_exception = None
     for attempt in range(retries + 1):
         try:
-            resp = requests.request(method, url, timeout=timeout, **kwargs)
-            return resp
+            return requests.request(method, url, timeout=timeout, **kwargs)
         except (requests.Timeout, requests.ConnectionError) as exc:
             last_exception = exc
             if attempt < retries:
@@ -65,7 +64,7 @@ def safe_request(
                 )
                 time.sleep(wait)
             else:
-                logger.error(
+                logger.exception(
                     'Request %s %s failed after %s attempts: %s', method, url, retries + 1, exc
                 )
                 raise

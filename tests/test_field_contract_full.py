@@ -12,17 +12,12 @@ Covers all remaining gaps:
 """
 
 import re
-import json
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Optional, Any
 
 import pytest
 from sqlalchemy import inspect
-from sqlalchemy.orm import declarative_base
 
-from app.extensions import db
 from app_factory import create_app
-
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -31,8 +26,8 @@ def get_model_columns():
     """Extract column metadata from all SQLAlchemy models."""
     app = create_app('testing')
     with app.app_context():
-        from models import __all__ as model_names
         import models
+        from models import __all__ as model_names
 
         columns_info = {}
 
@@ -66,7 +61,7 @@ def get_model_columns():
         return columns_info
 
 
-def parse_template_forms(template_path: Path) -> List[Dict]:
+def parse_template_forms(template_path: Path) -> list[dict]:
     content = template_path.read_text(encoding='utf-8', errors='ignore')
     forms = []
 
@@ -134,7 +129,7 @@ def parse_template_forms(template_path: Path) -> List[Dict]:
     return forms
 
 
-def extract_attrs(tag: str) -> Dict[str, str]:
+def extract_attrs(tag: str) -> dict[str, str]:
     attrs = {}
     for match in re.finditer(r'(\w+)=([\'"](.*?)[\'"]|(\S+))', tag):
         key = match.group(1)
@@ -177,7 +172,6 @@ SEMANTIC_HTML_TYPES = {
     'color',
     'range',
     'search',
-    'tel',
     'password',
     'hidden',
     'checkbox',
@@ -187,7 +181,6 @@ SEMANTIC_HTML_TYPES = {
     'button',
     'reset',
     'image',
-    'submit',
 }
 
 BASE_TYPE_MAP = {
@@ -325,7 +318,7 @@ class TestEnumCompleteness:
                         continue
 
                     field_name = field['name']
-                    options = set(v for v in field['options'] if v)  # filter empty
+                    options = {v for v in field['options'] if v}  # filter empty
                     if not options:
                         continue
 
@@ -334,7 +327,7 @@ class TestEnumCompleteness:
                             col_info = cols[field_name]
                             enum_values = col_info['enum_values']
                             if enum_values:
-                                enum_set = set(str(v) for v in enum_values)
+                                enum_set = {str(v) for v in enum_values}
                                 extra = options - enum_set
                                 missing = enum_set - options
 
@@ -395,7 +388,7 @@ class TestNumericPrecision:
 
                     field_name = field['name']
 
-                    for model_name, cols in model_columns.items():
+                    for _model_name, cols in model_columns.items():
                         if field_name in cols:
                             col_info = cols[field_name]
                             if col_info['scale'] is not None and col_info['scale'] > 0:
@@ -516,7 +509,7 @@ class TestForeignKeyFields:
 
                     # Check if it's a foreign key in any model
                     is_fk = False
-                    for model_name, cols in model_columns.items():
+                    for _model_name, cols in model_columns.items():
                         if field_name in cols:
                             col_info = cols[field_name]
                             if col_info.get('foreign_keys'):
@@ -615,7 +608,7 @@ class TestDefaultValues:
         """Fields with non-null defaults should have matching value attributes (for hidden inputs)."""
         warnings = []
 
-        for template_name, forms in template_forms.items():
+        for _template_name, forms in template_forms.items():
             for form in forms:
                 if form.get('method') != 'POST':
                     continue
@@ -627,7 +620,7 @@ class TestDefaultValues:
 
                     field_name = field['name']
 
-                    for model_name, cols in model_columns.items():
+                    for _model_name, cols in model_columns.items():
                         if field_name in cols:
                             col_info = cols[field_name]
                             default = col_info['default']

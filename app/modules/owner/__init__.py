@@ -22,4 +22,4 @@ from flask import Blueprint
 
 owner_bp = Blueprint('owner', __name__)
 
-from app.modules.owner import routes
+from app.modules.owner import routes as routes

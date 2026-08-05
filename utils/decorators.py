@@ -118,10 +118,7 @@ def _role_in_hierarchy(user_role, target_role):
     if target_role in inherited:
         return True
     # Check nested inheritance
-    for r in inherited:
-        if target_role in ROLE_HIERARCHY.get(r, []):
-            return True
-    return False
+    return any(target_role in ROLE_HIERARCHY.get(r, []) for r in inherited)
 
 
 def role_required(*roles, use_hierarchy=True):
@@ -445,7 +442,7 @@ def log_action(action_type):
                 )
 
             except Exception as e:
-                logger.error(f'Error logging action: {e!s}')
+                logger.exception(f'Error logging action: {e!s}')
                 # لا نرفع الخطأ حتى لا نؤثر على العملية الأساسية
 
             return result

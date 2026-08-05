@@ -3,6 +3,7 @@ Background Worker Safety — wrappers for daemon threads to prevent silent failu
 Ensures background jobs log errors, alert admins, and don't crash silently
 """
 
+import contextlib
 import logging
 import traceback
 from collections.abc import Callable
@@ -44,14 +45,14 @@ def safe_background_loop(
     except Exception as exc:
         consecutive_errors += 1
         tb = traceback.format_exc()
-        logger.error(
+        logger.exception(
             '%s: %s\nConsecutive errors: %s\n%s', error_message, exc, consecutive_errors, tb
         )
 
         # Fire alert sinks if configured
         if alert_sinks:
             for sink in alert_sinks:
-                try:
+                with contextlib.suppress(Exception):
                     sink(
                         'CRITICAL',
                         {
@@ -61,8 +62,6 @@ def safe_background_loop(
                             'consecutive_errors': consecutive_errors,
                         },
                     )
-                except Exception:
-                    pass
 
         # Implement progressive backoff
         if consecutive_errors >= max_consecutive_errors:
@@ -108,16 +107,16 @@ def background_worker_wrapper(
                 except Exception as exc:
                     if log_traceback:
                         tb = traceback.format_exc()
-                        logger.error('%s: %s\n%s', error_message, exc, tb)
+                        logger.exception('%s: %s\n%s', error_message, exc, tb)
                     else:
-                        logger.error('%s: %s', error_message, exc)
+                        logger.exception('%s: %s', error_message, exc)
 
                     # Try to alert admin if alert sinks exist
                     try:
                         from app_factory import _ALERT_SINKS
 
                         for sink in _ALERT_SINKS:
-                            try:
+                            with contextlib.suppress(Exception):
                                 sink(
                                     alert_level,
                                     {
@@ -126,8 +125,6 @@ def background_worker_wrapper(
                                         'traceback': tb if log_traceback else None,
                                     },
                                 )
-                            except Exception:
-                                pass
                     except Exception:
                         pass
 

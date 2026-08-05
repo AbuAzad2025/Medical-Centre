@@ -316,7 +316,7 @@ class ReportService:
                         and_(
                             User.department_id == department_id,
                             User.role == 'doctor',
-                            User.is_active == True,
+                            User.is_active,
                         )
                     )
                 )
@@ -648,7 +648,7 @@ class ReportService:
                     select(Visit).filter(
                         and_(
                             func.date(Visit.created_at) == target_date,
-                            Visit.is_force_payment == True,
+                            Visit.is_force_payment,
                         )
                     )
                 )
@@ -1120,8 +1120,8 @@ class ReportService:
                             Visit.payment_status == PaymentStatus.DEBT,
                             and_(
                                 Visit.payment_status == PaymentStatus.PENDING,
-                                Visit.is_force_payment == True,
-                                Visit.force_payment_approved_by != None,
+                                Visit.is_force_payment,
+                                Visit.force_payment_approved_by is not None,
                             ),
                         )
                     )

@@ -79,7 +79,7 @@ def get_database_health(engine: Engine) -> dict[str, Any]:
             'healthy': True,
         }
     except Exception as exc:
-        logger.error('PostgreSQL health check failed: %s', exc)
+        logger.exception('PostgreSQL health check failed: %s', exc)
         return {
             'dialect': 'unsupported',
             'healthy': False,

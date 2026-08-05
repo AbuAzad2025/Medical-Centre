@@ -32,7 +32,7 @@ def appointments():
         page = request.args.get('page', 1, type=int)
         per_page = 20
         today = date.today()
-        tomorrow = today + timedelta(days=1)
+        today + timedelta(days=1)
 
         # Base query
         query = select(Appointment).filter_by(doctor_id=current_user.id)

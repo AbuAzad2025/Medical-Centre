@@ -20,12 +20,13 @@ from .barcode_tracking import BarcodeRegistry, BarcodeScanLog
 from .bed_management import Admission, Bed, BedTransfer, Room, Ward
 from .biometric_auth import BiometricAuthChallenge, BiometricCredential
 from .branding import BrandingSettings, SystemTheme
-from .budget import Budget
-from .cash_register import CashRegister
+from .budget import Budget as Budget
+from .cash_register import CashRegister as CashRegister
 from .cds_alert import CDSAlertRule, CDSFiredAlert
 from .clinical_pathway import CarePlanTask, ClinicalPathway, ClinicalPathwayStep, PatientCarePlan
 from .data_warehouse import DailyVisitSummary, DataWarehouseSync, MonthlyFinanceSummary
-from .dental import DentalChart, DentalTooth
+from .dental import DentalChart as DentalChart
+from .dental import DentalTooth as DentalTooth
 from .department import Department
 from .dicom_pacs import DICOMInstance, DICOMSeries, DICOMStudy, PACSConfiguration
 from .digital_signature import DigitalSignature, EncryptedField, PasswordPolicy, SessionLog

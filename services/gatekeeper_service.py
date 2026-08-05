@@ -61,7 +61,7 @@ class GatekeeperService:
             return True, 'تم الإدراج بنجاح'
 
         except Exception as e:
-            current_app.logger.error(f'خطأ في التحقق من إمكانية الإدراج: {e!s}')
+            current_app.logger.exception(f'خطأ في التحقق من إمكانية الإدراج: {e!s}')
             return False, f'خطأ في النظام: {e!s}'
 
     @staticmethod
@@ -90,7 +90,7 @@ class GatekeeperService:
             return True, 'يمكن الترحيل المالي'
 
         except Exception as e:
-            current_app.logger.error(f'خطأ في التحقق من الترحيل المالي: {e!s}')
+            current_app.logger.exception(f'خطأ في التحقق من الترحيل المالي: {e!s}')
             return False, f'خطأ في النظام: {e!s}'
 
     @staticmethod
@@ -158,7 +158,7 @@ class GatekeeperService:
             return True, 'يمكن الأرشفة'
 
         except Exception as e:
-            current_app.logger.error(f'خطأ في التحقق من الأرشفة: {e!s}')
+            current_app.logger.exception(f'خطأ في التحقق من الأرشفة: {e!s}')
             return False, f'خطأ في النظام: {e!s}'
 
     @staticmethod
@@ -221,7 +221,7 @@ class GatekeeperService:
             return True, f'تم إنشاء السند رقم {receipt_number}'
 
         except Exception as e:
-            current_app.logger.error(f'خطأ في إنشاء السند: {e!s}')
+            current_app.logger.exception(f'خطأ في إنشاء السند: {e!s}')
             return False, f'خطأ في النظام: {e!s}'
 
     @staticmethod
@@ -279,7 +279,7 @@ class GatekeeperService:
             return True, f'تم إنشاء السند المؤقت رقم {receipt_number}'
 
         except Exception as e:
-            current_app.logger.error(f'خطأ في إنشاء السند المؤقت: {e!s}')
+            current_app.logger.exception(f'خطأ في إنشاء السند المؤقت: {e!s}')
             return False, f'خطأ في النظام: {e!s}'
 
     @staticmethod
@@ -318,7 +318,7 @@ class GatekeeperService:
             return True, 'تم إقرار المسؤولية'
 
         except Exception as e:
-            current_app.logger.error(f'خطأ في إقرار المسؤولية: {e!s}')
+            current_app.logger.exception(f'خطأ في إقرار المسؤولية: {e!s}')
             return False, f'خطأ في النظام: {e!s}'
 
     @staticmethod
@@ -357,7 +357,7 @@ class GatekeeperService:
             return True, 'تم الترحيل المالي'
 
         except Exception as e:
-            current_app.logger.error(f'خطأ في الترحيل المالي: {e!s}')
+            current_app.logger.exception(f'خطأ في الترحيل المالي: {e!s}')
             return False, f'خطأ في النظام: {e!s}'
 
     @staticmethod
@@ -409,7 +409,7 @@ class GatekeeperService:
             return True, 'تم الأرشفة'
 
         except Exception as e:
-            current_app.logger.error(f'خطأ في الأرشفة: {e!s}')
+            current_app.logger.exception(f'خطأ في الأرشفة: {e!s}')
             return False, f'خطأ في النظام: {e!s}'
 
     # ========== وظائف التحقق من قواعد الدفع الجديدة ==========
@@ -471,7 +471,7 @@ class GatekeeperService:
             force_visits = db.session.execute(
                 select(func.count())
                 .select_from(Visit)
-                .filter(Visit.created_at >= thirty_days_ago, Visit.is_force_payment == True)
+                .filter(Visit.created_at >= thirty_days_ago, Visit.is_force_payment)
             ).scalar()
 
             if total_visits > 0:
@@ -492,7 +492,7 @@ class GatekeeperService:
             return True, 'يمكن الموافقة على الدفع القسري'
 
         except Exception as e:
-            logger.error(f'Error validating force payment: {e!s}')
+            logger.exception(f'Error validating force payment: {e!s}')
             return False, f'خطأ في التحقق: {e!s}'
 
     @staticmethod
@@ -606,7 +606,7 @@ class GatekeeperService:
             force_visits = db.session.execute(
                 select(func.count())
                 .select_from(Visit)
-                .filter(Visit.created_at >= start_date, Visit.is_force_payment == True)
+                .filter(Visit.created_at >= start_date, Visit.is_force_payment)
             ).scalar()
 
             approved_force_visits = db.session.execute(
@@ -614,8 +614,8 @@ class GatekeeperService:
                 .select_from(Visit)
                 .filter(
                     Visit.created_at >= start_date,
-                    Visit.is_force_payment == True,
-                    Visit.force_payment_approved_by != None,
+                    Visit.is_force_payment,
+                    Visit.force_payment_approved_by is not None,
                 )
             ).scalar()
 
@@ -637,5 +637,5 @@ class GatekeeperService:
             }
 
         except Exception as e:
-            logger.error(f'Error getting force payment statistics: {e!s}')
+            logger.exception(f'Error getting force payment statistics: {e!s}')
             return {'error': str(e)}

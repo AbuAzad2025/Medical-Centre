@@ -128,7 +128,7 @@ class TestPaymentServiceIdempotency:
 
     def test_null_idempotency_key_allows_duplicates(self, pay_visit, pay_accountant, test_tenant):
         for _ in range(2):
-            ok, payment = PaymentService.create_payment(
+            ok, _payment = PaymentService.create_payment(
                 tenant_id=test_tenant.id,
                 operation_type='payment',
                 idempotency_key=None,
@@ -207,16 +207,15 @@ class TestPaymentConcurrentIdempotency:
 
             with patch(
                 'services.payment_service.db.session.execute', return_value=mock_execute_result
-            ):
-                with patch('services.payment_service.db.session.flush'):
-                    ok, result = PaymentService.create_payment(
-                        tenant_id=1,
-                        operation_type='payment',
-                        idempotency_key='concurrent-idem-key-001',
-                        amount=50,
-                    )
-                    assert ok is True
-                    assert result.id == 999  # returned existing, did not create new
+            ), patch('services.payment_service.db.session.flush'):
+                ok, result = PaymentService.create_payment(
+                    tenant_id=1,
+                    operation_type='payment',
+                    idempotency_key='concurrent-idem-key-001',
+                    amount=50,
+                )
+                assert ok is True
+                assert result.id == 999  # returned existing, did not create new
         finally:
             lock.release(lock_key)
 

@@ -386,7 +386,7 @@ def build_now_cards(widgets: list[WidgetMeta], data: dict) -> list[dict]:
         value = None
         if w.id == 'queue_live':
             value = metrics.get('queue_count', 0)
-        elif w.id == 'my_queue' or w.id == 'patients_waiting':
+        elif w.id in {'my_queue', 'patients_waiting'}:
             value = metrics.get('waiting_patients', 0)
         elif w.id == 'cash_summary':
             value = metrics.get('visits_today', '—')

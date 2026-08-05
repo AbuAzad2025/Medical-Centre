@@ -257,7 +257,7 @@ class TestApiContract:
                 for path, verb, ep in items:
                     url = _fill_path(path, e2e_seed)
                     # (a) empty JSON body, (b) malformed JSON
-                    for body, ctype, kwargs in (
+                    for _body, ctype, kwargs in (
                         (None, None, {'json': {}}),
                         (
                             '{ not json',

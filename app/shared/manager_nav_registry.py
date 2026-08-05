@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -216,10 +217,8 @@ def resolve_manager_nav_sections() -> list[NavSection]:
         for spec in block.items:
             kwargs = dict(spec.url_kwargs or {})
             href = _tenant_path(spec.path_prefix)
-            try:
+            with contextlib.suppress(Exception):
                 href = _tenant_path(url_for(spec.endpoint, **kwargs))
-            except Exception:
-                pass
             section.items.append(
                 NavItem(
                     id=spec.id,

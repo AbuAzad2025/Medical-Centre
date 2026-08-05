@@ -1,5 +1,6 @@
 """backup routes - extracted from monolithic super_admin.py"""
 
+import contextlib
 import logging
 from datetime import UTC, datetime
 
@@ -156,10 +157,8 @@ def create_backup():
             backup.backup_status = BackupStatus.FAILED
             backup.backup_notes = str(exc)
             if os.path.exists(backup_path):
-                try:
+                with contextlib.suppress(OSError):
                     os.remove(backup_path)
-                except OSError:
-                    pass
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             return jsonify({'success': False, 'message': str(exc)}), 500
 

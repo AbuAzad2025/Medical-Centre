@@ -131,7 +131,6 @@ def _login(client, user, tenant_slug: str | None = None):
     Tenant-context extras are added afterward via
     ``session_transaction()``.
     """
-    import werkzeug
 
     from app.core.rate_limiter import _shared_store
 
@@ -253,7 +252,7 @@ class TestAssumptionService:
             tenant = _create_tenant()
             user = _create_user('sa_expired', 'super_admin', tenant_id=None)
 
-            a = PlatformAssumptionService.create_assumption(
+            PlatformAssumptionService.create_assumption(
                 user_id=user.id,
                 assumed_tenant_id=tenant.id,
                 reason='Test expired assumption',
@@ -393,7 +392,6 @@ class TestMiddlewareTenantAssumption:
                 assumed_tenant_id=tenant_a.id,
                 reason='Assumption for tenant A only',
             )
-            slug_a = tenant_a.slug
             slug_b = tenant_b.slug
             _login(client, user.id, None)
 
@@ -606,7 +604,7 @@ class TestStrongSessionProtection:
         app.config['ENABLE_SAAS_MODE'] = True
         with app.app_context():
             tenant = _create_tenant()
-            user = _create_user('strong_real', 'reception', tenant_id=tenant.id)
+            _create_user('strong_real', 'reception', tenant_id=tenant.id)
             slug = tenant.slug
 
         resp = client.post(

@@ -63,7 +63,7 @@ def diagnosis(visit_id):
             differential_diagnosis = request.form.get('differential_diagnosis')
             treatment_plan = request.form.get('treatment_plan')
             follow_up_notes = request.form.get('follow_up_notes')
-            follow_up_required = True if request.form.get('follow_up_required') else False
+            follow_up_required = bool(request.form.get('follow_up_required'))
             follow_up_date_raw = (request.form.get('follow_up_date') or '').strip()
             additional_notes = (request.form.get('notes') or '').strip()
 
@@ -340,7 +340,7 @@ def evaluate_clinical_rules(visit, prescriptions, structured_vital_signs=None):
                 med_names.append(item.medication.trade_name.lower())
             if item.duration_days:
                 durations.append(item.duration_days)
-    dupes = set([m for m in med_names if med_names.count(m) > 1])
+    dupes = {m for m in med_names if med_names.count(m) > 1}
     if dupes:
         warnings.append(
             {
@@ -976,9 +976,8 @@ def get_smart_reminders():
 def check_drug_interactions():
     """فحص التفاعلات الدوائية"""
     # قائمة مبسطة للتفاعلات المعروفة
-    interactions = [
+    return [
         {'drug1': 'وارفارين', 'drug2': 'أسبرين', 'severity': 'عالي'},
         {'drug1': 'ديجوكسين', 'drug2': 'فوروسيميد', 'severity': 'متوسط'},
         {'drug1': 'ميثوتريكسات', 'drug2': 'تريميثوبريم', 'severity': 'عالي'},
     ]
-    return interactions

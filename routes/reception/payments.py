@@ -163,7 +163,7 @@ def print_receipt(visit_id):
                     .filter(
                         DoctorPricing.doctor_id == visit.doctor_id,
                         DoctorPricing.department_id == visit.department_id,
-                        DoctorPricing.is_active == True,
+                        DoctorPricing.is_active,
                     )
                     .order_by(DoctorPricing.effective_from.desc())
                 )

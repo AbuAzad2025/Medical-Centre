@@ -143,7 +143,7 @@ class TestPaymentServiceAllocation:
     def test_creates_payment_and_allocates(
         self, alloc_visit, alloc_invoice, alloc_accountant, test_tenant
     ):
-        ok, payment = PaymentService.create_payment(
+        ok, _payment = PaymentService.create_payment(
             tenant_id=test_tenant.id,
             operation_type='payment',
             idempotency_key=None,
@@ -163,7 +163,7 @@ class TestPaymentServiceAllocation:
     def test_pending_payment_is_not_allocated(
         self, alloc_visit, alloc_invoice, alloc_accountant, test_tenant
     ):
-        ok, payment = PaymentService.create_payment(
+        ok, _payment = PaymentService.create_payment(
             tenant_id=test_tenant.id,
             operation_type='payment',
             idempotency_key=None,

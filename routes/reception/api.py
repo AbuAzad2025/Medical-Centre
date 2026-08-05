@@ -35,7 +35,7 @@ def api_doctors():
     """API لجلب الأطباء"""
 
     department_id = request.args.get('department_id')
-    appointment_type = request.args.get('appointment_type')
+    request.args.get('appointment_type')
 
     query = select(User)
 
@@ -81,7 +81,7 @@ def api_department_staff():
         # 1. موظفو القسم مباشرة بصرف النظر عن الدور
         direct_staff = (
             db.session.execute(
-                select(User).filter(User.department_id == department_id, User.is_active == True)
+                select(User).filter(User.department_id == department_id, User.is_active)
             )
             .scalars()
             .all()
@@ -91,7 +91,7 @@ def api_department_staff():
         unassigned = (
             db.session.execute(
                 select(User).filter(
-                    User.role.in_(roles), User.is_active == True, User.department_id.is_(None)
+                    User.role.in_(roles), User.is_active, User.department_id.is_(None)
                 )
             )
             .scalars()
@@ -146,7 +146,7 @@ def api_department_services():
             select(ServiceMaster)
             .filter(
                 ServiceMaster.category == category,
-                ServiceMaster.is_active == True,
+                ServiceMaster.is_active,
                 ServiceMaster.department_id == department_id,
             )
             .order_by(ServiceMaster.name_ar)
@@ -159,7 +159,7 @@ def api_department_services():
         services = (
             db.session.execute(
                 select(ServiceMaster)
-                .filter(ServiceMaster.category == category, ServiceMaster.is_active == True)
+                .filter(ServiceMaster.category == category, ServiceMaster.is_active)
                 .order_by(ServiceMaster.name_ar)
             )
             .scalars()
@@ -251,12 +251,12 @@ def api_queue_status_all():
         is_emergency = request.args.get('is_emergency')
         force_entry = request.args.get('force_entry')
         is_emergency = (
-            (is_emergency == '1' or is_emergency == 'true' or is_emergency == 'on')
+            (is_emergency in {'1', 'true', 'on'})
             if is_emergency is not None
             else None
         )
         force_entry = (
-            (force_entry == '1' or force_entry == 'true' or force_entry == 'on')
+            (force_entry in {'1', 'true', 'on'})
             if force_entry is not None
             else None
         )

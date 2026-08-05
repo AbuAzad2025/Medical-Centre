@@ -3,20 +3,20 @@ Shared Enums and Constants — المصدر الوحيد لجميع الحالا
 All workflow and model enums consolidated into one place.
 """
 
-from enum import Enum
+from enum import Enum, StrEnum
 
 # =============================================================================
 # Subscription & Tenant
 # =============================================================================
 
 
-class SubscriptionType(str, Enum):
+class SubscriptionType(StrEnum):
     PERPETUAL = 'perpetual'
     MONTHLY = 'monthly'
     YEARLY = 'yearly'
 
 
-class TenantStatus(str, Enum):
+class TenantStatus(StrEnum):
     ACTIVE = 'active'
     SUSPENDED = 'suspended'
     PENDING = 'pending'
@@ -26,13 +26,13 @@ class TenantStatus(str, Enum):
     DELETED = 'deleted'
 
 
-class StorageMode(str, Enum):
+class StorageMode(StrEnum):
     CLOUD = 'cloud'
     LOCAL = 'local'
     HYBRID = 'hybrid'
 
 
-class ProductProfile(str, Enum):
+class ProductProfile(StrEnum):
     PRIVATE_DOCTOR_CLINIC = 'private_doctor_clinic'
     SMALL_CLINIC = 'small_clinic'
     STANDALONE_LAB = 'standalone_lab'
@@ -42,7 +42,7 @@ class ProductProfile(str, Enum):
     CUSTOM = 'custom'
 
 
-class ModuleName(str, Enum):
+class ModuleName(StrEnum):
     RECEPTION = 'reception'
     DOCTOR = 'doctor'
     LAB = 'lab'
@@ -68,7 +68,7 @@ class ModuleName(str, Enum):
 # =============================================================================
 
 
-class VisitState(str, Enum):
+class VisitState(StrEnum):
     """Clinical lifecycle states stored in visit.status (ends at COMPLETED)."""
 
     OPEN = 'OPEN'
@@ -78,14 +78,14 @@ class VisitState(str, Enum):
     CANCELLED = 'CANCELLED'
 
 
-class VisitArchiveStatus(str, Enum):
+class VisitArchiveStatus(StrEnum):
     """Administrative retention flag on visit.archive_status (GatekeeperService)."""
 
     ACTIVE = 'ACTIVE'
     ARCHIVED = 'ARCHIVED'
 
 
-class VisitWorkflowStatus(str, Enum):
+class VisitWorkflowStatus(StrEnum):
     """Internal workflow states for visit state machine."""
 
     REGISTERED = 'registered'
@@ -96,14 +96,14 @@ class VisitWorkflowStatus(str, Enum):
     CANCELLED = 'cancelled'
 
 
-class VisitType(str, Enum):
+class VisitType(StrEnum):
     REGULAR = 'REGULAR'
     FOLLOW_UP = 'FOLLOW_UP'
     CONSULTATION = 'CONSULTATION'
     EMERGENCY = 'EMERGENCY'
 
 
-class PaymentStatus(str, Enum):
+class PaymentStatus(StrEnum):
     PENDING = 'PENDING'
     PAID = 'PAID'
     PARTIAL = 'PARTIAL'
@@ -114,7 +114,7 @@ class PaymentStatus(str, Enum):
     CANCELLED = 'CANCELLED'
 
 
-class PaymentMethod(str, Enum):
+class PaymentMethod(StrEnum):
     CASH = 'CASH'
     CARD = 'CARD'
     VISA = 'visa'
@@ -129,7 +129,7 @@ class PaymentMethod(str, Enum):
 # =============================================================================
 
 
-class AppointmentState(str, Enum):
+class AppointmentState(StrEnum):
     """Database-level appointment states."""
 
     SCHEDULED = 'SCHEDULED'
@@ -141,7 +141,7 @@ class AppointmentState(str, Enum):
     NO_SHOW = 'NO_SHOW'
 
 
-class AppointmentWorkflowStatus(str, Enum):
+class AppointmentWorkflowStatus(StrEnum):
     """Internal workflow states for appointment state machine."""
 
     SCHEDULED = 'scheduled'
@@ -158,7 +158,7 @@ class AppointmentWorkflowStatus(str, Enum):
 # =============================================================================
 
 
-class OrderState(str, Enum):
+class OrderState(StrEnum):
     """Database-level lab/radiology order states."""
 
     REQUESTED = 'REQUESTED'
@@ -171,7 +171,7 @@ class OrderState(str, Enum):
     CANCELLED = 'CANCELLED'
 
 
-class LabOrderStatus(str, Enum):
+class LabOrderStatus(StrEnum):
     """Internal workflow states for lab order state machine."""
 
     ORDERED = 'ordered'
@@ -183,7 +183,7 @@ class LabOrderStatus(str, Enum):
     CANCELLED = 'cancelled'
 
 
-class RadiologyOrderStatus(str, Enum):
+class RadiologyOrderStatus(StrEnum):
     """Internal workflow states for radiology order state machine."""
 
     ORDERED = 'ordered'
@@ -196,13 +196,13 @@ class RadiologyOrderStatus(str, Enum):
     CANCELLED = 'cancelled'
 
 
-class LabResultStatus(str, Enum):
+class LabResultStatus(StrEnum):
     PENDING = 'PENDING'
     READY = 'READY'
     VALIDATED = 'VALIDATED'
 
 
-class RadiologyResultStatus(str, Enum):
+class RadiologyResultStatus(StrEnum):
     PENDING = 'PENDING'
     READY = 'READY'
     VALIDATED = 'VALIDATED'
@@ -213,7 +213,7 @@ class RadiologyResultStatus(str, Enum):
 # =============================================================================
 
 
-class QueueState(str, Enum):
+class QueueState(StrEnum):
     WAITING = 'waiting'
     CALLED = 'called'
     IN_PROGRESS = 'in_progress'
@@ -227,7 +227,7 @@ class QueueState(str, Enum):
 # =============================================================================
 
 
-class BillingState(str, Enum):
+class BillingState(StrEnum):
     PENDING = 'PENDING'
     PAID = 'PAID'
     PARTIAL = 'PARTIAL'
@@ -236,7 +236,7 @@ class BillingState(str, Enum):
     REFUNDED = 'REFUNDED'
 
 
-class InvoiceStatus(str, Enum):
+class InvoiceStatus(StrEnum):
     """Workflow states for invoice lifecycle."""
 
     DRAFT = 'DRAFT'
@@ -251,7 +251,7 @@ class InvoiceStatus(str, Enum):
 # =============================================================================
 
 
-class PrescriptionState(str, Enum):
+class PrescriptionState(StrEnum):
     DRAFT = 'draft'
     ACTIVE = 'active'
     DISPENSED = 'dispensed'
@@ -260,13 +260,13 @@ class PrescriptionState(str, Enum):
     EXPIRED = 'expired'
 
 
-class MedicationStatus(str, Enum):
+class MedicationStatus(StrEnum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'
     DISCONTINUED = 'discontinued'
 
 
-class StockMovementType(str, Enum):
+class StockMovementType(StrEnum):
     PURCHASE = 'purchase'
     SALE = 'sale'
     RETURN = 'return'
@@ -281,7 +281,7 @@ class StockMovementType(str, Enum):
 # =============================================================================
 
 
-class BookingState(str, Enum):
+class BookingState(StrEnum):
     PENDING = 'pending'
     CONFIRMED = 'confirmed'
     CANCELLED = 'cancelled'
@@ -294,14 +294,14 @@ class BookingState(str, Enum):
 # =============================================================================
 
 
-class NotificationState(str, Enum):
+class NotificationState(StrEnum):
     PENDING = 'pending'
     SENT = 'sent'
     FAILED = 'failed'
     READ = 'read'
 
 
-class NotificationPriority(str, Enum):
+class NotificationPriority(StrEnum):
     LOW = 'low'
     NORMAL = 'normal'
     HIGH = 'high'
@@ -313,21 +313,21 @@ class NotificationPriority(str, Enum):
 # =============================================================================
 
 
-class TaskState(str, Enum):
+class TaskState(StrEnum):
     PENDING = 'pending'
     IN_PROGRESS = 'in_progress'
     COMPLETED = 'completed'
     CANCELLED = 'cancelled'
 
 
-class TaskPriority(str, Enum):
+class TaskPriority(StrEnum):
     LOW = 'low'
     MEDIUM = 'medium'
     HIGH = 'high'
     URGENT = 'urgent'
 
 
-class ProjectState(str, Enum):
+class ProjectState(StrEnum):
     PLANNING = 'planning'
     IN_PROGRESS = 'in_progress'
     COMPLETED = 'completed'
@@ -340,7 +340,7 @@ class ProjectState(str, Enum):
 # =============================================================================
 
 
-class EmergencyStatus(str, Enum):
+class EmergencyStatus(StrEnum):
     NEW = 'NEW'
     WAITING = 'WAITING'
     TRIAGE = 'TRIAGE'
@@ -352,7 +352,7 @@ class EmergencyStatus(str, Enum):
     TRANSFERRED = 'TRANSFERRED'
 
 
-class EmergencySeverity(str, Enum):
+class EmergencySeverity(StrEnum):
     LOW = 'LOW'
     MODERATE = 'MODERATE'
     HIGH = 'HIGH'
@@ -364,7 +364,7 @@ class EmergencySeverity(str, Enum):
 # =============================================================================
 
 
-class WardType(str, Enum):
+class WardType(StrEnum):
     GENERAL = 'GENERAL'
     ICU = 'ICU'
     NICU = 'NICU'
@@ -374,7 +374,7 @@ class WardType(str, Enum):
     ISOLATION = 'ISOLATION'
 
 
-class RoomType(str, Enum):
+class RoomType(StrEnum):
     STANDARD = 'STANDARD'
     PRIVATE = 'PRIVATE'
     SEMI_PRIVATE = 'SEMI_PRIVATE'
@@ -382,7 +382,7 @@ class RoomType(str, Enum):
     ISOLATION = 'ISOLATION'
 
 
-class BedType(str, Enum):
+class BedType(StrEnum):
     STANDARD = 'STANDARD'
     ELECTRIC = 'ELECTRIC'
     BARIATRIC = 'BARIATRIC'
@@ -391,7 +391,7 @@ class BedType(str, Enum):
     INCUBATOR = 'INCUBATOR'
 
 
-class BedStatus(str, Enum):
+class BedStatus(StrEnum):
     AVAILABLE = 'AVAILABLE'
     OCCUPIED = 'OCCUPIED'
     RESERVED = 'RESERVED'
@@ -399,7 +399,7 @@ class BedStatus(str, Enum):
     OUT_OF_ORDER = 'OUT_OF_ORDER'
 
 
-class AdmissionType(str, Enum):
+class AdmissionType(StrEnum):
     ELECTIVE = 'ELECTIVE'
     EMERGENCY = 'EMERGENCY'
     URGENT = 'URGENT'
@@ -407,7 +407,7 @@ class AdmissionType(str, Enum):
     READMISSION = 'READMISSION'
 
 
-class AdmissionStatus(str, Enum):
+class AdmissionStatus(StrEnum):
     ADMITTED = 'ADMITTED'
     DISCHARGED = 'DISCHARGED'
     TRANSFERRED = 'TRANSFERRED'
@@ -419,35 +419,35 @@ class AdmissionStatus(str, Enum):
 # =============================================================================
 
 
-class DiagnosisType(str, Enum):
+class DiagnosisType(StrEnum):
     PRIMARY = 'PRIMARY'
     SECONDARY = 'SECONDARY'
     ADMITTING = 'ADMITTING'
     DISCHARGE = 'DISCHARGE'
 
 
-class DiagnosisStatus(str, Enum):
+class DiagnosisStatus(StrEnum):
     ACTIVE = 'ACTIVE'
     RESOLVED = 'RESOLVED'
     CHRONIC = 'CHRONIC'
     RELAPSE = 'RELAPSE'
 
 
-class ProblemType(str, Enum):
+class ProblemType(StrEnum):
     DIAGNOSIS = 'DIAGNOSIS'
     SYMPTOM = 'SYMPTOM'
     COMPLAINT = 'COMPLAINT'
     FUNCTIONAL_LIMITATION = 'FUNCTIONAL_LIMITATION'
 
 
-class ProblemSeverity(str, Enum):
+class ProblemSeverity(StrEnum):
     MILD = 'MILD'
     MODERATE = 'MODERATE'
     SEVERE = 'SEVERE'
     LIFE_THREATENING = 'LIFE_THREATENING'
 
 
-class ProblemStatus(str, Enum):
+class ProblemStatus(StrEnum):
     ACTIVE = 'ACTIVE'
     CHRONIC = 'CHRONIC'
     RESOLVED = 'RESOLVED'
@@ -456,13 +456,13 @@ class ProblemStatus(str, Enum):
     RULED_OUT = 'RULED_OUT'
 
 
-class DrugInteractionSeverity(str, Enum):
+class DrugInteractionSeverity(StrEnum):
     LOW = 'LOW'
     MODERATE = 'MODERATE'
     HIGH = 'HIGH'
 
 
-class TreatmentStatus(str, Enum):
+class TreatmentStatus(StrEnum):
     PENDING = 'pending'
     ACTIVE = 'active'
     COMPLETED = 'completed'
@@ -470,14 +470,14 @@ class TreatmentStatus(str, Enum):
     FOLLOW_UP = 'follow_up'
 
 
-class FollowUpStatus(str, Enum):
+class FollowUpStatus(StrEnum):
     PENDING = 'PENDING'
     SCHEDULED = 'SCHEDULED'
     DONE = 'DONE'
     CANCELLED = 'CANCELLED'
 
 
-class ProcedureStatus(str, Enum):
+class ProcedureStatus(StrEnum):
     PLANNED = 'PLANNED'
     PERFORMED = 'PERFORMED'
     CANCELLED = 'CANCELLED'
@@ -488,13 +488,13 @@ class ProcedureStatus(str, Enum):
 # =============================================================================
 
 
-class BackupType(str, Enum):
+class BackupType(StrEnum):
     FULL = 'full'
     INCREMENTAL = 'incremental'
     DIFFERENTIAL = 'differential'
 
 
-class BackupStatus(str, Enum):
+class BackupStatus(StrEnum):
     PENDING = 'PENDING'
     IN_PROGRESS = 'IN_PROGRESS'
     COMPLETED = 'COMPLETED'
@@ -502,14 +502,14 @@ class BackupStatus(str, Enum):
     CANCELLED = 'CANCELLED'
 
 
-class BackupScheduleType(str, Enum):
+class BackupScheduleType(StrEnum):
     DAILY = 'daily'
     WEEKLY = 'weekly'
     MONTHLY = 'monthly'
     CUSTOM = 'custom'
 
 
-class LogLevel(str, Enum):
+class LogLevel(StrEnum):
     DEBUG = 'DEBUG'
     INFO = 'INFO'
     WARNING = 'WARNING'
@@ -517,7 +517,7 @@ class LogLevel(str, Enum):
     CRITICAL = 'CRITICAL'
 
 
-class ConfigType(str, Enum):
+class ConfigType(StrEnum):
     STRING = 'string'
     INTEGER = 'integer'
     BOOLEAN = 'boolean'
@@ -526,7 +526,7 @@ class ConfigType(str, Enum):
     PASSWORD = 'password'
 
 
-class ConfigCategory(str, Enum):
+class ConfigCategory(StrEnum):
     GENERAL = 'general'
     SECURITY = 'security'
     NOTIFICATION = 'notification'
@@ -537,7 +537,7 @@ class ConfigCategory(str, Enum):
     SMS = 'sms'
 
 
-class AuditAction(str, Enum):
+class AuditAction(StrEnum):
     CREATE = 'create'
     UPDATE = 'update'
     DELETE = 'delete'
@@ -556,7 +556,7 @@ class AuditAction(str, Enum):
     UNAUTHORIZED_ACCESS = 'unauthorized_access'
 
 
-class EntityType(str, Enum):
+class EntityType(StrEnum):
     SYSTEM = 'system'
     USER = 'user'
     PATIENT = 'patient'
@@ -571,7 +571,7 @@ class EntityType(str, Enum):
     DEPARTMENT = 'department'
 
 
-class SecurityEventType(str, Enum):
+class SecurityEventType(StrEnum):
     LOGIN_FAILED = 'login_failed'
     PASSWORD_CHANGED = 'password_changed'
     PERMISSION_DENIED = 'permission_denied'
@@ -580,7 +580,7 @@ class SecurityEventType(str, Enum):
     UNAUTHORIZED_ACCESS = 'unauthorized_access'
 
 
-class SecuritySeverity(str, Enum):
+class SecuritySeverity(StrEnum):
     LOW = 'low'
     MEDIUM = 'medium'
     HIGH = 'high'
@@ -647,7 +647,7 @@ class PermissionCategory(Enum):
 # =============================================================================
 
 
-class ReportExecutionState(str, Enum):
+class ReportExecutionState(StrEnum):
     PENDING = 'pending'
     RUNNING = 'running'
     COMPLETED = 'completed'
@@ -655,7 +655,7 @@ class ReportExecutionState(str, Enum):
     CANCELLED = 'cancelled'
 
 
-class Currency(str, Enum):
+class Currency(StrEnum):
     ILS = 'ILS'
     EGP = 'EGP'
     USD = 'USD'
@@ -663,19 +663,19 @@ class Currency(str, Enum):
     JOD = 'JOD'
 
 
-class SurgeryType(str, Enum):
+class SurgeryType(StrEnum):
     ELECTIVE = 'ELECTIVE'
     EMERGENCY = 'EMERGENCY'
     URGENT = 'URGENT'
 
 
-class SurgeryPriority(str, Enum):
+class SurgeryPriority(StrEnum):
     NORMAL = 'NORMAL'
     URGENT = 'URGENT'
     STAT = 'STAT'
 
 
-class SurgeryStatus(str, Enum):
+class SurgeryStatus(StrEnum):
     SCHEDULED = 'SCHEDULED'
     CONFIRMED = 'CONFIRMED'
     IN_PROGRESS = 'IN_PROGRESS'
@@ -684,13 +684,13 @@ class SurgeryStatus(str, Enum):
     DELAYED = 'DELAYED'
 
 
-class ReferralUrgency(str, Enum):
+class ReferralUrgency(StrEnum):
     ROUTINE = 'ROUTINE'
     URGENT = 'URGENT'
     STAT = 'STAT'
 
 
-class ReferralStatus(str, Enum):
+class ReferralStatus(StrEnum):
     PENDING = 'PENDING'
     SENT = 'SENT'
     ACCEPTED = 'ACCEPTED'
@@ -700,14 +700,14 @@ class ReferralStatus(str, Enum):
     DECLINED = 'DECLINED'
 
 
-class SupplyRequestStatus(str, Enum):
+class SupplyRequestStatus(StrEnum):
     DRAFT = 'DRAFT'
     APPROVED = 'APPROVED'
     FULFILLED = 'FULFILLED'
     CANCELLED = 'CANCELLED'
 
 
-class eMARAdministrationStatus(str, Enum):
+class eMARAdministrationStatus(StrEnum):
     SCHEDULED = 'SCHEDULED'
     GIVEN = 'GIVEN'
     NOT_GIVEN = 'NOT_GIVEN'
@@ -718,7 +718,7 @@ class eMARAdministrationStatus(str, Enum):
     LATE = 'LATE'
 
 
-class InsuranceClaimStatus(str, Enum):
+class InsuranceClaimStatus(StrEnum):
     DRAFT = 'DRAFT'
     SUBMITTED = 'SUBMITTED'
     APPROVED = 'APPROVED'
@@ -726,7 +726,7 @@ class InsuranceClaimStatus(str, Enum):
     PAID = 'PAID'
 
 
-class DICOMStudyStatus(str, Enum):
+class DICOMStudyStatus(StrEnum):
     RECEIVED = 'RECEIVED'
     PENDING_REVIEW = 'PENDING_REVIEW'
     REVIEWED = 'REVIEWED'
@@ -734,7 +734,7 @@ class DICOMStudyStatus(str, Enum):
     ARCHIVED = 'ARCHIVED'
 
 
-class VaccineRoute(str, Enum):
+class VaccineRoute(StrEnum):
     IM = 'IM'
     SC = 'SC'
     PO = 'PO'
@@ -742,14 +742,14 @@ class VaccineRoute(str, Enum):
     INTRANASAL = 'INTRANASAL'
 
 
-class VaccineStatus(str, Enum):
+class VaccineStatus(StrEnum):
     COMPLETED = 'COMPLETED'
     REFUSED = 'REFUSED'
     DEFERRED = 'DEFERRED'
     PARTIAL = 'PARTIAL'
 
 
-class WorkflowStatus(str, Enum):
+class WorkflowStatus(StrEnum):
     ACTIVE = 'active'
     COMPLETED = 'completed'
     CANCELLED = 'cancelled'
@@ -761,7 +761,7 @@ class WorkflowStatus(str, Enum):
 # =============================================================================
 
 
-class PrintDocType(str, Enum):
+class PrintDocType(StrEnum):
     INVOICE = 'invoice'
     RECEIPT = 'receipt'
     PRESCRIPTION = 'prescription'

@@ -473,7 +473,7 @@ class TestModuleScoping:
             )
             try:
                 render_template('print/prescription.html', prescription=prescription)
-                assert False, 'Should have raised ModuleAccessError'
+                raise AssertionError('Should have raised ModuleAccessError')
             except Exception as e:
                 assert 'ModuleAccessError' in type(e).__name__ or 'يتطلب وحدات غير مفعلة' in str(e)
 
@@ -734,6 +734,6 @@ class TestModuleScoping:
                     age_years=30,
                     printed_at='2026-01-01 10:00',
                 )
-                assert False, 'Should have raised ModuleAccessError'
+                raise AssertionError('Should have raised ModuleAccessError')
             except Exception as e:
                 assert 'ModuleAccessError' in type(e).__name__ or 'يتطلب وحدات غير مفعلة' in str(e)

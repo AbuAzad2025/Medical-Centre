@@ -87,7 +87,7 @@ class NotificationService:
                         select(NotificationTemplate).filter(
                             and_(
                                 NotificationTemplate.name == template_name,
-                                NotificationTemplate.is_active == True,
+                                NotificationTemplate.is_active,
                             )
                         )
                     )
@@ -227,10 +227,10 @@ class NotificationService:
             )
 
             if unread_only:
-                query = query.filter(Notification.is_read == False)
+                query = query.filter(not Notification.is_read)
 
             if urgent_only:
-                query = query.filter(Notification.is_urgent == True)
+                query = query.filter(Notification.is_urgent)
 
             query = query.order_by(desc(Notification.sent_at))
 
@@ -283,7 +283,7 @@ class NotificationService:
             notifications = (
                 db.session.execute(
                     select(Notification).filter(
-                        and_(Notification.recipient_id == user_id, Notification.is_read == False)
+                        and_(Notification.recipient_id == user_id, not Notification.is_read)
                     )
                 )
                 .scalars()
@@ -309,7 +309,7 @@ class NotificationService:
                 .filter(
                     and_(
                         Notification.recipient_id == user_id,
-                        Notification.is_read == False,
+                        not Notification.is_read,
                         or_(
                             Notification.expires_at.is_(None),
                             Notification.expires_at > datetime.now(UTC),
@@ -324,8 +324,8 @@ class NotificationService:
                 .filter(
                     and_(
                         Notification.recipient_id == user_id,
-                        Notification.is_read == False,
-                        Notification.is_urgent == True,
+                        not Notification.is_read,
+                        Notification.is_urgent,
                         or_(
                             Notification.expires_at.is_(None),
                             Notification.expires_at > datetime.now(UTC),
@@ -378,7 +378,7 @@ class NotificationService:
         try:
             templates = (
                 db.session.execute(
-                    select(NotificationTemplate).filter(NotificationTemplate.is_active == True)
+                    select(NotificationTemplate).filter(NotificationTemplate.is_active)
                 )
                 .scalars()
                 .all()
@@ -747,7 +747,7 @@ class NotificationService:
             from models.visit import Visit
 
             # الديون المتأخرة (> 7 أيام)
-            seven_days_ago = datetime.now() - timedelta(days=7)
+            datetime.now() - timedelta(days=7)
 
             query = select(Visit).filter((Visit.total_amount - Visit.paid_amount) > 0)
             if tenant_id is not None:
@@ -819,7 +819,7 @@ class NotificationService:
             from models.visit import Visit
 
             # زيارات التأمين القديمة (> 14 يوم)
-            fourteen_days_ago = datetime.now() - timedelta(days=14)
+            datetime.now() - timedelta(days=14)
 
             query = select(Visit).filter(
                 Visit.payment_method == 'insurance', Visit.insurance_amount > 0
@@ -882,7 +882,7 @@ class NotificationService:
 
             # دفعات قسرية بدون موافقة
             query = select(Visit).filter(
-                Visit.is_force_payment == True, Visit.force_payment_approved_by.is_(None)
+                Visit.is_force_payment, Visit.force_payment_approved_by.is_(None)
             )
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
@@ -953,7 +953,7 @@ class NotificationService:
                     message += f'قضية: {issue["message"]} ({issue["severity"]})\n'
 
             # إرسال للمدير
-            result = NotificationService.send_notification(
+            return NotificationService.send_notification(
                 recipient_role='manager',
                 title=f'ملخص اليوم - {datetime.now().strftime("%Y-%m-%d")}',
                 message=message,
@@ -961,7 +961,6 @@ class NotificationService:
                 is_urgent=False,
             )
 
-            return result
 
         except Exception as e:
             logging.exception(f'Error sending daily summary to manager: {e!s}')
@@ -1033,7 +1032,7 @@ class NotificationService:
             from models.user import User
 
             now = datetime.now()
-            soon = now + timedelta(hours=24)
+            now + timedelta(hours=24)
 
             query = select(Appointment)
             if tenant_id is not None:

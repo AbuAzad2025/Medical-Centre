@@ -241,7 +241,7 @@ class ReportCenterService:
                 select(func.count()).select_from(
                     q.filter(
                         RadiologyResult.reviewed_at.isnot(None),
-                        RadiologyResult.revised_after_review == True,
+                        RadiologyResult.revised_after_review,
                     ).subquery()
                 )
             ).scalar()

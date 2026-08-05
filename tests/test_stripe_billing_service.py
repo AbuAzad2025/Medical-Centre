@@ -92,7 +92,7 @@ class TestPlanChangeValidation:
             StripeBillingService.change_plan(tenant.id, _version.id, 'yearly')
 
     def test_active_tenant_allowed(self, app, stripe_api_key, change_tenant, monkeypatch):
-        tenant, old_version = change_tenant
+        tenant, _old_version = change_tenant
         new_version = _make_package_version([('lab', 'lab.order')], price=200)
         tenant.settings = {'stripe_subscription_id': 'sub_active'}
         db.session.commit()
@@ -179,7 +179,7 @@ class TestProrationValidation:
     def test_proration_negative_amount_logged(
         self, app, stripe_api_key, change_tenant, monkeypatch
     ):
-        tenant, old_version = change_tenant
+        tenant, _old_version = change_tenant
         new_version = _make_package_version([('lab', 'lab.order')], price=50)
         tenant.settings = {'stripe_subscription_id': 'sub_proration'}
         db.session.commit()
@@ -210,7 +210,7 @@ class TestProrationValidation:
     def test_stripe_invoice_list_failure_non_fatal(
         self, app, stripe_api_key, change_tenant, monkeypatch
     ):
-        tenant, old_version = change_tenant
+        tenant, _old_version = change_tenant
         new_version = _make_package_version([('lab', 'lab.order')], price=200)
         tenant.settings = {'stripe_subscription_id': 'sub_err'}
         db.session.commit()
@@ -243,7 +243,7 @@ class TestProrationValidation:
 
 class TestUpgradeDowngradeClassification:
     def test_higher_price_is_upgrade(self, app, stripe_api_key, change_tenant, monkeypatch):
-        tenant, old_version = change_tenant
+        tenant, _old_version = change_tenant
         expensive = _make_package_version([('lab', 'lab.order')], price=1000)
         tenant.settings = {'stripe_subscription_id': 'sub_up'}
         db.session.commit()
@@ -270,7 +270,7 @@ class TestUpgradeDowngradeClassification:
         assert result['action'] == 'upgrade'
 
     def test_lower_price_is_downgrade(self, app, stripe_api_key, change_tenant, monkeypatch):
-        tenant, old_version = change_tenant
+        tenant, _old_version = change_tenant
         cheap = _make_package_version([('lab', 'lab.order')], price=10)
         tenant.settings = {'stripe_subscription_id': 'sub_down'}
         db.session.commit()
@@ -297,7 +297,7 @@ class TestUpgradeDowngradeClassification:
         assert result['action'] == 'downgrade'
 
     def test_equal_price_is_upgrade(self, app, stripe_api_key, change_tenant, monkeypatch):
-        tenant, old_version = change_tenant
+        tenant, _old_version = change_tenant
         same_price = _make_package_version([('lab', 'lab.order')], price=100)
         tenant.settings = {'stripe_subscription_id': 'sub_same'}
         db.session.commit()
@@ -331,7 +331,7 @@ class TestIdempotency:
     def test_idempotency_key_present_on_modify(
         self, app, stripe_api_key, change_tenant, monkeypatch
     ):
-        tenant, old_version = change_tenant
+        tenant, _old_version = change_tenant
         new_version = _make_package_version([('lab', 'lab.order')], price=200)
         tenant.settings = {'stripe_subscription_id': 'sub_idem'}
         db.session.commit()

@@ -37,10 +37,7 @@ CORE_FORM_ROUTES: dict[str, set[str]] = {
 }
 
 # Sample screens + role dashboards for matrix rendering (Phase 1 & 2).
-CORE_RENDER_ROUTES: list[tuple[str, str | None]] = list(SCREEN_SAMPLES) + [
-    ('/super-admin/dashboard', 'super_admin'),
-    ('/reception/patients', 'reception'),
-]
+CORE_RENDER_ROUTES: list[tuple[str, str | None]] = [*list(SCREEN_SAMPLES), ('/super-admin/dashboard', 'super_admin'), ('/reception/patients', 'reception')]
 
 _SKIP_INPUT_TYPES = frozenset({'submit', 'button', 'reset', 'image'})
 _BAD_HREF_EXACT = frozenset({'', '#'})
@@ -156,7 +153,6 @@ def _render_core_pages(app, test_tenant, db, e2e_seed):
     """Yield (path, role, status_code, html_text) for each core route."""
     from app.core.tenant.models import Tenant
 
-    id_map = e2e_seed or {}
     tenant_id = test_tenant.id
     seen: set[str] = set()
     for path, role in CORE_RENDER_ROUTES:
@@ -317,7 +313,7 @@ class TestLinkCrawler:
 
     def test_no_bad_hrefs_on_core_pages(self, app, test_tenant, db, e2e_seed):
         offenders = []
-        for path, role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
+        for path, _role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
             if status != 200:
                 continue
             extractor = _LinkExtractor()
@@ -333,7 +329,7 @@ class TestLinkCrawler:
     def test_internal_links_resolve_on_core_pages(self, app, test_tenant, db, e2e_seed):
         failures = []
         checked: set[str] = set()
-        for path, role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
+        for path, _role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
             if status != 200:
                 continue
             extractor = _LinkExtractor()
@@ -360,7 +356,7 @@ class TestLinkCrawler:
 
     def test_no_legacy_sqlite_or_single_tenant_refs(self, app, test_tenant, db, e2e_seed):
         leaks = []
-        for path, role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
+        for path, _role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
             if status != 200:
                 continue
             for pat in _LEGACY_REF_PATTERNS:

@@ -72,7 +72,7 @@ class PlatformAssumptionService:
             .filter(
                 PlatformTenantAssumption.user_id == user_id,
                 PlatformTenantAssumption.assumed_tenant_id == tenant_id,
-                PlatformTenantAssumption.is_active == True,
+                PlatformTenantAssumption.is_active,
             )
             .filter(
                 db.or_(

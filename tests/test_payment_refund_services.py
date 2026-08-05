@@ -159,13 +159,13 @@ class TestCreatePayment:
         assert p1.id == p2.id
 
     def test_idempotency_distinct_keys_create_two(self, fx):
-        ok1, p1 = PS.create_payment(
+        _ok1, p1 = PS.create_payment(
             tenant_id=fx.tenant_id,
             operation_type='op',
             idempotency_key='k1-' + uuid.uuid4().hex[:6],
             amount=10,
         )
-        ok2, p2 = PS.create_payment(
+        _ok2, p2 = PS.create_payment(
             tenant_id=fx.tenant_id,
             operation_type='op',
             idempotency_key='k2-' + uuid.uuid4().hex[:6],
@@ -183,7 +183,7 @@ class TestCreatePayment:
     def test_confirmed_payment_allocates_to_invoice(self, fx):
         v = fx.visit()
         inv = fx.invoice(v.id, total=100, paid=0)
-        ok, pay = PS.create_payment(
+        ok, _pay = PS.create_payment(
             tenant_id=fx.tenant_id,
             operation_type='visit_payment',
             idempotency_key=None,
@@ -252,7 +252,7 @@ class TestRequestRefund:
 class TestApproveReject:
     def _pending(self, fx):
         pay = fx.payment(amount=100, status='CONFIRMED')
-        ok, req = RS.request_refund(
+        _ok, req = RS.request_refund(
             tenant_id=fx.tenant_id, payment_id=pay.id, amount=30, reason='r'
         )
         fx.db.session.flush()
@@ -287,7 +287,7 @@ class TestApproveReject:
         assert r.notes == 'invalid'
 
     def test_reject_not_found(self, fx):
-        ok, msg = RS.reject_refund(99999999, rejected_by=1)
+        ok, _msg = RS.reject_refund(99999999, rejected_by=1)
         assert ok is False
 
 
@@ -298,7 +298,7 @@ class TestExecuteRefund:
 
     def test_not_approved(self, fx):
         pay = fx.payment(amount=100, status='CONFIRMED')
-        ok, req = RS.request_refund(
+        _ok, req = RS.request_refund(
             tenant_id=fx.tenant_id, payment_id=pay.id, amount=10, reason='r'
         )
         fx.db.session.flush()
@@ -311,7 +311,7 @@ class TestExecuteRefund:
         inv = fx.invoice(v.id, total=100, paid=100, status='PAID')
         pay = fx.payment(amount=100, status='CONFIRMED', visit_id=v.id)
         rec = fx.receipt(pay, v)
-        ok, req = RS.request_refund(
+        _ok, req = RS.request_refund(
             tenant_id=fx.tenant_id, payment_id=pay.id, amount=100, reason='full refund'
         )
         fx.db.session.flush()

@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import os
 import random
@@ -23,8 +24,7 @@ class SMSService:
         if not phone or not message:
             return {'success': False, 'message': 'رقم الهاتف أو النص فارغ'}
         provider = get_sms_provider(tenant=tenant)
-        result = circuit_breaker_call('sms_service', provider.send, phone, message)
-        return result
+        return circuit_breaker_call('sms_service', provider.send, phone, message)
 
     @staticmethod
     def send_appointment_reminder(
@@ -160,10 +160,8 @@ class SMSService:
     def _clear_stored_otp_code(phone: str) -> None:
         redis = _get_redis()
         if redis:
-            try:
+            with contextlib.suppress(Exception):
                 redis.delete(f'otp_code:{phone}')
-            except Exception:
-                pass
         with _otp_lock:
             _otp_codes.pop(phone, None)
 
@@ -204,10 +202,8 @@ class SMSService:
     def _clear_otp_failure_data(phone: str) -> None:
         redis = _get_redis()
         if redis:
-            try:
+            with contextlib.suppress(Exception):
                 redis.delete(f'otp_failure:{phone}')
-            except Exception:
-                pass
         with _otp_lock:
             _otp_failure_counts.pop(phone, None)
 

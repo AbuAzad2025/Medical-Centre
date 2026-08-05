@@ -124,7 +124,7 @@ def api_icd10_search():
             select(ICD10Code)
             .filter(
                 db.or_(ICD10Code.code.ilike(f'%{q}%'), ICD10Code.description.ilike(f'%{q}%')),
-                ICD10Code.is_active == True,
+                ICD10Code.is_active,
             )
             .limit(20)
         )
@@ -148,7 +148,7 @@ def api_cpt_search():
             select(CPTCode)
             .filter(
                 db.or_(CPTCode.code.ilike(f'%{q}%'), CPTCode.description.ilike(f'%{q}%')),
-                CPTCode.is_active == True,
+                CPTCode.is_active,
             )
             .limit(20)
         )

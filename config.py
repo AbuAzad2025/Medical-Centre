@@ -2,12 +2,11 @@
 إعدادات النظام - Configuration (PostgreSQL Only)
 """
 
-import os
-import re
 import logging
 import logging.config
+import os
+import re
 from datetime import timedelta
-
 
 # ============================================================
 # PII Redaction & Structured Logging
@@ -314,7 +313,7 @@ class TestingConfig(Config):
         from dotenv import load_dotenv
 
         load_dotenv()
-    except Exception as e:
+    except Exception:
         pass
     SQLALCHEMY_DATABASE_URI = (
         os.environ.get('TEST_DATABASE_URL')

@@ -66,15 +66,15 @@ def _seed_package_version():
 
 
 def _signup_kwargs(version_id, slug):
-    return dict(
-        slug=slug,
-        name='Test Clinic',
-        contact_email=f'{slug}@example.com',
-        admin_username=f'admin_{slug}',
-        admin_password='securepass1',
-        admin_full_name='Admin',
-        package_version_id=version_id,
-    )
+    return {
+        'slug': slug,
+        'name': 'Test Clinic',
+        'contact_email': f'{slug}@example.com',
+        'admin_username': f'admin_{slug}',
+        'admin_password': 'securepass1',
+        'admin_full_name': 'Admin',
+        'package_version_id': version_id,
+    }
 
 
 class TestSignupHoneypot:

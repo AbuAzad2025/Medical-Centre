@@ -259,7 +259,7 @@ def get_ai_insights():
 
         from models.ai_analytics import AIRecommendation
 
-        insights = {
+        return {
             'total_recommendations': db.session.execute(
                 select(func.count()).select_from(AIRecommendation)
             ).scalar(),
@@ -271,7 +271,7 @@ def get_ai_insights():
             'accepted_recommendations': db.session.execute(
                 select(func.count())
                 .select_from(AIRecommendation)
-                .filter(AIRecommendation.is_accepted == True)
+                .filter(AIRecommendation.is_accepted)
             ).scalar(),
             'high_confidence_recommendations': db.session.execute(
                 select(func.count())
@@ -285,7 +285,6 @@ def get_ai_insights():
             ).scalar(),
         }
 
-        return insights
     except Exception as e:
         logging.exception(f'Error getting AI insights: {e!s}')
         return {}
@@ -370,7 +369,7 @@ def get_predictive_analytics():
 
         # تحليل النمو
         week_ago = datetime.now() - timedelta(days=7)
-        month_ago = datetime.now() - timedelta(days=30)
+        datetime.now() - timedelta(days=30)
 
         patients_this_week = db.session.execute(
             select(func.count()).select_from(Patient).filter(Patient.created_at >= week_ago)
@@ -620,7 +619,6 @@ def get_user_behavior_analysis():
 
         from models.user import User
 
-        analysis = {}
 
         # المستخدمون النشطون
         active_users = db.session.execute(

@@ -385,7 +385,7 @@ def tenant_filter_query(query):
                 if 'datetime' in col_type or 'timestamp' in col_type or 'date' in col_type:
                     query = query.filter(soft_col.is_(None))
                 elif 'boolean' in col_type or 'bool' in col_type:
-                    query = query.filter(soft_col == False)
+                    query = query.filter(not soft_col)
                 else:
                     query = query.filter(soft_col.is_(None))
 
@@ -475,7 +475,7 @@ def tenant_filter_select(orm_execute_state):
                 if 'datetime' in col_type or 'timestamp' in col_type or 'date' in col_type:
                     statement = statement.filter(soft_col.is_(None))
                 elif 'boolean' in col_type or 'bool' in col_type:
-                    statement = statement.filter(soft_col == False)
+                    statement = statement.filter(not soft_col)
                 else:
                     statement = statement.filter(soft_col.is_(None))
                 modified = True

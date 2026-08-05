@@ -17,7 +17,7 @@ class TestPiiRedaction:
 
     def make_record(self, msg):
         """Create a log record with the given message."""
-        record = logging.LogRecord(
+        return logging.LogRecord(
             name='test.logger',
             level=logging.INFO,
             pathname=__file__,
@@ -26,7 +26,6 @@ class TestPiiRedaction:
             args=(),
             exc_info=None,
         )
-        return record
 
     def test_ssn_redacted(self):
         """US SSN pattern is redacted."""

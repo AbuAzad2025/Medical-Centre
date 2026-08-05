@@ -38,7 +38,7 @@ class CurrencyConverter:
                 .filter(
                     ExchangeRate.from_currency == from_currency,
                     ExchangeRate.to_currency == to_currency,
-                    ExchangeRate.is_active == True,
+                    ExchangeRate.is_active,
                     ExchangeRate.source == 'MANUAL',
                 )
                 .order_by(ExchangeRate.effective_date.desc())
@@ -58,7 +58,7 @@ class CurrencyConverter:
                 .filter(
                     ExchangeRate.from_currency == from_currency,
                     ExchangeRate.to_currency == to_currency,
-                    ExchangeRate.is_active == True,
+                    ExchangeRate.is_active,
                     ExchangeRate.source == 'API',
                     ExchangeRate.effective_date >= (datetime.now(UTC) - timedelta(hours=24)),
                 )
@@ -79,7 +79,7 @@ class CurrencyConverter:
                 .filter(
                     ExchangeRate.from_currency == to_currency,
                     ExchangeRate.to_currency == from_currency,
-                    ExchangeRate.is_active == True,
+                    ExchangeRate.is_active,
                 )
                 .order_by(ExchangeRate.effective_date.desc())
             )
@@ -130,7 +130,7 @@ class CurrencyConverter:
         from sqlalchemy import update
 
         db.session.execute(
-            update(ExchangeRate).where(ExchangeRate.is_active == True).values(is_active=False)
+            update(ExchangeRate).where(ExchangeRate.is_active).values(is_active=False)
         )
         db.session.add(rate)
         safe_commit(db.session, error_message='Failed to save manual rate', reraise=True)
@@ -176,7 +176,7 @@ class CurrencyConverter:
         rates = (
             db.session.execute(
                 select(ExchangeRate)
-                .filter(ExchangeRate.is_active == True)
+                .filter(ExchangeRate.is_active)
                 .order_by(
                     ExchangeRate.from_currency,
                     ExchangeRate.to_currency,

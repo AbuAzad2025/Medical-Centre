@@ -235,7 +235,7 @@ class AccessControlService:
                 return []
 
             # المدير والمدير العام والاستقبال يمكنهم رؤية جميع الزيارات
-            if user.is_admin_user() or user.role == 'reception' or user.role == 'manager':
+            if user.is_admin_user() or user.role in {'reception', 'manager'}:
                 return db.session.execute(select(Visit)).scalars().all()
 
             # الأطباء يمكنهم عرض جميع الزيارات دون تعديل
@@ -245,13 +245,13 @@ class AccessControlService:
             # المختبر والأشعة يرون الزيارات الموجهة لهم
             if user.role == 'lab':
                 return (
-                    db.session.execute(select(Visit).filter(Visit.lab_tests_ordered == True))
+                    db.session.execute(select(Visit).filter(Visit.lab_tests_ordered))
                     .scalars()
                     .all()
                 )
             if user.role == 'radiology':
                 return (
-                    db.session.execute(select(Visit).filter(Visit.radiology_ordered == True))
+                    db.session.execute(select(Visit).filter(Visit.radiology_ordered))
                     .scalars()
                     .all()
                 )
@@ -259,7 +259,7 @@ class AccessControlService:
             # الطوارئ يرون حالات الطوارئ
             if user.role == 'emergency':
                 return (
-                    db.session.execute(select(Visit).filter(Visit.is_emergency == True))
+                    db.session.execute(select(Visit).filter(Visit.is_emergency))
                     .scalars()
                     .all()
                 )
@@ -290,7 +290,7 @@ class AccessControlService:
                 return []
 
             # المدير والمدير العام والاستقبال يمكنهم رؤية جميع المرضى
-            if user.is_admin_user() or user.role == 'reception' or user.role == 'manager':
+            if user.is_admin_user() or user.role in {'reception', 'manager'}:
                 return db.session.execute(select(Patient)).scalars().all()
 
             # الأطباء يمكنهم عرض جميع المرضى دون تعديل
@@ -308,7 +308,7 @@ class AccessControlService:
                     db.session.execute(
                         select(Patient)
                         .join(Visit, Visit.patient_id == Patient.id)
-                        .filter(Visit.lab_tests_ordered == True)
+                        .filter(Visit.lab_tests_ordered)
                         .distinct()
                     )
                     .scalars()
@@ -319,7 +319,7 @@ class AccessControlService:
                     db.session.execute(
                         select(Patient)
                         .join(Visit, Visit.patient_id == Patient.id)
-                        .filter(Visit.radiology_ordered == True)
+                        .filter(Visit.radiology_ordered)
                         .distinct()
                     )
                     .scalars()
@@ -547,7 +547,7 @@ class AccessControlService:
 
                 role = (
                     db.session.execute(
-                        select(Role).where(Role.name == user.role, Role.is_active == True)
+                        select(Role).where(Role.name == user.role, Role.is_active)
                     )
                     .scalars()
                     .first()
@@ -570,7 +570,7 @@ class AccessControlService:
                             select(DepartmentPermission).where(
                                 DepartmentPermission.role_id == role.id,
                                 DepartmentPermission.department_id.isnot(None),
-                                DepartmentPermission.can_access == True,
+                                DepartmentPermission.can_access,
                             )
                         )
                         .scalars()
@@ -593,7 +593,7 @@ class AccessControlService:
                     db.session.execute(
                         select(UserDepartmentAccess).where(
                             UserDepartmentAccess.user_id == user.id,
-                            UserDepartmentAccess.can_access == True,
+                            UserDepartmentAccess.can_access,
                         )
                     )
                     .scalars()

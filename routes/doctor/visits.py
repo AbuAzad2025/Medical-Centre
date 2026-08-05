@@ -283,7 +283,7 @@ def _get_visit_lab_data(visit_id):
                 .select_from(LabResult)
                 .filter(
                     LabResult.request_id.in_(req_ids),
-                    LabResult.is_critical == True,
+                    LabResult.is_critical,
                     LabResult.status == LabResultStatus.VALIDATED,
                 )
             ).scalar()
@@ -315,7 +315,7 @@ def _get_visit_radiology_data(visit_id):
                 .select_from(RadiologyResult)
                 .filter(
                     RadiologyResult.request_id.in_(req_ids),
-                    RadiologyResult.is_critical == True,
+                    RadiologyResult.is_critical,
                     RadiologyResult.status == LabResultStatus.VALIDATED,
                 )
             ).scalar()
@@ -413,7 +413,7 @@ def patient_details(visit_id):
                     .select_from(LabResult)
                     .filter(
                         LabResult.request_id.in_(req_ids),
-                        LabResult.is_critical == True,
+                        LabResult.is_critical,
                         LabResult.status == LabResultStatus.VALIDATED,
                     )
                 ).scalar()
@@ -444,7 +444,7 @@ def patient_details(visit_id):
                     .select_from(RadiologyResult)
                     .filter(
                         RadiologyResult.request_id.in_(req_ids),
-                        RadiologyResult.is_critical == True,
+                        RadiologyResult.is_critical,
                         RadiologyResult.status == LabResultStatus.VALIDATED,
                     )
                 ).scalar()

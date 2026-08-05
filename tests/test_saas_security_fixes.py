@@ -69,7 +69,7 @@ class TestTrialTenantLogin:
 
         version = _seed_trial_package()
         slug = f'trial-login-{uuid.uuid4().hex[:8]}'
-        tenant, admin = SaasRegistrationService.register_organization(
+        tenant, _admin = SaasRegistrationService.register_organization(
             slug=slug,
             name='Trial Clinic',
             contact_email=f'{slug}@test.local',

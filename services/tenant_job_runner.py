@@ -7,6 +7,7 @@ All background workers must process one tenant at a time and enforce
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import logging
 from collections.abc import Callable
@@ -89,15 +90,11 @@ def with_tenant_context(app: Flask, tenant_id: int, job: Callable[[], T]) -> T |
         try:
             return job()
         finally:
-            try:
+            with contextlib.suppress(Exception):
                 _ext_db.session.info.pop('_tenant_id', None)
-            except Exception:
-                pass
             for key in ('tenant_id', 'current_tenant', 'tenant_slug', '_tenant_filter_bypass'):
-                try:
+                with contextlib.suppress(Exception):
                     g.pop(key, None)
-                except Exception:
-                    pass
 
     if has_app_context():
         return _run_scoped()

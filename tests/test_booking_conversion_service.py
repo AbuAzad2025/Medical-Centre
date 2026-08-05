@@ -72,17 +72,17 @@ def fx(app, rollback_db, test_tenant):
 
     def booking(**kw):
         d = dept()
-        params = dict(
-            booking_reference='BK-' + uuid.uuid4().hex[:8],
-            first_name='حجز',
-            last_name='اختبار',
-            phone='05' + f'{uuid.uuid4().int % 10**8:08d}',
-            appointment_date=date.today(),
-            appointment_time=time(10, 30),
-            department_id=d.id,
-            status=BookingState.PENDING,
-            tenant_id=test_tenant.id,
-        )
+        params = {
+            'booking_reference': 'BK-' + uuid.uuid4().hex[:8],
+            'first_name': 'حجز',
+            'last_name': 'اختبار',
+            'phone': '05' + f'{uuid.uuid4().int % 10**8:08d}',
+            'appointment_date': date.today(),
+            'appointment_time': time(10, 30),
+            'department_id': d.id,
+            'status': BookingState.PENDING,
+            'tenant_id': test_tenant.id,
+        }
         params.update(kw)
         b = OnlineBooking(**params)
         db.session.add(b)

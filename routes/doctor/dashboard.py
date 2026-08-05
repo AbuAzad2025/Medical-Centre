@@ -283,7 +283,7 @@ def dashboard_for_doctor(doctor_id):
                         .filter(
                             DoctorPricing.doctor_id == v.doctor_id,
                             DoctorPricing.department_id == v.department_id,
-                            DoctorPricing.is_active == True,
+                            DoctorPricing.is_active,
                         )
                         .order_by(DoctorPricing.effective_from.desc())
                     )

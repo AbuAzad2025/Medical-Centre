@@ -113,8 +113,8 @@ def change_plan():
         db.session.execute(
             select(PackageVersion)
             .join(PackageVersion.package)
-            .filter(Package.is_active == True)
-            .filter(PackageVersion.is_deprecated == False)
+            .filter(Package.is_active)
+            .filter(not PackageVersion.is_deprecated)
             .order_by(Package.name, PackageVersion.version)
         )
         .scalars()

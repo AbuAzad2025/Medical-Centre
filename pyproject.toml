@@ -74,6 +74,7 @@ ignore = [
     "RUF013",  # implicit Optional
     "RUF015",  # unnecessary iterable allocation
     "RUF100",  # unused noqa comment
+    "PLC0415", # import outside top level (circular import avoidance in Flask/SQLAlchemy)
 ]
 
 [tool.ruff.lint.per-file-ignores]

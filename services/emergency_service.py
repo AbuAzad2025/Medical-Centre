@@ -113,7 +113,7 @@ class EmergencyService:
 
         from models.emergency import EmergencyCase
 
-        today_start = datetime.combine(date.today(), datetime.min.time())
+        datetime.combine(date.today(), datetime.min.time())
         active = ['WAITING', 'TRIAGE', 'TREATMENT', 'IN_PROGRESS', 'OBSERVATION', 'RESUSCITATION']
 
         def _count(severity):

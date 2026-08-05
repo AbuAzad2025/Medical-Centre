@@ -79,16 +79,16 @@ class MedicalEntityMixin:
 
     # العلاقات الأساسية
     @declared_attr
-    def patient(cls):
+    def patient(self):
         return db.relationship('Patient', lazy='selectin')
 
     @declared_attr
-    def visit(cls):
+    def visit(self):
         return db.relationship('Visit', lazy='selectin')
 
     @declared_attr
-    def doctor(cls):
-        return db.relationship('User', foreign_keys=[cls.doctor_id], lazy='selectin')
+    def doctor(self):
+        return db.relationship('User', foreign_keys=[self.doctor_id], lazy='selectin')
 
 
 class AuditBase(BaseModelMixin):

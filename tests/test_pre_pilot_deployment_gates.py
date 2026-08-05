@@ -177,7 +177,7 @@ class TestPhase2ClinicalSafety:
         svc = PasswordPolicyService()
         with patch('services.password_policy_service.requests.get') as mock_get:
             # Simulate HIBP response with matching suffix
-            sha1_prefix = hashlib.sha1(b'password123').hexdigest().upper()[:5]
+            hashlib.sha1(b'password123').hexdigest().upper()[:5]
             sha1_suffix = hashlib.sha1(b'password123').hexdigest().upper()[5:]
             mock_get.return_value = MagicMock(
                 status_code=200,
@@ -272,7 +272,7 @@ class TestPhase3Resilience:
 
             mock_req.side_effect = [Timeout('timed out'), Timeout('timed out'), MagicMock()]
             with patch('utils.safe_requests.time.sleep', return_value=None):
-                resp = safe_request(
+                safe_request(
                     'GET', 'http://example.com', timeout=(1, 2), retries=2, retry_backoff=0
                 )
             assert mock_req.call_count == 3
@@ -398,13 +398,12 @@ class TestPhase4Security:
         # Patch db.session.execute to simulate failure
         with patch.object(
             app.extensions['sqlalchemy'].db.session, 'execute', side_effect=Exception('DB down')
-        ):
-            with app.test_client() as client:
-                # Note: health check runs the real code, but we can't easily patch
-                # the db.session inside the app context from here without more invasive
-                # patching. Instead we verify the endpoint exists.
-                resp = client.get('/__health')
-                assert resp.status_code in (200, 503)
+        ), app.test_client() as client:
+            # Note: health check runs the real code, but we can't easily patch
+            # the db.session inside the app context from here without more invasive
+            # patching. Instead we verify the endpoint exists.
+            resp = client.get('/__health')
+            assert resp.status_code in (200, 503)
 
     def test_auth_login_rate_limit_decorator_present(self):
         import inspect

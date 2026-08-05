@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from datetime import datetime
 from typing import Any
 
@@ -398,10 +399,8 @@ def resolve_print_context(doc_type: str, branding=None) -> dict[str, Any]:
     if has_request_context():
         if request.headers.get('X-Impersonate-Tenant-Id'):
             is_ghost_mode = True
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 ghost_target_tenant = int(request.headers.get('X-Impersonate-Tenant-Id'))
-            except (ValueError, TypeError):
-                pass
         elif getattr(g, 'ghost_mode', False):
             is_ghost_mode = True
             ghost_target_tenant = getattr(g, 'ghost_tenant_id', None)

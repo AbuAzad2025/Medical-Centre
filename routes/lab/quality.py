@@ -94,7 +94,7 @@ def quality():
                 LabRequest.completed_at >= start_dt,
                 LabRequest.completed_at <= end_dt,
                 LabResult.status == LabResultStatus.VALIDATED,
-                LabResult.is_critical == True,
+                LabResult.is_critical,
             )
         ).scalar()
         or 0

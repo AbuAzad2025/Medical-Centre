@@ -201,7 +201,7 @@ def edit_emergency_case(id):
                 request.form.get('treatment_given') or emergency.treatment_plan
             )
             emergency.notes = request.form.get('notes') or emergency.notes
-            follow_up_required = True if request.form.get('follow_up_required') else False
+            follow_up_required = bool(request.form.get('follow_up_required'))
             emergency.follow_up_required = (
                 follow_up_required
                 if hasattr(emergency, 'follow_up_required')

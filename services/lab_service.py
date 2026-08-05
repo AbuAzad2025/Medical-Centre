@@ -89,7 +89,7 @@ class LabService:
         catalog_items = (
             db.session.execute(
                 select(LabTestCatalog).filter(
-                    LabTestCatalog.id.in_(test_ids), LabTestCatalog.is_active == True
+                    LabTestCatalog.id.in_(test_ids), LabTestCatalog.is_active
                 )
             )
             .scalars()
@@ -278,7 +278,7 @@ class LabService:
                     )
                     db.session.add(result)
                     db.session.flush()
-                created_ids.append(result.id if not result_id else result_id)
+                created_ids.append(result_id if result_id else result.id)
             except Exception as e:
                 errors.append(f'Row {i}: {e!s}')
         return created_ids, errors
@@ -510,7 +510,7 @@ class LabService:
     def get_active_catalog(tenant_id: int | None = None) -> list:
         from models.lab_test_catalog import LabTestCatalog
 
-        q = select(LabTestCatalog).filter(LabTestCatalog.is_active == True)
+        q = select(LabTestCatalog).filter(LabTestCatalog.is_active)
         if tenant_id:
             q = q.filter(LabTestCatalog.tenant_id == tenant_id)
         return (

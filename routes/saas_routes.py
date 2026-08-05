@@ -28,7 +28,7 @@ def _available_package_versions():
             .join(Package)
             .join(PackageVersionAvailability)
             .filter(
-                Package.is_active == True,
+                Package.is_active,
                 PackageVersionAvailability.availability_status
                 == PackageVersionAvailabilityStatus.AVAILABLE,
             )
@@ -51,19 +51,19 @@ def _registration_kwargs(data, *, from_form: bool = False):
     captcha = data.get('captcha_token')
     if from_form and not captcha:
         captcha = data.get('cf-turnstile-response')
-    return dict(
-        slug=data.get('slug', ''),
-        name=data.get('name', ''),
-        contact_email=data.get('contact_email', ''),
-        admin_username=data.get('admin_username', ''),
-        admin_password=data.get('admin_password', ''),
-        admin_full_name=data.get('admin_full_name', data.get('name', '')),
-        billing_type=(data.get('billing_type') or 'monthly').strip().lower(),
-        product_profile_code=(data.get('product_profile_code') or '').strip() or None,
-        honeypot=data.get('company_website'),
-        captcha_token=captcha,
-        client_ip=request.remote_addr,
-    )
+    return {
+        'slug': data.get('slug', ''),
+        'name': data.get('name', ''),
+        'contact_email': data.get('contact_email', ''),
+        'admin_username': data.get('admin_username', ''),
+        'admin_password': data.get('admin_password', ''),
+        'admin_full_name': data.get('admin_full_name', data.get('name', '')),
+        'billing_type': (data.get('billing_type') or 'monthly').strip().lower(),
+        'product_profile_code': (data.get('product_profile_code') or '').strip() or None,
+        'honeypot': data.get('company_website'),
+        'captcha_token': captcha,
+        'client_ip': request.remote_addr,
+    }
 
 
 @saas_bp.route('/saas/signup', methods=['GET', 'POST'])

@@ -45,7 +45,7 @@ if __name__ == '__main__':
     else:
         scan_dirs = ['services', 'routes', 'app', 'models', 'utils']
         for d in scan_dirs:
-            for root, dirs, files in os.walk(d):
+            for root, _dirs, files in os.walk(d):
                 for f in files:
                     if f.endswith('.py'):
                         fix_file(os.path.join(root, f))

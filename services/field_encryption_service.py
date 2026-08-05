@@ -68,10 +68,7 @@ class FieldEncryptionService:
         """
         if plaintext is None or plaintext == '':
             return plaintext
-        if isinstance(plaintext, str):
-            data = plaintext.encode('utf-8')
-        else:
-            data = plaintext
+        data = plaintext.encode('utf-8') if isinstance(plaintext, str) else plaintext
         # Already encrypted? Return as-is to avoid double-encryption
         if data.startswith(self.LEGACY_PREFIX) or data.startswith(self.GCM_PREFIX):
             return data.decode('utf-8', errors='replace')
@@ -79,7 +76,7 @@ class FieldEncryptionService:
             token = self._fernet.encrypt(data)
             return (self.LEGACY_PREFIX + token).decode('utf-8')
         except Exception as exc:
-            logger.error('Field encryption failed: %s', exc)
+            logger.exception('Field encryption failed: %s', exc)
             raise
 
     def decrypt(self, ciphertext: str | bytes | None) -> str | None:
@@ -89,10 +86,7 @@ class FieldEncryptionService:
         """
         if ciphertext is None or ciphertext == '':
             return ciphertext
-        if isinstance(ciphertext, str):
-            data = ciphertext.encode('utf-8')
-        else:
-            data = ciphertext
+        data = ciphertext.encode('utf-8') if isinstance(ciphertext, str) else ciphertext
         # Legacy plain-text — return as-is (backward compatible)
         if not data.startswith(self.LEGACY_PREFIX) and not data.startswith(self.GCM_PREFIX):
             return (
@@ -112,17 +106,14 @@ class FieldEncryptionService:
             pt = self._fernet.decrypt(token)
             return pt.decode('utf-8')
         except Exception as exc:
-            logger.error('Field decryption failed: %s', exc)
+            logger.exception('Field decryption failed: %s', exc)
             raise
 
     def encrypt_large(self, plaintext: str | bytes | None) -> str | None:
         """AES-256-GCM for large payloads (>1KB or binary data)."""
         if plaintext is None or plaintext == '':
             return plaintext
-        if isinstance(plaintext, str):
-            data = plaintext.encode('utf-8')
-        else:
-            data = plaintext
+        data = plaintext.encode('utf-8') if isinstance(plaintext, str) else plaintext
         if data.startswith(self.LEGACY_PREFIX) or data.startswith(self.GCM_PREFIX):
             return data.decode('utf-8', errors='replace')
         try:
@@ -132,7 +123,7 @@ class FieldEncryptionService:
             payload = base64.urlsafe_b64encode(nonce + ct).decode('utf-8')
             return f'{self.GCM_PREFIX.decode("utf-8")}{payload}'
         except Exception as exc:
-            logger.error('Large field encryption failed: %s', exc)
+            logger.exception('Large field encryption failed: %s', exc)
             raise
 
     def is_encrypted(self, value: str | bytes | None) -> bool:

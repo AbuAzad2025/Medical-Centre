@@ -131,7 +131,7 @@ class RateLimiter:
                 self._redis = None
                 self._fallback_count += 1
                 if self._fallback_count > 5:
-                    logger.error('Rate limiter: Too many Redis failures, disabling Redis')
+                    logger.exception('Rate limiter: Too many Redis failures, disabling Redis')
                     self.use_redis = False
 
         # In-memory fallback (thread-safe)

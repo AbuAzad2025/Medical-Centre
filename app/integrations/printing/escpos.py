@@ -50,5 +50,5 @@ class ThermalPrinter:
                 ser.write(data)
             return True
         except Exception as e:
-            logger.error(f'Thermal printer error: {e}')
+            logger.exception(f'Thermal printer error: {e}')
             return False

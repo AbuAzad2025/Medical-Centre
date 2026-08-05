@@ -91,7 +91,7 @@ class TestArchiveGatekeeperLockdown:
             from flask import g
 
             g.tenant_id = tenant_id
-            can, msg = GatekeeperService.can_archive_visit(v.id, 1)
+            can, _msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is True
 
 
@@ -398,7 +398,7 @@ class TestTicket1ArchiveSettlementLockdown:
             from flask import g
 
             g.tenant_id = tenant_id
-            can, msg = GatekeeperService.can_archive_visit(v.id, 1)
+            can, _msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is False
 
     def test_fully_paid_reconciled_visit_can_archive(self, app, test_tenant):
@@ -424,7 +424,7 @@ class TestTicket1ArchiveSettlementLockdown:
             from flask import g
 
             g.tenant_id = tenant_id
-            can, msg = GatekeeperService.can_archive_visit(v.id, 1)
+            can, _msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is True
 
     def test_reception_can_archive_service(self, app, test_tenant):
@@ -464,7 +464,7 @@ class TestTicket1ArchiveSettlementLockdown:
             from flask import g
 
             g.tenant_id = tenant_id
-            ok, msg = GatekeeperService.archive_visit(v.id, rec.id)
+            ok, _msg = GatekeeperService.archive_visit(v.id, rec.id)
         assert ok is True
 
     def test_manager_cannot_archive_service(self, app, test_tenant):
@@ -545,7 +545,7 @@ class TestTicket1ArchiveSettlementLockdown:
             from flask import g
 
             g.tenant_id = tenant_id
-            ok, msg = GatekeeperService.archive_visit(v.id, acc.id)
+            ok, _msg = GatekeeperService.archive_visit(v.id, acc.id)
         assert ok is False
 
     def test_finance_archive_route_returns_403(self, app, test_tenant, client, login_as):
@@ -600,7 +600,7 @@ class TestCore1ArchiveBlocksUnpaid:
             from flask import g
 
             g.tenant_id = tenant_id
-            can, msg = GatekeeperService.can_archive_visit(v.id, 1)
+            can, _msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is True
 
     def test_unpaid_completed_cannot_archive(self, app, test_tenant):
@@ -626,7 +626,7 @@ class TestCore1ArchiveBlocksUnpaid:
             from flask import g
 
             g.tenant_id = tenant_id
-            can, msg = GatekeeperService.can_archive_visit(v.id, 1)
+            can, _msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is False
 
     def test_partially_paid_completed_cannot_archive(self, app, test_tenant):
@@ -652,7 +652,7 @@ class TestCore1ArchiveBlocksUnpaid:
             from flask import g
 
             g.tenant_id = tenant_id
-            can, msg = GatekeeperService.can_archive_visit(v.id, 1)
+            can, _msg = GatekeeperService.can_archive_visit(v.id, 1)
         assert can is False
 
     def test_reconciled_lines_with_outstanding_blocked(self, app, test_tenant):

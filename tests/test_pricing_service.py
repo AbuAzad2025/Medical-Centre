@@ -70,15 +70,15 @@ class TestNormalizeAliases:
 
 class TestGetServicePrice:
     def _mk(self, db, **kw):
-        defaults = dict(
-            service_name='ZZ_SVC_UNIQUE',
-            service_type='lab_test',
-            base_price=10,
-            cash_price=20,
-            insurance_price=15,
-            vip_price=40,
-            is_active=True,
-        )
+        defaults = {
+            'service_name': 'ZZ_SVC_UNIQUE',
+            'service_type': 'lab_test',
+            'base_price': 10,
+            'cash_price': 20,
+            'insurance_price': 15,
+            'vip_price': 40,
+            'is_active': True,
+        }
         defaults.update(kw)
         sp = ServicePrice(**defaults)
         db.session.add(sp)
@@ -450,7 +450,7 @@ class TestSeeders:
         # needs an admin/manager user present
         if not db.session.execute(
             select(User).filter(
-                User.role.in_(['admin', 'manager', 'super_admin']), User.is_active == True
+                User.role.in_(['admin', 'manager', 'super_admin']), User.is_active
             )
         ).scalar():
             u = User(
@@ -470,7 +470,7 @@ class TestSeeders:
         # ensure an admin exists so catalog seeding succeeds
         if not db.session.execute(
             select(User).filter(
-                User.role.in_(['admin', 'manager', 'super_admin']), User.is_active == True
+                User.role.in_(['admin', 'manager', 'super_admin']), User.is_active
             )
         ).scalar():
             u = User(

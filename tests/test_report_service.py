@@ -50,17 +50,17 @@ def seed(rollback_db):
     db.session.commit()
 
     def visit(**kw):
-        params = dict(
-            patient_id=pat.id,
-            doctor_id=doc.id,
-            department_id=dept.id,
-            visit_date=today,
-            created_at=now,
-            status=VisitState.COMPLETED,
-            visit_type='REGULAR',
-            total_amount=200,
-            paid_amount=200,
-        )
+        params = {
+            'patient_id': pat.id,
+            'doctor_id': doc.id,
+            'department_id': dept.id,
+            'visit_date': today,
+            'created_at': now,
+            'status': VisitState.COMPLETED,
+            'visit_type': 'REGULAR',
+            'total_amount': 200,
+            'paid_amount': 200,
+        }
         params.update(kw)
         v = Visit(**params)
         db.session.add(v)

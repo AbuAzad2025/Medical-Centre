@@ -86,7 +86,6 @@ class TestManagerApprovalTenantSafety:
     def test_manager_approve_cross_tenant_denied(self, app, test_tenant, client, login_as):
         from app.core.tenant.models import Tenant
 
-        tenant_id = test_tenant.id
         other = Tenant(
             name='Other',
             slug=f'other-mgr-{__import__("uuid").uuid4().hex[:8]}',
@@ -128,7 +127,6 @@ class TestManagerApprovalTenantSafety:
     def test_manager_reject_cross_tenant_denied(self, app, test_tenant, client, login_as):
         from app.core.tenant.models import Tenant
 
-        tenant_id = test_tenant.id
         other = Tenant(
             name='Other',
             slug=f'other-mgr2-{__import__("uuid").uuid4().hex[:8]}',

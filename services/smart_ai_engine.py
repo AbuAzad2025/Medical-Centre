@@ -87,7 +87,7 @@ class SmartAIEngine:
 
             # استخراج النية والكيانات
             intents = self._extract_intent(message)
-            entities = self._extract_entities(message)
+            self._extract_entities(message)
 
             # معالجة الأسئلة المعقدة باستخدام NLP
             # مثال: "حلل أخطاء المستخدمين"
@@ -188,18 +188,14 @@ class SmartAIEngine:
                 # تنفيذ العملية
                 if operator in ['+', 'plus']:
                     result = num1 + num2
-                    op_ar = 'جمع'
                 elif operator in ['-', 'minus']:
                     result = num1 - num2
-                    op_ar = 'طرح'
                 elif operator in ['*', '×', 'multiply']:
                     result = num1 * num2
-                    op_ar = 'ضرب'
                 elif operator in ['/', '÷', 'divide']:
                     if num2 == 0:
                         return {'response': '❌ خطأ: لا يمكن القسمة على صفر!', 'actions': []}
                     result = num1 / num2
-                    op_ar = 'قسمة'
                 else:
                     return {'response': '❌ عملية حسابية غير مدعومة', 'actions': []}
 
@@ -920,24 +916,24 @@ class SmartAIEngine:
         total_users = db.session.execute(select(func.count()).select_from(User)).scalar()
         inactive_users = db.session.execute(select(User).filter_by(is_active=False)).scalars().all()
         users_without_email = (
-            db.session.execute(select(User).filter((User.email == None) | (User.email == '')))
+            db.session.execute(select(User).filter((User.email is None) | (User.email == '')))
             .scalars()
             .all()
         )
         users_without_phone = (
-            db.session.execute(select(User).filter((User.phone == None) | (User.phone == '')))
+            db.session.execute(select(User).filter((User.phone is None) | (User.phone == '')))
             .scalars()
             .all()
         )
 
         # المستخدمين الذين لم يسجلوا دخول أبداً
         users_never_logged_in = (
-            db.session.execute(select(User).filter(User.last_login == None)).scalars().all()
+            db.session.execute(select(User).filter(User.last_login is None)).scalars().all()
         )
 
         # المستخدمين بدون أدوار أو صلاحيات
         users_without_role = (
-            db.session.execute(select(User).filter((User.role == None) | (User.role == '')))
+            db.session.execute(select(User).filter((User.role is None) | (User.role == '')))
             .scalars()
             .all()
         )
@@ -945,7 +941,7 @@ class SmartAIEngine:
         # الأطباء بدون قسم
         doctors_without_dept = (
             db.session.execute(
-                select(User).filter(User.role == 'doctor', User.department_id == None)
+                select(User).filter(User.role == 'doctor', User.department_id is None)
             )
             .scalars()
             .all()

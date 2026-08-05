@@ -253,7 +253,7 @@ def dashboard():
                 )[:10]
         except Exception as e:
             logging.warning(f'Error in {__name__}: {e}')
-        stats = {
+        {
             'today_payments': len(today_payments),
             'today_total': float(today_total),
             'monthly_revenue': float(month_total),

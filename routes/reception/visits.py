@@ -260,7 +260,7 @@ def _process_custom_services(custom_names, custom_prices, department_id, current
     category = (
         'lab' if dept_type == 'lab' else ('radiology' if dept_type == 'radiology' else 'general')
     )
-    for cs_name, cs_price_raw in zip(custom_names, custom_prices):
+    for cs_name, cs_price_raw in zip(custom_names, custom_prices, strict=False):
         name = (cs_name or '').strip()
         if not name:
             continue
@@ -274,8 +274,8 @@ def _process_custom_services(custom_names, custom_prices, department_id, current
                 select(ServiceMaster).filter(
                     db.func.lower(ServiceMaster.name) == db.func.lower(name),
                     ServiceMaster.department_id == int(department_id),
-                    ServiceMaster.is_active == True,
-                    ServiceMaster.is_custom == False,
+                    ServiceMaster.is_active,
+                    not ServiceMaster.is_custom,
                 )
             )
             .scalars()
@@ -572,7 +572,7 @@ def create_visit():
                 services = (
                     db.session.execute(
                         select(ServiceMaster).filter(
-                            ServiceMaster.id.in_(ids), ServiceMaster.is_active == True
+                            ServiceMaster.id.in_(ids), ServiceMaster.is_active
                         )
                     )
                     .scalars()
@@ -742,7 +742,7 @@ def create_visit():
                 services = (
                     db.session.execute(
                         select(ServiceMaster).filter(
-                            ServiceMaster.id.in_(ids), ServiceMaster.is_active == True
+                            ServiceMaster.id.in_(ids), ServiceMaster.is_active
                         )
                     )
                     .scalars()
@@ -766,7 +766,7 @@ def create_visit():
                 services = (
                     db.session.execute(
                         select(ServiceMaster).filter(
-                            ServiceMaster.id.in_(ids), ServiceMaster.is_active == True
+                            ServiceMaster.id.in_(ids), ServiceMaster.is_active
                         )
                     )
                     .scalars()
@@ -932,7 +932,7 @@ def api_visit_pricing():
         custom_prices = request.args.getlist('custom_service_price')
         custom_total = 0.0
         custom_breakdown = []
-        for cname, cprice in zip(custom_names, custom_prices):
+        for cname, cprice in zip(custom_names, custom_prices, strict=False):
             name = (cname or '').strip()
             if not name:
                 continue
@@ -950,7 +950,7 @@ def api_visit_pricing():
             services = (
                 db.session.execute(
                     select(ServiceMaster).filter(
-                        ServiceMaster.id.in_(ids), ServiceMaster.is_active == True
+                        ServiceMaster.id.in_(ids), ServiceMaster.is_active
                     )
                 )
                 .scalars()
@@ -1038,7 +1038,7 @@ def get_pricing_details(department_id, doctor_id, visit_type, is_emergency, paym
         # حساب تكلفة الخدمة
         department = db.session.get(Department, department_id) if department_id else None
         if department:
-            service_type = get_service_type_by_department(department)
+            get_service_type_by_department(department)
             service = get_service_by_department(department)
 
             if service:
@@ -1102,7 +1102,7 @@ def calculate_visit_cost(department_id, doctor_id, visit_type, is_emergency, pay
         pricing_entry = (
             db.session.execute(
                 select(PricingCatalog).filter(
-                    PricingCatalog.service_type == service_type, PricingCatalog.is_active == True
+                    PricingCatalog.service_type == service_type, PricingCatalog.is_active
                 )
             )
             .scalars()
@@ -1138,7 +1138,7 @@ def calculate_visit_cost(department_id, doctor_id, visit_type, is_emergency, pay
         rules = (
             db.session.execute(
                 select(PricingRule)
-                .filter(PricingRule.is_active == True)
+                .filter(PricingRule.is_active)
                 .order_by(PricingRule.priority.asc())
             )
             .scalars()
@@ -1198,7 +1198,7 @@ def get_service_by_department(department):
     return (
         db.session.execute(
             select(ServiceMaster).filter(
-                ServiceMaster.category == category, ServiceMaster.is_active == True
+                ServiceMaster.category == category, ServiceMaster.is_active
             )
         )
         .scalars()
@@ -1217,7 +1217,7 @@ def calculate_doctor_cost(doctor_id, department_id, visit_type, is_emergency, pa
                 select(DoctorPricing).filter(
                     DoctorPricing.doctor_id == doctor_id,
                     DoctorPricing.department_id == department_id,
-                    DoctorPricing.is_active == True,
+                    DoctorPricing.is_active,
                 )
             )
             .scalars()
@@ -1233,7 +1233,7 @@ def calculate_doctor_cost(doctor_id, department_id, visit_type, is_emergency, pa
                 select(DoctorPricing).filter(
                     DoctorPricing.doctor_id == doctor_id,
                     DoctorPricing.department_id.is_(None),
-                    DoctorPricing.is_active == True,
+                    DoctorPricing.is_active,
                 )
             )
             .scalars()
@@ -1296,7 +1296,7 @@ def edit_visit(visit_id):
     doctors = (
         db.session.execute(
             select(User)
-            .filter(User.role.in_(['doctor', 'emergency']), User.is_active == True)
+            .filter(User.role.in_(['doctor', 'emergency']), User.is_active)
             .order_by(User.full_name)
         )
         .scalars()

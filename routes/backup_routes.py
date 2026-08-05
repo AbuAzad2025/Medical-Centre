@@ -3,6 +3,7 @@
 Medical System Backup Routes
 """
 
+import contextlib
 import logging
 import os
 from datetime import UTC, datetime
@@ -56,7 +57,7 @@ def dashboard():
         }
         return render_template('backup/dashboard.html', stats=stats, recent_backups=recent_backups)
     except Exception as e:
-        logger.error('Error in backup dashboard: %s', e)
+        logger.exception('Error in backup dashboard: %s', e)
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -92,7 +93,7 @@ def create_backup():
 
             if celery_is_enabled() or task_always_eager():
                 try:
-                    task_id = queue_system_backup(backup.id)
+                    queue_system_backup(backup.id)
                     flash('تم إرسال النسخة الاحتياطية إلى قائمة الانتظار', 'success')
                     return redirect(url_for('backup.dashboard'))
                 except BackupQueueError as exc:
@@ -109,19 +110,17 @@ def create_backup():
                 backup.backup_status = BackupStatus.FAILED
                 backup.backup_notes = str(exc)
                 if os.path.exists(backup.backup_path):
-                    try:
+                    with contextlib.suppress(OSError):
                         os.remove(backup.backup_path)
-                    except OSError:
-                        pass
                 flash('فشل في إنشاء النسخة الاحتياطية', 'error')
-                logger.error('Backup failed for id=%s: %s', backup.id, exc)
+                logger.exception('Backup failed for id=%s: %s', backup.id, exc)
 
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             return redirect(url_for('backup.dashboard'))
 
         return render_template('backup/create_backup.html')
     except Exception as e:
-        logger.error('Error creating backup: %s', e)
+        logger.exception('Error creating backup: %s', e)
         flash('حدث خطأ في إنشاء النسخة الاحتياطية', 'error')
         return render_template('backup/create_backup.html')
 
@@ -136,7 +135,7 @@ def list_backups():
         )
         return render_template('backup/list_backups.html', backups=backups)
     except Exception as e:
-        logger.error('Error listing backups: %s', e)
+        logger.exception('Error listing backups: %s', e)
         flash('حدث خطأ في تحميل قائمة النسخ الاحتياطية', 'error')
         return redirect(url_for('backup.dashboard'))
 
@@ -164,7 +163,7 @@ def restore_backup(backup_id):
             flash('فشل في استعادة النسخة الاحتياطية', 'error')
         return redirect(url_for('backup.list_backups'))
     except Exception as e:
-        logger.error('Error restoring backup: %s', e)
+        logger.exception('Error restoring backup: %s', e)
         flash('حدث خطأ في استعادة النسخة الاحتياطية', 'error')
         return redirect(url_for('backup.list_backups'))
 
@@ -183,7 +182,7 @@ def download_backup(backup_id):
         download_name = os.path.basename(backup.backup_path)
         return send_file(backup.backup_path, as_attachment=True, download_name=download_name)
     except Exception as e:
-        logger.error('Error downloading backup: %s', e)
+        logger.exception('Error downloading backup: %s', e)
         flash('حدث خطأ في تحميل النسخة الاحتياطية', 'error')
         return redirect(url_for('backup.list_backups'))
 
@@ -203,7 +202,7 @@ def delete_backup(backup_id):
         flash('تم حذف النسخة الاحتياطية بنجاح', 'success')
         return redirect(url_for('backup.list_backups'))
     except Exception as e:
-        logger.error('Error deleting backup: %s', e)
+        logger.exception('Error deleting backup: %s', e)
         flash('حدث خطأ في حذف النسخة الاحتياطية', 'error')
         return redirect(url_for('backup.list_backups'))
 
@@ -219,5 +218,5 @@ def restore_backup_file(backup) -> bool:
         restore_pg_sql_gz(backup.backup_path)
         return True
     except PgBackupError as exc:
-        logger.error('Restore failed for backup id=%s: %s', backup.id, exc)
+        logger.exception('Restore failed for backup id=%s: %s', backup.id, exc)
         return False

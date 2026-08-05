@@ -50,7 +50,7 @@ def fx(rollback_db):
         return p
 
     def visit(**kw):
-        params = dict(patient_id=patient().id, status=VisitState.OPEN, created_at=datetime.now(UTC))
+        params = {'patient_id': patient().id, 'status': VisitState.OPEN, 'created_at': datetime.now(UTC)}
         params.update(kw)
         v = Visit(**params)
         db.session.add(v)
@@ -273,7 +273,7 @@ class TestDepartmentScopingDeep:
         return u, d1, d2
 
     def test_global_access_returns_none(self, fx):
-        u, d1, d2 = self._setup(fx, with_global=True)
+        u, _d1, _d2 = self._setup(fx, with_global=True)
         assert AC.get_accessible_department_ids(u) is None
 
     def test_specific_department_scope(self, fx):
@@ -285,19 +285,19 @@ class TestDepartmentScopingDeep:
     def test_user_department_access_extra(self, fx):
         from models.user_department_access import UserDepartmentAccess
 
-        u, d1, d2 = self._setup(fx)
+        u, _d1, _d2 = self._setup(fx)
         d3 = self._dept(fx, '3')
         fx.db.session.add(UserDepartmentAccess(user_id=u.id, department_id=d3.id, can_access=True))
         fx.db.session.commit()
         assert d3.id in AC.get_accessible_department_ids(u)
 
     def test_can_department_action_all_flags(self, fx):
-        u, d1, d2 = self._setup(fx)
+        u, d1, _d2 = self._setup(fx)
         for action in ('access', 'patients', 'visits', 'appointments', 'staff', 'settings'):
             assert AC.can_department_action(u, d1.id, action) is True
 
     def test_can_department_action_denies_unscoped(self, fx):
-        u, d1, d2 = self._setup(fx)
+        u, _d1, d2 = self._setup(fx)
         assert AC.can_department_action(u, d2.id, 'access') is False
 
 

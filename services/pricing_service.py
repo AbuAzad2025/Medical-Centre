@@ -38,7 +38,7 @@ class PricingService:
                         and_(
                             ServicePrice.service_name == service_name,
                             ServicePrice.service_type == service_type,
-                            ServicePrice.is_active == True,
+                            ServicePrice.is_active,
                             or_(
                                 ServicePrice.effective_to.is_(None),
                                 ServicePrice.effective_to > datetime.now(UTC),
@@ -60,7 +60,7 @@ class PricingService:
                             and_(
                                 ServicePrice.service_name == alt,
                                 ServicePrice.service_type == service_type,
-                                ServicePrice.is_active == True,
+                                ServicePrice.is_active,
                             )
                         )
                     )
@@ -172,7 +172,7 @@ class PricingService:
                     select(DoctorPricing).filter(
                         and_(
                             DoctorPricing.doctor_id == doctor_id,
-                            DoctorPricing.is_active == True,
+                            DoctorPricing.is_active,
                             or_(
                                 DoctorPricing.effective_to.is_(None),
                                 DoctorPricing.effective_to > datetime.now(UTC),
@@ -198,7 +198,7 @@ class PricingService:
                             and_(
                                 DoctorPricing.department_id == doctor.department_id,
                                 DoctorPricing.doctor_id.is_(None),
-                                DoctorPricing.is_active == True,
+                                DoctorPricing.is_active,
                             )
                         )
                     )
@@ -318,7 +318,7 @@ class PricingService:
         try:
             # أسعار الخدمات
             service_prices = (
-                db.session.execute(select(ServicePrice).filter(ServicePrice.is_active == True))
+                db.session.execute(select(ServicePrice).filter(ServicePrice.is_active))
                 .scalars()
                 .all()
             )
@@ -572,7 +572,7 @@ class PricingService:
                                 db.session.execute(
                                     select(ServicePrice).filter(
                                         ServicePrice.service_type == 'lab_test',
-                                        ServicePrice.is_active == True,
+                                        ServicePrice.is_active,
                                     )
                                 )
                                 .scalars()
@@ -617,7 +617,7 @@ class PricingService:
                                 db.session.execute(
                                     select(ServicePrice).filter(
                                         ServicePrice.service_type == 'radiology_scan',
-                                        ServicePrice.is_active == True,
+                                        ServicePrice.is_active,
                                     )
                                 )
                                 .scalars()
@@ -1421,7 +1421,7 @@ class PricingService:
                 exists = (
                     db.session.execute(
                         select(DoctorPricing).filter(
-                            DoctorPricing.doctor_id == doc.id, DoctorPricing.is_active == True
+                            DoctorPricing.doctor_id == doc.id, DoctorPricing.is_active
                         )
                     )
                     .scalars()
@@ -1453,7 +1453,7 @@ class PricingService:
             creator = (
                 db.session.execute(
                     select(User).filter(
-                        User.role.in_(['admin', 'manager', 'super_admin']), User.is_active == True
+                        User.role.in_(['admin', 'manager', 'super_admin']), User.is_active
                     )
                 )
                 .scalars()
@@ -2037,7 +2037,7 @@ class PricingService:
             removed = 0
             for key, items in groups.items():
                 if len(items) > 1:
-                    keep = items[0]
+                    items[0]
                     for extra in items[1:]:
                         db.session.delete(extra)
                         removed += 1
@@ -2069,7 +2069,7 @@ class PricingService:
             removed = 0
             for key, items in groups.items():
                 if len(items) > 1:
-                    keep = items[0]
+                    items[0]
                     for extra in items[1:]:
                         db.session.delete(extra)
                         removed += 1
@@ -2099,9 +2099,9 @@ class PricingService:
                 key = dp.doctor_id
                 groups.setdefault(key, []).append(dp)
             removed = 0
-            for doc_id, items in groups.items():
+            for _doc_id, items in groups.items():
                 if len(items) > 1:
-                    keep = items[0]
+                    items[0]
                     for extra in items[1:]:
                         db.session.delete(extra)
                         removed += 1

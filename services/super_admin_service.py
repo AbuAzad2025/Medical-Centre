@@ -35,7 +35,7 @@ class SuperAdminService:
                     select(func.count()).select_from(Department)
                 ).scalar(),
                 'active_users': db.session.execute(
-                    select(func.count()).select_from(User).filter(User.is_active == True)
+                    select(func.count()).select_from(User).filter(User.is_active)
                 ).scalar(),
             }
         except Exception:

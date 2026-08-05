@@ -1,35 +1,41 @@
 import logging
-from datetime import UTC, date, datetime, timedelta, timezone
-from decimal import ROUND_HALF_UP, Decimal
+from datetime import UTC, datetime, timedelta
+from datetime import date as date
+from datetime import timezone as timezone
+from decimal import ROUND_HALF_UP as ROUND_HALF_UP
+from decimal import Decimal as Decimal
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
-from flask_login import current_user, login_required
+from flask import Blueprint
+from flask import flash as flash
+from flask import jsonify as jsonify
+from flask import redirect as redirect
+from flask import render_template as render_template
+from flask import request as request
+from flask import url_for as url_for
+from flask_login import current_user
+from flask_login import login_required as login_required
 from sqlalchemy import func, select
 
 from app.extensions import db
-from app.shared.enums import (
-    AppointmentState,
-    AppointmentWorkflowStatus,
-    VisitArchiveStatus,
-    VisitState,
-)
+from app.shared.enums import AppointmentState, AppointmentWorkflowStatus, VisitArchiveStatus
+from app.shared.enums import VisitState as VisitState
 from models.appointment import Appointment
-from models.department import Department
-from models.invoice import Invoice
-from models.lab_request import LabRequest
-from models.patient import Patient
-from models.payment import Payment
-from models.radiology_request import RadiologyRequest
-from models.user import StaffAbsence, StaffWorkSchedule, User
+from models.department import Department as Department
+from models.invoice import Invoice as Invoice
+from models.lab_request import LabRequest as LabRequest
+from models.patient import Patient as Patient
+from models.payment import Payment as Payment
+from models.radiology_request import RadiologyRequest as RadiologyRequest
+from models.user import StaffAbsence as StaffAbsence
+from models.user import StaffWorkSchedule as StaffWorkSchedule
+from models.user import User as User
 from models.visit import Visit
-from services.gatekeeper_service import GatekeeperService
-from utils.decorators import (
-    can_approve_force_payment,
-    manager_or_admin_only,
-    prevent_self_approval,
-    role_required,
-    role_required_json,
-)
+from services.gatekeeper_service import GatekeeperService as GatekeeperService
+from utils.decorators import can_approve_force_payment as can_approve_force_payment
+from utils.decorators import manager_or_admin_only as manager_or_admin_only
+from utils.decorators import prevent_self_approval as prevent_self_approval
+from utils.decorators import role_required as role_required
+from utils.decorators import role_required_json as role_required_json
 
 manager_bp = Blueprint('manager', __name__)
 
@@ -41,14 +47,14 @@ def get_smart_analytics():
 
         from sqlalchemy import func
 
-        from models.appointment import Appointment
+        from models.appointment import Appointment as Appointment
         from models.patient import Patient
         from models.payment import Payment
         from models.visit import Visit
 
         today = datetime.now().date()
         week_ago = today - timedelta(days=7)
-        month_ago = today - timedelta(days=30)
+        today - timedelta(days=30)
 
         # تحليل النمو
         patients_this_week = db.session.execute(
@@ -192,7 +198,7 @@ def get_business_insights():
 
         from sqlalchemy import func
 
-        from models.patient import Patient
+        from models.patient import Patient as Patient
         from models.payment import Payment
         from models.user import User
         from models.visit import Visit
@@ -305,12 +311,13 @@ def get_business_insights():
 def get_performance_metrics():
     """مقاييس الأداء الذكية"""
     try:
-        from datetime import datetime, timedelta
+        from datetime import datetime as datetime
+        from datetime import timedelta as timedelta
 
         from sqlalchemy import func
 
         from models.appointment import Appointment
-        from models.patient import Patient
+        from models.patient import Patient as Patient
         from models.visit import Visit
 
         # معدل الإنجاز
@@ -386,7 +393,7 @@ def get_financial_forecasting():
         from sqlalchemy import func
 
         from models.payment import Payment
-        from models.visit import Visit
+        from models.visit import Visit as Visit
 
         # تحليل الإيرادات التاريخية
         week_ago = datetime.now().date() - timedelta(days=7)
@@ -459,7 +466,7 @@ def get_operational_efficiency():
 
         from sqlalchemy import func
 
-        from models.patient import Patient
+        from models.patient import Patient as Patient
         from models.user import User
         from models.visit import Visit
 
@@ -655,9 +662,10 @@ def get_staff_productivity():
 def get_patient_satisfaction():
     """رضا المرضى (محاكاة)"""
     try:
-        from datetime import datetime, timedelta
+        from datetime import datetime as datetime
+        from datetime import timedelta as timedelta
 
-        from models.patient import Patient
+        from models.patient import Patient as Patient
         from models.visit import Visit
 
         # محاكاة معدل الرضا بناءً على البيانات المتاحة
@@ -716,7 +724,7 @@ def get_resource_optimization():
 
         from sqlalchemy import func
 
-        from models.patient import Patient
+        from models.patient import Patient as Patient
         from models.user import User
         from models.visit import Visit
 
@@ -880,15 +888,13 @@ def get_bi_insights():
 # SUBMODULE IMPORTS
 # ═══════════════════════════════════════
 
-from . import (
-    api,
-    approvals,
-    dashboard,
-    departments,
-    financial,
-    pricing,
-    reports,
-    satisfaction,
-    settings,
-    staff,
-)
+from . import api as api
+from . import approvals as approvals
+from . import dashboard as dashboard
+from . import departments as departments
+from . import financial as financial
+from . import pricing as pricing
+from . import reports as reports
+from . import satisfaction as satisfaction
+from . import settings as settings
+from . import staff as staff

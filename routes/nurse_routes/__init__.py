@@ -1,18 +1,29 @@
-import json
+import json as json
 import logging
-from datetime import UTC, date, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from datetime import date as date
+from datetime import timezone as timezone
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
-from flask_login import current_user, login_required
-from sqlalchemy import and_, desc, func, or_, select
+from flask import Blueprint
+from flask import flash as flash
+from flask import jsonify as jsonify
+from flask import redirect as redirect
+from flask import render_template as render_template
+from flask import request as request
+from flask import url_for as url_for
+from flask_login import current_user
+from flask_login import login_required as login_required
+from sqlalchemy import and_, func, or_, select
+from sqlalchemy import desc as desc
 
 from app.extensions import db
 from app.shared.enums import TaskState, VisitState
-from models.medication import Medication
-from models.patient import Patient
-from models.visit import Visit
-from utils.db_safety import safe_commit, safe_rollback
-from utils.decorators import role_required
+from models.medication import Medication as Medication
+from models.patient import Patient as Patient
+from models.visit import Visit as Visit
+from utils.db_safety import safe_commit
+from utils.db_safety import safe_rollback as safe_rollback
+from utils.decorators import role_required as role_required
 
 nurse_bp = Blueprint('nurse', __name__)
 
@@ -122,7 +133,8 @@ def _save_nursing_protocols(items):
 def get_nursing_smart_analytics():
     """التحليلات الذكية للتمريض"""
     try:
-        from datetime import datetime, timedelta
+        from datetime import datetime as datetime
+        from datetime import timedelta as timedelta
 
         from sqlalchemy import func
 
@@ -131,7 +143,7 @@ def get_nursing_smart_analytics():
 
         # تحليل الممرضات
         total_nurses = db.session.execute(
-            select(func.count()).select_from(Nurse).filter(Nurse.is_active == True)
+            select(func.count()).select_from(Nurse).filter(Nurse.is_active)
         ).scalar()
         total_tasks = db.session.execute(
             select(func.count()).select_from(Task).filter(Task.task_type == 'nursing')
@@ -194,7 +206,8 @@ def get_nursing_smart_analytics():
 def get_patient_care_optimization():
     """تحسين رعاية المرضى"""
     try:
-        from datetime import datetime, timedelta
+        from datetime import datetime as datetime
+        from datetime import timedelta as timedelta
 
         from sqlalchemy import func
 
@@ -313,7 +326,8 @@ def get_vital_signs_monitoring():
 def get_medication_management():
     """إدارة الأدوية"""
     try:
-        from datetime import datetime, timedelta
+        from datetime import datetime as datetime
+        from datetime import timedelta as timedelta
 
         from sqlalchemy import func
 
@@ -361,7 +375,8 @@ def get_medication_management():
 def get_nursing_workflow_automation():
     """أتمتة سير عمل التمريض"""
     try:
-        from datetime import datetime, timedelta
+        from datetime import datetime as datetime
+        from datetime import timedelta as timedelta
 
         from sqlalchemy import func
 
@@ -694,4 +709,10 @@ def calculate_workload_forecast_accuracy():
 # SUBMODULE IMPORTS
 # ═══════════════════════════════════════
 
-from . import care, dashboard, medication, protocols, tasks, vitals, wards
+from . import care as care
+from . import dashboard as dashboard
+from . import medication as medication
+from . import protocols as protocols
+from . import tasks as tasks
+from . import vitals as vitals
+from . import wards as wards

@@ -116,7 +116,7 @@ def _dispatch_single(webhook: dict, event: str, payload: dict, retry_count: int 
         logger.warning('Webhook connection error %s event=%s %s', url, event, e.reason)
         return False
     except Exception as e:
-        logger.error('Webhook unexpected error %s event=%s %s', url, event, e)
+        logger.exception('Webhook unexpected error %s event=%s %s', url, event, e)
         return False
 
 
@@ -185,7 +185,7 @@ def _process_retry_queue():
         except Empty:
             continue
         except Exception as e:
-            logger.error('Error processing retry queue: %s', e)
+            logger.exception('Error processing retry queue: %s', e)
 
 
 def _process_dispatch_queue():
@@ -205,7 +205,7 @@ def _process_dispatch_queue():
         except Empty:
             continue
         except Exception as e:
-            logger.error('Error processing dispatch queue: %s', e)
+            logger.exception('Error processing dispatch queue: %s', e)
 
 
 def _start_background_threads():

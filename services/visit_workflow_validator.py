@@ -3,14 +3,14 @@ Workflow Status Utility - Patient Visit State Machine
 Validates and tracks patient journey through clinical workflow stages.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 from flask import flash, g
 
 from services.feature_gate_service import FeatureGateService
 
 
-class VisitStage(str, Enum):
+class VisitStage(StrEnum):
     """Clinical workflow stages in order"""
 
     REGISTERED = 'registered'  # Patient registered at reception

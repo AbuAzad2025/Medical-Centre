@@ -3,38 +3,39 @@
 Medical System Laboratory Routes
 """
 
-import base64
-import json
+import base64 as base64
+import json as json
 import logging
-from datetime import UTC, date, datetime, timedelta, timezone
-from io import BytesIO
+from datetime import UTC, date, datetime, timedelta
+from datetime import timezone as timezone
+from io import BytesIO as BytesIO
 
-import qrcode
-from flask import (
-    Blueprint,
-    flash,
-    jsonify,
-    make_response,
-    redirect,
-    render_template,
-    request,
-    send_file,
-    url_for,
-)
-from flask_login import current_user, login_required
+import qrcode as qrcode
+from flask import Blueprint
+from flask import flash as flash
+from flask import jsonify as jsonify
+from flask import make_response as make_response
+from flask import redirect as redirect
+from flask import render_template as render_template
+from flask import request as request
+from flask import send_file as send_file
+from flask import url_for as url_for
+from flask_login import current_user
+from flask_login import login_required as login_required
 from sqlalchemy import func, select
 
 from app.extensions import db
 from app.shared.enums import LabResultStatus, OrderState
-from models.audit_trail import AuditTrail
+from models.audit_trail import AuditTrail as AuditTrail
 from models.lab_quality import LabQualityControlEntry
-from models.lab_reagent import LabReagent
+from models.lab_reagent import LabReagent as LabReagent
 from models.lab_request import LabRequest, LabResult
-from models.patient import Patient
-from models.user import User
-from models.visit import Visit
-from utils.db_safety import safe_commit, safe_rollback
-from utils.decorators import role_required
+from models.patient import Patient as Patient
+from models.user import User as User
+from models.visit import Visit as Visit
+from utils.db_safety import safe_commit as safe_commit
+from utils.db_safety import safe_rollback
+from utils.decorators import role_required as role_required
 
 lab_bp = Blueprint('lab', __name__)
 
@@ -223,7 +224,7 @@ def get_lab_result_analysis():
             select(func.count())
             .select_from(LabResult)
             .filter(
-                LabResult.is_critical == True,
+                LabResult.is_critical,
                 LabResult.status.in_([LabResultStatus.READY, LabResultStatus.VALIDATED]),
             )
         ).scalar()
@@ -300,7 +301,7 @@ def get_lab_predictive_insights():
             )
         ).scalar()
         growth_rate = ((weekly_requests - prev_week) / prev_week * 100) if prev_week else 0
-        predicted_demand = int(round((weekly_requests / 7) * 7))
+        predicted_demand = round((weekly_requests / 7) * 7)
         return {
             'weekly_requests': weekly_requests,
             'monthly_requests': monthly_requests,
@@ -353,4 +354,11 @@ def generate_optimization_suggestions(avg_time):
 # SUBMODULE IMPORTS
 # ═══════════════════════════════════════
 
-from . import barcode, dashboard, fhir, quality, reagents, reports, test_catalog, worklist
+from . import barcode as barcode
+from . import dashboard as dashboard
+from . import fhir as fhir
+from . import quality as quality
+from . import reagents as reagents
+from . import reports as reports
+from . import test_catalog as test_catalog
+from . import worklist as worklist

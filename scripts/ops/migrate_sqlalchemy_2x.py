@@ -61,8 +61,7 @@ def _add_import(content: str, needed: list[str]) -> str:
         if not missing:
             return content
         new_import = existing + ', ' + ', '.join(missing)
-        content = content[: m.start()] + new_import + '\n' + content[m.end() :]
-        return content
+        return content[: m.start()] + new_import + '\n' + content[m.end() :]
     # Insert after docstring or at top
     lines = content.split('\n')
     insert_idx = 0
@@ -90,7 +89,6 @@ def refactor_file(filepath: Path) -> tuple[int, str]:
         print(f'  [SKIP] {filepath}: {e}')
         return 0, ''
 
-    original = content
     replacements = 0
     needs_select = False
     needs_func = False
