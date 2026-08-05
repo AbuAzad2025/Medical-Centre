@@ -175,39 +175,48 @@ def rollback_db(app):
     ``purge_*`` service methods can be exercised without polluting the
     session-scoped test database. ``Model.query`` follows because it resolves
     through the same scoped session we reconfigure here.
+
+    ``bind_g_tenant`` also stashes the tenant on ``db.session.info['_tenant_id']``
+    (read first by ``tenant_filter._current_tenant_id``). This dict lives on the
+    session-scoped session and survives ``rollback_db``'s transaction rollback,
+    so a tenant bound in one test would leak into the next. Clear it.
     """
-    conn = _db.engine.connect()
-    txn = conn.begin()
-    conn.begin_nested()
+    from flask_sqlalchemy.session import Session as _FSASession
 
-    @contextlib.contextmanager
-    def _force_rollback():
-        try:
-            yield
-        finally:
-            _db.session.rollback()
+    connection = _db.engine.connect()
+    transaction = connection.begin()
+    _db.session.remove()
 
-    _db.session = _db.session_maker(bind=conn)
-    _db.session.begin_nested()
+    # FSA's Session.get_bind() resolves the engine per bind-key and ignores any
+    # bound connection, so force every bind onto our single connection while the
+    # fixture is active. create_savepoint turns the service code's commit() calls
+    # into SAVEPOINT releases; rolling back the outer transaction then discards
+    # everything, keeping the session-scoped test DB pristine.
+    _original_get_bind = _FSASession.get_bind
+    _FSASession.get_bind = lambda _self, *_a, **_k: connection
+    _db.session.configure(join_transaction_mode='create_savepoint')
 
-    @contextlib.contextmanager
-    def _nested_savepoint():
-        sp = conn.begin_nested()
-        try:
-            yield
-        except Exception:
-            sp.rollback()
-            raise
-        else:
-            sp.commit()
+    if app.config.get('ENABLE_SAAS_MODE', False):
+        from tests.tenant_context import bind_tenant_on_g, ensure_default_test_tenant
 
-    _db.session.begin_nested = _nested_savepoint
+        tenant = ensure_default_test_tenant(app)
+        bind_tenant_on_g(tenant, db_session=_db.session)
+        with contextlib.suppress(Exception):
+            _db.session.info['_tenant_id'] = tenant.id
 
     try:
         yield _db
     finally:
-        txn.rollback()
-        conn.close()
+        _FSASession.get_bind = _original_get_bind
+        with contextlib.suppress(Exception):
+            _db.session.remove()
+        try:
+            transaction.rollback()
+        except Exception:
+            pass
+        finally:
+            connection.close()
+            _db.session.configure(join_transaction_mode='conditional_savepoint')
 
 
 # Test data fixtures
@@ -544,8 +553,15 @@ def _saas_default_tenant_context(app, request, monkeypatch):
         lambda *_a, **_k: None,
     )
 
-    tenant = ensure_default_test_tenant(app)
+    ensure_default_test_tenant(app)
     with app.test_request_context():
+        from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
+
+        tenant = (
+            _db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG))
+            .scalars()
+            .first()
+        )
         bind_tenant_on_g(tenant, db_session=_db.session)
         yield
     clear_tenant_g()
