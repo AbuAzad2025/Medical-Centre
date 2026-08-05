@@ -144,7 +144,7 @@ class TestStripeWebhookIdempotency:
         # on the class attribute and can leave MagicMock leftovers in place,
         # poisoning every subsequent test in the process.
         with patch.object(
-            StripeSubscriptionService, 'verify_signature', side_effect=lambda p, s: json.loads(p)
+            StripeSubscriptionService, 'verify_signature', side_effect=lambda p, _s: json.loads(p)
         ), patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
             threads = [threading.Thread(target=ingest, args=(p,)) for p in payloads]
             for t in threads:

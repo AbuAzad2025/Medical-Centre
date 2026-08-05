@@ -36,7 +36,7 @@ from services.booking_conversion_service import (
 def _no_bundle_limits(monkeypatch):
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_create',
-        lambda *a, **k: None,
+        lambda *_a, **_k: None,
     )
 
 
@@ -148,7 +148,7 @@ class TestConvertBasedOnProfile:
         b = fx.booking()
         monkeypatch.setattr(
             'services.barcode_service.setup_barcode_for_lab_request',
-            lambda *a, **k: None,
+            lambda *_a, **_k: None,
         )
         with app.test_request_context():
             g.tenant_id = fx.tenant.id

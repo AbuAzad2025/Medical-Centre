@@ -66,8 +66,8 @@ def worklist():
         reqs = lab_service.get_worklist(status=status)
         counts = lab_service.get_request_counts()
         return render_template('lab/process.html', requests=reqs, status=status, counts=counts)
-    except Exception as e:
-        logging.exception(f'Error loading lab worklist: {e!s}')
+    except Exception:
+        logging.exception("Error loading lab worklist: %s")
         flash('حدث خطأ في تحميل قائمة العمل', 'error')
         return redirect(url_for('lab.dashboard'))
 
@@ -283,9 +283,9 @@ def worklist_request(request_id):
             return redirect(url_for('lab.worklist_request', request_id=lab_request.id))
 
         return render_template('lab/process.html', lab_request=lab_request)
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error in lab worklist request: {e!s}')
+        logging.exception("Error in lab worklist request: %s")
         flash('حدث خطأ في إدارة الطلب', 'error')
         return redirect(url_for('lab.worklist'))
 
@@ -311,9 +311,9 @@ def worklist_claim(request_id):
         _log_lab_workflow(req.id, 'RECEIVED', 'claim')
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'message': 'تم استلام الطلب'}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error claiming lab request: {e!s}')
+        logging.exception("Error claiming lab request: %s")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
 
@@ -371,7 +371,7 @@ def worklist_complete(request_id):
         except Exception:
             logging.warning(f'Error in {__name__}: notification skipped')
         return jsonify({'success': True, 'message': 'تم إكمال الطلب'}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error completing lab request: {e!s}')
+        logging.exception("Error completing lab request: %s")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

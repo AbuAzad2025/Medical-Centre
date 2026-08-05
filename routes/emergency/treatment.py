@@ -59,8 +59,8 @@ def treatment(emergency_id):
             return redirect(url_for('emergency.patient_queue'))
 
         return render_template('emergency/emergency_treatment.html', emergency=emergency)
-    except Exception as e:
-        logging.exception(f'Error in emergency treatment: {e!s}')
+    except Exception:
+        logging.exception("Error in emergency treatment: %s")
         flash('حدث خطأ في تسجيل العلاج', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -100,8 +100,8 @@ def end_treatment(emergency_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم إنهاء العلاج بنجاح وإخطار الاستقبال', 'success')
         return redirect(url_for('emergency.patient_queue'))
-    except Exception as e:
-        logging.exception(f'Error ending emergency treatment: {e!s}')
+    except Exception:
+        logging.exception("Error ending emergency treatment: %s")
         flash('حدث خطأ في إنهاء العلاج', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -127,8 +127,8 @@ def start_treatment(emergency_id):
 
         flash('تم بدء العلاج بنجاح', 'success')
         return redirect(url_for('emergency.patient_details', emergency_id=emergency_id))
-    except Exception as e:
-        logging.exception(f'Error starting treatment: {e!s}')
+    except Exception:
+        logging.exception("Error starting treatment: %s")
         flash('حدث خطأ في بدء العلاج', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -148,8 +148,8 @@ def emergency_visits():
             .all()
         )
         return render_template('emergency/emergency_visits.html', visits=visits)
-    except Exception as e:
-        logging.exception(f'Error loading emergency visits: {e!s}')
+    except Exception:
+        logging.exception("Error loading emergency visits: %s")
         flash('حدث خطأ في تحميل زيارات الطوارئ', 'error')
         return redirect(url_for('emergency.dashboard'))
 
@@ -192,8 +192,8 @@ def emergency_treatment(visit_id):
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             return jsonify({'success': True})
         return render_template('emergency/emergency_treatment.html', visit=visit)
-    except Exception as e:
-        logging.exception(f'Error in emergency treatment: {e!s}')
+    except Exception:
+        logging.exception("Error in emergency treatment: %s")
         if request.method == 'POST':
             return jsonify({'success': False, 'error': 'حدث خطأ أثناء حفظ العلاج الإسعافي'}), 500
         flash('حدث خطأ في تحميل صفحة العلاج الإسعافي', 'error')
@@ -232,7 +232,7 @@ def complete_visit(visit_id):
             logging.warning(f'Error in {__name__}: {e}')
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True}), 200
-    except Exception as e:
-        logging.exception(f'Complete emergency visit error: {e!s}')
+    except Exception:
+        logging.exception("Complete emergency visit error: %s")
         safe_rollback(db.session, error_message='database rollback')
         return jsonify({'success': False, 'message': 'تعذر إنهاء الزيارة حالياً'}), 500

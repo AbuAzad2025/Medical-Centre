@@ -189,7 +189,7 @@ class QueueManagementService:
             return True, f'تم إضافة المريض إلى الطابور - الرقم {ticket.queue_number}'
 
         except Exception as e:
-            self.logger.exception(f'Error adding patient to queue: {e!s}')
+            self.logger.exception('Error adding patient to queue: %s')
             return False, f'حدث خطأ في إضافة المريض إلى الطابور: {e!s}'
 
     def transfer_visit(
@@ -272,8 +272,8 @@ class QueueManagementService:
             self._emit_queue_updates()
             self._emit_queue_updates()
             return True, 'ok'
-        except Exception as e:
-            self.logger.exception(f'Transfer visit error: {e!s}')
+        except Exception:
+            self.logger.exception('Transfer visit error: %s')
             return False, 'transfer_failed'
 
     def _check_queue_entry_conditions(
@@ -403,8 +403,8 @@ class QueueManagementService:
                 'waiting_patients': [enrich(p) for p in waiting_patients[:50]],
                 'estimated_wait_time': self._calculate_estimated_wait_time(department_id),
             }
-        except Exception as e:
-            self.logger.exception(f'Error getting queue status: {e!s}')
+        except Exception:
+            self.logger.exception('Error getting queue status: %s')
             return None
 
     def get_queue_status_all(
@@ -518,8 +518,8 @@ class QueueManagementService:
                 'called_count': called,
                 'in_progress_count': in_progress,
             }
-        except Exception as e:
-            self.logger.exception(f'Error getting all queue status: {e!s}')
+        except Exception:
+            self.logger.exception('Error getting all queue status: %s')
             return None
 
     def call_next_patient(self, department_id, doctor_id=None, called_by=None):
@@ -560,7 +560,7 @@ class QueueManagementService:
             return True, f'تم استدعاء المريض - التذكرة رقم {next_patient.queue_number}'
 
         except Exception as e:
-            self.logger.exception(f'Error calling next patient: {e!s}')
+            self.logger.exception('Error calling next patient: %s')
             return False, f'حدث خطأ في استدعاء المريض: {e!s}'
 
     def get_wait_metrics_today(self, department_ids):
@@ -637,8 +637,8 @@ class QueueManagementService:
                     for dep_id in department_ids
                 ],
             }
-        except Exception as e:
-            self.logger.exception(f'Error computing wait metrics: {e!s}')
+        except Exception:
+            self.logger.exception('Error computing wait metrics: %s')
             return {'overall_avg_wait_minutes': None, 'by_department': []}
 
     def start_treatment(self, ticket_id, started_by=None):
@@ -692,7 +692,7 @@ class QueueManagementService:
             return True, 'تم بدء العلاج'
 
         except Exception as e:
-            self.logger.exception(f'Error starting treatment: {e!s}')
+            self.logger.exception('Error starting treatment: %s')
             return False, f'حدث خطأ في بدء العلاج: {e!s}'
 
     def complete_treatment(self, ticket_id, completed_by=None):
@@ -747,7 +747,7 @@ class QueueManagementService:
             return True, 'تم إكمال العلاج'
 
         except Exception as e:
-            self.logger.exception(f'Error completing treatment: {e!s}')
+            self.logger.exception('Error completing treatment: %s')
             return False, f'حدث خطأ في إكمال العلاج: {e!s}'
 
     def skip_patient(self, ticket_id, reason=None, skipped_by=None):
@@ -772,7 +772,7 @@ class QueueManagementService:
             return True, 'تم تخطي المريض'
 
         except Exception as e:
-            self.logger.exception(f'Error skipping patient: {e!s}')
+            self.logger.exception('Error skipping patient: %s')
             return False, f'حدث خطأ في تخطي المريض: {e!s}'
 
     def return_to_queue(self, ticket_id, reason=None, returned_by=None):
@@ -815,7 +815,7 @@ class QueueManagementService:
             self._emit_queue_updates()
             return True, 'تم إرجاع المريض للطابور'
         except Exception as e:
-            self.logger.exception(f'Error returning patient to queue: {e!s}')
+            self.logger.exception('Error returning patient to queue: %s')
             return False, f'حدث خطأ في إرجاع المريض للطابور: {e!s}'
 
     def cancel_ticket(self, ticket_id, reason=None, cancelled_by=None):
@@ -841,7 +841,7 @@ class QueueManagementService:
             return True, 'تم إلغاء التذكرة'
 
         except Exception as e:
-            self.logger.exception(f'Error cancelling ticket: {e!s}')
+            self.logger.exception('Error cancelling ticket: %s')
             return False, f'حدث خطأ في إلغاء التذكرة: {e!s}'
 
     def _calculate_estimated_wait_time(self, department_id):
@@ -873,8 +873,8 @@ class QueueManagementService:
             return waiting_count * avg_service_time
 
 
-        except Exception as e:
-            self.logger.exception(f'Error calculating wait time: {e!s}')
+        except Exception:
+            self.logger.exception('Error calculating wait time: %s')
             return 0
 
     def _build_queue_snapshot(self):
@@ -1012,8 +1012,8 @@ class QueueManagementService:
             socketio.emit(
                 'queue_display_calls', {'items': self._build_display_calls()}, namespace='/queue'
             )
-        except Exception as e:
-            self.logger.exception(f'Error emitting queue updates: {e!s}')
+        except Exception:
+            self.logger.exception('Error emitting queue updates: %s')
 
     def _ensure_survey_for_visit(self, visit):
         try:
@@ -1084,7 +1084,7 @@ class QueueManagementService:
             return position, f'موقع المريض في الطابور: {position}'
 
         except Exception as e:
-            self.logger.exception(f'Error getting queue position: {e!s}')
+            self.logger.exception('Error getting queue position: %s')
             return None, f'حدث خطأ في حساب موقع المريض: {e!s}'
 
     def approve_emergency_debt(self, ticket_id, approved_by, max_amount=None):
@@ -1112,7 +1112,7 @@ class QueueManagementService:
             return True, 'تم الموافقة على دين الطوارئ'
 
         except Exception as e:
-            self.logger.exception(f'Error approving emergency debt: {e!s}')
+            self.logger.exception('Error approving emergency debt: %s')
             return False, f'حدث خطأ في الموافقة على دين الطوارئ: {e!s}'
 
     def approve_force_entry(self, ticket_id, approved_by, reason=None):
@@ -1140,5 +1140,5 @@ class QueueManagementService:
             return True, 'تم الموافقة على الدخول القوي'
 
         except Exception as e:
-            self.logger.exception(f'Error approving force entry: {e!s}')
+            self.logger.exception('Error approving force entry: %s')
             return False, f'حدث خطأ في الموافقة على الدخول القوي: {e!s}'

@@ -198,8 +198,8 @@ def get_nursing_smart_analytics():
                 completion_rate, pending_tasks, total_tasks
             ),
         }
-    except Exception as e:
-        logging.exception(f'Error getting nursing smart analytics: {e!s}')
+    except Exception:
+        logging.exception("Error getting nursing smart analytics: %s")
         return {}
 
 
@@ -258,8 +258,8 @@ def get_patient_care_optimization():
             'optimization_suggestions': optimization_suggestions,
             'efficiency_score': calculate_patient_care_efficiency(completed_tasks, total_tasks),
         }
-    except Exception as e:
-        logging.exception(f'Error getting patient care optimization: {e!s}')
+    except Exception:
+        logging.exception("Error getting patient care optimization: %s")
         return {}
 
 
@@ -318,8 +318,8 @@ def get_vital_signs_monitoring():
                 abnormal_vital_signs, critical_alerts, total_vital_signs
             ),
         }
-    except Exception as e:
-        logging.exception(f'Error getting vital signs monitoring: {e!s}')
+    except Exception:
+        logging.exception("Error getting vital signs monitoring: %s")
         return {}
 
 
@@ -367,8 +367,8 @@ def get_medication_management():
                 completed_medication_tasks, medication_tasks
             ),
         }
-    except Exception as e:
-        logging.exception(f'Error getting medication management: {e!s}')
+    except Exception:
+        logging.exception("Error getting medication management: %s")
         return {}
 
 
@@ -406,8 +406,8 @@ def get_nursing_workflow_automation():
             'efficiency_metrics': efficiency_metrics,
             'automation_score': calculate_nursing_automation_score(automated_tasks, manual_tasks),
         }
-    except Exception as e:
-        logging.exception(f'Error getting nursing workflow automation: {e!s}')
+    except Exception:
+        logging.exception("Error getting nursing workflow automation: %s")
         return {}
 
 
@@ -461,8 +461,8 @@ def get_nursing_predictive_insights():
             'predicted_workload': predicted_workload,
             'workload_forecast_accuracy': calculate_workload_forecast_accuracy(),
         }
-    except Exception as e:
-        logging.exception(f'Error getting nursing predictive insights: {e!s}')
+    except Exception:
+        logging.exception("Error getting nursing predictive insights: %s")
         return {}
 
 
@@ -607,8 +607,8 @@ def get_nursing_smart_recommendations():
             'high_priority': len([r for r in recommendations if r['priority'] == 'high']),
             'medium_priority': len([r for r in recommendations if r['priority'] == 'medium']),
         }
-    except Exception as e:
-        logging.exception(f'Error getting nursing smart recommendations: {e!s}')
+    except Exception:
+        logging.exception("Error getting nursing smart recommendations: %s")
         return {'recommendations': [], 'total_recommendations': 0}
 
 

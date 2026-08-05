@@ -324,8 +324,8 @@ class LabService:
                 req.status = 'DONE'
                 req.completed_at = now
             return safe_commit(db.session, error_message='Error finalizing lab results')
-        except Exception as e:
-            logging.exception(f'Error finalizing lab results: {e!s}')
+        except Exception:
+            logging.exception("Error finalizing lab results: %s")
             return False
 
     # ==================== QUALITY CONTROL ====================
@@ -356,8 +356,8 @@ class LabService:
             if not safe_commit(db.session, error_message='Error creating quality entry'):
                 return None
             return entry
-        except Exception as e:
-            logging.exception(f'Error creating quality entry: {e!s}')
+        except Exception:
+            logging.exception("Error creating quality entry: %s")
             return None
 
     # ==================== REAGENT MANAGEMENT ====================
@@ -400,8 +400,8 @@ class LabService:
                 return False
             reagent.stock_quantity = quantity
             return safe_commit(db.session, error_message='Error updating reagent')
-        except Exception as e:
-            logging.exception(f'Error updating reagent: {e!s}')
+        except Exception:
+            logging.exception("Error updating reagent: %s")
             return False
 
     # ==================== NOTIFICATION ====================
@@ -440,8 +440,8 @@ class LabService:
                     message=f'نتائج المختبر للطلب #{request_id} جاهزة للمريض {patient.name}',
                     notification_type='lab_result',
                 )
-        except Exception as e:
-            logging.exception(f'Error sending lab notification: {e!s}')
+        except Exception:
+            logging.exception("Error sending lab notification: %s")
 
     # ==================== AUDIT ====================
 
@@ -463,8 +463,8 @@ class LabService:
             )
             db.session.add(log)
             safe_commit(db.session, error_message='Error logging lab action')
-        except Exception as e:
-            logging.exception(f'Error logging lab action: {e!s}')
+        except Exception:
+            logging.exception("Error logging lab action: %s")
 
     # ==================== DASHBOARD ====================
 

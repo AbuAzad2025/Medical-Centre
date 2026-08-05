@@ -49,6 +49,6 @@ class ThermalPrinter:
             with serial.Serial(self.port, 9600, timeout=5) as ser:
                 ser.write(data)
             return True
-        except Exception as e:
-            logger.exception(f'Thermal printer error: {e}')
+        except Exception:
+            logger.exception('Thermal printer error: %s')
             return False

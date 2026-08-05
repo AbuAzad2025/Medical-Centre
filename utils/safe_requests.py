@@ -64,9 +64,7 @@ def safe_request(
                 )
                 time.sleep(wait)
             else:
-                logger.exception(
-                    'Request %s %s failed after %s attempts: %s', method, url, retries + 1, exc
-                )
+                logger.exception('')
                 raise
     raise last_exception
 

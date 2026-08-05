@@ -66,9 +66,9 @@ def interactions():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم حفظ التداخل', 'success')
             return redirect(url_for('medication.interactions'))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Error saving interaction: {e!s}')
+            logging.exception("Error saving interaction: %s")
             flash('حدث خطأ في حفظ التداخل', 'error')
             return redirect(url_for('medication.interactions'))
 
@@ -109,7 +109,7 @@ def toggle_interaction(interaction_id: int):
         row.updated_at = datetime.now(UTC)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'is_active': bool(row.is_active)}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error toggling interaction: {e!s}')
+        logging.exception("Error toggling interaction: %s")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

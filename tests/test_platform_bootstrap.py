@@ -69,7 +69,7 @@ def test_auto_assign_tenant_works_after_prior_commit(app, db, monkeypatch):
 
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_create',
-        lambda *a, **k: None,
+        lambda *_a, **_k: None,
     )
 
     with app.app_context():

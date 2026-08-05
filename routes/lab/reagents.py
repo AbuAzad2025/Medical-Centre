@@ -131,9 +131,9 @@ def add_reagent():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تمت إضافة المادة', 'success')
             return redirect(url_for('lab.reagents'))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Error adding reagent: {e!s}')
+            logging.exception("Error adding reagent: %s")
             flash('حدث خطأ أثناء الإضافة', 'error')
             return redirect(url_for('lab.add_reagent'))
     return render_template('lab/reagent_form.html', reagent=None)
@@ -207,9 +207,9 @@ def edit_reagent(reagent_id: int):
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم تحديث المادة', 'success')
             return redirect(url_for('lab.reagents'))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Error editing reagent: {e!s}')
+            logging.exception("Error editing reagent: %s")
             flash('حدث خطأ أثناء التحديث', 'error')
             return redirect(url_for('lab.edit_reagent', reagent_id=reagent_id))
     return render_template('lab/reagent_form.html', reagent=reagent)

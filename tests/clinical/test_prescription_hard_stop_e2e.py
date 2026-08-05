@@ -75,7 +75,7 @@ def rollback_db(app):
     transaction = connection.begin()
     db.session.remove()
     _original_get_bind = _FSASession.get_bind
-    _FSASession.get_bind = lambda self, *a, **k: connection
+    _FSASession.get_bind = lambda _self, *_a, **_k: connection
     db.session.configure(join_transaction_mode='create_savepoint')
     try:
         yield db

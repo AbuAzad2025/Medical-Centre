@@ -123,9 +123,9 @@ def add_medication():
             flash('تم إضافة الدواء بنجاح', 'success')
             return redirect(url_for('medication.list_medications'))
 
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Error adding medication: {e!s}')
+            logging.exception("Error adding medication: %s")
             flash('تعذر إضافة الدواء، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
 
     return render_template('medication/add.html')
@@ -194,9 +194,9 @@ def edit_medication(medication_id):
             flash('تم تحديث الدواء بنجاح', 'success')
             return redirect(url_for('medication.list_medications'))
 
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Error editing medication: {e!s}')
+            logging.exception("Error editing medication: %s")
             flash('تعذر تحديث الدواء، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
 
     return render_template('medication/edit.html', medication=medication)

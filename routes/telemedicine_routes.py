@@ -36,8 +36,8 @@ def index():
             query = query.filter_by(status=status)
         appointments = query.order_by(TelemedicineAppointment.scheduled_start.desc()).all()
         return render_template('telemedicine/index.html', appointments=appointments)
-    except Exception as e:
-        logging.exception(f'Telemedicine index error: {e!s}')
+    except Exception:
+        logging.exception("Telemedicine index error: %s")
         flash('حدث خطأ أثناء تحميل المواعيد', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -76,9 +76,9 @@ def new_appointment():
         patients = db.session.execute(select(Patient).limit(100)).scalars().all()
         doctors = db.session.execute(select(User).filter_by(is_active=True)).scalars().all()
         return render_template('telemedicine/new.html', patients=patients, doctors=doctors)
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Telemedicine new appointment error: {e!s}')
+        logging.exception("Telemedicine new appointment error: %s")
         flash('حدث خطأ أثناء إنشاء الموعد', 'error')
         return redirect(url_for('telemedicine.index'))
 
@@ -95,7 +95,7 @@ def view_appointment(tm_id):
             flash('ليس لديك صلاحية لعرض الموعد', 'error')
             return redirect(url_for('main.dashboard'))
         return render_template('telemedicine/view.html', tm=tm)
-    except Exception as e:
-        logging.exception(f'Telemedicine view error: {e!s}')
+    except Exception:
+        logging.exception("Telemedicine view error: %s")
         flash('حدث خطأ أثناء عرض الموعد', 'error')
         return redirect(url_for('telemedicine.index'))

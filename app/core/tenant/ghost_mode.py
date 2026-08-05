@@ -209,5 +209,5 @@ def _write_audit_trail(actor, target_tenant, target_user) -> None:
         )
         db.session.add(entry)
         db.session.commit()
-    except Exception as exc:  # never break a request because of audit logging
-        current_app.logger.exception('Ghost Mode: audit trail write failed: %s', exc)
+    except Exception:  # never break a request because of audit logging
+        current_app.logger.exception('Ghost Mode: audit trail write failed: %s')

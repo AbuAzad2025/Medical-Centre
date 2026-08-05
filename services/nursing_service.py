@@ -103,8 +103,8 @@ class NursingService:
             if not safe_commit(db.session, error_message='Failed to record vitals'):
                 return None
             return record
-        except Exception as e:
-            logging.exception(f'Error recording vitals: {e!s}')
+        except Exception:
+            logging.exception("Error recording vitals: %s")
             return None
 
     # ==================== NURSING NOTES ====================
@@ -147,8 +147,8 @@ class NursingService:
             if not safe_commit(db.session, error_message='Failed to add nursing note'):
                 return None
             return note
-        except Exception as e:
-            logging.exception(f'Error adding nursing note: {e!s}')
+        except Exception:
+            logging.exception("Error adding nursing note: %s")
             return None
 
     # ==================== MEDICATION ADMINISTRATION ====================
@@ -185,8 +185,8 @@ class NursingService:
             return safe_commit(
                 db.session, error_message='Failed to record medication administration'
             )
-        except Exception as e:
-            logging.exception(f'Error recording medication administration: {e!s}')
+        except Exception:
+            logging.exception("Error recording medication administration: %s")
             return False
 
     # ==================== CARE PLAN ====================
@@ -239,8 +239,8 @@ class NursingService:
             if not safe_commit(db.session, error_message='Failed to create care plan'):
                 return None
             return plan
-        except Exception as e:
-            logging.exception(f'Error creating care plan: {e!s}')
+        except Exception:
+            logging.exception("Error creating care plan: %s")
             return None
 
     # ==================== TASKS ====================
@@ -271,8 +271,8 @@ class NursingService:
             task.status = 'completed'
             task.completed_at = datetime.now(UTC)
             return safe_commit(db.session, error_message='Failed to complete task')
-        except Exception as e:
-            logging.exception(f'Error completing task: {e!s}')
+        except Exception:
+            logging.exception("Error completing task: %s")
             return False
 
     # ==================== DASHBOARD STATS ====================

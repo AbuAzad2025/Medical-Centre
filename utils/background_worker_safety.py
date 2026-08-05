@@ -45,9 +45,7 @@ def safe_background_loop(
     except Exception as exc:
         consecutive_errors += 1
         tb = traceback.format_exc()
-        logger.exception(
-            '%s: %s\nConsecutive errors: %s\n%s', error_message, exc, consecutive_errors, tb
-        )
+        logger.exception('')
 
         # Fire alert sinks if configured
         if alert_sinks:
@@ -107,9 +105,9 @@ def background_worker_wrapper(
                 except Exception as exc:
                     if log_traceback:
                         tb = traceback.format_exc()
-                        logger.exception('%s: %s\n%s', error_message, exc, tb)
+                        logger.exception('%s: %s\n%s')
                     else:
-                        logger.exception('%s: %s', error_message, exc)
+                        logger.exception('%s: %s')
 
                     # Try to alert admin if alert sinks exist
                     try:

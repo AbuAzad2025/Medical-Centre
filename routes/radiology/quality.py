@@ -182,8 +182,8 @@ def api_ai_assist():
             'external_ref': pacs_url or (f'study:{study_uid}' if study_uid else None),
         }
         return jsonify({'success': True, 'data': payload}), 200
-    except Exception as e:
-        logging.exception(f'Error generating radiology AI assist: {e!s}')
+    except Exception:
+        logging.exception("Error generating radiology AI assist: %s")
         return jsonify({'success': False, 'message': 'تعذر توليد توصيات AI'}), 500
 
 
@@ -209,7 +209,7 @@ def second_review_result(result_id):
         res.reviewed_at = datetime.now(UTC)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Second review radiology result error: {e!s}')
+        logging.exception("Second review radiology result error: %s")
         return jsonify({'success': False, 'message': 'تعذر حفظ المراجعة حالياً'}), 500

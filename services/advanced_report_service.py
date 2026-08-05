@@ -99,8 +99,8 @@ class AdvancedReportService:
                 'period': {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()},
             }
 
-        except Exception as e:
-            logging.exception(f'Error generating patient analytics: {e!s}')
+        except Exception:
+            logging.exception("Error generating patient analytics: %s")
             return {'success': False, 'message': 'تعذر تحليل بيانات المرضى حالياً'}
 
     @staticmethod
@@ -191,8 +191,8 @@ class AdvancedReportService:
                 'period': {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()},
             }
 
-        except Exception as e:
-            logging.exception(f'Error generating visit analytics: {e!s}')
+        except Exception:
+            logging.exception("Error generating visit analytics: %s")
             return {'success': False, 'message': 'تعذر تحليل بيانات الزيارات حالياً'}
 
     @staticmethod
@@ -325,8 +325,8 @@ class AdvancedReportService:
                 'period': {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()},
             }
 
-        except Exception as e:
-            logging.exception(f'Error generating financial analytics: {e!s}')
+        except Exception:
+            logging.exception("Error generating financial analytics: %s")
             return {'success': False, 'message': 'تعذر تحليل البيانات المالية حالياً'}
 
     @staticmethod
@@ -427,8 +427,8 @@ class AdvancedReportService:
                 'period': {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()},
             }
 
-        except Exception as e:
-            logging.exception(f'Error generating doctor performance analytics: {e!s}')
+        except Exception:
+            logging.exception("Error generating doctor performance analytics: %s")
             return {'success': False, 'message': 'تعذر تحليل أداء الأطباء حالياً'}
 
     @staticmethod
@@ -524,8 +524,8 @@ class AdvancedReportService:
                 'period': {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()},
             }
 
-        except Exception as e:
-            logging.exception(f'Error generating department analytics: {e!s}')
+        except Exception:
+            logging.exception("Error generating department analytics: %s")
             return {'success': False, 'message': 'تعذر تحليل بيانات الأقسام حالياً'}
 
     @staticmethod
@@ -644,8 +644,8 @@ class AdvancedReportService:
                 'period': {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()},
             }
 
-        except Exception as e:
-            logging.exception(f'Error generating system usage analytics: {e!s}')
+        except Exception:
+            logging.exception("Error generating system usage analytics: %s")
             return {'success': False, 'message': 'تعذر تحليل استخدام النظام حالياً'}
 
     @staticmethod
@@ -691,8 +691,8 @@ class AdvancedReportService:
                 'generated_at': datetime.now(UTC).isoformat(),
             }
 
-        except Exception as e:
-            logging.exception(f'Error generating comprehensive report: {e!s}')
+        except Exception:
+            logging.exception("Error generating comprehensive report: %s")
             return {'success': False, 'message': 'تعذر إنشاء التقرير الشامل حالياً'}
 
     @staticmethod
@@ -715,6 +715,6 @@ class AdvancedReportService:
                 return {'success': True, 'data': output.getvalue()}
             return {'success': False, 'message': 'تنسيق التصدير غير مدعوم'}
 
-        except Exception as e:
-            logging.exception(f'Error exporting analytics: {e!s}')
+        except Exception:
+            logging.exception("Error exporting analytics: %s")
             return {'success': False, 'message': 'تعذر تصدير التحليلات حالياً'}

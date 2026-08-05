@@ -275,11 +275,11 @@ def dashboard():
         from app.shared.dashboard_service import render_command_center
 
         return render_command_center(current_user)
-    except Exception as e:
+    except Exception:
         import traceback
 
         traceback.print_exc()
-        logging.exception(f'Error in accountant dashboard: {e!s}')
+        logging.exception("Error in accountant dashboard: %s")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         from app.shared.dashboard_service import render_command_center
 

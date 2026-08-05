@@ -41,8 +41,8 @@ def daily_audit_report():
     except ValueError:
         flash('تنسيق التاريخ غير صحيح', 'error')
         return redirect(url_for('accountant.dashboard'))
-    except Exception as e:
-        logging.exception(f'Error in daily_audit_report: {e!s}')
+    except Exception:
+        logging.exception("Error in daily_audit_report: %s")
         flash('تعذر تحميل تقرير التدقيق اليومي حالياً', 'error')
         return redirect(url_for('accountant.dashboard'))
 
@@ -67,8 +67,8 @@ def monthly_audit_report():
             'accountant/monthly_audit_report.html', report=report, year=year, month=month
         )
 
-    except Exception as e:
-        logging.exception(f'Error in monthly_audit_report: {e!s}')
+    except Exception:
+        logging.exception("Error in monthly_audit_report: %s")
         flash('تعذر تحميل تقرير التدقيق الشهري حالياً', 'error')
         return redirect(url_for('accountant.dashboard'))
 
@@ -88,8 +88,8 @@ def debt_tracking_report():
 
         return render_template('accountant/debt_tracking_report.html', report=report)
 
-    except Exception as e:
-        logging.exception(f'Error in debt_tracking_report: {e!s}')
+    except Exception:
+        logging.exception("Error in debt_tracking_report: %s")
         flash('تعذر تحميل تقرير تتبع الديون حالياً', 'error')
         return redirect(url_for('accountant.dashboard'))
 
@@ -132,7 +132,7 @@ def export_audit_report(report_type):
         flash('تنسيق التصدير غير مدعوم حالياً', 'warning')
         return redirect(url_for('accountant.dashboard'))
 
-    except Exception as e:
-        logging.exception(f'Error exporting report: {e!s}')
+    except Exception:
+        logging.exception("Error exporting report: %s")
         flash('تعذر تصدير التقرير حالياً', 'error')
         return redirect(url_for('accountant.dashboard'))

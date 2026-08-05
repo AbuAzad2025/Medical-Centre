@@ -52,9 +52,9 @@ def branch_templates():
         return render_template(
             'super_admin/branch_templates.html', items=items if isinstance(items, list) else []
         )
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Branch templates error: {e!s}')
+        logging.exception("Branch templates error: %s")
         return render_template('super_admin/branch_templates.html', items=[])
 
 
@@ -67,8 +67,8 @@ def data_warehouse():
 
         snapshot = DataWarehouseService.export_snapshot(days=30)
         return render_template('super_admin/data_warehouse.html', snapshot=snapshot)
-    except Exception as e:
-        logging.exception(f'Data warehouse error: {e!s}')
+    except Exception:
+        logging.exception("Data warehouse error: %s")
         return render_template('super_admin/data_warehouse.html', snapshot={})
 
 
@@ -83,8 +83,8 @@ def data_warehouse_export():
         days = max(7, min(days, 365))
         snapshot = DataWarehouseService.export_snapshot(days=days)
         return jsonify({'success': True, 'snapshot': snapshot}), 200
-    except Exception as e:
-        logging.exception(f'Data warehouse export error: {e!s}')
+    except Exception:
+        logging.exception("Data warehouse export error: %s")
         return jsonify({'success': False, 'message': 'تعذر تصدير المستودع'}), 500
 
 
@@ -170,8 +170,8 @@ def export_system_data():
             }
         )
 
-    except Exception as e:
-        logging.exception(f'Error exporting data: {e!s}')
+    except Exception:
+        logging.exception("Error exporting data: %s")
         return jsonify({'success': False, 'message': 'تعذر تصدير البيانات حالياً'})
 
 
@@ -191,7 +191,7 @@ def download_export(filename):
         flash('الملف غير موجود', 'error')
         return redirect(url_for('super_admin.dashboard'))
 
-    except Exception as e:
-        logging.exception(f'Error downloading export: {e!s}')
+    except Exception:
+        logging.exception("Error downloading export: %s")
         flash('حدث خطأ في تحميل الملف', 'error')
         return redirect(url_for('super_admin.dashboard'))

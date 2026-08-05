@@ -33,8 +33,8 @@ def roles():
 
         roles = db.session.execute(select(Role)).scalars().all()
         return render_template('super_admin/roles.html', roles=roles, mode='list')
-    except Exception as e:
-        logging.exception(f'Error loading roles: {e!s}')
+    except Exception:
+        logging.exception("Error loading roles: %s")
         # إرجاع صفحة فارغة بدلاً من redirect
         return render_template('super_admin/roles.html', roles=[], mode='list')
 
@@ -72,11 +72,11 @@ def create_role():
             flash('تم إنشاء الدور بنجاح', 'success')
             return redirect(url_for('super_admin.roles'))
 
-        except Exception as e:
+        except Exception:
             from app.extensions import db
 
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Create role error: {e!s}')
+            logging.exception("Create role error: %s")
             flash('تعذر إنشاء الدور، يرجى المحاولة مرة أخرى', 'error')
 
     # جلب الصلاحيات المتاحة
@@ -138,11 +138,11 @@ def edit_role(role_id):
             mode='edit',
         )
 
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Edit role error: {e!s}')
+        logging.exception("Edit role error: %s")
         flash('تعذر تحديث الدور، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.roles'))
 
@@ -191,11 +191,11 @@ def manage_role_permissions(role_id):
             role_permissions=role_permissions,
         )
 
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Manage role permissions error: {e!s}')
+        logging.exception("Manage role permissions error: %s")
         flash('حدث خطأ في إدارة صلاحيات الدور', 'error')
         return redirect(url_for('super_admin.roles'))
 
@@ -310,9 +310,9 @@ def manage_role_department_permissions(role_id):
             departments=departments,
             perm_map=perm_map,
         )
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Department permissions error: {e!s}')
+        logging.exception("Department permissions error: %s")
         flash('حدث خطأ في إدارة صلاحيات الأقسام', 'error')
         return redirect(url_for('super_admin.roles'))
 
@@ -401,9 +401,9 @@ def permissions_matrix():
             permissions=permissions,
             matrix=matrix,
         )
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Permissions matrix error: {e!s}')
+        logging.exception("Permissions matrix error: %s")
         flash('حدث خطأ في تحميل مصفوفة الصلاحيات', 'error')
         return redirect(url_for('super_admin.dashboard'))
 
@@ -435,11 +435,11 @@ def delete_role(role_id):
         flash('تم حذف الدور بنجاح', 'success')
         return redirect(url_for('super_admin.roles'))
 
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Delete role error: {e!s}')
+        logging.exception("Delete role error: %s")
         flash('تعذر حذف الدور، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.roles'))
 
@@ -454,8 +454,8 @@ def permissions():
 
         permissions = db.session.execute(select(Permission)).scalars().all()
         return render_template('super_admin/permissions.html', permissions=permissions)
-    except Exception as e:
-        logging.exception(f'Permissions error: {e!s}')
+    except Exception:
+        logging.exception("Permissions error: %s")
         # إرجاع صفحة فارغة بدلاً من redirect
         return render_template('super_admin/permissions.html', permissions=[])
 
@@ -483,11 +483,11 @@ def create_permission():
         flash('تم إنشاء الصلاحية بنجاح', 'success')
         return redirect(url_for('super_admin.permissions'))
 
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Create permission error: {e!s}')
+        logging.exception("Create permission error: %s")
         flash('حدث خطأ في إنشاء الصلاحية', 'error')
         return redirect(url_for('super_admin.permissions'))
 
@@ -516,11 +516,11 @@ def edit_permission(permission_id):
         flash('تم تحديث الصلاحية بنجاح', 'success')
         return redirect(url_for('super_admin.permissions'))
 
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Edit permission error: {e!s}')
+        logging.exception("Edit permission error: %s")
         flash('حدث خطأ في تعديل الصلاحية', 'error')
         return redirect(url_for('super_admin.permissions'))
 
@@ -544,11 +544,11 @@ def delete_permission(permission_id):
         flash('تم حذف الصلاحية بنجاح', 'success')
         return redirect(url_for('super_admin.permissions'))
 
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Delete permission error: {e!s}')
+        logging.exception("Delete permission error: %s")
         flash('حدث خطأ في حذف الصلاحية', 'error')
         return redirect(url_for('super_admin.permissions'))
 
@@ -580,11 +580,11 @@ def create_role_simple():
         flash('تم إنشاء الدور بنجاح', 'success')
         return redirect(url_for('super_admin.users'))
 
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Create role error: {e!s}')
+        logging.exception("Create role error: %s")
         flash('حدث خطأ في إنشاء الدور', 'error')
         return redirect(url_for('super_admin.users'))
 
@@ -615,11 +615,11 @@ def create_permission_simple():
         flash('تم إنشاء الصلاحية بنجاح', 'success')
         return redirect(url_for('super_admin.users'))
 
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Create permission error: {e!s}')
+        logging.exception("Create permission error: %s")
         flash('حدث خطأ في إنشاء الصلاحية', 'error')
         return redirect(url_for('super_admin.users'))
 

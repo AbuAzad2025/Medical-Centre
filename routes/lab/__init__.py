@@ -187,8 +187,8 @@ def get_lab_quality_control():
             'standard_deviations': standard_deviations,
             'recheck_requests': recheck_requests,
         }
-    except Exception as e:
-        logging.exception(f'Error getting lab quality control: {e!s}')
+    except Exception:
+        logging.exception("Error getting lab quality control: %s")
         return {}
 
 
@@ -211,8 +211,8 @@ def get_lab_equipment_monitoring():
             'maintenance': maintenance,
             'efficiency': efficiency,
         }
-    except Exception as e:
-        logging.exception(f'Error getting lab equipment monitoring: {e!s}')
+    except Exception:
+        logging.exception("Error getting lab equipment monitoring: %s")
         return {}
 
 
@@ -250,8 +250,8 @@ def get_lab_result_analysis():
             'abnormal_rate': round(abnormal_rate, 2),
             'trend_analysis': trend_analysis,
         }
-    except Exception as e:
-        logging.exception(f'Error getting lab result analysis: {e!s}')
+    except Exception:
+        logging.exception("Error getting lab result analysis: %s")
         return {}
 
 
@@ -274,8 +274,8 @@ def get_lab_workflow_automation():
             'time_saved': time_saved,
             'efficiency_gain': efficiency_gain,
         }
-    except Exception as e:
-        logging.exception(f'Error getting lab workflow automation: {e!s}')
+    except Exception:
+        logging.exception("Error getting lab workflow automation: %s")
         return {}
 
 

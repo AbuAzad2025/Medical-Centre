@@ -999,8 +999,8 @@ def create_app(config_name: str | None = None) -> Flask:
             'current_tenant': None,
             'product_profile': None,
             'feature_flags': {},
-            'module_active': lambda m: False,
-            'feature_enabled': lambda f: False,
+            'module_active': lambda _m: False,
+            'feature_enabled': lambda _f: False,
         }
 
     # Entitlement + permission helpers for templates (S0-004)
@@ -1095,7 +1095,7 @@ def create_app(config_name: str | None = None) -> Flask:
                 'owner_nav_sections': resolve_owner_nav(),
                 'owner_nav_href': owner_nav_href,
             }
-        return {'owner_nav_sections': [], 'owner_nav_href': lambda item: '#'}
+        return {'owner_nav_sections': [], 'owner_nav_href': lambda _item: '#'}
 
     @app.context_processor
     def inject_validation_rules():
@@ -1584,8 +1584,8 @@ def create_app(config_name: str | None = None) -> Flask:
                                 if now - last_run >= BackupAutomationService.interval_seconds():
                                     BackupAutomationService.tick(app_ctx)
                                     last_run = now
-                        except Exception as exc:
-                            app_ctx.logger.exception('Backup automation loop error: %s', exc)
+                        except Exception:
+                            app_ctx.logger.exception('Backup automation loop error: %s')
                         time.sleep(60)
 
                 thread = threading.Thread(

@@ -172,8 +172,8 @@ class EmergencyService:
             if not safe_commit(db.session, error_message='Failed to create emergency case'):
                 return None
             return case
-        except Exception as e:
-            logging.exception(f'Error creating emergency case: {e!s}')
+        except Exception:
+            logging.exception("Error creating emergency case: %s")
             return None
 
     @staticmethod

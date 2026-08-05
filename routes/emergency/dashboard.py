@@ -141,8 +141,8 @@ def reports():
             stage_avg=stage_avg,
             stage_samples=stage_samples,
         )
-    except Exception as e:
-        logging.exception(f'Error loading emergency reports: {e!s}')
+    except Exception:
+        logging.exception("Error loading emergency reports: %s")
         flash('حدث خطأ في تحميل تقارير الطوارئ', 'error')
         return redirect(url_for('emergency.dashboard'))
 
@@ -303,7 +303,7 @@ def dashboard():
         from app.shared.dashboard_service import render_command_center
 
         return render_command_center(current_user)
-    except Exception as e:
-        logging.exception(f'Error in emergency dashboard: {e!s}')
+    except Exception:
+        logging.exception("Error in emergency dashboard: %s")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))

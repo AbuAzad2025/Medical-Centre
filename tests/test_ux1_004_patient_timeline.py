@@ -41,7 +41,7 @@ def sample_patient(app, test_tenant, monkeypatch):
     # Avoid bundle-limit failures caused by accumulated test data.
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_create',
-        lambda instance, tenant_id: None,
+        lambda _instance, _tenant_id: None,
     )
     p = db.session.execute(select(Patient).filter_by(national_id='TIMELINE-001')).scalars().first()
     if not p:

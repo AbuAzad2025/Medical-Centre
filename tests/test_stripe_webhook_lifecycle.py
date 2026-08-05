@@ -235,7 +235,7 @@ class TestStripeWebhookIngestIdempotency:
         sig = _sign(payload, stripe_secret)
         monkeypatch.setattr(
             'services.stripe_subscription_service.stripe.Webhook.construct_event',
-            lambda p, s, sec: json.loads(p),
+            lambda p, _s, _sec: json.loads(p),
         )
 
         result1 = StripeSubscriptionService.ingest_webhook(payload, sig)
@@ -256,7 +256,7 @@ class TestStripeWebhookIngestIdempotency:
         payload = json.dumps({'type': 'invoice.paid', 'data': {'object': {}}}).encode()
         monkeypatch.setattr(
             'services.stripe_subscription_service.stripe.Webhook.construct_event',
-            lambda p, s, sec: json.loads(p),
+            lambda p, _s, _sec: json.loads(p),
         )
         with pytest.raises(StripeWebhookError, match='missing_event_id'):
             StripeSubscriptionService.ingest_webhook(payload, _sign(payload, stripe_secret))
@@ -310,7 +310,7 @@ class TestStripeWebhookIngestFailures:
     def test_invalid_event_payload_raises(self, app, stripe_secret, monkeypatch):
         monkeypatch.setattr(
             'services.stripe_subscription_service.stripe.Webhook.construct_event',
-            lambda p, s, sec: ['not', 'a', 'dict'],
+            lambda _p, _s, _sec: ['not', 'a', 'dict'],
         )
         payload = b'[]'
         with pytest.raises(StripeWebhookError, match='invalid_event_payload'):
@@ -329,12 +329,12 @@ class TestStripeWebhookIngestFailures:
         ).encode('utf-8')
         monkeypatch.setattr(
             'services.stripe_subscription_service.stripe.Webhook.construct_event',
-            lambda p, s, sec: json.loads(p),
+            lambda p, _s, _sec: json.loads(p),
         )
         monkeypatch.setattr(
             StripeSubscriptionService,
             'handle_event',
-            lambda event: (_ for _ in ()).throw(RuntimeError('handler boom')),
+            lambda _event: (_ for _ in ()).throw(RuntimeError('handler boom')),
         )
         with pytest.raises(RuntimeError, match='handler boom'):
             StripeSubscriptionService.ingest_webhook(payload, _sign(payload, stripe_secret))

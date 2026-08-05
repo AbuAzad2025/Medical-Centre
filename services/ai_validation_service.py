@@ -367,8 +367,8 @@ class AIValidationService:
                 if visits_count > 0:
                     warnings.append(f'هذا المريض لديه {visits_count} زيارة مسجلة وسيتم حذفها جميعاً')
 
-        except Exception as e:
-            logging.exception(f'Validation error: {e!s}')
+        except Exception:
+            logging.exception("Validation error: %s")
             warnings.append('حدث خطأ أثناء التحقق ويرجى المراجعة اليدوية')
 
         is_valid = len(errors) == 0

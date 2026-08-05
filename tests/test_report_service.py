@@ -180,7 +180,7 @@ class TestEntityReports:
     def test_export_csv_exception(self, seed, monkeypatch):
         monkeypatch.setattr(
             'csv.DictWriter',
-            lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x')),
+            lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError('x')),
         )
         res = RP.export_report('x', [{'a': 1}], format='csv')
         assert res['success'] is False

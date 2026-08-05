@@ -58,8 +58,8 @@ if __name__ == '__main__':
                         ),
                     )
                     logger.info('⏰ تم تنفيذ مهمة التنبيهات المجدولة')
-                except Exception as e:
-                    logger.exception(f'خطأ في مهمة التنبيهات المجدولة: {e!s}')
+                except Exception:
+                    logger.exception('خطأ في مهمة التنبيهات المجدولة: %s')
 
         t = threading.Thread(target=_alerts_worker, args=(app,), daemon=True)
         t.start()

@@ -239,7 +239,7 @@ class PrescriptionService:
                 return False, 'database_error'
             return True, prescription
         except Exception as e:
-            logging.exception(f'Error creating prescription: {e!s}')
+            logging.exception("Error creating prescription: %s")
             return False, str(e)
 
     @staticmethod
@@ -329,8 +329,8 @@ class PrescriptionService:
                 return False
             med.stock_quantity = (med.stock_quantity or 0) + quantity_change
             return safe_commit(db.session, error_message='Failed to update stock')
-        except Exception as e:
-            logging.exception(f'Error updating medication stock: {e!s}')
+        except Exception:
+            logging.exception("Error updating medication stock: %s")
             return False
 
     # ==================== SUPPLY REQUESTS ====================
@@ -374,8 +374,8 @@ class PrescriptionService:
             if not safe_commit(db.session, error_message='Failed to create supply request'):
                 return None
             return request
-        except Exception as e:
-            logging.exception(f'Error creating supply request: {e!s}')
+        except Exception:
+            logging.exception("Error creating supply request: %s")
             return None
 
     @staticmethod

@@ -135,8 +135,8 @@ def worklist():
             counts=counts,
             visits_by_id=visits_by_id,
         )
-    except Exception as e:
-        logging.exception(f'Error loading radiology worklist: {e!s}')
+    except Exception:
+        logging.exception("Error loading radiology worklist: %s")
         flash('حدث خطأ في تحميل قائمة العمل', 'error')
         return redirect(url_for('radiology.dashboard'))
 
@@ -176,8 +176,8 @@ def worklist_request(request_id):
             uploads=uploads,
             visit_summary=visit_summary,
         )
-    except Exception as e:
-        logging.exception(f'Error loading radiology request {request_id}: {e!s}')
+    except Exception:
+        logging.exception("Error loading radiology request {request_id}: %s")
         flash('حدث خطأ في تحميل الطلب', 'error')
         return redirect(url_for('radiology.worklist'))
 
@@ -200,8 +200,8 @@ def worklist_claim(request_id):
             return jsonify({'success': True, 'message': 'تم استلام الطلب'}), 200
         flash('تم استلام الطلب', 'success')
         return redirect(url_for('radiology.worklist', status='IN_PROGRESS'))
-    except Exception as e:
-        logging.exception(f'Error claiming radiology request: {e!s}')
+    except Exception:
+        logging.exception("Error claiming radiology request: %s")
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
         flash('حدث خطأ', 'error')
@@ -320,9 +320,9 @@ def worklist_complete(request_id):
         if should_finalize:
             return redirect(url_for('radiology.worklist', status='DONE_TODAY'))
         return redirect(url_for('radiology.worklist_request', request_id=req.id))
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error completing radiology request: {e!s}')
+        logging.exception("Error completing radiology request: %s")
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
         flash('حدث خطأ', 'error')

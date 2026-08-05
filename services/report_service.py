@@ -165,8 +165,8 @@ class ReportService:
                 },
             }
 
-        except Exception as e:
-            logging.exception(f'Error getting dashboard summary: {e!s}')
+        except Exception:
+            logging.exception("Error getting dashboard summary: %s")
             return {'success': False, 'message': 'تعذر جلب ملخص لوحة التحكم حالياً'}
 
     @staticmethod
@@ -256,8 +256,8 @@ class ReportService:
                 'period': {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()},
             }
 
-        except Exception as e:
-            logging.exception(f'Error getting patient report: {e!s}')
+        except Exception:
+            logging.exception("Error getting patient report: %s")
             return {'success': False, 'message': 'تعذر جلب تقرير المريض حالياً'}
 
     @staticmethod
@@ -354,8 +354,8 @@ class ReportService:
                 'period': {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()},
             }
 
-        except Exception as e:
-            logging.exception(f'Error getting department report: {e!s}')
+        except Exception:
+            logging.exception("Error getting department report: %s")
             return {'success': False, 'message': 'تعذر جلب تقرير القسم حالياً'}
 
     @staticmethod
@@ -427,8 +427,8 @@ class ReportService:
                 'period': {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()},
             }
 
-        except Exception as e:
-            logging.exception(f'Error getting financial report: {e!s}')
+        except Exception:
+            logging.exception("Error getting financial report: %s")
             return {'success': False, 'message': 'تعذر جلب التقرير المالي حالياً'}
 
     @staticmethod
@@ -519,8 +519,8 @@ class ReportService:
                 'period': {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()},
             }
 
-        except Exception as e:
-            logging.exception(f'Error getting doctor performance report: {e!s}')
+        except Exception:
+            logging.exception("Error getting doctor performance report: %s")
             return {'success': False, 'message': 'تعذر جلب تقرير أداء الطبيب حالياً'}
 
     @staticmethod
@@ -543,8 +543,8 @@ class ReportService:
                 return {'success': True, 'data': output.getvalue()}
             return {'success': False, 'message': 'تنسيق التصدير غير مدعوم'}
 
-        except Exception as e:
-            logging.exception(f'Error exporting report: {e!s}')
+        except Exception:
+            logging.exception("Error exporting report: %s")
             return {'success': False, 'message': 'تعذر تصدير التقرير حالياً'}
 
     # ==================== تقارير التدقيق (الأسبوع الثاني) ====================
@@ -1241,8 +1241,8 @@ class ReportService:
                 'reset_time': reset_time.isoformat() if reset_time else None,
                 'queries': queries,
             }
-        except Exception as e:
-            logging.exception(f'Error generating slow queries report: {e!s}')
+        except Exception:
+            logging.exception("Error generating slow queries report: %s")
             return {'success': False, 'message': 'تعذر إنشاء تقرير الاستعلامات البطيئة حالياً'}
 
     @staticmethod
@@ -1278,6 +1278,6 @@ class ReportService:
             if not safe_commit(db.session, error_message='فشل حفظ تقرير الاستعلامات الأسبوعي'):
                 return {'success': False, 'message': 'تعذر حفظ تقرير الاستعلامات الأسبوعي'}
             return {'success': True, 'report_id': rq.id}
-        except Exception as e:
-            logging.exception(f'Error capturing weekly slow queries: {e!s}')
+        except Exception:
+            logging.exception("Error capturing weekly slow queries: %s")
             return {'success': False, 'message': 'تعذر حفظ تقرير الاستعلامات الأسبوعي'}

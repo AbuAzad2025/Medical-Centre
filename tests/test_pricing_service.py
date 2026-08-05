@@ -404,7 +404,7 @@ class TestCalculateVisitCost:
         monkeypatch.setattr(
             PricingService,
             'get_doctor_price',
-            staticmethod(lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x'))),
+            staticmethod(lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError('x'))),
         )
         res = PricingService.calculate_visit_cost({'doctor_id': 1})
         assert res['success'] is False

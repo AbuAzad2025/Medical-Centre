@@ -94,8 +94,8 @@ def dashboard():
         }
 
         return render_template('accountant/dashboard.html', stats=stats)
-    except Exception as e:
-        logging.exception(f'Error in payment dashboard: {e!s}')
+    except Exception:
+        logging.exception("Error in payment dashboard: %s")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -456,9 +456,9 @@ def process_payment(visit_id):
             if return_to_reception:
                 return redirect(url_for('reception.view_visit', visit_id=visit_id))
             return redirect(url_for('reception.print_receipt', visit_id=visit_id))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Error processing payment: {e!s}')
+            logging.exception("Error processing payment: %s")
             err = {'success': False, 'message': 'حدث خطأ في معالجة الدفع'}
             if _wants_json():
                 return jsonify(err), 500
@@ -531,8 +531,8 @@ def payment_history():
             date_from=date_from,
             date_to=date_to,
         )
-    except Exception as e:
-        logging.exception(f'Error loading payment history: {e!s}')
+    except Exception:
+        logging.exception("Error loading payment history: %s")
         flash('حدث خطأ في تحميل تاريخ المدفوعات', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -552,8 +552,8 @@ def payment_methods():
             PaymentMethod.FORCE,
         ]
         return render_template('payment/methods.html', methods=methods)
-    except Exception as e:
-        logging.exception(f'Error loading payment methods: {e!s}')
+    except Exception:
+        logging.exception("Error loading payment methods: %s")
         flash('حدث خطأ في تحميل طرق الدفع', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -609,8 +609,8 @@ def payment_reports():
             daily_payments=daily_payments,
             method_stats=method_stats,
         )
-    except Exception as e:
-        logging.exception(f'Error loading payment reports: {e!s}')
+    except Exception:
+        logging.exception("Error loading payment reports: %s")
         flash('حدث خطأ في تحميل تقارير الدفع', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -637,9 +637,9 @@ def request_refund(payment_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم تقديم طلب الاسترداد بنجاح', 'success')
         return redirect(url_for('payment.dashboard'))
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error requesting refund: {e!s}')
+        logging.exception("Error requesting refund: %s")
         flash('حدث خطأ أثناء طلب الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -657,9 +657,9 @@ def approve_refund(refund_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تمت موافقة طلب الاسترداد', 'success')
         return redirect(url_for('payment.dashboard'))
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error approving refund: {e!s}')
+        logging.exception("Error approving refund: %s")
         flash('حدث خطأ أثناء موافقة الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -677,8 +677,8 @@ def execute_refund(refund_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم تنفيذ الاسترداد بنجاح', 'success')
         return redirect(url_for('payment.dashboard'))
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error executing refund: {e!s}')
+        logging.exception("Error executing refund: %s")
         flash('حدث خطأ أثناء تنفيذ الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))

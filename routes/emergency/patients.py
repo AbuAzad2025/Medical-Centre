@@ -83,8 +83,8 @@ def patient_details(emergency_id):
             lab_requests=lab_requests,
             radiology_requests=radiology_requests,
         )
-    except Exception as e:
-        logging.exception(f'Error loading patient details: {e!s}')
+    except Exception:
+        logging.exception("Error loading patient details: %s")
         flash('حدث خطأ في تحميل تفاصيل المريض', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -136,8 +136,8 @@ def medical_history(patient_id):
             medical_records=medical_records,
             previous_emergencies=previous_emergencies,
         )
-    except Exception as e:
-        logging.exception(f'Error loading medical history: {e!s}')
+    except Exception:
+        logging.exception("Error loading medical history: %s")
         flash('حدث خطأ في تحميل السجل الطبي', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -168,8 +168,8 @@ def prescriptions_history(patient_id):
         return render_template(
             'emergency/prescriptions_history.html', patient=patient, prescriptions=prescriptions
         )
-    except Exception as e:
-        logging.exception(f'Error loading prescriptions history: {e!s}')
+    except Exception:
+        logging.exception("Error loading prescriptions history: %s")
         flash('حدث خطأ في تحميل تاريخ الوصفات', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -200,8 +200,8 @@ def lab_results(patient_id):
         return render_template(
             'emergency/lab_results.html', patient=patient, lab_requests=lab_requests
         )
-    except Exception as e:
-        logging.exception(f'Error loading lab results: {e!s}')
+    except Exception:
+        logging.exception("Error loading lab results: %s")
         flash('حدث خطأ في تحميل نتائج المختبر', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -234,7 +234,7 @@ def radiology_results(patient_id):
             patient=patient,
             radiology_requests=radiology_requests,
         )
-    except Exception as e:
-        logging.exception(f'Error loading radiology results: {e!s}')
+    except Exception:
+        logging.exception("Error loading radiology results: %s")
         flash('حدث خطأ في تحميل نتائج الأشعة', 'error')
         return redirect(url_for('emergency.patient_queue'))

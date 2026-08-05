@@ -68,8 +68,8 @@ class SuperAdminService:
             if not safe_commit(db.session, error_message='Failed to create user'):
                 return None
             return user
-        except Exception as e:
-            logging.exception(f'Error creating user: {e!s}')
+        except Exception:
+            logging.exception("Error creating user: %s")
             return None
 
     @staticmethod

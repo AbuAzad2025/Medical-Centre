@@ -207,9 +207,9 @@ def pos_sell():
                 'total': float(total),
             }
         )
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'POS sell error: {e!s}')
+        logging.exception("POS sell error: %s")
         return jsonify({'success': False, 'message': 'حدث خطأ أثناء عملية البيع'}), 500
 
 

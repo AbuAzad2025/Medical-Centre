@@ -56,7 +56,7 @@ pytestmark = [
 def _no_bundle_limits(monkeypatch):
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_create',
-        lambda *a, **k: None,
+        lambda *_a, **_k: None,
     )
 
 
@@ -229,11 +229,11 @@ class TestE2EProductionFlow:
         # ── 3. Billing → entitlements (live services, SDK boundary stub) ───
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Customer.create',
-            lambda **kw: MagicMock(id='cus_e2e_prod'),
+            lambda **_kw: MagicMock(id='cus_e2e_prod'),
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.checkout.Session.create',
-            lambda **kw: MagicMock(id='cs_e2e', url='https://checkout.stripe.test/e2e'),
+            lambda **_kw: MagicMock(id='cs_e2e', url='https://checkout.stripe.test/e2e'),
         )
 
         checkout = client.post(
@@ -263,7 +263,7 @@ class TestE2EProductionFlow:
         ).encode('utf-8')
         monkeypatch.setattr(
             'services.stripe_subscription_service.stripe.Webhook.construct_event',
-            lambda p, s, sec: json.loads(p),
+            lambda p, _s, _sec: json.loads(p),
         )
         webhook_result = StripeSubscriptionService.ingest_webhook(payload, 't=1,v1=e2e')
         assert webhook_result.get('action') == 'invoice_paid'

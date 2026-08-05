@@ -44,8 +44,8 @@ def prescriptions():
 
         return render_template('medication/prescriptions.html', prescriptions=prescriptions)
 
-    except Exception as e:
-        logging.exception(f'Error loading prescriptions: {e!s}')
+    except Exception:
+        logging.exception("Error loading prescriptions: %s")
         flash('حدث خطأ في تحميل الروشتات', 'error')
         return redirect(url_for('medication.dashboard'))
 
@@ -74,8 +74,8 @@ def api_prescriptions():
                 {'id': p.id, 'visit_id': p.visit_id, 'patient_id': p.patient_id, 'status': p.status}
             )
         return jsonify({'success': True, 'prescriptions': data})
-    except Exception as e:
-        logging.exception(f'Error loading prescriptions api: {e!s}')
+    except Exception:
+        logging.exception("Error loading prescriptions api: %s")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
 
@@ -267,7 +267,7 @@ def dispense_prescription(prescription_id):
         db.session.add(log_row)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'message': 'تم صرف الوصفة'}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error dispensing prescription: {e!s}')
+        logging.exception("Error dispensing prescription: %s")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

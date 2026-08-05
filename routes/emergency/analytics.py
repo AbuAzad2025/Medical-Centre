@@ -100,8 +100,8 @@ def get_emergency_ai_triage():
             'triage_suggestions': triage_suggestions,
             'efficiency_score': calculate_triage_efficiency(avg_response_time, priority_analysis),
         }
-    except Exception as e:
-        logging.exception(f'Error getting emergency AI triage: {e!s}')
+    except Exception:
+        logging.exception("Error getting emergency AI triage: %s")
         return {}
 
 
@@ -192,8 +192,8 @@ def get_critical_alert_system():
             )
 
         return alerts
-    except Exception as e:
-        logging.exception(f'Error getting critical alert system: {e!s}')
+    except Exception:
+        logging.exception("Error getting critical alert system: %s")
         return []
 
 
@@ -288,8 +288,8 @@ def get_emergency_workflow_ai():
             'workflow_suggestions': workflow_suggestions,
             'efficiency_score': calculate_workflow_efficiency(workflow_analysis, avg_total_time),
         }
-    except Exception as e:
-        logging.exception(f'Error getting emergency workflow AI: {e!s}')
+    except Exception:
+        logging.exception("Error getting emergency workflow AI: %s")
         return {}
 
 
@@ -353,8 +353,8 @@ def get_patient_vital_monitoring():
             'monitoring_recommendations': monitoring_recommendations,
             'total_cases_monitored': sum(vital_signs_analysis.values()),
         }
-    except Exception as e:
-        logging.exception(f'Error getting patient vital monitoring: {e!s}')
+    except Exception:
+        logging.exception("Error getting patient vital monitoring: %s")
         return {}
 
 
@@ -419,8 +419,8 @@ def get_emergency_resource_management():
             'efficiency_score': round(efficiency_score, 2),
             'resource_recommendations': resource_recommendations,
         }
-    except Exception as e:
-        logging.exception(f'Error getting emergency resource management: {e!s}')
+    except Exception:
+        logging.exception("Error getting emergency resource management: %s")
         return {}
 
 
@@ -490,8 +490,8 @@ def get_trauma_protocols():
             'protocol_recommendations': protocol_recommendations,
             'total_cases_analyzed': sum(trauma_analysis.values()),
         }
-    except Exception as e:
-        logging.exception(f'Error getting trauma protocols: {e!s}')
+    except Exception:
+        logging.exception("Error getting trauma protocols: %s")
         return {}
 
 
@@ -549,8 +549,8 @@ def get_emergency_analytics():
                 completion_rate, avg_treatment_time
             ),
         }
-    except Exception as e:
-        logging.exception(f'Error getting emergency analytics: {e!s}')
+    except Exception:
+        logging.exception("Error getting emergency analytics: %s")
         return {}
 
 
@@ -645,6 +645,6 @@ def get_smart_emergency_recommendations():
             )
 
         return recommendations
-    except Exception as e:
-        logging.exception(f'Error getting smart emergency recommendations: {e!s}')
+    except Exception:
+        logging.exception("Error getting smart emergency recommendations: %s")
         return []

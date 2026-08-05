@@ -70,8 +70,8 @@ def financial_report():
         }
 
         return render_template('accountant/financial_report.html', report=report_data)
-    except Exception as e:
-        logging.exception(f'Error generating financial report: {e!s}')
+    except Exception:
+        logging.exception("Error generating financial report: %s")
         flash('حدث خطأ في إنشاء التقرير المالي', 'error')
         return redirect(url_for('accountant.dashboard'))
 
@@ -135,8 +135,8 @@ def daily_summary():
         }
 
         return render_template('accountant/daily_summary.html', summary=summary)
-    except Exception as e:
-        logging.exception(f'Error generating daily summary: {e!s}')
+    except Exception:
+        logging.exception("Error generating daily summary: %s")
         flash('حدث خطأ في إنشاء الملخص اليومي', 'error')
         return redirect(url_for('accountant.dashboard'))
 

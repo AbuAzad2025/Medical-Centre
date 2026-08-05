@@ -47,5 +47,5 @@ def execute_backup_by_id(backup_id: int) -> Backup:
             with contextlib.suppress(OSError):
                 os.remove(backup.backup_path)
         safe_commit(db.session, error_message='Failed to save backup failure status')
-        logger.exception('Backup failed id=%s: %s', backup.id, exc)
+        logger.exception('Backup failed id=%s: %s')
         raise BackupAutomationError(str(exc)) from exc

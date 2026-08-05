@@ -103,7 +103,7 @@ class TestPatientTimelineService:
 
         monkeypatch.setattr(
             'app.shared.tenant_filter._check_bundle_limits_on_create',
-            lambda instance, tenant_id: None,
+            lambda _instance, _tenant_id: None,
         )
         p = Patient(
             first_name='Empty',

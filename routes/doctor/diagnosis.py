@@ -147,8 +147,8 @@ def diagnosis(visit_id):
         return render_template(
             'doctor/diagnosis.html', visit=visit, structured_vital_signs=structured_vital_signs
         )
-    except Exception as e:
-        logging.exception(f'Error in diagnosis: {e!s}')
+    except Exception:
+        logging.exception("Error in diagnosis: %s")
         flash('حدث خطأ في حفظ التشخيص', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -536,8 +536,8 @@ def get_treatment_recommendations():
             )
 
         return recommendations
-    except Exception as e:
-        logging.exception(f'Error getting treatment recommendations: {e!s}')
+    except Exception:
+        logging.exception("Error getting treatment recommendations: %s")
         return []
 
 
@@ -623,8 +623,8 @@ def get_drug_interaction_checker():
             if recent_prescriptions
             else 0,
         }
-    except Exception as e:
-        logging.exception(f'Error getting drug interaction checker: {e!s}')
+    except Exception:
+        logging.exception("Error getting drug interaction checker: %s")
         return {}
 
 
@@ -718,8 +718,8 @@ def get_clinical_decision_support():
                 )
 
         return support_recommendations
-    except Exception as e:
-        logging.exception(f'Error getting clinical decision support: {e!s}')
+    except Exception:
+        logging.exception("Error getting clinical decision support: %s")
         return []
 
 
@@ -803,8 +803,8 @@ def get_medical_analytics():
                 completion_rate, avg_visit_duration
             ),
         }
-    except Exception as e:
-        logging.exception(f'Error getting medical analytics: {e!s}')
+    except Exception:
+        logging.exception("Error getting medical analytics: %s")
         return {}
 
 
@@ -887,8 +887,8 @@ def get_workflow_optimization():
             )
 
         return optimizations
-    except Exception as e:
-        logging.exception(f'Error getting workflow optimization: {e!s}')
+    except Exception:
+        logging.exception("Error getting workflow optimization: %s")
         return []
 
 
@@ -967,8 +967,8 @@ def get_smart_reminders():
             )
 
         return reminders
-    except Exception as e:
-        logging.exception(f'Error getting smart reminders: {e!s}')
+    except Exception:
+        logging.exception("Error getting smart reminders: %s")
         return []
 
 

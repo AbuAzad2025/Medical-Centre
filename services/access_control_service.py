@@ -152,8 +152,8 @@ class AccessControlService:
 
             return False
 
-        except Exception as e:
-            logging.exception(f'Error checking visit access: {e!s}')
+        except Exception:
+            logging.exception("Error checking visit access: %s")
             return False
 
     @staticmethod
@@ -191,8 +191,8 @@ class AccessControlService:
 
             return False
 
-        except Exception as e:
-            logging.exception(f'Error checking visit modification: {e!s}')
+        except Exception:
+            logging.exception("Error checking visit modification: %s")
             return False
 
     @staticmethod
@@ -276,8 +276,8 @@ class AccessControlService:
 
             return []
 
-        except Exception as e:
-            logging.exception(f'Error getting accessible visits: {e!s}')
+        except Exception:
+            logging.exception("Error getting accessible visits: %s")
             return []
 
     @staticmethod
@@ -338,8 +338,8 @@ class AccessControlService:
 
             return []
 
-        except Exception as e:
-            logging.exception(f'Error getting accessible patients: {e!s}')
+        except Exception:
+            logging.exception("Error getting accessible patients: %s")
             return []
 
     @staticmethod
@@ -365,8 +365,8 @@ class AccessControlService:
 
             return role_routes.get(user.role, '/dashboard')
 
-        except Exception as e:
-            logging.exception(f'Error getting dashboard route: {e!s}')
+        except Exception:
+            logging.exception("Error getting dashboard route: %s")
             return '/dashboard'
 
     @staticmethod
@@ -465,8 +465,8 @@ class AccessControlService:
 
             return role_menus.get(user.role, [])
 
-        except Exception as e:
-            logging.exception(f'Error getting menu items: {e!s}')
+        except Exception:
+            logging.exception("Error getting menu items: %s")
             return []
 
     @staticmethod
@@ -476,8 +476,8 @@ class AccessControlService:
             from app.core.permission.service import PermissionService
 
             return PermissionService.has_permission(user, permission_name)
-        except Exception as e:
-            logging.exception(f"Error checking permission '{permission_name}': {e}")
+        except Exception:
+            logging.exception("Error checking permission '{permission_name}'")
             return False
 
     @staticmethod
@@ -485,8 +485,8 @@ class AccessControlService:
         """التحقق من دور المستخدم"""
         try:
             return user.role == role_name
-        except Exception as e:
-            logging.exception(f"Error checking role '{role_name}': {e}")
+        except Exception:
+            logging.exception("Error checking role '{role_name}'")
             return False
 
     @staticmethod

@@ -44,7 +44,7 @@ class TwilioSMSProvider(SMSProvider):
                 'message': 'تم إرسال الرسالة بنجاح',
             }
         except Exception as e:
-            logger.exception(f'[Twilio] Failed to send to {phone}: {e}')
+            logger.exception('[Twilio] Failed to send to %s: %s')
             return {'success': False, 'provider': 'twilio', 'message': str(e)}
 
 

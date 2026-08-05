@@ -82,7 +82,7 @@ class RefundService:
             return True, request
         except Exception as e:
             safe_rollback(db.session, error_message='فشل إنشاء طلب الاسترداد')
-            logging.exception(f'Error creating refund request: {e!s}')
+            logging.exception("Error creating refund request: %s")
             return False, str(e)
 
     @staticmethod
@@ -225,7 +225,7 @@ class RefundService:
             return True, request
         except Exception as e:
             safe_rollback(db.session, error_message='فشل تنفيذ الاسترداد')
-            logging.exception(f'Error executing refund: {e!s}')
+            logging.exception("Error executing refund: %s")
             return False, str(e)
 
 

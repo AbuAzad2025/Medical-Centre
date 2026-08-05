@@ -91,7 +91,7 @@ class TestDashboardStats:
         import models.invoice as mi
 
         monkeypatch.setattr(
-            mi, 'Invoice', property(lambda self: (_ for _ in ()).throw(RuntimeError('x')))
+            mi, 'Invoice', property(lambda _self: (_ for _ in ()).throw(RuntimeError('x')))
         )
         stats = FinancialService.get_dashboard_stats()
         assert stats == {'total_billed': 0, 'total_collected': 0, 'total_expenses': 0, 'pending': 0}
@@ -132,7 +132,7 @@ class TestCreateInvoice:
         import models.invoice as mi
 
         monkeypatch.setattr(
-            mi, 'InvoiceService', lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x'))
+            mi, 'InvoiceService', lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError('x'))
         )
         p = ffx.patient()
         inv = FinancialService.create_invoice(p.id, [{'price': 10, 'quantity': 1}])

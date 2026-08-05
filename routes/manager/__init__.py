@@ -186,8 +186,8 @@ def get_smart_analytics():
             if growth_rate == 0
             else 'declining',
         }
-    except Exception as e:
-        logging.exception(f'Error getting smart analytics: {e!s}')
+    except Exception:
+        logging.exception("Error getting smart analytics: %s")
         return {}
 
 
@@ -303,8 +303,8 @@ def get_business_insights():
             )
 
         return insights
-    except Exception as e:
-        logging.exception(f'Error getting business insights: {e!s}')
+    except Exception:
+        logging.exception("Error getting business insights: %s")
         return []
 
 
@@ -380,8 +380,8 @@ def get_performance_metrics():
             'satisfaction_rate': round(satisfaction_rate, 2),
             'overall_score': round((completion_rate + appointment_rate + satisfaction_rate) / 3, 2),
         }
-    except Exception as e:
-        logging.exception(f'Error getting performance metrics: {e!s}')
+    except Exception:
+        logging.exception("Error getting performance metrics: %s")
         return {}
 
 
@@ -454,8 +454,8 @@ def get_financial_forecasting():
             if growth_rate == 0
             else 'declining',
         }
-    except Exception as e:
-        logging.exception(f'Error getting financial forecasting: {e!s}')
+    except Exception:
+        logging.exception("Error getting financial forecasting: %s")
         return {}
 
 
@@ -585,8 +585,8 @@ def get_operational_efficiency():
             if efficiency_rate > 60
             else 'needs_improvement',
         }
-    except Exception as e:
-        logging.exception(f'Error getting operational efficiency: {e!s}')
+    except Exception:
+        logging.exception("Error getting operational efficiency: %s")
         return {}
 
 
@@ -654,8 +654,8 @@ def get_staff_productivity():
             if engagement_rate > 70
             else 'needs_attention',
         }
-    except Exception as e:
-        logging.exception(f'Error getting staff productivity: {e!s}')
+    except Exception:
+        logging.exception("Error getting staff productivity: %s")
         return {}
 
 
@@ -712,8 +712,8 @@ def get_patient_satisfaction():
                 'زيادة معدل إنجاز الزيارات' if base_satisfaction < 80 else 'معدل الإنجاز جيد',
             ],
         }
-    except Exception as e:
-        logging.exception(f'Error getting patient satisfaction: {e!s}')
+    except Exception:
+        logging.exception("Error getting patient satisfaction: %s")
         return {}
 
 
@@ -822,8 +822,8 @@ def get_resource_optimization():
             )
 
         return optimizations
-    except Exception as e:
-        logging.exception(f'Error getting resource optimization: {e!s}')
+    except Exception:
+        logging.exception("Error getting resource optimization: %s")
         return []
 
 

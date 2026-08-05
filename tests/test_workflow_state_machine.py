@@ -26,11 +26,11 @@ def _complete_visit(visit):
 def _no_bundle_limits(monkeypatch):
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_create',
-        lambda *a, **k: None,
+        lambda *_a, **_k: None,
     )
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_update',
-        lambda *a, **k: None,
+        lambda *_a, **_k: None,
     )
 
 

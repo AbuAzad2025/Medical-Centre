@@ -219,15 +219,15 @@ class TestAggregatorsSmoke:
         u = fx.user()
         monkeypatch.setattr(
             'services.notification_service.NotificationService.send_email_message',
-            staticmethod(lambda **kw: {'success': True}),
+            staticmethod(lambda **_kw: {'success': True}),
         )
         monkeypatch.setattr(
             'services.notification_service.NotificationService.send_whatsapp_message',
-            staticmethod(lambda **kw: {'success': True}),
+            staticmethod(lambda **_kw: {'success': True}),
         )
         monkeypatch.setattr(
             'services.notification_service.NotificationService.send_notification',
-            staticmethod(lambda **kw: {'success': True, 'notification_id': 1}),
+            staticmethod(lambda **_kw: {'success': True, 'notification_id': 1}),
         )
 
         queue_ids = []
@@ -400,7 +400,7 @@ class TestAggregatorsWithData:
         u = fx.user()
         monkeypatch.setattr(
             'services.notification_service.NotificationService.send_notification',
-            staticmethod(lambda **kw: {'success': True, 'notification_id': 1}),
+            staticmethod(lambda **_kw: {'success': True, 'notification_id': 1}),
         )
         item = NotificationQueue(
             user_id=u.id,
@@ -424,7 +424,7 @@ class TestAggregatorsWithData:
         u = fx.user()
         monkeypatch.setattr(
             'services.sms_service.SMSService.send_sms',
-            staticmethod(lambda **kw: {'success': True}),
+            staticmethod(lambda **_kw: {'success': True}),
         )
         item = NotificationQueue(
             user_id=u.id,
@@ -464,7 +464,7 @@ class TestAggregatorsWithData:
         u = fx.user()
         monkeypatch.setattr(
             'services.notification_service.NotificationService.send_email_message',
-            staticmethod(lambda **kw: {'success': False}),
+            staticmethod(lambda **_kw: {'success': False}),
         )
         item = NotificationQueue(
             user_id=u.id,

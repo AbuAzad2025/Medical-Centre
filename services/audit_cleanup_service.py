@@ -93,8 +93,8 @@ class AuditCleanupService:
                 {'cutoff': cutoff},
             ).scalar()
             return int(result or 0)
-        except Exception as e:
-            logger.exception(f'Audit cleanup: count failed for {table_name}: {e}')
+        except Exception:
+            logger.exception('Audit cleanup: count failed for %s: %s')
             return 0
 
     @staticmethod

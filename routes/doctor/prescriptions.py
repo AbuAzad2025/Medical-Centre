@@ -478,8 +478,8 @@ def prescription(visit_id):
             doctor_templates=doctor_templates,
             visit_prescriptions=visit_prescriptions,
         )
-    except Exception as e:
-        logging.exception(f'Error in prescription: {e!s}')
+    except Exception:
+        logging.exception("Error in prescription: %s")
         flash('حدث خطأ في حفظ الوصفة', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -502,8 +502,8 @@ def print_prescription(prescription_id):
         return render_template(
             'print/prescription.html', prescription=prescription, qr_data_uri=qr_data_uri
         )
-    except Exception as e:
-        logging.exception(f'Error printing prescription: {e!s}')
+    except Exception:
+        logging.exception("Error printing prescription: %s")
         flash('حدث خطأ في طباعة الوصفة', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -559,7 +559,7 @@ def prescriptions():
             page=page,
             pages=pages,
         )
-    except Exception as e:
-        logging.exception(f'Error loading prescriptions: {e!s}')
+    except Exception:
+        logging.exception("Error loading prescriptions: %s")
         flash('حدث خطأ في تحميل الوصفات', 'error')
         return redirect(url_for('doctor.dashboard'))

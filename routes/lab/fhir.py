@@ -49,8 +49,8 @@ def api_worklist():
                 }
             )
         return jsonify({'success': True, 'requests': data})
-    except Exception as e:
-        logging.exception(f'Error loading lab api worklist: {e!s}')
+    except Exception:
+        logging.exception("Error loading lab api worklist: %s")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
 
@@ -115,9 +115,9 @@ def api_fhir_lab_service_request():
                 'encounter': {'reference': f'Encounter/{visit_id}'},
             }
         ), 201
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error importing FHIR ServiceRequest: {e!s}')
+        logging.exception("Error importing FHIR ServiceRequest: %s")
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -191,9 +191,9 @@ def api_fhir_lab_observation_import():
         _log_lab_workflow(req.id, req.status, 'fhir_observation')
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'resourceType': 'Observation', 'id': str(res.id), 'status': 'final'}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error importing FHIR Observation: {e!s}')
+        logging.exception("Error importing FHIR Observation: %s")
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -248,9 +248,9 @@ def api_hl7_import():
         _log_lab_workflow(req.id, 'REQUESTED', 'hl7_import')
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'request_id': req.id}), 201
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error importing HL7 lab payload: {e!s}')
+        logging.exception("Error importing HL7 lab payload: %s")
         return jsonify({'success': False, 'message': 'تعذر استيراد HL7'}), 500
 
 
@@ -335,8 +335,8 @@ def api_fhir_lab_observation(result_id):
         }
 
         return jsonify(resource)
-    except Exception as e:
-        logging.exception(f'Error exporting FHIR Lab Observation: {e!s}')
+    except Exception:
+        logging.exception("Error exporting FHIR Lab Observation: %s")
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -419,8 +419,8 @@ def api_fhir_lab_diagnostic_report(result_id):
         }
 
         return jsonify(resource)
-    except Exception as e:
-        logging.exception(f'Error exporting FHIR Lab DiagnosticReport: {e!s}')
+    except Exception:
+        logging.exception("Error exporting FHIR Lab DiagnosticReport: %s")
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',

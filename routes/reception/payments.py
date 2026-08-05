@@ -111,9 +111,9 @@ def process_payment(visit_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم إرسال الزيارة للمحاسبة بنجاح.', 'success')
         return redirect(url_for('reception.view_visit', visit_id=visit_id))
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error sending visit to accounting: {e!s}')
+        logging.exception("Error sending visit to accounting: %s")
         flash('حدث خطأ أثناء إرسال الزيارة للمحاسبة.', 'error')
         return redirect(url_for('reception.queue_management'))
 
@@ -391,9 +391,9 @@ def daily_close():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إغلاق اليومية بنجاح', 'success')
             return redirect(url_for('reception.cash_register'))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Error in daily close: {e!s}')
+            logging.exception("Error in daily close: %s")
             flash('حدث خطأ أثناء إغلاق اليومية', 'error')
             return redirect(url_for('reception.cash_register'))
     return render_template('reception/daily_close.html', register=reg)

@@ -63,7 +63,7 @@ def download_file(file_id):
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
         return send_file(f.file_path, as_attachment=True, download_name=f.original_filename)
-    except Exception as e:
-        logging.exception(f'Error downloading radiology file {file_id}: {e!s}')
+    except Exception:
+        logging.exception("Error downloading radiology file {file_id}: %s")
         flash('حدث خطأ في تحميل الملف', 'error')
         return redirect(url_for('radiology.worklist'))

@@ -428,9 +428,9 @@ def download_document(file_id):
     try:
         upload.last_accessed = datetime.now(UTC)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error updating file access time: {e}')
+        logging.exception("Error updating file access time: %s")
     return send_file(
         upload.file_path,
         as_attachment=True,
@@ -485,8 +485,8 @@ def feedback():
                 safe_commit(db.session, error_message='database commit failed', reraise=True)
                 flash('شكراً لتقييمك', 'success')
                 return redirect(url_for('portal.dashboard'))
-            except Exception as e:
+            except Exception:
                 safe_rollback(db.session, error_message='database rollback')
-                logging.exception(f'Error saving feedback: {e}')
+                logging.exception("Error saving feedback: %s")
                 flash('حدث خطأ أثناء حفظ التقييم', 'error')
     return render_template('portal/feedback.html', patient=patient)

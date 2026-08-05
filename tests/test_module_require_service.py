@@ -68,7 +68,7 @@ def saas_disabled_module(app, monkeypatch):
     app.config['ENABLE_SAAS_MODE'] = True
     monkeypatch.setattr(
         'services.feature_gate_service.FeatureGateService.module_enabled',
-        staticmethod(lambda tenant_id, module: False),
+        staticmethod(lambda _tenant_id, _module: False),
     )
     with app.test_request_context():
         import flask
@@ -90,7 +90,7 @@ def test_gate_does_not_trip_when_module_enabled(app, monkeypatch):
     app.config['ENABLE_SAAS_MODE'] = True
     monkeypatch.setattr(
         'services.feature_gate_service.FeatureGateService.module_enabled',
-        staticmethod(lambda tenant_id, module: True),
+        staticmethod(lambda _tenant_id, _module: True),
     )
     with app.test_request_context():
         import flask
@@ -107,7 +107,7 @@ def test_inventory_gate_does_not_trip_when_enabled(app, monkeypatch):
     app.config['ENABLE_SAAS_MODE'] = True
     monkeypatch.setattr(
         'services.feature_gate_service.FeatureGateService.module_enabled',
-        staticmethod(lambda tenant_id, module: True),
+        staticmethod(lambda _tenant_id, _module: True),
     )
     with app.test_request_context():
         import flask
@@ -125,7 +125,7 @@ def test_emergency_gate_does_not_trip_when_enabled(app, monkeypatch):
     app.config['ENABLE_SAAS_MODE'] = True
     monkeypatch.setattr(
         'services.feature_gate_service.FeatureGateService.module_enabled',
-        staticmethod(lambda tenant_id, module: True),
+        staticmethod(lambda _tenant_id, _module: True),
     )
     with app.test_request_context():
         import flask
@@ -143,7 +143,7 @@ def test_nursing_gate_does_not_trip_when_enabled(app, monkeypatch):
     app.config['ENABLE_SAAS_MODE'] = True
     monkeypatch.setattr(
         'services.feature_gate_service.FeatureGateService.module_enabled',
-        staticmethod(lambda tenant_id, module: True),
+        staticmethod(lambda _tenant_id, _module: True),
     )
     with app.test_request_context():
         import flask

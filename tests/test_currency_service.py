@@ -101,6 +101,6 @@ class TestHelpers:
             def json(self):
                 return {'rates': {'ILS': 3.55}}
 
-        monkeypatch.setattr('requests.get', lambda *a, **k: FakeResp())
+        monkeypatch.setattr('requests.get', lambda *_a, **_k: FakeResp())
         val = CC.fetch_external_rate('USD', 'ILS')
         assert val == Decimal('3.55')

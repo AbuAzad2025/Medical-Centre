@@ -152,7 +152,7 @@ class TestSignupCaptcha:
             patch.object(
                 SaasRegistrationService,
                 '_verify_captcha',
-                side_effect=lambda token: None,
+                side_effect=lambda _token: None,
             ),
         ):
             tenant, _ = SaasRegistrationService.register_organization(

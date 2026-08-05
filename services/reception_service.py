@@ -75,8 +75,8 @@ class ReceptionService:
             if not safe_commit(db.session, error_message='Failed to register patient'):
                 return None
             return patient
-        except Exception as e:
-            logging.exception(f'Error registering patient: {e!s}')
+        except Exception:
+            logging.exception("Error registering patient: %s")
             return None
 
     @staticmethod
@@ -126,8 +126,8 @@ class ReceptionService:
             if not safe_commit(db.session, error_message='Failed to create visit'):
                 return None
             return visit
-        except Exception as e:
-            logging.exception(f'Error creating visit: {e!s}')
+        except Exception:
+            logging.exception("Error creating visit: %s")
             return None
 
     @staticmethod

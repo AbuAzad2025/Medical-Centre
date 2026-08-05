@@ -423,10 +423,9 @@ def login() -> ResponseReturnValue:
             flash('اسم المستخدم أو كلمة المرور غير صحيحة', 'error')
             return render_template('auth/login.html')
 
-        except Exception as e:
-            import traceback
+        except Exception:
 
-            logging.exception(f'Login error: {e!s}\n{traceback.format_exc()}')
+            logging.exception("Login error")
             if current_app.testing:
                 raise
             if is_ajax:
@@ -515,8 +514,8 @@ def profile():
             flash('تم تحديث الملف الشخصي بنجاح', 'success')
             return redirect(url_for('auth.profile'))
 
-        except Exception as e:
-            logging.exception(f'Profile update error: {e!s}')
+        except Exception:
+            logging.exception("Profile update error")
             flash('حدث خطأ أثناء تحديث الملف الشخصي', 'error')
 
     login_attempts = []
@@ -596,8 +595,8 @@ def change_password():
 
         return jsonify({'success': True, 'message': 'تم تغيير كلمة المرور بنجاح'})
 
-    except Exception as e:
-        logging.exception(f'Change password error: {e!s}')
+    except Exception:
+        logging.exception("Change password error")
         return jsonify({'success': False, 'message': 'حدث خطأ في تغيير كلمة المرور'}), 500
 
 

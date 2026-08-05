@@ -66,8 +66,8 @@ class SSOService:
             if not safe_commit(db.session, error_message='Failed to create SSO config'):
                 return None
             return cfg
-        except Exception as e:
-            logging.exception(f'Error creating SSO config: {e!s}')
+        except Exception:
+            logging.exception("Error creating SSO config: %s")
             return None
 
     @staticmethod

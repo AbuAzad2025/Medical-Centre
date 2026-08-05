@@ -290,8 +290,8 @@ def get_radiology_smart_analytics():
             if completion_rate > 70
             else 'needs_improvement',
         }
-    except Exception as e:
-        logging.exception(f'Error getting radiology smart analytics: {e!s}')
+    except Exception:
+        logging.exception("Error getting radiology smart analytics: %s")
         return {}
 
 
@@ -326,8 +326,8 @@ def get_radiology_imaging_optimization():
             'optimization_suggestions': suggestions,
             'efficiency_score': calculate_imaging_efficiency(avg_imaging_time, total_requests),
         }
-    except Exception as e:
-        logging.exception(f'Error getting radiology imaging optimization: {e!s}')
+    except Exception:
+        logging.exception("Error getting radiology imaging optimization: %s")
         return {}
 
 
@@ -360,8 +360,8 @@ def get_radiology_quality_assurance():
                 .filter(RadiologyResult.revised_after_review)
             ).scalar(),
         }
-    except Exception as e:
-        logging.exception(f'Error getting radiology quality assurance: {e!s}')
+    except Exception:
+        logging.exception("Error getting radiology quality assurance: %s")
         return {}
 
 
@@ -384,8 +384,8 @@ def get_radiology_equipment_status():
             'maintenance': maintenance,
             'efficiency': efficiency,
         }
-    except Exception as e:
-        logging.exception(f'Error getting radiology equipment status: {e!s}')
+    except Exception:
+        logging.exception("Error getting radiology equipment status: %s")
         return {}
 
 
@@ -427,8 +427,8 @@ def get_radiology_report_analysis():
             'critical_reports': critical_reports,
             'trend_analysis': trend_analysis,
         }
-    except Exception as e:
-        logging.exception(f'Error getting radiology report analysis: {e!s}')
+    except Exception:
+        logging.exception("Error getting radiology report analysis: %s")
         return {}
 
 
@@ -453,8 +453,8 @@ def get_radiology_workflow_automation():
             'time_saved': time_saved,
             'efficiency_gain': efficiency_gain,
         }
-    except Exception as e:
-        logging.exception(f'Error getting radiology workflow automation: {e!s}')
+    except Exception:
+        logging.exception("Error getting radiology workflow automation: %s")
         return {}
 
 

@@ -85,8 +85,8 @@ def queue_management():
             can_manage_queue_settings=can_manage_queue_settings,
             billing_active=billing_active,
         )
-    except Exception as e:
-        logging.exception(f'Error loading queue management: {e!s}')
+    except Exception:
+        logging.exception("Error loading queue management: %s")
         flash('حدث خطأ في تحميل إدارة الطابور', 'error')
         return redirect(url_for('reception.dashboard'))
 
@@ -145,8 +145,8 @@ def add_patient_to_queue():
             else:
                 flash(message, 'error')
             return redirect(url_for('reception.queue_management'))
-        except Exception as e:
-            logging.exception(f'Error adding patient to queue: {e!s}')
+        except Exception:
+            logging.exception("Error adding patient to queue: %s")
             flash('تعذر إضافة المريض إلى الطابور، يرجى المحاولة مرة أخرى', 'error')
             return redirect(url_for('reception.queue_management'))
 
@@ -193,8 +193,8 @@ def call_next_patient(department_id):
 
         return redirect(url_for('reception.queue_management'))
 
-    except Exception as e:
-        logging.exception(f'Error calling next patient: {e!s}')
+    except Exception:
+        logging.exception("Error calling next patient: %s")
         flash('تعذر استدعاء المريض، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('reception.queue_management'))
 
@@ -220,8 +220,8 @@ def start_treatment(ticket_id):
 
         return redirect(url_for('reception.queue_management'))
 
-    except Exception as e:
-        logging.exception(f'Error starting treatment: {e!s}')
+    except Exception:
+        logging.exception("Error starting treatment: %s")
         flash('تعذر بدء العلاج، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('reception.queue_management'))
 
@@ -247,8 +247,8 @@ def complete_treatment(ticket_id):
 
         return redirect(url_for('reception.queue_management'))
 
-    except Exception as e:
-        logging.exception(f'Error completing treatment: {e!s}')
+    except Exception:
+        logging.exception("Error completing treatment: %s")
         flash('تعذر إكمال العلاج، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('reception.queue_management'))
 
@@ -276,8 +276,8 @@ def skip_patient(ticket_id):
 
         return redirect(url_for('reception.queue_management'))
 
-    except Exception as e:
-        logging.exception(f'Error skipping patient: {e!s}')
+    except Exception:
+        logging.exception("Error skipping patient: %s")
         flash('تعذر تخطي المريض، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('reception.queue_management'))
 
@@ -301,8 +301,8 @@ def return_to_queue(ticket_id):
         else:
             flash(message, 'error')
         return redirect(url_for('reception.queue_management'))
-    except Exception as e:
-        logging.exception(f'Error returning to queue: {e!s}')
+    except Exception:
+        logging.exception("Error returning to queue: %s")
         flash('تعذر إرجاع المريض للطابور، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('reception.queue_management'))
 
@@ -330,8 +330,8 @@ def cancel_ticket(ticket_id):
 
         return redirect(url_for('reception.queue_management'))
 
-    except Exception as e:
-        logging.exception(f'Error cancelling ticket: {e!s}')
+    except Exception:
+        logging.exception("Error cancelling ticket: %s")
         flash('تعذر إلغاء التذكرة، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('reception.queue_management'))
 
@@ -360,8 +360,8 @@ def approve_emergency_debt(ticket_id):
 
         return redirect(url_for('reception.queue_management'))
 
-    except Exception as e:
-        logging.exception(f'Error approving emergency debt: {e!s}')
+    except Exception:
+        logging.exception("Error approving emergency debt: %s")
         flash('تعذر الموافقة على دين الطوارئ، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('reception.queue_management'))
 
@@ -389,8 +389,8 @@ def approve_force_entry(ticket_id):
 
         return redirect(url_for('reception.queue_management'))
 
-    except Exception as e:
-        logging.exception(f'Error approving force entry: {e!s}')
+    except Exception:
+        logging.exception("Error approving force entry: %s")
         flash('تعذر الموافقة على الدخول القوي، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('reception.queue_management'))
 
@@ -467,8 +467,8 @@ def get_smart_queue_management(department_id=None):
             'peak_count': peak_hour.count if peak_hour else 0,
             'efficiency_score': calculate_queue_efficiency(current_queue),
         }
-    except Exception as e:
-        logging.exception(f'Error getting smart queue management: {e!s}')
+    except Exception:
+        logging.exception("Error getting smart queue management: %s")
         return {}
 
 
@@ -542,8 +542,8 @@ def get_patient_flow_analysis():
             ],
             'trend': calculate_flow_trend(daily_flow),
         }
-    except Exception as e:
-        logging.exception(f'Error getting patient flow analysis: {e!s}')
+    except Exception:
+        logging.exception("Error getting patient flow analysis: %s")
         return {}
 
 
@@ -626,8 +626,8 @@ def get_appointment_optimization():
             ],
             'optimizations': optimizations,
         }
-    except Exception as e:
-        logging.exception(f'Error getting appointment optimization: {e!s}')
+    except Exception:
+        logging.exception("Error getting appointment optimization: %s")
         return {}
 
 
@@ -697,8 +697,8 @@ def get_real_time_alerts():
             )
 
         return alerts
-    except Exception as e:
-        logging.exception(f'Error getting real-time alerts: {e!s}')
+    except Exception:
+        logging.exception("Error getting real-time alerts: %s")
         return []
 
 
@@ -777,8 +777,8 @@ def get_workflow_automation():
             )
 
         return automation_suggestions
-    except Exception as e:
-        logging.exception(f'Error getting workflow automation: {e!s}')
+    except Exception:
+        logging.exception("Error getting workflow automation: %s")
         return []
 
 
@@ -881,8 +881,8 @@ def get_patient_satisfaction_ai():
             if satisfaction_score > 70
             else 'needs_improvement',
         }
-    except Exception as e:
-        logging.exception(f'Error getting patient satisfaction AI: {e!s}')
+    except Exception:
+        logging.exception("Error getting patient satisfaction AI: %s")
         return {}
 
 
@@ -942,8 +942,8 @@ def get_patient_demand_forecast(hours_ahead=4, days_window=14):
             'expected_total': expected_total,
             'next_hours': next_hours,
         }
-    except Exception as e:
-        logging.exception(f'Error getting patient demand forecast: {e!s}')
+    except Exception:
+        logging.exception("Error getting patient demand forecast: %s")
         return {}
 
 
@@ -1026,8 +1026,8 @@ def get_resource_planning():
             'efficiency_score': round(efficiency_score, 2),
             'planning_recommendations': planning_recommendations,
         }
-    except Exception as e:
-        logging.exception(f'Error getting resource planning: {e!s}')
+    except Exception:
+        logging.exception("Error getting resource planning: %s")
         return {}
 
 
@@ -1099,8 +1099,8 @@ def get_smart_recommendations():
             )
 
         return recommendations
-    except Exception as e:
-        logging.exception(f'Error getting smart recommendations: {e!s}')
+    except Exception:
+        logging.exception("Error getting smart recommendations: %s")
         return []
 
 
@@ -1156,8 +1156,8 @@ def calculate_no_show_rate():
             select(func.count()).select_from(Appointment).filter(Appointment.status == 'no_show')
         ).scalar()
         return (no_show_appointments / total_appointments * 100) if total_appointments > 0 else 0
-    except (TypeError, ValueError, ZeroDivisionError) as e:
-        logging.exception(f'calculate_no_show_rate failed: {e}')
+    except (TypeError, ValueError, ZeroDivisionError):
+        logging.exception("calculate_no_show_rate failed: %s")
         return 0
 
 
@@ -1206,7 +1206,7 @@ def add_patient_to_queue_auto(visit_id, department_id, doctor_id=None):
         )
 
     except Exception as e:
-        logging.exception(f'Error adding patient to queue: {e!s}')
+        logging.exception("Error adding patient to queue: %s")
         return False, f'خطأ في النظام: {e!s}'
 
 
@@ -1241,8 +1241,8 @@ def save_queue_settings(department_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم حفظ إعدادات الطابور للقسم.', 'success')
         return redirect(url_for('reception.queue_management'))
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error saving queue settings: {e!s}')
+        logging.exception("Error saving queue settings: %s")
         flash('حدث خطأ في حفظ الإعدادات', 'error')
         return redirect(url_for('reception.queue_management'))

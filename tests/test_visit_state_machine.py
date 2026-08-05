@@ -25,7 +25,7 @@ def _set_visit_status(visit, status):
 def _no_bundle_limits(monkeypatch):
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_create',
-        lambda *a, **k: None,
+        lambda *_a, **_k: None,
     )
 
 

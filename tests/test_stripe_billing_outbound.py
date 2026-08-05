@@ -39,7 +39,7 @@ class TestStripeBillingOutbound:
         tenant, _version = billing_tenant
         mock_customer = MagicMock(id='cus_test_123')
         monkeypatch.setattr(
-            'services.stripe_billing_service.stripe.Customer.create', lambda **kw: mock_customer
+            'services.stripe_billing_service.stripe.Customer.create', lambda **_kw: mock_customer
         )
 
         customer_id = StripeBillingService.ensure_customer(tenant.id)
@@ -52,14 +52,14 @@ class TestStripeBillingOutbound:
         mock_session = MagicMock(id='cs_test', url='https://checkout.stripe.test/session')
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Customer.create',
-            lambda **kw: MagicMock(id='cus_existing'),
+            lambda **_kw: MagicMock(id='cus_existing'),
         )
         tenant.settings = {'stripe_customer_id': 'cus_existing'}
         db.session.commit()
 
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.checkout.Session.create',
-            lambda **kw: mock_session,
+            lambda **_kw: mock_session,
         )
 
         result = StripeBillingService.create_checkout_session(
@@ -82,7 +82,7 @@ class TestStripeBillingOutbound:
         mock_sub = MagicMock(id='sub_test_cancel', status='canceled', cancel_at_period_end=True)
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.modify',
-            lambda *a, **k: mock_sub,
+            lambda *_a, **_k: mock_sub,
         )
 
         result = StripeBillingService.cancel_subscription(tenant.id, at_period_end=True)
@@ -104,11 +104,11 @@ class TestStripeBillingOutbound:
         mock_sub = {'items': {'data': [{'id': 'si_test'}]}}
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.retrieve',
-            lambda sub_id: mock_sub,
+            lambda _sub_id: mock_sub,
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.modify',
-            lambda *a, **k: MagicMock(id='sub_change'),
+            lambda *_a, **_k: MagicMock(id='sub_change'),
         )
 
         result = StripeBillingService.change_plan(tenant.id, new_version.id, 'monthly')
@@ -134,7 +134,7 @@ class TestStripeBillingOutbound:
         mock_sub = MagicMock(id='sub_immediate', status='canceled')
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.cancel',
-            lambda sub_id: mock_sub,
+            lambda _sub_id: mock_sub,
         )
 
         result = StripeBillingService.cancel_subscription(tenant.id, at_period_end=False)
@@ -152,11 +152,11 @@ class TestStripeBillingOutbound:
         tenant, _version = billing_tenant
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Customer.create',
-            lambda **kw: MagicMock(id='cus_portal'),
+            lambda **_kw: MagicMock(id='cus_portal'),
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.billing_portal.Session.create',
-            lambda **kw: MagicMock(url='https://billing.stripe.test/portal'),
+            lambda **_kw: MagicMock(url='https://billing.stripe.test/portal'),
         )
 
         result = StripeBillingService.create_billing_portal_session(
@@ -171,7 +171,7 @@ class TestStripeBillingOutbound:
         tenant, _version = billing_tenant
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Customer.create',
-            lambda **kw: MagicMock(id='cus_x'),
+            lambda **_kw: MagicMock(id='cus_x'),
         )
         with pytest.raises(StripeBillingError, match='package_version_not_found'):
             StripeBillingService.create_checkout_session(

@@ -137,8 +137,8 @@ def start_treatment(visit_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم تسجيل بدء العلاج وإخطار الاستقبال', 'success')
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
-    except Exception as e:
-        logging.exception(f'Error starting treatment: {e!s}')
+    except Exception:
+        logging.exception("Error starting treatment: %s")
         flash('حدث خطأ في بدء العلاج', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -516,8 +516,8 @@ def patient_details(visit_id):
             standardized_pathways=standardized_pathways,
             data_recommendations=data_recommendations,
         )
-    except Exception as e:
-        logging.exception(f'Error loading patient details: {e!s}')
+    except Exception:
+        logging.exception("Error loading patient details: %s")
         flash('حدث خطأ في تحميل تفاصيل المريض', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -552,8 +552,8 @@ def visit_summary(visit_id):
             return redirect(url_for('doctor.patient_queue'))
 
         return render_template('doctor/visit_summary.html', visit=visit)
-    except Exception as e:
-        logging.exception(f'Error in visit summary: {e!s}')
+    except Exception:
+        logging.exception("Error in visit summary: %s")
         flash('حدث خطأ في عرض ملخص الزيارة', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -657,8 +657,8 @@ def save_visit_summary(visit_id):
         except Exception as e:
             logging.warning(f'Error in {__name__}: {e}')
         return jsonify({'success': True})
-    except Exception as e:
-        logging.exception(f'Error saving visit summary: {e!s}')
+    except Exception:
+        logging.exception("Error saving visit summary: %s")
         return jsonify({'success': False, 'message': 'فشل حفظ ملخص الزيارة'}), 500
 
 

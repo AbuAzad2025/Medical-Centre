@@ -309,7 +309,7 @@ class TestCreateSystemReceipt:
     def test_exception_rolls_back(self, make_visit, staff_id, monkeypatch):
         v = make_visit()
         monkeypatch.setattr(
-            gk_mod, 'Payment', lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x'))
+            gk_mod, 'Payment', lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError('x'))
         )
         ok, _ = GK.create_system_receipt(v.id, staff_id, 50)
         assert ok is False
@@ -478,7 +478,7 @@ class TestValidateForcePayment:
 
     def test_exception(self, rollback_db, monkeypatch):
         monkeypatch.setattr(
-            gk_mod.db.session, 'get', lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x'))
+            gk_mod.db.session, 'get', lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError('x'))
         )
         ok, msg = GK.validate_force_payment(1, 1, 'a valid long reason here')
         assert ok is False and 'خطأ' in msg
@@ -499,7 +499,7 @@ class TestForcePaymentStatistics:
             gk_mod,
             'Visit',
             types.SimpleNamespace(
-                created_at=type('C', (), {'__ge__': lambda s, o: True})(), query=_BoomQ()
+                created_at=type('C', (), {'__ge__': lambda _s, _o: True})(), query=_BoomQ()
             ),
         )
         stats = GK.get_force_payment_statistics()

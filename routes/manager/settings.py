@@ -91,5 +91,5 @@ def manager_test_sms():
             return jsonify({'success': True, 'message': 'تم إرسال الرسالة التجريبية بنجاح'}), 200
         return jsonify({'success': False, 'message': result.get('error', 'فشل الإرسال')}), 500
     except Exception as e:
-        logging.exception(f'Manager test SMS error: {e!s}')
+        logging.exception("Manager test SMS error: %s")
         return jsonify({'success': False, 'message': f'خطأ: {e!s}'}), 500

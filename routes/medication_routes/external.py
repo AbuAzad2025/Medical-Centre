@@ -89,9 +89,9 @@ def api_external_drug_import():
                 updated += 1
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'imported': imported, 'updated': updated}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error importing external drug catalog: {e!s}')
+        logging.exception("Error importing external drug catalog: %s")
         return jsonify({'success': False, 'message': 'تعذر استيراد الدليل الدوائي'}), 500
 
 
@@ -119,8 +119,8 @@ def api_external_drug_search():
             .all()
         )
         return jsonify({'success': True, 'items': [m.to_dict() for m in meds]}), 200
-    except Exception as e:
-        logging.exception(f'Error searching external drug catalog: {e!s}')
+    except Exception:
+        logging.exception("Error searching external drug catalog: %s")
         return jsonify({'success': False, 'message': 'تعذر البحث حالياً'}), 500
 
 

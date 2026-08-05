@@ -24,8 +24,8 @@ def security_logs():
     """سجلات الأمان"""
     try:
         return render_template('super_admin/security_logs.html')
-    except Exception as e:
-        logging.exception(f'Security logs error: {e!s}')
+    except Exception:
+        logging.exception("Security logs error: %s")
         flash('حدث خطأ في تحميل سجلات الأمان', 'error')
         return redirect(url_for('super_admin.dashboard'))
 
@@ -96,8 +96,8 @@ def audit_trail():
         actions = db.session.execute(select(PHIAuditLog.action).distinct()).scalars().all()
         models = db.session.execute(select(PHIAuditLog.target_model).distinct()).scalars().all()
 
-    except Exception as e:
-        logging.exception(f'PHI Audit trail error: {e!s}')
+    except Exception:
+        logging.exception("PHI Audit trail error: %s")
         audit_logs = []
         total = 0
         pages = 0
@@ -180,6 +180,6 @@ def security_center():
             'latest_security_events': latest_events,
         }
         return render_template('super_admin/security_center.html', stats=stats)
-    except Exception as e:
-        logging.exception(f'Security center error: {e!s}')
+    except Exception:
+        logging.exception("Security center error: %s")
         return render_template('super_admin/security_center.html', stats={})

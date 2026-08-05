@@ -138,8 +138,8 @@ def get_accounting_smart_analytics():
             'monthly_trend': monthly_trend,
             'efficiency_score': calculate_accounting_efficiency(collection_rate, open_invoices),
         }
-    except Exception as e:
-        logging.exception(f'Error getting accounting smart analytics: {e!s}')
+    except Exception:
+        logging.exception("Error getting accounting smart analytics: %s")
         return {}
 
 
@@ -189,8 +189,8 @@ def get_financial_forecasting():
             'seasonal_analysis': seasonal_analysis,
             'growth_rate': calculate_growth_rate(monthly_data),
         }
-    except Exception as e:
-        logging.exception(f'Error getting financial forecasting: {e!s}')
+    except Exception:
+        logging.exception("Error getting financial forecasting: %s")
         return {}
 
 
@@ -265,8 +265,8 @@ def get_cash_flow_analysis():
             'pending_amount': float(pending_amount),
             'cash_flow_health': calculate_cash_flow_health(weekly_inflow, pending_amount),
         }
-    except Exception as e:
-        logging.exception(f'Error getting cash flow analysis: {e!s}')
+    except Exception:
+        logging.exception("Error getting cash flow analysis: %s")
         return {}
 
 
@@ -354,8 +354,8 @@ def get_payment_optimization():
             'optimization_suggestions': optimization_suggestions,
             'efficiency_score': calculate_payment_efficiency(payment_method_analysis),
         }
-    except Exception as e:
-        logging.exception(f'Error getting payment optimization: {e!s}')
+    except Exception:
+        logging.exception("Error getting payment optimization: %s")
         return {}
 
 
@@ -418,8 +418,8 @@ def get_financial_health_monitoring():
             'financial_alerts': financial_alerts,
             'health_score': calculate_financial_health_score(collection_rate, outstanding_amount),
         }
-    except Exception as e:
-        logging.exception(f'Error getting financial health monitoring: {e!s}')
+    except Exception:
+        logging.exception("Error getting financial health monitoring: %s")
         return {}
 
 
@@ -482,8 +482,8 @@ def get_smart_recommendations():
             'high_priority': len([r for r in recommendations if r['priority'] == 'high']),
             'medium_priority': len([r for r in recommendations if r['priority'] == 'medium']),
         }
-    except Exception as e:
-        logging.exception(f'Error getting smart recommendations: {e!s}')
+    except Exception:
+        logging.exception("Error getting smart recommendations: %s")
         return {'recommendations': [], 'total_recommendations': 0}
 
 

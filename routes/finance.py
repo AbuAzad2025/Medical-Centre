@@ -100,8 +100,8 @@ def dashboard():
             recent_invoices=recent_invoices,
         )
 
-    except Exception as e:
-        logging.exception(f'Error loading finance dashboard: {e!s}')
+    except Exception:
+        logging.exception("Error loading finance dashboard: %s")
         flash('حدث خطأ في تحميل لوحة التحكم المالية', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -132,8 +132,8 @@ def post_gl():
             return jsonify({'success': True, 'message': message})
         return jsonify({'error': message}), 422
 
-    except Exception as e:
-        logging.exception(f'Error posting GL: {e!s}')
+    except Exception:
+        logging.exception("Error posting GL: %s")
         return jsonify({'error': 'تعذر تنفيذ الترحيل المالي حالياً'}), 500
 
 
@@ -178,8 +178,8 @@ def payments():
         )
         return render_template('finance/payments.html', payments=payments)
 
-    except Exception as e:
-        logging.exception(f'Error loading payments: {e!s}')
+    except Exception:
+        logging.exception("Error loading payments: %s")
         flash('حدث خطأ في تحميل المدفوعات', 'error')
         return redirect(url_for('finance.dashboard'))
 
@@ -208,8 +208,8 @@ def invoices():
         )
         return render_template('finance/invoices.html', invoices=invoices)
 
-    except Exception as e:
-        logging.exception(f'Error loading invoices: {e!s}')
+    except Exception:
+        logging.exception("Error loading invoices: %s")
         flash('حدث خطأ في تحميل الفواتير', 'error')
         return redirect(url_for('finance.dashboard'))
 
@@ -242,8 +242,8 @@ def audit():
 
         return render_template('finance/audit.html', audit_entries=audit_entries)
 
-    except Exception as e:
-        logging.exception(f'Error loading audit: {e!s}')
+    except Exception:
+        logging.exception("Error loading audit: %s")
         flash('حدث خطأ في تحميل التدقيق', 'error')
         return redirect(url_for('finance.dashboard'))
 
@@ -257,8 +257,8 @@ def slow_queries():
         limit = max(5, min(limit, 50))
         report = ReportService.get_slow_queries_report(limit=limit)
         return render_template('finance/slow_queries.html', report=report, limit=limit)
-    except Exception as e:
-        logging.exception(f'Error loading slow queries report: {e!s}')
+    except Exception:
+        logging.exception("Error loading slow queries report: %s")
         flash('حدث خطأ في تحميل تقرير الاستعلامات البطيئة', 'error')
         return redirect(url_for('finance.dashboard'))
 
@@ -278,8 +278,8 @@ def slow_queries_weekly():
             .all()
         )
         return render_template('finance/slow_queries_weekly.html', reports=reports)
-    except Exception as e:
-        logging.exception(f'Error loading weekly slow queries: {e!s}')
+    except Exception:
+        logging.exception("Error loading weekly slow queries: %s")
         flash('حدث خطأ في تحميل التقرير الأسبوعي', 'error')
         return redirect(url_for('finance.dashboard'))
 
@@ -297,8 +297,8 @@ def slow_queries_weekly_detail(report_id):
             flash('التقرير غير موجود', 'error')
             return redirect(url_for('finance.slow_queries_weekly'))
         return render_template('finance/slow_queries_weekly_detail.html', report=report)
-    except Exception as e:
-        logging.exception(f'Error loading weekly slow queries detail: {e!s}')
+    except Exception:
+        logging.exception("Error loading weekly slow queries detail: %s")
         flash('حدث خطأ في تحميل تفاصيل التقرير', 'error')
         return redirect(url_for('finance.slow_queries_weekly'))
 
@@ -318,7 +318,7 @@ def capture_slow_queries_weekly():
         return redirect(
             url_for('finance.slow_queries_weekly_detail', report_id=result.get('report_id'))
         )
-    except Exception as e:
-        logging.exception(f'Error capturing weekly slow queries: {e!s}')
+    except Exception:
+        logging.exception("Error capturing weekly slow queries: %s")
         flash('حدث خطأ في إنشاء التقرير الأسبوعي', 'error')
         return redirect(url_for('finance.slow_queries'))

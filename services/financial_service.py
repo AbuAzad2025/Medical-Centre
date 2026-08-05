@@ -115,7 +115,7 @@ class FinancialService:
             return {'ok': True, 'invoices': [inv.to_dict() for inv in invoices]}
         except Exception as e:
             safe_commit(db.session, error_message='Error reconciling visit payments')
-            logging.exception(f'Error reconciling visit payments: {e!s}')
+            logging.exception("Error reconciling visit payments: %s")
             return {'ok': False, 'error': str(e)}
 
     @staticmethod
@@ -190,8 +190,8 @@ class FinancialService:
             if not safe_commit(db.session, error_message='Failed to create invoice'):
                 return None
             return invoice
-        except Exception as e:
-            logging.exception(f'Error creating invoice: {e!s}')
+        except Exception:
+            logging.exception("Error creating invoice: %s")
             return None
 
     @staticmethod
@@ -225,8 +225,8 @@ class FinancialService:
                 logging.error(f'Error recording payment: {result}')
                 return False
             return safe_commit(db.session, error_message='Failed to record payment')
-        except Exception as e:
-            logging.exception(f'Error recording payment: {e!s}')
+        except Exception:
+            logging.exception("Error recording payment: %s")
             return False
 
     @staticmethod
@@ -262,7 +262,7 @@ class FinancialService:
                 'limit': limit,
             }
         except Exception as e:
-            logging.exception('Error loading expenses: %s', e)
+            logging.exception('Error loading expenses: %s')
             return {
                 'success': False,
                 'available': True,
@@ -314,7 +314,7 @@ class FinancialService:
                 'message': None,
             }
         except Exception as e:
-            logging.exception('Error recording expense: %s', e)
+            logging.exception('Error recording expense: %s')
             return {'success': False, 'available': True, 'expense': None, 'message': str(e)}
 
 

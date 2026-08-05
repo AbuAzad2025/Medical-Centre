@@ -163,8 +163,8 @@ def dashboard_new():
             completed_today=completed_today,
             week_visits=week_visits,
         )
-    except Exception as e:
-        logging.exception(f'Error in doctor dashboard_new: {e!s}')
+    except Exception:
+        logging.exception("Error in doctor dashboard_new: %s")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -178,8 +178,8 @@ def dashboard():
         from app.shared.dashboard_service import render_command_center
 
         return render_command_center(current_user)
-    except Exception as e:
-        logging.exception(f'Error in doctor dashboard: {e!s}')
+    except Exception:
+        logging.exception("Error in doctor dashboard: %s")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -353,8 +353,8 @@ def dashboard_for_doctor(doctor_id):
             upcoming_patients=upcoming_patients,
             viewing_doctor=target_doctor,
         )
-    except Exception as e:
-        logging.exception(f'Error in admin view doctor dashboard: {e!s}')
+    except Exception:
+        logging.exception("Error in admin view doctor dashboard: %s")
         flash('حدث خطأ في عرض لوحة الطبيب', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -435,8 +435,8 @@ def api_dashboard_stats():
             'timestamp': datetime.now(UTC).isoformat(),
         }
         return jsonify({'success': True, 'stats': stats})
-    except Exception as e:
-        logging.exception(f'Error in api_dashboard_stats: {e}')
+    except Exception:
+        logging.exception("Error in api_dashboard_stats: %s")
         return jsonify({'success': False, 'message': 'فشل تحميل الإحصائيات'}), 500
 
 
@@ -479,6 +479,6 @@ def api_today_visits():
                 }
             )
         return jsonify({'success': True, 'visits': results})
-    except Exception as e:
-        logging.exception(f'Error in api_today_visits: {e}')
+    except Exception:
+        logging.exception("Error in api_today_visits: %s")
         return jsonify({'success': False, 'message': 'فشل تحميل الزيارات'}), 500

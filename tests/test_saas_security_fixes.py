@@ -119,7 +119,7 @@ class TestStripeWebhookCsrf:
         monkeypatch.setenv('STRIPE_WEBHOOK_SECRET', 'whsec_test')
         monkeypatch.setattr(
             'services.stripe_subscription_service.StripeSubscriptionService.ingest_webhook',
-            lambda payload, sig: {'received': True},
+            lambda _payload, _sig: {'received': True},
         )
         resp = client.post(
             '/api/billing/stripe/webhook',

@@ -114,8 +114,8 @@ def lab_request(visit_id):
             )
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
-    except Exception as e:
-        logging.exception(f'Error in lab_request: {e!s}')
+    except Exception:
+        logging.exception("Error in lab_request: %s")
         flash('حدث خطأ أثناء إنشاء طلب المختبر', 'error')
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
 
@@ -180,8 +180,8 @@ def lab_results(patient_id):
         return render_template(
             'doctor/lab_results.html', patient=patient, lab_requests=lab_requests, results=results
         )
-    except Exception as e:
-        logging.exception(f'Error loading lab results: {e!s}')
+    except Exception:
+        logging.exception("Error loading lab results: %s")
         flash('حدث خطأ في تحميل نتائج المختبر', 'error')
         return redirect(url_for('doctor.patient_queue'))
 

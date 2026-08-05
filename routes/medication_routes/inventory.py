@@ -53,8 +53,8 @@ def stock_alerts():
         return render_template(
             'medication/stock_alerts.html', low_stock=low_stock, expiring_soon=expiring_soon
         )
-    except Exception as e:
-        logging.exception(f'Error loading stock alerts: {e!s}')
+    except Exception:
+        logging.exception("Error loading stock alerts: %s")
         flash('حدث خطأ في تحميل تنبيهات المخزون', 'error')
         return redirect(url_for('medication.dashboard'))
 
@@ -138,9 +138,9 @@ def create_supply_request():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إنشاء طلب التوريد', 'success')
             return redirect(url_for('medication.view_supply_request', request_id=req.id))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Error creating supply request: {e!s}')
+            logging.exception("Error creating supply request: %s")
             flash('حدث خطأ في إنشاء طلب التوريد', 'error')
             return redirect(url_for('medication.supply_requests'))
 
@@ -215,9 +215,9 @@ def approve_supply_request(request_id: int):
         req.updated_at = datetime.now(UTC)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error approving supply request: {e!s}')
+        logging.exception("Error approving supply request: %s")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
 
@@ -277,7 +277,7 @@ def fulfill_supply_request(request_id: int):
         req.updated_at = datetime.now(UTC)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error fulfilling supply request: {e!s}')
+        logging.exception("Error fulfilling supply request: %s")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

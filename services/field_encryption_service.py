@@ -75,8 +75,8 @@ class FieldEncryptionService:
         try:
             token = self._fernet.encrypt(data)
             return (self.LEGACY_PREFIX + token).decode('utf-8')
-        except Exception as exc:
-            logger.exception('Field encryption failed: %s', exc)
+        except Exception:
+            logger.exception('Field encryption failed: %s')
             raise
 
     def decrypt(self, ciphertext: str | bytes | None) -> str | None:
@@ -105,8 +105,8 @@ class FieldEncryptionService:
             token = data[len(self.LEGACY_PREFIX) :]
             pt = self._fernet.decrypt(token)
             return pt.decode('utf-8')
-        except Exception as exc:
-            logger.exception('Field decryption failed: %s', exc)
+        except Exception:
+            logger.exception('Field decryption failed: %s')
             raise
 
     def encrypt_large(self, plaintext: str | bytes | None) -> str | None:
@@ -122,8 +122,8 @@ class FieldEncryptionService:
             ct = aesgcm.encrypt(nonce, data, None)
             payload = base64.urlsafe_b64encode(nonce + ct).decode('utf-8')
             return f'{self.GCM_PREFIX.decode("utf-8")}{payload}'
-        except Exception as exc:
-            logger.exception('Large field encryption failed: %s', exc)
+        except Exception:
+            logger.exception('Large field encryption failed: %s')
             raise
 
     def is_encrypted(self, value: str | bytes | None) -> bool:

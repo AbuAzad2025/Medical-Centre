@@ -36,8 +36,8 @@ def pricing():
         )
 
         return render_template('manager/pricing.html', services=services, departments=departments)
-    except Exception as e:
-        logging.exception(f'Error loading pricing for super admin: {e!s}')
+    except Exception:
+        logging.exception("Error loading pricing for super admin: %s")
         flash('حدث خطأ في تحميل إدارة الأسعار', 'error')
         return redirect(url_for('super_admin.dashboard'))
 
@@ -58,8 +58,8 @@ def services():
         return render_template(
             'super_admin/services.html', services=services, departments=departments
         )
-    except Exception as e:
-        logging.exception(f'Services error: {e!s}')
+    except Exception:
+        logging.exception("Services error: %s")
         return render_template('super_admin/services.html', services=[], departments=[])
 
 
@@ -162,11 +162,11 @@ def create_service():
             {'success': True, 'message': 'تم إنشاء الخدمة بنجاح', 'service_id': service.id}
         ), 200
 
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Create service error: {e!s}')
+        logging.exception("Create service error: %s")
         return jsonify({'success': False, 'message': 'تعذر إنشاء الخدمة حالياً'}), 500
 
 
@@ -183,8 +183,8 @@ def view_service(service_id):
         if not service:
             abort(404)
         return render_template('super_admin/service_detail.html', service=service)
-    except Exception as e:
-        logging.exception(f'View service error: {e!s}')
+    except Exception:
+        logging.exception("View service error: %s")
         flash('حدث خطأ في عرض الخدمة', 'error')
         return redirect(url_for('super_admin.services'))
 
@@ -232,11 +232,11 @@ def edit_service(service_id):
         return render_template(
             'super_admin/edit_service.html', service=service, departments=departments
         )
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Edit service error: {e!s}')
+        logging.exception("Edit service error: %s")
         flash('حدث خطأ في تعديل الخدمة', 'error')
         return redirect(url_for('super_admin.services'))
 
@@ -357,11 +357,11 @@ def service_pricing(service_id):
             return redirect(url_for('super_admin.service_pricing', service_id=service_id))
 
         return render_template('super_admin/service_pricing.html', service=service, pricing=pricing)
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Service pricing error: {e!s}')
+        logging.exception("Service pricing error: %s")
         flash('حدث خطأ في إدارة التسعير', 'error')
         return redirect(url_for('super_admin.services'))
 
@@ -382,11 +382,11 @@ def activate_service(service_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         return jsonify({'success': True, 'message': 'تم تفعيل الخدمة'}), 200
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Activate service error: {e!s}')
+        logging.exception("Activate service error: %s")
         return jsonify({'success': False, 'message': 'تعذر تفعيل الخدمة حالياً'}), 500
 
 
@@ -406,11 +406,11 @@ def deactivate_service(service_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل الخدمة'}), 200
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Deactivate service error: {e!s}')
+        logging.exception("Deactivate service error: %s")
         return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل الخدمة حالياً'}), 500
 
 
@@ -450,7 +450,7 @@ def export_services():
         output.headers['Content-type'] = 'text/csv; charset=utf-8'
         return output
 
-    except Exception as e:
-        logging.exception(f'Export services error: {e!s}')
+    except Exception:
+        logging.exception("Export services error: %s")
         flash('حدث خطأ في تصدير الخدمات', 'error')
         return redirect(url_for('super_admin.services'))

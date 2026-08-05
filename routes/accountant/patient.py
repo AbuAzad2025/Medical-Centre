@@ -38,8 +38,8 @@ def invoices():
         visits = (
             db.session.execute(query.offset((page - 1) * per_page).limit(per_page)).scalars().all()
         )
-    except Exception as e:
-        logging.exception(f'Error loading pending visits: {e!s}')
+    except Exception:
+        logging.exception("Error loading pending visits: %s")
         visits = []
         total = 0
         pages = 0
@@ -155,8 +155,8 @@ def financial():
             selected_patient=selected_patient,
             statement=statement,
         )
-    except Exception as e:
-        logging.exception(f'Error loading accountant financial page: {e!s}')
+    except Exception:
+        logging.exception("Error loading accountant financial page: %s")
         flash('حدث خطأ في تحميل الإدارة المالية', 'error')
         return redirect(url_for('accountant.dashboard'))
 

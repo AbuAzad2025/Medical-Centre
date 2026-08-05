@@ -303,7 +303,7 @@ class TestDepartmentScopingDeep:
 
 class TestDecorators:
     def test_require_permission_allows(self, app, fx, monkeypatch):
-        monkeypatch.setattr(AC, 'has_permission', lambda u, p: True)
+        monkeypatch.setattr(AC, 'has_permission', lambda _u, _p: True)
 
         @AC.require_permission('anything')
         def view():
@@ -313,7 +313,7 @@ class TestDecorators:
             assert view() == 'ok'
 
     def test_require_permission_denies(self, app, fx, monkeypatch):
-        monkeypatch.setattr(AC, 'has_permission', lambda u, p: False)
+        monkeypatch.setattr(AC, 'has_permission', lambda _u, _p: False)
 
         @AC.require_permission('anything')
         def view():
@@ -323,7 +323,7 @@ class TestDecorators:
             view()
 
     def test_require_role_denies(self, app, fx, monkeypatch):
-        monkeypatch.setattr(AC, 'has_role', lambda u, r: False)
+        monkeypatch.setattr(AC, 'has_role', lambda _u, _r: False)
 
         @AC.require_role('admin')
         def view():
@@ -333,7 +333,7 @@ class TestDecorators:
             view()
 
     def test_require_role_allows(self, app, fx, monkeypatch):
-        monkeypatch.setattr(AC, 'has_role', lambda u, r: True)
+        monkeypatch.setattr(AC, 'has_role', lambda _u, _r: True)
 
         @AC.require_role('admin')
         def view():
@@ -347,7 +347,7 @@ class TestPermissionDenyPaths:
     def test_has_permission_returns_false_on_error(self, fx, monkeypatch):
         monkeypatch.setattr(
             'app.core.permission.service.PermissionService.has_permission',
-            lambda user, perm: (_ for _ in ()).throw(RuntimeError('permission backend down')),
+            lambda _user, _perm: (_ for _ in ()).throw(RuntimeError('permission backend down')),
         )
         u = fx.user(role='doctor')
         assert AC.has_permission(u, 'view_all_visits') is False
@@ -356,21 +356,21 @@ class TestPermissionDenyPaths:
         u = fx.user(role='admin')
         monkeypatch.setattr(
             'app.core.permission.service.PermissionService.has_permission',
-            lambda user, perm: perm == 'create_visits',
+            lambda _user, perm: perm == 'create_visits',
         )
         assert AC.has_permission(u, 'create_visits') is True
         assert AC.has_permission(u, 'delete_everything') is False
 
     def test_can_helpers_reflect_permission_service(self, fx, monkeypatch):
         uid = fx.user(role='reception').id
-        monkeypatch.setattr(AC, 'has_permission', lambda user, perm: perm == 'process_payments')
+        monkeypatch.setattr(AC, 'has_permission', lambda _user, perm: perm == 'process_payments')
         assert AC.can_process_payment(uid) is True
         assert AC.can_create_visit(uid) is False
 
     def test_can_access_visit_exception_returns_false(self, fx, monkeypatch):
         monkeypatch.setattr(
             'services.access_control_service.db.session.get',
-            lambda *a, **k: (_ for _ in ()).throw(RuntimeError()),
+            lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError()),
         )
         assert AC.can_access_visit(1, 1) is False
 

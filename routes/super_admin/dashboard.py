@@ -284,8 +284,8 @@ def dashboard():
         }
         return render_template('super_admin/dashboard.html', stats=stats)
 
-    except Exception as e:
-        logging.exception(f'Super admin dashboard error: {e!s}')
+    except Exception:
+        logging.exception("Super admin dashboard error: %s")
         import traceback
 
         traceback.print_exc()

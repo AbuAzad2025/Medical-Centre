@@ -72,8 +72,8 @@ class PricingService:
 
             return 0.0
 
-        except Exception as e:
-            logging.exception(f'Error getting service price: {e!s}')
+        except Exception:
+            logging.exception("Error getting service price: %s")
             return 0.0
 
     @staticmethod
@@ -211,8 +211,8 @@ class PricingService:
 
             return 0.0
 
-        except Exception as e:
-            logging.exception(f'Error getting doctor price: {e!s}')
+        except Exception:
+            logging.exception("Error getting doctor price: %s")
             return 0.0
 
     @staticmethod
@@ -247,8 +247,8 @@ class PricingService:
                 'service_price_id': service_price.id,
             }
 
-        except Exception as e:
-            logging.exception(f'Error creating service price: {e!s}')
+        except Exception:
+            logging.exception("Error creating service price: %s")
             return {'success': False, 'message': 'تعذر إنشاء سعر الخدمة حالياً'}
 
     @staticmethod
@@ -280,8 +280,8 @@ class PricingService:
                 'pricing_id': doctor_pricing.id,
             }
 
-        except Exception as e:
-            logging.exception(f'Error creating doctor pricing: {e!s}')
+        except Exception:
+            logging.exception("Error creating doctor pricing: %s")
             return {'success': False, 'message': 'تعذر إنشاء أسعار الطبيب حالياً'}
 
     @staticmethod
@@ -304,8 +304,8 @@ class PricingService:
 
             return {'success': True, 'message': 'تم تحديث سعر الخدمة بنجاح'}
 
-        except Exception as e:
-            logging.exception(f'Error updating service price: {e!s}')
+        except Exception:
+            logging.exception("Error updating service price: %s")
             return {'success': False, 'message': 'تعذر تحديث سعر الخدمة حالياً'}
 
     @staticmethod
@@ -360,8 +360,8 @@ class PricingService:
                 },
             }
 
-        except Exception as e:
-            logging.exception(f'Error getting pricing summary: {e!s}')
+        except Exception:
+            logging.exception("Error getting pricing summary: %s")
             return {'success': False, 'message': 'تعذر جلب ملخص الأسعار حالياً'}
 
     @staticmethod
@@ -515,8 +515,8 @@ class PricingService:
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'message': 'تم إنشاء الأسعار الافتراضية بنجاح'}
 
-        except Exception as e:
-            logging.exception(f'Error creating default pricing: {e!s}')
+        except Exception:
+            logging.exception("Error creating default pricing: %s")
             return {'success': False, 'message': 'تعذر إنشاء الأسعار الافتراضية حالياً'}
 
     @staticmethod
@@ -642,8 +642,8 @@ class PricingService:
                 'payment_method': visit_data.get('payment_method', 'cash'),
             }
 
-        except Exception as e:
-            logging.exception(f'Error calculating visit cost: {e!s}')
+        except Exception:
+            logging.exception("Error calculating visit cost: %s")
             return {'success': False, 'message': 'تعذر حساب تكلفة الزيارة حالياً'}
 
     @staticmethod
@@ -686,8 +686,8 @@ class PricingService:
                 'created': created,
                 'departments': {k: v.id for k, v in result.items()},
             }
-        except Exception as e:
-            logging.exception(f'Error seeding departments: {e!s}')
+        except Exception:
+            logging.exception("Error seeding departments: %s")
             return {'success': False, 'message': 'تعذر تهيئة الأقسام حالياً'}
 
     @staticmethod
@@ -740,8 +740,8 @@ class PricingService:
             if not safe_commit(db.session, error_message='فشل عملية قاعدة البيانات'):
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created, 'doctors': [u.id for u in result]}
-        except Exception as e:
-            logging.exception(f'Error seeding doctors: {e!s}')
+        except Exception:
+            logging.exception("Error seeding doctors: %s")
             return {'success': False, 'message': 'تعذر تهيئة الأطباء حالياً'}
 
     @staticmethod
@@ -797,8 +797,8 @@ class PricingService:
                 'created': created,
                 'technicians': [u.id for u in [lab_user, rad_user] if u],
             }
-        except Exception as e:
-            logging.exception(f'Error seeding technicians: {e!s}')
+        except Exception:
+            logging.exception("Error seeding technicians: %s")
             return {'success': False, 'message': 'تعذر تهيئة الفنيين حالياً'}
 
     @staticmethod
@@ -862,8 +862,8 @@ class PricingService:
             if not safe_commit(db.session, error_message='فشل عملية قاعدة البيانات'):
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
-        except Exception as e:
-            logging.exception(f'Error seeding service master: {e!s}')
+        except Exception:
+            logging.exception("Error seeding service master: %s")
             return {'success': False, 'message': 'تعذر تهيئة الخدمات الرئيسية حالياً'}
 
     @staticmethod
@@ -1404,8 +1404,8 @@ class PricingService:
             if not safe_commit(db.session, error_message='فشل عملية قاعدة البيانات'):
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
-        except Exception as e:
-            logging.exception(f'Error seeding service prices: {e!s}')
+        except Exception:
+            logging.exception("Error seeding service prices: %s")
             return {'success': False, 'message': 'تعذر تهيئة أسعار الخدمات حالياً'}
 
     @staticmethod
@@ -1443,8 +1443,8 @@ class PricingService:
             if not safe_commit(db.session, error_message='فشل عملية قاعدة البيانات'):
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
-        except Exception as e:
-            logging.exception(f'Error seeding doctor pricing: {e!s}')
+        except Exception:
+            logging.exception("Error seeding doctor pricing: %s")
             return {'success': False, 'message': 'تعذر تهيئة أسعار الأطباء حالياً'}
 
     @staticmethod
@@ -1996,8 +1996,8 @@ class PricingService:
             if not safe_commit(db.session, error_message='فشل عملية قاعدة البيانات'):
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
-        except Exception as e:
-            logging.exception(f'Error seeding pricing catalog: {e!s}')
+        except Exception:
+            logging.exception("Error seeding pricing catalog: %s")
             return {'success': False, 'message': 'تعذر تهيئة كتالوج الأسعار حالياً'}
 
     @staticmethod
@@ -2011,8 +2011,8 @@ class PricingService:
             PricingService.seed_doctor_pricing()
             PricingService.seed_pricing_catalog()
             return {'success': True}
-        except Exception as e:
-            logging.exception(f'Error seeding all: {e!s}')
+        except Exception:
+            logging.exception("Error seeding all: %s")
             return {'success': False, 'message': 'تعذر تهيئة البيانات الأساسية حالياً'}
 
     # ===================== تنظيف التكرارات =====================
@@ -2044,8 +2044,8 @@ class PricingService:
             if not safe_commit(db.session, error_message='فشل عملية قاعدة البيانات'):
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'removed': removed}
-        except Exception as e:
-            logging.exception(f'Error cleaning service prices: {e!s}')
+        except Exception:
+            logging.exception("Error cleaning service prices: %s")
             return {'success': False, 'message': 'تعذر تنظيف أسعار الخدمات حالياً'}
 
     @staticmethod
@@ -2076,8 +2076,8 @@ class PricingService:
             if not safe_commit(db.session, error_message='فشل عملية قاعدة البيانات'):
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'removed': removed}
-        except Exception as e:
-            logging.exception(f'Error cleaning pricing catalog: {e!s}')
+        except Exception:
+            logging.exception("Error cleaning pricing catalog: %s")
             return {'success': False, 'message': 'تعذر تنظيف كتالوج الأسعار حالياً'}
 
     @staticmethod
@@ -2108,8 +2108,8 @@ class PricingService:
             if not safe_commit(db.session, error_message='فشل عملية قاعدة البيانات'):
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'removed': removed}
-        except Exception as e:
-            logging.exception(f'Error cleaning doctor pricing: {e!s}')
+        except Exception:
+            logging.exception("Error cleaning doctor pricing: %s")
             return {'success': False, 'message': 'تعذر تنظيف أسعار الأطباء حالياً'}
 
     @staticmethod
@@ -2151,8 +2151,8 @@ class PricingService:
             if not safe_commit(db.session, error_message='فشل عملية قاعدة البيانات'):
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'deactivated': deactivated}
-        except Exception as e:
-            logging.exception(f'Error cleaning users: {e!s}')
+        except Exception:
+            logging.exception("Error cleaning users: %s")
             return {'success': False, 'message': 'تعذر تنظيف المستخدمين حالياً'}
 
     @staticmethod
@@ -2169,8 +2169,8 @@ class PricingService:
                 'doctor_pricing_removed': r3.get('removed', 0),
                 'users_deactivated': r4.get('deactivated', 0),
             }
-        except Exception as e:
-            logging.exception(f'Error cleaning all: {e!s}')
+        except Exception:
+            logging.exception("Error cleaning all: %s")
             return {'success': False, 'message': 'تعذر تنفيذ عملية التنظيف حالياً'}
 
     @staticmethod
@@ -2309,6 +2309,6 @@ class PricingService:
             if not safe_commit(db.session, error_message='فشل عملية قاعدة البيانات'):
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'deleted': deleted, 'kept': len(kept_ids)}
-        except Exception as e:
-            logging.exception(f'Error purging users: {e!s}')
+        except Exception:
+            logging.exception("Error purging users: %s")
             return {'success': False, 'message': 'تعذر تنفيذ عملية الحذف حالياً'}

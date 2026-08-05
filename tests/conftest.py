@@ -186,7 +186,7 @@ def rollback_db(app):
     # into SAVEPOINT releases; rolling back the outer transaction then discards
     # everything, keeping the session-scoped test DB pristine.
     _original_get_bind = _FSASession.get_bind
-    _FSASession.get_bind = lambda self, *a, **k: connection
+    _FSASession.get_bind = lambda _self, *_a, **_k: connection
     _db.session.configure(join_transaction_mode='create_savepoint')
     if app.config.get('ENABLE_SAAS_MODE', False):
         from tests.tenant_context import bind_tenant_on_g, ensure_default_test_tenant
@@ -270,11 +270,11 @@ def _saas_default_tenant_context(app, request, monkeypatch):
 
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_create',
-        lambda *a, **k: None,
+        lambda *_a, **_k: None,
     )
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_update',
-        lambda *a, **k: None,
+        lambda *_a, **_k: None,
     )
 
     tenant = ensure_default_test_tenant(app)

@@ -20,6 +20,6 @@ def dashboard() -> ResponseReturnValue:
 
         return render_command_center(current_user, role='manager')
     except Exception as e:
-        logging.exception(f'Error in manager dashboard: {e!s}')
+        logging.exception("Error in manager dashboard: %s")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return render_template('manager/dashboard.html', error=str(e))

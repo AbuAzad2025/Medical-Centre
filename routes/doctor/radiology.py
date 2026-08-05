@@ -115,8 +115,8 @@ def radiology_request(visit_id):
             )
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
-    except Exception as e:
-        logging.exception(f'Error in radiology_request: {e!s}')
+    except Exception:
+        logging.exception("Error in radiology_request: %s")
         flash('حدث خطأ أثناء إنشاء طلب الأشعة', 'error')
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
 
@@ -183,8 +183,8 @@ def radiology_results(patient_id):
             rad_requests=rad_requests,
             results=results,
         )
-    except Exception as e:
-        logging.exception(f'Error loading radiology results: {e!s}')
+    except Exception:
+        logging.exception("Error loading radiology results: %s")
         flash('حدث خطأ في تحميل نتائج الأشعة', 'error')
         return redirect(url_for('doctor.patient_queue'))
 

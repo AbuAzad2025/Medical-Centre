@@ -441,8 +441,8 @@ def log_action(action_type):
                     f'Action logged: {action_type} by user {current_user.id if current_user.is_authenticated else "Anonymous"}'
                 )
 
-            except Exception as e:
-                logger.exception(f'Error logging action: {e!s}')
+            except Exception:
+                logger.exception('Error logging action: %s')
                 # لا نرفع الخطأ حتى لا نؤثر على العملية الأساسية
 
             return result
@@ -557,9 +557,9 @@ def handle_route_errors(f):
 
         try:
             return f(*args, **kwargs)
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Unhandled error in {f.__name__}: {e!s}')
+            logging.exception("Unhandled error in {f.__name__}: %s")
             if request.headers.get('Accept') and 'application/json' in request.headers.get(
                 'Accept', ''
             ):

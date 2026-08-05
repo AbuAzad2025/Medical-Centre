@@ -39,8 +39,8 @@ def departments():
             select(func.count()).select_from(User).filter_by(role='doctor')
         ).scalar()
         total_staff = db.session.execute(select(func.count()).select_from(User)).scalar()
-    except Exception as e:
-        logging.exception(f'Departments error: {e!s}')
+    except Exception:
+        logging.exception("Departments error: %s")
         departments = []
         total = 0
         pages = 0
@@ -91,9 +91,9 @@ def create_department():
             {'success': True, 'message': 'تم إنشاء القسم بنجاح', 'department_id': department.id}
         ), 200
 
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Create department error: {e!s}')
+        logging.exception("Create department error: %s")
         return jsonify({'success': False, 'message': 'تعذر إنشاء القسم حالياً'}), 500
 
 
@@ -116,8 +116,8 @@ def view_department(department_id):
         return render_template(
             'super_admin/department_detail.html', department=department, staff=staff
         )
-    except Exception as e:
-        logging.exception(f'View department error: {e!s}')
+    except Exception:
+        logging.exception("View department error: %s")
         flash('حدث خطأ في عرض القسم', 'error')
         return redirect(url_for('super_admin.departments'))
 
@@ -147,9 +147,9 @@ def edit_department(department_id):
             return redirect(url_for('super_admin.departments'))
 
         return render_template('super_admin/edit_department.html', department=department)
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Edit department error: {e!s}')
+        logging.exception("Edit department error: %s")
         flash('حدث خطأ في تعديل القسم', 'error')
         return redirect(url_for('super_admin.departments'))
 
@@ -177,8 +177,8 @@ def department_staff(department_id):
             staff=staff,
             all_users=all_users,
         )
-    except Exception as e:
-        logging.exception(f'Department staff error: {e!s}')
+    except Exception:
+        logging.exception("Department staff error: %s")
         flash('حدث خطأ في إدارة موظفي القسم', 'error')
         return redirect(url_for('super_admin.departments'))
 
@@ -201,9 +201,9 @@ def add_staff_to_department(department_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         return jsonify({'success': True, 'message': 'تم إضافة الموظف للقسم'}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Add staff error: {e!s}')
+        logging.exception("Add staff error: %s")
         return jsonify({'success': False, 'message': 'تعذر إضافة الموظف للقسم حالياً'}), 500
 
 
@@ -225,9 +225,9 @@ def remove_staff_from_department(department_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         return jsonify({'success': True, 'message': 'تم إزالة الموظف من القسم'}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Remove staff error: {e!s}')
+        logging.exception("Remove staff error: %s")
         return jsonify({'success': False, 'message': 'تعذر إزالة الموظف من القسم حالياً'}), 500
 
 
@@ -246,9 +246,9 @@ def activate_department(department_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         return jsonify({'success': True, 'message': 'تم تفعيل القسم'}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Activate department error: {e!s}')
+        logging.exception("Activate department error: %s")
         return jsonify({'success': False, 'message': 'تعذر تفعيل القسم حالياً'}), 500
 
 
@@ -267,9 +267,9 @@ def deactivate_department(department_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل القسم'}), 200
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Deactivate department error: {e!s}')
+        logging.exception("Deactivate department error: %s")
         return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل القسم حالياً'}), 500
 
 
@@ -312,7 +312,7 @@ def export_departments():
         output.headers['Content-type'] = 'text/csv; charset=utf-8'
         return output
 
-    except Exception as e:
-        logging.exception(f'Export departments error: {e!s}')
+    except Exception:
+        logging.exception("Export departments error: %s")
         flash('حدث خطأ في تصدير الأقسام', 'error')
         return redirect(url_for('super_admin.departments'))

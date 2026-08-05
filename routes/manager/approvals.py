@@ -79,8 +79,8 @@ def force_payment_approvals():
             stats=stats,
         )
 
-    except Exception as e:
-        logging.exception(f'Error loading force payment approvals: {e!s}')
+    except Exception:
+        logging.exception("Error loading force payment approvals: %s")
         flash('حدث خطأ في تحميل صفحة الموافقات', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -153,9 +153,9 @@ def approve_force_payment(visit_id):
 
         return redirect(url_for('manager.force_payment_approvals'))
 
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error approving force payment: {e!s}')
+        logging.exception("Error approving force payment: %s")
         flash('تعذر تنفيذ الموافقة حالياً، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('manager.force_payment_approvals'))
 
@@ -217,9 +217,9 @@ def reject_force_payment(visit_id):
 
         return redirect(url_for('manager.force_payment_approvals'))
 
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error rejecting force payment: {e!s}')
+        logging.exception("Error rejecting force payment: %s")
         flash('تعذر تنفيذ الرفض حالياً، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('manager.force_payment_approvals'))
 
@@ -270,8 +270,8 @@ def custom_service_approvals():
             pending_services=pending,
             approved_services=approved,
         )
-    except Exception as e:
-        logging.exception(f'Error loading custom service approvals: {e!s}')
+    except Exception:
+        logging.exception("Error loading custom service approvals: %s")
         flash('حدث خطأ في تحميل صفحة الموافقات', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -320,9 +320,9 @@ def approve_custom_service(service_id):
         logging.info(f'Custom service approved: {service_id} by User {current_user.id}')
         return redirect(url_for('manager.custom_service_approvals'))
 
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error approving custom service: {e!s}')
+        logging.exception("Error approving custom service: %s")
         flash('تعذر تنفيذ الموافقة حالياً', 'error')
         return redirect(url_for('manager.custom_service_approvals'))
 
@@ -370,8 +370,8 @@ def reject_custom_service(service_id):
         logging.info(f'Custom service rejected: {service_id} by User {current_user.id}')
         return redirect(url_for('manager.custom_service_approvals'))
 
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error rejecting custom service: {e!s}')
+        logging.exception("Error rejecting custom service: %s")
         flash('تعذر تنفيذ الرفض حالياً', 'error')
         return redirect(url_for('manager.custom_service_approvals'))

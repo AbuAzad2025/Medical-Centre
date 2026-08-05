@@ -190,8 +190,8 @@ def settlements():
             selected_department_id=department_id,
             selected_month=month,
         )
-    except Exception as e:
-        logging.exception(f'Error in settlements: {e!s}')
+    except Exception:
+        logging.exception("Error in settlements: %s")
         flash('حدث خطأ في تحميل التسويات', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -305,8 +305,8 @@ def settlements_export():
             mimetype='text/csv',
             headers={'Content-Disposition': f'attachment; filename={filename}'},
         )
-    except Exception as e:
-        logging.exception(f'Error exporting settlements: {e!s}')
+    except Exception:
+        logging.exception("Error exporting settlements: %s")
         flash('حدث خطأ في تصدير التسويات', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -344,9 +344,9 @@ def budget_dashboard():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم حفظ الميزانية', 'success')
             return redirect(url_for('manager.budget_dashboard', year=year, month=month))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Error saving budget: {e!s}')
+            logging.exception("Error saving budget: %s")
             flash('حدث خطأ أثناء حفظ الميزانية', 'error')
             return redirect(url_for('manager.budget_dashboard', year=year, month=month))
 
@@ -501,8 +501,8 @@ def exchange_rates():
                 user_id=current_user.id,
             )
             flash(f'تم تحديث سعر الصرف {from_currency} → {to_currency}', 'success')
-        except Exception as e:
-            logging.exception(f'Error saving exchange rate: {e}')
+        except Exception:
+            logging.exception("Error saving exchange rate: %s")
             flash('حدث خطأ أثناء حفظ سعر الصرف', 'error')
         return redirect(url_for('manager.exchange_rates'))
 
@@ -566,8 +566,8 @@ def deactivate_exchange_rate(rate_id):
         rate.is_active = False
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash(f'تم تعطيل سعر {rate.from_currency} → {rate.to_currency}', 'success')
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error deactivating exchange rate: {e!s}')
+        logging.exception("Error deactivating exchange rate: %s")
         flash('حدث خطأ أثناء تعطيل سعر الصرف', 'error')
     return redirect(url_for('manager.exchange_rates'))

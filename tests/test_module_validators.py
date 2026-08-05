@@ -51,7 +51,7 @@ def patched(monkeypatch):
     monkeypatch.setattr(V, 'get_clinical_modules', lambda: clinical)
 
     def _set_active(active):
-        monkeypatch.setattr(V, 'get_active_modules_for_tenant', lambda tenant_id: set(active))
+        monkeypatch.setattr(V, 'get_active_modules_for_tenant', lambda _tenant_id: set(active))
 
     return _set_active
 

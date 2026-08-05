@@ -193,7 +193,7 @@ def reports():
             by_department=by_department,
             overdue_rows=rows,
         )
-    except Exception as e:
-        logging.exception(f'Error loading nurse reports: {e!s}')
+    except Exception:
+        logging.exception("Error loading nurse reports: %s")
         flash('حدث خطأ في تحميل تقرير التمريض', 'error')
         return redirect(url_for('nurse.dashboard'))

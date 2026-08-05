@@ -76,9 +76,9 @@ def reception_staff_schedule():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم حفظ جدول العمل', 'success')
             return redirect(url_for('reception.reception_staff_schedule', user_id=user_id))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(str(e))
+            logging.exception("")
             flash('حدث خطأ في حفظ الجدول', 'danger')
     users = (
         db.session.execute(
@@ -125,9 +125,9 @@ def reception_staff_absence():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إضافة الغياب', 'success')
             return redirect(url_for('reception.reception_staff_absence', user_id=user_id))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(str(e))
+            logging.exception("")
             flash('حدث خطأ في إضافة الغياب', 'danger')
     users = (
         db.session.execute(
@@ -185,6 +185,6 @@ def survey(token):
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             return render_template('reception/survey.html', survey=survey, submitted=True)
         return render_template('reception/survey.html', survey=survey)
-    except Exception as e:
-        logging.exception(f'Error handling survey: {e!s}')
+    except Exception:
+        logging.exception("Error handling survey: %s")
         return render_template('reception/survey.html', invalid=True)

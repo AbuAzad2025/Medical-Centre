@@ -53,8 +53,8 @@ def users():
             permissions=[],
             departments=departments,
         )
-    except Exception as e:
-        logging.exception(f'Users management error: {e!s}')
+    except Exception:
+        logging.exception("Users management error: %s")
         flash('حدث خطأ في تحميل البيانات', 'error')
         return redirect(url_for('super_admin.dashboard'))
 
@@ -133,11 +133,11 @@ def create_user():
             flash('تم إنشاء المستخدم بنجاح', 'success')
             return redirect(url_for('super_admin.users'))
 
-        except Exception as e:
+        except Exception:
             from app.extensions import db
 
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Create user error: {e!s}')
+            logging.exception("Create user error: %s")
             flash('تعذر إنشاء المستخدم، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
 
     # جلب البيانات المطلوبة للنموذج
@@ -262,9 +262,9 @@ def edit_user(user_id):
             extra_department_ids=extra_department_ids,
         )
 
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Edit user error: {e!s}')
+        logging.exception("Edit user error: %s")
         flash('تعذر تحديث المستخدم، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.users'))
 
@@ -293,11 +293,11 @@ def delete_user(user_id):
         flash('تم حذف المستخدم بنجاح', 'success')
         return redirect(url_for('super_admin.users'))
 
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Delete user error: {e!s}')
+        logging.exception("Delete user error: %s")
         flash('تعذر حذف المستخدم، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.users'))
 
@@ -328,11 +328,11 @@ def reset_user_password(user_id):
         user.set_password(temp_password)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'temp_password': temp_password})
-    except Exception as e:
+    except Exception:
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Reset password error: {e!s}')
+        logging.exception("Reset password error: %s")
         return jsonify({'success': False, 'message': 'حدث خطأ في إعادة التعيين'}), 500
 
 
@@ -360,9 +360,9 @@ def ban_user(user_id):
         flash(f'تم حظر المستخدم {user.full_name} بنجاح', 'success')
         return redirect(url_for('super_admin.users'))
 
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Ban user error: {e!s}')
+        logging.exception("Ban user error: %s")
         flash('حدث خطأ في حظر المستخدم', 'error')
         return redirect(url_for('super_admin.users'))
 
@@ -386,9 +386,9 @@ def unban_user(user_id):
         flash(f'تم إلغاء حظر المستخدم {user.full_name} بنجاح', 'success')
         return redirect(url_for('super_admin.users'))
 
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Unban user error: {e!s}')
+        logging.exception("Unban user error: %s")
         flash('حدث خطأ في إلغاء حظر المستخدم', 'error')
         return redirect(url_for('super_admin.users'))
 
@@ -426,8 +426,8 @@ def force_logout_user(user_id):
         flash(f'تم إجبار المستخدم {user.full_name} على تسجيل الخروج', 'success')
         return redirect(url_for('super_admin.users'))
 
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Force logout error: {e!s}')
+        logging.exception("Force logout error: %s")
         flash('حدث خطأ في إجبار تسجيل الخروج', 'error')
         return redirect(url_for('super_admin.users'))

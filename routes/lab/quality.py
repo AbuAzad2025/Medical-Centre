@@ -255,9 +255,9 @@ def quality_control():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم تسجيل ضبط الجودة', 'success')
             return redirect(url_for('lab.quality_control'))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(f'Error saving lab QC: {e!s}')
+            logging.exception("Error saving lab QC: %s")
             flash('حدث خطأ أثناء الحفظ', 'error')
             return redirect(url_for('lab.quality_control'))
 

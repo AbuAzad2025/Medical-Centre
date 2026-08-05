@@ -596,7 +596,7 @@ def create_appointment():
             flash('تم إنشاء الموعد بنجاح.', 'success')
             return redirect(url_for('reception.appointments'))
 
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
             if _wants_json():
                 return jsonify(
@@ -606,7 +606,7 @@ def create_appointment():
                     }
                 ), 400
             flash('تعذر إنشاء الموعد، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
-            logging.exception(f'Error creating appointment: {e!s}')
+            logging.exception("Error creating appointment: %s")
 
     # جلب البيانات المطلوبة للنموذج
     patients = db.session.execute(select(Patient)).scalars().all()
@@ -740,10 +740,10 @@ def edit_appointment(appointment_id):
             flash('تم تحديث الموعد بنجاح.', 'success')
             return redirect(url_for('reception.view_appointment', appointment_id=appointment_id))
 
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
             flash('تعذر تحديث الموعد، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
-            logging.exception(f'Error updating appointment: {e!s}')
+            logging.exception("Error updating appointment: %s")
 
     patients = db.session.execute(select(Patient)).scalars().all()
     departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()

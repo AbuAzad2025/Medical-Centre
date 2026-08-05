@@ -213,8 +213,8 @@ class DataRetentionService:
                     }
                     for r in records
                 ]
-        except Exception as exc:
-            logger.exception('Failed to scan medical records for retention: %s', exc)
+        except Exception:
+            logger.exception('Failed to scan medical records for retention: %s')
 
         # Audit logs
         try:
@@ -244,8 +244,8 @@ class DataRetentionService:
                     }
                     for r in records
                 ]
-        except Exception as exc:
-            logger.exception('Failed to scan audit logs for retention: %s', exc)
+        except Exception:
+            logger.exception('Failed to scan audit logs for retention: %s')
 
         # Session logs
         try:
@@ -275,8 +275,8 @@ class DataRetentionService:
                     }
                     for r in records
                 ]
-        except Exception as exc:
-            logger.exception('Failed to scan session logs for retention: %s', exc)
+        except Exception:
+            logger.exception('Failed to scan session logs for retention: %s')
 
         return expired
 
@@ -323,8 +323,8 @@ class DataRetentionService:
             db.session.commit()
             logger.info('Patient %s anonymized by user %s', patient_id, approved_by)
             return True
-        except Exception as exc:
-            logger.exception('Failed to anonymize patient %s: %s', patient_id, exc)
+        except Exception:
+            logger.exception('Failed to anonymize patient %s: %s')
             return False
 
     def delete_expired_session_logs(

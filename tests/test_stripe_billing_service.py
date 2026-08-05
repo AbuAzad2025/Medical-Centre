@@ -100,19 +100,19 @@ class TestPlanChangeValidation:
         mock_sub = {'items': {'data': [{'id': 'si_test'}]}}
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.retrieve',
-            lambda sub_id: mock_sub,
+            lambda _sub_id: mock_sub,
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.modify',
-            lambda *a, **k: MagicMock(id='sub_active'),
+            lambda *_a, **_k: MagicMock(id='sub_active'),
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Invoice.list',
-            lambda **kw: {'data': []},
+            lambda **_kw: {'data': []},
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.StripeBillingService._validate_proration',
-            lambda *a, **k: None,
+            lambda *_a, **_k: None,
         )
 
         result = StripeBillingService.change_plan(tenant.id, new_version.id, 'monthly')
@@ -137,19 +137,19 @@ class TestPlanChangeValidation:
         mock_sub = {'items': {'data': [{'id': 'si_trial'}]}}
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.retrieve',
-            lambda sub_id: mock_sub,
+            lambda _sub_id: mock_sub,
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.modify',
-            lambda *a, **k: MagicMock(id='sub_trial'),
+            lambda *_a, **_k: MagicMock(id='sub_trial'),
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Invoice.list',
-            lambda **kw: {'data': []},
+            lambda **_kw: {'data': []},
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.StripeBillingService._validate_proration',
-            lambda *a, **k: None,
+            lambda *_a, **_k: None,
         )
 
         result = StripeBillingService.change_plan(tenant.id, paid_version.id, 'monthly')
@@ -165,7 +165,7 @@ class TestPlanChangeValidation:
 
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Invoice.list',
-            lambda **kw: {'data': [{'id': 'inv_1'}]},
+            lambda **_kw: {'data': [{'id': 'inv_1'}]},
         )
 
         with pytest.raises(PlanChangeValidationError, match='pending_invoices_exist'):
@@ -187,20 +187,20 @@ class TestProrationValidation:
         mock_sub = {'items': {'data': [{'id': 'si_proration'}]}}
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.retrieve',
-            lambda sub_id: mock_sub,
+            lambda _sub_id: mock_sub,
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.modify',
-            lambda *a, **k: MagicMock(id='sub_proration'),
+            lambda *_a, **_k: MagicMock(id='sub_proration'),
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Invoice.list',
-            lambda **kw: {'data': []},
+            lambda **_kw: {'data': []},
         )
         # Simulate negative upcoming invoice (credit) by mocking _validate_proration
         monkeypatch.setattr(
             'services.stripe_billing_service.StripeBillingService._validate_proration',
-            lambda *a, **k: None,
+            lambda *_a, **_k: None,
         )
 
         # Should NOT raise — negative proration is valid; we just log
@@ -218,11 +218,11 @@ class TestProrationValidation:
         mock_sub = {'items': {'data': [{'id': 'si_err'}]}}
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.retrieve',
-            lambda sub_id: mock_sub,
+            lambda _sub_id: mock_sub,
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.modify',
-            lambda *a, **k: MagicMock(id='sub_err'),
+            lambda *_a, **_k: MagicMock(id='sub_err'),
         )
 
         # Simulate Stripe error on invoice.list — should be non-fatal
@@ -251,19 +251,19 @@ class TestUpgradeDowngradeClassification:
         mock_sub = {'items': {'data': [{'id': 'si_up'}]}}
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.retrieve',
-            lambda sub_id: mock_sub,
+            lambda _sub_id: mock_sub,
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.modify',
-            lambda *a, **k: MagicMock(id='sub_up'),
+            lambda *_a, **_k: MagicMock(id='sub_up'),
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Invoice.list',
-            lambda **kw: {'data': []},
+            lambda **_kw: {'data': []},
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.StripeBillingService._validate_proration',
-            lambda *a, **k: None,
+            lambda *_a, **_k: None,
         )
 
         result = StripeBillingService.change_plan(tenant.id, expensive.id, 'monthly')
@@ -278,19 +278,19 @@ class TestUpgradeDowngradeClassification:
         mock_sub = {'items': {'data': [{'id': 'si_down'}]}}
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.retrieve',
-            lambda sub_id: mock_sub,
+            lambda _sub_id: mock_sub,
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.modify',
-            lambda *a, **k: MagicMock(id='sub_down'),
+            lambda *_a, **_k: MagicMock(id='sub_down'),
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Invoice.list',
-            lambda **kw: {'data': []},
+            lambda **_kw: {'data': []},
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.StripeBillingService._validate_proration',
-            lambda *a, **k: None,
+            lambda *_a, **_k: None,
         )
 
         result = StripeBillingService.change_plan(tenant.id, cheap.id, 'monthly')
@@ -305,19 +305,19 @@ class TestUpgradeDowngradeClassification:
         mock_sub = {'items': {'data': [{'id': 'si_same'}]}}
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.retrieve',
-            lambda sub_id: mock_sub,
+            lambda _sub_id: mock_sub,
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.modify',
-            lambda *a, **k: MagicMock(id='sub_same'),
+            lambda *_a, **_k: MagicMock(id='sub_same'),
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Invoice.list',
-            lambda **kw: {'data': []},
+            lambda **_kw: {'data': []},
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.StripeBillingService._validate_proration',
-            lambda *a, **k: None,
+            lambda *_a, **_k: None,
         )
 
         result = StripeBillingService.change_plan(tenant.id, same_price.id, 'monthly')
@@ -345,7 +345,7 @@ class TestIdempotency:
 
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.retrieve',
-            lambda sub_id: mock_sub,
+            lambda _sub_id: mock_sub,
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.modify',
@@ -353,11 +353,11 @@ class TestIdempotency:
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Invoice.list',
-            lambda **kw: {'data': []},
+            lambda **_kw: {'data': []},
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.StripeBillingService._validate_proration',
-            lambda *a, **k: None,
+            lambda *_a, **_k: None,
         )
 
         StripeBillingService.change_plan(tenant.id, new_version.id, 'monthly')
@@ -404,19 +404,19 @@ class TestMissingBaseLine:
         mock_sub = {'items': {'data': [{'id': 'si_nobase'}]}}
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.retrieve',
-            lambda sub_id: mock_sub,
+            lambda _sub_id: mock_sub,
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Subscription.modify',
-            lambda *a, **k: MagicMock(id='sub_nobase'),
+            lambda *_a, **_k: MagicMock(id='sub_nobase'),
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.stripe.Invoice.list',
-            lambda **kw: {'data': []},
+            lambda **_kw: {'data': []},
         )
         monkeypatch.setattr(
             'services.stripe_billing_service.StripeBillingService._validate_proration',
-            lambda *a, **k: None,
+            lambda *_a, **_k: None,
         )
 
         # With current_price=0, any positive price is an "upgrade"

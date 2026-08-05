@@ -52,7 +52,7 @@ def api_ems_intake():
         db.session.add(case)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'case_id': case.id}), 201
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'EMS intake error: {e!s}')
+        logging.exception("EMS intake error: %s")
         return jsonify({'success': False, 'message': 'تعذر تسجيل الحالة'}), 500

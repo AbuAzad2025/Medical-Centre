@@ -29,21 +29,21 @@ def rxfx(rollback_db, monkeypatch):
     # Disable bundle limit checks for tests
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_create',
-        lambda *a, **k: None,
+        lambda *_a, **_k: None,
     )
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_update',
-        lambda *a, **k: None,
+        lambda *_a, **_k: None,
     )
 
     # Bypass pharmacy module gating in test fixtures
     monkeypatch.setattr(
         'services.feature_gate_service.FeatureGateService.module_enabled',
-        lambda *a, **k: True,
+        lambda *_a, **_k: True,
     )
     monkeypatch.setattr(
         'services.feature_gate_service.FeatureGateService.tenant_has_valid_payment',
-        lambda *a, **k: True,
+        lambda *_a, **_k: True,
     )
 
     # Set tenant context for the test

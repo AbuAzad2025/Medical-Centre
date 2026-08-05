@@ -33,8 +33,8 @@ def departments():
             .all()
         )
         return render_template('manager/departments.html', departments=departments)
-    except Exception as e:
-        logging.exception(f'Error loading departments: {e!s}')
+    except Exception:
+        logging.exception("Error loading departments: %s")
         flash('حدث خطأ في تحميل الأقسام', 'error')
         return redirect(url_for('manager.dashboard'))
 

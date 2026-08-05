@@ -60,7 +60,7 @@ def lab_auth_client(app, client, lab_user, test_tenant, monkeypatch):
     from tests.tenant_context import login_test_client
 
     monkeypatch.setattr(
-        'app.core.saas.resolver.EntitlementResolver.is_entitled', lambda *a, **k: True
+        'app.core.saas.resolver.EntitlementResolver.is_entitled', lambda *_a, **_k: True
     )
 
     login_test_client(client, lab_user, test_tenant, 'test123')

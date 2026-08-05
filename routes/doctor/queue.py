@@ -121,8 +121,8 @@ def patient_queue():
             pages=pages,
             total=total,
         )
-    except Exception as e:
-        logging.exception(f'Error loading patient queue: {e!s}')
+    except Exception:
+        logging.exception("Error loading patient queue: %s")
         flash('حدث خطأ في تحميل طابور المرضى', 'error')
         return redirect(url_for('doctor.dashboard'))
 
@@ -161,8 +161,8 @@ def call_patient(visit_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         flash(f'تم استدعاء المريض — التذكرة رقم {ticket.queue_number}', 'success')
-    except Exception as e:
-        logging.exception(f'Error calling patient: {e!s}')
+    except Exception:
+        logging.exception("Error calling patient: %s")
         flash('حدث خطأ أثناء استدعاء المريض', 'error')
 
     return redirect(url_for('doctor.patient_queue'))

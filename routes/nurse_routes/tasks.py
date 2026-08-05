@@ -51,8 +51,8 @@ def tasks():
             .all()
         )
 
-    except Exception as e:
-        logging.exception(f'Error loading nurse tasks: {e!s}')
+    except Exception:
+        logging.exception("Error loading nurse tasks: %s")
         tasks = []
         active_visits = []
         total = 0
@@ -129,9 +129,9 @@ def create_task():
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تمت إضافة المهمة', 'success')
         return redirect(url_for('nurse.tasks'))
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error creating nurse task: {e!s}')
+        logging.exception("Error creating nurse task: %s")
         flash('حدث خطأ أثناء إنشاء المهمة', 'error')
         return redirect(url_for('nurse.tasks'))
 
@@ -172,8 +172,8 @@ def update_task_status(task_id: int):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم تحديث الحالة', 'success')
         return redirect(url_for('nurse.tasks'))
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error updating task status: {e!s}')
+        logging.exception("Error updating task status: %s")
         flash('حدث خطأ أثناء التحديث', 'error')
         return redirect(url_for('nurse.tasks'))

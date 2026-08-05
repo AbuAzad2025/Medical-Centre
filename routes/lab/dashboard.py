@@ -108,7 +108,7 @@ def dashboard():
 
         return render_command_center(current_user)
 
-    except Exception as e:
-        logging.exception(f'Error in lab dashboard: {e!s}')
+    except Exception:
+        logging.exception("Error in lab dashboard: %s")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))

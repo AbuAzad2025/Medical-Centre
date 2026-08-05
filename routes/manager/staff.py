@@ -84,8 +84,8 @@ def unit_control():
             )
 
         return render_template('manager/unit_control.html', units=units)
-    except Exception as e:
-        logging.exception(f'Error in unit control: {e!s}')
+    except Exception:
+        logging.exception("Error in unit control: %s")
         flash('حدث خطأ في تحميل التحكم في الوحدات', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -162,9 +162,9 @@ def unit_toggle():
             }
         )
 
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception(f'Error toggling unit: {e!s}')
+        logging.exception("Error toggling unit: %s")
         return jsonify({'success': False, 'message': 'حدث خطأ في تحديث حالة الوحدة'}), 500
 
 
@@ -185,8 +185,8 @@ def user_management():
             .all()
         )
         return render_template('manager/user_management.html', users=users)
-    except Exception as e:
-        logging.exception(f'Error in user management: {e!s}')
+    except Exception:
+        logging.exception("Error in user management: %s")
         flash('حدث خطأ في تحميل إدارة المستخدمين', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -233,9 +233,9 @@ def staff_schedule():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم حفظ جدول العمل', 'success')
             return redirect(url_for('manager.staff_schedule', user_id=user_id))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(str(e))
+            logging.exception("")
             flash('حدث خطأ في حفظ الجدول', 'error')
     users = (
         db.session.execute(
@@ -289,9 +289,9 @@ def staff_absence():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إضافة الغياب', 'success')
             return redirect(url_for('manager.staff_absence', user_id=user_id))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception(str(e))
+            logging.exception("")
             flash('حدث خطأ في إضافة الغياب', 'error')
     users = (
         db.session.execute(
@@ -443,8 +443,8 @@ def staff_capacity():
             days=days,
             by_day=by_day,
         )
-    except Exception as e:
-        logging.exception(f'Staff capacity error: {e!s}')
+    except Exception:
+        logging.exception("Staff capacity error: %s")
         flash('حدث خطأ في تحميل تقرير الاستيعاب', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -471,7 +471,7 @@ def staff():
             .all()
         )
         return render_template('manager/user_management.html', users=users)
-    except Exception as e:
-        logging.exception(f'Error in staff management: {e!s}')
+    except Exception:
+        logging.exception("Error in staff management: %s")
         flash('حدث خطأ في تحميل الموظفين', 'error')
         return redirect(url_for('manager.dashboard'))

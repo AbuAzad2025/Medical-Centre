@@ -54,6 +54,6 @@ def api_what_if():
                 'predicted_revenue': round(predicted_revenue, 2),
             }
         ), 200
-    except Exception as e:
-        logging.exception(f'Error computing what-if: {e!s}')
+    except Exception:
+        logging.exception("Error computing what-if: %s")
         return jsonify({'success': False, 'message': 'تعذر احتساب السيناريو'}), 500

@@ -134,8 +134,8 @@ def get_pharmacy_smart_analytics():
                 active_medications, low_stock_medications, total_medications
             ),
         }
-    except Exception as e:
-        logging.exception(f'Error getting pharmacy smart analytics: {e!s}')
+    except Exception:
+        logging.exception("Error getting pharmacy smart analytics: %s")
         return {}
 
 
@@ -209,8 +209,8 @@ def get_inventory_optimization():
                 low_stock_count, expiring_soon, total_medications
             ),
         }
-    except Exception as e:
-        logging.exception(f'Error getting inventory optimization: {e!s}')
+    except Exception:
+        logging.exception("Error getting inventory optimization: %s")
         return {}
 
 
@@ -285,8 +285,8 @@ def get_medication_safety_monitoring():
                 expired_medications, expiring_soon, medications_with_interactions
             ),
         }
-    except Exception as e:
-        logging.exception(f'Error getting medication safety monitoring: {e!s}')
+    except Exception:
+        logging.exception("Error getting medication safety monitoring: %s")
         return {}
 
 
@@ -371,8 +371,8 @@ def get_prescription_analytics():
             if total_prescriptions > 0
             else 0,
         }
-    except Exception as e:
-        logging.exception(f'Error getting prescription analytics: {e!s}')
+    except Exception:
+        logging.exception("Error getting prescription analytics: %s")
         return {}
 
 
@@ -437,8 +437,8 @@ def get_drug_interaction_checker():
                 severe_interactions, moderate_interactions, mild_interactions
             ),
         }
-    except Exception as e:
-        logging.exception(f'Error getting drug interaction checker: {e!s}')
+    except Exception:
+        logging.exception("Error getting drug interaction checker: %s")
         return {}
 
 
@@ -472,8 +472,8 @@ def get_pharmacy_workflow_automation():
             'efficiency_metrics': efficiency_metrics,
             'automation_score': calculate_automation_score(automated_tasks, manual_tasks),
         }
-    except Exception as e:
-        logging.exception(f'Error getting pharmacy workflow automation: {e!s}')
+    except Exception:
+        logging.exception("Error getting pharmacy workflow automation: %s")
         return {}
 
 
@@ -532,8 +532,8 @@ def get_pharmacy_predictive_insights():
             'predicted_stock_needs': predicted_stock_needs,
             'demand_forecast_accuracy': calculate_demand_forecast_accuracy(),
         }
-    except Exception as e:
-        logging.exception(f'Error getting pharmacy predictive insights: {e!s}')
+    except Exception:
+        logging.exception("Error getting pharmacy predictive insights: %s")
         return {}
 
 
@@ -606,8 +606,8 @@ def get_pharmacy_smart_recommendations():
             'high_priority': len([r for r in recommendations if r['priority'] == 'high']),
             'medium_priority': len([r for r in recommendations if r['priority'] == 'medium']),
         }
-    except Exception as e:
-        logging.exception(f'Error getting pharmacy smart recommendations: {e!s}')
+    except Exception:
+        logging.exception("Error getting pharmacy smart recommendations: %s")
         return {'recommendations': [], 'total_recommendations': 0}
 
 

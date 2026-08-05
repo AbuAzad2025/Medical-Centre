@@ -70,12 +70,12 @@ def new_form():
             return redirect(
                 url_for('specialty_forms.edit_version', form_id=form.id, version_id=version.id)
             )
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
             flash('حدث خطأ أثناء إنشاء النموذج', 'error')
             import logging
 
-            logging.exception(f'Error creating specialty form: {e}')
+            logging.exception("Error creating specialty form: %s")
     return render_template('specialty_forms/new.html')
 
 
@@ -116,12 +116,12 @@ def edit_version(form_id, version_id):
             return redirect(
                 url_for('specialty_forms.edit_version', form_id=form.id, version_id=version.id)
             )
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
             flash('حدث خطأ أثناء حفظ النموذج', 'error')
             import logging
 
-            logging.exception(f'Error editing specialty form: {e}')
+            logging.exception("Error editing specialty form: %s")
     return render_template('specialty_forms/edit.html', form=form, version=version)
 
 
@@ -150,12 +150,12 @@ def publish_version(form_id, version_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم نشر النسخة', 'success')
         return redirect(url_for('specialty_forms.view_form', form_id=form.id))
-    except Exception as e:
+    except Exception:
         safe_rollback(db.session, error_message='database rollback')
         flash('حدث خطأ أثناء نشر النسخة', 'error')
         import logging
 
-        logging.exception(f'Error publishing specialty form: {e}')
+        logging.exception("Error publishing specialty form: %s")
         return redirect(
             url_for('specialty_forms.edit_version', form_id=form.id, version_id=version.id)
         )
@@ -198,12 +198,12 @@ def fill_form(form_id):
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم حفظ الإجابات', 'success')
             return redirect(url_for('specialty_forms.view_submission', submission_id=submission.id))
-        except Exception as e:
+        except Exception:
             safe_rollback(db.session, error_message='database rollback')
             flash('حدث خطأ أثناء حفظ الإجابات', 'error')
             import logging
 
-            logging.exception(f'Error saving specialty form submission: {e}')
+            logging.exception("Error saving specialty form submission: %s")
     patients = (
         db.session.execute(
             select(Patient).order_by(Patient.first_name, Patient.last_name).limit(200)

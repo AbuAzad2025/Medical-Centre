@@ -116,8 +116,8 @@ def print_report(radiology_scan_id=None):
         return render_template(
             'print/radiology_report.html', radiology_result=result, qr_data_uri=qr_data_uri
         )
-    except Exception as e:
-        logging.exception(f'Error printing radiology report {radiology_scan_id}: {e!s}')
+    except Exception:
+        logging.exception("Error printing radiology report {radiology_scan_id}: %s")
         flash('حدث خطأ في طباعة تقرير الأشعة', 'error')
         return redirect(url_for('radiology.reports'))
 
@@ -163,5 +163,5 @@ def print_report_pdf(radiology_scan_id=None):
             BytesIO(pdf_bytes), mimetype='application/pdf', as_attachment=True, download_name=fname
         )
     except Exception as e:
-        logging.exception(f'Error generating radiology PDF {radiology_scan_id}: {e!s}')
+        logging.exception("Error generating radiology PDF {radiology_scan_id}: %s")
         return jsonify({'success': False, 'message': str(e)}), 500

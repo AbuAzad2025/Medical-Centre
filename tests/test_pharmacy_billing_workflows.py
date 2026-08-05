@@ -80,7 +80,7 @@ def test_adjust_stock_emits_low_stock_signal(patch_db_session, monkeypatch):
     sent = []
     import app.shared.signal_subscribers as subs
 
-    monkeypatch.setattr(subs, '_safe_send', lambda signal, **kw: sent.append(kw))
+    monkeypatch.setattr(subs, '_safe_send', lambda _signal, **kw: sent.append(kw))
     # drop below minimum
     PharmacyStockService.adjust_stock(1, -15, StockMovementType.SALE)
     assert med.stock_quantity == 15

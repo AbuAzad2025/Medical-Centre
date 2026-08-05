@@ -28,8 +28,8 @@ def emergency_report(emergency_id):
             flash('حالة الطوارئ غير موجودة', 'error')
             return redirect(url_for('emergency.patient_queue'))
         return render_template('emergency/emergency_report.html', emergency=emergency)
-    except Exception as e:
-        logging.exception(f'Error generating emergency report: {e!s}')
+    except Exception:
+        logging.exception("Error generating emergency report: %s")
         flash('حدث خطأ في إنشاء تقرير الطوارئ', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -52,8 +52,8 @@ def print_emergency_report(emergency_id):
         return render_template(
             'print/emergency_report.html', emergency=emergency, qr_data_uri=qr_data_uri
         )
-    except Exception as e:
-        logging.exception(f'Error printing emergency report: {e!s}')
+    except Exception:
+        logging.exception("Error printing emergency report: %s")
         flash('حدث خطأ في طباعة تقرير الطوارئ', 'error')
         return redirect(url_for('emergency.patient_queue'))
 

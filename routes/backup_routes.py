@@ -56,8 +56,8 @@ def dashboard():
             'scheduled_backups': scheduled_backups,
         }
         return render_template('backup/dashboard.html', stats=stats, recent_backups=recent_backups)
-    except Exception as e:
-        logger.exception('Error in backup dashboard: %s', e)
+    except Exception:
+        logger.exception('Error in backup dashboard: %s')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -113,14 +113,14 @@ def create_backup():
                     with contextlib.suppress(OSError):
                         os.remove(backup.backup_path)
                 flash('فشل في إنشاء النسخة الاحتياطية', 'error')
-                logger.exception('Backup failed for id=%s: %s', backup.id, exc)
+                logger.exception('Backup failed for id=%s: %s')
 
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             return redirect(url_for('backup.dashboard'))
 
         return render_template('backup/create_backup.html')
-    except Exception as e:
-        logger.exception('Error creating backup: %s', e)
+    except Exception:
+        logger.exception('Error creating backup: %s')
         flash('حدث خطأ في إنشاء النسخة الاحتياطية', 'error')
         return render_template('backup/create_backup.html')
 
@@ -134,8 +134,8 @@ def list_backups():
             db.session.execute(select(Backup).order_by(Backup.created_at.desc())).scalars().all()
         )
         return render_template('backup/list_backups.html', backups=backups)
-    except Exception as e:
-        logger.exception('Error listing backups: %s', e)
+    except Exception:
+        logger.exception('Error listing backups: %s')
         flash('حدث خطأ في تحميل قائمة النسخ الاحتياطية', 'error')
         return redirect(url_for('backup.dashboard'))
 
@@ -162,8 +162,8 @@ def restore_backup(backup_id):
         else:
             flash('فشل في استعادة النسخة الاحتياطية', 'error')
         return redirect(url_for('backup.list_backups'))
-    except Exception as e:
-        logger.exception('Error restoring backup: %s', e)
+    except Exception:
+        logger.exception('Error restoring backup: %s')
         flash('حدث خطأ في استعادة النسخة الاحتياطية', 'error')
         return redirect(url_for('backup.list_backups'))
 
@@ -181,8 +181,8 @@ def download_backup(backup_id):
             return redirect(url_for('backup.list_backups'))
         download_name = os.path.basename(backup.backup_path)
         return send_file(backup.backup_path, as_attachment=True, download_name=download_name)
-    except Exception as e:
-        logger.exception('Error downloading backup: %s', e)
+    except Exception:
+        logger.exception('Error downloading backup: %s')
         flash('حدث خطأ في تحميل النسخة الاحتياطية', 'error')
         return redirect(url_for('backup.list_backups'))
 
@@ -201,8 +201,8 @@ def delete_backup(backup_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم حذف النسخة الاحتياطية بنجاح', 'success')
         return redirect(url_for('backup.list_backups'))
-    except Exception as e:
-        logger.exception('Error deleting backup: %s', e)
+    except Exception:
+        logger.exception('Error deleting backup: %s')
         flash('حدث خطأ في حذف النسخة الاحتياطية', 'error')
         return redirect(url_for('backup.list_backups'))
 
@@ -217,6 +217,6 @@ def restore_backup_file(backup) -> bool:
     try:
         restore_pg_sql_gz(backup.backup_path)
         return True
-    except PgBackupError as exc:
-        logger.exception('Restore failed for backup id=%s: %s', backup.id, exc)
+    except PgBackupError:
+        logger.exception('Restore failed for backup id=%s: %s')
         return False

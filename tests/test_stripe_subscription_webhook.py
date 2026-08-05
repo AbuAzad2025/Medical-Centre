@@ -64,7 +64,7 @@ class TestStripeWebhookLifecycle:
         sig = _sign(payload, stripe_secret)
         monkeypatch.setattr(
             'services.stripe_subscription_service.stripe.Webhook.construct_event',
-            lambda p, s, sec: json.loads(p),
+            lambda p, _s, _sec: json.loads(p),
         )
         result = StripeSubscriptionService.ingest_webhook(payload, sig)
         assert result['action'] == 'payment_failed'
@@ -87,7 +87,7 @@ class TestStripeWebhookLifecycle:
         sig = _sign(payload, stripe_secret)
         monkeypatch.setattr(
             'services.stripe_subscription_service.stripe.Webhook.construct_event',
-            lambda p, s, sec: json.loads(p),
+            lambda p, _s, _sec: json.loads(p),
         )
         StripeSubscriptionService.ingest_webhook(payload, sig)
         db.session.refresh(billed_tenant)
@@ -111,7 +111,7 @@ class TestStripeWebhookIdempotency:
         sig = _sign(payload, stripe_secret)
         monkeypatch.setattr(
             'services.stripe_subscription_service.stripe.Webhook.construct_event',
-            lambda p, s, sec: json.loads(p),
+            lambda p, _s, _sec: json.loads(p),
         )
 
         result1 = StripeSubscriptionService.ingest_webhook(payload, sig)
