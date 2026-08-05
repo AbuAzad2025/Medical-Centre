@@ -45,7 +45,7 @@ def safe_background_loop(
     except Exception as exc:
         consecutive_errors += 1
         tb = traceback.format_exc()
-        logger.exception('')
+        logger.error('%s: %s\n%s', error_message, exc, tb, exc_info=True)
 
         # Fire alert sinks if configured
         if alert_sinks:

@@ -916,24 +916,24 @@ class SmartAIEngine:
         total_users = db.session.execute(select(func.count()).select_from(User)).scalar()
         inactive_users = db.session.execute(select(User).filter_by(is_active=False)).scalars().all()
         users_without_email = (
-            db.session.execute(select(User).filter((User.email is None) | (User.email == '')))
+            db.session.execute(select(User).filter(User.email.is_(None) | (User.email == '')))
             .scalars()
             .all()
         )
         users_without_phone = (
-            db.session.execute(select(User).filter((User.phone is None) | (User.phone == '')))
+            db.session.execute(select(User).filter(User.phone.is_(None) | (User.phone == '')))
             .scalars()
             .all()
         )
 
         # المستخدمين الذين لم يسجلوا دخول أبداً
         users_never_logged_in = (
-            db.session.execute(select(User).filter(User.last_login is None)).scalars().all()
+            db.session.execute(select(User).filter(User.last_login.is_(None))).scalars().all()
         )
 
         # المستخدمين بدون أدوار أو صلاحيات
         users_without_role = (
-            db.session.execute(select(User).filter((User.role is None) | (User.role == '')))
+            db.session.execute(select(User).filter(User.role.is_(None) | (User.role == '')))
             .scalars()
             .all()
         )
@@ -941,7 +941,7 @@ class SmartAIEngine:
         # الأطباء بدون قسم
         doctors_without_dept = (
             db.session.execute(
-                select(User).filter(User.role == 'doctor', User.department_id is None)
+                select(User).filter(User.role == 'doctor', User.department_id.is_(None))
             )
             .scalars()
             .all()
