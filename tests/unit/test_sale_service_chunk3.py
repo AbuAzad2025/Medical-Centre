@@ -319,3 +319,293 @@ class TestGetPrescriptionStatus:
         finally:
             ctx.pop()
         assert 'error' in result
+
+
+# ===========================================================================
+# POS Prescription Lookup (read-only preview)
+# ===========================================================================
+
+
+class TestPOSPrescriptionLookup:
+    """Tests for PharmacySaleService.fetch_prescription_for_pos_cart."""
+
+    def test_lookup_returns_cart_payload(self, app, test_tenant, test_medications):
+        """POS lookup returns cart items without modifying prescription status."""
+        from models.medication import Prescription, PrescriptionItem
+
+        patient_id = _make_patient(app, test_tenant)
+        rx_number = f'RX-POS-LOOKUP-{patient_id}'
+        rx = Prescription(
+            tenant_id=test_tenant.id,
+            patient_id=patient_id,
+            prescription_number=rx_number,
+            status='active',
+        )
+        db.session.add(rx)
+        db.session.commit()
+
+        med = test_medications[0]
+        item = PrescriptionItem(
+            tenant_id=test_tenant.id,
+            prescription_id=rx.id,
+            medication_id=med.id,
+            dosage='1 tablet',
+            quantity=3,
+            duration_days=7,
+            unit_price=15.0,
+            total_price=45.0,
+        )
+        db.session.add(item)
+        db.session.commit()
+
+        ctx = _tenant_ctx(app, test_tenant)
+        try:
+            cart = PharmacySaleService.fetch_prescription_for_pos_cart(
+                prescription_id=rx.id, tenant_id=test_tenant.id
+            )
+        finally:
+            ctx.pop()
+
+        assert 'error' not in cart
+        assert cart['prescription_id'] == rx.id
+        assert cart['prescription_number'] == rx_number
+        assert len(cart['items']) == 1
+        assert cart['items'][0]['medication_id'] == med.id
+        assert cart['items'][0]['quantity'] == 3
+        assert cart['total_amount'] == 45.0
+
+        # Read-only: status must not have changed
+        rx_after = db.session.get(Prescription, rx.id)
+        assert rx_after.status == 'active'
+
+    def test_lookup_prescription_not_found(self, app, test_tenant):
+        """Unknown prescription_id returns error dict."""
+        ctx = _tenant_ctx(app, test_tenant)
+        try:
+            cart = PharmacySaleService.fetch_prescription_for_pos_cart(
+                prescription_id=999_999, tenant_id=test_tenant.id
+            )
+        finally:
+            ctx.pop()
+        assert 'error' in cart
+
+    def test_lookup_inactive_prescription_rejected(self, app, test_tenant, test_medications):
+        """Prescription with non-eligible status is rejected."""
+        from models.medication import Prescription, PrescriptionItem
+
+        patient_id = _make_patient(app, test_tenant)
+        rx_number = f'RX-POS-DISABLED-{patient_id}'
+        rx = Prescription(
+            tenant_id=test_tenant.id,
+            patient_id=patient_id,
+            prescription_number=rx_number,
+            status='cancelled',
+        )
+        db.session.add(rx)
+        db.session.commit()
+
+        med = test_medications[0]
+        item = PrescriptionItem(
+            tenant_id=test_tenant.id,
+            prescription_id=rx.id,
+            medication_id=med.id,
+            dosage='1 tablet',
+            quantity=1,
+            duration_days=7,
+            unit_price=10.0,
+            total_price=10.0,
+        )
+        db.session.add(item)
+        db.session.commit()
+
+        ctx = _tenant_ctx(app, test_tenant)
+        try:
+            cart = PharmacySaleService.fetch_prescription_for_pos_cart(
+                prescription_id=rx.id, tenant_id=test_tenant.id
+            )
+        finally:
+            ctx.pop()
+        assert 'error' in cart
+
+    def test_lookup_tenant_isolation(self, app, test_tenant, test_medications):
+        """POS lookup filters by tenant_id at query level."""
+        from models.medication import Prescription, PrescriptionItem
+
+        patient_id = _make_patient(app, test_tenant)
+        rx_number = f'RX-ISOLATION-{patient_id}'
+        rx = Prescription(
+            tenant_id=test_tenant.id,
+            patient_id=patient_id,
+            prescription_number=rx_number,
+            status='active',
+        )
+        db.session.add(rx)
+        db.session.commit()
+
+        med = test_medications[0]
+        item = PrescriptionItem(
+            tenant_id=test_tenant.id,
+            prescription_id=rx.id,
+            medication_id=med.id,
+            dosage='1 tablet',
+            quantity=1,
+            duration_days=7,
+            unit_price=10.0,
+            total_price=10.0,
+        )
+        db.session.add(item)
+        db.session.commit()
+
+        # Querying with a mismatched tenant_id must not return the prescription
+        ctx = _tenant_ctx(app, test_tenant)
+        try:
+            cart = PharmacySaleService.fetch_prescription_for_pos_cart(
+                prescription_id=rx.id, tenant_id=999_999
+            )
+        finally:
+            ctx.pop()
+        assert 'error' in cart
+
+
+# ===========================================================================
+# POS Atomic Dispense (row-level locking + dispense log)
+# ===========================================================================
+
+
+class TestPOSAtomicDispense:
+    """Tests for atomic POS dispense in PharmacySaleService.create_sale."""
+
+    def test_create_sale_with_pos_prescription_sets_dispensed(self, app, test_tenant, test_medications):
+        """After POS sale the prescription status becomes DISPENSED."""
+        from models.medication import Prescription, PrescriptionItem
+
+        patient_id = _make_patient(app, test_tenant)
+        rx_number = f'RX-POS-ATOMIC-{patient_id}'
+        rx = Prescription(
+            tenant_id=test_tenant.id,
+            patient_id=patient_id,
+            prescription_number=rx_number,
+            status='active',
+        )
+        db.session.add(rx)
+        db.session.commit()
+
+        med = test_medications[0]
+        item = PrescriptionItem(
+            tenant_id=test_tenant.id,
+            prescription_id=rx.id,
+            medication_id=med.id,
+            dosage='1 tablet',
+            quantity=2,
+            duration_days=7,
+            unit_price=10.0,
+            total_price=20.0,
+        )
+        db.session.add(item)
+        db.session.commit()
+
+        ctx = _tenant_ctx(app, test_tenant)
+        try:
+            result = PharmacySaleService.create_sale(
+                prescription_id=rx.id,
+                dispensed_by=_make_user(app, test_tenant).id,
+                items=[{'medication_id': med.id, 'quantity': 2, 'unit_price': 10.0}],
+                tenant_id=test_tenant.id,
+            )
+        finally:
+            ctx.pop()
+
+        assert 'sale_id' in result
+        rx_after = db.session.get(Prescription, rx.id)
+        assert rx_after.status == PrescriptionState.DISPENSED
+
+    def test_create_sale_pos_creates_dispense_log(self, app, test_tenant, test_medications):
+        """POS sale creates a PrescriptionDispenseLog entry."""
+        from models.medication import Prescription, PrescriptionItem, PrescriptionDispenseLog
+
+        patient_id = _make_patient(app, test_tenant)
+        rx_number = f'RX-POS-LOG-{patient_id}'
+        rx = Prescription(
+            tenant_id=test_tenant.id,
+            patient_id=patient_id,
+            prescription_number=rx_number,
+            status='active',
+        )
+        db.session.add(rx)
+        db.session.commit()
+
+        med = test_medications[0]
+        item = PrescriptionItem(
+            tenant_id=test_tenant.id,
+            prescription_id=rx.id,
+            medication_id=med.id,
+            dosage='1 tablet',
+            quantity=1,
+            duration_days=7,
+            unit_price=10.0,
+            total_price=10.0,
+        )
+        db.session.add(item)
+        db.session.commit()
+
+        ctx = _tenant_ctx(app, test_tenant)
+        try:
+            result = PharmacySaleService.create_sale(
+                prescription_id=rx.id,
+                dispensed_by=_make_user(app, test_tenant).id,
+                items=[{'medication_id': med.id, 'quantity': 1, 'unit_price': 10.0}],
+                tenant_id=test_tenant.id,
+            )
+        finally:
+            ctx.pop()
+
+        logs = (
+            db.session.execute(
+                select(PrescriptionDispenseLog).filter_by(prescription_id=rx.id)
+            )
+            .scalars()
+            .all()
+        )
+        assert len(logs) >= 1
+        assert logs[0].notes == 'Dispensed via POS sale'
+
+    def test_create_sale_pos_already_dispensed_rejected(self, app, test_tenant, test_medications):
+        """Dispensing an already-dispensed prescription returns an error."""
+        from models.medication import Prescription, PrescriptionItem
+
+        patient_id = _make_patient(app, test_tenant)
+        rx_number = f'RX-POS-ALREADY-{patient_id}'
+        rx = Prescription(
+            tenant_id=test_tenant.id,
+            patient_id=patient_id,
+            prescription_number=rx_number,
+            status='dispensed',
+        )
+        db.session.add(rx)
+        db.session.commit()
+
+        med = test_medications[0]
+        item = PrescriptionItem(
+            tenant_id=test_tenant.id,
+            prescription_id=rx.id,
+            medication_id=med.id,
+            dosage='1 tablet',
+            quantity=1,
+            duration_days=7,
+            unit_price=10.0,
+            total_price=10.0,
+        )
+        db.session.add(item)
+        db.session.commit()
+
+        ctx = _tenant_ctx(app, test_tenant)
+        try:
+            result = PharmacySaleService.create_sale(
+                prescription_id=rx.id,
+                dispensed_by=_make_user(app, test_tenant).id,
+                items=[{'medication_id': med.id, 'quantity': 1, 'unit_price': 10.0}],
+                tenant_id=test_tenant.id,
+            )
+        finally:
+            ctx.pop()
+        assert 'error' in result

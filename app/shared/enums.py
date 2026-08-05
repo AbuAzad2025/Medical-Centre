@@ -253,6 +253,7 @@ class InvoiceStatus(StrEnum):
 
 class PrescriptionState(StrEnum):
     DRAFT = 'draft'
+    ISSUED = 'issued'
     ACTIVE = 'active'
     DISPENSED = 'dispensed'
     PARTIAL = 'partial'

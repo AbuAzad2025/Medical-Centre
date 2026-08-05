@@ -199,7 +199,8 @@ class Prescription(TenantMixin, db.Model):
     # Constraints and Indexes
     __table_args__ = (
         CheckConstraint(
-            "status IN ('active', 'dispensed', 'cancelled')", name='chk_prescription_status'
+            "status IN ('active', 'issued', 'dispensed', 'cancelled')",
+            name='chk_prescription_status',
         ),
         CheckConstraint('total_cost >= 0', name='chk_prescription_total_cost'),
         Index('idx_prescription_patient', 'patient_id'),
@@ -235,7 +236,7 @@ class Prescription(TenantMixin, db.Model):
 
     def get_status_display(self):
         """حالة الروشيتا للعرض"""
-        status_map = {'active': 'نشط', 'dispensed': 'تم الصرف', 'cancelled': 'ملغي'}
+        status_map = {'active': 'نشط', 'issued': 'صادر', 'dispensed': 'تم الصرف', 'cancelled': 'ملغي'}
         return status_map.get(self.status, self.status)
 
     def get_total_cost_display(self):

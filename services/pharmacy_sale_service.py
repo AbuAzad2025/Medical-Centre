@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from flask import g
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 from app.extensions import db
 from app.shared.enums import PrescriptionState
@@ -17,16 +18,21 @@ class PharmacySaleService:
     """Manages pharmacy sale processing and dispensing."""
 
     @staticmethod
-    def create_sale(
-        prescription_id: int, dispensed_by: int, items: list[dict], tenant_id: int | None = None
-    ) -> dict:
-        from models.medication import Medication, PharmacySale, PharmacySaleItem, Prescription
+    def fetch_prescription_for_pos_cart(prescription_id: int, tenant_id: int) -> dict:
+        """
+        Read-only preview: load prescription items with medications for POS checkout.
 
-        tenant_id = tenant_id or getattr(g, 'tenant_id', None)
+        Uses two-step query to avoid N+1. Does NOT modify any state.
+        Returns cart payload with medication details, prices, and stock info.
+        """
+        from models.medication import Prescription, PrescriptionItem, Medication
+
         prescription = (
             db.session.execute(
-                select(Prescription).filter(
-                    Prescription.id == prescription_id, Prescription.tenant_id == tenant_id
+                select(Prescription)
+                .filter(
+                    Prescription.id == prescription_id,
+                    Prescription.tenant_id == tenant_id,
                 )
             )
             .scalars()
@@ -34,6 +40,87 @@ class PharmacySaleService:
         )
         if not prescription:
             return {'error': 'Prescription not found'}
+
+        if prescription.status not in ('active', 'issued'):
+            return {'error': f'Prescription status "{prescription.status}" not eligible for POS checkout'}
+
+        items = (
+            db.session.execute(
+                select(PrescriptionItem)
+                .options(joinedload(PrescriptionItem.medication))
+                .filter(PrescriptionItem.prescription_id == prescription.id)
+            )
+            .scalars()
+            .all()
+        )
+
+        cart_items = []
+        for item in items:
+            medication = item.medication
+            if not medication:
+                continue
+
+            unit_price = item.unit_price if item.unit_price is not None else medication.price
+            line_total = unit_price * item.quantity
+
+            cart_items.append({
+                'prescription_item_id': item.id,
+                'medication_id': medication.id,
+                'name': medication.trade_name or medication.scientific_name,
+                'generic_name': medication.generic_name,
+                'strength': medication.strength,
+                'dosage_form': medication.dosage_form,
+                'quantity': item.quantity,
+                'unit_price': float(unit_price),
+                'total_price': float(line_total),
+                'available_stock': medication.stock_quantity,
+                'dosage': item.dosage,
+                'duration_days': item.duration_days,
+                'instructions': item.instructions,
+            })
+
+        return {
+            'prescription_id': prescription.id,
+            'prescription_number': prescription.prescription_number,
+            'patient_id': prescription.patient_id,
+            'patient_name': (
+                f"{prescription.patient.first_name} {prescription.patient.last_name}"
+                if prescription.patient else None
+            ),
+            'doctor_id': prescription.doctor_id,
+            'visit_id': prescription.visit_id,
+            'items': cart_items,
+            'total_amount': sum(item['total_price'] for item in cart_items),
+            'status': prescription.status,
+        }
+
+    @staticmethod
+    def create_sale(
+        prescription_id: int, dispensed_by: int, items: list[dict], tenant_id: int | None = None
+    ) -> dict:
+        from models.medication import Medication, PharmacySale, PharmacySaleItem, Prescription, PrescriptionDispenseLog
+
+        tenant_id = tenant_id or getattr(g, 'tenant_id', None)
+
+        # Lock the prescription row to prevent concurrent dispense
+        prescription = (
+            db.session.execute(
+                select(Prescription)
+                .filter(
+                    Prescription.id == prescription_id,
+                    Prescription.tenant_id == tenant_id,
+                )
+                .with_for_update()
+            )
+            .scalars()
+            .first()
+        )
+        if not prescription:
+            return {'error': 'Prescription not found'}
+
+        if prescription.status == PrescriptionState.DISPENSED:
+            return {'error': 'Prescription already dispensed'}
+
         sale = PharmacySale(
             tenant_id=tenant_id,
             patient_id=prescription.patient_id,
@@ -43,30 +130,42 @@ class PharmacySaleService:
         )
         db.session.add(sale)
         db.session.flush()
+
+        # Lock all medications for this sale to prevent race conditions
+        medication_ids = [item.get('medication_id') for item in items if item.get('medication_id')]
+        if medication_ids:
+            medications = (
+                db.session.execute(
+                    select(Medication)
+                    .filter(
+                        Medication.id.in_(medication_ids),
+                        Medication.tenant_id == tenant_id,
+                    )
+                    .with_for_update()
+                )
+                .scalars()
+                .all()
+            )
+            med_map = {m.id: m for m in medications}
+        else:
+            med_map = {}
+
         total = 0
         for item in items:
             med_id = item.get('medication_id')
             if not med_id:
                 safe_commit(db.session, error_message='medication_id required')
                 return {'error': 'medication_id required'}
-            med = (
-                db.session.execute(
-                    select(Medication)
-                    .filter(
-                        Medication.id == med_id,
-                        Medication.tenant_id == tenant_id,
-                    )
-                    .with_for_update()
-                )
-                .scalars()
-                .first()
-            )
+
+            med = med_map.get(med_id)
             if not med:
                 safe_commit(db.session, error_message=f'Medication {med_id} not found')
                 return {'error': f'Medication {med_id} not found'}
+
             qty = int(item.get('quantity', 1))
             unit_price = item.get('unit_price', 0)
             line_total = qty * unit_price
+
             from app.modules.workflows.pharmacy import PharmacyStockService
 
             try:
@@ -81,6 +180,7 @@ class PharmacySaleService:
             except ValueError:
                 safe_commit(db.session, error_message=f'Insufficient stock for medication {med_id}')
                 return {'error': f'Insufficient stock for medication {med_id}'}
+
             sale_item = PharmacySaleItem(
                 tenant_id=tenant_id,
                 sale_id=sale.id,
@@ -92,54 +192,20 @@ class PharmacySaleService:
             )
             db.session.add(sale_item)
             total += line_total
+
         sale.total_amount = total
         prescription.status = PrescriptionState.DISPENSED
+
+        # Create dispense log
+        dispense_log = PrescriptionDispenseLog(
+            prescription_id=prescription.id,
+            patient_id=prescription.patient_id,
+            visit_id=prescription.visit_id,
+            dispensed_by=dispensed_by,
+            dispensed_at=datetime.now(UTC),
+            notes='Dispensed via POS sale',
+        )
+        db.session.add(dispense_log)
+
         safe_commit(db.session, error_message='final commit fail', reraise=True)
         return {'sale_id': sale.id, 'total_amount': total}
-
-    @staticmethod
-    def void_sale(sale_id: int, reason: str = '') -> dict:
-        from models.medication import PharmacySale
-
-        sale = (
-            db.session.execute(
-                select(PharmacySale).filter(
-                    PharmacySale.id == sale_id,
-                    PharmacySale.tenant_id == getattr(g, 'tenant_id', None),
-                )
-            )
-            .scalars()
-            .first()
-        )
-        if not sale:
-            return {'error': 'Sale not found'}
-        sale.status = PrescriptionState.CANCELLED
-        safe_commit(db.session, error_message='final commit fail', reraise=True)
-        return {'sale_id': sale.id, 'status': PrescriptionState.CANCELLED}
-
-    @staticmethod
-    def get_prescription_status(prescription_id: int) -> dict:
-        from models.medication import PharmacySale, Prescription
-
-        prescription = (
-            db.session.execute(
-                select(Prescription).filter(
-                    Prescription.id == prescription_id,
-                    Prescription.tenant_id == getattr(g, 'tenant_id', None),
-                )
-            )
-            .scalars()
-            .first()
-        )
-        if not prescription:
-            return {'error': 'Prescription not found'}
-        sales = (
-            db.session.execute(select(PharmacySale).filter_by(prescription_id=prescription_id))
-            .scalars()
-            .all()
-        )
-        return {
-            'prescription_id': prescription_id,
-            'status': prescription.status,
-            'dispensed_count': len(sales),
-        }

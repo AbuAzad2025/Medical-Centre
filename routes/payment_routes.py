@@ -682,3 +682,31 @@ def execute_refund(refund_id):
         logging.exception("Error executing refund: %s")
         flash('حدث خطأ أثناء تنفيذ الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
+
+
+@payment_bp.route('/api/pos/prescriptions/<int:prescription_id>/lookup', methods=['GET'])
+@login_required
+def lookup_prescription_for_pos(prescription_id):
+    """
+    Optional prescription lookup for POS checkout (Pull Model).
+
+    Returns a cart payload with medication details, prices, and stock info.
+    Does NOT modify prescription status or inventory.
+    """
+    try:
+        tenant_id = current_user.tenant_id
+        if not tenant_id:
+            return jsonify({'success': False, 'error': 'No tenant context'}), 400
+
+        from services.pharmacy_sale_service import PharmacySaleService
+
+        cart = PharmacySaleService.fetch_prescription_for_pos_cart(prescription_id, tenant_id)
+
+        if 'error' in cart:
+            return jsonify({'success': False, 'error': cart['error']}), 404
+
+        return jsonify({'success': True, 'data': cart})
+
+    except Exception:
+        logging.exception("Error looking up prescription for POS")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
