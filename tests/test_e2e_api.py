@@ -187,7 +187,7 @@ class TestApiContract:
         assert not bad, f'{len(bad)} endpoint(s) crashed on disallowed method:\n' + '\n'.join(bad)
 
     # ── 4. read robustness — authenticated GET JSON APIs never 500 ──────
-    def test_get_json_apis_authenticated(self, app, test_tenant, db, e2e_seed):
+    def test_get_json_apis_authenticated(self, app, test_tenant, db, e2e_seed):  # noqa: F811
         failures = []
         targets = [
             (p, m, ep, r)
@@ -224,7 +224,7 @@ class TestApiContract:
         )
 
     # ── 5. input robustness — POST JSON APIs reject bad input as JSON 4xx ─
-    def test_post_json_apis_reject_bad_input(self, app, test_tenant, db, e2e_seed):
+    def test_post_json_apis_reject_bad_input(self, app, test_tenant, db, e2e_seed):  # noqa: F811
         failures = []
         targets = [
             (p, m, ep, r)

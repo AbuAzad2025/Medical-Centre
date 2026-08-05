@@ -62,14 +62,12 @@ def app():
             )
             _db.session.execute(
                 text(
-                    'ALTER TABLE pharmacy_returns ADD COLUMN IF NOT EXISTS disposition VARCHAR(20) DEFAULT \'RESTOCK\' NOT NULL'
+                    "ALTER TABLE pharmacy_returns ADD COLUMN IF NOT EXISTS disposition VARCHAR(20) DEFAULT 'RESTOCK' NOT NULL"
                 )
             )
             # Insurance Claims - activate dead model with new columns
             _db.session.execute(
-                text(
-                    'ALTER TABLE insurance_claims ADD COLUMN IF NOT EXISTS claim_date TIMESTAMP'
-                )
+                text('ALTER TABLE insurance_claims ADD COLUMN IF NOT EXISTS claim_date TIMESTAMP')
             )
             _db.session.execute(
                 text(
@@ -255,6 +253,304 @@ def test_tenant(app):
     return t
 
 
+@pytest.fixture(scope='function')
+def db(app):
+    """Shared SQLAlchemy database handle (same scoped session as the app)."""
+    return _db
+
+
+@pytest.fixture(scope='function')
+def login_as(test_tenant, db):
+    """Factory fixture: ``login_as(client, username, role)`` → authenticated client."""
+    from tests.tenant_context import ensure_test_user, login_test_client
+
+    def _login(client, username, role, password='test123', **user_extra):
+        user = ensure_test_user(
+            db, test_tenant, username=username, role=role, password=password, **user_extra
+        )
+        login_test_client(client, user, test_tenant, password)
+        return client
+
+    return _login
+
+
+@pytest.fixture(scope='function')
+def runner(app):
+    return app.test_cli_runner()
+
+
+@pytest.fixture(scope='function')
+def test_user(app, test_tenant):
+    """Create a pharmacist test user."""
+    from flask import g
+
+    prev_bypass = g.get('_tenant_filter_bypass', False)
+    g._tenant_filter_bypass = True
+    try:
+        u = (
+            _db.session.execute(select(User).filter_by(username='pharmacist_test'))
+            .scalars()
+            .first()
+        )
+        if not u:
+            u = User(
+                username='pharmacist_test',
+                email='pharmacist@test.local',
+                full_name='صيدلي اختبار',
+                role='pharmacist',
+                is_active=True,
+                tenant_id=test_tenant.id,
+            )
+            _db.session.add(u)
+        else:
+            u.is_active = True
+            u.role = 'pharmacist'
+            u.tenant_id = test_tenant.id
+        u.set_password('ValidPass123!')
+        _db.session.commit()
+        return u
+    finally:
+        if prev_bypass:
+            g._tenant_filter_bypass = True
+        else:
+            g.pop('_tenant_filter_bypass', None)
+
+
+@pytest.fixture(scope='function')
+def test_medications(app, test_tenant):
+    """Create sample medications."""
+    from models.medication import Medication
+
+    meds_data = [
+        {
+            'trade_name': 'أموكسيسيلين',
+            'scientific_name': 'Amoxicillin',
+            'price': 15.50,
+            'stock': 100,
+            'min_stock': 20,
+        },
+        {
+            'trade_name': 'باراسيتامول',
+            'scientific_name': 'Paracetamol',
+            'price': 5.00,
+            'stock': 200,
+            'min_stock': 50,
+        },
+        {
+            'trade_name': 'ايبوبروفين',
+            'scientific_name': 'Ibuprofen',
+            'price': 8.75,
+            'stock': 5,
+            'min_stock': 10,
+        },
+    ]
+    meds = []
+    for md in meds_data:
+        m = Medication(
+            tenant_id=test_tenant.id,
+            trade_name=md['trade_name'],
+            scientific_name=md['scientific_name'],
+            dosage_form='tablet',
+            strength='500mg',
+            price=md['price'],
+            stock_quantity=md['stock'],
+            minimum_stock=md['min_stock'],
+            category='general',
+        )
+        _db.session.add(m)
+        meds.append(m)
+    _db.session.commit()
+    return meds
+
+
+@pytest.fixture(scope='function')
+def auth_client(app, client, test_user, test_tenant):
+    """Return an authenticated test client for pharmacist via login POST."""
+    from tests.tenant_context import login_test_client
+
+    login_test_client(client, test_user, test_tenant)
+    return client
+
+
+@pytest.fixture(scope='function')
+def manager_user(app, test_tenant):
+    """Create a manager test user."""
+    from flask import g
+
+    prev_bypass = g.get('_tenant_filter_bypass', False)
+    g._tenant_filter_bypass = True
+    try:
+        u = _db.session.execute(select(User).filter_by(username='manager_test')).scalars().first()
+        if not u:
+            u = User(
+                username='manager_test',
+                email='manager@test.local',
+                full_name='مدير اختبار',
+                role='manager',
+                is_active=True,
+                tenant_id=test_tenant.id,
+            )
+            _db.session.add(u)
+        else:
+            u.is_active = True
+            u.role = 'manager'
+            u.tenant_id = test_tenant.id
+        u.set_password('ValidPass123!')
+        _db.session.commit()
+        return u
+    finally:
+        if prev_bypass:
+            g._tenant_filter_bypass = True
+        else:
+            g.pop('_tenant_filter_bypass', None)
+
+
+@pytest.fixture(scope='function')
+def manager_auth_client(app, client, manager_user, test_tenant):
+    """Return an authenticated test client for manager via login POST."""
+    from tests.tenant_context import login_test_client
+
+    login_test_client(client, manager_user, test_tenant)
+    return client
+
+
+class FakeSession:
+    """In-memory stand-in for db.session — no engine, records side effects."""
+
+    def __init__(self, store=None):
+        self.store = dict(store or {})
+        self.added = []
+        self.commits = 0
+        self.rollbacks = 0
+        self.flushes = 0
+
+    def get(self, model, ident):
+        return self.store.get(ident)
+
+    def add(self, obj):
+        self.added.append(obj)
+
+    def commit(self):
+        self.commits += 1
+
+    def rollback(self):
+        self.rollbacks += 1
+
+    def flush(self):
+        self.flushes += 1
+
+
+@pytest.fixture
+def patch_db_session(monkeypatch):
+    """Patch app.extensions.db.session with a FakeSession and return it."""
+    import app.extensions as ext
+
+    def _apply(session=None):
+        session = session or FakeSession()
+        monkeypatch.setattr(ext.db, 'session', session, raising=False)
+        return session
+
+    return _apply
+
+
+@pytest.fixture(scope='function', autouse=True)
+def _clear_rate_limiter(app):
+    """Clear rate limiter state before each test to avoid cross-test contamination."""
+    from sqlalchemy import delete
+
+    from app.core.rate_limiter import _idempotency_locks, _shared_store
+    from models.audit_trail import LoginAttempt
+    from services.sms_service import SMSService
+
+    _shared_store.clear()
+    _idempotency_locks.clear()
+    SMSService.clear_all_otp_state()
+    try:
+        _db.session.execute(delete(LoginAttempt))
+        _db.session.commit()
+    except Exception:
+        _db.session.rollback()
+
+
+@pytest.fixture(scope='function', autouse=True)
+def _clear_audit_context():
+    from app.core.audit.audit_context import set_audit_context
+
+    set_audit_context(actor_id=None, ip_address=None, request_id=None, tenant_id=None)
+    yield
+    set_audit_context(actor_id=None, ip_address=None, request_id=None, tenant_id=None)
+
+
+@pytest.fixture(scope='function', autouse=True)
+def _clear_flask_login_state():
+    """Clear cached Flask auth/tenant/ghost state to prevent cross-test leaks."""
+    from flask import g
+
+    _state_keys = (
+        '_login_user',
+        'current_user',
+        'current_tenant',
+        'tenant_id',
+        'tenant_slug',
+        'ghost_mode',
+        'ghost_actor_id',
+        'enabled_modules',
+        'product_profile',
+        'feature_flags',
+        '_tenant_filter_bypass',
+        'original_user',
+    )
+
+    def _clear():
+        for _k in _state_keys:
+            with contextlib.suppress(Exception):
+                g.pop(_k, None)
+        try:
+            _db.session.info.pop('_tenant_id', None)
+            _db.session.execute(_db.text('RESET app.tenant_id'))
+        except Exception:
+            pass
+
+    _clear()
+    yield
+    _clear()
+
+
+@pytest.fixture(scope='function', autouse=True)
+def _saas_default_tenant_context(app, request, monkeypatch):
+    """In SaaS mode, bind the default test tenant to ``g`` for service-layer tests.
+
+    HTTP tests still exercise real middleware; this covers direct ORM/service calls
+    outside an active request. Tests that require *no* tenant must opt out via
+    ``@pytest.mark.no_tenant_context``.
+    """
+    clear_tenant_g()
+    _db.session.info.pop('_tenant_id', None)
+    if not app.config.get('ENABLE_SAAS_MODE', False):
+        yield
+        clear_tenant_g()
+        return
+    if request.node.get_closest_marker('no_tenant_context'):
+        yield
+        clear_tenant_g()
+        return
+
+    monkeypatch.setattr(
+        'app.shared.tenant_filter._check_bundle_limits_on_create',
+        lambda *_a, **_k: None,
+    )
+    monkeypatch.setattr(
+        'app.shared.tenant_filter._check_bundle_limits_on_update',
+        lambda *_a, **_k: None,
+    )
+
+    tenant = ensure_default_test_tenant(app)
+    with app.test_request_context():
+        bind_tenant_on_g(tenant, db_session=_db.session)
+        yield
+    clear_tenant_g()
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Ghost mode helpers (moved from inline definition in test_ghost_mode.py)
 # ──────────────────────────────────────────────────────────────────────────────
@@ -274,11 +570,11 @@ def clear_tenant_g() -> None:
         g.pop(key, None)
 
 
-def ensure_default_test_tenant(app: 'Flask') -> None:
+def ensure_default_test_tenant(app: 'Flask') -> Tenant:
     """Return (or create) the shared default tenant used by SaaS-mode tests."""
     from tests.tenant_context import ensure_default_test_tenant as _ensure
 
-    _ensure(app)
+    return _ensure(app)
 
 
 def bind_tenant_on_g(tenant, *, db_session=None) -> None:
@@ -349,6 +645,8 @@ def tenant_test_context(app: 'Flask', tenant=None, *, bypass: bool = False):
 
 # Make fixtures available
 pytest.fixture(scope='function')
+
+
 def test_db(app):
     """Legacy alias for rollback_db."""
     return rollback_db(app)

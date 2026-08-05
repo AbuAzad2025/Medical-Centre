@@ -64,7 +64,7 @@ def _redact_changes(model_name: str, changes: dict) -> dict:
 
 def _build_changes_for_create(instance) -> dict:
     changes = {}
-    for mapper_key in instance.__mapper__.c:
+    for mapper_key in instance.__mapper__.c.keys():
         if mapper_key in _SKIP_COLUMNS:
             continue
         col = getattr(instance.__mapper__.c, mapper_key)

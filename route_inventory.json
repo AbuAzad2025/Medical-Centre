@@ -5681,7 +5681,7 @@
       "classification": "public"
     },
     {
-      "endpoint": "reception.api_patients_allergies_add",
+      "endpoint": "reception.add_patient_allergy",
       "path": "/reception/api/patients/<int:patient_id>/allergies/add",
       "methods": [
         "POST"
@@ -5697,7 +5697,7 @@
       "classification": "internal"
     },
     {
-      "endpoint": "reception.api_patients_problems_add",
+      "endpoint": "reception.add_patient_problem",
       "path": "/reception/api/patients/<int:patient_id>/problems/add",
       "methods": [
         "POST"
@@ -5737,7 +5737,7 @@
       "classification": "internal"
     },
     {
-      "endpoint": "reception.api_patients_problems_toggle",
+      "endpoint": "reception.toggle_problem_status",
       "path": "/reception/api/patients/<int:patient_id>/problems/<int:problem_id>/toggle",
       "methods": [
         "POST"

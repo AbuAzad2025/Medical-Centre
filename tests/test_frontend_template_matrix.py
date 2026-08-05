@@ -37,7 +37,11 @@ CORE_FORM_ROUTES: dict[str, set[str]] = {
 }
 
 # Sample screens + role dashboards for matrix rendering (Phase 1 & 2).
-CORE_RENDER_ROUTES: list[tuple[str, str | None]] = [*list(SCREEN_SAMPLES), ('/super-admin/dashboard', 'super_admin'), ('/reception/patients', 'reception')]
+CORE_RENDER_ROUTES: list[tuple[str, str | None]] = [
+    *list(SCREEN_SAMPLES),
+    ('/super-admin/dashboard', 'super_admin'),
+    ('/reception/patients', 'reception'),
+]
 
 _SKIP_INPUT_TYPES = frozenset({'submit', 'button', 'reset', 'image'})
 _BAD_HREF_EXACT = frozenset({'', '#'})
@@ -149,7 +153,7 @@ def _collect_form_names(html: str) -> set[str]:
     return names
 
 
-def _render_core_pages(app, test_tenant, db, e2e_seed):
+def _render_core_pages(app, test_tenant, db, e2e_seed):  # noqa: F811
     """Yield (path, role, status_code, html_text) for each core route."""
     from app.core.tenant.models import Tenant
 
@@ -217,7 +221,7 @@ def _path_matches_url_map(app, path: str) -> bool:
 class TestTemplateRenderMatrix:
     """Render core routes; assert no leaks and POST form fields have names."""
 
-    def test_core_routes_render_without_500_or_leaks(self, app, test_tenant, db, e2e_seed):
+    def test_core_routes_render_without_500_or_leaks(self, app, test_tenant, db, e2e_seed):  # noqa: F811
         failures = []
         for path, role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
             if isinstance(status, str) and status.startswith('EXC:'):
@@ -240,7 +244,7 @@ class TestTemplateRenderMatrix:
         app,
         test_tenant,
         db,
-        e2e_seed,
+        e2e_seed,  # noqa: F811
         path,
         role,
     ):
@@ -269,7 +273,7 @@ class TestTemplateRenderMatrix:
         missing = expected_fields - found
         assert not missing, f'{path}: backend expects {missing}, form has {found}'
 
-    def test_payment_form_fields_have_names(self, app, test_tenant, db, e2e_seed):
+    def test_payment_form_fields_have_names(self, app, test_tenant, db, e2e_seed):  # noqa: F811
         path = f'/payment/process/{e2e_seed["visit_id"]}'
         client = app.test_client()
         _login_as(client, test_tenant, 'accountant', db)
@@ -311,7 +315,7 @@ def _resolve_link(app, href: str, base_path: str) -> tuple[bool, str]:
 class TestLinkCrawler:
     """Extract hrefs/actions from rendered pages; validate routes and inventory."""
 
-    def test_no_bad_hrefs_on_core_pages(self, app, test_tenant, db, e2e_seed):
+    def test_no_bad_hrefs_on_core_pages(self, app, test_tenant, db, e2e_seed):  # noqa: F811
         offenders = []
         for path, _role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
             if status != 200:
@@ -326,7 +330,7 @@ class TestLinkCrawler:
                     offenders.append(f'{path}: <a href={href!r}> — {bad}')
         assert not offenders, '\n'.join(offenders)
 
-    def test_internal_links_resolve_on_core_pages(self, app, test_tenant, db, e2e_seed):
+    def test_internal_links_resolve_on_core_pages(self, app, test_tenant, db, e2e_seed):  # noqa: F811
         failures = []
         checked: set[str] = set()
         for path, _role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
@@ -354,7 +358,7 @@ class TestLinkCrawler:
                     failures.append(f'{path} action -> {href!r}: {reason}')
         assert not failures, '\n'.join(failures[:40])
 
-    def test_no_legacy_sqlite_or_single_tenant_refs(self, app, test_tenant, db, e2e_seed):
+    def test_no_legacy_sqlite_or_single_tenant_refs(self, app, test_tenant, db, e2e_seed):  # noqa: F811
         leaks = []
         for path, _role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
             if status != 200:
