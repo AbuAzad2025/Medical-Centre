@@ -183,14 +183,14 @@ class TestCreateSaleCommissionAndOptions:
         assert 'error' in result
 
     def test_create_sale_final_commit_failure(self, app, test_tenant, test_medications):
-        """When db.session.commit() raises, RuntimeError should propagate."""
+        """When safe_commit raises, the exception should propagate."""
         patient_id = _make_patient(app, test_tenant)
         rx_id = _make_prescription(app, test_tenant, patient_id)
         med = test_medications[0]
         items = [{'medication_id': med.id, 'quantity': 1, 'unit_price': 10.0}]
 
-        with patch('services.pharmacy_sale_service.db') as mock_db:
-            mock_db.session.commit.side_effect = Exception('db down')
+        with patch('services.pharmacy_sale_service.safe_commit') as mock_sc:
+            mock_sc.side_effect = Exception('db down')
 
             with pytest.raises(Exception):
                 PharmacySaleService.create_sale(

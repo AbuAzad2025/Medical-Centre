@@ -285,3 +285,50 @@ class PharmacySaleService:
             'disposition': disposition,
             'quantity': quantity,
         }
+
+    @staticmethod
+    def void_sale(sale_id: int, reason: str = '', tenant_id: int | None = None) -> dict:
+        from models.medication import PharmacySale
+
+        tenant_id = tenant_id or getattr(g, 'tenant_id', None)
+
+        sale = (
+            db.session.execute(
+                select(PharmacySale)
+                .filter(
+                    PharmacySale.id == sale_id,
+                    PharmacySale.tenant_id == tenant_id,
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if not sale:
+            return {'error': 'Sale not found'}
+
+        sale.status = 'cancelled'
+        sale.notes = reason
+
+        safe_commit(db.session, error_message='void sale commit fail', reraise=True)
+        return {'sale_id': sale.id, 'status': sale.status}
+
+    @staticmethod
+    def get_prescription_status(prescription_id: int) -> dict:
+        from models.medication import Prescription
+
+        prescription = (
+            db.session.execute(
+                select(Prescription)
+                .filter(Prescription.id == prescription_id)
+            )
+            .scalars()
+            .first()
+        )
+        if not prescription:
+            return {'error': 'Prescription not found'}
+
+        return {
+            'prescription_id': prescription.id,
+            'prescription_number': prescription.prescription_number,
+            'status': prescription.status,
+        }
