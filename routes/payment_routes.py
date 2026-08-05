@@ -710,3 +710,43 @@ def lookup_prescription_for_pos(prescription_id):
     except Exception:
         logging.exception("Error looking up prescription for POS")
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@payment_bp.route('/api/pharmacy/returns', methods=['POST'])
+@login_required
+@role_required('pharmacist', 'manager', 'admin')
+def process_pharmacy_return():
+    """Process a pharmacy return (restock or discard)."""
+    try:
+        json_data = request.json or {}
+        sale_item_id = json_data.get('sale_item_id')
+        quantity = json_data.get('quantity', 1)
+        disposition = json_data.get('disposition', 'RESTOCK')
+        reason = json_data.get('reason', '')
+
+        if not sale_item_id:
+            return jsonify({'success': False, 'error': 'sale_item_id required'}), 400
+
+        tenant_id = current_user.tenant_id
+        if not tenant_id:
+            return jsonify({'success': False, 'error': 'No tenant context'}), 400
+
+        from services.pharmacy_sale_service import PharmacySaleService
+
+        result = PharmacySaleService.process_pharmacy_return(
+            sale_item_id=int(sale_item_id),
+            quantity=int(quantity),
+            disposition=disposition.upper(),
+            reason=reason,
+            user_id=current_user.id,
+            tenant_id=tenant_id,
+        )
+
+        if 'error' in result:
+            return jsonify({'success': False, 'error': result['error']}), 400
+
+        return jsonify({'success': True, 'data': result})
+
+    except Exception:
+        logging.exception("Error processing pharmacy return")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500

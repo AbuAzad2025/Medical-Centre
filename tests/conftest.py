@@ -73,6 +73,11 @@ def app():
             _db.session.execute(
                 text('ALTER TABLE vital_signs ADD COLUMN IF NOT EXISTS visit_id INTEGER')
             )
+            _db.session.execute(
+                text(
+                    'ALTER TABLE pharmacy_returns ADD COLUMN IF NOT EXISTS disposition VARCHAR(20) DEFAULT RESTOCK NOT NULL'
+                )
+            )
             # SaaS S0-003: exclusion constraint (not created by db.create_all)
             _db.session.execute(text('CREATE EXTENSION IF NOT EXISTS btree_gist'))
             _db.session.execute(

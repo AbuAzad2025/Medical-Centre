@@ -225,3 +225,13 @@ class PatientAllergy(TenantMixin, db.Model):
     )
 
     patient = db.relationship('Patient', back_populates='allergies')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'patient_id': self.patient_id,
+            'allergen': self.allergen,
+            'severity': self.severity,
+            'description': self.description,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }

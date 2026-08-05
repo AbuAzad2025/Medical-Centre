@@ -466,6 +466,7 @@ class PharmacyReturn(TenantMixin, db.Model):
         db.Integer, db.ForeignKey('medications.id', ondelete='RESTRICT'), nullable=False, index=True
     )
     quantity = db.Column(db.Integer, nullable=False)
+    disposition = db.Column(db.String(20), default='RESTOCK', nullable=False)
     reason = db.Column(db.String(200), nullable=False)
     refund_amount = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     returned_by = db.Column(

@@ -14,5 +14,29 @@
             <div class="col-md-3"><strong>العنوان:</strong> {{ patient.address or '—' }}</div>
         </div>
     </div>
+    {% if patient.allergies %}
+    <div class="card-body py-2 border-top">
+        <h6 class="mb-2"><i class="fas fa-allergies text-danger me-1"></i>الحساسيات النشطة</h6>
+        {% for a in patient.allergies %}
+        {% if a.severity == 'HIGH' %}
+        <span class="badge bg-danger me-1">{{ a.allergen }} ({{ a.severity }})</span>
+        {% elif a.severity == 'MODERATE' %}
+        <span class="badge bg-warning text-dark me-1">{{ a.allergen }} ({{ a.severity }})</span>
+        {% else %}
+        <span class="badge bg-info me-1">{{ a.allergen }} ({{ a.severity }})</span>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if patient.problems %}
+    <div class="card-body py-2 border-top">
+        <h6 class="mb-2"><i class="fas fa-notes-medical text-primary me-1"></i>المشاكل النشطة</h6>
+        {% for p in patient.problems %}
+        {% if p.status == 'ACTIVE' %}
+        <span class="badge bg-secondary me-1">{{ p.problem_description[:40] }}{% if p.problem_description|length > 40 %}...{% endif %}</span>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
 {% endmacro %}

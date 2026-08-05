@@ -5,13 +5,14 @@ import logging
 
 # Imports
 from flask import flash, jsonify, redirect, render_template, request, url_for
-from flask_login import login_required
+from flask_login import current_user, login_required
 from sqlalchemy import select
 
 from app.extensions import db
 from models.appointment import Appointment
 from models.department import Department
-from models.patient import Patient
+from models.patient import Patient, PatientAllergy
+from models.problem_list import PatientProblem, AllergyIntolerance
 from models.visit import Visit
 from routes.reception import _wants_json, reception_bp
 from utils.db_safety import safe_commit, safe_rollback
@@ -664,3 +665,108 @@ def api_smart_patient_search():
     except Exception:
         logging.exception("Error in smart patient search: %s")
         return jsonify({'error': 'حدث خطأ في البحث'}), 500
+
+
+# ═══════════════════════════════════════
+# Allergy & Problem List API Routes
+# ═══════════════════════════════════════
+
+
+@reception_bp.route('/api/patients/<int:patient_id>/allergies/add', methods=['POST'])
+@login_required
+@role_required('reception', 'doctor', 'manager', 'admin')
+def add_patient_allergy(patient_id):
+    """Add an allergy record for a patient."""
+    try:
+        json_data = request.json or {}
+        allergen = json_data.get('allergen', '').strip()
+        severity = json_data.get('severity', 'HIGH')
+        description = json_data.get('description', '').strip()
+
+        if not allergen:
+            return jsonify({'success': False, 'error': 'Allergen is required'}), 400
+
+        patient = db.session.get(Patient, patient_id)
+        if not patient or patient.tenant_id != g.tenant_id:
+            return jsonify({'success': False, 'error': 'Patient not found'}), 404
+
+        allergy = PatientAllergy(
+            tenant_id=g.tenant_id,
+            patient_id=patient_id,
+            allergen=allergen,
+            severity=severity,
+            description=description or None,
+        )
+        db.session.add(allergy)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        return jsonify({'success': True, 'data': allergy.to_dict()})
+
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception("Error adding patient allergy")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@reception_bp.route('/api/patients/<int:patient_id>/problems/add', methods=['POST'])
+@login_required
+@role_required('reception', 'doctor', 'manager', 'admin')
+def add_patient_problem(patient_id):
+    """Add a problem/diagnosis record for a patient."""
+    try:
+        json_data = request.json or {}
+        problem_description = json_data.get('problem_description', '').strip()
+        problem_type = json_data.get('problem_type', 'DIAGNOSIS')
+        severity = json_data.get('severity', 'MODERATE')
+        icd10_code_id = json_data.get('icd10_code_id')
+
+        if not problem_description:
+            return jsonify({'success': False, 'error': 'Problem description is required'}), 400
+
+        patient = db.session.get(Patient, patient_id)
+        if not patient or patient.tenant_id != g.tenant_id:
+            return jsonify({'success': False, 'error': 'Patient not found'}), 404
+
+        problem = PatientProblem(
+            tenant_id=g.tenant_id,
+            patient_id=patient_id,
+            problem_description=problem_description,
+            problem_type=problem_type,
+            severity=severity,
+            icd10_code_id=icd10_code_id or None,
+            status='ACTIVE',
+            recorded_by_id=current_user.id,
+        )
+        db.session.add(problem)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        return jsonify({'success': True, 'data': problem.to_dict()})
+
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception("Error adding patient problem")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@reception_bp.route('/api/patients/<int:patient_id>/problems/<int:problem_id>/toggle', methods=['POST'])
+@login_required
+@role_required('reception', 'doctor', 'manager', 'admin')
+def toggle_problem_status(patient_id, problem_id):
+    """Toggle a problem between ACTIVE and RESOLVED."""
+    try:
+        problem = db.session.get(PatientProblem, problem_id)
+        if not problem or problem.patient_id != patient_id:
+            return jsonify({'success': False, 'error': 'Problem not found'}), 404
+
+        if problem.status == 'ACTIVE':
+            problem.status = 'RESOLVED'
+            problem.resolution_date = datetime.now(UTC)
+        else:
+            problem.status = 'ACTIVE'
+            problem.resolution_date = None
+
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        return jsonify({'success': True, 'status': problem.status})
+
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception("Error toggling problem status")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500

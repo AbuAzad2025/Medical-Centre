@@ -209,3 +209,79 @@ class PharmacySaleService:
 
         safe_commit(db.session, error_message='final commit fail', reraise=True)
         return {'sale_id': sale.id, 'total_amount': total}
+
+    @staticmethod
+    def process_pharmacy_return(
+        sale_item_id: int,
+        quantity: int,
+        disposition: str,
+        reason: str,
+        user_id: int,
+        tenant_id: int,
+    ) -> dict:
+        from models.medication import PharmacySaleItem, PharmacyReturn, Medication
+        from app.modules.workflows.pharmacy import PharmacyStockService
+
+        sale_item = (
+            db.session.execute(
+                select(PharmacySaleItem)
+                .filter(
+                    PharmacySaleItem.id == sale_item_id,
+                    PharmacySaleItem.sale.has(tenant_id=tenant_id),
+                )
+                .options(joinedload(PharmacySaleItem.medication))
+            )
+            .scalars()
+            .first()
+        )
+        if not sale_item:
+            return {'error': 'Sale item not found'}
+
+        previously_returned = (
+            db.session.execute(
+                select(db.func.coalesce(db.func.sum(PharmacyReturn.quantity), 0)).filter(
+                    PharmacyReturn.sale_item_id == sale_item_id
+                )
+            )
+            .scalar()
+        )
+        max_returnable = sale_item.quantity - (previously_returned or 0)
+        if quantity <= 0:
+            return {'error': 'Return quantity must be positive'}
+        if quantity > max_returnable:
+            return {
+                'error': f'Return quantity exceeds max returnable ({max_returnable})'
+            }
+
+        if disposition not in ('RESTOCK', 'DISCARD'):
+            return {'error': 'Disposition must be RESTOCK or DISCARD'}
+
+        medication_id = sale_item.medication_id
+
+        return_record = PharmacyReturn(
+            sale_item_id=sale_item_id,
+            medication_id=medication_id,
+            quantity=quantity,
+            disposition=disposition,
+            reason=reason,
+            returned_by=user_id,
+        )
+        db.session.add(return_record)
+
+        if disposition == 'RESTOCK':
+            PharmacyStockService.adjust_stock(
+                medication_id=medication_id,
+                quantity_change=quantity,
+                movement_type='ADJUSTMENT',
+                reference_type='PharmacyReturn',
+                reference_id=return_record.id,
+                performed_by=user_id,
+                notes=f'Restocked {quantity} units from return',
+            )
+
+        safe_commit(db.session, error_message='return commit fail', reraise=True)
+        return {
+            'return_id': return_record.id,
+            'disposition': disposition,
+            'quantity': quantity,
+        }

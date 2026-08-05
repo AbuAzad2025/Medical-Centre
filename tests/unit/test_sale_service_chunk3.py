@@ -609,3 +609,141 @@ class TestPOSAtomicDispense:
         finally:
             ctx.pop()
         assert 'error' in result
+
+
+# ===========================================================================
+# Pharmacy Return & Restock Tests
+# ===========================================================================
+
+
+class TestPharmacyReturn:
+    """Tests for PharmacySaleService.process_pharmacy_return."""
+
+    def _create_sale_item(self, app, test_tenant, test_medications):
+        """Helper: create a sale with one item and return the sale_item."""
+        from models.medication import PharmacySale, PharmacySaleItem, Medication
+
+        patient_id = _make_patient(app, test_tenant)
+        rx_id = _make_prescription(app, test_tenant, patient_id)
+        med = test_medications[0]
+
+        ctx = _tenant_ctx(app, test_tenant)
+        try:
+            result = PharmacySaleService.create_sale(
+                prescription_id=rx_id,
+                dispensed_by=_make_user(app, test_tenant).id,
+                items=[{'medication_id': med.id, 'quantity': 2, 'unit_price': 10.0}],
+                tenant_id=test_tenant.id,
+            )
+        finally:
+            ctx.pop()
+
+        sale = db.session.get(PharmacySale, result['sale_id'])
+        sale_item = (
+            db.session.execute(
+                select(PharmacySaleItem).filter_by(sale_id=sale.id)
+            )
+            .scalars()
+            .first()
+        )
+        # Capture stock AFTER the sale has decremented it
+        med_after_sale = db.session.get(Medication, med.id)
+        return sale_item, med_after_sale, med_after_sale.stock_quantity
+
+    def test_return_restock_increases_stock(self, app, test_tenant, test_medications):
+        """RESTOCK disposition should increment medication stock."""
+        from models.medication import PharmacyReturn, Medication
+
+        sale_item, med, post_sale_stock = self._create_sale_item(
+            app, test_tenant, test_medications
+        )
+
+        ctx = _tenant_ctx(app, test_tenant)
+        try:
+            result = PharmacySaleService.process_pharmacy_return(
+                sale_item_id=sale_item.id,
+                quantity=1,
+                disposition='RESTOCK',
+                reason='Patient returned item',
+                user_id=_make_user(app, test_tenant).id,
+                tenant_id=test_tenant.id,
+            )
+        finally:
+            ctx.pop()
+
+        assert 'error' not in result
+        assert result['disposition'] == 'RESTOCK'
+
+        med_after = db.session.get(Medication, med.id)
+        assert med_after.stock_quantity == post_sale_stock + 1
+
+        # Verify PharmacyReturn log exists
+        return_log = (
+            db.session.execute(
+                select(PharmacyReturn).filter_by(sale_item_id=sale_item.id)
+            )
+            .scalars()
+            .first()
+        )
+        assert return_log is not None
+        assert return_log.disposition == 'RESTOCK'
+        assert return_log.quantity == 1
+
+    def test_return_discard_does_not_increase_stock(self, app, test_tenant, test_medications):
+        """DISCARD disposition should NOT increment medication stock."""
+        from models.medication import PharmacyReturn, Medication
+
+        sale_item, med, post_sale_stock = self._create_sale_item(
+            app, test_tenant, test_medications
+        )
+
+        ctx = _tenant_ctx(app, test_tenant)
+        try:
+            result = PharmacySaleService.process_pharmacy_return(
+                sale_item_id=sale_item.id,
+                quantity=1,
+                disposition='DISCARD',
+                reason='Expired item discarded',
+                user_id=_make_user(app, test_tenant).id,
+                tenant_id=test_tenant.id,
+            )
+        finally:
+            ctx.pop()
+
+        assert 'error' not in result
+        assert result['disposition'] == 'DISCARD'
+
+        med_after = db.session.get(Medication, med.id)
+        assert med_after.stock_quantity == post_sale_stock
+
+        # Verify PharmacyReturn log exists with DISCARD disposition
+        return_log = (
+            db.session.execute(
+                select(PharmacyReturn).filter_by(sale_item_id=sale_item.id)
+            )
+            .scalars()
+            .first()
+        )
+        assert return_log is not None
+        assert return_log.disposition == 'DISCARD'
+
+    def test_return_exceeds_max_returnable(self, app, test_tenant, test_medications):
+        """Returning more than sold should return an error."""
+        sale_item, med, post_sale_stock = self._create_sale_item(
+            app, test_tenant, test_medications
+        )
+
+        ctx = _tenant_ctx(app, test_tenant)
+        try:
+            result = PharmacySaleService.process_pharmacy_return(
+                sale_item_id=sale_item.id,
+                quantity=999,
+                disposition='RESTOCK',
+                reason='Too many',
+                user_id=_make_user(app, test_tenant).id,
+                tenant_id=test_tenant.id,
+            )
+        finally:
+            ctx.pop()
+
+        assert 'error' in result

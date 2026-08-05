@@ -68,6 +68,28 @@ class PatientProblem(TenantMixin, db.Model):
     def __repr__(self):
         return f'<PatientProblem {self.status}>'
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'patient_id': self.patient_id,
+            'icd10_code_id': self.icd10_code_id,
+            'problem_description': self.problem_description,
+            'problem_description_ar': self.problem_description_ar,
+            'problem_type': self.problem_type,
+            'severity': self.severity,
+            'priority': self.priority,
+            'status': self.status,
+            'onset_date': self.onset_date.isoformat() if self.onset_date else None,
+            'resolution_date': self.resolution_date.isoformat() if self.resolution_date else None,
+            'resolution_notes': self.resolution_notes,
+            'recorded_by_id': self.recorded_by_id,
+            'clinical_notes': self.clinical_notes,
+            'treatment_plan': self.treatment_plan,
+            'is_critical': self.is_critical,
+            'alert_message': self.alert_message,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
 
 class AllergyIntolerance(TenantMixin, db.Model):
     """Patient allergies and intolerances for CDS alerts"""
