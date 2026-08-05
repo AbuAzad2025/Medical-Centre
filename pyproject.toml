@@ -96,6 +96,14 @@ ignore = [
     "S607",   # partial path
     "E402",   # module import not at top
 ]
+"app/modules/owner/__init__.py" = ["E402"]
+"audit_frontend.py" = ["E402"]
+"routes/accountant/__init__.py" = ["E402"]
+"routes/doctor/__init__.py" = ["E402"]
+"routes/emergency/__init__.py" = ["E402"]
+"routes/lab/__init__.py" = ["E402"]
+"routes/manager/__init__.py" = ["E402"]
+"routes/medication_routes/__init__.py" = ["E402"]
 "tests/conftest.py" = [
     "T201",
 ]
