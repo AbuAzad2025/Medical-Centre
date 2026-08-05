@@ -5679,7 +5679,71 @@
         "POST"
       ],
       "classification": "public"
+    },
+    {
+      "endpoint": "reception.api_patients_allergies_add",
+      "path": "/reception/api/patients/<int:patient_id>/allergies/add",
+      "methods": [
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "payment.get_insurance_claim",
+      "path": "/payment/api/insurance/claims/<int:claim_id>",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "reception.api_patients_problems_add",
+      "path": "/reception/api/patients/<int:patient_id>/problems/add",
+      "methods": [
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "payment.adjudicate_insurance_claim",
+      "path": "/payment/api/insurance/claims/<int:claim_id>/adjudicate",
+      "methods": [
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "payment.process_pharmacy_return",
+      "path": "/payment/api/pharmacy/returns",
+      "methods": [
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "payment.lookup_prescription_for_pos",
+      "path": "/payment/api/pos/prescriptions/<int:prescription_id>/lookup",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "payment.generate_insurance_claim",
+      "path": "/payment/api/insurance/claims/generate",
+      "methods": [
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "reception.api_patients_problems_toggle",
+      "path": "/reception/api/patients/<int:patient_id>/problems/<int:problem_id>/toggle",
+      "methods": [
+        "POST"
+      ],
+      "classification": "internal"
     }
   ],
-  "total_routes": 698
+  "total_routes": 706
 }
