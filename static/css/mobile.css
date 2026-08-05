@@ -1,9 +1,10 @@
 /* غلاف الموظفين للجوال — §25.3 */
+
 :root {
   --mobile-nav-height: 64px;
 }
 
-@media (max-width: 991.98px) {
+@media (width <= 991.98px) {
   body.has-mobile-nav {
     padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px));
   }
@@ -18,43 +19,43 @@
     bottom: 0;
     z-index: 1040;
     display: flex;
-    justify-content: space-around;
     align-items: stretch;
+    justify-content: space-around;
     min-height: var(--mobile-nav-height);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0);
     background: var(--color-surface, #fff);
     border-top: 1px solid var(--color-border, #e2e8f0);
-    box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 -4px 16px rgb(15 23 42 / 0.08);
   }
 
   .mobile-bottom-nav a {
-    flex: 1;
+    position: relative;
     display: flex;
+    flex: 1;
     flex-direction: column;
+    gap: 0.15rem;
     align-items: center;
     justify-content: center;
-    gap: 0.15rem;
-    min-height: 48px;
     min-width: 48px;
+    min-height: 48px;
     padding: 0.35rem 0.25rem;
+    font-size: 0.7rem;
     color: var(--color-text-muted, #64748b);
     text-decoration: none;
-    font-size: 0.7rem;
     touch-action: manipulation;
-    position: relative;
     transition: color 0.2s ease;
   }
 
   .mobile-bottom-nav a::before {
-    content: '';
     position: absolute;
-    top: 0;
     inset-inline: 25%;
+    top: 0;
     height: 3px;
+    content: '';
     background: var(--color-primary, #0f4c81);
     border-radius: 0 0 3px 3px;
-    transform: scaleX(0);
     transition: transform 0.25s ease;
+    transform: scaleX(0);
   }
 
   .mobile-bottom-nav a i {
@@ -63,8 +64,8 @@
   }
 
   .mobile-bottom-nav a.active {
-    color: var(--color-primary, #0f4c81);
     font-weight: 600;
+    color: var(--color-primary, #0f4c81);
   }
 
   .mobile-bottom-nav a.active::before {
@@ -88,14 +89,14 @@
   z-index: 1050;
   display: flex;
   flex-wrap: wrap;
+  gap: 0.75rem;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
   padding: 0.75rem 1rem;
   background: var(--color-surface, #fff);
   border: 1px solid var(--color-border, #e2e8f0);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.15);
 }
 
 body.has-mobile-nav .pwa-install-banner {

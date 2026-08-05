@@ -3,10 +3,13 @@
  */
 
 /* ── Google Fonts ── */
+
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
 
 /* ── Design Tokens ── */
+
 :root {
   /* AZAD Medical identity */
   --azad-blue: #0f4c81;
@@ -65,13 +68,13 @@
   --gray-900: #0f172a;
 
   /* Surfaces */
-  --surface: #ffffff;
+  --surface: #fff;
   --surface-elevated: #f8fafc;
   --color-bg: var(--gray-50);
   --color-surface: var(--surface);
   --color-text: var(--gray-900);
   --color-muted: var(--gray-600);
-  --card: #ffffff;
+  --card: #fff;
   --card-hover: #f8f9fa;
   --text-primary: #0f172a;
   --text-secondary: #64748b;
@@ -99,8 +102,8 @@
 
   /* Font families */
   --font: 'Inter', 'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', system-ui, sans-serif;
-  --font-sans: 'Cairo', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-primary: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-sans: 'Cairo', 'Inter', system-ui, -apple-system, 'Segoe UI', roboto, helvetica, arial, sans-serif;
+  --font-primary: 'Cairo', 'Segoe UI', tahoma, geneva, verdana, sans-serif;
   --font-secondary: 'Amiri', 'Times New Roman', serif;
   --font-heading: 'Tajawal', 'Cairo', sans-serif;
   --font-display: 'Changa', 'Cairo', sans-serif;
@@ -148,17 +151,17 @@
   --radius: 12px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --shadow-2xl: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
-  --shadow-card: 0 1px 3px rgba(15, 76, 129, 0.06), 0 4px 12px rgba(15, 76, 129, 0.04);
-  --shadow-card-hover: 0 4px 12px rgba(15, 76, 129, 0.10), 0 12px 24px rgba(15, 76, 129, 0.06);
-  --shadow-button: 0 2px 8px rgba(15, 76, 129, 0.15);
-  --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-soft: 0 8px 32px rgb(0 0 0 / 0.1);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+  --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-2xl: 0 35px 60px -15px rgb(0 0 0 / 0.3);
+  --shadow-card: 0 1px 3px rgb(15 76 129 / 0.06), 0 4px 12px rgb(15 76 129 / 0.04);
+  --shadow-card-hover: 0 4px 12px rgb(15 76 129 / 0.10), 0 12px 24px rgb(15 76 129 / 0.06);
+  --shadow-button: 0 2px 8px rgb(15 76 129 / 0.15);
+  --shadow-hover: 0 15px 35px rgb(0 0 0 / 0.15);
 
   /* Spacing */
   --space-1: 4px;
@@ -177,8 +180,8 @@
   --spacing-xxl: 3rem;
 
   /* Glass */
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-bg: rgb(255 255 255 / 0.1);
+  --glass-border: rgb(255 255 255 / 0.2);
 
   /* Transitions */
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -188,6 +191,7 @@
 }
 
 /* ── Dark Theme ── */
+
 [data-theme="dark"] {
   --color-bg: #0f172a;
   --color-surface: #111827;
@@ -203,12 +207,14 @@
 }
 
 /* ── Radius Variants ── */
+
 [data-radius="sm"] {
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
 }
+
 [data-radius="lg"] {
   --radius-sm: 10px;
   --radius-md: 16px;
@@ -217,6 +223,7 @@
 }
 
 /* ── Density Variants ── */
+
 [data-density="compact"] {
   --space-xs: 0.2rem;
   --space-sm: 0.35rem;
@@ -224,6 +231,7 @@
   --space-lg: 1rem;
   --font-size-base: 0.875rem;
 }
+
 [data-density="comfortable"] {
   --space-xs: 0.35rem;
   --space-sm: 0.65rem;
@@ -233,14 +241,14 @@
 }
 
 /* ── Reset ── */
+
 *, *::before, *::after {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
-  text-rendering: optimizeLegibility;
+  padding: 0;
+  margin: 0;
+  text-rendering: optimizelegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
 
@@ -250,24 +258,25 @@ html {
 }
 
 body {
+  min-height: 100vh;
+  overflow-x: hidden;
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   font-weight: 400;
   line-height: 1.7;
   color: var(--text-primary);
   background: #f1f5f9;
-  min-height: 100vh;
-  overflow-x: hidden;
 }
 
 /* ── Headings ── */
+
 h1, h2, h3, h4, h5, h6 {
+  margin-bottom: 0.5rem;
   font-family: var(--font-family);
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
   line-height: var(--line-height-tight);
-  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 h1 { font-size: 2.5rem; }
 h2 { font-size: 2rem; }
@@ -277,23 +286,26 @@ h5 { font-size: 1.25rem; }
 h6 { font-size: 1.125rem; }
 
 /* ── Paragraphs ── */
+
 p {
+  margin-bottom: 1rem;
   font-family: var(--font-primary);
   line-height: var(--line-height-relaxed);
-  margin-bottom: 1rem;
 }
 
 /* ── Links ── */
+
 a {
   font-family: var(--font-primary);
   font-weight: 500;
+  color: var(--azad-blue);
   text-decoration: none;
   transition: var(--transition-fast);
-  color: var(--azad-blue);
 }
 a:hover { text-decoration: underline; }
 
 /* ── Images ── */
+
 img {
   max-width: 100%;
   height: auto;
@@ -306,15 +318,17 @@ img {
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 /* ── Focus / Accessibility ── */
+
 :focus-visible {
   outline: 2px solid var(--azad-blue);
   outline-offset: 2px;
 }
 
 /* ── Selection ── */
+
 ::selection {
-  background: var(--azad-blue);
   color: #fff;
+  background: var(--azad-blue);
 }
 
 /* ── Utility Classes ── */
@@ -334,13 +348,14 @@ img {
 .text-warning { color: var(--color-warning); }
 .text-info { color: var(--color-info); }
 .text-dark { color: var(--text-primary); }
+
 /* Font weights */
 .font-bold { font-weight: 700; }
 
 /* Line heights */
 
 /* Font families */
-.arabic-text { direction: rtl; text-align: right; font-family: var(--font-primary); }
+.arabic-text { font-family: var(--font-primary); text-align: right; direction: rtl; }
 .arabic-heading { font-family: var(--font-heading); font-weight: 700; }
 .arabic-display { font-family: var(--font-display); font-weight: 800; }
 .arabic-script { font-family: var(--font-script); font-weight: 400; }
@@ -469,10 +484,11 @@ img {
 /* Visibility */
 
 /* Screen reader only */
+
 /* Glass effect */
+
 .glass-effect {
   background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
@@ -480,9 +496,9 @@ img {
 }
 
 /* Gradient text */
+
 .gradient-text {
   background: linear-gradient(135deg, var(--azad-blue), var(--medical-cyan));
-  -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }

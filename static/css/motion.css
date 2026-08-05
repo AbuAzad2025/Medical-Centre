@@ -1,9 +1,10 @@
 /* نظام الحركة — §22 */
+
 @media (prefers-reduced-motion: reduce) {
   .animate-in,
   .fade-enter {
-    animation: none !important;
     transition: none !important;
+    animation: none !important;
   }
 }
 
@@ -20,6 +21,7 @@
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -27,11 +29,11 @@
 }
 
 .skeleton {
+  min-height: 1rem;
   background: linear-gradient(90deg, var(--color-border, #e2e8f0) 25%, #f1f5f9 50%, var(--color-border, #e2e8f0) 75%);
   background-size: 200% 100%;
-  animation: skeleton-shimmer 1.2s ease-in-out infinite;
   border-radius: 6px;
-  min-height: 1rem;
+  animation: skeleton-shimmer 1.2s ease-in-out infinite;
 }
 
 @keyframes skeleton-shimmer {

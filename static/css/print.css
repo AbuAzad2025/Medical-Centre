@@ -1,8 +1,9 @@
 /* مستندات الطباعة الموحدة — المرحلة 9 */
+
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap');
 
 @page {
-  size: A4;
+  size: a4;
   margin: 12mm;
 }
 
@@ -16,52 +17,52 @@
 * { box-sizing: border-box; }
 
 body.print-doc {
-  font-family: 'IBM Plex Sans Arabic', 'Cairo', 'Segoe UI', sans-serif;
+  padding: 0;
+  margin: 0;
+  font-family: 'IBM Plex Sans Arabic', Cairo, 'Segoe UI', sans-serif;
   font-size: 11pt;
   line-height: 1.45;
   color: #1e293b;
-  margin: 0;
-  padding: 0;
   background: #fff;
 }
 
 .print-page {
   max-width: 190mm;
-  margin: 0 auto;
   padding: 0;
+  margin: 0 auto;
 }
 
 .print-action-btn {
   position: fixed;
-  top: 1rem;
   inset-inline-end: 1rem;
+  top: 1rem;
   z-index: 100;
-  background: var(--print-primary);
-  color: #fff;
-  border: none;
   padding: 0.55rem 1.1rem;
-  border-radius: 0.4rem;
-  cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  background: var(--print-primary);
+  border: none;
+  border-radius: 0.4rem;
 }
 
 .print-action-btn:hover { filter: brightness(0.92); }
 
 /* Header */
-.print-header { margin-bottom: 1rem; max-height: 120px; overflow: hidden; }
+.print-header { max-height: 120px; margin-bottom: 1rem; overflow: hidden; }
 
 .print-header-default {
   display: flex;
-  align-items: center;
   gap: 1rem;
+  align-items: center;
   padding: 0.5rem 0;
   border-bottom: 3px solid var(--print-primary);
 }
 
 .print-header-default__logo {
-  max-height: 72px;
   max-width: 120px;
+  max-height: 72px;
   object-fit: contain;
 }
 
@@ -83,32 +84,33 @@ body.print-doc {
 .print-header-custom :is(img) { max-height: 72px; }
 
 /* Doc chrome */
+
 .print-doc-title {
-  text-align: center;
+  margin: 0.5rem 0 1rem;
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--print-primary);
-  margin: 0.5rem 0 1rem;
+  text-align: center;
 }
 
 .print-doc-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem 1.5rem;
-  font-size: 0.85rem;
   margin-bottom: 1rem;
+  font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
 }
 
 .print-doc-meta__item strong { color: #334155; }
 
 .print-subject-strip {
-  background: var(--print-bg-soft);
-  border: 1px solid var(--print-border);
-  border-radius: 0.35rem;
   padding: 0.65rem 0.85rem;
   margin-bottom: 1rem;
   font-size: 0.85rem;
+  background: var(--print-bg-soft);
+  border: 1px solid var(--print-border);
+  border-radius: 0.35rem;
 }
 
 .print-subject-strip__grid {
@@ -119,50 +121,50 @@ body.print-doc {
 
 .print-subject-strip__item {
   display: flex;
-  justify-content: space-between;
   gap: 0.5rem;
-  border-bottom: 1px dotted var(--print-border);
+  justify-content: space-between;
   padding: 0.2rem 0;
+  border-bottom: 1px dotted var(--print-border);
 }
 
 .print-body { margin-bottom: 1rem; }
 
 .print-section {
-  margin-bottom: 1rem;
   padding: 0.75rem;
+  margin-bottom: 1rem;
+  background: #fff;
   border: 1px solid var(--print-border);
   border-radius: 0.35rem;
-  background: #fff;
 }
 
 .print-section__title {
+  padding-bottom: 0.35rem;
+  margin: 0 0 0.5rem;
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--print-primary);
-  margin: 0 0 0.5rem;
-  padding-bottom: 0.35rem;
   border-bottom: 2px solid var(--print-primary);
 }
 
 .print-table {
   width: 100%;
-  border-collapse: collapse;
   font-size: 0.85rem;
+  border-collapse: collapse;
 }
 
 .print-table th {
-  background: var(--print-primary);
-  color: #fff;
   padding: 0.45rem 0.5rem;
-  text-align: center;
   font-weight: 600;
+  color: #fff;
+  text-align: center;
+  background: var(--print-primary);
 }
 
 .print-table td {
   padding: 0.45rem 0.5rem;
-  border-bottom: 1px solid var(--print-border);
   text-align: center;
   vertical-align: top;
+  border-bottom: 1px solid var(--print-border);
 }
 
 .print-table tr:nth-child(even) td { background: var(--print-bg-soft); }
@@ -170,8 +172,8 @@ body.print-doc {
 .print-table .text-end { text-align: end; }
 
 .print-totals {
-  margin: 1rem 0;
   padding: 0.75rem;
+  margin: 1rem 0;
   background: var(--print-bg-soft);
   border-radius: 0.35rem;
 }
@@ -184,65 +186,65 @@ body.print-doc {
 }
 
 .print-total-row--final {
-  font-weight: 700;
+  padding-top: 0.5rem;
+  margin-top: 0.35rem;
   font-size: 1rem;
+  font-weight: 700;
   color: var(--print-primary);
   border-top: 2px solid var(--print-primary);
-  margin-top: 0.35rem;
-  padding-top: 0.5rem;
 }
 
 .print-signatures {
   display: flex;
-  justify-content: space-between;
   gap: 1rem;
-  margin-top: 1.5rem;
+  justify-content: space-between;
   padding-top: 1rem;
+  margin-top: 1.5rem;
   border-top: 1px solid var(--print-border);
 }
 
 .print-signature-box {
-  text-align: center;
   width: 45%;
+  text-align: center;
 }
 
 .print-signature-line {
-  border-bottom: 1px solid #334155;
   height: 2.5rem;
   margin-bottom: 0.35rem;
+  border-bottom: 1px solid #334155;
 }
 
-.print-signature-img { max-height: 3rem; max-width: 120px; object-fit: contain; }
+.print-signature-img { max-width: 120px; max-height: 3rem; object-fit: contain; }
 .print-signature-label { font-size: 0.8rem; color: var(--print-muted); }
 
 .print-footer-tenant {
+  max-width: 55%;
+  margin-inline: auto;
+  margin-top: 0.75rem;
   font-size: 8pt;
   color: var(--print-muted);
   text-align: center;
-  margin-top: 0.75rem;
-  max-width: 55%;
-  margin-inline: auto;
 }
 
 .print-legal {
-  text-align: center;
+  margin-top: 0.5rem;
   font-size: 8pt;
   color: var(--print-muted);
-  margin-top: 0.5rem;
+  text-align: center;
 }
 
 .print-platform-stamp {
   position: fixed;
-  bottom: 8mm;
   inset-inline-start: 8mm;
+  bottom: 8mm;
+  z-index: 1;
   display: flex;
-  align-items: flex-end;
   gap: 0.35rem;
+  align-items: flex-end;
+  max-width: 45%;
   font-size: 7pt;
   color: var(--print-muted);
   opacity: 0.9;
-  z-index: 1;
-  max-width: 45%;
 }
 
 .print-platform-stamp__text {
@@ -254,12 +256,13 @@ body.print-doc {
 .print-platform-stamp__name { font-weight: 600; }
 
 /* QR + Barcode blocks */
+
 .print-qr-barcode-section {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin: 1rem 0;
   flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  margin: 1rem 0;
 }
 
 .print-qr-block, .print-barcode-block {
@@ -279,21 +282,22 @@ body.print-doc {
 }
 
 .print-qr-label, .print-barcode-label {
-  font-size: 7pt;
-  color: var(--print-muted);
   margin-top: 0.25rem;
+  font-size: 7pt;
   font-weight: 600;
+  color: var(--print-muted);
 }
 
 .print-barcode-value {
+  margin-top: 0.15rem;
   font-family: 'Courier New', monospace;
   font-size: 6pt;
   color: var(--print-muted);
-  margin-top: 0.15rem;
   letter-spacing: 0.5px;
 }
 
 /* Doc-type accents */
+
 .print-doc--prescription .print-doc-title::before {
   content: '℞ ';
   opacity: 0.85;
@@ -311,12 +315,13 @@ body.print-doc {
   border-color: #fecaca;
 }
 
-.badge-sev-low { background: #e2f0d9; color: #2e7d32; padding: 0.1rem 0.45rem; border-radius: 0.75rem; font-size: 0.75rem; }
-.badge-sev-mod { background: #fff3cd; color: #856404; padding: 0.1rem 0.45rem; border-radius: 0.75rem; font-size: 0.75rem; }
-.badge-sev-high { background: #f8d7da; color: #721c24; padding: 0.1rem 0.45rem; border-radius: 0.75rem; font-size: 0.75rem; }
-.badge-sev-critical { background: #dc3545; color: #fff; padding: 0.1rem 0.45rem; border-radius: 0.75rem; font-size: 0.75rem; }
+.badge-sev-low { padding: 0.1rem 0.45rem; font-size: 0.75rem; color: #2e7d32; background: #e2f0d9; border-radius: 0.75rem; }
+.badge-sev-mod { padding: 0.1rem 0.45rem; font-size: 0.75rem; color: #856404; background: #fff3cd; border-radius: 0.75rem; }
+.badge-sev-high { padding: 0.1rem 0.45rem; font-size: 0.75rem; color: #721c24; background: #f8d7da; border-radius: 0.75rem; }
+.badge-sev-critical { padding: 0.1rem 0.45rem; font-size: 0.75rem; color: #fff; background: #dc3545; border-radius: 0.75rem; }
 
-.ws-pre-line { white-space: pre-line; word-break: break-word; }
+.ws-pre-line { word-break: break-word; white-space: pre-line; }
+
 .print-page-break {
   page-break-after: always;
   break-after: page;
@@ -339,18 +344,19 @@ body.print-doc {
   tbody tr { page-break-inside: avoid; break-inside: avoid; }
   
   /* Watermark rendering */
+
   .print-watermark {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) rotate(-30deg);
-    font-size: 120pt;
-    color: rgba(15, 76, 129, 0.05);
-    pointer-events: none;
     z-index: 0;
-    white-space: nowrap;
+    font-family: 'IBM Plex Sans Arabic', Cairo, 'Segoe UI', sans-serif;
+    font-size: 120pt;
     font-weight: 700;
-    font-family: 'IBM Plex Sans Arabic', 'Cairo', 'Segoe UI', sans-serif;
+    color: rgb(15 76 129 / 0.05);
+    white-space: nowrap;
+    pointer-events: none;
     user-select: none;
+    transform: translate(-50%, -50%) rotate(-30deg);
   }
 }

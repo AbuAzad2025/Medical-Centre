@@ -5,7 +5,7 @@
  */
 
 :root {
-  /* Primary palette — fallback only; tenant branding overrides via <style id="tenant-branding-vars"> */
+  /* Primary palette — fallback only; tenant branding overrides via \3c style id="tenant-branding-vars"> */
   --color-primary: #0f4c81;
   --color-primary-light: #e8f2fa;
   --color-primary-dark: #0a365a;
@@ -18,13 +18,13 @@
 
   /* Neutral surfaces */
   --color-bg: #f4f7fb;
-  --color-surface: #ffffff;
-  --color-surface-elevated: #ffffff;
+  --color-surface: #fff;
+  --color-surface-elevated: #fff;
   --color-border: #e2e8f0;
   --color-border-subtle: #f1f5f9;
   --color-text: #0f172a;
   --color-text-muted: #64748b;
-  --color-text-inverse: #ffffff;
+  --color-text-inverse: #fff;
 
   /* Sidebar / navbar */
   --color-sidebar-bg: #f8fafc;
@@ -33,9 +33,9 @@
   --color-navbar-bg: var(--color-surface);
 
   /* Typography */
-  --font-body: 'Cairo', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Cairo', 'Inter', system-ui, -apple-system, blinkmacsystemfont, sans-serif;
   --font-heading: 'Tajawal', 'Cairo', system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-mono: ui-monospace, sfmono-regular, menlo, consolas, monospace;
 
   /* Spacing scale */
   --space-xs: 0.25rem;  /* 4px */
@@ -50,15 +50,15 @@
   --radius-lg: 0.875rem; /* 14px */
 
   /* Shadows — refined: softer, more professional */
-  --shadow-sm: 0 1px 3px rgb(0 0 0 / 4%), 0 1px 2px rgb(0 0 0 / 4%);
-  --shadow-md: 0 2px 8px rgb(0 0 0 / 5%), 0 4px 12px rgb(0 0 0 / 5%);
-  --shadow-lg: 0 4px 16px rgb(0 0 0 / 6%), 0 8px 24px rgb(0 0 0 / 6%);
-  --shadow-xl: 0 8px 32px rgb(0 0 0 / 7%), 0 12px 40px rgb(0 0 0 / 5%);
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.04), 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-md: 0 2px 8px rgb(0 0 0 / 0.05), 0 4px 12px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 4px 16px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06);
+  --shadow-xl: 0 8px 32px rgb(0 0 0 / 0.07), 0 12px 40px rgb(0 0 0 / 0.05);
 
   /* Focus ring — accessibility */
-  --focus-ring: 0 0 0 3px rgba(15, 76, 129, 0.18);
+  --focus-ring: 0 0 0 3px rgb(15 76 129 / 0.18);
   --focus-ring-offset: 2px;
-  --focus-ring-color: rgba(15, 76, 129, 0.18);
+  --focus-ring-color: rgb(15 76 129 / 0.18);
 
   /* Layout */
   --sidebar-width: 260px;
@@ -67,6 +67,7 @@
 }
 
 /* Dark mode tokens (ready for [data-theme="dark"]) */
+
 [data-theme="dark"] {
   --color-bg: #0f172a;
   --color-surface: #1e293b;
@@ -81,11 +82,12 @@
 }
 
 /* Clinical theme body defaults */
+
 body.clinical-theme {
   font-family: var(--font-body);
-  background-color: var(--color-bg);
-  color: var(--color-text);
   line-height: 1.6;
+  color: var(--color-text);
+  background-color: var(--color-bg);
 }
 
 body.clinical-theme h1,
@@ -108,19 +110,20 @@ body.clinical-theme a:hover {
 }
 
 /* ── Global focus ring — accessibility ── */
+
 body.clinical-theme *:focus-visible {
+  border-radius: 2px;
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  border-radius: 2px;
 }
 
 body.clinical-theme input:focus-visible,
 body.clinical-theme select:focus-visible,
 body.clinical-theme textarea:focus-visible,
 body.clinical-theme button:focus-visible {
+  border-color: var(--color-primary);
   outline: none;
   box-shadow: var(--focus-ring);
-  border-color: var(--color-primary);
 }
 
 /* Utility classes that mirror tokens */
@@ -135,17 +138,17 @@ body.clinical-theme button:focus-visible {
  * ------------------------------------------------------------------ */
 
 body.clinical-theme .clinical-navbar {
+  z-index: 1050;
+  height: var(--navbar-height);
   background-color: var(--color-navbar-bg);
   border-bottom: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
-  height: var(--navbar-height);
-  z-index: 1050;
 }
 
 body.clinical-theme .clinical-navbar .navbar-brand {
-  color: var(--color-text);
-  font-weight: 600;
   font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 body.clinical-theme .clinical-navbar .navbar-brand img {
@@ -154,24 +157,25 @@ body.clinical-theme .clinical-navbar .navbar-brand img {
 }
 
 body.clinical-theme .clinical-navbar .clock-widget {
+  padding: var(--space-xs) var(--space-md);
   color: var(--color-text-muted);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 50px;
-  padding: var(--space-xs) var(--space-md);
 }
 
 /* Sidebar */
+
 body.clinical-theme .clinical-sidebar {
   position: fixed;
   inset-inline-start: 0;
   top: var(--navbar-height);
   bottom: 0;
+  z-index: 1040;
   width: var(--sidebar-width);
+  overflow-y: auto;
   background-color: var(--color-sidebar-bg);
   border-inline-end: 1px solid var(--color-border);
-  overflow-y: auto;
-  z-index: 1040;
   transition: transform 0.25s ease;
 }
 
@@ -187,26 +191,26 @@ body.clinical-theme .clinical-sidebar .nav-section-title {
 
 body.clinical-theme .clinical-sidebar .nav-link {
   display: flex;
-  align-items: center;
   gap: var(--space-sm);
+  align-items: center;
+  min-height: var(--touch-target);
   padding: var(--space-sm) var(--space-md);
   margin: 2px var(--space-sm);
-  border-radius: var(--radius-md);
   color: var(--color-text);
+  border-radius: var(--radius-md);
   transition: background 0.15s ease;
-  min-height: var(--touch-target);
 }
 
 body.clinical-theme .clinical-sidebar .nav-link:hover,
 body.clinical-theme .clinical-sidebar .nav-link.active {
-  background-color: var(--color-sidebar-active);
   color: var(--color-primary);
+  background-color: var(--color-sidebar-active);
 }
 
 body.clinical-theme .clinical-sidebar .nav-icon {
   width: 1.25rem;
-  text-align: center;
   color: var(--color-text-muted);
+  text-align: center;
 }
 
 body.clinical-theme .clinical-sidebar .nav-link.active .nav-icon,
@@ -215,6 +219,7 @@ body.clinical-theme .clinical-sidebar .nav-link:hover .nav-icon {
 }
 
 /* Main layout */
+
 body.clinical-theme .main-layout {
   display: flex;
   min-height: calc(100vh - var(--navbar-height));
@@ -222,28 +227,29 @@ body.clinical-theme .main-layout {
 
 body.clinical-theme .main-container {
   flex: 1;
-  margin-inline-start: var(--sidebar-width);
   padding: var(--space-lg);
   padding-bottom: var(--space-xl);
+  margin-inline-start: var(--sidebar-width);
 }
 
 /* Mobile sidebar behavior */
+
 body.clinical-theme .sidebar-overlay {
   position: fixed;
   inset: 0;
-  background: rgb(0 0 0 / 40%);
   z-index: 1039;
-  opacity: 0;
   visibility: hidden;
+  background: rgb(0 0 0 / 0.4);
+  opacity: 0;
   transition: opacity 0.25s ease;
 }
 
 body.clinical-theme .sidebar-overlay.active {
-  opacity: 1;
   visibility: visible;
+  opacity: 1;
 }
 
-@media (max-width: 991.98px) {
+@media (width <= 991.98px) {
   body.clinical-theme .clinical-sidebar {
     transform: translateX(100%);
   }
@@ -257,7 +263,7 @@ body.clinical-theme .sidebar-overlay.active {
   }
 
   body.clinical-theme .main-container {
-    margin-inline-start: 0;
     padding: var(--space-md);
+    margin-inline-start: 0;
   }
 }

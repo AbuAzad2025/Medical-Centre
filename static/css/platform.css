@@ -1,4 +1,5 @@
 /* غلاف مالك المنصة — معاد التصميم لقابلية القراءة */
+
 body.platform-theme {
     --color-primary: #2563eb;
     --color-secondary: #0f4c81;
@@ -11,22 +12,22 @@ body.platform-theme .clinical-sidebar {
 }
 
 body.platform-theme .clinical-sidebar .nav-link {
-    color: #334155;
-    border-radius: 8px;
     margin: 2px 8px;
     font-weight: 500;
+    color: #334155;
+    border-radius: 8px;
     transition: all 0.2s;
 }
 
 body.platform-theme .clinical-sidebar .nav-link:hover {
-    background: #dbeafe;
     color: #1d4ed8;
+    background: #dbeafe;
 }
 
 body.platform-theme .clinical-sidebar .nav-link.active {
-    background: #2563eb;
     color: #fff;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    background: #2563eb;
+    box-shadow: 0 2px 8px rgb(37 99 235 / 0.25);
 }
 
 body.platform-theme .clinical-sidebar .nav-link i {
@@ -37,17 +38,17 @@ body.platform-theme .clinical-sidebar .nav-link i {
 body.platform-theme .platform-navbar {
     background: #fff;
     border-bottom: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.04);
 }
 
 body.platform-theme .platform-navbar .brand-text {
-    color: #0f172a;
     font-weight: 700;
+    color: #0f172a;
 }
 
 body.platform-theme .platform-navbar .brand-text small {
-    color: #64748b;
     font-weight: 400;
+    color: #64748b;
 }
 
 body.platform-theme .platform-navbar .nav-link {
@@ -63,6 +64,7 @@ body.platform-theme .platform-navbar .nav-link:hover {
 }
 
 /* Card header fix — better contrast */
+
 body.platform-theme .card-header.bg-white {
     background: #fff !important;
     border-bottom: 1px solid #e2e8f0 !important;
@@ -73,10 +75,11 @@ body.platform-theme .card-header h6 {
 }
 
 /* Buttons — ensure readability */
+
 body.platform-theme .btn-primary {
+    color: #fff;
     background: #2563eb;
     border-color: #2563eb;
-    color: #fff;
 }
 
 body.platform-theme .btn-primary:hover {
@@ -90,24 +93,26 @@ body.platform-theme .btn-outline-primary {
 }
 
 body.platform-theme .btn-outline-primary:hover {
-    background: #2563eb;
     color: #fff;
+    background: #2563eb;
 }
 
 /* Table headers */
+
 body.platform-theme .table-light {
-    background: #f1f5f9 !important;
     color: #0f172a !important;
+    background: #f1f5f9 !important;
 }
 
 body.platform-theme .table-light th {
-    color: #0f172a !important;
     font-weight: 600;
+    color: #0f172a !important;
 }
 
 /* Stat card icons - better visibility */
+
 body.platform-theme .bg-primary.bg-opacity-10 {
-    background: rgba(37, 99, 235, 0.1) !important;
+    background: rgb(37 99 235 / 0.1) !important;
 }
 
 body.platform-theme .text-primary {
@@ -119,6 +124,7 @@ body.platform-theme .text-muted {
 }
 
 /* Badge fixes */
+
 body.platform-theme .badge.bg-secondary {
     background: #64748b !important;
 } 
