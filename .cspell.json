@@ -655,7 +655,10 @@
     "xreq",
     "zadd",
     "zcard",
-    "zremrangebyscore"
+    "zremrangebyscore",
+    "FDFF",
+    "FEFF",
+    "docstrings"
   ],
   "ignorePaths": [
     ".git",
