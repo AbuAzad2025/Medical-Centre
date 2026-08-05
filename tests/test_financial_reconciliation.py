@@ -11,6 +11,7 @@ from models.payment import Payment
 from models.user import User
 from models.visit import Visit
 from services.financial_service import FinancialService
+from tests.tenant_context import login_test_client
 
 
 @pytest.fixture(scope='function')
@@ -209,3 +210,307 @@ class TestFinancialServiceReconcileVisitPayments:
         _db.session.refresh(recon_invoice)
         assert float(recon_invoice.paid_amount) == 0
         assert recon_invoice.status == 'ISSUED'
+
+
+# ===========================================================================
+# Insurance Claim Tests
+# ===========================================================================
+
+
+class TestInsuranceClaim:
+    """Tests for insurance claim generation, adjudication, and tenant isolation."""
+
+    def _create_issued_invoice(self, app, test_tenant, recon_visit):
+        """Helper: create an ISSUED invoice and return it."""
+        from models.invoice import Invoice, InvoiceService
+
+        inv = Invoice(
+            tenant_id=test_tenant.id,
+            visit_id=recon_visit.id,
+            total_amount=200.0,
+            paid_amount=0,
+            status='ISSUED',
+        )
+        _db.session.add(inv)
+        _db.session.commit()
+        return inv
+
+    def test_create_claim_from_invoice(self, app, test_tenant, recon_visit):
+        """Successfully generate an insurance claim from an ISSUED invoice."""
+        inv = self._create_issued_invoice(app, test_tenant, recon_visit)
+
+        result = FinancialService.create_insurance_claim(
+            invoice_id=inv.id,
+            tenant_id=test_tenant.id,
+            user_id=1,
+        )
+        assert result['ok'] is True, f"create_claim failed: {result}"
+        assert 'claim_id' in result
+        assert 'claim_number' in result
+
+        from models.insurance import InsuranceClaim
+
+        claim = (
+            _db.session.execute(
+                select(InsuranceClaim).filter(InsuranceClaim.id == result['claim_id'])
+            )
+            .scalars()
+            .first()
+        )
+        assert claim is not None
+        assert claim.status == 'DRAFT'
+        assert claim.total_claim == 200.0
+        assert claim.invoice_id == inv.id
+        assert claim.visit_id == recon_visit.id
+        assert claim.tenant_id == test_tenant.id
+
+    def test_create_claim_rejects_non_issued_invoice(self, app, test_tenant, recon_visit):
+        """Claim creation should fail for invoices that are not ISSUED."""
+        from models.invoice import Invoice
+
+        inv = Invoice(
+            tenant_id=test_tenant.id,
+            visit_id=recon_visit.id,
+            total_amount=100.0,
+            paid_amount=0,
+            status='DRAFT',
+        )
+        _db.session.add(inv)
+        _db.session.commit()
+
+        result = FinancialService.create_insurance_claim(
+            invoice_id=inv.id,
+            tenant_id=test_tenant.id,
+            user_id=1,
+        )
+
+        assert result['ok'] is False
+        assert 'ISSUED' in result['error']
+
+    def test_create_claim_rejects_missing_invoice(self, app, test_tenant):
+        """Claim creation should fail for a non-existent invoice."""
+        result = FinancialService.create_insurance_claim(
+            invoice_id=999_999,
+            tenant_id=test_tenant.id,
+            user_id=1,
+        )
+
+        assert result['ok'] is False
+        assert 'not found' in result['error']
+
+    def test_claim_status_transitions(self, app, test_tenant, recon_visit):
+        """Claim should transition through SUBMITTED → UNDER_REVIEW → APPROVED."""
+        inv = self._create_issued_invoice(app, test_tenant, recon_visit)
+
+        create_result = FinancialService.create_insurance_claim(
+            invoice_id=inv.id,
+            tenant_id=test_tenant.id,
+            user_id=1,
+        )
+        assert create_result['ok'] is True
+        claim_id = create_result['claim_id']
+
+        # Submit the claim
+        result = FinancialService.update_claim_status(
+            claim_id=claim_id,
+            status='SUBMITTED',
+            tenant_id=test_tenant.id,
+        )
+        assert result['ok'] is True
+
+        from models.insurance import InsuranceClaim
+
+        claim = _db.session.get(InsuranceClaim, claim_id)
+        assert claim.status == 'SUBMITTED'
+
+        # Adjudicate as approved
+        result = FinancialService.update_claim_status(
+            claim_id=claim_id,
+            status='APPROVED',
+            approved_amount=150.0,
+            notes='Approved per policy',
+            tenant_id=test_tenant.id,
+        )
+        if not result['ok']:
+            print(f"DEBUG update_claim_status error: {result}")
+        assert result['ok'] is True
+
+        _db.session.refresh(claim)
+        assert claim.status == 'APPROVED'
+        assert claim.approved_amount == 150.0
+        assert claim.insurance_share_amount == 150.0
+        assert claim.patient_share_amount == 50.0
+
+    def test_claim_partial_approval(self, app, test_tenant, recon_visit):
+        """PARTIALLY_APPROVED should split insurance and patient shares."""
+        inv = self._create_issued_invoice(app, test_tenant, recon_visit)
+
+        create_result = FinancialService.create_insurance_claim(
+            invoice_id=inv.id,
+            tenant_id=test_tenant.id,
+            user_id=1,
+        )
+        assert create_result['ok'] is True
+        claim_id = create_result['claim_id']
+
+        result = FinancialService.update_claim_status(
+            claim_id=claim_id,
+            status='PARTIALLY_APPROVED',
+            approved_amount=100.0,
+            notes='Partial coverage',
+            tenant_id=test_tenant.id,
+        )
+        assert result['ok'] is True
+
+        from models.insurance import InsuranceClaim
+
+        claim = _db.session.get(InsuranceClaim, claim_id)
+        assert claim.status == 'PARTIALLY_APPROVED'
+        assert claim.insurance_share_amount == 100.0
+        assert claim.patient_share_amount == 100.0
+
+    def test_claim_rejection(self, app, test_tenant, recon_visit):
+        """REJECTED should set insurance share to 0 and patient share to total."""
+        inv = self._create_issued_invoice(app, test_tenant, recon_visit)
+
+        create_result = FinancialService.create_insurance_claim(
+            invoice_id=inv.id,
+            tenant_id=test_tenant.id,
+            user_id=1,
+        )
+        assert create_result['ok'] is True
+        claim_id = create_result['claim_id']
+
+        result = FinancialService.update_claim_status(
+            claim_id=claim_id,
+            status='REJECTED',
+            approved_amount=0,
+            notes='Claim denied - pre-existing condition',
+            tenant_id=test_tenant.id,
+        )
+        assert result['ok'] is True
+
+        from models.insurance import InsuranceClaim
+
+        claim = _db.session.get(InsuranceClaim, claim_id)
+        assert claim.status == 'REJECTED'
+        assert claim.insurance_share_amount == 0
+        assert claim.patient_share_amount == 200.0
+
+    def test_claim_settlement(self, app, test_tenant, recon_visit):
+        """SETTLED should mark the claim as settled with the settled amount."""
+        inv = self._create_issued_invoice(app, test_tenant, recon_visit)
+
+        create_result = FinancialService.create_insurance_claim(
+            invoice_id=inv.id,
+            tenant_id=test_tenant.id,
+            user_id=1,
+        )
+        assert create_result['ok'] is True
+        claim_id = create_result['claim_id']
+
+        # First approve
+        FinancialService.update_claim_status(
+            claim_id=claim_id,
+            status='APPROVED',
+            approved_amount=180.0,
+            tenant_id=test_tenant.id,
+        )
+
+        # Then settle
+        result = FinancialService.update_claim_status(
+            claim_id=claim_id,
+            status='SETTLED',
+            approved_amount=180.0,
+            tenant_id=test_tenant.id,
+        )
+        assert result['ok'] is True
+
+        from models.insurance import InsuranceClaim
+
+        claim = _db.session.get(InsuranceClaim, claim_id)
+        assert claim.status == 'SETTLED'
+        assert claim.approved_amount == 180.0
+        assert claim.insurance_share_amount == 180.0
+
+    def test_claim_tenant_isolation(self, app, test_tenant, recon_visit):
+        """Claims should be isolated by tenant - one tenant cannot access another's claim."""
+        inv = self._create_issued_invoice(app, test_tenant, recon_visit)
+
+        create_result = FinancialService.create_insurance_claim(
+            invoice_id=inv.id,
+            tenant_id=test_tenant.id,
+            user_id=1,
+        )
+        assert create_result['ok'] is True
+        claim_id = create_result['claim_id']
+
+        # Try to update with a different tenant_id
+        result = FinancialService.update_claim_status(
+            claim_id=claim_id,
+            status='APPROVED',
+            approved_amount=150.0,
+            tenant_id=999_999,  # Wrong tenant
+        )
+        assert result['ok'] is False
+        assert 'Tenant mismatch' in result['error']
+
+    def test_claim_get_endpoint(self, app, test_tenant, recon_visit, recon_accountant):
+        """GET /payment/api/insurance/claims/<id> should return claim details."""
+        inv = self._create_issued_invoice(app, test_tenant, recon_visit)
+
+        create_result = FinancialService.create_insurance_claim(
+            invoice_id=inv.id,
+            tenant_id=test_tenant.id,
+            user_id=1,
+        )
+        assert create_result['ok'] is True
+        claim_id = create_result['claim_id']
+
+        with app.test_client() as client:
+            login_test_client(client, recon_accountant, test_tenant, password='test123')
+
+            resp = client.get(f'/payment/api/insurance/claims/{claim_id}')
+            data = resp.get_json()
+            if resp.status_code != 200:
+                print(f"DEBUG get_claim: status={resp.status_code}, data={data}")
+
+            assert resp.status_code == 200
+            assert data['success'] is True
+            assert data['data']['id'] == claim_id
+            assert data['data']['status'] == 'DRAFT'
+            assert data['data']['total_claim'] == 200.0
+
+    def test_claim_adjudicate_endpoint(self, app, test_tenant, recon_visit, recon_accountant):
+        """POST /payment/api/insurance/claims/<id>/adjudicate should update claim status."""
+        inv = self._create_issued_invoice(app, test_tenant, recon_visit)
+
+        create_result = FinancialService.create_insurance_claim(
+            invoice_id=inv.id,
+            tenant_id=test_tenant.id,
+            user_id=1,
+        )
+        assert create_result['ok'] is True
+        claim_id = create_result['claim_id']
+
+        with app.test_client() as client:
+            login_test_client(client, recon_accountant, test_tenant, password='test123')
+
+            resp = client.post(
+                f'/payment/api/insurance/claims/{claim_id}/adjudicate',
+                json={
+                    'status': 'APPROVED',
+                    'approved_amount': 150.0,
+                    'notes': 'Approved per policy',
+                },
+            )
+            data = resp.get_json()
+
+            assert resp.status_code == 200
+            assert data['success'] is True
+
+            from models.insurance import InsuranceClaim
+
+            claim = _db.session.get(InsuranceClaim, claim_id)
+            assert claim.status == 'APPROVED'
+            assert claim.approved_amount == 150.0

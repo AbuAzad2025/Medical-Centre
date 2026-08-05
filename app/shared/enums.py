@@ -722,9 +722,11 @@ class eMARAdministrationStatus(StrEnum):
 class InsuranceClaimStatus(StrEnum):
     DRAFT = 'DRAFT'
     SUBMITTED = 'SUBMITTED'
+    UNDER_REVIEW = 'UNDER_REVIEW'
     APPROVED = 'APPROVED'
+    PARTIALLY_APPROVED = 'PARTIALLY_APPROVED'
     REJECTED = 'REJECTED'
-    PAID = 'PAID'
+    SETTLED = 'SETTLED'
 
 
 class DICOMStudyStatus(StrEnum):

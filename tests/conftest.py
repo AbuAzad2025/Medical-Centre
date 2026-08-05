@@ -75,7 +75,28 @@ def app():
             )
             _db.session.execute(
                 text(
-                    'ALTER TABLE pharmacy_returns ADD COLUMN IF NOT EXISTS disposition VARCHAR(20) DEFAULT RESTOCK NOT NULL'
+                    'ALTER TABLE pharmacy_returns ADD COLUMN IF NOT EXISTS disposition VARCHAR(20) DEFAULT \'RESTOCK\' NOT NULL'
+                )
+            )
+            # Insurance Claims - activate dead model with new columns
+            _db.session.execute(
+                text(
+                    'ALTER TABLE insurance_claims ADD COLUMN IF NOT EXISTS claim_date TIMESTAMP'
+                )
+            )
+            _db.session.execute(
+                text(
+                    'ALTER TABLE insurance_claims ADD COLUMN IF NOT EXISTS patient_share_amount NUMERIC(12, 2) DEFAULT 0'
+                )
+            )
+            _db.session.execute(
+                text(
+                    'ALTER TABLE insurance_claims ADD COLUMN IF NOT EXISTS insurance_share_amount NUMERIC(12, 2) DEFAULT 0'
+                )
+            )
+            _db.session.execute(
+                text(
+                    'ALTER TABLE insurance_claims ADD COLUMN IF NOT EXISTS adjudication_notes TEXT'
                 )
             )
             # SaaS S0-003: exclusion constraint (not created by db.create_all)

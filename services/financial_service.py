@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import date
+from datetime import date, datetime, UTC
 from decimal import Decimal
 from typing import Any
 
@@ -316,6 +316,132 @@ class FinancialService:
         except Exception as e:
             logging.exception('Error recording expense: %s')
             return {'success': False, 'available': True, 'expense': None, 'message': str(e)}
+
+    @staticmethod
+    def create_insurance_claim(
+        invoice_id: int, tenant_id: int, user_id: int
+    ) -> dict:
+        """Create an insurance claim from an issued invoice.
+
+        Builds a claim record linked to the invoice and its visit.
+        The claim starts in DRAFT status and must be submitted separately.
+        """
+        from models.insurance import InsuranceClaim, InsuranceCompany
+        from models.invoice import Invoice
+        from models.visit import Visit
+
+        try:
+            invoice = (
+                db.session.execute(
+                    select(Invoice)
+                    .filter(Invoice.id == invoice_id, Invoice.tenant_id == tenant_id)
+                )
+                .scalars()
+                .first()
+            )
+            if not invoice:
+                return {'ok': False, 'error': 'Invoice not found'}
+
+            if invoice.status != 'ISSUED':
+                return {
+                    'ok': False,
+                    'error': f'Invoice status "{invoice.status}" is not ISSUED',
+                }
+
+            visit = (
+                db.session.execute(
+                    select(Visit).filter(Visit.id == invoice.visit_id).limit(1)
+                )
+                .scalars()
+                .first()
+            )
+
+            company_id = None
+            if visit and getattr(visit, 'insurance_company_id', None):
+                company_id = visit.insurance_company_id
+
+            claim_number = f'CLM-{invoice_id}-{int(datetime.now(UTC).timestamp())}'
+            claim = InsuranceClaim(
+                tenant_id=tenant_id,
+                company_id=company_id,
+                visit_id=invoice.visit_id,
+                invoice_id=invoice.id,
+                claim_number=claim_number,
+                status='DRAFT',
+                total_claim=invoice.total_amount,
+                approved_amount=Decimal(0),
+                patient_share_amount=invoice.total_amount,
+                insurance_share_amount=Decimal(0),
+            )
+            db.session.add(claim)
+            if not safe_commit(db.session, error_message='Failed to create insurance claim'):
+                return {'ok': False, 'error': 'database_error'}
+            return {'ok': True, 'claim_id': claim.id, 'claim_number': claim_number}
+        except Exception as e:
+            logging.exception('Error creating insurance claim: %s')
+            return {'ok': False, 'error': str(e)}
+
+    @staticmethod
+    def update_claim_status(
+        claim_id: int,
+        status: str,
+        approved_amount: Decimal | None = None,
+        notes: str | None = None,
+        tenant_id: int | None = None,
+    ) -> dict:
+        """Adjudicate or settle an insurance claim.
+
+        Updates the claim status, approved amount, and insurance/patient
+        share amounts based on the new status.
+        """
+        from models.insurance import InsuranceClaim
+        from app.shared.enums import InsuranceClaimStatus
+
+        try:
+            claim = (
+                db.session.execute(
+                    select(InsuranceClaim)
+                    .filter(InsuranceClaim.id == claim_id)
+                )
+                .scalars()
+                .first()
+            )
+            if not claim:
+                return {'ok': False, 'error': 'Claim not found'}
+
+            if tenant_id and claim.tenant_id != tenant_id:
+                return {'ok': False, 'error': 'Tenant mismatch'}
+
+            valid_statuses = {
+                InsuranceClaimStatus.DRAFT,
+                InsuranceClaimStatus.SUBMITTED,
+                InsuranceClaimStatus.UNDER_REVIEW,
+                InsuranceClaimStatus.APPROVED,
+                InsuranceClaimStatus.PARTIALLY_APPROVED,
+                InsuranceClaimStatus.REJECTED,
+                InsuranceClaimStatus.SETTLED,
+            }
+            if status not in valid_statuses:
+                return {
+                    'ok': False,
+                    'error': f'Invalid status "{status}"',
+                }
+
+            if status == InsuranceClaimStatus.SETTLED:
+                claim.settle(approved_amount or claim.approved_amount)
+            else:
+                claim.adjudicate(
+                    approved_amount or claim.approved_amount,
+                    status,
+                    notes,
+                )
+
+            if not safe_commit(db.session, error_message='Failed to update claim status'):
+                return {'ok': False, 'error': 'database_error'}
+            return {'ok': True, 'claim_id': claim.id, 'status': claim.status}
+        except Exception as e:
+            logging.exception('Error updating claim status: %s')
+            return {'ok': False, 'error': str(e)}
 
 
 # Singleton

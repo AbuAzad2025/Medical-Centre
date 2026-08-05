@@ -18,9 +18,11 @@ from models.payment import Payment, PaymentMethod, PaymentStatus
 from models.queue_management import QueueSettings
 from models.system_config import SystemConfig
 from models.visit import Visit
+from models.insurance import InsuranceClaim
 from services.gatekeeper_service import GatekeeperService
 from services.payment_service import payment_service
 from services.refund_service import refund_service
+from services.financial_service import FinancialService
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
@@ -749,4 +751,127 @@ def process_pharmacy_return():
 
     except Exception:
         logging.exception("Error processing pharmacy return")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+# ---------------------------------------------------------------------------
+# Insurance Claims API
+# ---------------------------------------------------------------------------
+
+
+@payment_bp.route('/api/insurance/claims/generate', methods=['POST'])
+@login_required
+@role_required('accountant', 'manager', 'admin')
+def generate_insurance_claim():
+    """Generate an insurance claim from an issued invoice."""
+    try:
+        json_data = request.json or {}
+        invoice_id = json_data.get('invoice_id')
+        if not invoice_id:
+            return jsonify({'success': False, 'error': 'invoice_id required'}), 400
+
+        tenant_id = current_user.tenant_id
+        if not tenant_id:
+            return jsonify({'success': False, 'error': 'No tenant context'}), 400
+
+        result = FinancialService.create_insurance_claim(
+            invoice_id=int(invoice_id),
+            tenant_id=tenant_id,
+            user_id=current_user.id,
+        )
+
+        if not result.get('ok'):
+            return jsonify({'success': False, 'error': result.get('error')}), 400
+
+        return jsonify({'success': True, 'data': result})
+
+    except Exception:
+        logging.exception("Error generating insurance claim")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@payment_bp.route('/api/insurance/claims/<int:claim_id>', methods=['GET'])
+@login_required
+@role_required('accountant', 'manager', 'admin')
+def get_insurance_claim(claim_id):
+    """Return claim status and details."""
+    try:
+        tenant_id = current_user.tenant_id
+        if not tenant_id:
+            return jsonify({'success': False, 'error': 'No tenant context'}), 400
+
+        claim = (
+            db.session.execute(
+                select(InsuranceClaim)
+                .filter(InsuranceClaim.id == claim_id, InsuranceClaim.tenant_id == tenant_id)
+            )
+            .scalars()
+            .first()
+        )
+        if not claim:
+            return jsonify({'success': False, 'error': 'Claim not found'}), 404
+
+        return jsonify(
+            {
+                'success': True,
+                'data': {
+                    'id': claim.id,
+                    'claim_number': claim.claim_number,
+                    'status': claim.status,
+                    'total_claim': float(claim.total_claim or 0),
+                    'approved_amount': float(claim.approved_amount or 0),
+                    'patient_share_amount': float(claim.patient_share_amount or 0),
+                    'insurance_share_amount': float(claim.insurance_share_amount or 0),
+                    'claim_date': claim.claim_date.isoformat() if claim.claim_date else None,
+                    'adjudication_notes': claim.adjudication_notes,
+                    'invoice_id': claim.invoice_id,
+                    'visit_id': claim.visit_id,
+                    'company_id': claim.company_id,
+                    'created_at': claim.created_at.isoformat() if claim.created_at else None,
+                },
+            }
+        )
+
+    except Exception:
+        logging.exception("Error fetching insurance claim")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@payment_bp.route('/api/insurance/claims/<int:claim_id>/adjudicate', methods=['POST'])
+@login_required
+@role_required('accountant', 'manager', 'admin')
+def adjudicate_insurance_claim(claim_id):
+    """Update claim approval/rejection state and amounts."""
+    try:
+        json_data = request.json or {}
+        status = json_data.get('status')
+        approved_amount = json_data.get('approved_amount')
+        notes = json_data.get('notes', '')
+
+        if not status:
+            return jsonify({'success': False, 'error': 'status required'}), 400
+
+        tenant_id = current_user.tenant_id
+        if not tenant_id:
+            return jsonify({'success': False, 'error': 'No tenant context'}), 400
+
+        approved = (
+            Decimal(str(approved_amount)) if approved_amount is not None else None
+        )
+
+        result = FinancialService.update_claim_status(
+            claim_id=claim_id,
+            status=status,
+            approved_amount=approved,
+            notes=notes or None,
+            tenant_id=tenant_id,
+        )
+
+        if not result.get('ok'):
+            return jsonify({'success': False, 'error': result.get('error')}), 400
+
+        return jsonify({'success': True, 'data': result})
+
+    except Exception:
+        logging.exception("Error adjudicating insurance claim")
         return jsonify({'success': False, 'error': 'Internal server error'}), 500

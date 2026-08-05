@@ -3,6 +3,7 @@
 """
 
 from datetime import UTC, datetime
+from decimal import Decimal
 
 from sqlalchemy import Index
 
@@ -64,9 +65,13 @@ class InsuranceClaim(TenantMixin, db.Model):
     claim_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
     status = db.Column(
         db.String(20), default='DRAFT', index=True
-    )  # DRAFT|SUBMITTED|APPROVED|REJECTED|PAID
+    )  # DRAFT|SUBMITTED|UNDER_REVIEW|APPROVED|PARTIALLY_APPROVED|REJECTED|SETTLED
     total_claim = db.Column(db.Numeric(12, 2), default=0)
     approved_amount = db.Column(db.Numeric(12, 2), default=0)
+    claim_date = db.Column(db.DateTime, nullable=True, index=True)
+    patient_share_amount = db.Column(db.Numeric(12, 2), default=0)
+    insurance_share_amount = db.Column(db.Numeric(12, 2), default=0)
+    adjudication_notes = db.Column(db.Text, nullable=True)
     notes = db.Column(db.Text, nullable=True)
 
     created_at = db.Column(
@@ -92,3 +97,45 @@ class InsuranceClaim(TenantMixin, db.Model):
 
     def __repr__(self) -> str:
         return f'<InsuranceClaim #{self.claim_number or self.id}>'
+
+    def submit(self) -> None:
+        """Transition claim from DRAFT to SUBMITTED and record the claim date."""
+        from app.shared.enums import InsuranceClaimStatus
+
+        self.status = InsuranceClaimStatus.SUBMITTED
+        self.claim_date = datetime.now(UTC)
+
+    def adjudicate(
+        self, approved_amount, status: str, notes: str | None = None
+    ) -> None:
+        """Adjudicate the claim with an approved amount and status."""
+        from app.shared.enums import InsuranceClaimStatus
+        from decimal import Decimal
+
+        approved_amount = Decimal(str(approved_amount)) if approved_amount is not None else Decimal(0)
+        self.status = status
+        self.approved_amount = approved_amount
+        self.adjudication_notes = notes
+        if status == InsuranceClaimStatus.PARTIALLY_APPROVED:
+            self.insurance_share_amount = approved_amount
+            self.patient_share_amount = (
+                self.total_claim - approved_amount if self.total_claim else Decimal(0)
+            )
+        elif status == InsuranceClaimStatus.APPROVED:
+            self.insurance_share_amount = approved_amount
+            self.patient_share_amount = (
+                self.total_claim - approved_amount if self.total_claim else Decimal(0)
+            )
+        elif status == InsuranceClaimStatus.REJECTED:
+            self.insurance_share_amount = Decimal(0)
+            self.patient_share_amount = self.total_claim
+
+    def settle(self, settled_amount) -> None:
+        """Mark the claim as SETTLED with the settled amount."""
+        from app.shared.enums import InsuranceClaimStatus
+        from decimal import Decimal
+
+        settled_amount = Decimal(str(settled_amount)) if settled_amount is not None else Decimal(0)
+        self.status = InsuranceClaimStatus.SETTLED
+        self.approved_amount = settled_amount
+        self.insurance_share_amount = settled_amount
