@@ -1,6 +1,13 @@
 # 🏥 HEALTHCARE FULL-STACK GAP AUDIT REPORT
 ## Medical System — Backend Models/APIs vs Frontend Views/Jinja2 Templates/JS
 
+> **⚠️ وثيقة تاريخية (Historical) — لا تعكس الحالة الحالية.**
+> هذا التقرير أُجري بتاريخ **2025-08-01** وكان ضمن مرحلة تقييم مبكرة. النظام تطور منذ ذلك الحين بشكل كبير:
+> - الأرقام الواردة (86 نماذج، 44 مساراً) قديمة — الحالة الحالية: **188 نموذج ORM، 141 ملف مسارات، 55 Blueprint، 15 وحدة، 139 ملف اختبار، الإصدار 3.1**.
+> - غالبية الملاحظات عولجت ضمن تحسينات 2026 (راجع [ENHANCEMENT_SUMMARY.md](ENHANCEMENT_SUMMARY.md) و [PRE_PILOT_VERIFICATION_REPORT.md](PRE_PILOT_VERIFICATION_REPORT.md)).
+> - **المصدر الرسمي الحالي:** [docs/PLATFORM_STATUS.md](docs/PLATFORM_STATUS.md).
+> **أُبقي هذا الملف للتوثيق التاريخي فقط ولا يُعتمد عليه في القرارات الحالية.**
+
 **Audit Date:** 2025-08-01  
 **Scope:** All 7 medical/administrative modules across Models (86), Routes (44), Templates (57 dirs), JS (3 dirs)  
 **Method:** Read-only cross-referencing of DB columns, API payloads, Template forms/tables, JS handlers  

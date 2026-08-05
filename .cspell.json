@@ -658,7 +658,9 @@
     "zremrangebyscore",
     "FDFF",
     "FEFF",
-    "docstrings"
+    "docstrings",
+    "tablename",
+    "appendonly"
   ],
   "ignorePaths": [
     ".git",

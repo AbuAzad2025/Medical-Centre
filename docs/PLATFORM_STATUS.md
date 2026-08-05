@@ -1,9 +1,9 @@
 # حالة المنصة — مصدر الحقيقة التقنية
 
-**آخر تحقق من الكود:** 29 يونيو 2026  
+**آخر تحقق من الكود:** 5 أغسطس 2026  
 **الإصدار:** 3.1
 
-> هذا الملف يُحدَّث عند تغيير البنية أو CI. لا تعتمد على خطط أو تقارير قديمة محذوفة.
+> هذا الملف يُحدَّث عند تغيير البنية أو CI. لا تعتمد على خطط أو تقارير قديمة محذوفة.
 
 ---
 
@@ -18,7 +18,7 @@ docker compose up -d --build
 |--------|------------------|
 | 1 | `flask db upgrade` |
 | 2 | `python scripts/ops/bootstrap_platform.py` |
-| 3 | `gunicorn` |
+| 3 | `gunicorn -c gunicorn.conf.py wsgi:app` |
 
 **Bootstrap يُنشئ:** `module_definitions` · `product_bundles` (23) · `packages`/`package_versions` للتسجيل الذاتي.
 
@@ -28,15 +28,17 @@ docker compose up -d --build
 
 | المكوّن | التفاصيل |
 |---------|----------|
-| Backend | Flask, SQLAlchemy 2, PostgreSQL **16** |
+| Backend | Flask 3.1, SQLAlchemy 2.0, PostgreSQL **16** |
 | Cache / Queue | Redis 7, Celery worker |
 | Multi-tenant | `ENABLE_SAAS_MODE`, ORM filter + RLS |
-| رأس التهجيرات | `s1_004_expenses_rls_uniques` |
-| جداول ORM | 209 (مطابقة migrations — `check_schema_parity.py`) |
-| RLS | 31 جدول (11 في s1_002 + 20 في s1_004) |
-| Blueprints | 54 مسجّلة في `app_factory.py` |
+| رأس التهجيرات | `s2_009_schema_drift_sync` |
+| تهجيرات (revisions) | 34 |
+| جداول ORM | 188 (`__tablename__` عبر 86 ملف `models/`) |
+| جداول RLS | 181 بسياسات + 10 دون سياسة (فهرس `s2_008`) |
+| Blueprints | 55 مسجّلة في `app_factory.py` |
 | وحدات المنصة | 15 في `MODULE_REGISTRY` |
-| اختبارات | ~104 ملف — CI مع `ENABLE_SAAS_MODE=true` |
+| قوالب | 409 في `templates/` |
+| اختبارات | 139 ملف `test_*.py` — CI مع `ENABLE_SAAS_MODE=true` |
 
 ---
 
@@ -49,6 +51,7 @@ docker compose up -d --build
 | توفير tenant | `TenantProvisioningService` — Owner + API |
 | فوترة | Stripe — `STRIPE_SECRET_KEY`, webhook `/api/billing/stripe/webhook` |
 | حالات tenant | `TRIAL`, `ACTIVE`, `PENDING`, `SUSPENDED`, `CANCELLED` |
+| تفعيل الوحدة | `tenant_modules` + `tenant_module_settings` لكل باقة |
 
 **23 باقة في الكتالوج الافتراضي** (22 قابلة للبيع + `custom` فارغة). التفاصيل: استعلام SQL في [CEO_OVERVIEW.md](CEO_OVERVIEW.md) أو:
 
@@ -60,9 +63,20 @@ SELECT slug, name_ar, monthly_price FROM product_bundles WHERE is_active ORDER B
 
 ## CI (`.github/workflows/ci.yml`)
 
-1. `verify_migrations.py` — upgrade على PostgreSQL فارغ + تطابق ORM
-2. `bootstrap_platform.py`
-3. `pytest` كامل + flake8 + coverage
+15 وظيفة، أغلبها تحتاج `migrate` وتشغَّل على PostgreSQL 16:
+
+1. `static-analysis-python` — ruff (format + F821/F823), mypy strict, pip-audit, bandit `-lll`
+2. `templates-i18n` — تحليل Jinja2 syntax لجميع القوالب + كشف النصوص غير المترجمة
+3. `frontend-spelling-css` — stylelint + cspell (تدريجية)
+4. `workflow-integrity` — actionlint لصحة YAML
+5. `migrate` — `verify_migrations.py` (upgrade على PG فارغ + رأس واحد) ثم bootstrap ثم تدقيق RLS ثم فحص orphaned rows
+6. `security-audit` — 5 نصوص: guard الرفض لـ superuser، enforcement، تغطية RLS، orphaned rows، stale action items
+7. `static-quality` — flake8 (E9/F63/F7/F82) + YAML + JSON
+8. `verify-boot` — إقلاع `create_app('testing')` + فحص `/health` و `/__health`
+9. `routes` — اختبارات HTTP عبر مصفوفة PostgreSQL **15/16/17**
+10. `unit` · `integration` · `clinical` — PG 16 مع تغطية
+11. `core` — 4 شاردات لملفات الجذر
+12. `coverage-report` — دمج التقارير (pytest-cov + coverage combine)
 
 ---
 
@@ -72,7 +86,7 @@ SELECT slug, name_ar, monthly_price FROM product_bundles WHERE is_active ORDER B
 |--------|--------|
 | `scripts/dev/` | تطوير فقط (مُستبعد من `.dockerignore`) |
 | `scripts/audit_*.py`, `lint_debt.py` | تدقيق يدوي |
-| `migrations/manual_scripts/` | يدوي — لا يُشغَّل مع upgrade |
+| `migrations/manual_scripts/` | يدوي — لا يُشغَّل مع upgrade |
 | `flask module-seed` | يفعّل كل الوحدات لكل tenants — **خطر في إنتاج** |
 
 ---
@@ -82,7 +96,7 @@ SELECT slug, name_ar, monthly_price FROM product_bundles WHERE is_active ORDER B
 ```bash
 curl -f http://localhost:8080/health
 curl -f http://localhost:8080/__health
-python scripts/check_schema_parity.py
+python scripts/ci/verify_migrations.py
 ```
 
 ```sql
@@ -103,3 +117,6 @@ SELECT version_num FROM alembic_version;
 | [CEO_OVERVIEW.md](CEO_OVERVIEW.md) | ملخص إداري |
 | [../scripts/ops/README.md](../scripts/ops/README.md) | أوامر التشغيل |
 | [DYNAMIC_FORM_GOVERNANCE.md](DYNAMIC_FORM_GOVERNANCE.md) | عقد نماذج التخصص |
+| [AUDIT_PAYMENTS_BILLING.md](AUDIT_PAYMENTS_BILLING.md) | تدقيق المدفوعات والفوترة |
+| [AUDIT_PHARMACY_POS_FIXES.md](AUDIT_PHARMACY_POS_FIXES.md) | إصلاحات الصيدلية/البيع |
+| [INCIDENT_LOG_ORPHANED_TENANT_ROWS.md](INCIDENT_LOG_ORPHANED_TENANT_ROWS.md) | سجل حادثة orphaned rows |
