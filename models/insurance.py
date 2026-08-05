@@ -110,18 +110,12 @@ class InsuranceClaim(TenantMixin, db.Model):
     ) -> None:
         """Adjudicate the claim with an approved amount and status."""
         from app.shared.enums import InsuranceClaimStatus
-        from decimal import Decimal
 
         approved_amount = Decimal(str(approved_amount)) if approved_amount is not None else Decimal(0)
         self.status = status
         self.approved_amount = approved_amount
         self.adjudication_notes = notes
-        if status == InsuranceClaimStatus.PARTIALLY_APPROVED:
-            self.insurance_share_amount = approved_amount
-            self.patient_share_amount = (
-                self.total_claim - approved_amount if self.total_claim else Decimal(0)
-            )
-        elif status == InsuranceClaimStatus.APPROVED:
+        if status in (InsuranceClaimStatus.PARTIALLY_APPROVED, InsuranceClaimStatus.APPROVED):
             self.insurance_share_amount = approved_amount
             self.patient_share_amount = (
                 self.total_claim - approved_amount if self.total_claim else Decimal(0)
@@ -133,7 +127,6 @@ class InsuranceClaim(TenantMixin, db.Model):
     def settle(self, settled_amount) -> None:
         """Mark the claim as SETTLED with the settled amount."""
         from app.shared.enums import InsuranceClaimStatus
-        from decimal import Decimal
 
         settled_amount = Decimal(str(settled_amount)) if settled_amount is not None else Decimal(0)
         self.status = InsuranceClaimStatus.SETTLED

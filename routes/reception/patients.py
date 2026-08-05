@@ -4,7 +4,8 @@
 import logging
 
 # Imports
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+
 from flask import flash, g, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
@@ -13,7 +14,7 @@ from app.extensions import db
 from models.appointment import Appointment
 from models.department import Department
 from models.patient import Patient, PatientAllergy
-from models.problem_list import PatientProblem, AllergyIntolerance
+from models.problem_list import PatientProblem
 from models.visit import Visit
 from routes.reception import _wants_json, reception_bp
 from utils.db_safety import safe_commit, safe_rollback

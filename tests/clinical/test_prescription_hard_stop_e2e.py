@@ -10,6 +10,7 @@ Requirements:
 
 import os
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -23,7 +24,7 @@ os.environ.setdefault('SKIP_PLATFORM_BOOTSTRAP', '1')
 os.environ.setdefault('RLS_BYPASS_ALLOWED', '1')
 os.environ['ENABLE_SAAS_MODE'] = 'false'
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import contextlib
 
@@ -31,7 +32,7 @@ from flask import g
 from sqlalchemy import select
 
 from app.extensions import db
-from app_factory import create_app, db
+from app_factory import create_app
 from models.drug_interaction import DrugInteraction
 from models.medication import Medication, Prescription, PrescriptionItem
 from models.patient import Patient, PatientAllergy

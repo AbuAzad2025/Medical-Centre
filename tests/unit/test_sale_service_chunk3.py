@@ -521,7 +521,7 @@ class TestPOSAtomicDispense:
 
     def test_create_sale_pos_creates_dispense_log(self, app, test_tenant, test_medications):
         """POS sale creates a PrescriptionDispenseLog entry."""
-        from models.medication import Prescription, PrescriptionItem, PrescriptionDispenseLog
+        from models.medication import Prescription, PrescriptionDispenseLog, PrescriptionItem
 
         patient_id = _make_patient(app, test_tenant)
         rx_number = f'RX-POS-LOG-{patient_id}'
@@ -550,7 +550,7 @@ class TestPOSAtomicDispense:
 
         ctx = _tenant_ctx(app, test_tenant)
         try:
-            result = PharmacySaleService.create_sale(
+            PharmacySaleService.create_sale(
                 prescription_id=rx.id,
                 dispensed_by=_make_user(app, test_tenant).id,
                 items=[{'medication_id': med.id, 'quantity': 1, 'unit_price': 10.0}],
@@ -621,7 +621,7 @@ class TestPharmacyReturn:
 
     def _create_sale_item(self, app, test_tenant, test_medications):
         """Helper: create a sale with one item and return the sale_item."""
-        from models.medication import PharmacySale, PharmacySaleItem, Medication
+        from models.medication import Medication, PharmacySale, PharmacySaleItem
 
         patient_id = _make_patient(app, test_tenant)
         rx_id = _make_prescription(app, test_tenant, patient_id)
@@ -652,7 +652,7 @@ class TestPharmacyReturn:
 
     def test_return_restock_increases_stock(self, app, test_tenant, test_medications):
         """RESTOCK disposition should increment medication stock."""
-        from models.medication import PharmacyReturn, Medication
+        from models.medication import Medication, PharmacyReturn
 
         sale_item, med, post_sale_stock = self._create_sale_item(
             app, test_tenant, test_medications
@@ -691,7 +691,7 @@ class TestPharmacyReturn:
 
     def test_return_discard_does_not_increase_stock(self, app, test_tenant, test_medications):
         """DISCARD disposition should NOT increment medication stock."""
-        from models.medication import PharmacyReturn, Medication
+        from models.medication import Medication, PharmacyReturn
 
         sale_item, med, post_sale_stock = self._create_sale_item(
             app, test_tenant, test_medications
@@ -729,7 +729,7 @@ class TestPharmacyReturn:
 
     def test_return_exceeds_max_returnable(self, app, test_tenant, test_medications):
         """Returning more than sold should return an error."""
-        sale_item, med, post_sale_stock = self._create_sale_item(
+        sale_item, _med, _post_sale_stock = self._create_sale_item(
             app, test_tenant, test_medications
         )
 

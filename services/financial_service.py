@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import date, datetime, UTC
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -326,7 +326,7 @@ class FinancialService:
         Builds a claim record linked to the invoice and its visit.
         The claim starts in DRAFT status and must be submitted separately.
         """
-        from models.insurance import InsuranceClaim, InsuranceCompany
+        from models.insurance import InsuranceClaim
         from models.invoice import Invoice
         from models.visit import Visit
 
@@ -394,8 +394,8 @@ class FinancialService:
         Updates the claim status, approved amount, and insurance/patient
         share amounts based on the new status.
         """
-        from models.insurance import InsuranceClaim
         from app.shared.enums import InsuranceClaimStatus
+        from models.insurance import InsuranceClaim
 
         try:
             claim = (

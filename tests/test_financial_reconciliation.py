@@ -222,7 +222,7 @@ class TestInsuranceClaim:
 
     def _create_issued_invoice(self, app, test_tenant, recon_visit):
         """Helper: create an ISSUED invoice and return it."""
-        from models.invoice import Invoice, InvoiceService
+        from models.invoice import Invoice
 
         inv = Invoice(
             tenant_id=test_tenant.id,

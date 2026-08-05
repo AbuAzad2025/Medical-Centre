@@ -25,7 +25,7 @@ class PharmacySaleService:
         Uses two-step query to avoid N+1. Does NOT modify any state.
         Returns cart payload with medication details, prices, and stock info.
         """
-        from models.medication import Prescription, PrescriptionItem, Medication
+        from models.medication import Prescription, PrescriptionItem
 
         prescription = (
             db.session.execute(
@@ -98,7 +98,13 @@ class PharmacySaleService:
     def create_sale(
         prescription_id: int, dispensed_by: int, items: list[dict], tenant_id: int | None = None
     ) -> dict:
-        from models.medication import Medication, PharmacySale, PharmacySaleItem, Prescription, PrescriptionDispenseLog
+        from models.medication import (
+            Medication,
+            PharmacySale,
+            PharmacySaleItem,
+            Prescription,
+            PrescriptionDispenseLog,
+        )
 
         tenant_id = tenant_id or getattr(g, 'tenant_id', None)
 
@@ -219,8 +225,8 @@ class PharmacySaleService:
         user_id: int,
         tenant_id: int,
     ) -> dict:
-        from models.medication import PharmacySaleItem, PharmacyReturn, Medication
         from app.modules.workflows.pharmacy import PharmacyStockService
+        from models.medication import PharmacyReturn, PharmacySaleItem
 
         sale_item = (
             db.session.execute(

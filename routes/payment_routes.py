@@ -13,16 +13,16 @@ from flask_login import current_user, login_required
 from sqlalchemy import func, select
 
 from app.extensions import db
+from models.insurance import InsuranceClaim
 from models.invoice import Invoice
 from models.payment import Payment, PaymentMethod, PaymentStatus
 from models.queue_management import QueueSettings
 from models.system_config import SystemConfig
 from models.visit import Visit
-from models.insurance import InsuranceClaim
+from services.financial_service import FinancialService
 from services.gatekeeper_service import GatekeeperService
 from services.payment_service import payment_service
 from services.refund_service import refund_service
-from services.financial_service import FinancialService
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 

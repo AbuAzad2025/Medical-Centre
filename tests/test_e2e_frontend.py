@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import pytest
+from sqlalchemy import select
 
 from tests.test_phase14_launch import (
     TECHNICAL_LEAK_PATTERNS,
@@ -182,11 +184,7 @@ class TestFrontendE2E:
 
 
 # ── Static integrity: every template, button, link, and asset reference ──
-from pathlib import Path  # noqa: E402
-
-from sqlalchemy import select
-
-_TEMPLATES_ROOT = Path(__file__).parent.parent / 'templates'
+_URES_ROOT = Path(__file__).parent.parent / 'templates'
 _STATIC_ROOT = Path(__file__).parent.parent / 'static'
 
 # url_for('endpoint', ...) — capture literal endpoint name (skip variable endpoints)
