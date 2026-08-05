@@ -69,7 +69,7 @@ class SuperAdminService:
                 return None
             return user
         except Exception:
-            logging.exception("Error creating user: %s")
+            logging.exception('Error creating user: %s')
             return None
 
     @staticmethod

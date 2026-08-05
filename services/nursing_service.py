@@ -104,7 +104,7 @@ class NursingService:
                 return None
             return record
         except Exception:
-            logging.exception("Error recording vitals: %s")
+            logging.exception('Error recording vitals: %s')
             return None
 
     # ==================== NURSING NOTES ====================
@@ -148,7 +148,7 @@ class NursingService:
                 return None
             return note
         except Exception:
-            logging.exception("Error adding nursing note: %s")
+            logging.exception('Error adding nursing note: %s')
             return None
 
     # ==================== MEDICATION ADMINISTRATION ====================
@@ -186,7 +186,7 @@ class NursingService:
                 db.session, error_message='Failed to record medication administration'
             )
         except Exception:
-            logging.exception("Error recording medication administration: %s")
+            logging.exception('Error recording medication administration: %s')
             return False
 
     # ==================== CARE PLAN ====================
@@ -240,7 +240,7 @@ class NursingService:
                 return None
             return plan
         except Exception:
-            logging.exception("Error creating care plan: %s")
+            logging.exception('Error creating care plan: %s')
             return None
 
     # ==================== TASKS ====================
@@ -272,7 +272,7 @@ class NursingService:
             task.completed_at = datetime.now(UTC)
             return safe_commit(db.session, error_message='Failed to complete task')
         except Exception:
-            logging.exception("Error completing task: %s")
+            logging.exception('Error completing task: %s')
             return False
 
     # ==================== DASHBOARD STATS ====================

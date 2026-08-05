@@ -175,9 +175,7 @@ def login() -> ResponseReturnValue:
                     last_failed = (
                         db.session.execute(
                             select(LoginAttempt)
-                            .filter(
-                                LoginAttempt.username == username, not LoginAttempt.success
-                            )
+                            .filter(LoginAttempt.username == username, not LoginAttempt.success)
                             .order_by(LoginAttempt.created_at.desc())
                         )
                         .scalars()
@@ -424,8 +422,7 @@ def login() -> ResponseReturnValue:
             return render_template('auth/login.html')
 
         except Exception:
-
-            logging.exception("Login error")
+            logging.exception('Login error')
             if current_app.testing:
                 raise
             if is_ajax:
@@ -515,7 +512,7 @@ def profile():
             return redirect(url_for('auth.profile'))
 
         except Exception:
-            logging.exception("Profile update error")
+            logging.exception('Profile update error')
             flash('حدث خطأ أثناء تحديث الملف الشخصي', 'error')
 
     login_attempts = []
@@ -536,9 +533,7 @@ def profile():
         failed_attempts = (
             db.session.execute(
                 select(LoginAttempt)
-                .filter(
-                    LoginAttempt.username == current_user.username, not LoginAttempt.success
-                )
+                .filter(LoginAttempt.username == current_user.username, not LoginAttempt.success)
                 .order_by(LoginAttempt.created_at.desc())
                 .limit(10)
             )
@@ -596,7 +591,7 @@ def change_password():
         return jsonify({'success': True, 'message': 'تم تغيير كلمة المرور بنجاح'})
 
     except Exception:
-        logging.exception("Change password error")
+        logging.exception('Change password error')
         return jsonify({'success': False, 'message': 'حدث خطأ في تغيير كلمة المرور'}), 500
 
 

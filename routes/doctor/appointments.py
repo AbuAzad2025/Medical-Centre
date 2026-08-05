@@ -77,6 +77,6 @@ def appointments():
             pages=pages,
         )
     except Exception:
-        logging.exception("Error loading appointments: %s")
+        logging.exception('Error loading appointments: %s')
         flash('حدث خطأ في تحميل المواعيد', 'error')
         return redirect(url_for('doctor.dashboard'))

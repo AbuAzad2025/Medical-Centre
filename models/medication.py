@@ -236,7 +236,12 @@ class Prescription(TenantMixin, db.Model):
 
     def get_status_display(self):
         """حالة الروشيتا للعرض"""
-        status_map = {'active': 'نشط', 'issued': 'صادر', 'dispensed': 'تم الصرف', 'cancelled': 'ملغي'}
+        status_map = {
+            'active': 'نشط',
+            'issued': 'صادر',
+            'dispensed': 'تم الصرف',
+            'cancelled': 'ملغي',
+        }
         return status_map.get(self.status, self.status)
 
     def get_total_cost_display(self):

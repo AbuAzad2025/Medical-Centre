@@ -142,7 +142,7 @@ def reports():
             stage_samples=stage_samples,
         )
     except Exception:
-        logging.exception("Error loading emergency reports: %s")
+        logging.exception('Error loading emergency reports: %s')
         flash('حدث خطأ في تحميل تقارير الطوارئ', 'error')
         return redirect(url_for('emergency.dashboard'))
 
@@ -304,6 +304,6 @@ def dashboard():
 
         return render_command_center(current_user)
     except Exception:
-        logging.exception("Error in emergency dashboard: %s")
+        logging.exception('Error in emergency dashboard: %s')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))

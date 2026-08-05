@@ -224,7 +224,7 @@ def cancel_booking(booking_id):
         return redirect(url_for('booking.dashboard_portal'))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Cancel booking error: %s")
+        logging.exception('Cancel booking error: %s')
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': False, 'message': 'تعذر إلغاء الحجز حالياً'}), 500
         flash('حدث خطأ', 'error')
@@ -249,7 +249,7 @@ def index():
 
         return render_template('booking/index.html', departments=departments, doctors=doctors)
     except Exception:
-        logging.exception("Error loading booking page: %s")
+        logging.exception('Error loading booking page: %s')
         flash('حدث خطأ في تحميل صفحة الحجز', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -406,7 +406,7 @@ def create_booking():
 
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception("Error creating booking: %s")
+            logging.exception('Error creating booking: %s')
             flash('تعذر إنشاء الحجز، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
 
     preset_department_id = request.args.get('department_id', type=int)
@@ -454,7 +454,7 @@ def confirmation(booking_id):
             'booking/confirmation.html', booking=booking, meeting_link=meeting_link
         )
     except Exception:
-        logging.exception("Error loading booking confirmation: %s")
+        logging.exception('Error loading booking confirmation: %s')
         flash('حدث خطأ في تحميل تأكيد الحجز', 'error')
         return redirect(url_for('booking.index'))
 
@@ -470,7 +470,7 @@ def telemedicine_room(booking_id):
             'booking/telemedicine_room.html', booking=booking, meeting_link=meeting_link
         )
     except Exception:
-        logging.exception("Error loading telemedicine room: %s")
+        logging.exception('Error loading telemedicine room: %s')
         flash('تعذر تحميل جلسة التطبيب عن بُعد', 'error')
         return redirect(url_for('booking.index'))
 
@@ -508,7 +508,7 @@ def payment(booking_id):
 
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception("Error processing payment: %s")
+            logging.exception('Error processing payment: %s')
             flash('تعذر معالجة الدفع حالياً، يرجى المحاولة مرة أخرى', 'error')
 
     return render_template('booking/payment.html', booking=booking)
@@ -536,7 +536,7 @@ def api_available_doctors():
         )
 
     except Exception:
-        logging.exception("Error getting available doctors: %s")
+        logging.exception('Error getting available doctors: %s')
         return jsonify({'success': False, 'message': 'تعذر جلب الأطباء المتاحين حالياً'})
 
 
@@ -627,7 +627,7 @@ def api_available_times():
         return jsonify({'success': True, 'available_times': available_times})
 
     except Exception:
-        logging.exception("Error getting available times: %s")
+        logging.exception('Error getting available times: %s')
         return jsonify({'success': False, 'message': 'تعذر جلب الأوقات المتاحة حالياً'})
 
 
@@ -694,5 +694,5 @@ def api_smart_slots():
             {'success': True, 'suggested_times': suggested, 'available_times': available_times}
         ), 200
     except Exception:
-        logging.exception("Error getting smart slots: %s")
+        logging.exception('Error getting smart slots: %s')
         return jsonify({'success': False, 'message': 'تعذر اقتراح الأوقات'}), 500

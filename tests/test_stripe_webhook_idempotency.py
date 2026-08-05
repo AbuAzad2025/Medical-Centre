@@ -39,9 +39,12 @@ class TestStripeWebhookIdempotency:
         return json.dumps(mock_stripe_event).encode()
 
     def test_ingest_webhook_creates_event_record(self, app, mock_payload, mock_stripe_event):
-        with patch.object(
-            StripeSubscriptionService, 'verify_signature', return_value=mock_stripe_event
-        ), patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
+        with (
+            patch.object(
+                StripeSubscriptionService, 'verify_signature', return_value=mock_stripe_event
+            ),
+            patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None),
+        ):
             result = StripeSubscriptionService.ingest_webhook(mock_payload, 'sig_header')
             assert result.get('ignored') is True
 
@@ -53,9 +56,12 @@ class TestStripeWebhookIdempotency:
     def test_duplicate_event_id_returns_already_processed(
         self, app, mock_payload, mock_stripe_event
     ):
-        with patch.object(
-            StripeSubscriptionService, 'verify_signature', return_value=mock_stripe_event
-        ), patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
+        with (
+            patch.object(
+                StripeSubscriptionService, 'verify_signature', return_value=mock_stripe_event
+            ),
+            patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None),
+        ):
             r1 = StripeSubscriptionService.ingest_webhook(mock_payload, 'sig_header')
             r2 = StripeSubscriptionService.ingest_webhook(mock_payload, 'sig_header')
 
@@ -92,10 +98,11 @@ class TestStripeWebhookIdempotency:
             mock_record = MagicMock()
             mock_record.status = StripeWebhookEventStatus.PROCESSED
 
-            with patch.object(
-                StripeSubscriptionService, '_check_idempotency', return_value=mock_record
-            ), patch.object(
-                StripeSubscriptionService, 'verify_signature', return_value=event
+            with (
+                patch.object(
+                    StripeSubscriptionService, '_check_idempotency', return_value=mock_record
+                ),
+                patch.object(StripeSubscriptionService, 'verify_signature', return_value=event),
             ):
                 result = StripeSubscriptionService.ingest_webhook(payload, 'sig_header')
                 assert result.get('already_processed') is True
@@ -143,9 +150,14 @@ class TestStripeWebhookIdempotency:
         # Apply patches OUTSIDE the threads: patching inside each thread races
         # on the class attribute and can leave MagicMock leftovers in place,
         # poisoning every subsequent test in the process.
-        with patch.object(
-            StripeSubscriptionService, 'verify_signature', side_effect=lambda p, _s: json.loads(p)
-        ), patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
+        with (
+            patch.object(
+                StripeSubscriptionService,
+                'verify_signature',
+                side_effect=lambda p, _s: json.loads(p),
+            ),
+            patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None),
+        ):
             threads = [threading.Thread(target=ingest, args=(p,)) for p in payloads]
             for t in threads:
                 t.start()
@@ -167,10 +179,11 @@ class TestStripeWebhookIdempotency:
         lock.acquire(mock_stripe_event['id'])
 
         try:
-            with patch.object(
-                StripeSubscriptionService, 'verify_signature', return_value=mock_stripe_event
-            ), patch.object(
-                StripeSubscriptionService, '_tenant_from_event', return_value=None
+            with (
+                patch.object(
+                    StripeSubscriptionService, 'verify_signature', return_value=mock_stripe_event
+                ),
+                patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None),
             ):
                 # Pre-seed the record so the retry finds it
                 record = StripeWebhookEvent(

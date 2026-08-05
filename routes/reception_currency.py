@@ -41,7 +41,7 @@ def save_manual_rate():
             }
         )
     except Exception:
-        logging.exception("Error saving manual rate: %s")
+        logging.exception('Error saving manual rate: %s')
         return jsonify({'success': False, 'error': 'تعذر حفظ سعر الصرف'}), 500
 
 

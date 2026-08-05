@@ -291,7 +291,7 @@ def get_radiology_smart_analytics():
             else 'needs_improvement',
         }
     except Exception:
-        logging.exception("Error getting radiology smart analytics: %s")
+        logging.exception('Error getting radiology smart analytics: %s')
         return {}
 
 
@@ -327,7 +327,7 @@ def get_radiology_imaging_optimization():
             'efficiency_score': calculate_imaging_efficiency(avg_imaging_time, total_requests),
         }
     except Exception:
-        logging.exception("Error getting radiology imaging optimization: %s")
+        logging.exception('Error getting radiology imaging optimization: %s')
         return {}
 
 
@@ -345,9 +345,7 @@ def get_radiology_quality_assurance():
             .filter(RadiologyResult.reviewed_at.isnot(None))
         ).scalar()
         critical = db.session.execute(
-            select(func.count())
-            .select_from(RadiologyResult)
-            .filter(RadiologyResult.is_critical)
+            select(func.count()).select_from(RadiologyResult).filter(RadiologyResult.is_critical)
         ).scalar()
         quality_score = (reviewed / total_done * 100) if total_done else 100
         return {
@@ -361,7 +359,7 @@ def get_radiology_quality_assurance():
             ).scalar(),
         }
     except Exception:
-        logging.exception("Error getting radiology quality assurance: %s")
+        logging.exception('Error getting radiology quality assurance: %s')
         return {}
 
 
@@ -385,7 +383,7 @@ def get_radiology_equipment_status():
             'efficiency': efficiency,
         }
     except Exception:
-        logging.exception("Error getting radiology equipment status: %s")
+        logging.exception('Error getting radiology equipment status: %s')
         return {}
 
 
@@ -401,9 +399,7 @@ def get_radiology_report_analysis():
             .filter(RadiologyResult.status.in_([LabResultStatus.READY, LabResultStatus.VALIDATED]))
         ).scalar()
         critical_reports = db.session.execute(
-            select(func.count())
-            .select_from(RadiologyResult)
-            .filter(RadiologyResult.is_critical)
+            select(func.count()).select_from(RadiologyResult).filter(RadiologyResult.is_critical)
         ).scalar()
         abnormal_rate = (abnormal_findings / total_reports * 100) if total_reports else 0
         last_7 = db.session.execute(
@@ -428,7 +424,7 @@ def get_radiology_report_analysis():
             'trend_analysis': trend_analysis,
         }
     except Exception:
-        logging.exception("Error getting radiology report analysis: %s")
+        logging.exception('Error getting radiology report analysis: %s')
         return {}
 
 
@@ -454,7 +450,7 @@ def get_radiology_workflow_automation():
             'efficiency_gain': efficiency_gain,
         }
     except Exception:
-        logging.exception("Error getting radiology workflow automation: %s")
+        logging.exception('Error getting radiology workflow automation: %s')
         return {}
 
 

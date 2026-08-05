@@ -511,7 +511,6 @@ def create_app(config_name: str | None = None) -> Flask:
                 # developer_* config seeding moved to platform_bootstrap.ensure_developer_config()
                 # (privileged bootstrap path — normal startup is read-only)
             if insp.has_table('users'):
-
                 # من الآمن استيراد Department فقط عند الحاجة
                 # from models.department import Department
                 pass

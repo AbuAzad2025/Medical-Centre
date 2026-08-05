@@ -6,14 +6,10 @@ import io
 import logging
 import os
 import sys
-
-from dotenv import load_dotenv
-
-# تحميل متغيرات البيئة من .env
-load_dotenv()
-
 import threading
 import time
+
+from dotenv import load_dotenv
 
 from app_factory import create_app, socketio
 

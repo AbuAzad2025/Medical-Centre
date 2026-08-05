@@ -131,7 +131,7 @@ class NotificationService:
             return {'success': False, 'message': 'Failed to persist notification'}
 
         except Exception:
-            logging.exception("Error sending notification: %s")
+            logging.exception('Error sending notification: %s')
             return {'success': False, 'message': 'تعذر إرسال الإشعار حالياً'}
 
     @staticmethod
@@ -214,7 +214,7 @@ class NotificationService:
             return {'success': False, 'message': 'Failed to persist bulk notifications'}
 
         except Exception:
-            logging.exception("Error sending bulk notification: %s")
+            logging.exception('Error sending bulk notification: %s')
             return {'success': False, 'message': 'تعذر إرسال الإشعارات الجماعية حالياً'}
 
     @staticmethod
@@ -246,7 +246,7 @@ class NotificationService:
             }
 
         except Exception:
-            logging.exception("Error getting user notifications: %s")
+            logging.exception('Error getting user notifications: %s')
             return {'success': False, 'message': 'تعذر جلب إشعارات المستخدم حالياً'}
 
     @staticmethod
@@ -273,7 +273,7 @@ class NotificationService:
             return {'success': True, 'message': 'تم تحديد الإشعار كمقروء'}
 
         except Exception:
-            logging.exception("Error marking notification as read: %s")
+            logging.exception('Error marking notification as read: %s')
             return {'success': False, 'message': 'تعذر تحديد الإشعار كمقروء حالياً'}
 
     @staticmethod
@@ -296,7 +296,7 @@ class NotificationService:
             return {'success': True, 'message': f'تم تحديد {len(notifications)} إشعار كمقروء'}
 
         except Exception:
-            logging.exception("Error marking all notifications as read: %s")
+            logging.exception('Error marking all notifications as read: %s')
             return {'success': False, 'message': 'تعذر تحديد جميع الإشعارات كمقروءة حالياً'}
 
     @staticmethod
@@ -337,7 +337,7 @@ class NotificationService:
             return {'success': True, 'unread_count': unread_count, 'urgent_count': urgent_count}
 
         except Exception:
-            logging.exception("Error getting notification count: %s")
+            logging.exception('Error getting notification count: %s')
             return {'success': False, 'message': 'تعذر جلب عدد الإشعارات حالياً'}
 
     @staticmethod
@@ -369,7 +369,7 @@ class NotificationService:
             return {'success': False, 'message': 'Failed to create template'}
 
         except Exception:
-            logging.exception("Error creating notification template: %s")
+            logging.exception('Error creating notification template: %s')
             return {'success': False, 'message': 'تعذر إنشاء قالب الإشعار حالياً'}
 
     @staticmethod
@@ -387,7 +387,7 @@ class NotificationService:
             return {'success': True, 'templates': [template.to_dict() for template in templates]}
 
         except Exception:
-            logging.exception("Error getting notification templates: %s")
+            logging.exception('Error getting notification templates: %s')
             return {'success': False, 'message': 'تعذر جلب قوالب الإشعارات حالياً'}
 
     @staticmethod
@@ -466,7 +466,7 @@ class NotificationService:
             return {'success': False, 'message': 'Failed to create default templates'}
 
         except Exception:
-            logging.exception("Error creating default templates: %s")
+            logging.exception('Error creating default templates: %s')
             return {'success': False, 'message': 'تعذر إنشاء قوالب الإشعارات الافتراضية حالياً'}
 
     @staticmethod
@@ -498,7 +498,7 @@ class NotificationService:
             }
 
         except Exception:
-            logging.exception("Error cleaning up expired notifications: %s")
+            logging.exception('Error cleaning up expired notifications: %s')
             return {'success': False, 'message': 'تعذر تنظيف الإشعارات المنتهية الصلاحية حالياً'}
 
     @staticmethod
@@ -527,7 +527,7 @@ class NotificationService:
             }
 
         except Exception:
-            logging.exception("Error sending WhatsApp message: %s")
+            logging.exception('Error sending WhatsApp message: %s')
             return {'success': False, 'message': 'تعذر إرسال رسالة الواتساب حالياً'}
 
     @staticmethod
@@ -556,7 +556,7 @@ class NotificationService:
             }
 
         except Exception:
-            logging.exception("Error sending email message: %s")
+            logging.exception('Error sending email message: %s')
             return {'success': False, 'message': 'تعذر إرسال رسالة البريد الإلكتروني حالياً'}
 
     @staticmethod
@@ -596,7 +596,7 @@ class NotificationService:
             }
 
         except Exception:
-            logging.exception("Error adding to notification queue: %s")
+            logging.exception('Error adding to notification queue: %s')
             return {'success': False, 'message': 'تعذر إضافة الإشعار إلى الطابور حالياً'}
 
     @staticmethod
@@ -673,7 +673,7 @@ class NotificationService:
                         notification.status = NotificationState.FAILED
                         notification.failed_at = datetime.now(UTC)
                         notification.error_message = str(e)
-                        logging.exception("Error processing notification {notification.id}: %s")
+                        logging.exception('Error processing notification {notification.id}: %s')
 
                 if not safe_commit(db.session, error_message='فشل معالجة طابور الإشعارات'):
                     return {
@@ -696,7 +696,7 @@ class NotificationService:
                         g.pop('_tenant_filter_bypass', None)
 
         except Exception:
-            logging.exception("Error processing notification queue: %s")
+            logging.exception('Error processing notification queue: %s')
             return {
                 'success': False,
                 'message': 'تعذر معالجة طابور الإشعارات حالياً',
@@ -732,7 +732,7 @@ class NotificationService:
             }
 
         except Exception:
-            logging.exception("Error getting notification queue status: %s")
+            logging.exception('Error getting notification queue status: %s')
             return {'success': False, 'message': 'تعذر جلب حالة طابور الإشعارات حالياً'}
 
     # ==================== تنبيهات الديون والتأمين (الأسبوع الثاني) ====================
@@ -806,7 +806,7 @@ class NotificationService:
             }
 
         except Exception:
-            logging.exception("Error sending debt reminders: %s")
+            logging.exception('Error sending debt reminders: %s')
             return {'success': False, 'message': 'تعذر إرسال تذكيرات الديون حالياً'}
 
     @staticmethod
@@ -869,7 +869,7 @@ class NotificationService:
             }
 
         except Exception:
-            logging.exception("Error sending insurance followup alerts: %s")
+            logging.exception('Error sending insurance followup alerts: %s')
             return {'success': False, 'message': 'تعذر إرسال تنبيهات متابعة التأمين حالياً'}
 
     @staticmethod
@@ -916,7 +916,7 @@ class NotificationService:
             }
 
         except Exception:
-            logging.exception("Error sending force payment approval alerts: %s")
+            logging.exception('Error sending force payment approval alerts: %s')
             return {'success': False, 'message': 'تعذر إرسال تنبيهات موافقات الدفع القسري حالياً'}
 
     @staticmethod
@@ -961,9 +961,8 @@ class NotificationService:
                 is_urgent=False,
             )
 
-
         except Exception:
-            logging.exception("Error sending daily summary to manager: %s")
+            logging.exception('Error sending daily summary to manager: %s')
             return {'success': False, 'message': 'تعذر إرسال الملخص اليومي حالياً'}
 
     @staticmethod
@@ -1011,7 +1010,7 @@ class NotificationService:
             return {'success': True, 'message': 'تم فحص وإرسال التنبيهات', 'results': results}
 
         except Exception:
-            logging.exception("Error in check_and_send_alerts: %s")
+            logging.exception('Error in check_and_send_alerts: %s')
             return {'success': False, 'message': 'تعذر فحص وإرسال التنبيهات حالياً'}
 
     @staticmethod
@@ -1115,7 +1114,7 @@ class NotificationService:
 
             return {'success': True, 'sent': sent, 'fallback_notified': fallback_notified}
         except Exception:
-            logging.exception("Error sending appointment reminders: %s")
+            logging.exception('Error sending appointment reminders: %s')
             return {'success': False, 'message': 'تعذر إرسال تذكيرات المواعيد حالياً'}
 
     @staticmethod
@@ -1205,7 +1204,7 @@ class NotificationService:
 
             return {'success': True, 'sent': sent, 'fallback_notified': fallback_notified}
         except Exception:
-            logging.exception("Error sending online booking reminders: %s")
+            logging.exception('Error sending online booking reminders: %s')
             return {'success': False, 'message': 'تعذر إرسال تذكيرات الحجز حالياً'}
 
 

@@ -407,27 +407,27 @@ def owner_tenant_detail(tenant_id):
     )
     available_features = sorted(
         set(
-                [
-                    'multi_branch',
-                    'advanced_reports',
-                    'patient_portal',
-                    'telemedicine',
-                    'insurance_integration',
-                    'lab_integration',
-                    'radiology_integration',
-                    'pharmacy_integration',
-                    'emergency_kiosk',
-                    'appointment_reminders',
-                    'sms_notifications',
-                    'email_notifications',
-                    'whatsapp_notifications',
-                    'api_access',
-                    'white_label',
-                    'custom_domain',
-                    'sso',
-                ]
-                + [f.feature_key for f in feature_flags]
-            )
+            [
+                'multi_branch',
+                'advanced_reports',
+                'patient_portal',
+                'telemedicine',
+                'insurance_integration',
+                'lab_integration',
+                'radiology_integration',
+                'pharmacy_integration',
+                'emergency_kiosk',
+                'appointment_reminders',
+                'sms_notifications',
+                'email_notifications',
+                'whatsapp_notifications',
+                'api_access',
+                'white_label',
+                'custom_domain',
+                'sso',
+            ]
+            + [f.feature_key for f in feature_flags]
+        )
     )
 
     bundle_limits = None
@@ -2657,10 +2657,7 @@ def owner_provision():
     """Tenant Provisioning UI (UX0-003)."""
     package_versions = (
         db.session.execute(
-            select(PackageVersion)
-            .join(Package)
-            .filter(Package.is_active)
-            .order_by(Package.name)
+            select(PackageVersion).join(Package).filter(Package.is_active).order_by(Package.name)
         )
         .scalars()
         .all()

@@ -53,7 +53,7 @@ def requests():
             requests=requests_list,
         )
     except Exception:
-        logging.exception("Error loading radiology requests: %s")
+        logging.exception('Error loading radiology requests: %s')
         flash('حدث خطأ في تحميل طلبات الأشعة', 'error')
         return redirect(url_for('radiology.dashboard'))
 
@@ -77,7 +77,7 @@ def add_scan_post():
         flash('تم استلام بيانات الفحص بنجاح', 'success')
         return redirect(url_for('radiology.tests'))
     except Exception:
-        logging.exception("Error adding radiology scan: %s")
+        logging.exception('Error adding radiology scan: %s')
         flash('حدث خطأ أثناء إضافة الفحص', 'error')
         return redirect(url_for('radiology.dashboard'))
 
@@ -103,6 +103,6 @@ def results():
 
         return render_template('radiology/results.html', results=results)
     except Exception:
-        logging.exception("Error loading radiology results: %s")
+        logging.exception('Error loading radiology results: %s')
         flash('حدث خطأ في تحميل نتائج الأشعة', 'error')
         return redirect(url_for('radiology.dashboard'))

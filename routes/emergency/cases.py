@@ -89,7 +89,7 @@ def list_emergency_cases():
             doctors=doctors,
         )
     except Exception:
-        logging.exception("Error loading emergency cases: %s")
+        logging.exception('Error loading emergency cases: %s')
         flash('حدث خطأ في تحميل حالات الطوارئ', 'error')
         return redirect(url_for('emergency.dashboard'))
 
@@ -139,7 +139,7 @@ def view_emergency_case(id):
 
         return render_template('emergency/view.html', emergency=emergency, status_timeline=timeline)
     except Exception:
-        logging.exception("Error viewing emergency case: %s")
+        logging.exception('Error viewing emergency case: %s')
         flash('حدث خطأ في عرض حالة الطوارئ', 'error')
         return redirect(url_for('emergency.list_emergency_cases'))
 
@@ -233,7 +233,7 @@ def edit_emergency_case(id):
             'emergency/edit.html', emergency=emergency, doctors=doctors, patients=patients
         )
     except Exception:
-        logging.exception("Error editing emergency case: %s")
+        logging.exception('Error editing emergency case: %s')
         flash('حدث خطأ في تعديل حالة الطوارئ', 'error')
         return redirect(url_for('emergency.list_emergency_cases'))
 
@@ -253,7 +253,7 @@ def resolve_emergency_case(id):
         flash('تم حل الحالة بنجاح', 'success')
         return redirect(url_for('emergency.list_emergency_cases'))
     except Exception:
-        logging.exception("Error resolving emergency case: %s")
+        logging.exception('Error resolving emergency case: %s')
         flash('حدث خطأ في حل حالة الطوارئ', 'error')
         return redirect(url_for('emergency.list_emergency_cases'))
 
@@ -359,7 +359,7 @@ def create_emergency_case():
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'visit_id': visit.id, 'case_id': emergency.id}), 200
     except Exception:
-        logging.exception("Create emergency case error: %s")
+        logging.exception('Create emergency case error: %s')
         safe_rollback(db.session, error_message='database rollback')
         return jsonify({'success': False, 'message': 'تعذر إنشاء حالة الطوارئ حالياً'}), 500
 
@@ -433,5 +433,5 @@ def convert_emergency_case(id):
             msg = 'تعذر تحويل الزيارة حالياً'
         return jsonify({'success': False, 'message': msg}), status
     except Exception:
-        logging.exception("Convert emergency case outer error: %s")
+        logging.exception('Convert emergency case outer error: %s')
         return jsonify({'success': False, 'message': 'تعذر تحويل الحالة حالياً'}), 500

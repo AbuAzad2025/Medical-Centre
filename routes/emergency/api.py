@@ -54,5 +54,5 @@ def api_ems_intake():
         return jsonify({'success': True, 'case_id': case.id}), 201
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("EMS intake error: %s")
+        logging.exception('EMS intake error: %s')
         return jsonify({'success': False, 'message': 'تعذر تسجيل الحالة'}), 500

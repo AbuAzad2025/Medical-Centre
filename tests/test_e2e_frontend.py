@@ -184,7 +184,7 @@ class TestFrontendE2E:
 
 
 # ── Static integrity: every template, button, link, and asset reference ──
-_URES_ROOT = Path(__file__).parent.parent / 'templates'
+_TEMPLATES_ROOT = Path(__file__).parent.parent / 'templates'
 _STATIC_ROOT = Path(__file__).parent.parent / 'static'
 
 # url_for('endpoint', ...) — capture literal endpoint name (skip variable endpoints)

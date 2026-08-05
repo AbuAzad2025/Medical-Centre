@@ -279,7 +279,7 @@ def dashboard():
         import traceback
 
         traceback.print_exc()
-        logging.exception("Error in accountant dashboard: %s")
+        logging.exception('Error in accountant dashboard: %s')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         from app.shared.dashboard_service import render_command_center
 

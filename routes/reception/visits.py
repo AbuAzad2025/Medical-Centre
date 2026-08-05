@@ -111,7 +111,7 @@ def archive_visit(visit_id):
             flash(msg or 'لا يمكن أرشفة الزيارة', 'warning')
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error archiving visit: %s")
+        logging.exception('Error archiving visit: %s')
         flash('حدث خطأ أثناء الأرشفة', 'error')
     return redirect(url_for('reception.visits'))
 
@@ -138,7 +138,7 @@ def end_visit(visit_id):
             flash(msg or 'لا يمكن إنهاء الزيارة', 'warning')
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error ending visit: %s")
+        logging.exception('Error ending visit: %s')
         flash('حدث خطأ أثناء إنهاء الزيارة', 'error')
     return redirect(url_for('reception.visits'))
 
@@ -949,9 +949,7 @@ def api_visit_pricing():
             ids = [int(x) for x in test_ids_param.split(',') if x.isdigit()]
             services = (
                 db.session.execute(
-                    select(ServiceMaster).filter(
-                        ServiceMaster.id.in_(ids), ServiceMaster.is_active
-                    )
+                    select(ServiceMaster).filter(ServiceMaster.id.in_(ids), ServiceMaster.is_active)
                 )
                 .scalars()
                 .all()
@@ -1026,7 +1024,7 @@ def api_visit_pricing():
 
         return jsonify({'cost': round(cost, 2), 'details': pricing_details})
     except Exception:
-        logging.exception("Error calculating visit cost: %s")
+        logging.exception('Error calculating visit cost: %s')
         return jsonify({'error': 'حدث خطأ في حساب التكلفة'}), 500
 
 
@@ -1084,7 +1082,7 @@ def get_pricing_details(department_id, doctor_id, visit_type, is_emergency, paym
 
         return details
     except Exception:
-        logging.exception("Error getting pricing details: %s")
+        logging.exception('Error getting pricing details: %s')
         return {}
 
 
@@ -1163,7 +1161,7 @@ def calculate_visit_cost(department_id, doctor_id, visit_type, is_emergency, pay
 
         return round(total_cost, 2)
     except Exception:
-        logging.exception("Error calculating visit cost: %s")
+        logging.exception('Error calculating visit cost: %s')
         return 0
 
 
@@ -1246,7 +1244,7 @@ def calculate_doctor_cost(doctor_id, department_id, visit_type, is_emergency, pa
         # إذا لم يوجد أي تسعير، استخدام السعر الافتراضي
         return 0
     except Exception:
-        logging.exception("Error calculating doctor cost: %s")
+        logging.exception('Error calculating doctor cost: %s')
         return 0
 
 
@@ -1284,7 +1282,7 @@ def edit_visit(visit_id):
             return redirect(url_for('reception.view_visit', visit_id=visit.id))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception("Error editing visit: %s")
+            logging.exception('Error editing visit: %s')
             flash('حدث خطأ أثناء تعديل الزيارة', 'error')
             return redirect(url_for('reception.edit_visit', visit_id=visit_id))
 
@@ -1426,7 +1424,7 @@ def add_service_to_visit(visit_id):
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error adding service to visit: %s")
+        logging.exception('Error adding service to visit: %s')
         flash('حدث خطأ أثناء إضافة الخدمة', 'error')
         return redirect(url_for('reception.view_visit', visit_id=visit_id))
 
@@ -1488,7 +1486,7 @@ def reception_return_to_treatment(visit_id):
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error returning visit to treatment: %s")
+        logging.exception('Error returning visit to treatment: %s')
         flash('حدث خطأ في إعادة فتح العلاج', 'error')
         return redirect(url_for('reception.view_visit', visit_id=visit_id))
 

@@ -84,7 +84,7 @@ def patient_details(emergency_id):
             radiology_requests=radiology_requests,
         )
     except Exception:
-        logging.exception("Error loading patient details: %s")
+        logging.exception('Error loading patient details: %s')
         flash('حدث خطأ في تحميل تفاصيل المريض', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -137,7 +137,7 @@ def medical_history(patient_id):
             previous_emergencies=previous_emergencies,
         )
     except Exception:
-        logging.exception("Error loading medical history: %s")
+        logging.exception('Error loading medical history: %s')
         flash('حدث خطأ في تحميل السجل الطبي', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -169,7 +169,7 @@ def prescriptions_history(patient_id):
             'emergency/prescriptions_history.html', patient=patient, prescriptions=prescriptions
         )
     except Exception:
-        logging.exception("Error loading prescriptions history: %s")
+        logging.exception('Error loading prescriptions history: %s')
         flash('حدث خطأ في تحميل تاريخ الوصفات', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -201,7 +201,7 @@ def lab_results(patient_id):
             'emergency/lab_results.html', patient=patient, lab_requests=lab_requests
         )
     except Exception:
-        logging.exception("Error loading lab results: %s")
+        logging.exception('Error loading lab results: %s')
         flash('حدث خطأ في تحميل نتائج المختبر', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -235,6 +235,6 @@ def radiology_results(patient_id):
             radiology_requests=radiology_requests,
         )
     except Exception:
-        logging.exception("Error loading radiology results: %s")
+        logging.exception('Error loading radiology results: %s')
         flash('حدث خطأ في تحميل نتائج الأشعة', 'error')
         return redirect(url_for('emergency.patient_queue'))

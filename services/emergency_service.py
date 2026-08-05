@@ -173,7 +173,7 @@ class EmergencyService:
                 return None
             return case
         except Exception:
-            logging.exception("Error creating emergency case: %s")
+            logging.exception('Error creating emergency case: %s')
             return None
 
     @staticmethod

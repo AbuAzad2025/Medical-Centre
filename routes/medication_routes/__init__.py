@@ -135,7 +135,7 @@ def get_pharmacy_smart_analytics():
             ),
         }
     except Exception:
-        logging.exception("Error getting pharmacy smart analytics: %s")
+        logging.exception('Error getting pharmacy smart analytics: %s')
         return {}
 
 
@@ -210,7 +210,7 @@ def get_inventory_optimization():
             ),
         }
     except Exception:
-        logging.exception("Error getting inventory optimization: %s")
+        logging.exception('Error getting inventory optimization: %s')
         return {}
 
 
@@ -286,7 +286,7 @@ def get_medication_safety_monitoring():
             ),
         }
     except Exception:
-        logging.exception("Error getting medication safety monitoring: %s")
+        logging.exception('Error getting medication safety monitoring: %s')
         return {}
 
 
@@ -372,7 +372,7 @@ def get_prescription_analytics():
             else 0,
         }
     except Exception:
-        logging.exception("Error getting prescription analytics: %s")
+        logging.exception('Error getting prescription analytics: %s')
         return {}
 
 
@@ -438,7 +438,7 @@ def get_drug_interaction_checker():
             ),
         }
     except Exception:
-        logging.exception("Error getting drug interaction checker: %s")
+        logging.exception('Error getting drug interaction checker: %s')
         return {}
 
 
@@ -473,7 +473,7 @@ def get_pharmacy_workflow_automation():
             'automation_score': calculate_automation_score(automated_tasks, manual_tasks),
         }
     except Exception:
-        logging.exception("Error getting pharmacy workflow automation: %s")
+        logging.exception('Error getting pharmacy workflow automation: %s')
         return {}
 
 
@@ -533,7 +533,7 @@ def get_pharmacy_predictive_insights():
             'demand_forecast_accuracy': calculate_demand_forecast_accuracy(),
         }
     except Exception:
-        logging.exception("Error getting pharmacy predictive insights: %s")
+        logging.exception('Error getting pharmacy predictive insights: %s')
         return {}
 
 
@@ -607,7 +607,7 @@ def get_pharmacy_smart_recommendations():
             'medium_priority': len([r for r in recommendations if r['priority'] == 'medium']),
         }
     except Exception:
-        logging.exception("Error getting pharmacy smart recommendations: %s")
+        logging.exception('Error getting pharmacy smart recommendations: %s')
         return {'recommendations': [], 'total_recommendations': 0}
 
 

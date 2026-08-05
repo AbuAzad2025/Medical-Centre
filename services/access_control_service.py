@@ -153,7 +153,7 @@ class AccessControlService:
             return False
 
         except Exception:
-            logging.exception("Error checking visit access: %s")
+            logging.exception('Error checking visit access: %s')
             return False
 
     @staticmethod
@@ -192,7 +192,7 @@ class AccessControlService:
             return False
 
         except Exception:
-            logging.exception("Error checking visit modification: %s")
+            logging.exception('Error checking visit modification: %s')
             return False
 
     @staticmethod
@@ -258,11 +258,7 @@ class AccessControlService:
 
             # الطوارئ يرون حالات الطوارئ
             if user.role == 'emergency':
-                return (
-                    db.session.execute(select(Visit).filter(Visit.is_emergency))
-                    .scalars()
-                    .all()
-                )
+                return db.session.execute(select(Visit).filter(Visit.is_emergency)).scalars().all()
 
             # المحاسب يرى الزيارات ذات الصلة المالية فقط
             if user.role == 'accountant':
@@ -277,7 +273,7 @@ class AccessControlService:
             return []
 
         except Exception:
-            logging.exception("Error getting accessible visits: %s")
+            logging.exception('Error getting accessible visits: %s')
             return []
 
     @staticmethod
@@ -339,7 +335,7 @@ class AccessControlService:
             return []
 
         except Exception:
-            logging.exception("Error getting accessible patients: %s")
+            logging.exception('Error getting accessible patients: %s')
             return []
 
     @staticmethod
@@ -366,7 +362,7 @@ class AccessControlService:
             return role_routes.get(user.role, '/dashboard')
 
         except Exception:
-            logging.exception("Error getting dashboard route: %s")
+            logging.exception('Error getting dashboard route: %s')
             return '/dashboard'
 
     @staticmethod
@@ -466,7 +462,7 @@ class AccessControlService:
             return role_menus.get(user.role, [])
 
         except Exception:
-            logging.exception("Error getting menu items: %s")
+            logging.exception('Error getting menu items: %s')
             return []
 
     @staticmethod
@@ -546,9 +542,7 @@ class AccessControlService:
                 from models.permissions import Role
 
                 role = (
-                    db.session.execute(
-                        select(Role).where(Role.name == user.role, Role.is_active)
-                    )
+                    db.session.execute(select(Role).where(Role.name == user.role, Role.is_active))
                     .scalars()
                     .first()
                 )

@@ -129,7 +129,7 @@ def dashboard():
             'quality_compliance/dashboard.html', stats=stats, recent_audits=recent_audits
         )
     except Exception:
-        logging.exception("Error in quality dashboard: %s")
+        logging.exception('Error in quality dashboard: %s')
         flash('حدث خطأ في تحميل لوحة الجودة', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -156,7 +156,7 @@ def audits():
             'quality_compliance/audits.html', pagination=pagination, action_filter=action_filter
         )
     except Exception:
-        logging.exception("Error in audits list: %s")
+        logging.exception('Error in audits list: %s')
         flash('حدث خطأ', 'error')
         return redirect(url_for('quality.dashboard'))
 
@@ -174,7 +174,7 @@ def incidents():
         pagination = db.paginate(stmt, page=page, per_page=25, error_out=False)
         return render_template('quality_compliance/incidents.html', pagination=pagination)
     except Exception:
-        logging.exception("Error in incidents list: %s")
+        logging.exception('Error in incidents list: %s')
         flash('حدث خطأ', 'error')
         return redirect(url_for('quality.dashboard'))
 
@@ -224,5 +224,5 @@ def api_quality_metrics():
             {'labels': labels, 'lab': lab_data, 'radiology': rad_data, 'visits': visit_data}
         )
     except Exception as e:
-        logging.exception("Error in quality metrics API: %s")
+        logging.exception('Error in quality metrics API: %s')
         return jsonify({'error': str(e)}), 500

@@ -606,7 +606,7 @@ def create_appointment():
                     }
                 ), 400
             flash('تعذر إنشاء الموعد، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
-            logging.exception("Error creating appointment: %s")
+            logging.exception('Error creating appointment: %s')
 
     # جلب البيانات المطلوبة للنموذج
     patients = db.session.execute(select(Patient)).scalars().all()
@@ -743,7 +743,7 @@ def edit_appointment(appointment_id):
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
             flash('تعذر تحديث الموعد، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
-            logging.exception("Error updating appointment: %s")
+            logging.exception('Error updating appointment: %s')
 
     patients = db.session.execute(select(Patient)).scalars().all()
     departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()

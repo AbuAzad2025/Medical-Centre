@@ -32,7 +32,7 @@ def patient_care():
 
         return render_template('nurse/patient_care.html', patients=patients)
     except Exception:
-        logging.exception("Error loading patient care: %s")
+        logging.exception('Error loading patient care: %s')
         flash('حدث خطأ في تحميل رعاية المرضى', 'error')
         return redirect(url_for('nurse.dashboard'))
 
@@ -52,6 +52,6 @@ def patient_monitoring():
 
         return render_template('nurse/patient_monitoring.html', patients=patients)
     except Exception:
-        logging.exception("Error loading patient monitoring: %s")
+        logging.exception('Error loading patient monitoring: %s')
         flash('حدث خطأ في تحميل مراقبة المرضى', 'error')
         return redirect(url_for('nurse.dashboard'))

@@ -101,7 +101,7 @@ def get_emergency_ai_triage():
             'efficiency_score': calculate_triage_efficiency(avg_response_time, priority_analysis),
         }
     except Exception:
-        logging.exception("Error getting emergency AI triage: %s")
+        logging.exception('Error getting emergency AI triage: %s')
         return {}
 
 
@@ -193,7 +193,7 @@ def get_critical_alert_system():
 
         return alerts
     except Exception:
-        logging.exception("Error getting critical alert system: %s")
+        logging.exception('Error getting critical alert system: %s')
         return []
 
 
@@ -289,7 +289,7 @@ def get_emergency_workflow_ai():
             'efficiency_score': calculate_workflow_efficiency(workflow_analysis, avg_total_time),
         }
     except Exception:
-        logging.exception("Error getting emergency workflow AI: %s")
+        logging.exception('Error getting emergency workflow AI: %s')
         return {}
 
 
@@ -354,7 +354,7 @@ def get_patient_vital_monitoring():
             'total_cases_monitored': sum(vital_signs_analysis.values()),
         }
     except Exception:
-        logging.exception("Error getting patient vital monitoring: %s")
+        logging.exception('Error getting patient vital monitoring: %s')
         return {}
 
 
@@ -420,7 +420,7 @@ def get_emergency_resource_management():
             'resource_recommendations': resource_recommendations,
         }
     except Exception:
-        logging.exception("Error getting emergency resource management: %s")
+        logging.exception('Error getting emergency resource management: %s')
         return {}
 
 
@@ -491,7 +491,7 @@ def get_trauma_protocols():
             'total_cases_analyzed': sum(trauma_analysis.values()),
         }
     except Exception:
-        logging.exception("Error getting trauma protocols: %s")
+        logging.exception('Error getting trauma protocols: %s')
         return {}
 
 
@@ -550,7 +550,7 @@ def get_emergency_analytics():
             ),
         }
     except Exception:
-        logging.exception("Error getting emergency analytics: %s")
+        logging.exception('Error getting emergency analytics: %s')
         return {}
 
 
@@ -646,5 +646,5 @@ def get_smart_emergency_recommendations():
 
         return recommendations
     except Exception:
-        logging.exception("Error getting smart emergency recommendations: %s")
+        logging.exception('Error getting smart emergency recommendations: %s')
         return []

@@ -109,7 +109,7 @@ def medication_administration():
             last_admin_by_item=last_admin_by_item,
         )
     except Exception:
-        logging.exception("Error loading medication administration: %s")
+        logging.exception('Error loading medication administration: %s')
         flash('حدث خطأ في تحميل إدارة الأدوية', 'error')
         return redirect(url_for('nurse.dashboard'))
 
@@ -187,7 +187,7 @@ def administer_medication(prescription_item_id):
         return redirect(url_for('nurse.medication_administration', visit_id=visit.id))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error administering medication: %s")
+        logging.exception('Error administering medication: %s')
         flash('حدث خطأ في توثيق تنفيذ الدواء', 'error')
         return redirect(url_for('nurse.medication_administration'))
 

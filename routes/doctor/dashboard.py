@@ -164,7 +164,7 @@ def dashboard_new():
             week_visits=week_visits,
         )
     except Exception:
-        logging.exception("Error in doctor dashboard_new: %s")
+        logging.exception('Error in doctor dashboard_new: %s')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -179,7 +179,7 @@ def dashboard():
 
         return render_command_center(current_user)
     except Exception:
-        logging.exception("Error in doctor dashboard: %s")
+        logging.exception('Error in doctor dashboard: %s')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -354,7 +354,7 @@ def dashboard_for_doctor(doctor_id):
             viewing_doctor=target_doctor,
         )
     except Exception:
-        logging.exception("Error in admin view doctor dashboard: %s")
+        logging.exception('Error in admin view doctor dashboard: %s')
         flash('حدث خطأ في عرض لوحة الطبيب', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -436,7 +436,7 @@ def api_dashboard_stats():
         }
         return jsonify({'success': True, 'stats': stats})
     except Exception:
-        logging.exception("Error in api_dashboard_stats: %s")
+        logging.exception('Error in api_dashboard_stats: %s')
         return jsonify({'success': False, 'message': 'فشل تحميل الإحصائيات'}), 500
 
 
@@ -480,5 +480,5 @@ def api_today_visits():
             )
         return jsonify({'success': True, 'visits': results})
     except Exception:
-        logging.exception("Error in api_today_visits: %s")
+        logging.exception('Error in api_today_visits: %s')
         return jsonify({'success': False, 'message': 'فشل تحميل الزيارات'}), 500

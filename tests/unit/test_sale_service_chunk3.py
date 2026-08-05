@@ -475,7 +475,9 @@ class TestPOSPrescriptionLookup:
 class TestPOSAtomicDispense:
     """Tests for atomic POS dispense in PharmacySaleService.create_sale."""
 
-    def test_create_sale_with_pos_prescription_sets_dispensed(self, app, test_tenant, test_medications):
+    def test_create_sale_with_pos_prescription_sets_dispensed(
+        self, app, test_tenant, test_medications
+    ):
         """After POS sale the prescription status becomes DISPENSED."""
         from models.medication import Prescription, PrescriptionItem
 
@@ -560,9 +562,7 @@ class TestPOSAtomicDispense:
             ctx.pop()
 
         logs = (
-            db.session.execute(
-                select(PrescriptionDispenseLog).filter_by(prescription_id=rx.id)
-            )
+            db.session.execute(select(PrescriptionDispenseLog).filter_by(prescription_id=rx.id))
             .scalars()
             .all()
         )
@@ -640,9 +640,7 @@ class TestPharmacyReturn:
 
         sale = db.session.get(PharmacySale, result['sale_id'])
         sale_item = (
-            db.session.execute(
-                select(PharmacySaleItem).filter_by(sale_id=sale.id)
-            )
+            db.session.execute(select(PharmacySaleItem).filter_by(sale_id=sale.id))
             .scalars()
             .first()
         )
@@ -654,9 +652,7 @@ class TestPharmacyReturn:
         """RESTOCK disposition should increment medication stock."""
         from models.medication import Medication, PharmacyReturn
 
-        sale_item, med, post_sale_stock = self._create_sale_item(
-            app, test_tenant, test_medications
-        )
+        sale_item, med, post_sale_stock = self._create_sale_item(app, test_tenant, test_medications)
 
         ctx = _tenant_ctx(app, test_tenant)
         try:
@@ -679,9 +675,7 @@ class TestPharmacyReturn:
 
         # Verify PharmacyReturn log exists
         return_log = (
-            db.session.execute(
-                select(PharmacyReturn).filter_by(sale_item_id=sale_item.id)
-            )
+            db.session.execute(select(PharmacyReturn).filter_by(sale_item_id=sale_item.id))
             .scalars()
             .first()
         )
@@ -693,9 +687,7 @@ class TestPharmacyReturn:
         """DISCARD disposition should NOT increment medication stock."""
         from models.medication import Medication, PharmacyReturn
 
-        sale_item, med, post_sale_stock = self._create_sale_item(
-            app, test_tenant, test_medications
-        )
+        sale_item, med, post_sale_stock = self._create_sale_item(app, test_tenant, test_medications)
 
         ctx = _tenant_ctx(app, test_tenant)
         try:
@@ -718,9 +710,7 @@ class TestPharmacyReturn:
 
         # Verify PharmacyReturn log exists with DISCARD disposition
         return_log = (
-            db.session.execute(
-                select(PharmacyReturn).filter_by(sale_item_id=sale_item.id)
-            )
+            db.session.execute(select(PharmacyReturn).filter_by(sale_item_id=sale_item.id))
             .scalars()
             .first()
         )

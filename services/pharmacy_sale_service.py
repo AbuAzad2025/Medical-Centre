@@ -29,8 +29,7 @@ class PharmacySaleService:
 
         prescription = (
             db.session.execute(
-                select(Prescription)
-                .filter(
+                select(Prescription).filter(
                     Prescription.id == prescription_id,
                     Prescription.tenant_id == tenant_id,
                 )
@@ -42,7 +41,9 @@ class PharmacySaleService:
             return {'error': 'Prescription not found'}
 
         if prescription.status not in ('active', 'issued'):
-            return {'error': f'Prescription status "{prescription.status}" not eligible for POS checkout'}
+            return {
+                'error': f'Prescription status "{prescription.status}" not eligible for POS checkout'
+            }
 
         items = (
             db.session.execute(
@@ -63,29 +64,32 @@ class PharmacySaleService:
             unit_price = item.unit_price if item.unit_price is not None else medication.price
             line_total = unit_price * item.quantity
 
-            cart_items.append({
-                'prescription_item_id': item.id,
-                'medication_id': medication.id,
-                'name': medication.trade_name or medication.scientific_name,
-                'generic_name': medication.generic_name,
-                'strength': medication.strength,
-                'dosage_form': medication.dosage_form,
-                'quantity': item.quantity,
-                'unit_price': float(unit_price),
-                'total_price': float(line_total),
-                'available_stock': medication.stock_quantity,
-                'dosage': item.dosage,
-                'duration_days': item.duration_days,
-                'instructions': item.instructions,
-            })
+            cart_items.append(
+                {
+                    'prescription_item_id': item.id,
+                    'medication_id': medication.id,
+                    'name': medication.trade_name or medication.scientific_name,
+                    'generic_name': medication.generic_name,
+                    'strength': medication.strength,
+                    'dosage_form': medication.dosage_form,
+                    'quantity': item.quantity,
+                    'unit_price': float(unit_price),
+                    'total_price': float(line_total),
+                    'available_stock': medication.stock_quantity,
+                    'dosage': item.dosage,
+                    'duration_days': item.duration_days,
+                    'instructions': item.instructions,
+                }
+            )
 
         return {
             'prescription_id': prescription.id,
             'prescription_number': prescription.prescription_number,
             'patient_id': prescription.patient_id,
             'patient_name': (
-                f"{prescription.patient.first_name} {prescription.patient.last_name}"
-                if prescription.patient else None
+                f'{prescription.patient.first_name} {prescription.patient.last_name}'
+                if prescription.patient
+                else None
             ),
             'doctor_id': prescription.doctor_id,
             'visit_id': prescription.visit_id,
@@ -243,21 +247,16 @@ class PharmacySaleService:
         if not sale_item:
             return {'error': 'Sale item not found'}
 
-        previously_returned = (
-            db.session.execute(
-                select(db.func.coalesce(db.func.sum(PharmacyReturn.quantity), 0)).filter(
-                    PharmacyReturn.sale_item_id == sale_item_id
-                )
+        previously_returned = db.session.execute(
+            select(db.func.coalesce(db.func.sum(PharmacyReturn.quantity), 0)).filter(
+                PharmacyReturn.sale_item_id == sale_item_id
             )
-            .scalar()
-        )
+        ).scalar()
         max_returnable = sale_item.quantity - (previously_returned or 0)
         if quantity <= 0:
             return {'error': 'Return quantity must be positive'}
         if quantity > max_returnable:
-            return {
-                'error': f'Return quantity exceeds max returnable ({max_returnable})'
-            }
+            return {'error': f'Return quantity exceeds max returnable ({max_returnable})'}
 
         if disposition not in ('RESTOCK', 'DISCARD'):
             return {'error': 'Disposition must be RESTOCK or DISCARD'}
@@ -300,8 +299,7 @@ class PharmacySaleService:
 
         sale = (
             db.session.execute(
-                select(PharmacySale)
-                .filter(
+                select(PharmacySale).filter(
                     PharmacySale.id == sale_id,
                     PharmacySale.tenant_id == tenant_id,
                 )
@@ -323,10 +321,7 @@ class PharmacySaleService:
         from models.medication import Prescription
 
         prescription = (
-            db.session.execute(
-                select(Prescription)
-                .filter(Prescription.id == prescription_id)
-            )
+            db.session.execute(select(Prescription).filter(Prescription.id == prescription_id))
             .scalars()
             .first()
         )

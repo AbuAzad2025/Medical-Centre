@@ -97,7 +97,7 @@ def dashboard():
 
         return render_template('accountant/dashboard.html', stats=stats)
     except Exception:
-        logging.exception("Error in payment dashboard: %s")
+        logging.exception('Error in payment dashboard: %s')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -460,7 +460,7 @@ def process_payment(visit_id):
             return redirect(url_for('reception.print_receipt', visit_id=visit_id))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception("Error processing payment: %s")
+            logging.exception('Error processing payment: %s')
             err = {'success': False, 'message': 'حدث خطأ في معالجة الدفع'}
             if _wants_json():
                 return jsonify(err), 500
@@ -534,7 +534,7 @@ def payment_history():
             date_to=date_to,
         )
     except Exception:
-        logging.exception("Error loading payment history: %s")
+        logging.exception('Error loading payment history: %s')
         flash('حدث خطأ في تحميل تاريخ المدفوعات', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -555,7 +555,7 @@ def payment_methods():
         ]
         return render_template('payment/methods.html', methods=methods)
     except Exception:
-        logging.exception("Error loading payment methods: %s")
+        logging.exception('Error loading payment methods: %s')
         flash('حدث خطأ في تحميل طرق الدفع', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -612,7 +612,7 @@ def payment_reports():
             method_stats=method_stats,
         )
     except Exception:
-        logging.exception("Error loading payment reports: %s")
+        logging.exception('Error loading payment reports: %s')
         flash('حدث خطأ في تحميل تقارير الدفع', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -641,7 +641,7 @@ def request_refund(payment_id):
         return redirect(url_for('payment.dashboard'))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error requesting refund: %s")
+        logging.exception('Error requesting refund: %s')
         flash('حدث خطأ أثناء طلب الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -661,7 +661,7 @@ def approve_refund(refund_id):
         return redirect(url_for('payment.dashboard'))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error approving refund: %s")
+        logging.exception('Error approving refund: %s')
         flash('حدث خطأ أثناء موافقة الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -681,7 +681,7 @@ def execute_refund(refund_id):
         return redirect(url_for('payment.dashboard'))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error executing refund: %s")
+        logging.exception('Error executing refund: %s')
         flash('حدث خطأ أثناء تنفيذ الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -710,7 +710,7 @@ def lookup_prescription_for_pos(prescription_id):
         return jsonify({'success': True, 'data': cart})
 
     except Exception:
-        logging.exception("Error looking up prescription for POS")
+        logging.exception('Error looking up prescription for POS')
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
@@ -750,7 +750,7 @@ def process_pharmacy_return():
         return jsonify({'success': True, 'data': result})
 
     except Exception:
-        logging.exception("Error processing pharmacy return")
+        logging.exception('Error processing pharmacy return')
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
@@ -786,7 +786,7 @@ def generate_insurance_claim():
         return jsonify({'success': True, 'data': result})
 
     except Exception:
-        logging.exception("Error generating insurance claim")
+        logging.exception('Error generating insurance claim')
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
@@ -802,8 +802,9 @@ def get_insurance_claim(claim_id):
 
         claim = (
             db.session.execute(
-                select(InsuranceClaim)
-                .filter(InsuranceClaim.id == claim_id, InsuranceClaim.tenant_id == tenant_id)
+                select(InsuranceClaim).filter(
+                    InsuranceClaim.id == claim_id, InsuranceClaim.tenant_id == tenant_id
+                )
             )
             .scalars()
             .first()
@@ -833,7 +834,7 @@ def get_insurance_claim(claim_id):
         )
 
     except Exception:
-        logging.exception("Error fetching insurance claim")
+        logging.exception('Error fetching insurance claim')
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
@@ -855,9 +856,7 @@ def adjudicate_insurance_claim(claim_id):
         if not tenant_id:
             return jsonify({'success': False, 'error': 'No tenant context'}), 400
 
-        approved = (
-            Decimal(str(approved_amount)) if approved_amount is not None else None
-        )
+        approved = Decimal(str(approved_amount)) if approved_amount is not None else None
 
         result = FinancialService.update_claim_status(
             claim_id=claim_id,
@@ -873,5 +872,5 @@ def adjudicate_insurance_claim(claim_id):
         return jsonify({'success': True, 'data': result})
 
     except Exception:
-        logging.exception("Error adjudicating insurance claim")
+        logging.exception('Error adjudicating insurance claim')
         return jsonify({'success': False, 'error': 'Internal server error'}), 500

@@ -108,7 +108,7 @@ def print_request(id: int):
         resp.headers['Pragma'] = 'no-cache'
         return resp
     except Exception:
-        logging.exception("Error printing lab request {id}: %s")
+        logging.exception('Error printing lab request {id}: %s')
         flash('حدث خطأ في طباعة تقرير المختبر', 'error')
         return redirect(url_for('lab.requests'))
 
@@ -137,5 +137,5 @@ def print_request_pdf(id: int):
             BytesIO(pdf_bytes), mimetype='application/pdf', as_attachment=True, download_name=fname
         )
     except Exception as e:
-        logging.exception("Error generating lab PDF {id}: %s")
+        logging.exception('Error generating lab PDF {id}: %s')
         return jsonify({'success': False, 'message': str(e)}), 500

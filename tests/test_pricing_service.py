@@ -449,9 +449,7 @@ class TestSeeders:
     def test_seed_pricing_catalog(self, rollback_db):
         # needs an admin/manager user present
         if not db.session.execute(
-            select(User).filter(
-                User.role.in_(['admin', 'manager', 'super_admin']), User.is_active
-            )
+            select(User).filter(User.role.in_(['admin', 'manager', 'super_admin']), User.is_active)
         ).scalar():
             u = User(
                 username='zz_admin_seed',
@@ -469,9 +467,7 @@ class TestSeeders:
     def test_seed_all(self, rollback_db):
         # ensure an admin exists so catalog seeding succeeds
         if not db.session.execute(
-            select(User).filter(
-                User.role.in_(['admin', 'manager', 'super_admin']), User.is_active
-            )
+            select(User).filter(User.role.in_(['admin', 'manager', 'super_admin']), User.is_active)
         ).scalar():
             u = User(
                 username='zz_admin_all',

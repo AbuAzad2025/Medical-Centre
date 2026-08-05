@@ -87,7 +87,7 @@ def backup():
             'super_admin/system_backup.html', backups=backups, stats=stats, settings=settings
         )
     except Exception:
-        logging.exception("Error loading backups: %s")
+        logging.exception('Error loading backups: %s')
         return render_template('super_admin/system_backup.html', backups=[], stats={}, settings={})
 
 
@@ -166,7 +166,7 @@ def create_backup():
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error creating backup: %s")
+        logging.exception('Error creating backup: %s')
         return jsonify({'success': False, 'message': 'تعذر إنشاء النسخة الاحتياطية حالياً'}), 500
 
 
@@ -198,7 +198,7 @@ def restore_backup(backup_id):
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error restoring backup: %s")
+        logging.exception('Error restoring backup: %s')
         return jsonify({'success': False, 'message': 'تعذر استعادة النسخة الاحتياطية حالياً'}), 500
 
 
@@ -222,7 +222,7 @@ def delete_backup(backup_id):
             try:
                 os.remove(backup.backup_path)
             except Exception:
-                logging.exception("Error deleting backup file: %s")
+                logging.exception('Error deleting backup file: %s')
 
         db.session.delete(backup)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
@@ -233,7 +233,7 @@ def delete_backup(backup_id):
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error deleting backup: %s")
+        logging.exception('Error deleting backup: %s')
         return jsonify({'success': False, 'message': 'تعذر حذف النسخة الاحتياطية حالياً'}), 500
 
 
@@ -270,7 +270,7 @@ def cancel_backup(backup_id):
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error cancelling backup: %s")
+        logging.exception('Error cancelling backup: %s')
         return jsonify({'success': False, 'message': 'تعذر إلغاء النسخة الاحتياطية حالياً'}), 500
 
 
@@ -327,7 +327,7 @@ def backup_schedule():
         from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error in backup schedule: %s")
+        logging.exception('Error in backup schedule: %s')
         return jsonify({'success': False, 'message': 'تعذر حفظ جدولة النسخ الاحتياطي حالياً'}), 500
 
 
@@ -354,7 +354,7 @@ def backup_report():
 
         return render_template('super_admin/backup_report.html', backups=backups, stats=stats)
     except Exception:
-        logging.exception("Error generating backup report: %s")
+        logging.exception('Error generating backup report: %s')
         flash('حدث خطأ في إنشاء التقرير', 'error')
         return redirect(url_for('super_admin.backup'))
 
@@ -399,7 +399,7 @@ def export_backup_logs():
         return output
 
     except Exception:
-        logging.exception("Error exporting backup logs: %s")
+        logging.exception('Error exporting backup logs: %s')
         flash('حدث خطأ في تصدير السجلات', 'error')
         return redirect(url_for('super_admin.backup'))
 
@@ -432,5 +432,5 @@ def backup_history():
 
         return jsonify({'success': True, 'history': history})
     except Exception:
-        logging.exception("Error getting backup history: %s")
+        logging.exception('Error getting backup history: %s')
         return jsonify({'success': False, 'message': 'تعذر جلب سجل النسخ الاحتياطي حالياً'}), 500

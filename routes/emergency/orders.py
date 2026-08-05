@@ -65,7 +65,7 @@ def prescription(emergency_id):
 
         return render_template('emergency/prescription.html', emergency=emergency)
     except Exception:
-        logging.exception("Error in emergency prescription: %s")
+        logging.exception('Error in emergency prescription: %s')
         flash('حدث خطأ في إنشاء الوصفة', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -107,7 +107,7 @@ def lab_request(emergency_id):
 
         return render_template('emergency/lab_request.html', emergency=emergency)
     except Exception:
-        logging.exception("Error in emergency lab request: %s")
+        logging.exception('Error in emergency lab request: %s')
         flash('حدث خطأ في إرسال طلب الفحوصات', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -153,7 +153,7 @@ def radiology_request(emergency_id):
 
         return render_template('emergency/radiology_request.html', emergency=emergency)
     except Exception:
-        logging.exception("Error in emergency radiology request: %s")
+        logging.exception('Error in emergency radiology request: %s')
         flash('حدث خطأ في إرسال طلب الأشعة', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -179,6 +179,6 @@ def print_prescription(prescription_id):
             'print/prescription.html', prescription=prescription, qr_data_uri=qr_data_uri
         )
     except Exception:
-        logging.exception("Error printing prescription: %s")
+        logging.exception('Error printing prescription: %s')
         flash('حدث خطأ في طباعة الوصفة', 'error')
         return redirect(url_for('emergency.patient_queue'))

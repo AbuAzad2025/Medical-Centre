@@ -115,7 +115,7 @@ class FinancialService:
             return {'ok': True, 'invoices': [inv.to_dict() for inv in invoices]}
         except Exception as e:
             safe_commit(db.session, error_message='Error reconciling visit payments')
-            logging.exception("Error reconciling visit payments: %s")
+            logging.exception('Error reconciling visit payments: %s')
             return {'ok': False, 'error': str(e)}
 
     @staticmethod
@@ -191,7 +191,7 @@ class FinancialService:
                 return None
             return invoice
         except Exception:
-            logging.exception("Error creating invoice: %s")
+            logging.exception('Error creating invoice: %s')
             return None
 
     @staticmethod
@@ -226,7 +226,7 @@ class FinancialService:
                 return False
             return safe_commit(db.session, error_message='Failed to record payment')
         except Exception:
-            logging.exception("Error recording payment: %s")
+            logging.exception('Error recording payment: %s')
             return False
 
     @staticmethod
@@ -318,9 +318,7 @@ class FinancialService:
             return {'success': False, 'available': True, 'expense': None, 'message': str(e)}
 
     @staticmethod
-    def create_insurance_claim(
-        invoice_id: int, tenant_id: int, user_id: int
-    ) -> dict:
+    def create_insurance_claim(invoice_id: int, tenant_id: int, user_id: int) -> dict:
         """Create an insurance claim from an issued invoice.
 
         Builds a claim record linked to the invoice and its visit.
@@ -333,8 +331,7 @@ class FinancialService:
         try:
             invoice = (
                 db.session.execute(
-                    select(Invoice)
-                    .filter(Invoice.id == invoice_id, Invoice.tenant_id == tenant_id)
+                    select(Invoice).filter(Invoice.id == invoice_id, Invoice.tenant_id == tenant_id)
                 )
                 .scalars()
                 .first()
@@ -349,9 +346,7 @@ class FinancialService:
                 }
 
             visit = (
-                db.session.execute(
-                    select(Visit).filter(Visit.id == invoice.visit_id).limit(1)
-                )
+                db.session.execute(select(Visit).filter(Visit.id == invoice.visit_id).limit(1))
                 .scalars()
                 .first()
             )
@@ -399,10 +394,7 @@ class FinancialService:
 
         try:
             claim = (
-                db.session.execute(
-                    select(InsuranceClaim)
-                    .filter(InsuranceClaim.id == claim_id)
-                )
+                db.session.execute(select(InsuranceClaim).filter(InsuranceClaim.id == claim_id))
                 .scalars()
                 .first()
             )

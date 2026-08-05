@@ -100,7 +100,7 @@ class AdvancedReportService:
             }
 
         except Exception:
-            logging.exception("Error generating patient analytics: %s")
+            logging.exception('Error generating patient analytics: %s')
             return {'success': False, 'message': 'تعذر تحليل بيانات المرضى حالياً'}
 
     @staticmethod
@@ -192,7 +192,7 @@ class AdvancedReportService:
             }
 
         except Exception:
-            logging.exception("Error generating visit analytics: %s")
+            logging.exception('Error generating visit analytics: %s')
             return {'success': False, 'message': 'تعذر تحليل بيانات الزيارات حالياً'}
 
     @staticmethod
@@ -326,7 +326,7 @@ class AdvancedReportService:
             }
 
         except Exception:
-            logging.exception("Error generating financial analytics: %s")
+            logging.exception('Error generating financial analytics: %s')
             return {'success': False, 'message': 'تعذر تحليل البيانات المالية حالياً'}
 
     @staticmethod
@@ -428,7 +428,7 @@ class AdvancedReportService:
             }
 
         except Exception:
-            logging.exception("Error generating doctor performance analytics: %s")
+            logging.exception('Error generating doctor performance analytics: %s')
             return {'success': False, 'message': 'تعذر تحليل أداء الأطباء حالياً'}
 
     @staticmethod
@@ -525,7 +525,7 @@ class AdvancedReportService:
             }
 
         except Exception:
-            logging.exception("Error generating department analytics: %s")
+            logging.exception('Error generating department analytics: %s')
             return {'success': False, 'message': 'تعذر تحليل بيانات الأقسام حالياً'}
 
     @staticmethod
@@ -548,9 +548,7 @@ class AdvancedReportService:
             )
             active_users = (
                 db.session.execute(
-                    select(func.count()).select_from(
-                        users_query.filter(User.is_active).subquery()
-                    )
+                    select(func.count()).select_from(users_query.filter(User.is_active).subquery())
                 ).scalar()
                 or 0
             )
@@ -645,7 +643,7 @@ class AdvancedReportService:
             }
 
         except Exception:
-            logging.exception("Error generating system usage analytics: %s")
+            logging.exception('Error generating system usage analytics: %s')
             return {'success': False, 'message': 'تعذر تحليل استخدام النظام حالياً'}
 
     @staticmethod
@@ -692,7 +690,7 @@ class AdvancedReportService:
             }
 
         except Exception:
-            logging.exception("Error generating comprehensive report: %s")
+            logging.exception('Error generating comprehensive report: %s')
             return {'success': False, 'message': 'تعذر إنشاء التقرير الشامل حالياً'}
 
     @staticmethod
@@ -716,5 +714,5 @@ class AdvancedReportService:
             return {'success': False, 'message': 'تنسيق التصدير غير مدعوم'}
 
         except Exception:
-            logging.exception("Error exporting analytics: %s")
+            logging.exception('Error exporting analytics: %s')
             return {'success': False, 'message': 'تعذر تصدير التحليلات حالياً'}

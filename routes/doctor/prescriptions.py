@@ -47,9 +47,7 @@ def _check_drug_interaction_warnings(used_med_ids):
             ]
             rows = (
                 db.session.execute(
-                    select(DrugInteraction)
-                    .filter(DrugInteraction.is_active)
-                    .filter(or_(*conds))
+                    select(DrugInteraction).filter(DrugInteraction.is_active).filter(or_(*conds))
                 )
                 .scalars()
                 .all()
@@ -479,7 +477,7 @@ def prescription(visit_id):
             visit_prescriptions=visit_prescriptions,
         )
     except Exception:
-        logging.exception("Error in prescription: %s")
+        logging.exception('Error in prescription: %s')
         flash('حدث خطأ في حفظ الوصفة', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -503,7 +501,7 @@ def print_prescription(prescription_id):
             'print/prescription.html', prescription=prescription, qr_data_uri=qr_data_uri
         )
     except Exception:
-        logging.exception("Error printing prescription: %s")
+        logging.exception('Error printing prescription: %s')
         flash('حدث خطأ في طباعة الوصفة', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -560,6 +558,6 @@ def prescriptions():
             pages=pages,
         )
     except Exception:
-        logging.exception("Error loading prescriptions: %s")
+        logging.exception('Error loading prescriptions: %s')
         flash('حدث خطأ في تحميل الوصفات', 'error')
         return redirect(url_for('doctor.dashboard'))

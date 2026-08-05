@@ -120,7 +120,7 @@ def api_department_staff():
 
         return jsonify({'staff': results})
     except Exception:
-        logging.exception("Error getting department staff: %s")
+        logging.exception('Error getting department staff: %s')
         return jsonify({'error': 'حدث خطأ في جلب الموظفين'}), 500
 
 
@@ -203,7 +203,7 @@ def api_queue_status(department_id):
         return jsonify({'success': False, 'message': 'خطأ في جلب حالة الطابور'})
 
     except Exception:
-        logging.exception("Error getting queue status: %s")
+        logging.exception('Error getting queue status: %s')
         return jsonify({'success': False, 'message': 'تعذر جلب حالة الطابور حالياً'})
 
 
@@ -250,16 +250,8 @@ def api_queue_status_all():
         search = (request.args.get('search') or '').strip() or None
         is_emergency = request.args.get('is_emergency')
         force_entry = request.args.get('force_entry')
-        is_emergency = (
-            (is_emergency in {'1', 'true', 'on'})
-            if is_emergency is not None
-            else None
-        )
-        force_entry = (
-            (force_entry in {'1', 'true', 'on'})
-            if force_entry is not None
-            else None
-        )
+        is_emergency = (is_emergency in {'1', 'true', 'on'}) if is_emergency is not None else None
+        force_entry = (force_entry in {'1', 'true', 'on'}) if force_entry is not None else None
         # فلترة القسم المحدد ضمن الأقسام المسموح بها
         selected_dep = request.args.get('department_id', type=int)
         if selected_dep and selected_dep in dept_ids:
@@ -277,7 +269,7 @@ def api_queue_status_all():
             return jsonify({'success': True, 'data': data})
         return jsonify({'success': False, 'message': 'خطأ في جلب حالة الطابور الموحد'})
     except Exception:
-        logging.exception("Error getting all queue status: %s")
+        logging.exception('Error getting all queue status: %s')
         return jsonify({'success': False, 'message': 'تعذر جلب حالة الطابور الموحد حالياً'})
 
 
@@ -324,7 +316,7 @@ def api_queue_wait_metrics():
         data = queue_service.get_wait_metrics_today(dept_ids)
         return jsonify({'success': True, 'data': data})
     except Exception:
-        logging.exception("Error getting queue wait metrics: %s")
+        logging.exception('Error getting queue wait metrics: %s')
         return jsonify({'success': False, 'message': 'تعذر جلب مؤشرات الانتظار حالياً'})
 
 
@@ -373,7 +365,7 @@ def api_fhir_patient(patient_id):
         }
         return jsonify(resource)
     except Exception:
-        logging.exception("Error exporting FHIR Patient: %s")
+        logging.exception('Error exporting FHIR Patient: %s')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -445,7 +437,7 @@ def api_fhir_encounter(visit_id):
         }
         return jsonify(resource)
     except Exception:
-        logging.exception("Error exporting FHIR Encounter: %s")
+        logging.exception('Error exporting FHIR Encounter: %s')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -516,7 +508,7 @@ def api_fhir_appointment(appointment_id):
         }
         return jsonify(resource)
     except Exception:
-        logging.exception("Error exporting FHIR Appointment: %s")
+        logging.exception('Error exporting FHIR Appointment: %s')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -574,7 +566,7 @@ def api_fhir_practitioner(user_id):
         }
         return jsonify(resource)
     except Exception:
-        logging.exception("Error exporting FHIR Practitioner: %s")
+        logging.exception('Error exporting FHIR Practitioner: %s')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -618,7 +610,7 @@ def api_fhir_organization(department_id):
         }
         return jsonify(resource)
     except Exception:
-        logging.exception("Error exporting FHIR Organization: %s")
+        logging.exception('Error exporting FHIR Organization: %s')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -644,7 +636,7 @@ def api_patient_queue_position(patient_id, department_id):
         return jsonify({'success': False, 'message': message})
 
     except Exception:
-        logging.exception("Error getting queue position: %s")
+        logging.exception('Error getting queue position: %s')
         return jsonify({'success': False, 'message': 'تعذر جلب موقع المريض في الطابور حالياً'})
 
 
@@ -692,7 +684,7 @@ def api_queue_snapshot():
             }
         )
     except Exception:
-        logging.exception("Error getting queue snapshot: %s")
+        logging.exception('Error getting queue snapshot: %s')
         return jsonify({'success': False, 'message': 'تعذر جلب بيانات الطابور حالياً'}), 500
 
 
@@ -758,7 +750,7 @@ def api_display_waiting():
             }
         )
     except Exception:
-        logging.exception("Error getting waiting display: %s")
+        logging.exception('Error getting waiting display: %s')
         return jsonify({'success': False, 'message': 'تعذر جلب شاشة الانتظار حالياً'}), 500
 
 
@@ -798,7 +790,7 @@ def api_display_calls():
             )
         return jsonify({'success': True, 'items': items})
     except Exception:
-        logging.exception("Error getting calls display: %s")
+        logging.exception('Error getting calls display: %s')
         return jsonify({'success': False, 'message': 'تعذر جلب شاشة النداء حالياً'}), 500
 
 

@@ -559,7 +559,7 @@ def handle_route_errors(f):
             return f(*args, **kwargs)
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception("Unhandled error in {f.__name__}: %s")
+            logging.exception('Unhandled error in {f.__name__}: %s')
             if request.headers.get('Accept') and 'application/json' in request.headers.get(
                 'Accept', ''
             ):

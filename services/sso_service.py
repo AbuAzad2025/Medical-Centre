@@ -67,7 +67,7 @@ class SSOService:
                 return None
             return cfg
         except Exception:
-            logging.exception("Error creating SSO config: %s")
+            logging.exception('Error creating SSO config: %s')
             return None
 
     @staticmethod

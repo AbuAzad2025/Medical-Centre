@@ -205,9 +205,12 @@ class TestPaymentConcurrentIdempotency:
             mock_execute_result = MagicMock()
             mock_execute_result.scalars.return_value.first.return_value = mock_payment
 
-            with patch(
-                'services.payment_service.db.session.execute', return_value=mock_execute_result
-            ), patch('services.payment_service.db.session.flush'):
+            with (
+                patch(
+                    'services.payment_service.db.session.execute', return_value=mock_execute_result
+                ),
+                patch('services.payment_service.db.session.flush'),
+            ):
                 ok, result = PaymentService.create_payment(
                     tenant_id=1,
                     operation_type='payment',

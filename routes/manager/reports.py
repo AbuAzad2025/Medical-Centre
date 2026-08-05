@@ -152,7 +152,7 @@ def reports_center():
             saved_templates=saved_templates,
         )
     except Exception:
-        logging.exception("Manager reports center error: %s")
+        logging.exception('Manager reports center error: %s')
         return render_template(
             'manager/reports_center.html',
             report='',
@@ -242,7 +242,7 @@ def analytics():
             'manager/monitoring.html', units_status=units_status, billing_active=billing_active
         )
     except Exception:
-        logging.exception("Error in analytics monitoring: %s")
+        logging.exception('Error in analytics monitoring: %s')
         flash('حدث خطأ في تحميل التحليلات', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -281,7 +281,7 @@ def self_service():
             billing_active=billing_active,
         )
     except Exception:
-        logging.exception("Error in self service analytics: %s")
+        logging.exception('Error in self service analytics: %s')
         return render_template(
             'manager/self_service.html', report_type='patients', data={}, start_date='', end_date=''
         )
@@ -322,7 +322,7 @@ def kpi_dashboard():
         )
 
     except Exception:
-        logging.exception("Error loading KPI dashboard: %s")
+        logging.exception('Error loading KPI dashboard: %s')
         flash('حدث خطأ في تحميل لوحة المؤشرات', 'error')
         return redirect(url_for('manager.dashboard'))
 

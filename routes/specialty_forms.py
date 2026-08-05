@@ -75,7 +75,7 @@ def new_form():
             flash('حدث خطأ أثناء إنشاء النموذج', 'error')
             import logging
 
-            logging.exception("Error creating specialty form: %s")
+            logging.exception('Error creating specialty form: %s')
     return render_template('specialty_forms/new.html')
 
 
@@ -121,7 +121,7 @@ def edit_version(form_id, version_id):
             flash('حدث خطأ أثناء حفظ النموذج', 'error')
             import logging
 
-            logging.exception("Error editing specialty form: %s")
+            logging.exception('Error editing specialty form: %s')
     return render_template('specialty_forms/edit.html', form=form, version=version)
 
 
@@ -155,7 +155,7 @@ def publish_version(form_id, version_id):
         flash('حدث خطأ أثناء نشر النسخة', 'error')
         import logging
 
-        logging.exception("Error publishing specialty form: %s")
+        logging.exception('Error publishing specialty form: %s')
         return redirect(
             url_for('specialty_forms.edit_version', form_id=form.id, version_id=version.id)
         )
@@ -203,7 +203,7 @@ def fill_form(form_id):
             flash('حدث خطأ أثناء حفظ الإجابات', 'error')
             import logging
 
-            logging.exception("Error saving specialty form submission: %s")
+            logging.exception('Error saving specialty form submission: %s')
     patients = (
         db.session.execute(
             select(Patient).order_by(Patient.first_name, Patient.last_name).limit(200)

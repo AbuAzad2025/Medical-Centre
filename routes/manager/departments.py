@@ -34,7 +34,7 @@ def departments():
         )
         return render_template('manager/departments.html', departments=departments)
     except Exception:
-        logging.exception("Error loading departments: %s")
+        logging.exception('Error loading departments: %s')
         flash('حدث خطأ في تحميل الأقسام', 'error')
         return redirect(url_for('manager.dashboard'))
 

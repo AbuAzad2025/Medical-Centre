@@ -105,13 +105,13 @@ class InsuranceClaim(TenantMixin, db.Model):
         self.status = InsuranceClaimStatus.SUBMITTED
         self.claim_date = datetime.now(UTC)
 
-    def adjudicate(
-        self, approved_amount, status: str, notes: str | None = None
-    ) -> None:
+    def adjudicate(self, approved_amount, status: str, notes: str | None = None) -> None:
         """Adjudicate the claim with an approved amount and status."""
         from app.shared.enums import InsuranceClaimStatus
 
-        approved_amount = Decimal(str(approved_amount)) if approved_amount is not None else Decimal(0)
+        approved_amount = (
+            Decimal(str(approved_amount)) if approved_amount is not None else Decimal(0)
+        )
         self.status = status
         self.approved_amount = approved_amount
         self.adjudication_notes = notes

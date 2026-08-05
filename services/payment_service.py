@@ -155,11 +155,11 @@ class PaymentService:
                 )
                 if existing:
                     return True, existing
-                logging.exception("Payment IntegrityError (non-idempotency)")
+                logging.exception('Payment IntegrityError (non-idempotency)')
                 return False, str(e)
             except Exception as e:
                 safe_rollback(db.session, error_message='فشل إنشاء الدفعة')
-                logging.exception("Error creating payment: %s")
+                logging.exception('Error creating payment: %s')
                 return False, str(e)
             finally:
                 lock.release(lock_key)
@@ -201,7 +201,7 @@ class PaymentService:
             return True, payment
         except Exception as e:
             safe_rollback(db.session, error_message='فشل إنشاء الدفعة')
-            logging.exception("Error creating payment: %s")
+            logging.exception('Error creating payment: %s')
             return False, str(e)
 
 

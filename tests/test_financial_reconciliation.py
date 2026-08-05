@@ -244,7 +244,7 @@ class TestInsuranceClaim:
             tenant_id=test_tenant.id,
             user_id=1,
         )
-        assert result['ok'] is True, f"create_claim failed: {result}"
+        assert result['ok'] is True, f'create_claim failed: {result}'
         assert 'claim_id' in result
         assert 'claim_number' in result
 
@@ -332,7 +332,7 @@ class TestInsuranceClaim:
             tenant_id=test_tenant.id,
         )
         if not result['ok']:
-            print(f"DEBUG update_claim_status error: {result}")
+            print(f'DEBUG update_claim_status error: {result}')
         assert result['ok'] is True
 
         _db.session.refresh(claim)
@@ -473,7 +473,7 @@ class TestInsuranceClaim:
             resp = client.get(f'/payment/api/insurance/claims/{claim_id}')
             data = resp.get_json()
             if resp.status_code != 200:
-                print(f"DEBUG get_claim: status={resp.status_code}, data={data}")
+                print(f'DEBUG get_claim: status={resp.status_code}, data={data}')
 
             assert resp.status_code == 200
             assert data['success'] is True

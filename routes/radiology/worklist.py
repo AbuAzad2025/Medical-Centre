@@ -136,7 +136,7 @@ def worklist():
             visits_by_id=visits_by_id,
         )
     except Exception:
-        logging.exception("Error loading radiology worklist: %s")
+        logging.exception('Error loading radiology worklist: %s')
         flash('حدث خطأ في تحميل قائمة العمل', 'error')
         return redirect(url_for('radiology.dashboard'))
 
@@ -177,7 +177,7 @@ def worklist_request(request_id):
             visit_summary=visit_summary,
         )
     except Exception:
-        logging.exception("Error loading radiology request {request_id}: %s")
+        logging.exception('Error loading radiology request {request_id}: %s')
         flash('حدث خطأ في تحميل الطلب', 'error')
         return redirect(url_for('radiology.worklist'))
 
@@ -201,7 +201,7 @@ def worklist_claim(request_id):
         flash('تم استلام الطلب', 'success')
         return redirect(url_for('radiology.worklist', status='IN_PROGRESS'))
     except Exception:
-        logging.exception("Error claiming radiology request: %s")
+        logging.exception('Error claiming radiology request: %s')
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
         flash('حدث خطأ', 'error')
@@ -322,7 +322,7 @@ def worklist_complete(request_id):
         return redirect(url_for('radiology.worklist_request', request_id=req.id))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error completing radiology request: %s")
+        logging.exception('Error completing radiology request: %s')
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
         flash('حدث خطأ', 'error')

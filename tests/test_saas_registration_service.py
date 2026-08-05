@@ -151,10 +151,13 @@ class TestPaymentRequiredPending:
         monkeypatch.setenv('STRIPE_SECRET_KEY', 'sk_test_reg')
         version = _seed_package_version(trial_days=0)
         slug = f'chk-{uuid.uuid4().hex[:6]}'
-        with tenant_test_context(app, bypass=True), patch.object(
-            SaasRegistrationService,
-            '_maybe_create_checkout',
-            return_value='https://checkout.stripe.test/session',
+        with (
+            tenant_test_context(app, bypass=True),
+            patch.object(
+                SaasRegistrationService,
+                '_maybe_create_checkout',
+                return_value='https://checkout.stripe.test/session',
+            ),
         ):
             result = SaasRegistrationService.register_organization(
                 **_signup_kwargs(version.id, slug)
@@ -268,9 +271,12 @@ class TestResolveDefaultPackage:
         monkeypatch.delenv('SAAS_DEFAULT_PACKAGE_VERSION_ID', raising=False)
         fake_result = MagicMock()
         fake_result.scalars.return_value.first.return_value = None
-        with patch(
-            'services.saas_registration_service.db.session.execute', return_value=fake_result
-        ), pytest.raises(SaasRegistrationError, match='no_default_package'):
+        with (
+            patch(
+                'services.saas_registration_service.db.session.execute', return_value=fake_result
+            ),
+            pytest.raises(SaasRegistrationError, match='no_default_package'),
+        ):
             SaasRegistrationService.resolve_default_package_version_id()
 
 

@@ -160,7 +160,7 @@ class SmartAIEngine:
             return self._handle_general_search(message)
 
         except Exception as e:
-            logging.exception("AI Engine Error: %s")
+            logging.exception('AI Engine Error: %s')
             return {'response': f'عذراً، حدث خطأ في معالجة سؤالك: {e!s}', 'actions': []}
 
     def _is_calculation(self, message):

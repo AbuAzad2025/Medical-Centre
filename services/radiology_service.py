@@ -234,7 +234,7 @@ class RadiologyService:
             return result
         except Exception:
             safe_rollback(db.session, error_message='فشل إنشاء نتيجة الأشعة')
-            logging.exception("Error creating radiology result: %s")
+            logging.exception('Error creating radiology result: %s')
             return None
 
     @staticmethod
@@ -263,7 +263,7 @@ class RadiologyService:
             safe_commit(db.session, error_message='فشل اعتماد نتيجة الأشعة', reraise=True)
             return True
         except Exception:
-            logging.exception("Error finalizing radiology result: %s")
+            logging.exception('Error finalizing radiology result: %s')
             return False
 
     @staticmethod
@@ -287,7 +287,7 @@ class RadiologyService:
             safe_commit(db.session, error_message='فشل استلام طلب الأشعة', reraise=True)
             return True
         except Exception:
-            logging.exception("Error claiming radiology request: %s")
+            logging.exception('Error claiming radiology request: %s')
             return False
 
     # ==================== FILE UPLOADS ====================
@@ -388,7 +388,7 @@ class RadiologyService:
             db.session.add(log)
             safe_commit(db.session, error_message='فشل تسجيل إجراء الأشعة')
         except Exception:
-            logging.exception("Error logging radiology action: %s")
+            logging.exception('Error logging radiology action: %s')
 
     # ==================== DASHBOARD ====================
 

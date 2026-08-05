@@ -68,7 +68,7 @@ def interactions():
             return redirect(url_for('medication.interactions'))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception("Error saving interaction: %s")
+            logging.exception('Error saving interaction: %s')
             flash('حدث خطأ في حفظ التداخل', 'error')
             return redirect(url_for('medication.interactions'))
 
@@ -111,5 +111,5 @@ def toggle_interaction(interaction_id: int):
         return jsonify({'success': True, 'is_active': bool(row.is_active)}), 200
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error toggling interaction: %s")
+        logging.exception('Error toggling interaction: %s')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

@@ -60,7 +60,7 @@ def treatment(emergency_id):
 
         return render_template('emergency/emergency_treatment.html', emergency=emergency)
     except Exception:
-        logging.exception("Error in emergency treatment: %s")
+        logging.exception('Error in emergency treatment: %s')
         flash('حدث خطأ في تسجيل العلاج', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -101,7 +101,7 @@ def end_treatment(emergency_id):
         flash('تم إنهاء العلاج بنجاح وإخطار الاستقبال', 'success')
         return redirect(url_for('emergency.patient_queue'))
     except Exception:
-        logging.exception("Error ending emergency treatment: %s")
+        logging.exception('Error ending emergency treatment: %s')
         flash('حدث خطأ في إنهاء العلاج', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -128,7 +128,7 @@ def start_treatment(emergency_id):
         flash('تم بدء العلاج بنجاح', 'success')
         return redirect(url_for('emergency.patient_details', emergency_id=emergency_id))
     except Exception:
-        logging.exception("Error starting treatment: %s")
+        logging.exception('Error starting treatment: %s')
         flash('حدث خطأ في بدء العلاج', 'error')
         return redirect(url_for('emergency.patient_queue'))
 
@@ -149,7 +149,7 @@ def emergency_visits():
         )
         return render_template('emergency/emergency_visits.html', visits=visits)
     except Exception:
-        logging.exception("Error loading emergency visits: %s")
+        logging.exception('Error loading emergency visits: %s')
         flash('حدث خطأ في تحميل زيارات الطوارئ', 'error')
         return redirect(url_for('emergency.dashboard'))
 
@@ -193,7 +193,7 @@ def emergency_treatment(visit_id):
             return jsonify({'success': True})
         return render_template('emergency/emergency_treatment.html', visit=visit)
     except Exception:
-        logging.exception("Error in emergency treatment: %s")
+        logging.exception('Error in emergency treatment: %s')
         if request.method == 'POST':
             return jsonify({'success': False, 'error': 'حدث خطأ أثناء حفظ العلاج الإسعافي'}), 500
         flash('حدث خطأ في تحميل صفحة العلاج الإسعافي', 'error')
@@ -233,6 +233,6 @@ def complete_visit(visit_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True}), 200
     except Exception:
-        logging.exception("Complete emergency visit error: %s")
+        logging.exception('Complete emergency visit error: %s')
         safe_rollback(db.session, error_message='database rollback')
         return jsonify({'success': False, 'message': 'تعذر إنهاء الزيارة حالياً'}), 500

@@ -95,4 +95,3 @@ for _i, _issue in enumerate(issues, 1):
 
 for _i, _issue in enumerate(js_issues, 1):
     pass
-

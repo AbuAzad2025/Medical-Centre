@@ -50,7 +50,11 @@ def fx(rollback_db):
         return p
 
     def visit(**kw):
-        params = {'patient_id': patient().id, 'status': VisitState.OPEN, 'created_at': datetime.now(UTC)}
+        params = {
+            'patient_id': patient().id,
+            'status': VisitState.OPEN,
+            'created_at': datetime.now(UTC),
+        }
         params.update(kw)
         v = Visit(**params)
         db.session.add(v)

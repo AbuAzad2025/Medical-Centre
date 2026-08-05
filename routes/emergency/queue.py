@@ -84,7 +84,7 @@ def patient_queue():
             total=total,
         )
     except Exception:
-        logging.exception("Error loading emergency queue: %s")
+        logging.exception('Error loading emergency queue: %s')
         flash('حدث خطأ في تحميل طابور الطوارئ', 'error')
         return redirect(url_for('emergency.dashboard'))
 
@@ -102,7 +102,7 @@ def triage_list():
     try:
         return redirect(url_for('emergency.patient_queue'))
     except Exception:
-        logging.exception("Error loading triage list: %s")
+        logging.exception('Error loading triage list: %s')
         flash('حدث خطأ في تحميل قائمة الفرز', 'error')
         return redirect(url_for('emergency.dashboard'))
 
@@ -197,7 +197,7 @@ def triage(emergency_id):
 
         return render_template('emergency/triage.html', emergency=emergency, visit=visit)
     except Exception:
-        logging.exception("Error in triage: %s")
+        logging.exception('Error in triage: %s')
         flash('حدث خطأ في تقييم حالة المريض', 'error')
         return redirect(url_for('emergency.patient_queue'))
 

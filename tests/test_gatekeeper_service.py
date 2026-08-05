@@ -457,7 +457,6 @@ class TestValidateForcePayment:
 
         fake_visit = types.SimpleNamespace(created_by=12345)
 
-
         class _FakeResult:
             def scalar(self_inner):
                 return 10

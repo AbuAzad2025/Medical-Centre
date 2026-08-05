@@ -62,7 +62,7 @@ def view_material(material_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error updating view count: %s")
+        logging.exception('Error updating view count: %s')
     assignments = (
         db.session.execute(
             select(PatientEducationAssignment)

@@ -133,7 +133,7 @@ def add_reagent():
             return redirect(url_for('lab.reagents'))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception("Error adding reagent: %s")
+            logging.exception('Error adding reagent: %s')
             flash('حدث خطأ أثناء الإضافة', 'error')
             return redirect(url_for('lab.add_reagent'))
     return render_template('lab/reagent_form.html', reagent=None)
@@ -209,7 +209,7 @@ def edit_reagent(reagent_id: int):
             return redirect(url_for('lab.reagents'))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception("Error editing reagent: %s")
+            logging.exception('Error editing reagent: %s')
             flash('حدث خطأ أثناء التحديث', 'error')
             return redirect(url_for('lab.edit_reagent', reagent_id=reagent_id))
     return render_template('lab/reagent_form.html', reagent=reagent)

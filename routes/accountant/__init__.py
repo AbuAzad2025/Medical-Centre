@@ -139,7 +139,7 @@ def get_accounting_smart_analytics():
             'efficiency_score': calculate_accounting_efficiency(collection_rate, open_invoices),
         }
     except Exception:
-        logging.exception("Error getting accounting smart analytics: %s")
+        logging.exception('Error getting accounting smart analytics: %s')
         return {}
 
 
@@ -190,7 +190,7 @@ def get_financial_forecasting():
             'growth_rate': calculate_growth_rate(monthly_data),
         }
     except Exception:
-        logging.exception("Error getting financial forecasting: %s")
+        logging.exception('Error getting financial forecasting: %s')
         return {}
 
 
@@ -266,7 +266,7 @@ def get_cash_flow_analysis():
             'cash_flow_health': calculate_cash_flow_health(weekly_inflow, pending_amount),
         }
     except Exception:
-        logging.exception("Error getting cash flow analysis: %s")
+        logging.exception('Error getting cash flow analysis: %s')
         return {}
 
 
@@ -355,7 +355,7 @@ def get_payment_optimization():
             'efficiency_score': calculate_payment_efficiency(payment_method_analysis),
         }
     except Exception:
-        logging.exception("Error getting payment optimization: %s")
+        logging.exception('Error getting payment optimization: %s')
         return {}
 
 
@@ -419,7 +419,7 @@ def get_financial_health_monitoring():
             'health_score': calculate_financial_health_score(collection_rate, outstanding_amount),
         }
     except Exception:
-        logging.exception("Error getting financial health monitoring: %s")
+        logging.exception('Error getting financial health monitoring: %s')
         return {}
 
 
@@ -483,7 +483,7 @@ def get_smart_recommendations():
             'medium_priority': len([r for r in recommendations if r['priority'] == 'medium']),
         }
     except Exception:
-        logging.exception("Error getting smart recommendations: %s")
+        logging.exception('Error getting smart recommendations: %s')
         return {'recommendations': [], 'total_recommendations': 0}
 
 

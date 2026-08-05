@@ -166,7 +166,7 @@ class ReportService:
             }
 
         except Exception:
-            logging.exception("Error getting dashboard summary: %s")
+            logging.exception('Error getting dashboard summary: %s')
             return {'success': False, 'message': 'تعذر جلب ملخص لوحة التحكم حالياً'}
 
     @staticmethod
@@ -257,7 +257,7 @@ class ReportService:
             }
 
         except Exception:
-            logging.exception("Error getting patient report: %s")
+            logging.exception('Error getting patient report: %s')
             return {'success': False, 'message': 'تعذر جلب تقرير المريض حالياً'}
 
     @staticmethod
@@ -355,7 +355,7 @@ class ReportService:
             }
 
         except Exception:
-            logging.exception("Error getting department report: %s")
+            logging.exception('Error getting department report: %s')
             return {'success': False, 'message': 'تعذر جلب تقرير القسم حالياً'}
 
     @staticmethod
@@ -428,7 +428,7 @@ class ReportService:
             }
 
         except Exception:
-            logging.exception("Error getting financial report: %s")
+            logging.exception('Error getting financial report: %s')
             return {'success': False, 'message': 'تعذر جلب التقرير المالي حالياً'}
 
     @staticmethod
@@ -520,7 +520,7 @@ class ReportService:
             }
 
         except Exception:
-            logging.exception("Error getting doctor performance report: %s")
+            logging.exception('Error getting doctor performance report: %s')
             return {'success': False, 'message': 'تعذر جلب تقرير أداء الطبيب حالياً'}
 
     @staticmethod
@@ -544,7 +544,7 @@ class ReportService:
             return {'success': False, 'message': 'تنسيق التصدير غير مدعوم'}
 
         except Exception:
-            logging.exception("Error exporting report: %s")
+            logging.exception('Error exporting report: %s')
             return {'success': False, 'message': 'تعذر تصدير التقرير حالياً'}
 
     # ==================== تقارير التدقيق (الأسبوع الثاني) ====================
@@ -1242,7 +1242,7 @@ class ReportService:
                 'queries': queries,
             }
         except Exception:
-            logging.exception("Error generating slow queries report: %s")
+            logging.exception('Error generating slow queries report: %s')
             return {'success': False, 'message': 'تعذر إنشاء تقرير الاستعلامات البطيئة حالياً'}
 
     @staticmethod
@@ -1279,5 +1279,5 @@ class ReportService:
                 return {'success': False, 'message': 'تعذر حفظ تقرير الاستعلامات الأسبوعي'}
             return {'success': True, 'report_id': rq.id}
         except Exception:
-            logging.exception("Error capturing weekly slow queries: %s")
+            logging.exception('Error capturing weekly slow queries: %s')
             return {'success': False, 'message': 'تعذر حفظ تقرير الاستعلامات الأسبوعي'}

@@ -52,7 +52,7 @@ def pricing():
 
         return render_template('manager/pricing.html', services=services, departments=departments)
     except Exception:
-        logging.exception("Error loading pricing: %s")
+        logging.exception('Error loading pricing: %s')
         flash('حدث خطأ في تحميل إدارة الأسعار', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -242,5 +242,5 @@ def seed_pricing():
             {'success': res.get('success', False), 'message': res.get('message', '')}
         ), status
     except Exception:
-        logging.exception("Error seeding pricing: %s")
+        logging.exception('Error seeding pricing: %s')
         return jsonify({'success': False, 'message': 'حدث خطأ في إضافة الأسعار المقترحة'}), 500

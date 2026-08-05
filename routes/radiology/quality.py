@@ -183,7 +183,7 @@ def api_ai_assist():
         }
         return jsonify({'success': True, 'data': payload}), 200
     except Exception:
-        logging.exception("Error generating radiology AI assist: %s")
+        logging.exception('Error generating radiology AI assist: %s')
         return jsonify({'success': False, 'message': 'تعذر توليد توصيات AI'}), 500
 
 
@@ -211,5 +211,5 @@ def second_review_result(result_id):
         return jsonify({'success': True}), 200
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Second review radiology result error: %s")
+        logging.exception('Second review radiology result error: %s')
         return jsonify({'success': False, 'message': 'تعذر حفظ المراجعة حالياً'}), 500

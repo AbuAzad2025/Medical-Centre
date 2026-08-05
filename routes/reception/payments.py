@@ -113,7 +113,7 @@ def process_payment(visit_id):
         return redirect(url_for('reception.view_visit', visit_id=visit_id))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error sending visit to accounting: %s")
+        logging.exception('Error sending visit to accounting: %s')
         flash('حدث خطأ أثناء إرسال الزيارة للمحاسبة.', 'error')
         return redirect(url_for('reception.queue_management'))
 
@@ -393,7 +393,7 @@ def daily_close():
             return redirect(url_for('reception.cash_register'))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception("Error in daily close: %s")
+            logging.exception('Error in daily close: %s')
             flash('حدث خطأ أثناء إغلاق اليومية', 'error')
             return redirect(url_for('reception.cash_register'))
     return render_template('reception/daily_close.html', register=reg)

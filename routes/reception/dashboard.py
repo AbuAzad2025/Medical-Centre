@@ -78,13 +78,11 @@ def reception_staff_schedule():
             return redirect(url_for('reception.reception_staff_schedule', user_id=user_id))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception("")
+            logging.exception('')
             flash('حدث خطأ في حفظ الجدول', 'danger')
     users = (
         db.session.execute(
-            select(User).filter(
-                User.role.in_(['doctor', 'lab', 'radiology']), User.is_active
-            )
+            select(User).filter(User.role.in_(['doctor', 'lab', 'radiology']), User.is_active)
         )
         .scalars()
         .all()
@@ -127,13 +125,11 @@ def reception_staff_absence():
             return redirect(url_for('reception.reception_staff_absence', user_id=user_id))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception("")
+            logging.exception('')
             flash('حدث خطأ في إضافة الغياب', 'danger')
     users = (
         db.session.execute(
-            select(User).filter(
-                User.role.in_(['doctor', 'lab', 'radiology']), User.is_active
-            )
+            select(User).filter(User.role.in_(['doctor', 'lab', 'radiology']), User.is_active)
         )
         .scalars()
         .all()
@@ -186,5 +182,5 @@ def survey(token):
             return render_template('reception/survey.html', survey=survey, submitted=True)
         return render_template('reception/survey.html', survey=survey)
     except Exception:
-        logging.exception("Error handling survey: %s")
+        logging.exception('Error handling survey: %s')
         return render_template('reception/survey.html', invalid=True)

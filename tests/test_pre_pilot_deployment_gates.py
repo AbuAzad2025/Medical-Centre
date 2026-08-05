@@ -396,9 +396,12 @@ class TestPhase4Security:
 
         app = create_app('testing')
         # Patch db.session.execute to simulate failure
-        with patch.object(
-            app.extensions['sqlalchemy'].db.session, 'execute', side_effect=Exception('DB down')
-        ), app.test_client() as client:
+        with (
+            patch.object(
+                app.extensions['sqlalchemy'].db.session, 'execute', side_effect=Exception('DB down')
+            ),
+            app.test_client() as client,
+        ):
             # Note: health check runs the real code, but we can't easily patch
             # the db.session inside the app context from here without more invasive
             # patching. Instead we verify the endpoint exists.

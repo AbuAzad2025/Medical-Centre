@@ -38,7 +38,7 @@ def _log_fhir_access(
         safe_commit(db.session, error_message='database commit failed', reraise=True)
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("FHIR audit log error: %s")
+        logging.exception('FHIR audit log error: %s')
 
 
 @fhir_bp.route('/Patient', methods=['GET'])

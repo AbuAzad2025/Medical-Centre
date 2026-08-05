@@ -122,7 +122,7 @@ def patient_queue():
             total=total,
         )
     except Exception:
-        logging.exception("Error loading patient queue: %s")
+        logging.exception('Error loading patient queue: %s')
         flash('حدث خطأ في تحميل طابور المرضى', 'error')
         return redirect(url_for('doctor.dashboard'))
 
@@ -162,7 +162,7 @@ def call_patient(visit_id):
 
         flash(f'تم استدعاء المريض — التذكرة رقم {ticket.queue_number}', 'success')
     except Exception:
-        logging.exception("Error calling patient: %s")
+        logging.exception('Error calling patient: %s')
         flash('حدث خطأ أثناء استدعاء المريض', 'error')
 
     return redirect(url_for('doctor.patient_queue'))

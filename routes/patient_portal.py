@@ -430,7 +430,7 @@ def download_document(file_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception("Error updating file access time: %s")
+        logging.exception('Error updating file access time: %s')
     return send_file(
         upload.file_path,
         as_attachment=True,
@@ -487,6 +487,6 @@ def feedback():
                 return redirect(url_for('portal.dashboard'))
             except Exception:
                 safe_rollback(db.session, error_message='database rollback')
-                logging.exception("Error saving feedback: %s")
+                logging.exception('Error saving feedback: %s')
                 flash('حدث خطأ أثناء حفظ التقييم', 'error')
     return render_template('portal/feedback.html', patient=patient)

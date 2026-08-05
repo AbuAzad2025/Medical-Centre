@@ -76,7 +76,7 @@ class ReceptionService:
                 return None
             return patient
         except Exception:
-            logging.exception("Error registering patient: %s")
+            logging.exception('Error registering patient: %s')
             return None
 
     @staticmethod
@@ -127,7 +127,7 @@ class ReceptionService:
                 return None
             return visit
         except Exception:
-            logging.exception("Error creating visit: %s")
+            logging.exception('Error creating visit: %s')
             return None
 
     @staticmethod

@@ -313,18 +313,31 @@ class TestInputTypeContract:
                                     'hidden': 'number',
                                     'radio': 'number',
                                 }
-                                if base_map.get(html_type) == expected_type or (expected_type == 'text' and html_type in (
-                                    'tel',
-                                    'email',
-                                    'url',
-                                    'color',
-                                    'password',
-                                    'hidden',
-                                )) or (expected_type == 'number' and html_type == 'range') or (expected_type == 'date' and html_type in (
-                                    'datetime-local',
-                                    'month',
-                                    'week',
-                                )):
+                                if (
+                                    base_map.get(html_type) == expected_type
+                                    or (
+                                        expected_type == 'text'
+                                        and html_type
+                                        in (
+                                            'tel',
+                                            'email',
+                                            'url',
+                                            'color',
+                                            'password',
+                                            'hidden',
+                                        )
+                                    )
+                                    or (expected_type == 'number' and html_type == 'range')
+                                    or (
+                                        expected_type == 'date'
+                                        and html_type
+                                        in (
+                                            'datetime-local',
+                                            'month',
+                                            'week',
+                                        )
+                                    )
+                                ):
                                     compatible = True
 
                             if not compatible:

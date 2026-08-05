@@ -325,11 +325,10 @@ def dashboard():
         _get_nursing_protocols()
         get_nursing_workload_prediction()
 
-
         from app.shared.dashboard_service import render_command_center
 
         return render_command_center(current_user)
     except Exception:
-        logging.exception("Error in nurse dashboard: %s")
+        logging.exception('Error in nurse dashboard: %s')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))

@@ -325,7 +325,7 @@ class LabService:
                 req.completed_at = now
             return safe_commit(db.session, error_message='Error finalizing lab results')
         except Exception:
-            logging.exception("Error finalizing lab results: %s")
+            logging.exception('Error finalizing lab results: %s')
             return False
 
     # ==================== QUALITY CONTROL ====================
@@ -357,7 +357,7 @@ class LabService:
                 return None
             return entry
         except Exception:
-            logging.exception("Error creating quality entry: %s")
+            logging.exception('Error creating quality entry: %s')
             return None
 
     # ==================== REAGENT MANAGEMENT ====================
@@ -401,7 +401,7 @@ class LabService:
             reagent.stock_quantity = quantity
             return safe_commit(db.session, error_message='Error updating reagent')
         except Exception:
-            logging.exception("Error updating reagent: %s")
+            logging.exception('Error updating reagent: %s')
             return False
 
     # ==================== NOTIFICATION ====================
@@ -441,7 +441,7 @@ class LabService:
                     notification_type='lab_result',
                 )
         except Exception:
-            logging.exception("Error sending lab notification: %s")
+            logging.exception('Error sending lab notification: %s')
 
     # ==================== AUDIT ====================
 
@@ -464,7 +464,7 @@ class LabService:
             db.session.add(log)
             safe_commit(db.session, error_message='Error logging lab action')
         except Exception:
-            logging.exception("Error logging lab action: %s")
+            logging.exception('Error logging lab action: %s')
 
     # ==================== DASHBOARD ====================
 

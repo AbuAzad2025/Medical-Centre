@@ -91,6 +91,6 @@ def dashboard():
         return render_command_center(current_user)
 
     except Exception:
-        logging.exception("Error in radiology dashboard: %s")
+        logging.exception('Error in radiology dashboard: %s')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))

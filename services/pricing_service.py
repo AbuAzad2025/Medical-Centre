@@ -73,7 +73,7 @@ class PricingService:
             return 0.0
 
         except Exception:
-            logging.exception("Error getting service price: %s")
+            logging.exception('Error getting service price: %s')
             return 0.0
 
     @staticmethod
@@ -212,7 +212,7 @@ class PricingService:
             return 0.0
 
         except Exception:
-            logging.exception("Error getting doctor price: %s")
+            logging.exception('Error getting doctor price: %s')
             return 0.0
 
     @staticmethod
@@ -248,7 +248,7 @@ class PricingService:
             }
 
         except Exception:
-            logging.exception("Error creating service price: %s")
+            logging.exception('Error creating service price: %s')
             return {'success': False, 'message': 'تعذر إنشاء سعر الخدمة حالياً'}
 
     @staticmethod
@@ -281,7 +281,7 @@ class PricingService:
             }
 
         except Exception:
-            logging.exception("Error creating doctor pricing: %s")
+            logging.exception('Error creating doctor pricing: %s')
             return {'success': False, 'message': 'تعذر إنشاء أسعار الطبيب حالياً'}
 
     @staticmethod
@@ -305,7 +305,7 @@ class PricingService:
             return {'success': True, 'message': 'تم تحديث سعر الخدمة بنجاح'}
 
         except Exception:
-            logging.exception("Error updating service price: %s")
+            logging.exception('Error updating service price: %s')
             return {'success': False, 'message': 'تعذر تحديث سعر الخدمة حالياً'}
 
     @staticmethod
@@ -361,7 +361,7 @@ class PricingService:
             }
 
         except Exception:
-            logging.exception("Error getting pricing summary: %s")
+            logging.exception('Error getting pricing summary: %s')
             return {'success': False, 'message': 'تعذر جلب ملخص الأسعار حالياً'}
 
     @staticmethod
@@ -516,7 +516,7 @@ class PricingService:
             return {'success': True, 'message': 'تم إنشاء الأسعار الافتراضية بنجاح'}
 
         except Exception:
-            logging.exception("Error creating default pricing: %s")
+            logging.exception('Error creating default pricing: %s')
             return {'success': False, 'message': 'تعذر إنشاء الأسعار الافتراضية حالياً'}
 
     @staticmethod
@@ -643,7 +643,7 @@ class PricingService:
             }
 
         except Exception:
-            logging.exception("Error calculating visit cost: %s")
+            logging.exception('Error calculating visit cost: %s')
             return {'success': False, 'message': 'تعذر حساب تكلفة الزيارة حالياً'}
 
     @staticmethod
@@ -687,7 +687,7 @@ class PricingService:
                 'departments': {k: v.id for k, v in result.items()},
             }
         except Exception:
-            logging.exception("Error seeding departments: %s")
+            logging.exception('Error seeding departments: %s')
             return {'success': False, 'message': 'تعذر تهيئة الأقسام حالياً'}
 
     @staticmethod
@@ -741,7 +741,7 @@ class PricingService:
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created, 'doctors': [u.id for u in result]}
         except Exception:
-            logging.exception("Error seeding doctors: %s")
+            logging.exception('Error seeding doctors: %s')
             return {'success': False, 'message': 'تعذر تهيئة الأطباء حالياً'}
 
     @staticmethod
@@ -798,7 +798,7 @@ class PricingService:
                 'technicians': [u.id for u in [lab_user, rad_user] if u],
             }
         except Exception:
-            logging.exception("Error seeding technicians: %s")
+            logging.exception('Error seeding technicians: %s')
             return {'success': False, 'message': 'تعذر تهيئة الفنيين حالياً'}
 
     @staticmethod
@@ -863,7 +863,7 @@ class PricingService:
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
         except Exception:
-            logging.exception("Error seeding service master: %s")
+            logging.exception('Error seeding service master: %s')
             return {'success': False, 'message': 'تعذر تهيئة الخدمات الرئيسية حالياً'}
 
     @staticmethod
@@ -1405,7 +1405,7 @@ class PricingService:
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
         except Exception:
-            logging.exception("Error seeding service prices: %s")
+            logging.exception('Error seeding service prices: %s')
             return {'success': False, 'message': 'تعذر تهيئة أسعار الخدمات حالياً'}
 
     @staticmethod
@@ -1444,7 +1444,7 @@ class PricingService:
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
         except Exception:
-            logging.exception("Error seeding doctor pricing: %s")
+            logging.exception('Error seeding doctor pricing: %s')
             return {'success': False, 'message': 'تعذر تهيئة أسعار الأطباء حالياً'}
 
     @staticmethod
@@ -1997,7 +1997,7 @@ class PricingService:
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
         except Exception:
-            logging.exception("Error seeding pricing catalog: %s")
+            logging.exception('Error seeding pricing catalog: %s')
             return {'success': False, 'message': 'تعذر تهيئة كتالوج الأسعار حالياً'}
 
     @staticmethod
@@ -2012,7 +2012,7 @@ class PricingService:
             PricingService.seed_pricing_catalog()
             return {'success': True}
         except Exception:
-            logging.exception("Error seeding all: %s")
+            logging.exception('Error seeding all: %s')
             return {'success': False, 'message': 'تعذر تهيئة البيانات الأساسية حالياً'}
 
     # ===================== تنظيف التكرارات =====================
@@ -2045,7 +2045,7 @@ class PricingService:
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'removed': removed}
         except Exception:
-            logging.exception("Error cleaning service prices: %s")
+            logging.exception('Error cleaning service prices: %s')
             return {'success': False, 'message': 'تعذر تنظيف أسعار الخدمات حالياً'}
 
     @staticmethod
@@ -2077,7 +2077,7 @@ class PricingService:
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'removed': removed}
         except Exception:
-            logging.exception("Error cleaning pricing catalog: %s")
+            logging.exception('Error cleaning pricing catalog: %s')
             return {'success': False, 'message': 'تعذر تنظيف كتالوج الأسعار حالياً'}
 
     @staticmethod
@@ -2109,7 +2109,7 @@ class PricingService:
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'removed': removed}
         except Exception:
-            logging.exception("Error cleaning doctor pricing: %s")
+            logging.exception('Error cleaning doctor pricing: %s')
             return {'success': False, 'message': 'تعذر تنظيف أسعار الأطباء حالياً'}
 
     @staticmethod
@@ -2152,7 +2152,7 @@ class PricingService:
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'deactivated': deactivated}
         except Exception:
-            logging.exception("Error cleaning users: %s")
+            logging.exception('Error cleaning users: %s')
             return {'success': False, 'message': 'تعذر تنظيف المستخدمين حالياً'}
 
     @staticmethod
@@ -2170,7 +2170,7 @@ class PricingService:
                 'users_deactivated': r4.get('deactivated', 0),
             }
         except Exception:
-            logging.exception("Error cleaning all: %s")
+            logging.exception('Error cleaning all: %s')
             return {'success': False, 'message': 'تعذر تنفيذ عملية التنظيف حالياً'}
 
     @staticmethod
@@ -2310,5 +2310,5 @@ class PricingService:
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'deleted': deleted, 'kept': len(kept_ids)}
         except Exception:
-            logging.exception("Error purging users: %s")
+            logging.exception('Error purging users: %s')
             return {'success': False, 'message': 'تعذر تنفيذ عملية الحذف حالياً'}

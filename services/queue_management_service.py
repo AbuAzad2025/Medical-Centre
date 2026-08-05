@@ -872,7 +872,6 @@ class QueueManagementService:
             # حساب الوقت المتوقع
             return waiting_count * avg_service_time
 
-
         except Exception:
             self.logger.exception('Error calculating wait time: %s')
             return 0
