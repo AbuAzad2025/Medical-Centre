@@ -373,7 +373,7 @@ class FinancialService:
                 return {'ok': False, 'error': 'database_error'}
             return {'ok': True, 'claim_id': claim.id, 'claim_number': claim_number}
         except Exception as e:
-            logging.exception('Error creating insurance claim: %s')
+            logging.exception('Error creating insurance claim')
             return {'ok': False, 'error': str(e)}
 
     @staticmethod
@@ -432,7 +432,7 @@ class FinancialService:
                 return {'ok': False, 'error': 'database_error'}
             return {'ok': True, 'claim_id': claim.id, 'status': claim.status}
         except Exception as e:
-            logging.exception('Error updating claim status: %s')
+            logging.exception('Error updating claim status')
             return {'ok': False, 'error': str(e)}
 
 
