@@ -2,6 +2,7 @@
 Medical System Flask Application Factory
 """
 
+import contextlib
 import logging
 import os
 from datetime import UTC
@@ -48,10 +49,8 @@ def _alert_admin(level, message, **ctx):
         ctx['trace_id'] = None
         ctx['tenant_id'] = None
     for sink in _ALERT_SINKS:
-        try:
+        with contextlib.suppress(Exception):
             sink(level, {'message': message, **ctx})
-        except Exception:
-            pass  # Never let alerting break the response
 
 
 # ============================================================
@@ -1172,11 +1171,9 @@ def create_app(config_name: str | None = None) -> Flask:
 
     @app.teardown_appcontext
     def shutdown_session(exception=None):
-        try:
+        with contextlib.suppress(Exception):
             db.session.remove()
             # Do NOT dispose engine here — it destroys the connection pool
-        except Exception:
-            pass
 
     with app.app_context():
         try:

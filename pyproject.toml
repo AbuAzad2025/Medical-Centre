@@ -115,8 +115,6 @@ ignore = [
     "PTH123",   # builtin-open
     "PTH202",   # os-path-getsize
     "PTH207",   # glob
-    "SIM105",   # suppressible-exception
-    "SIM117",   # multiple-with-statements
     "SIM118",   # in-dict-keys
     "B023",     # function-uses-loop-variable
     "PLW0603",  # global-statement

@@ -78,9 +78,9 @@ class TestPgDumpExecution:
         with (
             patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/pg_dump'),
             patch('services.pg_backup_service.subprocess.Popen', return_value=fake_proc),
+            pytest.raises(PgBackupError, match='connection refused'),
         ):
-            with pytest.raises(PgBackupError, match='connection refused'):
-                run_pg_dump_sql_gz(out)
+            run_pg_dump_sql_gz(out)
 
     def test_pg_dump_timeout_raises(self, tmp_path, monkeypatch):
         monkeypatch.setenv('DATABASE_URL', 'postgresql://u:p@localhost:5432/db')
@@ -107,9 +107,9 @@ class TestPgDumpExecution:
         with (
             patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/pg_dump'),
             patch('services.pg_backup_service.subprocess.Popen', return_value=fake_proc),
+            pytest.raises(PgBackupError, match='timed out'),
         ):
-            with pytest.raises(PgBackupError, match='timed out'):
-                run_pg_dump_sql_gz(out)
+            run_pg_dump_sql_gz(out)
         fake_proc.kill.assert_called()
 
 
