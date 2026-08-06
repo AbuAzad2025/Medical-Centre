@@ -94,7 +94,6 @@ ignore = [
     "RUF002",   # ambiguous-unicode-character-docstring
     "RUF003",   # ambiguous-unicode-character-comment
     "RUF012",   # mutable-class-default
-    "RUF034",   # useless-if-else
     "RUF043",   # pytest-raises-ambiguous-pattern
     "ARG003",   # unused-class-method-argument
     "ARG004",   # unused-static-method-argument
@@ -119,7 +118,6 @@ ignore = [
     "SIM105",   # suppressible-exception
     "SIM117",   # multiple-with-statements
     "SIM118",   # in-dict-keys
-    "B007",     # unused-loop-control-variable
     "B023",     # function-uses-loop-variable
     "B904",     # raise-without-from-inside-except
     "PLW0603",  # global-statement

@@ -77,7 +77,7 @@ def main() -> int:
     all_findings: list[dict] = []
 
     for subdir in SCAN_DIRS:
-        target = root / subdir if not subdir.endswith('.py') else root / subdir
+        target = root / subdir
         if target.is_file():
             findings = scan_file(target)
             all_findings.extend(findings)

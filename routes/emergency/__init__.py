@@ -54,21 +54,7 @@ def _normalize_emergency_status(value):
         'ACTIVE': 'WAITING',
         'RESOLVED': 'COMPLETED',
     }
-    v = alias.get(v, v)
-    allowed = {
-        'WAITING',
-        'TRIAGE',
-        'RESUSCITATION',
-        'TREATMENT',
-        'OBSERVATION',
-        'IN_PROGRESS',
-        'TRANSFERRED',
-        'DISCHARGED',
-        'DECEASED',
-        'COMPLETED',
-        'CANCELLED',
-    }
-    return v if v in allowed else v
+    return alias.get(v, v)
 
 
 def _set_emergency_status(emergency, new_status):

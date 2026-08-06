@@ -181,7 +181,7 @@ def _normalize_internal_path(href: str, base_path: str = '/') -> str | None:
     """Return path+query for same-app links; None for external/skip."""
     href = (href or '').strip()
     if not href or href in _BAD_HREF_EXACT:
-        return href if href == '' else href
+        return href
     if href.startswith('#'):
         return None
     if _EXTERNAL_SCHEME_RE.match(href):

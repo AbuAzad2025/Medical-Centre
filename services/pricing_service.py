@@ -2035,7 +2035,7 @@ class PricingService:
                 key = (sp.service_name.strip(), sp.service_type.strip())
                 groups.setdefault(key, []).append(sp)
             removed = 0
-            for key, items in groups.items():
+            for _key, items in groups.items():
                 if len(items) > 1:
                     items[0]
                     for extra in items[1:]:
@@ -2067,7 +2067,7 @@ class PricingService:
                 key = (pc.service_type.strip(), pc.service_name.strip())
                 groups.setdefault(key, []).append(pc)
             removed = 0
-            for key, items in groups.items():
+            for _key, items in groups.items():
                 if len(items) > 1:
                     items[0]
                     for extra in items[1:]:
