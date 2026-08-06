@@ -227,7 +227,7 @@ class NotificationService:
             )
 
             if unread_only:
-                query = query.filter(not Notification.is_read)
+                query = query.filter(~Notification.is_read)
 
             if urgent_only:
                 query = query.filter(Notification.is_urgent)
@@ -283,7 +283,7 @@ class NotificationService:
             notifications = (
                 db.session.execute(
                     select(Notification).filter(
-                        and_(Notification.recipient_id == user_id, not Notification.is_read)
+                        and_(Notification.recipient_id == user_id, ~Notification.is_read)
                     )
                 )
                 .scalars()
@@ -309,7 +309,7 @@ class NotificationService:
                 .filter(
                     and_(
                         Notification.recipient_id == user_id,
-                        not Notification.is_read,
+                        ~Notification.is_read,
                         or_(
                             Notification.expires_at.is_(None),
                             Notification.expires_at > datetime.now(UTC),
@@ -324,7 +324,7 @@ class NotificationService:
                 .filter(
                     and_(
                         Notification.recipient_id == user_id,
-                        not Notification.is_read,
+                        ~Notification.is_read,
                         Notification.is_urgent,
                         or_(
                             Notification.expires_at.is_(None),

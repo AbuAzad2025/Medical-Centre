@@ -45,7 +45,7 @@ def force_payment_approvals():
             db.session.execute(
                 select(Visit)
                 .filter_by(**tenant_filter)
-                .filter(Visit.is_force_payment, Visit.force_payment_approved_by is None)
+                .filter(Visit.is_force_payment, Visit.force_payment_approved_by.is_(None))
                 .order_by(Visit.created_at.desc())
             )
             .scalars()
@@ -60,7 +60,7 @@ def force_payment_approvals():
                 .filter_by(**tenant_filter)
                 .filter(
                     Visit.is_force_payment,
-                    Visit.force_payment_approved_by is not None,
+                    Visit.force_payment_approved_by.is_not(None),
                     Visit.force_payment_approved_at >= thirty_days_ago,
                 )
                 .order_by(Visit.force_payment_approved_at.desc())
@@ -240,8 +240,8 @@ def custom_service_approvals():
                 select(ServiceMaster)
                 .filter(
                     ServiceMaster.is_custom,
-                    not ServiceMaster.is_active,
-                    ServiceMaster.approved_by is None,
+                    ~ServiceMaster.is_active,
+                    ServiceMaster.approved_by.is_(None),
                     ServiceMaster.tenant_id == current_user.tenant_id,
                 )
                 .order_by(ServiceMaster.created_at.desc())
@@ -256,7 +256,7 @@ def custom_service_approvals():
                 .filter(
                     ServiceMaster.is_custom,
                     ServiceMaster.is_active,
-                    ServiceMaster.approved_by is not None,
+                    ServiceMaster.approved_by.is_not(None),
                     ServiceMaster.tenant_id == current_user.tenant_id,
                 )
                 .order_by(ServiceMaster.approved_at.desc())

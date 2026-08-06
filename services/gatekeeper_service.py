@@ -615,7 +615,7 @@ class GatekeeperService:
                 .filter(
                     Visit.created_at >= start_date,
                     Visit.is_force_payment,
-                    Visit.force_payment_approved_by is not None,
+                    Visit.force_payment_approved_by.is_not(None),
                 )
             ).scalar()
 

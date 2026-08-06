@@ -36,7 +36,7 @@ def dashboard():
         # إحصائيات مالية
         total_revenue = (
             db.session.execute(
-                select(db.func.sum(Payment.amount)).filter(not Payment.is_provisional)
+                select(db.func.sum(Payment.amount)).filter(~Payment.is_provisional)
             ).scalar()
             or 0
         )
@@ -48,7 +48,7 @@ def dashboard():
         locked_visits = db.session.execute(
             select(func.count())
             .select_from(Visit)
-            .filter(not Visit.receipt_printed, Visit.payment_status != PaymentStatus.PAID)
+            .filter(~Visit.receipt_printed, Visit.payment_status != PaymentStatus.PAID)
         ).scalar()
 
         today_invoices = db.session.execute(
@@ -60,7 +60,7 @@ def dashboard():
         today_payments = db.session.execute(
             select(func.count())
             .select_from(Payment)
-            .filter(not Payment.is_provisional, db.func.date(Payment.created_at) == today)
+            .filter(~Payment.is_provisional, db.func.date(Payment.created_at) == today)
         ).scalar()
 
         pending_invoices = db.session.execute(

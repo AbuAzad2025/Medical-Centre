@@ -166,7 +166,7 @@ def login() -> ResponseReturnValue:
                     .select_from(LoginAttempt)
                     .filter(
                         LoginAttempt.username == username,
-                        not LoginAttempt.success,
+                        ~LoginAttempt.success,
                         LoginAttempt.created_at >= window_start,
                     )
                 ).scalar()
@@ -175,7 +175,7 @@ def login() -> ResponseReturnValue:
                     last_failed = (
                         db.session.execute(
                             select(LoginAttempt)
-                            .filter(LoginAttempt.username == username, not LoginAttempt.success)
+                            .filter(LoginAttempt.username == username, ~LoginAttempt.success)
                             .order_by(LoginAttempt.created_at.desc())
                         )
                         .scalars()
@@ -533,7 +533,7 @@ def profile():
         failed_attempts = (
             db.session.execute(
                 select(LoginAttempt)
-                .filter(LoginAttempt.username == current_user.username, not LoginAttempt.success)
+                .filter(LoginAttempt.username == current_user.username, ~LoginAttempt.success)
                 .order_by(LoginAttempt.created_at.desc())
                 .limit(10)
             )
