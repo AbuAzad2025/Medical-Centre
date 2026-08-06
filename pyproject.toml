@@ -76,6 +76,10 @@ ignore = [
     "RUF100",  # unused noqa comment
     "PLC0415", # import outside top level (circular import avoidance in Flask/SQLAlchemy)
 ]
+# Never auto-fix E711/E712: ruff would rewrite SQLAlchemy column comparisons
+# (e.g. `col is None`, `not col`) into Python that produces TypeError /
+# silently drops filters. SQLAlchemy negation must stay explicit (.is_(...)/~).
+unfixable = ["E711", "E712"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
