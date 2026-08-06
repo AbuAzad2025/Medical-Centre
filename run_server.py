@@ -9,8 +9,6 @@ import sys
 import threading
 import time
 
-from dotenv import load_dotenv
-
 from app_factory import create_app, socketio
 
 # Force UTF-8 encoding on stdout/stderr to handle emoji in log messages
