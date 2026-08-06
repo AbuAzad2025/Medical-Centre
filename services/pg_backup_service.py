@@ -132,10 +132,10 @@ def run_pg_dump_sql_gz(output_path: str, database_url: str | None = None) -> int
                     break
                 gz.write(chunk)
         proc.wait(timeout=timeout)
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as exc:
         proc.kill()
         proc.wait(timeout=10)
-        raise PgBackupError(f'pg_dump timed out after {timeout}s')
+        raise PgBackupError(f'pg_dump timed out after {timeout}s') from exc
     finally:
         try:
             if proc.poll() is None:

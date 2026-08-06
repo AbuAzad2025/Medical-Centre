@@ -119,7 +119,6 @@ ignore = [
     "SIM117",   # multiple-with-statements
     "SIM118",   # in-dict-keys
     "B023",     # function-uses-loop-variable
-    "B904",     # raise-without-from-inside-except
     "PLW0603",  # global-statement
     "PLW1508",  # invalid-envvar-default
     "PLW1510",  # subprocess-run-without-check

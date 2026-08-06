@@ -22,8 +22,8 @@ def execute_backup_by_id(backup_id: int) -> Backup:
     """Run pg_dump for an existing Backup record and update its status."""
     try:
         backup = get_tenant_record(Backup, backup_id)
-    except TenantContextError:
-        raise BackupAutomationError(f'Backup record {backup_id} not found')
+    except TenantContextError as exc:
+        raise BackupAutomationError(f'Backup record {backup_id} not found') from exc
 
     backup.backup_status = BackupStatus.IN_PROGRESS
     backup.started_at = backup.started_at or datetime.now(UTC)

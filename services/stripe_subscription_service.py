@@ -230,7 +230,7 @@ class StripeSubscriptionService:
             db.session.add(record)
             try:
                 db.session.flush()
-            except IntegrityError:
+            except IntegrityError as exc:
                 # Another worker won the race for this event_id.
                 db.session.rollback()
                 existing = cls._check_idempotency(event_id)
@@ -240,7 +240,7 @@ class StripeSubscriptionService:
                         'event_id': event_id,
                         'status': existing.status,
                     }
-                raise StripeWebhookError('duplicate_event_id')
+                raise StripeWebhookError('duplicate_event_id') from exc
 
             try:
                 result = cls.handle_event(event)
