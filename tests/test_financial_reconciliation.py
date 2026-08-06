@@ -264,6 +264,43 @@ class TestInsuranceClaim:
         assert claim.visit_id == recon_visit.id
         assert claim.tenant_id == test_tenant.id
 
+    def test_claim_submit_transitions_draft_to_submitted(self):
+        """submit() advances a claim from DRAFT to SUBMITTED and stamps claim_date."""
+        from models.insurance import InsuranceClaim
+
+        claim = InsuranceClaim(status='DRAFT', total_claim=200.0)
+        assert claim.status == 'DRAFT'
+        claim.submit()
+        assert claim.status == 'SUBMITTED'
+        assert claim.claim_date is not None
+
+    def test_generate_endpoint_creates_draft_claim(
+        self, app, test_tenant, recon_visit, recon_accountant
+    ):
+        """POST /payment/api/insurance/claims/generate issues a DRAFT claim from an ISSUED invoice."""
+        inv = self._create_issued_invoice(app, test_tenant, recon_visit)
+
+        with app.test_client() as client:
+            login_test_client(client, recon_accountant, test_tenant, password='test123')
+            resp = client.post(
+                '/payment/api/insurance/claims/generate',
+                json={'invoice_id': inv.id},
+            )
+            data = resp.get_json()
+
+        assert resp.status_code == 200, data
+        assert data['success'] is True
+        assert data['data']['ok'] is True
+        claim_id = data['data']['claim_id']
+
+        from models.insurance import InsuranceClaim
+
+        claim = _db.session.get(InsuranceClaim, claim_id)
+        assert claim is not None
+        assert claim.status == 'DRAFT'
+        assert claim.claim_number == data['data']['claim_number']
+        assert claim.invoice_id == inv.id
+
     def test_create_claim_rejects_non_issued_invoice(self, app, test_tenant, recon_visit):
         """Claim creation should fail for invoices that are not ISSUED."""
         from models.invoice import Invoice
