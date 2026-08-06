@@ -21,9 +21,7 @@ def has_standalone_db_import(content):
     if re.search(r'^from app\.extensions import db\s*$', content, re.MULTILINE):
         return True
     # Also match 'from app.extensions import db, something' where db is not aliased
-    if re.search(r'^from app\.extensions import db\b(?!\s*as\b)', content, re.MULTILINE):
-        return True
-    return False
+    return bool(re.search(r'^from app\.extensions import db\b(?!\s*as\b)', content, re.MULTILINE))
 
 
 def uses_bare_db_session(content):

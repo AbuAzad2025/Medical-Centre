@@ -209,7 +209,7 @@ def _phase3():
     # Trigger 3 failures
     for i in range(3):
         with contextlib.suppress(ValueError):
-            cb.call(lambda: (_ for _ in ()).throw(ValueError(f'fail {i}')))
+            cb.call(lambda _i=i: (_ for _ in ()).throw(ValueError(f'fail {_i}')))
     _assert('Circuit breaker opens after 3 failures', cb.state == CircuitState.OPEN)
 
     # Fast-fail

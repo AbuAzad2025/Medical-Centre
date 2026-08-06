@@ -91,9 +91,7 @@ class PatientConsent(TenantMixin, db.Model):
         """Check if consent is currently valid."""
         if self.status != 'granted':
             return False
-        if self.expires_at and datetime.now(UTC) > self.expires_at:
-            return False
-        return True
+        return not (self.expires_at and datetime.now(UTC) > self.expires_at)
 
     def to_dict(self) -> dict:
         return {

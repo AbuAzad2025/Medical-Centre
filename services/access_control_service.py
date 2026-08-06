@@ -147,10 +147,7 @@ class AccessControlService:
                 return True
 
             # الطوارئ يمكنهم الوصول لحالات الطوارئ
-            if user.role == 'emergency' and visit.is_emergency:
-                return True
-
-            return False
+            return bool(user.role == 'emergency' and visit.is_emergency)
 
         except Exception:
             logging.exception('Error checking visit access: %s')

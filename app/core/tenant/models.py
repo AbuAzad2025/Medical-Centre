@@ -74,9 +74,7 @@ class Tenant(db.Model):
             from datetime import date
 
             if date.today() > self.subscription_end:
-                if self.grace_period_end and date.today() <= self.grace_period_end:
-                    return True
-                return False
+                return bool(self.grace_period_end and date.today() <= self.grace_period_end)
         return True
 
     def __repr__(self):

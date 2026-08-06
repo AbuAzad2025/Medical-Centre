@@ -63,7 +63,7 @@ def for_each_tenant(app: Flask, job: Callable[[int], None]) -> None:
 
         for tenant_id in active_tenants:
             try:
-                with_tenant_context(app, tenant_id, lambda: job(tenant_id))
+                with_tenant_context(app, tenant_id, lambda _tid=tenant_id: job(_tid))
             except Exception:
                 logging.exception(f'Background job failed for tenant {tenant_id}')
 

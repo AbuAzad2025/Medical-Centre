@@ -116,9 +116,7 @@ class ActionItem:
         if target is None:
             # No target set — flag as stale if status isn't clearly done
             status = self.status.strip().lower()
-            if status in ('', '—', '-', 'tbd', 'todo', 'open', 'pending'):
-                return True
-            return False
+            return status in ('', '—', '-', 'tbd', 'todo', 'open', 'pending')
         return (date.today() - target).days > stale_days
 
 

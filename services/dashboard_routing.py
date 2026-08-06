@@ -64,7 +64,7 @@ def get_active_modules_for_current_tenant() -> set:
     return set()
 
 
-def resolve_dashboard_for_user(user, tenant_id: int = None) -> str:
+def resolve_dashboard_for_user(user, tenant_id: int | None = None) -> str:
     """
     Resolve the correct dashboard endpoint for a user based on:
     1. User's role

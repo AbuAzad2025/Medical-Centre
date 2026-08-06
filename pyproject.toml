@@ -61,7 +61,6 @@ select = [
 ignore = [
     "E501",    # line too long (handled by formatter)
     "SIM102",  # nested if blocks
-    "SIM103",  # return if else
     "ARG001",  # unused argument
     "ARG002",  # unused argument in method
     "B008",    # function call in default argument
@@ -71,7 +70,6 @@ ignore = [
     "PTH120",  # os.path functions
     "PLW2901", # loop variable overwrites
     "ERA001",  # commented out code
-    "RUF013",  # implicit Optional
     "RUF015",  # unnecessary iterable allocation
     "RUF100",  # unused noqa comment
     "PLC0415", # import outside top level (circular import avoidance in Flask/SQLAlchemy)
@@ -114,7 +112,6 @@ ignore = [
     "PTH202",   # os-path-getsize
     "PTH207",   # glob
     "SIM118",   # in-dict-keys
-    "B023",     # function-uses-loop-variable
     "PLW0603",  # global-statement
     "PLW1508",  # invalid-envvar-default
     "PLW1510",  # subprocess-run-without-check

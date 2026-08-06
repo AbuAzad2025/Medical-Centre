@@ -236,7 +236,7 @@ def _stop_background_threads():
         logger.info('Webhook service background threads stopped')
 
 
-def dispatch_webhook(event: str, data: dict = None):
+def dispatch_webhook(event: str, data: dict | None = None):
     """Fire all webhooks registered for the given event with retry support."""
     if event not in SUPPORTED_EVENTS:
         logger.warning('Unknown webhook event: %s', event)

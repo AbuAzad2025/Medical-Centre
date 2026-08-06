@@ -54,6 +54,4 @@ def actor_may_assign_role(actor_role: str | None, target_role: str | None) -> bo
         return False
     actor = normalize_role(actor_role)
     target = normalize_role(target_role)
-    if target in ELEVATED_ROLES and actor != 'super_admin':
-        return False
-    return True
+    return not (target in ELEVATED_ROLES and actor != 'super_admin')
