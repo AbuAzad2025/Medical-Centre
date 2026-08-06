@@ -143,7 +143,7 @@ class TestPharmacyPOS:
         )
         db.session.add(sale)
         db.session.commit()
-        resp = auth_client.get('/medication/sales/%d' % sale.id)
+        resp = auth_client.get(f'/medication/sales/{sale.id}')
         assert resp.status_code in (200, 302)
 
 
@@ -180,7 +180,7 @@ class TestSuppliers:
         db.session.add(s)
         db.session.commit()
         resp = auth_client.post(
-            '/medication/suppliers/%d/edit' % s.id,
+            f'/medication/suppliers/{s.id}/edit',
             data={
                 'name': 'مورد معدل',
                 'contact_person': 'شخص معدل',
@@ -199,7 +199,7 @@ class TestSuppliers:
         s = Supplier(name='مورد للحذف', tenant_id=test_tenant.id)
         db.session.add(s)
         db.session.commit()
-        resp = auth_client.post('/medication/suppliers/%d/delete' % s.id)
+        resp = auth_client.post(f'/medication/suppliers/{s.id}/delete')
         assert resp.status_code == 403
         deleted = db.session.get(Supplier, s.id)
         assert deleted is not None

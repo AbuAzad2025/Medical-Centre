@@ -122,7 +122,6 @@ ignore = [
     "B007",     # unused-loop-control-variable
     "B023",     # function-uses-loop-variable
     "B904",     # raise-without-from-inside-except
-    "UP031",    # printf-string-formatting
     "PLW0603",  # global-statement
     "PLW1508",  # invalid-envvar-default
     "PLW1510",  # subprocess-run-without-check
