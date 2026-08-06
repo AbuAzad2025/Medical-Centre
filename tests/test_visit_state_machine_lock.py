@@ -40,7 +40,7 @@ def visit_with_patient(app, test_tenant):
 class TestVisitStateMachineLock:
     def test_direct_status_assignment_raises(self, app, visit_with_patient):
         """Direct assignment to visit.status raises ValueError."""
-        with pytest.raises(ValueError, match='Direct Visit.status assignment is blocked'):
+        with pytest.raises(ValueError, match=r'Direct Visit.status assignment is blocked'):
             visit_with_patient.status = 'IN_PROGRESS'
 
     def test_vsm_transition_succeeds(self, app, visit_with_patient):

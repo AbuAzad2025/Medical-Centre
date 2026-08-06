@@ -89,12 +89,10 @@ ignore = [
     "PLR0913",  # too-many-arguments
     "PLR0915",  # too-many-statements
     "PLR0917",  # too-many-positional-arguments
-    "PLR1704",  # redefined-argument-from-local
     "RUF001",   # ambiguous-unicode-character-string
     "RUF002",   # ambiguous-unicode-character-docstring
     "RUF003",   # ambiguous-unicode-character-comment
     "RUF012",   # mutable-class-default
-    "RUF043",   # pytest-raises-ambiguous-pattern
     "ARG003",   # unused-class-method-argument
     "ARG004",   # unused-static-method-argument
     "N801",     # invalid-class-name

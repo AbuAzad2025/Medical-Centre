@@ -444,8 +444,8 @@ def create_app(config_name: str | None = None) -> Flask:
             return jsonify(success=False, error=str(e)), 403
         try:
             return render_template('errors/403.html', message=str(e)), 403
-        except Exception as e:
-            return jsonify(error=str(e)), 403
+        except Exception as exc:
+            return jsonify(error=str(exc)), 403
 
     @app.errorhandler(PermissionError)
     def handle_permission_error(e):
@@ -455,7 +455,7 @@ def create_app(config_name: str | None = None) -> Flask:
             return jsonify(success=False, error='Cross-tenant access denied'), 403
         try:
             return render_template('errors/403.html', message=str(e)), 403
-        except Exception as e:
+        except Exception:
             return jsonify(error='Cross-tenant access denied'), 403
 
     @app.errorhandler(IdempotencyError)
