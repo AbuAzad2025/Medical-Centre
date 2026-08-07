@@ -40,7 +40,6 @@ class TestMedicationCatalog:
             },
         )
         assert resp.status_code == 302
-        from models.medication import Medication
 
         m = (
             db.session.execute(select(Medication).filter_by(trade_name=unique_name))
@@ -83,7 +82,7 @@ class TestPharmacyPOS:
             content_type='application/json',
         )
 
-        from models.medication import Medication, PharmacySale
+        from models.medication import PharmacySale
 
         sale = (
             db.session.execute(select(PharmacySale).filter_by(customer_name='عميل تجريبي'))
@@ -221,7 +220,7 @@ class TestPurchases:
         import secrets
 
         from app_factory import db
-        from models.medication import Medication, MedicationPurchase, Supplier
+        from models.medication import MedicationPurchase, Supplier
 
         s = Supplier(name='مورد مشتريات', tenant_id=test_tenant.id)
         db.session.add(s)
@@ -258,7 +257,6 @@ class TestTenantIsolation:
 
     def test_tenant_filter_on_medications(self, app, test_tenant, test_medications):
         """Medications should be scoped to tenant."""
-        from flask import g
 
         g.tenant_id = test_tenant.id
         from models.medication import Medication
@@ -270,7 +268,6 @@ class TestTenantIsolation:
 
     def test_cross_tenant_isolation(self, app, test_tenant):
         """Data from different tenant should not be visible."""
-        from flask import g
 
         from app.core.tenant.models import Tenant
         from app_factory import db
@@ -329,11 +326,6 @@ class TestControlledDispenseAck:
     """G-1: controlled-substance dispense requires explicit acknowledgement."""
 
     def test_dispense_without_ack_rejected(self, auth_client, test_tenant, test_medications):
-        from flask import g
-        from models.medication import Medication, Prescription, PrescriptionItem
-        from models.patient import Patient
-        from models.user import User
-        from models.visit import Visit
         from sqlalchemy import select
 
         g.tenant_id = test_tenant.id
