@@ -5,7 +5,7 @@ Revises: p5_001_branding_print_headers
 
 """
 
-from typing import Sequence, list
+from typing import Sequence
 from alembic import op
 import sqlalchemy as sa
 
