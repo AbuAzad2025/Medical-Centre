@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 ADMIN_URL = os.environ['MIGRATE_ADMIN_URL']
 TARGET_URL = os.environ['MIGRATE_DATABASE_URL']
-ALEMBIC_HEAD = 's2_009_schema_drift_sync'
+ALEMBIC_HEAD = 'p5_004_add_controlled_schedule_to_medication'
 
 
 def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
