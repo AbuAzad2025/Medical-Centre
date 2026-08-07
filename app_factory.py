@@ -170,11 +170,9 @@ def create_app(config_name: str | None = None) -> Flask:
             import sys as _sys
 
             _sys.stderr.write(
-
-                    f'\n!!! FATAL: FIELD_ENCRYPTION_KEY is not set (len={len(enc_key)}). '
-                    f'PHI fields would be stored as plaintext.\n'
-                    f'!!! Set FIELD_ENCRYPTION_KEY in environment.\n'
-
+                f'\n!!! FATAL: FIELD_ENCRYPTION_KEY is not set (len={len(enc_key)}). '
+                f'PHI fields would be stored as plaintext.\n'
+                f'!!! Set FIELD_ENCRYPTION_KEY in environment.\n'
             )
             raise RuntimeError(
                 'FIELD_ENCRYPTION_KEY not set in production/staging environment. '

@@ -265,17 +265,14 @@ class PrescriptionService:
         """
         from models.medication import Medication, PrescriptionItem
 
-        rows = (
-            db.session.execute(
-                select(Medication, PrescriptionItem)
-                .join(PrescriptionItem, PrescriptionItem.medication_id == Medication.id)
-                .filter(
-                    PrescriptionItem.prescription_id == prescription_id,
-                    Medication.is_controlled.is_(True),
-                )
+        rows = db.session.execute(
+            select(Medication, PrescriptionItem)
+            .join(PrescriptionItem, PrescriptionItem.medication_id == Medication.id)
+            .filter(
+                PrescriptionItem.prescription_id == prescription_id,
+                Medication.is_controlled.is_(True),
             )
-            .all()
-        )
+        ).all()
         return [
             {'medication_id': m.id, 'trade_name': m.trade_name, 'schedule': m.schedule}
             for m, _ in rows

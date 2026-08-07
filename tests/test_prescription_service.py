@@ -200,7 +200,11 @@ class TestCreatePrescription:
         monkeypatch.setattr(FeatureGateService, 'module_enabled', staticmethod(_enabled))
         p = rxfx.patient()
         m = rxfx.med()
-        ok, msg = RX.create_prescription(p.id, None, items=[{'medication_id': m.id, 'quantity': 1, 'dosage': '1', 'duration_days': 1}])
+        ok, msg = RX.create_prescription(
+            p.id,
+            None,
+            items=[{'medication_id': m.id, 'quantity': 1, 'dosage': '1', 'duration_days': 1}],
+        )
         assert ok is False
         assert 'Prescriber' in msg
 

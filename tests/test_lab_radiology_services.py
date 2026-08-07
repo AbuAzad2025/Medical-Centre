@@ -304,7 +304,9 @@ class TestRadCreateRequest:
 
     def test_success(self, fx):
         v = fx.visit()
-        ok, res = RAD.create_request(v.id, modality='ct', body_part=' chest ', notes='n', requested_by=fx.doctor())
+        ok, res = RAD.create_request(
+            v.id, modality='ct', body_part=' chest ', notes='n', requested_by=fx.doctor()
+        )
         assert ok is True
         assert res['request_number'].startswith('RAD-')
         req = db.session.get(RadiologyRequest, res['radiology_request_id'])
@@ -484,9 +486,7 @@ class TestLabCancelAndAmend:
 
     def test_amend_result_audit(self, fx):
         rid = self._request(fx)
-        result = (
-            db.session.execute(select(LabResult).filter_by(request_id=rid)).scalars().first()
-        )
+        result = db.session.execute(select(LabResult).filter_by(request_id=rid)).scalars().first()
         u = _make_user(fx.db)
         ok, res = LAB.amend_result(
             result.id, value='99', unit='mg', notes='recheck', is_critical=True, amended_by=u.id

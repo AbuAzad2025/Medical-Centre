@@ -24,9 +24,7 @@ _API_ROLES = (
 def cancel_radiology_request(request_id: int):
     from services.radiology_service import RadiologyService
 
-    reason = (
-        request.get_json(silent=True).get('reason') if request.is_json else None
-    )
+    reason = request.get_json(silent=True).get('reason') if request.is_json else None
     ok, payload = RadiologyService.cancel_request(
         request_id, cancelled_by=current_user.id, reason=reason
     )

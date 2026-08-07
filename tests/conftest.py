@@ -97,14 +97,10 @@ def app():
             # Phase 3.2 - Lab & Radiology audit columns added to models; backfill the
             # persistent test DB so SELECT/INSERT compile against the live table.
             _db.session.execute(
-                text(
-                    'ALTER TABLE lab_requests ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMP'
-                )
+                text('ALTER TABLE lab_requests ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMP')
             )
             _db.session.execute(
-                text(
-                    'ALTER TABLE lab_requests ADD COLUMN IF NOT EXISTS cancelled_by INTEGER'
-                )
+                text('ALTER TABLE lab_requests ADD COLUMN IF NOT EXISTS cancelled_by INTEGER')
             )
             _db.session.execute(
                 text(
@@ -112,9 +108,7 @@ def app():
                 )
             )
             _db.session.execute(
-                text(
-                    'ALTER TABLE radiology_requests ADD COLUMN IF NOT EXISTS cancelled_by INTEGER'
-                )
+                text('ALTER TABLE radiology_requests ADD COLUMN IF NOT EXISTS cancelled_by INTEGER')
             )
             _db.session.execute(
                 text(
@@ -122,14 +116,10 @@ def app():
                 )
             )
             _db.session.execute(
-                text(
-                    'ALTER TABLE lab_results ADD COLUMN IF NOT EXISTS amended_by INTEGER'
-                )
+                text('ALTER TABLE lab_results ADD COLUMN IF NOT EXISTS amended_by INTEGER')
             )
             _db.session.execute(
-                text(
-                    'ALTER TABLE lab_results ADD COLUMN IF NOT EXISTS amended_at TIMESTAMP'
-                )
+                text('ALTER TABLE lab_results ADD COLUMN IF NOT EXISTS amended_at TIMESTAMP')
             )
             _db.session.execute(
                 text(
@@ -137,14 +127,10 @@ def app():
                 )
             )
             _db.session.execute(
-                text(
-                    'ALTER TABLE radiology_results ADD COLUMN IF NOT EXISTS amended_by INTEGER'
-                )
+                text('ALTER TABLE radiology_results ADD COLUMN IF NOT EXISTS amended_by INTEGER')
             )
             _db.session.execute(
-                text(
-                    'ALTER TABLE radiology_results ADD COLUMN IF NOT EXISTS amended_at TIMESTAMP'
-                )
+                text('ALTER TABLE radiology_results ADD COLUMN IF NOT EXISTS amended_at TIMESTAMP')
             )
             # SaaS S0-003: exclusion constraint (not created by db.create_all)
             _db.session.execute(text('CREATE EXTENSION IF NOT EXISTS btree_gist'))
@@ -184,7 +170,9 @@ def app():
         # admission tables always expose their audit columns in the test DB).
         try:
             _db.session.execute(
-                text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS is_inpatient BOOLEAN DEFAULT FALSE')
+                text(
+                    'ALTER TABLE visits ADD COLUMN IF NOT EXISTS is_inpatient BOOLEAN DEFAULT FALSE'
+                )
             )
             _db.session.execute(
                 text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS admission_date TIMESTAMP')
@@ -192,12 +180,8 @@ def app():
             _db.session.execute(
                 text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS discharge_date TIMESTAMP')
             )
-            _db.session.execute(
-                text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS bed_id INTEGER')
-            )
-            _db.session.execute(
-                text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS ward_id INTEGER')
-            )
+            _db.session.execute(text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS bed_id INTEGER'))
+            _db.session.execute(text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS ward_id INTEGER'))
             _db.session.execute(
                 text('ALTER TABLE admissions ADD COLUMN IF NOT EXISTS discharge_type VARCHAR(50)')
             )
@@ -208,7 +192,9 @@ def app():
                 text('ALTER TABLE admissions ADD COLUMN IF NOT EXISTS discharge_datetime TIMESTAMP')
             )
             _db.session.execute(
-                text("ALTER TABLE beds ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'AVAILABLE'")
+                text(
+                    "ALTER TABLE beds ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'AVAILABLE'"
+                )
             )
             _db.session.execute(
                 text('ALTER TABLE beds ADD COLUMN IF NOT EXISTS current_patient_id INTEGER')

@@ -80,14 +80,20 @@ def _signup_kwargs(version_id, slug):
 class TestRegistrationValidation:
     def test_invalid_slug_rejected(self, app):
         version = _seed_package_version()
-        with tenant_test_context(app, bypass=True), pytest.raises(SaasRegistrationError, match='invalid_slug'):
+        with (
+            tenant_test_context(app, bypass=True),
+            pytest.raises(SaasRegistrationError, match='invalid_slug'),
+        ):
             SaasRegistrationService.register_organization(
                 **_signup_kwargs(version.id, 'Bad Slug!'),
             )
 
     def test_missing_required_fields(self, app):
         version = _seed_package_version()
-        with tenant_test_context(app, bypass=True), pytest.raises(SaasRegistrationError, match='missing_required_fields'):
+        with (
+            tenant_test_context(app, bypass=True),
+            pytest.raises(SaasRegistrationError, match='missing_required_fields'),
+        ):
             SaasRegistrationService.register_organization(
                 slug=f'ok-{uuid.uuid4().hex[:6]}',
                 name='',
@@ -103,7 +109,10 @@ class TestRegistrationValidation:
         slug = f'weak-{uuid.uuid4().hex[:6]}'
         kwargs = _signup_kwargs(version.id, slug)
         kwargs['admin_password'] = 'short'
-        with tenant_test_context(app, bypass=True), pytest.raises(SaasRegistrationError, match='weak_password'):
+        with (
+            tenant_test_context(app, bypass=True),
+            pytest.raises(SaasRegistrationError, match='weak_password'),
+        ):
             SaasRegistrationService.register_organization(**kwargs)
 
     def test_duplicate_slug_rejected(self, app):
@@ -166,7 +175,10 @@ class TestSignupAbuseProtections:
     def test_honeypot_rejects_bot(self, app):
         version = _seed_package_version()
         slug = f'bot-{uuid.uuid4().hex[:6]}'
-        with tenant_test_context(app, bypass=True), pytest.raises(SaasRegistrationError, match='bot_detected'):
+        with (
+            tenant_test_context(app, bypass=True),
+            pytest.raises(SaasRegistrationError, match='bot_detected'),
+        ):
             SaasRegistrationService.register_organization(
                 **_signup_kwargs(version.id, slug),
                 honeypot='http://spam.example',
@@ -279,7 +291,10 @@ class TestResolveDefaultPackage:
 class TestCaptchaVerification:
     def test_captcha_http_failure_raises(self, app, monkeypatch):
         monkeypatch.setenv('SIGNUP_CAPTCHA_SECRET', 'test-secret')
-        with patch('urllib.request.urlopen', side_effect=OSError('network down')), pytest.raises(SaasRegistrationError, match='captcha_failed'):
+        with (
+            patch('urllib.request.urlopen', side_effect=OSError('network down')),
+            pytest.raises(SaasRegistrationError, match='captcha_failed'),
+        ):
             SaasRegistrationService._verify_captcha('token')
 
     def test_captcha_invalid_response_raises(self, app, monkeypatch):
@@ -288,7 +303,10 @@ class TestCaptchaVerification:
         fake_resp.read.return_value = b'{"success": false}'
         fake_resp.__enter__ = lambda s: s
         fake_resp.__exit__ = MagicMock(return_value=False)
-        with patch('urllib.request.urlopen', return_value=fake_resp), pytest.raises(SaasRegistrationError, match='captcha_failed'):
+        with (
+            patch('urllib.request.urlopen', return_value=fake_resp),
+            pytest.raises(SaasRegistrationError, match='captcha_failed'),
+        ):
             SaasRegistrationService._verify_captcha('bad-token')
 
 

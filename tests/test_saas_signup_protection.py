@@ -81,7 +81,10 @@ class TestSignupHoneypot:
     def test_honeypot_filled_rejects_bot(self, app):
         version = _seed_package_version()
         slug = f'bot-{uuid.uuid4().hex[:6]}'
-        with tenant_test_context(app, bypass=True), pytest.raises(SaasRegistrationError, match='bot_detected'):
+        with (
+            tenant_test_context(app, bypass=True),
+            pytest.raises(SaasRegistrationError, match='bot_detected'),
+        ):
             SaasRegistrationService.register_organization(
                 **_signup_kwargs(version.id, slug),
                 honeypot='http://spam.example',
@@ -135,7 +138,10 @@ class TestSignupCaptcha:
         monkeypatch.setenv('SIGNUP_CAPTCHA_SECRET', 'test-secret')
         version = _seed_package_version()
         slug = f'cap-{uuid.uuid4().hex[:6]}'
-        with tenant_test_context(app, bypass=True), pytest.raises(SaasRegistrationError, match='captcha_required'):
+        with (
+            tenant_test_context(app, bypass=True),
+            pytest.raises(SaasRegistrationError, match='captcha_required'),
+        ):
             SaasRegistrationService.register_organization(
                 **_signup_kwargs(version.id, slug),
                 captcha_token=None,

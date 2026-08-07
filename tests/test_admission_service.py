@@ -28,8 +28,12 @@ def adtfxt(rollback_db, monkeypatch):
 
     # Bundle / module-limit checks are no-ops for fixture seeding (mirrors
     # tests/test_prescription_service.py).
-    monkeypatch.setattr('app.shared.tenant_filter._check_bundle_limits_on_create', lambda *_a, **_k: None)
-    monkeypatch.setattr('app.shared.tenant_filter._check_bundle_limits_on_update', lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        'app.shared.tenant_filter._check_bundle_limits_on_create', lambda *_a, **_k: None
+    )
+    monkeypatch.setattr(
+        'app.shared.tenant_filter._check_bundle_limits_on_update', lambda *_a, **_k: None
+    )
 
     # Tenant context expected by get_tenant_record() and the query-time filter.
     g.tenant_id = TENANT_ID
@@ -266,7 +270,9 @@ def test_transfer_logs_and_repoints_bed(adtfxt):
     assert v2.bed_id == b_to.id
     assert v2.ward_id == w.id
 
-    transfers = db.session.execute(select(BedTransfer).filter_by(admission_id=admission_id)).scalars().all()
+    transfers = (
+        db.session.execute(select(BedTransfer).filter_by(admission_id=admission_id)).scalars().all()
+    )
     assert len(transfers) == 1
     assert transfers[0].from_bed_id == b_from.id
     assert transfers[0].to_bed_id == b_to.id

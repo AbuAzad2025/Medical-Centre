@@ -129,12 +129,12 @@ def dispense_prescription(prescription_id):
 
         controlled = PrescriptionService.verify_controlled_dispense(prescription.id)
         if controlled:
-            ack = (request.get_json(silent=True) or {}).get('acknowledge_controlled') or request.form.get(
+            ack = (request.get_json(silent=True) or {}).get(
                 'acknowledge_controlled'
-            )
+            ) or request.form.get('acknowledge_controlled')
             if ack not in (True, 'true', '1', 'on', 'yes'):
                 names = ', '.join(
-                    f"{c['trade_name']} ({c['schedule'] or 'Scheduled'})" for c in controlled
+                    f'{c["trade_name"]} ({c["schedule"] or "Scheduled"})' for c in controlled
                 )
                 return jsonify(
                     {

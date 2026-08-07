@@ -335,7 +335,9 @@ class RadiologyService:
             if reason:
                 prefix = f'{req.notes}\n' if req.notes else ''
                 req.notes = f'{prefix}[CANCELLED by {cancelled_by}] {reason}'
-            RadiologyService.log_action('update', f'cancelled request {req.id}', user_id=cancelled_by)
+            RadiologyService.log_action(
+                'update', f'cancelled request {req.id}', user_id=cancelled_by
+            )
             if not safe_commit(db.session, error_message='فشل إلغاء طلب الأشعة'):
                 return False, {'error': 'Error cancelling radiology request'}
             return True, {'request_id': req.id, 'status': req.status}

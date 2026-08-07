@@ -335,15 +335,30 @@ class TestControlledDispenseAck:
             med.schedule = 'II'
             db.session.commit()
 
-            p = db.session.execute(select(Patient).filter_by(tenant_id=test_tenant.id)).scalars().first()
+            p = (
+                db.session.execute(select(Patient).filter_by(tenant_id=test_tenant.id))
+                .scalars()
+                .first()
+            )
             if not p:
                 p = Patient(first_name='Test', last_name='Patient', tenant_id=test_tenant.id)
                 db.session.add(p)
                 db.session.commit()
 
-            doc = db.session.execute(select(User).filter_by(role='doctor', tenant_id=test_tenant.id)).scalars().first()
+            doc = (
+                db.session.execute(select(User).filter_by(role='doctor', tenant_id=test_tenant.id))
+                .scalars()
+                .first()
+            )
             if not doc:
-                doc = User(username='doc_disp', email='doc@x.com', full_name='Doc', role='doctor', is_active=True, tenant_id=test_tenant.id)
+                doc = User(
+                    username='doc_disp',
+                    email='doc@x.com',
+                    full_name='Doc',
+                    role='doctor',
+                    is_active=True,
+                    tenant_id=test_tenant.id,
+                )
                 doc.set_password('p')
                 db.session.add(doc)
                 db.session.commit()
@@ -352,11 +367,23 @@ class TestControlledDispenseAck:
             db.session.add(v)
             db.session.commit()
 
-            pres = Prescription(tenant_id=test_tenant.id, patient_id=p.id, doctor_id=doc.id, visit_id=v.id, prescription_number='RX-TEST1')
+            pres = Prescription(
+                tenant_id=test_tenant.id,
+                patient_id=p.id,
+                doctor_id=doc.id,
+                visit_id=v.id,
+                prescription_number='RX-TEST1',
+            )
             db.session.add(pres)
             db.session.flush()
 
-            item = PrescriptionItem(prescription_id=pres.id, medication_id=med.id, dosage='1x1', quantity=2, duration_days=3)
+            item = PrescriptionItem(
+                prescription_id=pres.id,
+                medication_id=med.id,
+                dosage='1x1',
+                quantity=2,
+                duration_days=3,
+            )
             db.session.add(item)
             db.session.commit()
 

@@ -16,12 +16,8 @@ _API_ROLES = ('reception', 'super_admin', 'admin', 'doctor', 'nurse', 'lab', 'em
 def cancel_lab_request(request_id: int):
     from services.lab_service import LabService
 
-    reason = (
-        request.get_json(silent=True).get('reason') if request.is_json else None
-    )
-    ok, payload = LabService.cancel_request(
-        request_id, cancelled_by=current_user.id, reason=reason
-    )
+    reason = request.get_json(silent=True).get('reason') if request.is_json else None
+    ok, payload = LabService.cancel_request(request_id, cancelled_by=current_user.id, reason=reason)
     return jsonify(payload), (200 if ok else 400)
 
 
