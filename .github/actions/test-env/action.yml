@@ -27,7 +27,7 @@ runs:
     # connects as the postgres superuser, which always bypasses RLS).
     - name: Run database migrations (RLS policies)
       shell: bash
-      run: python -m flask db upgrade
+      run: python -m flask db upgrade heads
 
     # Restricted role for SQL-level RLS tests only (NOBYPASSRLS). The test
     # file connects via RLS_TEST_DATABASE_URL; everything else keeps using
