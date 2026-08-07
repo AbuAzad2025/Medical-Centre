@@ -38,6 +38,8 @@ class Medication(TenantMixin, db.Model):
     expiry_date = db.Column(db.Date, nullable=True)
     batch_number = db.Column(db.String(50), nullable=True)
     pregnancy_category = db.Column(db.String(10), nullable=True)  # A, B, C, D, X
+    is_controlled = db.Column(db.Boolean, default=False, nullable=False, comment='Controlled substance flag (DEA / C-II-V schedule)')
+    schedule = db.Column(db.String(20), nullable=True, comment='Controlled substance schedule (II-V), nullable for non-controlled medications')
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     updated_at = db.Column(
         db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)

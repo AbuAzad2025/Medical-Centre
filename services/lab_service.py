@@ -57,6 +57,13 @@ class LabService:
 
         tenant_id = tenant_id or visit.tenant_id
 
+        from services.feature_gate_service import FeatureGateService
+
+        if requested_by is None and FeatureGateService.module_enabled(tenant_id, 'doctor'):
+            return False, {
+                'error': 'Prescriber (requested_by) is required when the doctor module is enabled'
+            }
+
         from app.core.module.models import TenantModule
 
         if (

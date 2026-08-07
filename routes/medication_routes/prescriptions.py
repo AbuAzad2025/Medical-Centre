@@ -125,6 +125,25 @@ def dispense_prescription(prescription_id):
                     return jsonify(
                         {'success': False, 'message': 'الدفع القسري يحتاج موافقة المدير قبل الصرف'}
                     ), 403
+        from services.prescription_service import PrescriptionService
+
+        controlled = PrescriptionService.verify_controlled_dispense(prescription.id)
+        if controlled:
+            ack = (request.get_json(silent=True) or {}).get('acknowledge_controlled') or request.form.get(
+                'acknowledge_controlled'
+            )
+            if ack not in (True, 'true', '1', 'on', 'yes'):
+                names = ', '.join(
+                    f"{c['trade_name']} ({c['schedule'] or 'Scheduled'})" for c in controlled
+                )
+                return jsonify(
+                    {
+                        'success': False,
+                        'message': f'هذه الوصفة تحتوي على أدوية خاضعة للرقابة يجب تأكيدها: {names}',
+                        'code': 'CONTROLLED_REQUIRES_ACK',
+                        'controlled_items': controlled,
+                    }
+                ), 428
         items = prescription.items.all()
         if not items:
             return jsonify({'success': False, 'message': 'لا توجد عناصر في الوصفة'}), 400

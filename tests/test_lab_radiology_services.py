@@ -60,8 +60,20 @@ def fx(rollback_db):
         db.session.commit()
         return r
 
+    _doctor_cache = {}
+
+    def doctor():
+        if 'id' not in _doctor_cache:
+            _doctor_cache['id'] = _make_user(db).id
+        return _doctor_cache['id']
+
     return types.SimpleNamespace(
-        db=db, patient=patient, visit=visit, catalog=catalog, reagent=reagent
+        db=db,
+        patient=patient,
+        visit=visit,
+        catalog=catalog,
+        reagent=reagent,
+        doctor=doctor,
     )
 
 
@@ -77,15 +89,22 @@ class TestLabCreateRequest:
         ok, res = LAB.create_request(99999999, [1])
         assert ok is False and res['error'] == 'Visit not found'
 
+    def test_requires_requested_by_when_doctor_module_enabled(self, fx):
+        v = fx.visit()
+        c = fx.catalog()
+        ok, res = LAB.create_request(v.id, [c.id])
+        assert ok is False
+        assert 'requested_by' in res['error']
+
     def test_unknown_test_id_rolls_back(self, fx):
         v = fx.visit()
-        ok, res = LAB.create_request(v.id, [99999998])
+        ok, res = LAB.create_request(v.id, [99999998], requested_by=fx.doctor())
         assert ok is False and 'Unknown' in res['error']
 
     def test_success_creates_request_and_results(self, fx):
         v = fx.visit()
         c1, c2 = fx.catalog(), fx.catalog()
-        ok, res = LAB.create_request(v.id, [c1.id, c2.id], notes='n')
+        ok, res = LAB.create_request(v.id, [c1.id, c2.id], notes='n', requested_by=fx.doctor())
         assert ok is True
         assert res['request_number'].startswith('LR-')
         results = (
@@ -101,7 +120,7 @@ class TestLabWorklistAndCounts:
     def test_get_worklist_invalid_status_defaults(self, fx):
         v = fx.visit()
         c = fx.catalog()
-        LAB.create_request(v.id, [c.id])
+        LAB.create_request(v.id, [c.id], requested_by=fx.doctor())
         wl = LAB.get_worklist(status='NOPE')
         assert isinstance(wl, list)
         assert all(r.status == 'REQUESTED' for r in wl)
@@ -116,7 +135,7 @@ class TestLabWorklistAndCounts:
     def test_get_request_by_id_and_results(self, fx):
         v = fx.visit()
         c = fx.catalog()
-        _ok, res = LAB.create_request(v.id, [c.id])
+        _ok, res = LAB.create_request(v.id, [c.id], requested_by=fx.doctor())
         rid = res['lab_request_id']
         assert LAB.get_request_by_id(rid).id == rid
         assert len(LAB.get_results_by_request(rid)) == 1
@@ -130,7 +149,7 @@ class TestLabResultForm:
     def test_update_existing_result(self, fx):
         v = fx.visit()
         c = fx.catalog()
-        _ok, res = LAB.create_request(v.id, [c.id])
+        _ok, res = LAB.create_request(v.id, [c.id], requested_by=fx.doctor())
         existing = (
             db.session.execute(select(LabResult).filter_by(request_id=res['lab_request_id']))
             .scalars()
@@ -188,7 +207,7 @@ class TestLabResultForm:
     def test_finalize_results(self, fx):
         v = fx.visit()
         c = fx.catalog()
-        _ok, res = LAB.create_request(v.id, [c.id])
+        _ok, res = LAB.create_request(v.id, [c.id], requested_by=fx.doctor())
         assert LAB.finalize_results(res['lab_request_id']) is True
         req = db.session.get(LabRequest, res['lab_request_id'])
         assert req.status == 'DONE'
@@ -271,7 +290,7 @@ class TestLabMisc:
         p = fx.patient()
         v = fx.visit(patient_id=p.id)
         c = fx.catalog()
-        _ok, res = LAB.create_request(v.id, [c.id])
+        _ok, res = LAB.create_request(v.id, [c.id], requested_by=fx.doctor())
         LAB.notify_results_ready(p.id, res['lab_request_id'])
 
 
@@ -285,18 +304,24 @@ class TestRadCreateRequest:
 
     def test_success(self, fx):
         v = fx.visit()
-        ok, res = RAD.create_request(v.id, modality='ct', body_part=' chest ', notes='n')
+        ok, res = RAD.create_request(v.id, modality='ct', body_part=' chest ', notes='n', requested_by=fx.doctor())
         assert ok is True
         assert res['request_number'].startswith('RAD-')
         req = db.session.get(RadiologyRequest, res['radiology_request_id'])
         assert req.modality == 'CT'
         assert req.body_part == 'chest'
 
+    def test_requires_requested_by_when_doctor_module_enabled(self, fx):
+        v = fx.visit()
+        ok, res = RAD.create_request(v.id)
+        assert ok is False
+        assert 'requested_by' in res['error']
+
 
 class TestRadWorklist:
     def _make(self, fx, status='REQUESTED'):
         v = fx.visit()
-        _ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id, requested_by=fx.doctor())
         req = db.session.get(RadiologyRequest, res['radiology_request_id'])
         req.status = status
         fx.db.session.commit()
@@ -337,7 +362,7 @@ class TestRadResults:
 
     def test_create_result_maps_to_findings(self, fx):
         v = fx.visit()
-        _ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id, requested_by=fx.doctor())
         rid = res['radiology_request_id']
         result = RAD.create_or_update_result(
             rid, 'my findings', conclusion='my impression', is_critical=True
@@ -349,7 +374,7 @@ class TestRadResults:
 
     def test_create_or_update_result_updates_existing(self, fx):
         v = fx.visit()
-        _ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id, requested_by=fx.doctor())
         rid = res['radiology_request_id']
         RAD.create_or_update_result(rid, 'first')
         again = RAD.create_or_update_result(rid, 'second')
@@ -357,7 +382,7 @@ class TestRadResults:
 
     def test_finalize_result(self, fx):
         v = fx.visit()
-        _ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id, requested_by=fx.doctor())
         rid = res['radiology_request_id']
         RAD.create_or_update_result(rid, 'report')
         assert RAD.finalize_result(rid) is True
@@ -369,7 +394,7 @@ class TestRadResults:
     def test_claim_request(self, fx):
         v = fx.visit()
         u = _make_user(fx.db)
-        _ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id, requested_by=fx.doctor())
         rid = res['radiology_request_id']
         assert RAD.claim_request(rid, u.id) is True
         req = db.session.get(RadiologyRequest, rid)
@@ -378,7 +403,7 @@ class TestRadResults:
     def test_claim_request_wrong_status(self, fx):
         v = fx.visit()
         u = _make_user(fx.db)
-        _ok, res = RAD.create_request(v.id)
+        _ok, res = RAD.create_request(v.id, requested_by=fx.doctor())
         rid = res['radiology_request_id']
         RAD.claim_request(rid, u.id)
         assert RAD.claim_request(rid, u.id) is False
@@ -427,7 +452,7 @@ class TestLabCancelAndAmend:
     def _request(self, fx):
         v = fx.visit()
         c = fx.catalog()
-        ok, res = LAB.create_request(v.id, [c.id])
+        ok, res = LAB.create_request(v.id, [c.id], requested_by=fx.doctor())
         assert ok
         return res['lab_request_id']
 
@@ -484,7 +509,7 @@ class TestLabCancelAndAmend:
 class TestRadCancelAndAmend:
     def _request(self, fx):
         v = fx.visit()
-        ok, res = RAD.create_request(v.id)
+        ok, res = RAD.create_request(v.id, requested_by=fx.doctor())
         assert ok
         return res['radiology_request_id']
 

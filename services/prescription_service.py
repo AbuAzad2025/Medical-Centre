@@ -134,7 +134,7 @@ class PrescriptionService:
     @require_module('pharmacy')
     def create_prescription(
         patient_id: int,
-        doctor_id: int,
+        doctor_id: int | None = None,
         visit_id: int | None = None,
         tenant_id: int | None = None,
         items: list[dict] | None = None,
@@ -149,6 +149,10 @@ class PrescriptionService:
         computes unit_price/total_price from Medication.price, and ensures
         tenant scoping on both Prescription and PrescriptionItem rows.
 
+        G-3: ``doctor_id`` is optional ONLY for standalone pharmacy/lab walk-ins
+        (tenants without the ``doctor`` module). Under a clinical bundle the
+        prescriber is mandatory.
+
         Item dict expected keys:
           medication_id (int), dosage (str), quantity (int),
           duration_days (int), instructions (str | None)
@@ -157,7 +161,16 @@ class PrescriptionService:
 
         resolved_tenant_id = tenant_id if tenant_id is not None else getattr(g, 'tenant_id', None)
 
-        if not skip_safety_checks and items:
+        from services.feature_gate_service import FeatureGateService
+
+        if (
+            doctor_id is None
+            and resolved_tenant_id is not None
+            and FeatureGateService.module_enabled(resolved_tenant_id, 'doctor')
+        ):
+            return False, 'Prescriber (doctor_id) is required when the doctor module is enabled'
+
+        if not skip_safety_checks and items and doctor_id:
             from services.clinical_safety_service import ClinicalSafetyService
 
             med_ids = [it.get('medication_id') for it in items if it.get('medication_id')]
@@ -241,6 +254,32 @@ class PrescriptionService:
         except Exception as e:
             logging.exception('Error creating prescription: %s')
             return False, str(e)
+
+    @staticmethod
+    @require_module('pharmacy')
+    def verify_controlled_dispense(prescription_id: int) -> list[dict]:
+        """Return controlled-substance line items on a prescription (empty if none).
+
+        G-1 dispense verification: any item whose Medication has ``is_controlled``
+        set must be explicitly acknowledged before the pharmacy dispenses it.
+        """
+        from models.medication import Medication, PrescriptionItem
+
+        rows = (
+            db.session.execute(
+                select(Medication, PrescriptionItem)
+                .join(PrescriptionItem, PrescriptionItem.medication_id == Medication.id)
+                .filter(
+                    PrescriptionItem.prescription_id == prescription_id,
+                    Medication.is_controlled.is_(True),
+                )
+            )
+            .all()
+        )
+        return [
+            {'medication_id': m.id, 'trade_name': m.trade_name, 'schedule': m.schedule}
+            for m, _ in rows
+        ]
 
     @staticmethod
     @require_module('pharmacy')

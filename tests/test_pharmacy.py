@@ -4,9 +4,14 @@ Pharmacy POS, catalog, suppliers, and purchase tests.
 
 from datetime import UTC
 
+from flask import g
 from sqlalchemy import select
 
 from app.extensions import db
+from models.medication import Medication, Prescription, PrescriptionItem
+from models.patient import Patient
+from models.user import User
+from models.visit import Visit
 
 
 class TestMedicationCatalog:
@@ -318,3 +323,68 @@ class TestTenantIsolation:
         )
         assert len(meds) == 0
         g.tenant_id = None
+
+
+class TestControlledDispenseAck:
+    """G-1: controlled-substance dispense requires explicit acknowledgement."""
+
+    def test_dispense_without_ack_rejected(self, auth_client, test_tenant, test_medications):
+        from flask import g
+        from models.medication import Medication, Prescription, PrescriptionItem
+        from models.patient import Patient
+        from models.user import User
+        from models.visit import Visit
+        from sqlalchemy import select
+
+        g.tenant_id = test_tenant.id
+        try:
+            med = test_medications[0]
+            med.is_controlled = True
+            med.schedule = 'II'
+            db.session.commit()
+
+            p = db.session.execute(select(Patient).filter_by(tenant_id=test_tenant.id)).scalars().first()
+            if not p:
+                p = Patient(first_name='Test', last_name='Patient', tenant_id=test_tenant.id)
+                db.session.add(p)
+                db.session.commit()
+
+            doc = db.session.execute(select(User).filter_by(role='doctor', tenant_id=test_tenant.id)).scalars().first()
+            if not doc:
+                doc = User(username='doc_disp', email='doc@x.com', full_name='Doc', role='doctor', is_active=True, tenant_id=test_tenant.id)
+                doc.set_password('p')
+                db.session.add(doc)
+                db.session.commit()
+
+            v = Visit(patient_id=p.id, doctor_id=doc.id, tenant_id=test_tenant.id)
+            db.session.add(v)
+            db.session.commit()
+
+            pres = Prescription(tenant_id=test_tenant.id, patient_id=p.id, doctor_id=doc.id, visit_id=v.id, prescription_number='RX-TEST1')
+            db.session.add(pres)
+            db.session.flush()
+
+            item = PrescriptionItem(prescription_id=pres.id, medication_id=med.id, dosage='1x1', quantity=2, duration_days=3)
+            db.session.add(item)
+            db.session.commit()
+
+            resp = auth_client.post(
+                f'/medication/prescriptions/dispense/{pres.id}',
+                json={'acknowledge_controlled': False},
+                content_type='application/json',
+            )
+            assert resp.status_code == 428
+            data = resp.get_json()
+            assert data['code'] == 'CONTROLLED_REQUIRES_ACK'
+            assert med.trade_name in data['message']
+
+            resp = auth_client.post(
+                f'/medication/prescriptions/dispense/{pres.id}',
+                json={'acknowledge_controlled': True},
+                content_type='application/json',
+            )
+            assert resp.status_code == 200
+            pres = db.session.get(Prescription, pres.id)
+            assert pres.status == 'dispensed'
+        finally:
+            g.tenant_id = None

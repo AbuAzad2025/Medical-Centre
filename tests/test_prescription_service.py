@@ -191,6 +191,66 @@ class TestCreatePrescription:
         assert ok is True
         assert pres.prescription_number.startswith('RX-')
 
+    def test_requires_prescriber_when_doctor_module_enabled(self, rxfx, monkeypatch):
+        from services.feature_gate_service import FeatureGateService
+
+        def _enabled(tenant_id, module, **kw):
+            return True  # doctor enabled
+
+        monkeypatch.setattr(FeatureGateService, 'module_enabled', staticmethod(_enabled))
+        p = rxfx.patient()
+        m = rxfx.med()
+        ok, msg = RX.create_prescription(p.id, None, items=[{'medication_id': m.id, 'quantity': 1, 'dosage': '1', 'duration_days': 1}])
+        assert ok is False
+        assert 'Prescriber' in msg
+
+    def test_standalone_walkin_allows_missing_prescriber(self, rxfx, monkeypatch):
+        from services.feature_gate_service import FeatureGateService
+
+        def _enabled(tenant_id, module, **kw):
+            return module != 'doctor'
+
+        monkeypatch.setattr(FeatureGateService, 'module_enabled', staticmethod(_enabled))
+        p = rxfx.patient()
+        m = rxfx.med()
+        ok, pres = RX.create_prescription(
+            p.id,
+            None,
+            items=[{'medication_id': m.id, 'quantity': 2, 'dosage': '1', 'duration_days': 1}],
+        )
+        assert ok is True
+        assert pres.doctor_id is None
+
+
+class TestControlledDispense:
+    def test_returns_controlled_items(self, rxfx):
+        p = rxfx.patient()
+        doc = rxfx.doctor()
+        m = rxfx.med()
+        m.is_controlled = True
+        m.schedule = 'II'
+        db.session.commit()
+        _ok, pres = RX.create_prescription(
+            p.id,
+            doc.id,
+            items=[{'medication_id': m.id, 'quantity': 2, 'dosage': '1', 'duration_days': 1}],
+        )
+        ctrl = RX.verify_controlled_dispense(pres.id)
+        assert len(ctrl) == 1
+        assert ctrl[0]['medication_id'] == m.id
+        assert ctrl[0]['schedule'] == 'II'
+
+    def test_empty_for_uncontrolled(self, rxfx):
+        p = rxfx.patient()
+        doc = rxfx.doctor()
+        m = rxfx.med()
+        _ok, pres = RX.create_prescription(
+            p.id,
+            doc.id,
+            items=[{'medication_id': m.id, 'quantity': 2, 'dosage': '1', 'duration_days': 1}],
+        )
+        assert RX.verify_controlled_dispense(pres.id) == []
+
     def test_exception_returns_false(self, rxfx):
         p = rxfx.patient()
         doc = rxfx.doctor()

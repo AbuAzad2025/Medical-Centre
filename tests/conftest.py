@@ -65,6 +65,16 @@ def app():
                     "ALTER TABLE pharmacy_returns ADD COLUMN IF NOT EXISTS disposition VARCHAR(20) DEFAULT 'RESTOCK' NOT NULL"
                 )
             )
+            # G-1: controlled-substance columns on the formulary (model change; persistent
+            # test DB lags the model, so backfill here like the Phase 3.2 audit columns).
+            _db.session.execute(
+                text(
+                    'ALTER TABLE medications ADD COLUMN IF NOT EXISTS is_controlled BOOLEAN DEFAULT FALSE'
+                )
+            )
+            _db.session.execute(
+                text('ALTER TABLE medications ADD COLUMN IF NOT EXISTS schedule VARCHAR(20)')
+            )
             # Insurance Claims - activate dead model with new columns
             _db.session.execute(
                 text('ALTER TABLE insurance_claims ADD COLUMN IF NOT EXISTS claim_date TIMESTAMP')
