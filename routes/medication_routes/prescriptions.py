@@ -133,13 +133,13 @@ def dispense_prescription(prescription_id):
                 'acknowledge_controlled'
             ) or request.form.get('acknowledge_controlled')
             if ack not in (True, 'true', '1', 'on', 'yes'):
-                names = ', '.join(
+                controlled_names = ', '.join(
                     f'{c["trade_name"]} ({c["schedule"] or "Scheduled"})' for c in controlled
                 )
                 return jsonify(
                     {
                         'success': False,
-                        'message': f'هذه الوصفة تحتوي على أدوية خاضعة للرقابة يجب تأكيدها: {names}',
+                        'message': f'هذه الوصفة تحتوي على أدوية خاضعة للرقابة يجب تأكيدها: {controlled_names}',
                         'code': 'CONTROLLED_REQUIRES_ACK',
                         'controlled_items': controlled,
                     }
