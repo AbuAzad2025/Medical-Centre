@@ -74,10 +74,11 @@ class ReceptionService:
             db.session.add(patient)
             if not safe_commit(db.session, error_message='Failed to register patient'):
                 return None
-            return patient
         except Exception:
             logging.exception('Error registering patient: %s')
             return None
+        else:
+            return patient
 
     @staticmethod
     def search_patients(query: str) -> list:
@@ -125,10 +126,11 @@ class ReceptionService:
             db.session.add(visit)
             if not safe_commit(db.session, error_message='Failed to create visit'):
                 return None
-            return visit
         except Exception:
             logging.exception('Error creating visit: %s')
             return None
+        else:
+            return visit
 
     @staticmethod
     def get_queue(department_id: int | None = None) -> list:
