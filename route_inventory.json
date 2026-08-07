@@ -5743,7 +5743,63 @@
         "POST"
       ],
       "classification": "internal"
+    },
+    {
+      "endpoint": "api_lab.cancel_request",
+      "path": "/api/lab/requests/<int:request_id>/cancel",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "api_lab.amend_result",
+      "path": "/api/lab/results/<int:result_id>/amend",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "api_radiology.cancel_request",
+      "path": "/api/radiology/requests/<int:request_id>/cancel",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "api_radiology.amend_result",
+      "path": "/api/radiology/results/<int:result_id>/amend",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "bed_management.admit_patient",
+      "path": "/bed/api/admissions/admit",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "bed_management.transfer_admission",
+      "path": "/bed/api/admissions/<int:admission_id>/transfer",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "bed_management.discharge_admission",
+      "path": "/bed/api/admissions/<int:admission_id>/discharge",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
     }
   ],
-  "total_routes": 706
+  "total_routes": 713
 }
