@@ -169,6 +169,44 @@ def app():
         except Exception:
             _db.session.rollback()
 
+        # Phase 3.3 - ADT columns (separate transaction: commit even if the
+        # SaaS exclusion-constraint block above rolls back, so the bed/visit/
+        # admission tables always expose their audit columns in the test DB).
+        try:
+            _db.session.execute(
+                text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS is_inpatient BOOLEAN DEFAULT FALSE')
+            )
+            _db.session.execute(
+                text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS admission_date TIMESTAMP')
+            )
+            _db.session.execute(
+                text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS discharge_date TIMESTAMP')
+            )
+            _db.session.execute(
+                text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS bed_id INTEGER')
+            )
+            _db.session.execute(
+                text('ALTER TABLE visits ADD COLUMN IF NOT EXISTS ward_id INTEGER')
+            )
+            _db.session.execute(
+                text('ALTER TABLE admissions ADD COLUMN IF NOT EXISTS discharge_type VARCHAR(50)')
+            )
+            _db.session.execute(
+                text('ALTER TABLE admissions ADD COLUMN IF NOT EXISTS length_of_stay INTEGER')
+            )
+            _db.session.execute(
+                text('ALTER TABLE admissions ADD COLUMN IF NOT EXISTS discharge_datetime TIMESTAMP')
+            )
+            _db.session.execute(
+                text("ALTER TABLE beds ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'AVAILABLE'")
+            )
+            _db.session.execute(
+                text('ALTER TABLE beds ADD COLUMN IF NOT EXISTS current_patient_id INTEGER')
+            )
+            _db.session.commit()
+        except Exception:
+            _db.session.rollback()
+
         # Register test routes that need to be available before any requests
         from utils.exceptions import IdempotencyError, ModuleNotEnabledError, TenantContextError
 

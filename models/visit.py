@@ -114,6 +114,17 @@ class Visit(TenantMixin, db.Model):
     # clinical Visit.status lifecycle. Do NOT merge it into Visit.status.
     archive_status = db.Column(db.String(20), default='ACTIVE')
 
+    # ADT helper fields (Phase 3.3)
+    is_inpatient = db.Column(db.Boolean, default=False, nullable=False, index=True)
+    admission_date = db.Column(db.DateTime, nullable=True)
+    discharge_date = db.Column(db.DateTime, nullable=True)
+    bed_id = db.Column(
+        db.Integer, db.ForeignKey('beds.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    ward_id = db.Column(
+        db.Integer, db.ForeignKey('wards.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+
     created_by = db.Column(
         db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
     )
@@ -198,6 +209,8 @@ class Visit(TenantMixin, db.Model):
     treatments = db.relationship('Treatment', back_populates='visit', lazy='selectin')
     workflows = db.relationship('PatientWorkflow', back_populates='visit')
     workflow_events = db.relationship('VisitWorkflowEvent', back_populates='visit')
+    bed = db.relationship('Bed', foreign_keys=[bed_id], lazy='selectin')
+    ward = db.relationship('Ward', foreign_keys=[ward_id], lazy='selectin')
 
     @property
     def remaining_amount(self):
@@ -320,4 +333,9 @@ class Visit(TenantMixin, db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,
             'archived_at': self.archived_at.isoformat() if self.archived_at else None,
+            'is_inpatient': self.is_inpatient,
+            'admission_date': self.admission_date.isoformat() if self.admission_date else None,
+            'discharge_date': self.discharge_date.isoformat() if self.discharge_date else None,
+            'bed_id': self.bed_id,
+            'ward_id': self.ward_id,
         }

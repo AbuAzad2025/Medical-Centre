@@ -4,6 +4,8 @@ Bed Management — Ward, Room, Bed, Admission-Discharge-Transfer (ADT)
 
 from datetime import UTC, datetime
 
+from sqlalchemy.orm import validates
+
 from app.shared.mixins import TenantMixin
 from app_factory import db
 
@@ -175,6 +177,47 @@ class Admission(TenantMixin, db.Model):
         'MedicationReconciliation', back_populates='admission'
     )
     surgeries = db.relationship('SurgerySchedule', back_populates='admission')
+
+    def compute_length_of_stay(self) -> int | None:
+        """Days between admission and discharge; None if not yet discharged."""
+        if self.discharge_datetime and self.admission_datetime:
+            a = self.admission_datetime
+            d = self.discharge_datetime
+            # PostgreSQL TIMESTAMP is stored tz-naive; normalize both endpoints
+            # to naive UTC so aware/in-memory vs. reloaded values can be subtracted.
+            if a.tzinfo is not None:
+                a = a.astimezone(UTC).replace(tzinfo=None)
+            if d.tzinfo is not None:
+                d = d.astimezone(UTC).replace(tzinfo=None)
+            return max(0, (d - a).days)
+        return None
+
+    @property
+    def readmission_flag(self) -> bool:
+        """True if the patient had an earlier DISCHARGED admission before this one."""
+        if not self.patient_id or self.admission_datetime is None:
+            return False
+        prior = (
+            db.session.query(Admission)
+            .filter(
+                Admission.patient_id == self.patient_id,
+                Admission.status == 'DISCHARGED',
+                Admission.discharge_datetime < self.admission_datetime,
+            )
+            .count()
+        )
+        return prior > 0
+
+    @validates('discharge_type')
+    def _validate_discharge_type(self, key, value):
+        from app.shared.enums import DischargeType
+
+        if value is None:
+            return value
+        allowed = {d.value for d in DischargeType}
+        if value not in allowed:
+            raise ValueError(f'Invalid discharge_type: {value}. Allowed: {sorted(allowed)}')
+        return value
 
     def __repr__(self):
         return f'<Admission {self.admission_type}>'

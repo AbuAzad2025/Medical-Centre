@@ -2,12 +2,13 @@
 Bed Management Routes — Ward, Room, Bed, Admission, Transfer
 """
 
-from flask import Blueprint, jsonify, render_template, request
-from flask_login import login_required
+from flask import Blueprint, g, jsonify, render_template, request
+from flask_login import current_user, login_required
 from sqlalchemy import func, select
 
 from app.extensions import db
 from models.bed_management import Admission, Bed, Room, Ward
+from services.admission_service import AdmissionService
 from utils.decorators import handle_route_errors, role_required
 
 bed_bp = Blueprint('bed', __name__)
@@ -141,3 +142,64 @@ def api_bed_status():
             for b in beds
         ]
     )
+
+
+def _tenant_id():
+    return getattr(g, 'tenant_id', None) or getattr(current_user, 'tenant_id', None)
+
+
+@bed_bp.route('/api/admissions/admit', methods=['POST'])
+@login_required
+@role_required('nurse', 'admin', 'manager')
+@handle_route_errors
+def api_admit():
+    data = request.get_json(silent=True) or {}
+    visit_id = data.get('visit_id')
+    bed_id = data.get('bed_id')
+    if visit_id is None or bed_id is None:
+        return jsonify({'success': False, 'message': 'visit_id و bed_id مطلوبان'}), 400
+    result = AdmissionService.create_admission(
+        visit_id=visit_id,
+        bed_id=bed_id,
+        user_id=current_user.id,
+        tenant_id=_tenant_id(),
+    )
+    return jsonify(result), 200 if result.get('success') else 400
+
+
+@bed_bp.route('/api/admissions/<int:admission_id>/discharge', methods=['POST'])
+@login_required
+@role_required('nurse', 'admin', 'manager')
+@handle_route_errors
+def api_discharge(admission_id):
+    data = request.get_json(silent=True) or {}
+    discharge_type = data.get('discharge_type')
+    if not discharge_type:
+        return jsonify({'success': False, 'message': 'discharge_type مطلوب'}), 400
+    result = AdmissionService.process_discharge(
+        admission_id=admission_id,
+        discharge_type=discharge_type,
+        summary_notes=data.get('summary_notes'),
+        user_id=current_user.id,
+        tenant_id=_tenant_id(),
+    )
+    return jsonify(result), 200 if result.get('success') else 400
+
+
+@bed_bp.route('/api/admissions/<int:admission_id>/transfer', methods=['POST'])
+@login_required
+@role_required('nurse', 'admin', 'manager')
+@handle_route_errors
+def api_transfer(admission_id):
+    data = request.get_json(silent=True) or {}
+    target_bed_id = data.get('target_bed_id')
+    if target_bed_id is None:
+        return jsonify({'success': False, 'message': 'target_bed_id مطلوب'}), 400
+    result = AdmissionService.process_transfer(
+        admission_id=admission_id,
+        target_bed_id=target_bed_id,
+        transfer_reason=data.get('transfer_reason'),
+        user_id=current_user.id,
+        tenant_id=_tenant_id(),
+    )
+    return jsonify(result), 200 if result.get('success') else 400

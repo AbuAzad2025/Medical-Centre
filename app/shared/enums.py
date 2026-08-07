@@ -415,6 +415,13 @@ class AdmissionStatus(StrEnum):
     DECEASED = 'DECEASED'
 
 
+class DischargeType(StrEnum):
+    HOME = 'HOME'
+    TRANSFER = 'TRANSFER'
+    DEATH = 'DEATH'
+    AGAINST_ADVICE = 'AGAINST_ADVICE'
+
+
 # =============================================================================
 # Clinical
 # =============================================================================
