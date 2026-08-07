@@ -1,7 +1,7 @@
 """Add specialty forms tables
 
 Revision ID: dfdad7fc3407
-Revises: f0ca021c3e4f
+Revises: s0_005
 Create Date: 2026-06-23
 
 """
@@ -19,6 +19,24 @@ revision = 'dfdad7fc3407'
 down_revision = 's0_005'
 branch_labels = None
 depends_on = None
+
+
+def _enable_rls_on_table(table_name: str) -> None:
+    """Enable RLS FORCE and create tenant isolation policy for a table."""
+    op.execute(f'ALTER TABLE {table_name} ENABLE ROW LEVEL SECURITY')
+    op.execute(f'ALTER TABLE {table_name} FORCE ROW LEVEL SECURITY')
+    policy_name = f'tenant_isolation_{table_name}'
+    op.execute(f"DROP POLICY IF EXISTS {policy_name} ON {table_name}")
+    op.execute(
+        f"CREATE POLICY {policy_name} ON {table_name} "
+        f"USING (tenant_id = current_setting('app.tenant_id', true)::int) "
+        f"WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::int)"
+    )
+    # Super admin bypass
+    op.execute(
+        f"CREATE POLICY {table_name}_super_admin ON {table_name} "
+        f"FOR ALL USING (current_setting('app.bypass_rls', true) = 'on')"
+    )
 
 
 def upgrade():
@@ -109,6 +127,10 @@ def upgrade():
         batch_op.create_index(batch_op.f('ix_specialty_form_submissions_patient_id'), ['patient_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_specialty_form_submissions_tenant_id'), ['tenant_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_specialty_form_submissions_version_id'), ['version_id'], unique=False)
+
+    # Enable RLS FORCE on all specialty form tables
+    for table in ['specialty_forms', 'specialty_form_versions', 'specialty_form_fields', 'specialty_form_submissions']:
+        _enable_rls_on_table(table)
 
 
 def downgrade():

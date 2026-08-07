@@ -1,7 +1,7 @@
 """G-106: branding print header fields
 
 Revision ID: p5_001_branding_print_headers
-Revises: s2_010_specialty_forms_rls
+Revises: s2_009_schema_drift_sync
 Create Date: 2026-06-23
 
 """
@@ -15,7 +15,7 @@ from migration_utils import column_exists
 
 
 revision = 'p5_001_branding_print_headers'
-down_revision = 's2_010_specialty_forms_rls'
+down_revision = 's2_009_schema_drift_sync'
 branch_labels = None
 depends_on = None
 
