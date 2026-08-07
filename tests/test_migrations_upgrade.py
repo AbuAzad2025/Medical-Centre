@@ -51,11 +51,11 @@ def test_alembic_heads_expected(app):
             rev = ln.split(' ')[0].strip()
             if rev:
                 head_revisions.add(rev)
-    
+
     # Verify all expected heads are present
     missing = EXPECTED_HEADS - head_revisions
     assert not missing, f'Missing expected heads: {missing}. Found: {head_revisions}'
-    
+
     # Verify no unexpected heads (allow some flexibility for future additions)
     unexpected = head_revisions - EXPECTED_HEADS
     assert not unexpected, f'Unexpected heads found: {unexpected}. Expected: {EXPECTED_HEADS}'

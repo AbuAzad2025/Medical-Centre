@@ -54,7 +54,7 @@ def main() -> int:
         print(result.stderr, file=sys.stderr)
         print('FAIL flask db heads')
         return 1
-    
+
     # Extract all head revisions from output
     head_revisions = []
     for ln in result.stdout.splitlines():
@@ -63,15 +63,15 @@ def main() -> int:
             head_rev = ln.split(' -> ')[0].split(' ')[0].strip()
             if head_rev:
                 head_revisions.append(head_rev)
-    
+
     print(f'OK  head revisions: {", ".join(head_revisions)}')
-    
+
     # Verify p5_004 is among the heads
     if ALEMBIC_HEAD not in head_revisions:
         print(f'FAIL expected head {ALEMBIC_HEAD} not found in heads: {head_revisions}')
         return 1
     print(f'OK  expected head {ALEMBIC_HEAD} present')
-    
+
     # Verify alembic_version has one of the heads
     _target = sa.create_engine(TARGET_URL)
     with _target.connect() as c:
