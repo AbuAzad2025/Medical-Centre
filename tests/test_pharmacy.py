@@ -363,7 +363,7 @@ class TestControlledDispenseAck:
                 db.session.add(doc)
                 db.session.commit()
 
-            v = Visit(patient_id=p.id, doctor_id=doc.id, tenant_id=test_tenant.id)
+            v = Visit(patient_id=p.id, doctor_id=doc.id, tenant_id=test_tenant.id, payment_status='PAID')
             db.session.add(v)
             db.session.commit()
 
