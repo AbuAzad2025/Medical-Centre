@@ -283,7 +283,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run database migrations
-        run: python -m flask db upgrade
+        run: python -m flask db upgrade heads
         env:
           DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_audit
           RLS_BYPASS_ALLOWED: "1"

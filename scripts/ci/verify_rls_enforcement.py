@@ -40,7 +40,7 @@ def psql(conn, sql: str):
 def _run_upgrade() -> None:
     env = {**os.environ, 'RLS_BYPASS_ALLOWED': '1', 'FLASK_APP': 'wsgi:app'}
     result = subprocess.run(
-        [sys.executable, '-m', 'flask', 'db', 'upgrade'],
+        [sys.executable, '-m', 'flask', 'db', 'upgrade', 'heads'],
         capture_output=True,
         text=True,
         timeout=60,
