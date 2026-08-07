@@ -52,6 +52,10 @@ class LabRequest(TenantMixin, db.Model):
         index=True,
     )
     completed_at = db.Column(db.DateTime, nullable=True)
+    cancelled_at = db.Column(db.DateTime, nullable=True, index=True)
+    cancelled_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     __table_args__ = (Index('idx_lab_req_patient_created', 'patient_id', 'created_at'),)
 
@@ -87,6 +91,8 @@ class LabRequest(TenantMixin, db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'cancelled_at': self.cancelled_at.isoformat() if self.cancelled_at else None,
+            'cancelled_by': self.cancelled_by,
         }
 
 
@@ -117,6 +123,10 @@ class LabResult(TenantMixin, db.Model):
     status = db.Column(db.String(20), default='PENDING', index=True)  # PENDING|READY|VALIDATED
     notes = db.Column(db.Text, nullable=True)
     is_critical = db.Column(db.Boolean, default=False, nullable=False, index=True)
+    amended_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    amended_at = db.Column(db.DateTime, nullable=True, index=True)
 
     created_at = db.Column(
         db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True

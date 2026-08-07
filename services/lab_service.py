@@ -466,6 +466,97 @@ class LabService:
         except Exception:
             logging.exception('Error logging lab action: %s')
 
+    # ==================== CANCEL & AMEND ====================
+
+    _LAB_TERMINAL_STATUSES = {'DONE', 'CANCELLED'}
+
+    @staticmethod
+    @require_module('lab')
+    def cancel_request(
+        request_id: int, cancelled_by: int, reason: str | None = None
+    ) -> tuple[bool, dict]:
+        """Cancel a lab request. Only non-terminal requests can be cancelled.
+
+        Returns ``(ok, payload)`` so the route layer can translate to HTTP without
+        try/except in the view, mirroring the FinancialService contract.
+        """
+        from models.lab_request import LabRequest
+
+        try:
+            req = (
+                db.session.execute(
+                    select(LabRequest).filter(
+                        LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id
+                    )
+                )
+                .scalars()
+                .first()
+            )
+            if not req:
+                return False, {'error': 'Lab request not found'}
+            if req.status in LabService._LAB_TERMINAL_STATUSES:
+                return False, {'error': f'Cannot cancel a request in status {req.status}'}
+            now = datetime.now(UTC)
+            req.status = 'CANCELLED'
+            req.cancelled_at = now
+            req.cancelled_by = cancelled_by
+            req.updated_at = now
+            if reason:
+                prefix = f'{req.notes}\n' if req.notes else ''
+                req.notes = f'{prefix}[CANCELLED by {cancelled_by}] {reason}'
+            LabService.log_action('update', f'cancelled request {req.id}', user_id=cancelled_by)
+            if not safe_commit(db.session, error_message='Error cancelling lab request'):
+                return False, {'error': 'Error cancelling lab request'}
+            return True, {'lab_request_id': req.id, 'status': req.status}
+        except Exception:
+            logging.exception('Error cancelling lab request: %s')
+            return False, {'error': 'Error cancelling lab request'}
+
+    @staticmethod
+    @require_module('lab')
+    def amend_result(
+        result_id: int,
+        *,
+        value: str | None = None,
+        unit: str | None = None,
+        notes: str | None = None,
+        is_critical: bool = False,
+        amended_by: int | None = None,
+    ) -> tuple[bool, dict]:
+        """Amend a lab result, recording amendment audit fields + is_critical flag."""
+        from models.lab_request import LabResult
+
+        try:
+            result = (
+                db.session.execute(
+                    select(LabResult).filter(
+                        LabResult.id == result_id, LabResult.tenant_id == g.tenant_id
+                    )
+                )
+                .scalars()
+                .first()
+            )
+            if not result:
+                return False, {'error': 'Lab result not found'}
+            now = datetime.now(UTC)
+            if value is not None:
+                result.value = value
+            if unit is not None:
+                result.unit = unit
+            if notes is not None:
+                result.notes = notes
+            result.is_critical = is_critical
+            result.amended_by = amended_by
+            result.amended_at = now
+            result.updated_at = now
+            LabService.log_action('update', f'amended result {result.id}', user_id=amended_by)
+            if not safe_commit(db.session, error_message='Error amending lab result'):
+                return False, {'error': 'Error amending lab result'}
+            return True, {'result_id': result.id, 'is_critical': result.is_critical}
+        except Exception:
+            logging.exception('Error amending lab result: %s')
+            return False, {'error': 'Error amending lab result'}
+
     # ==================== DASHBOARD ====================
 
     @staticmethod

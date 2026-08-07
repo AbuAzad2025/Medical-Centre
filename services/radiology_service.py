@@ -290,6 +290,95 @@ class RadiologyService:
             logging.exception('Error claiming radiology request: %s')
             return False
 
+    # ==================== CANCEL & AMEND ====================
+
+    _RAD_TERMINAL_STATUSES = {'DONE', 'CANCELLED'}
+
+    @staticmethod
+    @require_module('radiology')
+    def cancel_request(
+        request_id: int, cancelled_by: int, reason: str | None = None
+    ) -> tuple[bool, dict]:
+        """Cancel a radiology request. Radiology uses raw status strings.
+
+        Returns ``(ok, payload)``; terminal requests (DONE/CANCELLED) are rejected.
+        """
+        from models.radiology_request import RadiologyRequest
+
+        try:
+            req = (
+                db.session.execute(
+                    select(RadiologyRequest).filter(
+                        RadiologyRequest.id == request_id,
+                        RadiologyRequest.tenant_id == g.tenant_id,
+                    )
+                )
+                .scalars()
+                .first()
+            )
+            if not req:
+                return False, {'error': 'Radiology request not found'}
+            if req.status in RadiologyService._RAD_TERMINAL_STATUSES:
+                return False, {'error': f'Cannot cancel a request in status {req.status}'}
+            now = datetime.now(UTC)
+            req.status = 'CANCELLED'
+            req.cancelled_at = now
+            req.cancelled_by = cancelled_by
+            req.updated_at = now
+            if reason:
+                prefix = f'{req.notes}\n' if req.notes else ''
+                req.notes = f'{prefix}[CANCELLED by {cancelled_by}] {reason}'
+            RadiologyService.log_action('update', f'cancelled request {req.id}', user_id=cancelled_by)
+            if not safe_commit(db.session, error_message='فشل إلغاء طلب الأشعة'):
+                return False, {'error': 'Error cancelling radiology request'}
+            return True, {'request_id': req.id, 'status': req.status}
+        except Exception:
+            logging.exception('Error cancelling radiology request: %s')
+            return False, {'error': 'Error cancelling radiology request'}
+
+    @staticmethod
+    @require_module('radiology')
+    def amend_result(
+        result_id: int,
+        *,
+        findings: str | None = None,
+        impression: str | None = None,
+        is_critical: bool = False,
+        amended_by: int | None = None,
+    ) -> tuple[bool, dict]:
+        """Amend a radiology result, recording amendment audit fields + is_critical flag."""
+        from models.radiology_result import RadiologyResult
+
+        try:
+            result = (
+                db.session.execute(
+                    select(RadiologyResult).filter(
+                        RadiologyResult.id == result_id,
+                        RadiologyResult.tenant_id == g.tenant_id,
+                    )
+                )
+                .scalars()
+                .first()
+            )
+            if not result:
+                return False, {'error': 'Radiology result not found'}
+            now = datetime.now(UTC)
+            if findings is not None:
+                result.findings = findings
+            if impression is not None:
+                result.impression = impression
+            result.is_critical = is_critical
+            result.amended_by = amended_by
+            result.amended_at = now
+            result.updated_at = now
+            RadiologyService.log_action('update', f'amended result {result.id}', user_id=amended_by)
+            if not safe_commit(db.session, error_message='فشل تعديل نتيجة الأشعة'):
+                return False, {'error': 'Error amending radiology result'}
+            return True, {'result_id': result.id, 'is_critical': result.is_critical}
+        except Exception:
+            logging.exception('Error amending radiology result: %s')
+            return False, {'error': 'Error amending radiology result'}
+
     # ==================== FILE UPLOADS ====================
 
     @staticmethod

@@ -40,6 +40,10 @@ class RadiologyResult(TenantMixin, db.Model):
     )
     reviewed_at = db.Column(db.DateTime, nullable=True, index=True)
     revised_after_review = db.Column(db.Boolean, default=False, nullable=False, index=True)
+    amended_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    amended_at = db.Column(db.DateTime, nullable=True, index=True)
 
     created_at = db.Column(
         db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True

@@ -32,6 +32,10 @@ class RadiologyRequest(TenantMixin, db.Model):
     modality = db.Column(db.String(20), nullable=True)  # XRay|CT|MRI|US
     body_part = db.Column(db.String(120), nullable=True)
     notes = db.Column(db.Text, nullable=True)
+    cancelled_at = db.Column(db.DateTime, nullable=True, index=True)
+    cancelled_by = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     created_at = db.Column(
         db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True
@@ -73,6 +77,8 @@ class RadiologyRequest(TenantMixin, db.Model):
             'modality': self.modality,
             'body_part': self.body_part,
             'notes': self.notes,
+            'cancelled_at': self.cancelled_at.isoformat() if self.cancelled_at else None,
+            'cancelled_by': self.cancelled_by,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }

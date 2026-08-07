@@ -20,6 +20,7 @@ from models.lab_request import LabRequest, LabResult
 from models.lab_test_catalog import LabTestCatalog
 from models.patient import Patient
 from models.radiology_request import RadiologyRequest
+from models.radiology_result import RadiologyResult
 from models.visit import Visit
 from services.lab_service import LabService as LAB
 from services.radiology_service import RadiologyService as RAD
@@ -420,6 +421,117 @@ class TestRadMisc:
         saved = RAD.save_uploaded_files([FakeFile(), None], result_id=7)
         assert len(saved) == 1
         assert saved[0].related_entity_id == 7
+
+
+class TestLabCancelAndAmend:
+    def _request(self, fx):
+        v = fx.visit()
+        c = fx.catalog()
+        ok, res = LAB.create_request(v.id, [c.id])
+        assert ok
+        return res['lab_request_id']
+
+    def test_cancel_request_success(self, fx):
+        rid = self._request(fx)
+        u = _make_user(fx.db)
+        ok, res = LAB.cancel_request(rid, cancelled_by=u.id, reason='wrong patient')
+        assert ok is True
+        assert res['status'] == 'CANCELLED'
+        req = db.session.get(LabRequest, rid)
+        assert req.status == 'CANCELLED'
+        assert req.cancelled_at is not None
+        assert req.cancelled_by == u.id
+        assert 'CANCELLED by' in (req.notes or '')
+
+    def test_cancel_terminal_rejected(self, fx):
+        rid = self._request(fx)
+        req = db.session.get(LabRequest, rid)
+        req.status = 'DONE'
+        fx.db.session.commit()
+        ok, res = LAB.cancel_request(rid, cancelled_by=1)
+        assert ok is False
+        assert 'Cannot cancel' in res['error']
+
+    def test_cancel_not_found(self, fx):
+        ok, res = LAB.cancel_request(99999999, cancelled_by=1)
+        assert ok is False
+        assert 'not found' in res['error']
+
+    def test_amend_result_audit(self, fx):
+        rid = self._request(fx)
+        result = (
+            db.session.execute(select(LabResult).filter_by(request_id=rid)).scalars().first()
+        )
+        u = _make_user(fx.db)
+        ok, res = LAB.amend_result(
+            result.id, value='99', unit='mg', notes='recheck', is_critical=True, amended_by=u.id
+        )
+        assert ok is True
+        assert res['is_critical'] is True
+        updated = db.session.get(LabResult, result.id)
+        assert updated.value == '99'
+        assert updated.unit == 'mg'
+        assert updated.is_critical is True
+        assert updated.amended_by == u.id
+        assert updated.amended_at is not None
+
+    def test_amend_result_not_found(self, fx):
+        ok, res = LAB.amend_result(99999999, value='1')
+        assert ok is False
+        assert 'not found' in res['error']
+
+
+class TestRadCancelAndAmend:
+    def _request(self, fx):
+        v = fx.visit()
+        ok, res = RAD.create_request(v.id)
+        assert ok
+        return res['radiology_request_id']
+
+    def test_cancel_request_success(self, fx):
+        rid = self._request(fx)
+        u = _make_user(fx.db)
+        ok, res = RAD.cancel_request(rid, cancelled_by=u.id, reason='patient no-show')
+        assert ok is True
+        assert res['status'] == 'CANCELLED'
+        req = db.session.get(RadiologyRequest, rid)
+        assert req.status == 'CANCELLED'
+        assert req.cancelled_at is not None
+        assert req.cancelled_by == u.id
+
+    def test_cancel_terminal_rejected(self, fx):
+        rid = self._request(fx)
+        req = db.session.get(RadiologyRequest, rid)
+        req.status = 'DONE'
+        fx.db.session.commit()
+        ok, res = RAD.cancel_request(rid, cancelled_by=1)
+        assert ok is False
+        assert 'Cannot cancel' in res['error']
+
+    def test_cancel_not_found(self, fx):
+        ok, res = RAD.cancel_request(99999999, cancelled_by=1)
+        assert ok is False
+        assert 'not found' in res['error']
+
+    def test_amend_result_audit(self, fx):
+        rid = self._request(fx)
+        result = RAD.create_or_update_result(rid, 'original findings', is_critical=False)
+        u = _make_user(fx.db)
+        ok, res = RAD.amend_result(
+            result.id, findings='updated report', is_critical=True, amended_by=u.id
+        )
+        assert ok is True
+        assert res['is_critical'] is True
+        updated = db.session.get(RadiologyResult, result.id)
+        assert updated.findings == 'updated report'
+        assert updated.is_critical is True
+        assert updated.amended_by == u.id
+        assert updated.amended_at is not None
+
+    def test_amend_not_found(self, fx):
+        ok, res = RAD.amend_result(99999999, findings='x')
+        assert ok is False
+        assert 'not found' in res['error']
 
 
 def _make_user(db):

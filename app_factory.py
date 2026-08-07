@@ -800,6 +800,12 @@ def create_app(config_name: str | None = None) -> Flask:
     from routes.api_user import api_user_bp
 
     app.register_blueprint(api_user_bp, url_prefix='/api/user')
+    from routes.api_lab import api_lab_bp
+
+    app.register_blueprint(api_lab_bp, url_prefix='/api/lab')
+    from routes.api_radiology import api_radiology_bp
+
+    app.register_blueprint(api_radiology_bp, url_prefix='/api/radiology')
     from routes.pwa import pwa_bp
 
     app.register_blueprint(pwa_bp, url_prefix='/pwa')
