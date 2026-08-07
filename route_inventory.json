@@ -5745,7 +5745,7 @@
       "classification": "internal"
     },
     {
-      "endpoint": "api_lab.cancel_request",
+      "endpoint": "api_lab.cancel_lab_request",
       "path": "/api/lab/requests/<int:request_id>/cancel",
       "methods": [
         "POST"
@@ -5753,7 +5753,7 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "api_lab.amend_result",
+      "endpoint": "api_lab.amend_lab_result",
       "path": "/api/lab/results/<int:result_id>/amend",
       "methods": [
         "POST"
@@ -5761,7 +5761,7 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "api_radiology.cancel_request",
+      "endpoint": "api_radiology.cancel_radiology_request",
       "path": "/api/radiology/requests/<int:request_id>/cancel",
       "methods": [
         "POST"
@@ -5769,7 +5769,7 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "api_radiology.amend_result",
+      "endpoint": "api_radiology.amend_radiology_result",
       "path": "/api/radiology/results/<int:result_id>/amend",
       "methods": [
         "POST"
@@ -5777,7 +5777,7 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "bed_management.admit_patient",
+      "endpoint": "bed.api_admit",
       "path": "/bed/api/admissions/admit",
       "methods": [
         "POST"
@@ -5785,7 +5785,7 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "bed_management.transfer_admission",
+      "endpoint": "bed.api_transfer",
       "path": "/bed/api/admissions/<int:admission_id>/transfer",
       "methods": [
         "POST"
@@ -5793,7 +5793,7 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "bed_management.discharge_admission",
+      "endpoint": "bed.api_discharge",
       "path": "/bed/api/admissions/<int:admission_id>/discharge",
       "methods": [
         "POST"
