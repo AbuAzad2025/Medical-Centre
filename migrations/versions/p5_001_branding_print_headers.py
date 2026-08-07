@@ -15,7 +15,7 @@ from migration_utils import column_exists
 
 
 revision = 'p5_001_branding_print_headers'
-down_revision = 'e8a1c9021b44'
+down_revision = 'p3_002_lab_radiology_audit_cols'
 branch_labels = None
 depends_on = None
 

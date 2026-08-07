@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'p5_004_add_controlled_schedule_to_medication'
-down_revision: str | None = 's2_009_schema_drift_sync'
+down_revision: str | None = 'p5_001_branding_print_headers'
 
 
 def upgrade() -> None:
