@@ -40,7 +40,7 @@ def main() -> int:
         'APP_ENV': 'testing',
         'SECRET_KEY': os.environ.get('SECRET_KEY', 'ci'),
     }
-    result = _run([sys.executable, '-m', 'flask', 'db', 'upgrade'], env=env)
+    result = _run([sys.executable, '-m', 'flask', 'db', 'upgrade', 'heads'], env=env)
     if result.returncode != 0:
         print(result.stdout)
         print(result.stderr, file=sys.stderr)
