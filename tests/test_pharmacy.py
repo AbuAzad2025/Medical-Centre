@@ -383,6 +383,8 @@ class TestControlledDispenseAck:
                 dosage='1x1',
                 quantity=2,
                 duration_days=3,
+                unit_price=med.price,
+                total_price=med.price * 2,
             )
             db.session.add(item)
             db.session.commit()

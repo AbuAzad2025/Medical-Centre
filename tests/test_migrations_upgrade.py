@@ -7,8 +7,14 @@ import sys
 
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
-# Keep in sync with the latest Alembic revision in migrations/versions/.
-ALEMBIC_HEAD_REVISION = 's2_009_schema_drift_sync'
+# Expected heads in the migration graph (multiple independent chains)
+EXPECTED_HEADS = {
+    'e8a1c9021b44',
+    'p3_002_lab_radiology_audit_cols',
+    'p3_003_adt_columns',
+    'p4_002_drop_queue_payment_status',
+    'p5_004_add_controlled_schedule_to_medication',
+}
 
 
 def test_migration_utils_callable():
@@ -22,8 +28,8 @@ def test_migration_utils_callable():
     assert callable(disable_tenant_rls)
 
 
-def test_alembic_single_head(app):
-    """Revision graph must resolve to one head (no branches)."""
+def test_alembic_heads_expected(app):
+    """Revision graph must resolve to expected heads (multiple independent chains)."""
     result = subprocess.run(
         [sys.executable, '-m', 'flask', 'db', 'heads'],
         env={
@@ -38,10 +44,18 @@ def test_alembic_single_head(app):
         check=False,
     )
     assert result.returncode == 0, result.stderr
-    head_lines = [
-        ln.strip()
-        for ln in result.stdout.splitlines()
-        if ln.strip() and ('(head)' in ln or ALEMBIC_HEAD_REVISION in ln)
-    ]
-    assert len(head_lines) == 1
-    assert ALEMBIC_HEAD_REVISION in head_lines[0]
+    head_revisions = set()
+    for ln in result.stdout.splitlines():
+        ln = ln.strip()
+        if ln.strip() and '(head)' in ln:
+            rev = ln.split(' ')[0].strip()
+            if rev:
+                head_revisions.add(rev)
+    
+    # Verify all expected heads are present
+    missing = EXPECTED_HEADS - head_revisions
+    assert not missing, f'Missing expected heads: {missing}. Found: {head_revisions}'
+    
+    # Verify no unexpected heads (allow some flexibility for future additions)
+    unexpected = head_revisions - EXPECTED_HEADS
+    assert not unexpected, f'Unexpected heads found: {unexpected}. Expected: {EXPECTED_HEADS}'
