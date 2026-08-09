@@ -1,13 +1,10 @@
 """HTTP route tests for the super_admin blueprint."""
 
-import json
 import types
 import uuid
-from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.extensions import db
 from app.shared.enums import VisitState
 from models.department import Department
 from models.patient import Patient

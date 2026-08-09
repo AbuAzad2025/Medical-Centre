@@ -1,6 +1,6 @@
 """Tests for app/core and utils modules (decorators, rate_limiter, utilities)."""
 
-import time
+import contextlib
 import types
 import uuid
 
@@ -36,12 +36,13 @@ def ctx(rollback_db, test_tenant):
         db_.session.commit()
         return u
 
-    return types.SimpleNamespace(db=db_, user=_user) if False else types.SimpleNamespace(db=db_, user=_user)
+    return types.SimpleNamespace(db=db_, user=_user)
 
 
 class TestDecorators:
     def test_reception_only_passes_for_reception(self, app, ctx):
         from flask_login import login_user
+
         from utils.decorators import reception_only
 
         @reception_only
@@ -56,8 +57,9 @@ class TestDecorators:
 
     def test_reception_only_blocks_doctor(self, app, ctx):
         from flask_login import login_user
-        from utils.decorators import reception_only
         from werkzeug.exceptions import Forbidden
+
+        from utils.decorators import reception_only
 
         @reception_only
         def view():
@@ -72,6 +74,7 @@ class TestDecorators:
 
     def test_can_modify_patient_data_allows_reception(self, app, ctx):
         from flask_login import login_user
+
         from utils.decorators import can_modify_patient_data
 
         @can_modify_patient_data
@@ -118,7 +121,7 @@ class TestRateLimiter:
         assert lock.acquire('idem-1') is True
 
     def test_shared_store_cleanup(self):
-        from app.core.rate_limiter import _shared_store, _idempotency_locks
+        from app.core.rate_limiter import _idempotency_locks, _shared_store
 
         _shared_store.clear()
         _idempotency_locks.clear()
@@ -147,15 +150,11 @@ class TestCircuitBreaker:
             return 'recovered'
 
         for _ in range(5):
-            try:
+            with contextlib.suppress(RuntimeError):
                 circuit_breaker_call('cb-flaky', flaky)
-            except RuntimeError:
-                pass
 
-        try:
+        with contextlib.suppress(Exception):
             circuit_breaker_call('cb-flaky', flaky)
-        except Exception:
-            pass
 
 
 class TestTenantQuery:
@@ -178,7 +177,7 @@ class TestDbSafety:
     def test_safe_commit_success(self, ctx):
         from utils.db_safety import safe_commit
 
-        u = ctx.user(role='nurse')
+        ctx.user(role='nurse')
         result = safe_commit(ctx.db.session, error_message='fail')
         assert result is True
 

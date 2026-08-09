@@ -1,13 +1,10 @@
 """HTTP route tests for lab, radiology, medication, and accountant blueprints."""
 
-import json
 import types
 import uuid
-from datetime import UTC, datetime
 
 import pytest
 
-from app.extensions import db
 from app.shared.enums import VisitState
 from models.department import Department
 from models.patient import Patient

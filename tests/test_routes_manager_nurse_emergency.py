@@ -1,13 +1,11 @@
 """HTTP route tests for manager, nurse, and emergency blueprints."""
 
-import json
 import types
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.extensions import db
 from app.shared.enums import VisitState
 from models.appointment import Appointment
 from models.department import Department

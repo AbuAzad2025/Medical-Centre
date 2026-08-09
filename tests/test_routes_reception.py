@@ -12,7 +12,6 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.extensions import db
 from app.shared.enums import VisitState
 from models.appointment import Appointment
 from models.department import Department
@@ -50,7 +49,7 @@ def _cached_encryption(monkeypatch):
 
         _CACHED_ENCRYPTION['_svc'] = FieldEncryptionService()
     monkeypatch.setattr(
-        EncryptedString, '_get_service', lambda self: _CACHED_ENCRYPTION['_svc']
+        EncryptedString, '_get_service', lambda _self: _CACHED_ENCRYPTION['_svc']
     )
 
 
@@ -234,7 +233,7 @@ class TestCreateVisit:
     def test_get_create_visit_form(self, login_as, client, ctx):
         _make_reception(login_as, client, ctx)
         ctx.patient()
-        d = ctx.department()
+        ctx.department()
         ctx.user(role='doctor')
         resp = client.get('/reception/visits/create')
         assert resp.status_code == 200
@@ -288,7 +287,7 @@ class TestCreateVisit:
 
     def test_create_visit_quick_emergency(self, login_as, client, ctx):
         _make_reception(login_as, client, ctx)
-        dept = ctx.department(name='Emergency', name_ar='الطوارئ')
+        ctx.department(name='Emergency', name_ar='الطوارئ')
         resp = client.post(
             '/reception/visits/create',
             data={
@@ -524,7 +523,7 @@ class TestPatientAllergiesAndProblems:
 class TestSmartPatientSearch:
     def test_smart_search(self, login_as, client, ctx):
         _make_reception(login_as, client, ctx)
-        p = ctx.patient(phone='0507777777')
+        ctx.patient(phone='0507777777')
         resp = client.get(
             '/reception/api/smart-patient-search',
             query_string={'q': '0507777777'},
@@ -546,7 +545,7 @@ class TestAppointments:
 
     def test_follow_ups_page(self, login_as, client, ctx):
         _make_reception(login_as, client, ctx)
-        p = ctx.patient()
+        ctx.patient()
         resp = client.get('/reception/follow-ups')
         assert resp.status_code == 200
 
@@ -873,7 +872,7 @@ class TestReceptionApi:
 
     def test_api_available_times(self, login_as, client, ctx):
         _make_reception(login_as, client, ctx)
-        d = ctx.department()
+        ctx.department()
         doc = ctx.user(role='doctor')
         tomorrow = (datetime.now(UTC) + timedelta(days=1)).strftime('%Y-%m-%d')
         resp = client.get(

@@ -1,13 +1,11 @@
 """HTTP route tests for the doctor blueprint."""
 
-import json
 import types
 import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.extensions import db
 from app.shared.enums import VisitState
 from models.appointment import Appointment
 from models.department import Department
@@ -320,8 +318,8 @@ class TestDoctorPatients:
         assert resp.status_code in (200, 302)
 
     def test_api_patient_search(self, login_as, client, ctx):
-        doc = _make_doctor(login_as, client, ctx)
-        p = ctx.patient(first_name='بحثطبيب')
+        _make_doctor(login_as, client, ctx)
+        ctx.patient(first_name='بحثطبيب')
         resp = client.get(
             '/doctor/api/patient-search',
             query_string={'q': 'بحثطبيب'},

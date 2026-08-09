@@ -1,13 +1,11 @@
 """Tests for low-coverage services."""
 
-import json
 import types
 import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.extensions import db
 from app.shared.enums import VisitState
 from models.department import Department
 from models.patient import Patient
@@ -137,7 +135,7 @@ class TestAIValidationService:
     def test_invalid_age(self):
         from services.ai_validation_service import AIValidationService
 
-        valid, errors, _ = AIValidationService.validate_patient_data({'age': -5})
+        valid, _errors, _ = AIValidationService.validate_patient_data({'age': -5})
         assert valid is False
 
     def test_future_birth_date(self):
@@ -191,10 +189,10 @@ class TestFieldEncryptionService:
 
 class TestReportCenterService:
     def test_compare_periods_empty(self):
-        from services.report_center_service import ReportCenterService
-
         from datetime import date
-        a = date(2024, 1, 1)
+
+        from services.report_center_service import ReportCenterService
+        date(2024, 1, 1)
         result = ReportCenterService.compare_periods(
             datetime(2024, 1, 1, tzinfo=UTC),
             datetime(2024, 1, 31, tzinfo=UTC),
@@ -206,14 +204,14 @@ class TestReportCenterService:
     def test_parse_dates_defaults(self):
         from services.report_center_service import ReportCenterService
 
-        s, e, sdt, edt = ReportCenterService._parse_dates(None, None)
+        s, e, _sdt, _edt = ReportCenterService._parse_dates(None, None)
         assert s is not None
         assert e is not None
 
     def test_parse_dates_custom(self):
         from services.report_center_service import ReportCenterService
 
-        s, e, sdt, edt = ReportCenterService._parse_dates('2024-01-01', '2024-01-31')
+        s, e, _sdt, _edt = ReportCenterService._parse_dates('2024-01-01', '2024-01-31')
         from datetime import date
         assert s == date(2024, 1, 1)
         assert e == date(2024, 1, 31)
@@ -221,7 +219,7 @@ class TestReportCenterService:
     def test_parse_dates_invalid(self):
         from services.report_center_service import ReportCenterService
 
-        s, e, sdt, edt = ReportCenterService._parse_dates('not-a-date', 'also-bad')
+        s, e, _sdt, _edt = ReportCenterService._parse_dates('not-a-date', 'also-bad')
         from datetime import date
         assert s == date.today() - timedelta(days=30)
         assert e == date.today()

@@ -1,13 +1,10 @@
 """HTTP route tests for the owner blueprint (app.modules.owner)."""
 
-import json
 import types
 import uuid
-from datetime import UTC, datetime
 
 import pytest
 
-from app.extensions import db
 from models.user import User
 
 
