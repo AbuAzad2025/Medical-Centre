@@ -158,6 +158,11 @@ class TestAIValidationService:
 
 
 class TestFieldEncryptionService:
+    @pytest.fixture(autouse=True)
+    def _encryption_key(self, monkeypatch):
+        from cryptography.fernet import Fernet
+        monkeypatch.setenv('FIELD_ENCRYPTION_KEY', Fernet.generate_key().decode())
+
     def test_encrypt_decrypt_roundtrip(self):
         from services.field_encryption_service import FieldEncryptionService
 
