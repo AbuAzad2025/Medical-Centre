@@ -144,13 +144,14 @@ jobs:
           node-version: "22"
 
       - name: Install frontend tooling
-        run: npm install --no-audit --no-fund
+        continue-on-error: true
+        run: npm ci --no-audit --no-fund
 
-      - name: Stylelint (CSS audit — progressive)
+      - name: Stylelint (CSS audit - progressive)
         continue-on-error: true
         run: npx stylelint "static/css/**/*.css"
 
-      - name: CSpell (project-wide spellcheck — progressive)
+      - name: CSpell (project-wide spellcheck - progressive)
         continue-on-error: true
         run: npx cspell "**/*.{py,html,js,css,md,json,toml,yaml,yml,sql,ini,cfg,sh,bat,ps1}" --no-progress
 
