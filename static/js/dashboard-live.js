@@ -46,20 +46,6 @@
   }
 
   function stopPolling() {
-    if (intervalId) {
-      clearInterval(intervalId);
-      intervalId = null;
-    }
-  }
-
-  let intervalId = null;
-
-  function startPolling() {
-    if (intervalId) return;
-    intervalId = setInterval(poll, INTERVAL_MS);
-  }
-
-  function stopPolling() {
     if (intervalId) { clearInterval(intervalId); intervalId = null; }
   }
 
@@ -70,14 +56,5 @@
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) { stopPolling(); } else { poll(); startPolling(); }
     });
-  });
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      stopPolling();
-    } else {
-      startPolling();
-      poll();
-    }
   });
 })();
