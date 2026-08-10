@@ -19,7 +19,7 @@ from app.core.saas.models import (
     TenantEntitlement,
 )
 from app.core.saas.resolver import EntitlementResolver
-from app.core.tenant.models import ProductBundle, Tenant, TenantStatus, get_bundle_for_profile
+from app.core.tenant.models import ProductBundle, Tenant, TenantStatus
 from app.extensions import db
 from tests.tenant_context import tenant_test_context
 
