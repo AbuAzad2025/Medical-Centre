@@ -162,7 +162,6 @@ def create_service():
         ), 200
 
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Create service error: %s')
         return jsonify({'success': False, 'message': 'تعذر إنشاء الخدمة حالياً'}), 500
@@ -229,7 +228,6 @@ def edit_service(service_id):
             'super_admin/edit_service.html', service=service, departments=departments
         )
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Edit service error: %s')
         flash('حدث خطأ في تعديل الخدمة', 'error')
@@ -352,7 +350,6 @@ def service_pricing(service_id):
 
         return render_template('super_admin/service_pricing.html', service=service, pricing=pricing)
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Service pricing error: %s')
         flash('حدث خطأ في إدارة التسعير', 'error')
@@ -375,7 +372,6 @@ def activate_service(service_id):
 
         return jsonify({'success': True, 'message': 'تم تفعيل الخدمة'}), 200
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Activate service error: %s')
         return jsonify({'success': False, 'message': 'تعذر تفعيل الخدمة حالياً'}), 500
@@ -397,7 +393,6 @@ def deactivate_service(service_id):
 
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل الخدمة'}), 200
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Deactivate service error: %s')
         return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل الخدمة حالياً'}), 500

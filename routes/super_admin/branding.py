@@ -64,7 +64,6 @@ def _save_logo_file(branding):
     tenant = getattr(g, 'current_tenant', None)
     if tenant and hasattr(tenant, 'logo_url'):
         try:
-
             rel = f'/static/uploads/branding/{filename}'
             if hasattr(tenant, 'settings') and isinstance(tenant.settings, dict):
                 tenant.settings = {**(tenant.settings or {}), 'logo_path': rel}
@@ -78,7 +77,6 @@ def _sync_tenant_colors(branding):
     if not tenant:
         return
     try:
-
         if branding.primary_color:
             tenant.primary_color = branding.primary_color
         if branding.organization_name:
@@ -188,7 +186,6 @@ def apply_branding_theme(theme_id):
             }
         )
     except Exception as e:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Apply theme error: %s')
         return jsonify({'success': False, 'error': str(e)}), 400
@@ -200,7 +197,6 @@ def apply_branding_theme(theme_id):
 def update_branding():
     """تحديث إعدادات العلامة التجارية"""
     try:
-
         validate_csrf(request.form.get('csrf_token'))
 
         branding = _get_or_create_branding()
@@ -265,7 +261,6 @@ def update_branding():
         return redirect(url_for('super_admin.branding'))
 
     except Exception as e:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Update branding error: %s')
         if _wants_json():
