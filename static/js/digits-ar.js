@@ -1,5 +1,6 @@
 // تحويل الأرقام العربية إلى لاتينية داخل الحقول النصية والعرض
 const map = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+const _digitHandlers = new WeakMap();
 export function normalizeArabicDigits(root) {
   if (!root) return;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -11,10 +12,14 @@ export function normalizeArabicDigits(root) {
   for (const n of toFix) {
     n.nodeValue = n.nodeValue.replace(/[٠-٩]/g, d => map[d]);
   }
-  // حقول الإدخال
   document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(inp => {
-    inp.addEventListener('input', () => {
+    if (_digitHandlers.has(inp)) {
+      inp.removeEventListener('input', _digitHandlers.get(inp));
+    }
+    const handler = () => {
       inp.value = inp.value.replace(/[٠-٩]/g, d => map[d]);
-    });
+    };
+    _digitHandlers.set(inp, handler);
+    inp.addEventListener('input', handler);
   });
 }

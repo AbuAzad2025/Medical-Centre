@@ -13,7 +13,7 @@ window.ENUMS = window.ENUMS || {};
 window.ENUMS.COLORS = {
   // Visit states
   OPEN: 'info',
-  CHECKED_IN: 'primary',
+  VISIT_CHECKED_IN: 'primary',
   IN_PROGRESS: 'warning',
   COMPLETED: 'success',
   ARCHIVED: 'secondary',
@@ -22,7 +22,7 @@ window.ENUMS.COLORS = {
   // Appointment states
   SCHEDULED: 'primary',
   CONFIRMED: 'info',
-  CHECKED_IN: 'primary',
+  APPT_CHECKED_IN: 'primary',
   DONE: 'success',
   // Order states
   REQUESTED: 'primary',
@@ -48,14 +48,14 @@ window.ENUMS.COLORS = {
   VOID: 'secondary',
   // Emergency states
   NEW: 'info',
-  WAITING: 'warning',
+  EMERG_WAITING: 'warning',
   TRIAGE: 'warning',
   RESUSCITATION: 'danger',
   TREATMENT: 'primary',
   OBSERVATION: 'info',
   TRANSFERRED: 'secondary',
   // Queue states
-  WAITING: 'warning',
+  QUEUE_WAITING: 'warning',
   CALLED: 'info',
   SKIPPED: 'secondary',
   // Medication / Prescription
@@ -90,7 +90,7 @@ window.ENUMS.COLORS = {
 window.ENUMS.LABELS = {
   // Visit states
   OPEN: 'مفتوحة',
-  CHECKED_IN: 'تم تسجيل الدخول',
+  VISIT_CHECKED_IN: 'تم تسجيل الدخول',
   IN_PROGRESS: 'قيد التنفيذ',
   COMPLETED: 'مكتملة',
   ARCHIVED: 'مؤرشفة',
@@ -104,6 +104,7 @@ window.ENUMS.LABELS = {
   // Appointment states
   SCHEDULED: 'مجدول',
   CONFIRMED: 'مؤكد',
+  APPT_CHECKED_IN: 'تم تسجيل الدخول',
   DONE: 'تم',
   // Order states
   REQUESTED: 'مطلوب',
@@ -129,7 +130,7 @@ window.ENUMS.LABELS = {
   VOID: 'ملغي',
   // Emergency states
   NEW: 'جديد',
-  WAITING: 'انتظار',
+  EMERG_WAITING: 'انتظار',
   TRIAGE: 'فرز',
   RESUSCITATION: 'إنعاش',
   TREATMENT: 'علاج',
@@ -141,6 +142,7 @@ window.ENUMS.LABELS = {
   HIGH: 'عالي',
   CRITICAL: 'حرج',
   // Queue states
+  QUEUE_WAITING: 'انتظار',
   CALLED: 'تم النداء',
   SKIPPED: 'تم التخطي',
   // Medication / Prescription

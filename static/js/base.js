@@ -36,6 +36,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     } catch (e) {}
 
+    try {
+        var theme = localStorage.getItem('theme');
+        if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        var density = localStorage.getItem('ui_density');
+        if (density) document.documentElement.setAttribute('data-density', density);
+        var radius = localStorage.getItem('ui_radius');
+        if (radius) document.documentElement.setAttribute('data-radius', radius);
+    } catch (e) {}
+
     const sidebar = document.getElementById('appSidebar');
     const toggleBtn = document.getElementById('sidebarToggle');
     if (sidebar && toggleBtn) {
@@ -50,12 +59,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
                 try { localStorage.setItem('sidebarCollapsed', isCollapsed ? '1' : '0'); } catch (e) {}
             });
-        } catch (e) {
-            /* فشل تهيئة تبديل الشريط الجانبي */
-        }
+        } catch (e) {}
     }
 
-    /* تبديل overlay الشريط الجانبي للجوال */
     const mobileToggle = document.getElementById('mobileSidebarToggle');
     const closeSidebarBtn = document.getElementById('closeSidebarBtn');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -73,7 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
     if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
 
-    /* تعطيل زر الإرسال أثناء تحميل النموذج */
     document.querySelectorAll('form').forEach(function(form) {
         var handled = form.hasAttribute('data-submit-handled');
         if (handled) return;
@@ -83,15 +88,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (btn && !btn.disabled) {
                 btn.disabled = true;
                 btn.setAttribute('data-loading', '');
-                // Re-enable after 30s in case of timeout
-                setTimeout(function() {
+                var reEnable = function() {
                     if (btn) { btn.disabled = false; btn.removeAttribute('data-loading'); }
-                }, 30000);
+                };
+                window.addEventListener('load', reEnable, { once: true });
+                form.addEventListener('error', reEnable, { once: true });
             }
         });
     });
 
-    /* التركيز التلقائي على أول حقل في النوافذ المنبثقة */
     document.querySelectorAll('.modal').forEach(function(modal) {
         modal.addEventListener('shown.bs.modal', function() {
             var input = this.querySelector('input:not([type="hidden"]):not([type="search"]), textarea, select');
@@ -103,7 +108,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    /* تأكيد تلقائي للأزرار والروابط [data-confirm] */
     document.querySelectorAll('[data-confirm]').forEach(function(el) {
         var msg = el.getAttribute('data-confirm');
         if (!msg) return;
@@ -133,40 +137,100 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                target.scrollIntoView({
+                    behavior: reduced ? 'auto' : 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        var tr = e.target.closest('tr[data-href]');
+        if (tr) {
+            var href = tr.getAttribute('data-href');
+            if (href && href !== '#') {
+                window.location.href = href;
+            }
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !e.target.closest('.tox')) {
+            document.querySelectorAll('.toast:not(.removing)').forEach(function(toast) {
+                var btn = toast.querySelector('.toast-close');
+                if (btn) btn.click();
+            });
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            var active = document.activeElement;
+            if (active) {
+                var form = active.form || active.closest('form');
+                if (form) {
+                    e.preventDefault();
+                    var btn = form.querySelector('button[type="submit"]');
+                    if (btn) btn.click();
+                    else form.submit();
+                }
+            }
+        }
+    });
+
+    try {
+        if (window.$ && window.$.fn && window.$.fn.DataTable) {
+            document.querySelectorAll('table[data-dt="1"]').forEach(function(tbl){
+                if (!window.$.fn.dataTable.isDataTable(tbl)) {
+                    window.$(tbl).DataTable();
+                }
+            });
+        }
+    } catch (e) {}
+
+    const tabSelectors = ['a[data-bs-toggle="tab"]', '.nav-link[data-bs-toggle="tab"]', 'button[data-bs-toggle="tab"]'];
+    document.querySelectorAll(tabSelectors.join(',')).forEach(function(tabLink){
+        tabLink.addEventListener('shown.bs.tab', function(ev){
+            const targetSel = ev.target.getAttribute('href') || ev.target.getAttribute('data-bs-target');
+            const pane = targetSel && document.querySelector(targetSel);
+            if (pane) {
+                try {
+                    if (window.$ && window.$.fn && window.$.fn.DataTable) {
+                        pane.querySelectorAll('table[data-dt="1"]').forEach(function(tbl){
+                            const dt = window.$(tbl).DataTable();
+                            if (dt) dt.columns.adjust();
+                        });
+                    }
+                } catch (e) {}
+                const url = pane.getAttribute('data-load-url');
+                if (url && !pane.getAttribute('data-loaded')) {
+                    fetch(url, { method: 'GET', headers: { 'Accept': 'text/html' } })
+                        .then(r => r.text())
+                        .then(html => {
+                            if (typeof DOMPurify !== 'undefined') {
+                                pane.innerHTML = DOMPurify.sanitize(html);
+                            } else {
+                                pane.innerHTML = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+                            }
+                            pane.setAttribute('data-loaded','1');
+                        })
+                        .catch(()=>{});
+                }
+            }
+        });
+    });
 });
 
 if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     try {
         gsap.registerPlugin(ScrollTrigger);
-    } catch (e) {
-        /* فشل تهيئة GSAP */
-    }
+    } catch (e) {}
 }
-
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            target.scrollIntoView({
-                behavior: reduced ? 'auto' : 'smooth',
-                block: 'start'
-            });
-        }
-    });
-});
-
-try {
-    var theme = localStorage.getItem('theme');
-    if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-    var density = localStorage.getItem('ui_density');
-    if (density) document.documentElement.setAttribute('data-density', density);
-    var radius = localStorage.getItem('ui_radius');
-    if (radius) document.documentElement.setAttribute('data-radius', radius);
-} catch (e) {}
-
-/* حركات دخول GSAP انتقلت إلى motion.js */
 
 function debounce(func, wait) {
     let timeout;
@@ -198,6 +262,7 @@ function validateForm(form) {
 function confirmNavigate(e, message) {
     e.preventDefault();
     const url = e.currentTarget.href;
+    if (typeof Swal === 'undefined') { alert(message); return false; }
     Swal.fire({
         title: 'تأكيد',
         text: message,
@@ -217,6 +282,7 @@ function confirmSubmit(e, message) {
     e.preventDefault();
     const form = e.currentTarget.form || e.currentTarget.closest('form');
     if (!form) return false;
+    if (typeof Swal === 'undefined') { alert(message); return false; }
     Swal.fire({
         title: 'تأكيد',
         text: message,
@@ -235,6 +301,7 @@ function confirmSubmit(e, message) {
 function initAdvancedTable(tableId) {
     const table = document.getElementById(tableId);
     if (!table) return;
+    if (table.previousElementSibling && table.previousElementSibling.classList.contains('form-control')) return;
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.className = 'form-control mb-3';
@@ -303,7 +370,6 @@ function initAutoSave(formId, interval = 30000) {
     });
     setInterval(() => {
         if (hasChanges) {
-            /* الحفظ التلقائي للنموذج */
             hasChanges = false;
         }
     }, interval);
@@ -312,7 +378,6 @@ function initAutoSave(formId, interval = 30000) {
 function initPerformanceMonitoring() {
     window.addEventListener('load', () => {
         const loadTime = performance.now();
-        /* تم تحميل الصفحة */
     });
 }
 
@@ -351,53 +416,22 @@ document.addEventListener('DOMContentLoaded', function() {
             if (window.__ENV !== 'production' && isPlaceholder && !isToggle && !a.getAttribute('onclick')){
                 try {
                     var label = (a.textContent || a.getAttribute('aria-label') || '').trim();
-                    if (label) {/* رابط placeholder تم اكتشافه */}
+                    if (label) {}
                 } catch (e) {}
             }
         });
     }
     enforceSafeLinks();
-    const tabSelectors = ['a[data-bs-toggle="tab"]', '.nav-link[data-bs-toggle="tab"]', 'button[data-bs-toggle="tab"]'];
-    document.querySelectorAll(tabSelectors.join(',')).forEach(function(tabLink){
-        tabLink.addEventListener('shown.bs.tab', function(ev){
-            const targetSel = ev.target.getAttribute('href') || ev.target.getAttribute('data-bs-target');
-            const pane = targetSel && document.querySelector(targetSel);
-            if (pane) {
-                try {
-                    if (window.$ && window.$.fn && window.$.fn.DataTable) {
-                        pane.querySelectorAll('table[data-dt="1"]').forEach(function(tbl){
-                            const dt = window.$(tbl).DataTable();
-                            if (dt) dt.columns.adjust();
-                        });
-                    }
-                } catch (e) {}
-                const url = pane.getAttribute('data-load-url');
-                if (url && !pane.getAttribute('data-loaded')) {
-                    fetch(url, { method: 'GET', headers: { 'Accept': 'text/html' } })
-                        .then(r => r.text())
-                        .then(html => { pane.innerHTML = html; pane.setAttribute('data-loaded','1'); })
-                        .catch(()=>{});
-                }
-            }
-        });
-    });
 });
-
-/* أخطاء JS العالمية تُعالج بواسطة global-errors.js */
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
         navigator.serviceWorker.register('/static/pwa/sw.js', { scope: '/' })
-            .then(function(registration) {
-                /* تم تسجيل ServiceWorker بنجاح */
-            })
-            .catch(function(err) {
-                /* فشل تسجيل ServiceWorker */
-            });
+            .then(function(registration) {})
+            .catch(function(err) {});
     });
 }
 
-/* شريط التحميل العلوي للتنقل بين الصفحات */
 (function() {
   var bar = document.createElement('div');
   bar.className = 'top-loading-bar';
@@ -417,7 +451,6 @@ if ('serviceWorker' in navigator) {
       bar.style.display = 'none';
     }, 400);
   }
-  // Hook into link clicks for same-origin navigation
   document.addEventListener('click', function(e) {
     var link = e.target.closest('a');
     if (!link) return;
@@ -435,43 +468,6 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() { completeBar(); });
 })();
 
-/* صفوف الجدول القابلة للنقر */
-document.addEventListener('click', function(e) {
-  var tr = e.target.closest('tr[data-href]');
-  if (tr) {
-    var href = tr.getAttribute('data-href');
-    if (href && href !== '#') {
-      window.location.href = href;
-    }
-  }
-});
-
-/* اختصارات لوحة المفاتيح */
-document.addEventListener('keydown', function(e) {
-    // Escape: close all toasts + modals
-    if (e.key === 'Escape' && !e.target.closest('.tox')) {
-        document.querySelectorAll('.toast:not(.removing)').forEach(function(toast) {
-            var btn = toast.querySelector('.toast-close');
-            if (btn) btn.click();
-        });
-    }
-
-    // Ctrl+Enter / Cmd+Enter: submit current form
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        var active = document.activeElement;
-        if (active) {
-            var form = active.form || active.closest('form');
-            if (form) {
-                e.preventDefault();
-                var btn = form.querySelector('button[type="submit"]');
-                if (btn) btn.click();
-                else form.submit();
-            }
-        }
-    }
-});
-
-/* منع الإرسال المزدوج عبر مرحلة الالتقاط */
 document.addEventListener('submit', function(e) {
     if (e.defaultPrevented) return;
     var btn = e.target.querySelector('button[type="submit"]');

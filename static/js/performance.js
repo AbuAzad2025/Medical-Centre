@@ -228,11 +228,12 @@ class OptimizedTable {
     }
 
     addSearch() {
+        if (this.table.previousElementSibling && this.table.previousElementSibling.classList.contains('form-control')) return;
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
         searchInput.className = 'form-control mb-3';
         searchInput.placeholder = 'البحث...';
-        
+
         searchInput.addEventListener('input', debounce((e) => {
             this.filterData(e.target.value);
         }, 300));
@@ -538,51 +539,40 @@ class OptimizedCache {
 
 // Initialize performance optimizations
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize performance monitor
     const performanceMonitor = new PerformanceMonitor();
-    
-    // Initialize lazy loader
     const lazyLoader = new LazyLoader();
-    
-    // Initialize notifications
-    const notifications = new OptimizedNotifications();
-    
-    // Initialize optimized tables
+
     document.querySelectorAll('table[id]').forEach(table => {
+        if (table.hasAttribute('data-dt') || (window.$ && window.$.fn && window.$.fn.dataTable && window.$.fn.dataTable.isDataTable(table))) {
+            return;
+        }
         new OptimizedTable(`#${table.id}`);
     });
-    
-    // Initialize optimized forms
+
     document.querySelectorAll('form[id]').forEach(form => {
         new OptimizedFormValidator(`#${form.id}`);
     });
-    
-    // Add performance CSS classes
+
     document.querySelectorAll('.card').forEach(card => {
         card.classList.add('card-optimized');
     });
-    
+
     document.querySelectorAll('.btn').forEach(btn => {
         btn.classList.add('btn-optimized');
     });
-    
+
     document.querySelectorAll('.form-control').forEach(input => {
         input.classList.add('form-control-optimized');
     });
-    
-    // Cleanup cache every 5 minutes
+
     setInterval(() => {
         if (window.optimizedCache) {
             window.optimizedCache.cleanup();
         }
     }, 300000);
-    
-    // Make utilities globally available
+
     window.performanceMonitor = performanceMonitor;
-    window.notifications = notifications;
     window.optimizedCache = new OptimizedCache();
-    window.debounce = debounce;
-    window.throttle = throttle;
 });
 
 // Export for module systems
