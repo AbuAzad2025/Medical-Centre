@@ -45,8 +45,11 @@ def _cached_encryption(monkeypatch):
     from app.shared.encrypted_type import EncryptedString
 
     if '_svc' not in _CACHED_ENCRYPTION:
+        from cryptography.fernet import Fernet
+
         from services.field_encryption_service import FieldEncryptionService
 
+        monkeypatch.setenv('FIELD_ENCRYPTION_KEY', Fernet.generate_key().decode())
         _CACHED_ENCRYPTION['_svc'] = FieldEncryptionService()
     monkeypatch.setattr(EncryptedString, '_get_service', lambda _self: _CACHED_ENCRYPTION['_svc'])
 

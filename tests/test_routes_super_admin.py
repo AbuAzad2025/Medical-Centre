@@ -27,6 +27,7 @@ def _no_bundle_limits(monkeypatch):
 @pytest.fixture
 def ctx(app, db, test_tenant):
     tenant_id = test_tenant.id
+    db_ = db
 
     def _patient(**kw):
         p = Patient(
@@ -35,8 +36,8 @@ def ctx(app, db, test_tenant):
             phone=kw.get('phone', '050' + format(uuid.uuid4().int % 10**7, '07d')),
             gender=kw.get('gender', 'M'),
         )
-        db.session.add(p)
-        db.session.commit()
+        db_.session.add(p)
+        db_.session.commit()
         return p
 
     def _department(**kw):
@@ -46,8 +47,8 @@ def ctx(app, db, test_tenant):
             name_ar=kw.get('name_ar', f'قسم-{tag}'),
             is_active=True,
         )
-        db.session.add(d)
-        db.session.commit()
+        db_.session.add(d)
+        db_.session.commit()
         return d
 
     def _user(**kw):
@@ -60,8 +61,8 @@ def ctx(app, db, test_tenant):
             is_active=True,
         )
         u.set_password('test123')
-        db.session.add(u)
-        db.session.commit()
+        db_.session.add(u)
+        db_.session.commit()
         return u
 
     def _visit(**kw):
@@ -75,12 +76,12 @@ def ctx(app, db, test_tenant):
             visit_type=kw.get('visit_type', 'REGULAR'),
             payment_method=kw.get('payment_method', 'cash'),
         )
-        db.session.add(v)
-        db.session.commit()
+        db_.session.add(v)
+        db_.session.commit()
         return v
 
     return types.SimpleNamespace(
-        db=db,
+        db=db_,
         tenant_id=tenant_id,
         patient=_patient,
         department=_department,

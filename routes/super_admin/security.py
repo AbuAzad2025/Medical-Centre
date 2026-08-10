@@ -122,7 +122,7 @@ def audit_trail():
 
     return render_template(
         'super_admin/audit_trail.html',
-        audit_logs=audit_logs,
+        audit_logs=audit_logs_json,
         audit_logs_json=audit_logs_json,
         page=page,
         pages=pages,
