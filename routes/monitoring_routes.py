@@ -17,6 +17,8 @@ from datetime import UTC
 from flask import Blueprint, Response, current_app
 from sqlalchemy import text as sa_text
 
+from app.extensions import db
+
 monitoring_bp = Blueprint('monitoring', __name__)
 
 # Must match app/shared/tenant_filter.py → _GLOBAL_TENANT_TABLES
