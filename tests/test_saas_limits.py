@@ -47,37 +47,49 @@ class TestLegacyAdapter:
         # CI does not seed ProductBundles. 'doctor_clinic_full' is the profile
         # of the limit_tenant fixture; the legacy adapter resolves the
         # tenant's own bundle through get_bundle_for_profile().
-        bundle = (
-            db.session.execute(select(ProductBundle).filter_by(profile_code='standalone_clinic'))
-            .scalars()
-            .first()
-        )
-        if bundle is None:
-            bundle = ProductBundle(
-                name='Standalone Clinic',
-                name_ar='عيادة مستقلة',
-                slug='standalone-clinic-test',
-                description_ar='Test-seeded bundle',
+        # Clean up any leftover test bundles from previous runs to stay deterministic.
+        for stale in db.session.execute(
+            select(ProductBundle).filter(
+                ProductBundle.slug.in_(['standalone-clinic-test', 'doctor-clinic-full-test'])
             )
-            bundle.set_modules(['doctor'])
-            db.session.add(bundle)
-        tenant_bundle = get_bundle_for_profile('doctor_clinic_full')
-        if tenant_bundle is None:
-            tenant_bundle = ProductBundle(
-                name='Doctor Clinic Full',
-                name_ar='عيادة طبيب كاملة',
-                slug='doctor-clinic-full-test',
-                description_ar='Test-seeded bundle',
-            )
-            tenant_bundle.set_modules(['doctor'])
-            db.session.add(tenant_bundle)
+        ).scalars():
+            db.session.delete(stale)
         db.session.commit()
-        mods = bundle.get_modules()
-        assert mods, 'bundle must expose at least one module'
-        from app.core.module.registry import MODULE_REGISTRY
+        bundle = ProductBundle(
+            name='Standalone Clinic',
+            name_ar='عيادة مستقلة',
+            slug='standalone-clinic-test',
+            description_ar='Test-seeded bundle',
+            profile_code='standalone_clinic',
+        )
+        bundle.set_modules(['doctor'])
+        db.session.add(bundle)
+        tenant_bundle = ProductBundle(
+            name='Doctor Clinic Full',
+            name_ar='عيادة طبيب كاملة',
+            slug='doctor-clinic-full-test',
+            description_ar='Test-seeded bundle',
+            profile_code='doctor_clinic_full',
+        )
+        tenant_bundle.set_modules(['doctor'])
+        db.session.add(tenant_bundle)
+        db.session.commit()
+        try:
+            mods = bundle.get_modules()
+            assert mods, 'bundle must expose at least one module'
+            from app.core.module.registry import MODULE_REGISTRY
 
-        cap = MODULE_REGISTRY[mods[0]].capabilities[0]
-        assert LegacyEntitlementAdapter.is_entitled(limit_tenant, cap) is True
+            cap = MODULE_REGISTRY[mods[0]].capabilities[0]
+            assert LegacyEntitlementAdapter.is_entitled(limit_tenant, cap) is True
+        finally:
+            # Clean up so later tests are not affected by our seeded bundles.
+            for stale in db.session.execute(
+                select(ProductBundle).filter(
+                    ProductBundle.slug.in_(['standalone-clinic-test', 'doctor-clinic-full-test'])
+                )
+            ).scalars():
+                db.session.delete(stale)
+            db.session.commit()
 
     def test_get_limits_from_bundle(self, limit_tenant):
         limits = LegacyEntitlementAdapter.get_limits(limit_tenant.id)
