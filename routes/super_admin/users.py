@@ -88,7 +88,6 @@ def create_user():
             )
             user.set_password(request.form.get('password'))
 
-
             db.session.add(user)
             safe_commit(db.session, error_message='database commit failed', reraise=True)
 
@@ -213,7 +212,6 @@ def edit_user(user_id):
             if new_password:
                 user.set_password(new_password)
 
-
             safe_commit(db.session, error_message='database commit failed', reraise=True)
 
             flash('تم تحديث المستخدم بنجاح', 'success')
@@ -288,7 +286,6 @@ def delete_user(user_id):
         return redirect(url_for('super_admin.users'))
 
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Delete user error: %s')
         flash('تعذر حذف المستخدم، يرجى المحاولة مرة أخرى', 'error')
@@ -321,7 +318,6 @@ def reset_user_password(user_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'temp_password': temp_password})
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Reset password error: %s')
         return jsonify({'success': False, 'message': 'حدث خطأ في إعادة التعيين'}), 500

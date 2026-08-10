@@ -162,7 +162,6 @@ def create_backup():
             return jsonify({'success': False, 'message': str(exc)}), 500
 
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error creating backup: %s')
         return jsonify({'success': False, 'message': 'تعذر إنشاء النسخة الاحتياطية حالياً'}), 500
@@ -192,7 +191,6 @@ def restore_backup(backup_id):
         return jsonify({'success': False, 'message': 'فشل في استعادة النسخة الاحتياطية'}), 500
 
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error restoring backup: %s')
         return jsonify({'success': False, 'message': 'تعذر استعادة النسخة الاحتياطية حالياً'}), 500
@@ -225,7 +223,6 @@ def delete_backup(backup_id):
         return jsonify({'success': True, 'message': 'تم حذف النسخة الاحتياطية بنجاح'})
 
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error deleting backup: %s')
         return jsonify({'success': False, 'message': 'تعذر حذف النسخة الاحتياطية حالياً'}), 500
@@ -260,7 +257,6 @@ def cancel_backup(backup_id):
         return jsonify({'success': True, 'message': 'تم إلغاء النسخة الاحتياطية بنجاح'})
 
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error cancelling backup: %s')
         return jsonify({'success': False, 'message': 'تعذر إلغاء النسخة الاحتياطية حالياً'}), 500
@@ -315,7 +311,6 @@ def backup_schedule():
         )
 
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error in backup schedule: %s')
         return jsonify({'success': False, 'message': 'تعذر حفظ جدولة النسخ الاحتياطي حالياً'}), 500

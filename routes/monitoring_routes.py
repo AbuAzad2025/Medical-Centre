@@ -63,7 +63,6 @@ def _collect_metrics() -> str:
     """Collect all metrics and return Prometheus text format string."""
     from datetime import datetime
 
-
     lines: list[str] = []
     now = datetime.now(UTC).timestamp()
 

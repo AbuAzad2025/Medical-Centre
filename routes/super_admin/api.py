@@ -89,7 +89,6 @@ def api_audit_log():
         return jsonify({'success': True, 'message': 'تم تسجيل الحدث'}), 200
 
     except Exception:
-
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('API audit log error: %s')
         return jsonify({'success': False, 'message': 'تعذر تسجيل الحدث حالياً'}), 500

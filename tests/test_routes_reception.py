@@ -184,8 +184,12 @@ class TestVisitArchiveAndEnd:
         p = ctx.patient()
         d = ctx.department()
         v = ctx.visit(
-            patient_id=p.id, department_id=d.id, status='COMPLETED',
-            total_amount=100, paid_amount=100, gl_posted_at=datetime.now(UTC),
+            patient_id=p.id,
+            department_id=d.id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
+            gl_posted_at=datetime.now(UTC),
         )
         resp = client.post(f'/reception/visits/{v.id}/archive')
         assert resp.status_code == 302
@@ -207,8 +211,12 @@ class TestVisitArchiveAndEnd:
         p = ctx.patient()
         d = ctx.department()
         v = ctx.visit(
-            patient_id=p.id, department_id=d.id, status='COMPLETED',
-            total_amount=100, paid_amount=100, gl_posted_at=datetime.now(UTC),
+            patient_id=p.id,
+            department_id=d.id,
+            status='COMPLETED',
+            total_amount=100,
+            paid_amount=100,
+            gl_posted_at=datetime.now(UTC),
         )
         resp = client.post(f'/reception/visits/{v.id}/end')
         assert resp.status_code == 302
