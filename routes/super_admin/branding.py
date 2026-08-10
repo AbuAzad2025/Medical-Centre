@@ -64,7 +64,6 @@ def _save_logo_file(branding):
     tenant = getattr(g, 'current_tenant', None)
     if tenant and hasattr(tenant, 'logo_url'):
         try:
-            from app.extensions import db
 
             rel = f'/static/uploads/branding/{filename}'
             if hasattr(tenant, 'settings') and isinstance(tenant.settings, dict):
@@ -79,7 +78,6 @@ def _sync_tenant_colors(branding):
     if not tenant:
         return
     try:
-        from app.extensions import db
 
         if branding.primary_color:
             tenant.primary_color = branding.primary_color
@@ -158,7 +156,6 @@ def branding_print_preview():
 def apply_branding_theme(theme_id):
     """تطبيق ألوان ثيم على إعدادات العلامة التجارية."""
     try:
-        from app.extensions import db
         from models.branding import SystemTheme
 
         validate_csrf(request.form.get('csrf_token') or request.headers.get('X-CSRFToken'))
@@ -191,7 +188,6 @@ def apply_branding_theme(theme_id):
             }
         )
     except Exception as e:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Apply theme error: %s')
@@ -204,7 +200,6 @@ def apply_branding_theme(theme_id):
 def update_branding():
     """تحديث إعدادات العلامة التجارية"""
     try:
-        from app.extensions import db
 
         validate_csrf(request.form.get('csrf_token'))
 
@@ -270,7 +265,6 @@ def update_branding():
         return redirect(url_for('super_admin.branding'))
 
     except Exception as e:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Update branding error: %s')

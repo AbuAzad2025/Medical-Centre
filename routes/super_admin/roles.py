@@ -56,7 +56,6 @@ def create_role():
                 is_active=bool(request.form.get('is_active')),
             )
 
-            from app.extensions import db
 
             db.session.add(role)
             db.session.flush()  # للحصول على ID
@@ -73,7 +72,6 @@ def create_role():
             return redirect(url_for('super_admin.roles'))
 
         except Exception:
-            from app.extensions import db
 
             safe_rollback(db.session, error_message='database rollback')
             logging.exception('Create role error: %s')
@@ -93,7 +91,6 @@ def create_role():
 def edit_role(role_id):
     """تعديل دور"""
     try:
-        from app.extensions import db
         from models.permissions import Permission, Role, RolePermission
 
         role = db.session.get(Role, role_id)
@@ -139,7 +136,6 @@ def edit_role(role_id):
         )
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Edit role error: %s')
@@ -153,7 +149,6 @@ def edit_role(role_id):
 def manage_role_permissions(role_id):
     """إدارة صلاحيات الدور"""
     try:
-        from app.extensions import db
         from models.permissions import Permission, Role, RolePermission
 
         role = db.session.get(Role, role_id)
@@ -192,7 +187,6 @@ def manage_role_permissions(role_id):
         )
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Manage role permissions error: %s')
@@ -207,7 +201,6 @@ def manage_role_department_permissions(role_id):
     try:
         from sqlalchemy import inspect
 
-        from app.extensions import db
 
         insp = inspect(db.engine)
         if not (
@@ -324,7 +317,6 @@ def permissions_matrix():
     try:
         from sqlalchemy import inspect
 
-        from app.extensions import db
 
         insp = inspect(db.engine)
         if not (
@@ -414,7 +406,6 @@ def permissions_matrix():
 def delete_role(role_id):
     """حذف دور"""
     try:
-        from app.extensions import db
         from models.permissions import Role, RolePermission
 
         role = db.session.get(Role, role_id)
@@ -436,7 +427,6 @@ def delete_role(role_id):
         return redirect(url_for('super_admin.roles'))
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Delete role error: %s')
@@ -466,7 +456,6 @@ def permissions():
 def create_permission():
     """إنشاء صلاحية جديدة"""
     try:
-        from app.extensions import db
         from models.permissions import Permission
 
         permission = Permission(
@@ -484,7 +473,6 @@ def create_permission():
         return redirect(url_for('super_admin.permissions'))
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Create permission error: %s')
@@ -498,7 +486,6 @@ def create_permission():
 def edit_permission(permission_id):
     """تعديل صلاحية"""
     try:
-        from app.extensions import db
         from models.permissions import Permission
 
         permission = db.session.get(Permission, permission_id)
@@ -517,7 +504,6 @@ def edit_permission(permission_id):
         return redirect(url_for('super_admin.permissions'))
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Edit permission error: %s')
@@ -531,7 +517,6 @@ def edit_permission(permission_id):
 def delete_permission(permission_id):
     """حذف صلاحية"""
     try:
-        from app.extensions import db
         from models.permissions import Permission
 
         permission = db.session.get(Permission, permission_id)
@@ -545,7 +530,6 @@ def delete_permission(permission_id):
         return redirect(url_for('super_admin.permissions'))
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Delete permission error: %s')
@@ -561,7 +545,6 @@ def create_role_simple():
     try:
         from flask_wtf.csrf import validate_csrf
 
-        from app.extensions import db
         from models.permissions import Role
 
         validate_csrf(request.form.get('csrf_token'))
@@ -581,7 +564,6 @@ def create_role_simple():
         return redirect(url_for('super_admin.users'))
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Create role error: %s')
@@ -597,7 +579,6 @@ def create_permission_simple():
     try:
         from flask_wtf.csrf import validate_csrf
 
-        from app.extensions import db
         from models.permissions import Permission, PermissionCategory, PermissionLevel
 
         validate_csrf(request.form.get('csrf_token'))
@@ -616,7 +597,6 @@ def create_permission_simple():
         return redirect(url_for('super_admin.users'))
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Create permission error: %s')

@@ -28,7 +28,6 @@ from utils.decorators import super_admin_required
 def api_audit_log():
     """API لتسجيل الأحداث"""
     try:
-        from app.extensions import db
         from models.audit_trail import AuditTrail
 
         data = request.get_json(silent=True) or {}
@@ -90,7 +89,6 @@ def api_audit_log():
         return jsonify({'success': True, 'message': 'تم تسجيل الحدث'}), 200
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('API audit log error: %s')
@@ -159,7 +157,6 @@ def api_recent_activities():
 def api_ai_assistant():
     """API للمساعد الذكي المتطور - محرك واحد موحد"""
     try:
-        from app.extensions import db
         from services.ai_validator import AIValidator
         from services.smart_ai_engine import SmartAIEngine
 

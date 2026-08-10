@@ -61,7 +61,6 @@ def _collect_metrics() -> str:
     """Collect all metrics and return Prometheus text format string."""
     from datetime import datetime
 
-    from app.extensions import db
 
     lines: list[str] = []
     now = datetime.now(UTC).timestamp()

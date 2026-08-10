@@ -88,7 +88,6 @@ def create_user():
             )
             user.set_password(request.form.get('password'))
 
-            from app.extensions import db
 
             db.session.add(user)
             safe_commit(db.session, error_message='database commit failed', reraise=True)
@@ -134,8 +133,6 @@ def create_user():
             return redirect(url_for('super_admin.users'))
 
         except Exception:
-            from app.extensions import db
-
             safe_rollback(db.session, error_message='database rollback')
             logging.exception('Create user error: %s')
             flash('تعذر إنشاء المستخدم، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
@@ -167,7 +164,6 @@ def create_user():
 def edit_user(user_id):
     """تعديل مستخدم"""
     try:
-        from app.extensions import db
         from models.department import Department
         from models.user import User
 
@@ -217,7 +213,6 @@ def edit_user(user_id):
             if new_password:
                 user.set_password(new_password)
 
-            from app.extensions import db
 
             safe_commit(db.session, error_message='database commit failed', reraise=True)
 
@@ -275,7 +270,6 @@ def edit_user(user_id):
 def delete_user(user_id):
     """حذف مستخدم"""
     try:
-        from app.extensions import db
         from models.user import User
 
         user = db.session.get(User, user_id)
@@ -294,7 +288,6 @@ def delete_user(user_id):
         return redirect(url_for('super_admin.users'))
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Delete user error: %s')
@@ -317,7 +310,6 @@ def reset_user_password(user_id):
         import secrets
         import string
 
-        from app.extensions import db
         from models.user import User
 
         user = db.session.get(User, user_id)
@@ -329,7 +321,6 @@ def reset_user_password(user_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'temp_password': temp_password})
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Reset password error: %s')
@@ -343,7 +334,6 @@ def reset_user_password(user_id):
 def ban_user(user_id):
     """حظر مستخدم"""
     try:
-        from app.extensions import db
         from models.user import User
 
         user = db.session.get(User, user_id)
@@ -373,7 +363,6 @@ def ban_user(user_id):
 def unban_user(user_id):
     """إلغاء حظر مستخدم"""
     try:
-        from app.extensions import db
         from models.user import User
 
         user = db.session.get(User, user_id)
@@ -399,7 +388,6 @@ def unban_user(user_id):
 def force_logout_user(user_id):
     """إجبار مستخدم على تسجيل الخروج"""
     try:
-        from app.extensions import db
         from models.audit_trail import AuditTrail
         from models.user import User
 

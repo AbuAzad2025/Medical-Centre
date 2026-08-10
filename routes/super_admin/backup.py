@@ -100,7 +100,6 @@ def create_backup():
         import os
         from datetime import datetime
 
-        from app.extensions import db
         from app.shared.enums import BackupStatus
         from models.backup import Backup
         from services.pg_backup_service import PgBackupError, build_backup_path, run_pg_dump_sql_gz
@@ -163,7 +162,6 @@ def create_backup():
             return jsonify({'success': False, 'message': str(exc)}), 500
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error creating backup: %s')
@@ -176,7 +174,6 @@ def create_backup():
 def restore_backup(backup_id):
     """استعادة نسخة احتياطية"""
     try:
-        from app.extensions import db
         from models.backup import Backup
         from routes.backup_routes import restore_backup_file
 
@@ -195,7 +192,6 @@ def restore_backup(backup_id):
         return jsonify({'success': False, 'message': 'فشل في استعادة النسخة الاحتياطية'}), 500
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error restoring backup: %s')
@@ -210,7 +206,6 @@ def delete_backup(backup_id):
     try:
         import os
 
-        from app.extensions import db
         from models.backup import Backup
 
         backup = db.session.get(Backup, backup_id)
@@ -230,7 +225,6 @@ def delete_backup(backup_id):
         return jsonify({'success': True, 'message': 'تم حذف النسخة الاحتياطية بنجاح'})
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error deleting backup: %s')
@@ -245,7 +239,6 @@ def cancel_backup(backup_id):
     try:
         from datetime import datetime
 
-        from app.extensions import db
         from models.backup import Backup
 
         backup = db.session.get(Backup, backup_id)
@@ -267,7 +260,6 @@ def cancel_backup(backup_id):
         return jsonify({'success': True, 'message': 'تم إلغاء النسخة الاحتياطية بنجاح'})
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error cancelling backup: %s')
@@ -280,7 +272,6 @@ def cancel_backup(backup_id):
 def backup_schedule():
     """إدارة جدولة النسخ الاحتياطي"""
     try:
-        from app.extensions import db
         from models.system_config import SystemConfig
 
         if request.method == 'POST':
@@ -324,7 +315,6 @@ def backup_schedule():
         )
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error in backup schedule: %s')

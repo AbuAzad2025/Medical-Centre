@@ -72,7 +72,6 @@ def create_service():
         import re
         import time
 
-        from app.extensions import db
         from models.service import ServiceMaster
 
         # التوافق والتحقق من حقول النموذج
@@ -163,7 +162,6 @@ def create_service():
         ), 200
 
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Create service error: %s')
@@ -176,7 +174,6 @@ def create_service():
 def view_service(service_id):
     """عرض تفاصيل خدمة"""
     try:
-        from app.extensions import db
         from models.service import ServiceMaster
 
         service = db.session.get(ServiceMaster, service_id)
@@ -195,7 +192,6 @@ def view_service(service_id):
 def edit_service(service_id):
     """تعديل خدمة"""
     try:
-        from app.extensions import db
         from models.service import ServiceMaster
 
         service = db.session.get(ServiceMaster, service_id)
@@ -233,7 +229,6 @@ def edit_service(service_id):
             'super_admin/edit_service.html', service=service, departments=departments
         )
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Edit service error: %s')
@@ -247,7 +242,6 @@ def edit_service(service_id):
 def service_pricing(service_id):
     """إدارة تسعير الخدمة"""
     try:
-        from app.extensions import db
         from models.pricing_management import PricingManagement
         from models.service import ServiceMaster
 
@@ -358,7 +352,6 @@ def service_pricing(service_id):
 
         return render_template('super_admin/service_pricing.html', service=service, pricing=pricing)
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Service pricing error: %s')
@@ -372,7 +365,6 @@ def service_pricing(service_id):
 def activate_service(service_id):
     """تفعيل خدمة"""
     try:
-        from app.extensions import db
         from models.service import ServiceMaster
 
         service = db.session.get(ServiceMaster, service_id)
@@ -383,7 +375,6 @@ def activate_service(service_id):
 
         return jsonify({'success': True, 'message': 'تم تفعيل الخدمة'}), 200
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Activate service error: %s')
@@ -396,7 +387,6 @@ def activate_service(service_id):
 def deactivate_service(service_id):
     """إلغاء تفعيل خدمة"""
     try:
-        from app.extensions import db
         from models.service import ServiceMaster
 
         service = db.session.get(ServiceMaster, service_id)
@@ -407,7 +397,6 @@ def deactivate_service(service_id):
 
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل الخدمة'}), 200
     except Exception:
-        from app.extensions import db
 
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Deactivate service error: %s')
