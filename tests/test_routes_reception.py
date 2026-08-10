@@ -107,6 +107,7 @@ def ctx(app, db, test_tenant):
             visit_type=kw.get('visit_type', 'REGULAR'),
             payment_method=kw.get('payment_method', 'cash'),
             is_emergency=kw.get('is_emergency', False),
+            gl_posted_at=kw.get('gl_posted_at', None),
         )
         db.session.add(v)
         db.session.commit()
