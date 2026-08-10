@@ -48,9 +48,7 @@ def _cached_encryption(monkeypatch):
         from services.field_encryption_service import FieldEncryptionService
 
         _CACHED_ENCRYPTION['_svc'] = FieldEncryptionService()
-    monkeypatch.setattr(
-        EncryptedString, '_get_service', lambda _self: _CACHED_ENCRYPTION['_svc']
-    )
+    monkeypatch.setattr(EncryptedString, '_get_service', lambda _self: _CACHED_ENCRYPTION['_svc'])
 
 
 @pytest.fixture
@@ -403,7 +401,12 @@ class TestAddServiceToVisit:
         v = ctx.visit(patient_id=p.id, department_id=d.id)
         resp = client.post(
             f'/reception/visits/{v.id}/add-service',
-            data={'service_name': 'فحص سريري', 'price': '50', 'custom_service_name': [], 'custom_service_price': []},
+            data={
+                'service_name': 'فحص سريري',
+                'price': '50',
+                'custom_service_name': [],
+                'custom_service_price': [],
+            },
         )
         assert resp.status_code in (302, 200)
 
@@ -450,9 +453,7 @@ class TestAddPatient:
             },
         )
         assert resp.status_code in (302, 200)
-        p = (
-            ctx.db.session.query(Patient).filter_by(phone=phone).order_by(Patient.id.desc()).first()
-        )
+        p = ctx.db.session.query(Patient).filter_by(phone=phone).order_by(Patient.id.desc()).first()
         assert p is not None
 
     def test_add_patient_missing_name(self, login_as, client, ctx):
@@ -662,7 +663,13 @@ class TestQueue:
         p = ctx.patient()
         d = ctx.department()
         doc = ctx.user(role='doctor')
-        v = ctx.visit(patient_id=p.id, department_id=d.id, doctor_id=doc.id, payment_method='cash', payment_status='PAID')
+        v = ctx.visit(
+            patient_id=p.id,
+            department_id=d.id,
+            doctor_id=doc.id,
+            payment_method='cash',
+            payment_status='PAID',
+        )
         resp = client.post(
             '/reception/queue/add-patient',
             data={
@@ -707,7 +714,13 @@ class TestQueue:
         p = ctx.patient()
         d = ctx.department()
         doc = ctx.user(role='doctor')
-        v = ctx.visit(patient_id=p.id, department_id=d.id, doctor_id=doc.id, payment_status='PAID', payment_method='cash')
+        v = ctx.visit(
+            patient_id=p.id,
+            department_id=d.id,
+            doctor_id=doc.id,
+            payment_status='PAID',
+            payment_method='cash',
+        )
         q = QueueManagement(
             patient_id=p.id,
             department_id=d.id,
@@ -737,7 +750,14 @@ class TestPayments:
         p = ctx.patient()
         d = ctx.department()
         v = ctx.visit(patient_id=p.id, department_id=d.id)
-        pay = Payment(visit_id=v.id, patient_id=p.id, amount=50, status='COMPLETED', payment_method='CASH', tenant_id=ctx.tenant_id)
+        pay = Payment(
+            visit_id=v.id,
+            patient_id=p.id,
+            amount=50,
+            status='COMPLETED',
+            payment_method='CASH',
+            tenant_id=ctx.tenant_id,
+        )
         ctx.db.session.add(pay)
         ctx.db.session.commit()
         resp = client.get('/reception/payments')

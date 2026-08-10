@@ -96,13 +96,13 @@ class TestOwnerTenants:
         )
         assert resp.status_code in (200, 302)
 
-    @pytest.mark.skip(reason="owner templates require csrf() global not registered in test env")
+    @pytest.mark.skip(reason='owner templates require csrf() global not registered in test env')
     def test_tenant_activate_modules(self, login_as, client, ctx):
         _make_owner(login_as, client, ctx)
         resp = client.post(f'/owner/tenants/{ctx.tenant_id}/activate-modules')
         assert resp.status_code in (302, 200)
 
-    @pytest.mark.skip(reason="owner templates require csrf() global not registered in test env")
+    @pytest.mark.skip(reason='owner templates require csrf() global not registered in test env')
     def test_tenant_suspend_activate(self, login_as, client, ctx):
         _make_owner(login_as, client, ctx)
         resp = client.post(f'/owner/tenants/{ctx.tenant_id}/suspend')
@@ -231,7 +231,7 @@ class TestOwnerSupportAudit:
 
 
 class TestOwnerSystemConfig:
-    @pytest.mark.skip(reason="owner templates require csrf() global not registered in test env")
+    @pytest.mark.skip(reason='owner templates require csrf() global not registered in test env')
     def test_system_config_page(self, login_as, client, ctx):
         _make_owner(login_as, client, ctx)
         resp = client.get('/owner/system-config')

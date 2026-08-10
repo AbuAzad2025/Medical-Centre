@@ -93,11 +93,13 @@ class TestAIValidationService:
     def test_valid_user_data(self):
         from services.ai_validation_service import AIValidationService
 
-        valid, errors, warnings = AIValidationService.validate_user_data({
-            'email': 'user@test.com',
-            'password': 'StrongPass1!',
-            'phone': '0501234567',
-        })
+        valid, errors, warnings = AIValidationService.validate_user_data(
+            {
+                'email': 'user@test.com',
+                'password': 'StrongPass1!',
+                'phone': '0501234567',
+            }
+        )
         assert valid is True
         assert isinstance(errors, list)
         assert isinstance(warnings, list)
@@ -105,30 +107,36 @@ class TestAIValidationService:
     def test_invalid_email(self):
         from services.ai_validation_service import AIValidationService
 
-        valid, errors, _ = AIValidationService.validate_user_data({
-            'email': 'not-an-email',
-        })
+        valid, errors, _ = AIValidationService.validate_user_data(
+            {
+                'email': 'not-an-email',
+            }
+        )
         assert valid is False
         assert len(errors) > 0
 
     def test_short_password(self):
         from services.ai_validation_service import AIValidationService
 
-        valid, errors, _ = AIValidationService.validate_user_data({
-            'password': 'abc',
-        })
+        valid, errors, _ = AIValidationService.validate_user_data(
+            {
+                'password': 'abc',
+            }
+        )
         assert valid is False
         assert len(errors) > 0
 
     def test_valid_patient_data(self):
         from services.ai_validation_service import AIValidationService
 
-        valid, errors, _ = AIValidationService.validate_patient_data({
-            'age': 30,
-            'birth_date': '1990-01-01',
-            'weight': 70,
-            'blood_type': 'A+',
-        })
+        valid, errors, _ = AIValidationService.validate_patient_data(
+            {
+                'age': 30,
+                'birth_date': '1990-01-01',
+                'weight': 70,
+                'blood_type': 'A+',
+            }
+        )
         assert valid is True
         assert isinstance(errors, list)
 
@@ -149,11 +157,13 @@ class TestAIValidationService:
     def test_validate_medication(self):
         from services.ai_validation_service import AIValidationService
 
-        valid, errors, _ = AIValidationService.validate_medication_data({
-            'name': 'أموكسيسيلين',
-            'dosage': '500mg',
-            'frequency': '3 مرات يومياً',
-        })
+        valid, errors, _ = AIValidationService.validate_medication_data(
+            {
+                'name': 'أموكسيسيلين',
+                'dosage': '500mg',
+                'frequency': '3 مرات يومياً',
+            }
+        )
         assert valid is True or len(errors) >= 0
 
 
@@ -161,6 +171,7 @@ class TestFieldEncryptionService:
     @pytest.fixture(autouse=True)
     def _encryption_key(self, monkeypatch):
         from cryptography.fernet import Fernet
+
         monkeypatch.setenv('FIELD_ENCRYPTION_KEY', Fernet.generate_key().decode())
 
     def test_encrypt_decrypt_roundtrip(self):
@@ -197,6 +208,7 @@ class TestReportCenterService:
         from datetime import date
 
         from services.report_center_service import ReportCenterService
+
         date(2024, 1, 1)
         result = ReportCenterService.compare_periods(
             datetime(2024, 1, 1, tzinfo=UTC),
@@ -218,6 +230,7 @@ class TestReportCenterService:
 
         s, e, _sdt, _edt = ReportCenterService._parse_dates('2024-01-01', '2024-01-31')
         from datetime import date
+
         assert s == date(2024, 1, 1)
         assert e == date(2024, 1, 31)
 
@@ -226,6 +239,7 @@ class TestReportCenterService:
 
         s, e, _sdt, _edt = ReportCenterService._parse_dates('not-a-date', 'also-bad')
         from datetime import date
+
         assert s == date.today() - timedelta(days=30)
         assert e == date.today()
 
@@ -285,11 +299,13 @@ class TestSuperAdminService:
     def test_create_user(self, ctx):
         from services.super_admin_service import SuperAdminService
 
-        result = SuperAdminService.create_user({
-            'username': f'test_usr_{uuid.uuid4().hex[:6]}',
-            'email': f'{uuid.uuid4().hex[:8]}@test.local',
-            'role': 'doctor',
-        })
+        result = SuperAdminService.create_user(
+            {
+                'username': f'test_usr_{uuid.uuid4().hex[:6]}',
+                'email': f'{uuid.uuid4().hex[:8]}@test.local',
+                'role': 'doctor',
+            }
+        )
         assert result is None or hasattr(result, 'username')
 
 

@@ -127,7 +127,14 @@ class TestManagerRoutes:
         p = ctx.patient()
         d = ctx.department()
         doc = ctx.user(role='doctor')
-        v = ctx.visit(patient_id=p.id, department_id=d.id, doctor_id=doc.id, is_force_payment=True, total_amount=100, paid_amount=0)
+        v = ctx.visit(
+            patient_id=p.id,
+            department_id=d.id,
+            doctor_id=doc.id,
+            is_force_payment=True,
+            total_amount=100,
+            paid_amount=0,
+        )
         resp = client.post(f'/manager/approve-force-payment/{v.id}')
         assert resp.status_code in (302, 200)
 
@@ -136,7 +143,14 @@ class TestManagerRoutes:
         p = ctx.patient()
         d = ctx.department()
         doc = ctx.user(role='doctor')
-        v = ctx.visit(patient_id=p.id, department_id=d.id, doctor_id=doc.id, is_force_payment=True, total_amount=100, paid_amount=0)
+        v = ctx.visit(
+            patient_id=p.id,
+            department_id=d.id,
+            doctor_id=doc.id,
+            is_force_payment=True,
+            total_amount=100,
+            paid_amount=0,
+        )
         resp = client.post(f'/manager/reject-force-payment/{v.id}')
         assert resp.status_code in (302, 200)
 
