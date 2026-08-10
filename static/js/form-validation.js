@@ -53,7 +53,7 @@
       });
       if (input.dataset.validate === 'national_id') {
         input.addEventListener('input', () => {
-          input.value = input.value.replace(/\D/g, '').slice(0, 9);
+          input.value = input.value.replace(/\D/g, '').slice(0, 20);
         });
       }
     });

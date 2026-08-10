@@ -71,6 +71,7 @@
         }
         var fn = window[action];
         if (typeof fn === 'function') {
+            e.preventDefault();
             var idKeys = [];
             for (var k in el.dataset) {
                 if (k !== 'action' && k !== 'value' && k !== 'message' && k !== 'target' && k !== 'text') {

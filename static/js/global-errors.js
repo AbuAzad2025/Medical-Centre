@@ -9,8 +9,18 @@
     var msg = message || 'حدث خطأ غير متوقع';
     if (global.notify && typeof global.notify.error === 'function') {
       global.notify.error(msg);
-    } else if (window.__ENV !== 'production') {
-      /* [global-خطأs] */
+    } else {
+      console.error('[global-errors]', source || '', msg);
+    }
+    if (window.__ENV === 'production') {
+      try {
+        var auditLogUrl = (window.API_ROUTES && window.API_ROUTES.audit_log) || '/super-admin/api/audit-log';
+        fetch(auditLogUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'js_error', message: msg, source: source, url: global.location.href }),
+        }).catch(() => {});
+      } catch (e) {}
     }
   }
 

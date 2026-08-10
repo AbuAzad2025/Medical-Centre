@@ -51,6 +51,8 @@
       }
     };
 
+    let abortController = null;
+
     const runSearch = debounce(() => {
       const q = input.value.trim();
       if (q.length < minChars) {
@@ -58,9 +60,12 @@
         return;
       }
       showResults('<div class="list-group-item text-muted">جاري البحث...</div>', true);
+      if (abortController) abortController.abort();
+      abortController = new AbortController();
       fetch(`${api}?q=${encodeURIComponent(q)}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         credentials: 'same-origin',
+        signal: abortController.signal,
       })
         .then((r) => r.json())
         .then((data) => {

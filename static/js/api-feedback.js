@@ -70,8 +70,13 @@
     notify.warning(text || title || 'تنبيه');
   }
 
+  function showApiInfo(title, text) {
+    notify.info(text || title || 'معلومة');
+  }
+
   global.notify = notify;
   global.showApiSuccess = showApiSuccess;
   global.showApiError = showApiError;
   global.showApiWarning = showApiWarning;
+  global.showApiInfo = showApiInfo;
 })(window);

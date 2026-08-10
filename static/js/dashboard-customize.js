@@ -35,15 +35,27 @@
     });
   }
 
+  function toggleWidgetVisibility(hidden) {
+    document.querySelectorAll('.cc-widget-toggle').forEach(function (cb) {
+      var widget = document.querySelector('[data-widget="' + cb.value + '"]');
+      if (widget) widget.style.display = cb.checked ? '' : 'none';
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     var panel = document.getElementById('ccWidgetToggles');
     if (!panel) return;
     panel.addEventListener('change', function (e) {
       if (!e.target || !e.target.classList.contains('cc-widget-toggle')) return;
       var hidden = collectHidden();
-      save(hidden).then(function () {
-        window.location.reload();
-      });
+      toggleWidgetVisibility(hidden);
+      save(hidden)
+        .then(function () {
+          if (window.notifications) window.notifications.show('تم حفظ التفضيلات', 'success');
+        })
+        .catch(function () {
+          if (window.notifications) window.notifications.show('فشل حفظ التفضيلات', 'error');
+        });
     });
   });
 })();
