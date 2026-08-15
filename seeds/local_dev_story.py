@@ -131,9 +131,7 @@ def seed_clinical_flow(tenant, staff, session=None):
         # value would miss already-seeded rows whenever FIELD_ENCRYPTION_KEY is
         # active — match on the decrypted value in Python instead.
         patient = None
-        for row in db.session.execute(
-            select(Patient).filter_by(tenant_id=tenant.id)
-        ).scalars():
+        for row in db.session.execute(select(Patient).filter_by(tenant_id=tenant.id)).scalars():
             if row.phone == '0500000001':
                 patient = row
                 break

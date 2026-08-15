@@ -36,14 +36,10 @@ def _resolve_platform_tenant():
 
     tid = g.get('tenant_id') or db.session.info.get('_tenant_id')
     if tid is not None:
-        tenant = (
-            db.session.execute(select(Tenant).filter_by(id=tid)).scalars().first()
-        )
+        tenant = db.session.execute(select(Tenant).filter_by(id=tid)).scalars().first()
         if tenant is not None:
             return tenant
-    tenant = (
-        db.session.execute(select(Tenant).order_by(Tenant.id)).scalars().first()
-    )
+    tenant = db.session.execute(select(Tenant).order_by(Tenant.id)).scalars().first()
     if tenant is not None:
         return tenant
     tenant = Tenant(

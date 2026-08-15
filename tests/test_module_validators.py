@@ -77,14 +77,14 @@ class TestCanActivateModule:
         patched(active=set())
         for module in ['doctor', 'lab', 'radiology', 'pharmacy', 'emergency', 'dental']:
             ok, _err = can_activate_module(1, module)
-            assert ok is True, f"{module} should activate: {_err}"
+            assert ok is True, f'{module} should activate: {_err}'
 
     def test_standalone_profile_allows_any_module(self, patched):
         """standalone profile does not restrict any module."""
         patched(active=set())
         for module in ['doctor', 'lab', 'radiology', 'pharmacy', 'emergency', 'dental']:
             ok, _err = can_activate_module(1, module, profile_code='standalone_clinic')
-            assert ok is True, f"{module} in standalone: {_err}"
+            assert ok is True, f'{module} in standalone: {_err}'
 
     def test_happy_path_success(self, patched):
         patched(active={'reception'})
