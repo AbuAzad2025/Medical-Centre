@@ -7,19 +7,19 @@
 {% block content %}
 <div class="owner-shell">
     <!-- Sidebar Overlay for Mobile -->
-    <div class="owner-sidebar-overlay" id="ownerSidebarOverlay"></div>
+    <div class="owner-sidebar-overlay" id="ownerSidebarOverlay" aria-hidden="true"></div>
 
     <!-- Sidebar -->
-    <aside class="owner-sidebar" id="ownerSidebar">
+    <aside class="owner-sidebar" id="ownerSidebar" aria-label="قائمة التنقل">
         <div class="owner-sidebar-brand">
-            <img src="{{ url_for('static', filename='img/azad_logo.png') }}" alt="Logo">
+            <img src="{{ url_for('static', filename='img/azad_logo.png') }}" alt="شعار AZAD" loading="lazy">
             <div>
                 <div class="brand-title">AZAD Platform</div>
                 <div class="brand-sub">OWNER CONSOLE</div>
             </div>
         </div>
         
-        <nav class="owner-nav">
+        <nav class="owner-nav" aria-label="تنقل المالك">
             {% block sidebar_nav %}
                 {% for section in owner_nav_sections %}
                     {% if section.title_ar %}
@@ -28,8 +28,8 @@
                     {% for item in section.items %}
                         {% set href = owner_nav_href(item) if owner_nav_href is defined else url_for(item.endpoint) %}
                         {% set is_active = item.active_prefix and request.path.startswith(item.active_prefix) %}
-                        <a class="owner-nav-link {{ 'active' if is_active else '' }}" href="{{ href }}">
-                            <i class="{{ item.icon }} nav-icon"></i>
+                        <a class="owner-nav-link {{ 'active' if is_active else '' }}" href="{{ href }}" {% if is_active %}aria-current="page"{% endif %}>
+                            <i class="{{ item.icon }} nav-icon" aria-hidden="true"></i>
                             <span>{{ item.label_ar }}</span>
                         </a>
                     {% endfor %}
@@ -39,8 +39,8 @@
 
         <div class="owner-sidebar-footer">
             <div class="owner-user-menu">
-                <div class="owner-user-avatar">
-                    {{ current_user.full_name[0] if current_user.full_name else 'A' }}
+                <div class="owner-user-avatar" aria-hidden="true">
+                    {{ current_user.full_name[0] if current_user.full_name else 'أ' }}
                 </div>
                 <div class="ms-2">
                     <div class="small fw-bold">{{ current_user.full_name }}</div>
@@ -52,17 +52,17 @@
 
     <!-- Main Content Area -->
     <div class="owner-main">
-        <header class="owner-header">
+        <header class="owner-header" role="banner">
             <div class="owner-header-left">
-                <button class="owner-mobile-toggle d-md-none" id="ownerMobileToggle">
+                <button class="owner-mobile-toggle d-md-none" id="ownerMobileToggle" aria-label="فتح القائمة" aria-expanded="false" aria-controls="ownerSidebar">
                     <i class="fas fa-bars"></i>
                 </button>
-                <div class="owner-header-breadcrumb">
+                <nav class="owner-header-breadcrumb" aria-label="مسار التنقل">
                     <a href="{{ url_for('owner.owner_dashboard') }}">الرئيسية</a>
                     {% block breadcrumbs %}{% endblock %}
-                </div>
+                </nav>
             </div>
-            <h1 class="owner-header-title">
+            <h1 class="owner-header-title" id="ownerPageTitle">
                 {% block header_title %}{% endblock %}
             </h1>
             <div class="owner-header-actions">
@@ -70,34 +70,47 @@
             </div>
         </header>
 
-        <main class="owner-content">
+        <main class="owner-content" id="ownerMainContent">
             {% block content_modern %}{% endblock %}
         </main>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const sidebar = document.getElementById('ownerSidebar');
-        const overlay = document.getElementById('ownerSidebarOverlay');
-        const toggle = document.getElementById('ownerMobileToggle');
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('ownerSidebar');
+    const overlay = document.getElementById('ownerSidebarOverlay');
+    const toggle = document.getElementById('ownerMobileToggle');
 
-        function toggleSidebar() {
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
-        }
+    function toggleSidebar(open) {
+        const isOpen = open !== undefined ? open : !sidebar.classList.contains('open');
+        sidebar.classList.toggle('open', isOpen);
+        overlay.classList.toggle('active', isOpen);
+        if (toggle) toggle.setAttribute('aria-expanded', isOpen);
+        overlay.setAttribute('aria-hidden', !isOpen);
+    }
 
-        if (toggle) {
-            toggle.addEventListener('click', function() {
-                toggleSidebar();
-            });
-        }
+    if (toggle) {
+        toggle.addEventListener('click', function() { toggleSidebar(); });
+    }
 
-        if (overlay) {
-            overlay.addEventListener('click', function() {
-                toggleSidebar();
-            });
+    if (overlay) {
+        overlay.addEventListener('click', function() { toggleSidebar(false); });
+    }
+
+    // Close sidebar on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+            toggleSidebar(false);
         }
     });
+
+    // Close sidebar when navigating on mobile
+    document.querySelectorAll('.owner-nav-link').forEach(function(link) {
+        link.addEventListener('click', function() {
+            if (window.innerWidth < 992) toggleSidebar(false);
+        });
+    });
+});
 </script>
 {% endblock %}

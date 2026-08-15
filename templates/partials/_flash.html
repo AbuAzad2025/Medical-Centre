@@ -1,7 +1,7 @@
-<!-- Flash Messages — styled with icons and dismiss support -->
+<!-- Flash Messages — styled with icons, dismiss support, auto-dismiss -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <div class="flash-messages" aria-live="polite">
+    <div class="flash-messages" aria-live="polite" aria-atomic="true">
         {% for category, message in messages %}
         {% set icon_map = {
             'success': 'fa-circle-check',
@@ -13,14 +13,30 @@
             'primary': 'fa-circle-info'
         } %}
         {% set icon = icon_map.get(category, 'fa-circle-info') %}
-        <div class="flash-message flash-{{ category or 'info' }}" role="alert">
-            <span class="flash-icon"><i class="fas {{ icon }}"></i></span>
+        <div class="flash-message flash-{{ category or 'info' }} fade-in" role="alert" data-auto-dismiss="5000">
+            <span class="flash-icon" aria-hidden="true"><i class="fas {{ icon }}"></i></span>
             <span class="flash-text">{{ message }}</span>
             <button type="button" class="flash-dismiss" aria-label="إغلاق" onclick="this.parentElement.remove()">
-                <i class="fas fa-times"></i>
+                <i class="fas fa-times" aria-hidden="true"></i>
             </button>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 {% endwith %}
+
+<script>
+// Auto-dismiss flash messages
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.flash-message[data-auto-dismiss]').forEach(function(el) {
+        const delay = parseInt(el.dataset.autoDismiss, 10) || 5000;
+        setTimeout(function() {
+            if (el.parentElement) {
+                el.style.opacity = '0';
+                el.style.transform = 'translateX(100%)';
+                setTimeout(function() { el.remove(); }, 300);
+            }
+        }, delay);
+    });
+});
+</script>

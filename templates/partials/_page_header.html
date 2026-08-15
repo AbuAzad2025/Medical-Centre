@@ -1,14 +1,16 @@
 {# Phase 5 — unified page header (clinical-page-header).
    hero_class: optional gradient/hero wrapper class for department dashboards.
-   back_url / back_label: optional back button to the left of breadcrumbs. #}
-{% macro page_header(title, subtitle='', icon='', breadcrumbs=[], actions=[], hero_class='', back_url='', back_label='رجوع') %}
+   back_url / back_label: optional back button to the left of breadcrumbs.
+   tabs: optional list of dicts {label, url, active} for tabbed headers.
+   filters: optional list of dicts {label, type, options, value} for filter dropdowns. #}
+{% macro page_header(title, subtitle='', icon='', breadcrumbs=[], actions=[], hero_class='', back_url='', back_label='رجوع', tabs=[], filters=[]) %}
 <div class="clinical-page-header fade-in-up{% if hero_class %} clinical-page-header--hero text-white {{ hero_class }}{% endif %}">
     <div>
         {% if back_url or breadcrumbs %}
         <div class="page-header__breadcrumb-wrap">
             {% if back_url %}
             <a href="{{ back_url }}" class="page-header__back" aria-label="{{ back_label }}">
-                <i class="fas fa-arrow-{{ 'right' if not request or not dir_is_rtl else 'left' }} ms-0 me-0"></i>
+                <i class="fas fa-arrow-{{ 'right' if not request or not dir_is_rtl else 'left' }} ms-0 me-0" aria-hidden="true"></i>
                 <span class="d-none d-sm-inline">{{ back_label }}</span>
             </a>
             {% endif %}
@@ -29,32 +31,65 @@
         <h1>{% if icon %}<i class="{{ icon }} me-2" aria-hidden="true"></i>{% endif %}{{ title }}</h1>
         {% if subtitle %}<p class="{% if hero_class %}opacity-75{% else %}text-muted{% endif %} mb-0">{{ subtitle }}</p>{% endif %}
     </div>
-    {% if actions %}
+    {% if actions or tabs or filters %}
     <div class="clinical-actions d-flex flex-wrap gap-2 align-items-center">
-        {% for action in actions %}
-            {% if action.type == 'button' %}
-            <button type="button" class="btn btn-{{ action.style|default('primary') }} btn-sm"
-                {% if action.id %}id="{{ action.id }}"{% endif %}
-                {% if action.data_action %}data-action="{{ action.data_action }}"{% endif %}
-                {% if action.data_bs_toggle %}data-bs-toggle="{{ action.data_bs_toggle }}"{% endif %}
-                {% if action.data_bs_target %}data-bs-target="{{ action.data_bs_target }}"{% endif %}>
-                {% if action.icon %}<i class="{{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ action.label }}
-            </button>
-            {% elif action.type == 'form' %}
-            <form method="{{ action.method|default('POST') }}" action="{{ action.url }}" class="d-inline"
-                {% if action.confirm %}onsubmit="return confirm('{{ action.confirm }}')"{% endif %}>
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-{{ action.style|default('primary') }} btn-sm"
-                    {% if action.id %}id="{{ action.id }}"{% endif %}>
+        {% if tabs %}
+        <div class="clinical-tabs" role="tablist">
+            {% for tab in tabs %}
+            <a href="{{ tab.url }}" class="clinical-tab {% if tab.active %}active{% endif %}" role="tab" {% if tab.active %}aria-selected="true"{% endif %}>
+                {% if tab.icon %}<i class="{{ tab.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ tab.label }}
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if filters %}
+        <div class="clinical-filters d-flex flex-wrap gap-2">
+            {% for filter in filters %}
+            <div class="clinical-filter">
+                <label class="form-label small mb-1">{{ filter.label }}</label>
+                {% if filter.type == 'select' %}
+                <select class="form-select form-select-sm" {% if filter.id %}id="{{ filter.id }}"{% endif %} {% if filter.onchange %}onchange="{{ filter.onchange }}"{% endif %}>
+                    {% for opt in filter.options %}
+                    <option value="{{ opt.value }}" {% if opt.value == filter.value %}selected{% endif %}>{{ opt.label }}</option>
+                    {% endfor %}
+                </select>
+                {% elif filter.type == 'date' %}
+                <input type="date" class="form-control form-control-sm" {% if filter.id %}id="{{ filter.id }}"{% endif %} value="{{ filter.value or '' }}">
+                {% elif filter.type == 'text' %}
+                <input type="text" class="form-control form-control-sm" {% if filter.id %}id="{{ filter.id }}"{% endif %} placeholder="{{ filter.placeholder or '' }}" value="{{ filter.value or '' }}">
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if actions %}
+        <div class="clinical-actions d-flex flex-wrap gap-2 align-items-center">
+            {% for action in actions %}
+                {% if action.type == 'button' %}
+                <button type="button" class="btn btn-{{ action.style|default('primary') }} btn-sm"
+                    {% if action.id %}id="{{ action.id }}"{% endif %}
+                    {% if action.data_action %}data-action="{{ action.data_action }}"{% endif %}
+                    {% if action.data_bs_toggle %}data-bs-toggle="{{ action.data_bs_toggle }}"{% endif %}
+                    {% if action.data_bs_target %}data-bs-target="{{ action.data_bs_target }}"{% endif %}>
                     {% if action.icon %}<i class="{{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ action.label }}
                 </button>
-            </form>
-            {% else %}
-            <a href="{{ action.url }}" class="btn btn-{{ action.style|default('primary') }} btn-sm">
-                {% if action.icon %}<i class="{{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ action.label }}
-            </a>
-            {% endif %}
-        {% endfor %}
+                {% elif action.type == 'form' %}
+                <form method="{{ action.method|default('POST') }}" action="{{ action.url }}" class="d-inline"
+                    {% if action.confirm %}onsubmit="return confirm('{{ action.confirm }}')"{% endif %}>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-{{ action.style|default('primary') }} btn-sm"
+                        {% if action.id %}id="{{ action.id }}"{% endif %}>
+                        {% if action.icon %}<i class="{{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ action.label }}
+                    </button>
+                </form>
+                {% else %}
+                <a href="{{ action.url }}" class="btn btn-{{ action.style|default('primary') }} btn-sm">
+                    {% if action.icon %}<i class="{{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ action.label }}
+                </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
     {% endif %}
 </div>

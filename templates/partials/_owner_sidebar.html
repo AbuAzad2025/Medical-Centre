@@ -1,5 +1,5 @@
 {# Owner platform sidebar — G-137 #}
-<aside class="clinical-sidebar" id="appSidebar">
+<aside class="clinical-sidebar" id="appSidebar" aria-label="قائمة التنقل الجانبية">
     <div class="sidebar-header d-lg-none p-3 border-bottom d-flex justify-content-between align-items-center" style="background:#2563eb;color:#fff;">
         <strong>قائمة المنصة</strong>
         <button type="button" class="btn btn-sm btn-light" id="closeSidebarBtn" aria-label="إغلاق القائمة">
@@ -18,8 +18,8 @@
                 {% set href = owner_nav_href(item) if owner_nav_href is defined else url_for(item.endpoint) %}
                 {% set is_active = item.active_prefix and request.path.startswith(item.active_prefix) %}
                 <li class="nav-item">
-                    <a class="nav-link {{ 'active' if is_active else '' }}" href="{{ href }}">
-                        <i class="{{ item.icon }} nav-icon"></i>
+                    <a class="nav-link {{ 'active' if is_active else '' }}" href="{{ href }}" {% if is_active %}aria-current="page"{% endif %}>
+                        <i class="{{ item.icon }} nav-icon" aria-hidden="true"></i>
                         <span>{{ item.label_ar }}</span>
                     </a>
                 </li>
