@@ -7,11 +7,10 @@ from __future__ import annotations
 
 import pytest
 
-import app.core.module.validators as V
 import app.core.module.registry as R
+import app.core.module.validators as V
 from app.core.module.registry import ModuleMeta
 from app.core.module.validators import (
-    ModuleValidationError,
     can_activate_module,
     validate_profile_modules,
 )
@@ -70,22 +69,22 @@ class TestCanActivateModule:
     def test_missing_required_module(self, patched):
         patched(active=set())
         # doctor has no required_modules now, so this should pass
-        ok, err = can_activate_module(1, 'doctor')
+        ok, _err = can_activate_module(1, 'doctor')
         assert ok is True
 
     def test_any_module_can_activate(self, patched):
         """All modules can be activated freely (no required_any_of, no standalone check)."""
         patched(active=set())
         for module in ['doctor', 'lab', 'radiology', 'pharmacy', 'emergency', 'dental']:
-            ok, err = can_activate_module(1, module)
-            assert ok is True, f"{module} should activate: {err}"
+            ok, _err = can_activate_module(1, module)
+            assert ok is True, f"{module} should activate: {_err}"
 
     def test_standalone_profile_allows_any_module(self, patched):
         """standalone profile does not restrict any module."""
         patched(active=set())
         for module in ['doctor', 'lab', 'radiology', 'pharmacy', 'emergency', 'dental']:
-            ok, err = can_activate_module(1, module, profile_code='standalone_clinic')
-            assert ok is True, f"{module} in standalone: {err}"
+            ok, _err = can_activate_module(1, module, profile_code='standalone_clinic')
+            assert ok is True, f"{module} in standalone: {_err}"
 
     def test_happy_path_success(self, patched):
         patched(active={'reception'})
