@@ -26,6 +26,12 @@ os.environ['FLASK_DEBUG'] = 'false'
 os.environ['SUPPRESS_LOGGING'] = '1'
 os.environ['SKIP_PLATFORM_BOOTSTRAP'] = '1'
 os.environ['RLS_BYPASS_ALLOWED'] = '1'
+# Match the CI test environment (.github/workflows/ci.yml): tests always run in
+# SaaS mode with field encryption disabled, regardless of the local .env, so
+# plaintext lookups on EncryptedString columns behave exactly like CI. The
+# running application keeps its own .env (single-install + encryption).
+os.environ['ENABLE_SAAS_MODE'] = 'true'
+os.environ.pop('FIELD_ENCRYPTION_KEY', None)
 
 from app.core.tenant.models import Tenant
 from app.extensions import db as _db
