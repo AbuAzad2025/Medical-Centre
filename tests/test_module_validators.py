@@ -1,7 +1,6 @@
-"""Pure-logic tests for app/core/module/validators.py.
+"""Pure-logic tests for app/core/module/validators.py (permissive mode).
 
-LEAN: the only DB touch (get_active_modules_for_tenant) and the registry are
-monkeypatched, so all branch logic is exercised without a database.
+All modules can be activated freely. Only hard required_modules are checked.
 """
 
 from __future__ import annotations
@@ -9,17 +8,17 @@ from __future__ import annotations
 import pytest
 
 import app.core.module.validators as V
+import app.core.module.registry as R
 from app.core.module.registry import ModuleMeta
 from app.core.module.validators import (
     ModuleValidationError,
     can_activate_module,
-    validate_reception_required,
-    validate_required_any_of,
+    validate_profile_modules,
 )
 
 
 def _meta(
-    name, required_modules=(), required_any_of=(), standalone_allowed=False, category='clinical'
+    name, required_modules=(), required_any_of=(), standalone_allowed=True, category='clinical'
 ):
     return ModuleMeta(
         name=name,
@@ -36,19 +35,17 @@ def patched(monkeypatch):
     """Centralized registry + active-set stub for validator isolation."""
     registry = {
         'reception': _meta('reception', category='administrative'),
-        'doctor': _meta(
-            'doctor', required_any_of=(('reception', 'standalone_intake'),), standalone_allowed=True
-        ),
-        'lab': _meta('lab', required_any_of=(('reception',),), standalone_allowed=True),
-        'radiology': _meta('radiology', standalone_allowed=False),
-        'pharmacy': _meta('pharmacy', required_modules=('reception',), standalone_allowed=False),
+        'doctor': _meta('doctor', standalone_allowed=True),
+        'lab': _meta('lab', standalone_allowed=True),
+        'radiology': _meta('radiology', standalone_allowed=True),
+        'pharmacy': _meta('pharmacy', standalone_allowed=True),
         'emergency': _meta('emergency', standalone_allowed=True),
         'dental': _meta('dental', standalone_allowed=True),
     }
     clinical = {'doctor', 'lab', 'radiology', 'emergency', 'dental', 'pharmacy'}
 
     monkeypatch.setattr(V, 'MODULE_REGISTRY', registry)
-    monkeypatch.setattr(V, 'get_clinical_modules', lambda: clinical)
+    monkeypatch.setattr(R, 'get_clinical_modules', lambda: clinical)
 
     def _set_active(active):
         monkeypatch.setattr(V, 'get_active_modules_for_tenant', lambda _tenant_id: set(active))
@@ -57,63 +54,7 @@ def patched(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# validate_reception_required
-# ---------------------------------------------------------------------------
-class TestReceptionRequired:
-    def test_more_than_three_clinical_without_reception_raises(self, patched):
-        patched(active=set())
-        with pytest.raises(ModuleValidationError):
-            validate_reception_required(1, ['doctor', 'lab', 'radiology', 'emergency'])
-
-    def test_more_than_three_clinical_with_reception_ok(self, patched):
-        patched(active={'reception'})
-        # reception is administrative, so the 4 clinical + reception present
-        validate_reception_required(1, ['doctor', 'lab', 'radiology', 'emergency', 'reception'])
-
-    def test_exactly_three_clinical_ok_without_reception(self, patched):
-        patched(active=set())
-        validate_reception_required(1, ['doctor', 'lab', 'radiology'])
-
-    def test_active_and_proposed_union_counts(self, patched):
-        patched(active={'doctor', 'lab'})
-        with pytest.raises(ModuleValidationError):
-            validate_reception_required(1, ['radiology', 'emergency'])
-
-
-# ---------------------------------------------------------------------------
-# validate_required_any_of
-# ---------------------------------------------------------------------------
-class TestRequiredAnyOf:
-    def test_no_meta_returns_ok(self, patched):
-        patched(active=set())
-        assert validate_required_any_of(1, 'unknown', set()) == (True, None)
-
-    def test_no_requirement_returns_ok(self, patched):
-        patched(active=set())
-        assert validate_required_any_of(1, 'radiology', set()) == (True, None)
-
-    def test_satisfied_by_active(self, patched):
-        patched(active=set())
-        ok, err = validate_required_any_of(1, 'doctor', {'reception'})
-        assert ok is True and err is None
-
-    def test_satisfied_by_self(self, patched):
-        patched(active=set())
-        ok, err = validate_required_any_of(1, 'doctor', set())
-        # group contains neither reception nor standalone_intake in active,
-        # and module_name 'doctor' is not in the group -> not satisfied
-        assert ok is False
-        assert 'requires' in err
-
-    def test_unsatisfied_returns_message(self, patched):
-        patched(active=set())
-        ok, err = validate_required_any_of(1, 'lab', {'pharmacy'})
-        assert ok is False
-        assert 'lab' in err
-
-
-# ---------------------------------------------------------------------------
-# can_activate_module
+# can_activate_module - permissive behavior
 # ---------------------------------------------------------------------------
 class TestCanActivateModule:
     def test_already_active_short_circuits(self, patched):
@@ -128,34 +69,32 @@ class TestCanActivateModule:
 
     def test_missing_required_module(self, patched):
         patched(active=set())
-        ok, err = can_activate_module(1, 'pharmacy')
-        assert ok is False
-        assert "requires 'reception'" in err
-
-    def test_required_any_of_unsatisfied(self, patched):
-        patched(active=set())
+        # doctor has no required_modules now, so this should pass
         ok, err = can_activate_module(1, 'doctor')
-        assert ok is False
-        assert 'requires' in err
-
-    def test_standalone_profile_blocks_non_standalone_module(self, patched):
-        patched(active={'reception'})
-        ok, err = can_activate_module(1, 'radiology', profile_code='standalone_imaging')
-        assert ok is False
-        assert 'standalone' in err
-
-    def test_standalone_profile_allows_standalone_module(self, patched):
-        patched(active={'reception'})
-        ok, err = can_activate_module(1, 'doctor', profile_code='standalone_clinic')
         assert ok is True
-        assert err is None
 
-    def test_reception_rule_blocks_fourth_clinical(self, patched):
-        patched(active={'doctor', 'lab', 'emergency'})
-        ok, err = can_activate_module(1, 'dental')
-        assert ok is False
-        assert 'Reception' in err or 'reception' in err
+    def test_any_module_can_activate(self, patched):
+        """All modules can be activated freely (no required_any_of, no standalone check)."""
+        patched(active=set())
+        for module in ['doctor', 'lab', 'radiology', 'pharmacy', 'emergency', 'dental']:
+            ok, err = can_activate_module(1, module)
+            assert ok is True, f"{module} should activate: {err}"
+
+    def test_standalone_profile_allows_any_module(self, patched):
+        """standalone profile does not restrict any module."""
+        patched(active=set())
+        for module in ['doctor', 'lab', 'radiology', 'pharmacy', 'emergency', 'dental']:
+            ok, err = can_activate_module(1, module, profile_code='standalone_clinic')
+            assert ok is True, f"{module} in standalone: {err}"
 
     def test_happy_path_success(self, patched):
         patched(active={'reception'})
         assert can_activate_module(1, 'lab') == (True, None)
+
+
+class TestValidateProfileModules:
+    def test_returns_empty_no_restrictions(self, patched):
+        """validate_profile_modules returns empty list (no restrictions)."""
+        patched(active=set())
+        errors = validate_profile_modules('standalone_pharmacy', ['doctor', 'lab', 'pharmacy'])
+        assert errors == []

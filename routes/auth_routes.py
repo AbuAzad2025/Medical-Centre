@@ -34,6 +34,12 @@ from utils.decorators import role_required_json
 auth_bp = Blueprint('auth', __name__)
 
 
+@auth_bp.context_processor
+def _inject_saas_enabled():
+    """Expose whether SaaS tenant selection is active to the login template."""
+    return {'saas_enabled': current_app.config.get('ENABLE_SAAS_MODE', False)}
+
+
 @auth_bp.route('/api/tenants-list')
 def api_tenants_list():
     """

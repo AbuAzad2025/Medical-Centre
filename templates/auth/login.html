@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>تسجيل الدخول - {{ branding.organization_name if branding else 'المركز الطبي' }}</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/medical-login.css') }}" rel="stylesheet">
-</head>
-<body class="medical-login-page">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>تسجيل الدخول - {{ branding.organization_name if branding else 'المركز الطبي' }}</title>
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/medical-login.css') }}" rel="stylesheet">
+    </head>
+    <body class="medical-login-page">
 
     <div class="medical-login-shell">
         <!-- Hero panel -->
@@ -68,37 +68,40 @@
                     <input type="hidden" name="mode" value="owner">
                     {% endif %}
 
+                    <!-- حقل اسم المستخدم always visible -->
                     <div class="form-field">
                         <label for="username">اسم المستخدم</label>
                         <div class="input-wrap">
                             <i class="fas fa-user field-icon"></i>
-                            <input id="username" type="text" name="username" placeholder="أدخل اسم المستخدم" required autocomplete="username" spellcheck="false">
+                            <input id="username" type="text" name="username" placeholder="اسم المستخدم" required autocomplete="username" spellcheck="false">
                         </div>
                     </div>
 
-                    {% if mode != 'owner' %}
-                    <div class="form-field tenant-field" id="tenantField" style="display:none">
+                    <!-- حقل كلمة المرور always visible -->
+                    <div class="form-field">
+                        <label for="password">كلمة المرور</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-lock field-icon"></i>
+                            <input id="password" type="password" name="password" placeholder="كلمة المرور" required autocomplete="current-password">
+                            <button type="button" class="toggle-password-btn" id="togglePassword" aria-label="إظهار كلمة المرور">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="caps-lock-alert" id="capsLock" style="display:none">تنبيه: Caps Lock مفعّل</div>
+                    </div>
+
+                    <!-- حقل المنشأة يظهر فقط في وضع SaaS وغير المالك -->
+                    {% if saas_enabled and mode != 'owner' %}
+                    <div class="form-field tenant-field" id="tenantField">
                         <label for="tenant_slug">المنشأة</label>
                         <div class="input-wrap">
                             <i class="fas fa-building field-icon"></i>
-                            <select id="tenant_slug" name="tenant_slug">
+                            <select id="tenant_slug" name="tenant_slug" aria-label="اختيار المنشأة">
                                 <option value="">-- اختر المنشأة --</option>
                             </select>
                         </div>
                     </div>
                     {% endif %}
-
-                    <div class="form-field">
-                        <label for="password">كلمة المرور</label>
-                        <div class="input-wrap">
-                            <i class="fas fa-lock field-icon"></i>
-                            <input id="password" type="password" name="password" placeholder="أدخل كلمة المرور" required autocomplete="current-password">
-                            <button type="button" class="toggle-password-btn" id="togglePassword" aria-label="إظهار كلمة المرور">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                        <div class="caps-lock-alert" id="capsLock">تنبيه: Caps Lock مفعّل</div>
-                    </div>
 
                     <div class="login-options">
                         <label class="remember-wrap">
@@ -110,7 +113,7 @@
 
                     <button type="submit" class="login-primary-btn" id="loginBtn">
                         <span class="btn-text">تسجيل الدخول</span>
-                        <span class="login-loading" id="loginLoading">
+                        <span class="login-loading" id="loginLoading" style="display:none">
                             <span class="spinner"></span>
                             <span>جاري التحقق...</span>
                         </span>
@@ -138,7 +141,7 @@
     </footer>
 
     <script>
-    {% if mode != 'owner' %}
+    {% if saas_enabled and mode != 'owner' %}
     (function() {
         var tenantField = document.getElementById('tenantField');
         var tenantSelect = document.getElementById('tenant_slug');
@@ -154,13 +157,58 @@
                             opt.textContent = t.name;
                             tenantSelect.appendChild(opt);
                         });
+                        // Auto-select first tenant if only one exists
+                        if (data.tenants.length === 1) {
+                            tenantSelect.value = data.tenants[0].slug;
+                        }
+                    } else {
+                        // Show empty state hint
+                        tenantField.style.display = '';
+                        tenantSelect.innerHTML = '<option value="">لا توجد منشآت مسجلة</option>';
                     }
                 })
-                .catch(function() {});
+                .catch(function() {
+                    tenantField.style.display = '';
+                    tenantSelect.innerHTML = '<option value="">خطأ في تحميل المنشآت</option>';
+                });
         }
     })();
     {% endif %}
+
+    <!-- Toggle password visibility -->
+    <script>
+    document.getElementById('togglePassword')?.addEventListener('click', function() {
+        var pwd = document.getElementById('password');
+        var icon = this.querySelector('i');
+        if (pwd.type === 'password') {
+            pwd.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            pwd.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
     </script>
+
+    <!-- Caps lock detection -->
+    <script>
+    var capsLockInput = document.getElementById('password');
+    var capsLockAlert = document.getElementById('capsLock');
+
+    capsLockInput.addEventListener('keydown', function(e) {
+        if (e.getModifierState('CapsLock')) {
+            capsLockAlert.style.display = 'block';
+        }
+    });
+
+    // Hide caps lock alert when user starts typing
+    capsLockInput.addEventListener('input', function() {
+        capsLockAlert.style.display = 'none';
+    });
+    </script>
+
     <script src="{{ url_for('static', filename='js/base.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>

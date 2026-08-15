@@ -126,10 +126,17 @@ def seed_staff(tenant, session=None):
 def seed_clinical_flow(tenant, staff, session=None):
     session = session or db.session
     with tenant_bypass():
-        # Idempotent: reuse existing patient/visit if present
-        patient = db.session.execute(
-            select(Patient).filter_by(tenant_id=tenant.id, phone='0500000001')
-        ).scalar()
+        # Idempotent: reuse existing patient/visit if present. The patient's
+        # phone column is an EncryptedString, so a raw WHERE on the plaintext
+        # value would miss already-seeded rows whenever FIELD_ENCRYPTION_KEY is
+        # active — match on the decrypted value in Python instead.
+        patient = None
+        for row in db.session.execute(
+            select(Patient).filter_by(tenant_id=tenant.id)
+        ).scalars():
+            if row.phone == '0500000001':
+                patient = row
+                break
         if patient is None:
             patient = Patient(
                 tenant_id=tenant.id,

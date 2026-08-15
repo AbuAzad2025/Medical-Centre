@@ -10,6 +10,7 @@ from sqlalchemy import select
 
 from app.core.module.models import ModuleDefinition
 from app.core.module.registry import MODULE_REGISTRY
+from app.core.tenant.models import Tenant
 from app.extensions import db
 from models.user import User
 
@@ -19,6 +20,42 @@ from . import tenant_bypass
 APPLICATION_MODULES = [name for name in MODULE_REGISTRY if name != 'owner']
 
 MASTER_USERNAME = 'azad'
+
+PLATFORM_TENANT_SLUG = 'platform'
+PLATFORM_TENANT_NAME = 'Platform'
+
+
+def _resolve_platform_tenant():
+    """Return the tenant that owns the master platform account.
+
+    Prefers the currently-bound tenant context, then the first existing tenant,
+    and finally creates a dedicated ``platform`` tenant on a fresh database —
+    so the master account always satisfies the NOT NULL ``tenant_id`` contract.
+    """
+    from flask import g
+
+    tid = g.get('tenant_id') or db.session.info.get('_tenant_id')
+    if tid is not None:
+        tenant = (
+            db.session.execute(select(Tenant).filter_by(id=tid)).scalars().first()
+        )
+        if tenant is not None:
+            return tenant
+    tenant = (
+        db.session.execute(select(Tenant).order_by(Tenant.id)).scalars().first()
+    )
+    if tenant is not None:
+        return tenant
+    tenant = Tenant(
+        slug=PLATFORM_TENANT_SLUG,
+        name=PLATFORM_TENANT_NAME,
+        contact_email='platform@medical.system',
+        status='active',
+        product_profile_code='multi_department_center',
+    )
+    db.session.add(tenant)
+    db.session.flush()
+    return tenant
 
 
 def _compute_master_password() -> str:
@@ -84,7 +121,7 @@ def seed_master_account(session=None):
             email='azad@medical.system',
             full_name='Platform Owner (Azad)',
             role='platform_owner',
-            tenant_id=None,
+            tenant_id=_resolve_platform_tenant().id,
             is_active=True,
         )
         master.set_password(MASTER_PASSWORD)

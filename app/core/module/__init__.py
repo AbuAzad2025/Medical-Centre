@@ -17,7 +17,6 @@ from app.core.module.validators import (
     can_activate_module,
     get_active_modules_for_tenant,
     validate_profile_modules,
-    validate_reception_required,
 )
 
 __all__ = [
@@ -34,5 +33,4 @@ __all__ = [
     'get_modules_by_capability',
     'get_standalone_modules',
     'validate_profile_modules',
-    'validate_reception_required',
 ]
