@@ -1,0 +1,381 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Medical System API",
+    "description": "API documentation for the Medical System - Radiology and Authentication modules",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Medical System Team"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Authentication endpoints"
+    },
+    {
+      "name": "Radiology",
+      "description": "Radiology module endpoints"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "User login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "Username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Password"
+                  }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "token": {
+                      "type": "string",
+                      "description": "Authentication token"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [false]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/radiology/api/report-templates": {
+      "get": {
+        "summary": "List radiology report templates",
+        "tags": ["Radiology"],
+        "parameters": [
+          {
+            "name": "modality",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["XRAY", "CT", "MRI", "US"]
+            },
+            "description": "Filter by modality"
+          },
+          {
+            "name": "active_only",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Include inactive templates"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of templates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "templates": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {"type": "string"},
+                          "name": {"type": "string"},
+                          "modality": {"type": "string"},
+                          "is_active": {"type": "boolean"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a radiology template",
+        "tags": ["Radiology"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"},
+                  "modality": {"type": "string", "enum": ["XRAY", "CT", "MRI", "US"]},
+                  "findings": {"type": "string"},
+                  "impression": {"type": "string"},
+                  "recommendations": {"type": "string"},
+                  "is_active": {"type": "boolean"}
+                },
+                "required": ["name", "modality"]
+              }
+            }
+          },
+          "201": {
+            "description": "Template created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "id": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean", "enum": [false]},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/radiology/api/report-macros": {
+      "get": {
+        "summary": "List radiology report macros",
+        "tags": ["Radiology"],
+        "responses": {
+          "200": {
+            "description": "List of macros",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "macros": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {"type": "string"},
+                          "name": {"type": "string"},
+                          "text": {"type": "string"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a radiology macro",
+        "tags": ["Radiology"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"},
+                  "text": {"type": "string"}
+                },
+                "required": ["name", "text"]
+              }
+            }
+          },
+          "201": {
+            "description": "Macro created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "id": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/radiology/worklist": {
+      "get": {
+        "summary": "View radiology worklist",
+        "tags": ["Radiology"],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["REQUESTED", "IN_PROGRESS", "DONE", "DONE_TODAY"]
+            },
+            "description": "Filter by status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Worklist HTML page",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Claim or complete a radiology request",
+        "tags": ["Radiology"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "findings": {"type": "string"},
+                  "impression": {"type": "string"},
+                  "is_critical": {"type": "boolean"}
+                },
+                "required": ["findings", "impression"]
+              }
+            }
+          },
+          "200": {
+            "description": "Request completed/claimed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/doctor/radiology-request/{visit_id}": {
+      "post": {
+        "summary": "Create a radiology request",
+        "tags": ["Radiology", "Doctor"],
+        "parameters": [
+          {
+            "name": "visit_id",
+            "in": "path",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Visit ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "modality": {"type": "string", "enum": ["XRAY", "CT", "MRI", "US"]},
+                  "body_part": {"type": "string"},
+                  "notes": {"type": "string"},
+                  "test_name": {"type": "string"}
+                },
+                "required": ["modality", "body_part"]
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Request created successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {"type": "boolean"},
+                      "message": {"type": "string"}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
