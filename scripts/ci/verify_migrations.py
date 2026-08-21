@@ -12,9 +12,9 @@ import sqlalchemy as sa
 ADMIN_URL = os.environ['MIGRATE_ADMIN_URL']
 TARGET_URL = os.environ['MIGRATE_DATABASE_URL']
 # The migration chain was unified under merge revision 8b9457bfc4d7
-# (merging the five historical branch heads) followed by p6_001 (FK indexes)
-# and p6_002 (api_keys).  Exactly one head must exist.
-EXPECTED_HEADS = {'p6_002_api_keys'}
+# (merging the five historical branch heads) followed by p6_001 (FK indexes),
+# p6_002 (api_keys) and p6_003 (api_keys RLS).  Exactly one head must exist.
+EXPECTED_HEADS = {'p6_003_api_keys_rls'}
 
 
 def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
@@ -72,8 +72,7 @@ def main() -> int:
     # Verify exactly the expected single-head lineage
     if set(head_revisions) != EXPECTED_HEADS:
         print(
-            f'FAIL heads mismatch: expected {sorted(EXPECTED_HEADS)}, '
-            f'got {sorted(head_revisions)}'
+            f'FAIL heads mismatch: expected {sorted(EXPECTED_HEADS)}, got {sorted(head_revisions)}'
         )
         return 1
     print(f'OK  expected head(s) present: {", ".join(sorted(head_revisions))}')
