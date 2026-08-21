@@ -47,6 +47,33 @@ def app():
         _db.create_all()
         # Ensure new columns exist on existing tables (adds column if missing)
         try:
+            # P0 file-storage migration backfill (S3/MinIO columns on file_uploads).
+            # db.create_all() never alters pre-existing tables; the persistent CI
+            # test DB predates these columns, so backfill them like the Phase 3.2
+            # audit columns below.
+            _db.session.execute(
+                text(
+                    "ALTER TABLE file_uploads ADD COLUMN IF NOT EXISTS storage_backend "
+                    "VARCHAR(20) DEFAULT 'local' NOT NULL"
+                )
+            )
+            _db.session.execute(
+                text('ALTER TABLE file_uploads ADD COLUMN IF NOT EXISTS s3_key VARCHAR(500)')
+            )
+            _db.session.execute(
+                text('ALTER TABLE file_uploads ADD COLUMN IF NOT EXISTS s3_bucket VARCHAR(100)')
+            )
+            _db.session.execute(
+                text('ALTER TABLE file_uploads ADD COLUMN IF NOT EXISTS s3_region VARCHAR(50)')
+            )
+            _db.session.execute(
+                text('ALTER TABLE file_uploads ADD COLUMN IF NOT EXISTS s3_etag VARCHAR(64)')
+            )
+            # Model relaxed file_path to nullable (S3 rows carry the key instead).
+            _db.session.execute(text('ALTER TABLE file_uploads ALTER COLUMN file_path DROP NOT NULL'))
+            _db.session.execute(
+                text('CREATE INDEX IF NOT EXISTS idx_file_storage ON file_uploads(storage_backend)')
+            )
             _db.session.execute(text('ALTER TABLE tenants ADD COLUMN IF NOT EXISTS settings JSONB'))
             _db.session.execute(
                 text(
