@@ -15,6 +15,7 @@ from flask.json.provider import DefaultJSONProvider
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
+from flask_session import Session
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
@@ -62,6 +63,7 @@ migrate = Migrate()
 mail = Mail()
 csrf = CSRFProtect()
 socketio = SocketIO(async_mode='threading')
+sess = Session()
 
 
 def create_app(config_name: str | None = None) -> Flask:
@@ -194,6 +196,16 @@ def create_app(config_name: str | None = None) -> Flask:
     csrf.init_app(app)
     socketio.init_app(app)
 
+    # تهيئة Flask-Session (Redis أو filesystem)
+    try:
+        sess.init_app(app)
+        if app.config.get('SESSION_TYPE') == 'redis':
+            app.logger.info('Redis session storage enabled')
+        else:
+            app.logger.info('Filesystem session storage enabled (default)')
+    except Exception as e:
+        app.logger.warning(f'Session init failed, falling back to signed cookies: {e}')
+
     def _get_format_map():
         try:
             from models.system_config import SystemConfig
@@ -277,6 +289,11 @@ def create_app(config_name: str | None = None) -> Flask:
 
     app.jinja_env.filters['format_money'] = _fmt_money
 
+    # Asset pipeline — hashed asset URLs when built via `npm run build`
+    from utils.assets import register_asset_helpers
+
+    register_asset_helpers(app)
+
     from app.shared.enum_labels import enum_label, resolve_visit_payment_status_badge
     from app.shared.user_messages import resolve_user_message
 
@@ -320,6 +337,7 @@ def create_app(config_name: str | None = None) -> Flask:
             importlib.import_module('app.core.module.models')
             importlib.import_module('app.core.saas.models')
             importlib.import_module('app.modules.workflows.stock_models')
+            importlib.import_module('models.api_key')
             # استيراد النماذج الأساسية أولاً
 
             # استيراد النماذج المتقدمة
@@ -1140,6 +1158,20 @@ def create_app(config_name: str | None = None) -> Flask:
     from app.core.audit.audit_context import AuditContextMiddleware
 
     AuditContextMiddleware().init_app(app)
+
+    # API middleware — per-endpoint rate limits + X-API-Key authentication for /api/*
+    from services.api_key_service import ApiKeyService, _ApiAuthError
+
+    @app.errorhandler(_ApiAuthError)
+    def handle_api_auth_error(e):
+        payload, status = e.payload
+        return payload, status
+
+    @app.before_request
+    def _api_rate_limit_and_key_auth():
+        from services.api_key_service import api_middleware
+
+        api_middleware()
 
     # Register signal subscribers (audit, notifications)
     try:

@@ -21,11 +21,18 @@ class FileUpload(TenantMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(255), nullable=False)
     original_filename = db.Column(db.String(255), nullable=False)
-    file_path = db.Column(db.String(500), nullable=False)
+    file_path = db.Column(db.String(500), nullable=True)  # Local path (legacy) or S3 key
     file_hash = db.Column(db.String(64), nullable=True)  # SHA-256
     file_size = db.Column(db.Integer, nullable=False)
     file_type = db.Column(db.String(100), nullable=False)  # MIME type
     file_extension = db.Column(db.String(10), nullable=False)
+
+    # التخزين السحابي
+    storage_backend = db.Column(db.String(20), default='local', nullable=False)  # local, s3, minio
+    s3_key = db.Column(db.String(500), nullable=True)  # S3 object key
+    s3_bucket = db.Column(db.String(100), nullable=True)  # S3 bucket name
+    s3_region = db.Column(db.String(50), nullable=True)  # S3 region
+    s3_etag = db.Column(db.String(64), nullable=True)  # S3 ETag for integrity
 
     # معلومات إضافية
     description = db.Column(db.Text, nullable=True)
@@ -53,6 +60,10 @@ class FileUpload(TenantMixin, db.Model):
     __table_args__ = (
         CheckConstraint('file_size > 0', name='chk_file_size'),
         CheckConstraint(
+            "storage_backend IN ('local', 's3', 'minio')",
+            name='chk_storage_backend',
+        ),
+        CheckConstraint(
             "related_entity_type IN ('patient', 'visit', 'appointment', 'lab_result', 'radiology_result', 'user', 'system')",
             name='chk_related_entity_type',
         ),
@@ -62,6 +73,7 @@ class FileUpload(TenantMixin, db.Model):
         Index('idx_file_uploader', 'uploaded_by'),
         Index('idx_file_uploaded', 'uploaded_at'),
         Index('idx_file_expires', 'expires_at'),
+        Index('idx_file_storage', 'storage_backend'),
     )
 
     # العلاقات
@@ -79,7 +91,9 @@ class FileUpload(TenantMixin, db.Model):
         return f'<FileUpload {self.original_filename}>'
 
     def get_file_hash(self):
-        """الحصول على hash الملف"""
+        """الحصول على hash الملف - يعمل للتخزين المحلي فقط"""
+        if self.storage_backend != 'local':
+            return self.file_hash
         try:
             with open(self.file_path, 'rb') as f:
                 return hashlib.md5(f.read(), usedforsecurity=False).hexdigest()
@@ -92,13 +106,24 @@ class FileUpload(TenantMixin, db.Model):
             return datetime.now(UTC) > self.expires_at
         return False
 
-    def get_file_url(self):
-        """الحصول على رابط الملف"""
+    def get_presigned_url(self, expiry: int | None = None) -> str | None:
+        """إنشاء رابط وصول مؤقت (Pre-signed URL) للملف"""
+        if self.storage_backend in ('s3', 'minio'):
+            try:
+                from services.file_service import FileService
+                return FileService.generate_presigned_url(self, expiry)
+            except Exception:
+                return None
+        # للتخزين المحلي، إرجاع مسار التحميل المحلي
         return f'/files/{self.id}'
+
+    def get_file_url(self):
+        """الحصول على رابط الملف (للاستخدام في القوالب)"""
+        return self.get_presigned_url()
 
     def to_dict(self):
         """تحويل إلى قاموس"""
-        return {
+        data = {
             'id': self.id,
             'filename': self.filename,
             'original_filename': self.original_filename,
@@ -120,6 +145,14 @@ class FileUpload(TenantMixin, db.Model):
             'is_expired': self.is_expired(),
             'file_url': self.get_file_url(),
         }
+        if self.storage_backend in ('s3', 'minio'):
+            data.update({
+                'storage_backend': self.storage_backend,
+                's3_key': self.s3_key,
+                's3_bucket': self.s3_bucket,
+                's3_region': self.s3_region,
+            })
+        return data
 
 
 class FileCategory(TenantMixin, db.Model):

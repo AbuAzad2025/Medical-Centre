@@ -3,6 +3,7 @@ Security hardening middleware — headers, CSP, HSTS, rate-limit stubs
 """
 
 import logging
+import secrets
 
 from flask import g, request
 
@@ -13,17 +14,29 @@ class SecurityHeadersMiddleware:
     """Adds security headers to every response."""
 
     def init_app(self, app):
+        @app.before_request
+        def _generate_csp_nonce():
+            """Generate a nonce for CSP inline scripts."""
+            g.csp_nonce = secrets.token_urlsafe(16)
+
         @app.after_request
         def _add_headers(response):
-            # Content Security Policy
-            response.headers['Content-Security-Policy'] = (
+            # Content Security Policy with nonce.
+            # All third-party libraries are self-hosted in static/vendor/,
+            # so no external script/style/connect sources are required.
+            nonce = getattr(g, 'csp_nonce', '')
+            csp = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net unpkg.com code.jquery.com cdnjs.cloudflare.com; "
-                "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com cdnjs.cloudflare.com unpkg.com; "
+                "script-src 'self' 'nonce-{nonce}'; "
+                "style-src 'self' 'nonce-{nonce}' fonts.googleapis.com; "
                 "img-src 'self' data: blob:; "
-                "font-src 'self' fonts.gstatic.com fonts.googleapis.com cdnjs.cloudflare.com data:; "
-                "connect-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com;"
-            )
+                "font-src 'self' fonts.gstatic.com data:; "
+                "connect-src 'self'; "
+                "frame-ancestors 'none'; "
+                "base-uri 'self'; "
+                "form-action 'self';"
+            ).format(nonce=nonce)
+            response.headers['Content-Security-Policy'] = csp
             # Prevent MIME sniffing
             response.headers['X-Content-Type-Options'] = 'nosniff'
             # XSS protection
