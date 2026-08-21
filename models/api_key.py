@@ -27,7 +27,9 @@ class ApiKey(TenantMixin, db.Model):
     key_hash = db.Column(db.String(64), nullable=False, unique=True, index=True)
 
     # Access control
-    scopes = db.Column(db.String(500), nullable=False, default='read')  # comma-separated: read,write
+    scopes = db.Column(
+        db.String(500), nullable=False, default='read'
+    )  # comma-separated: read,write
     is_active = db.Column(db.Boolean, default=True, nullable=False, index=True)
     created_by = db.Column(
         db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
@@ -42,7 +44,9 @@ class ApiKey(TenantMixin, db.Model):
     last_used_at = db.Column(db.DateTime, nullable=True)
     revoked_at = db.Column(db.DateTime, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True
+    )
 
     __table_args__ = (
         db.Index('idx_api_key_tenant_active', 'tenant_id', 'is_active'),
@@ -72,7 +76,9 @@ class ApiKey(TenantMixin, db.Model):
         if self.expires_at is not None:
             now = datetime.now(UTC)
             expires = (
-                self.expires_at.replace(tzinfo=UTC) if self.expires_at.tzinfo is None else self.expires_at
+                self.expires_at.replace(tzinfo=UTC)
+                if self.expires_at.tzinfo is None
+                else self.expires_at
             )
             if now > expires:
                 return False

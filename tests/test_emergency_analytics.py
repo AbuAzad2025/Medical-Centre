@@ -127,7 +127,9 @@ class TestGetEmergencyAITriage:
         fx.case(patient_id=p.id, severity='LOW', status='COMPLETED')
 
         # Add a case with response time
-        c = fx.case(severity='CRITICAL', status='COMPLETED', created_at=datetime.now() - timedelta(hours=2))
+        c = fx.case(
+            severity='CRITICAL', status='COMPLETED', created_at=datetime.now() - timedelta(hours=2)
+        )
         c.completed_at = datetime.now()
         db.session.commit()
 
@@ -148,11 +150,15 @@ class TestGetEmergencyAITriage:
 
     def test_response_time_calculation(self, fx):
         """Test response time calculation with completed cases."""
-        c1 = fx.case(severity='CRITICAL', status='COMPLETED',
-                     created_at=datetime.now() - timedelta(minutes=30))
+        c1 = fx.case(
+            severity='CRITICAL',
+            status='COMPLETED',
+            created_at=datetime.now() - timedelta(minutes=30),
+        )
         c1.completed_at = datetime.now()
-        c2 = fx.case(severity='HIGH', status='COMPLETED',
-                     created_at=datetime.now() - timedelta(minutes=60))
+        c2 = fx.case(
+            severity='HIGH', status='COMPLETED', created_at=datetime.now() - timedelta(minutes=60)
+        )
         c2.completed_at = datetime.now()
         db.session.commit()
 
@@ -172,8 +178,11 @@ class TestGetEmergencyAITriage:
 
     def test_triage_suggestions_response_time(self, fx):
         """Test suggestions when response time > 30 minutes."""
-        c = fx.case(severity='CRITICAL', status='COMPLETED',
-                    created_at=datetime.now() - timedelta(minutes=45))
+        c = fx.case(
+            severity='CRITICAL',
+            status='COMPLETED',
+            created_at=datetime.now() - timedelta(minutes=45),
+        )
         c.completed_at = datetime.now()
         db.session.commit()
 
@@ -252,8 +261,10 @@ class TestGetEmergencyWorkflowAI:
         assert 'efficiency_score' in result
 
         wa = result['workflow_analysis']
-        assert all(k in wa for k in
-                   ['waiting', 'triage', 'resuscitation', 'treatment', 'observation', 'completed'])
+        assert all(
+            k in wa
+            for k in ['waiting', 'triage', 'resuscitation', 'treatment', 'observation', 'completed']
+        )
 
     def test_workflow_suggestions_triage_bottleneck(self, fx):
         """Test suggestion when triage cases > 10."""
@@ -268,8 +279,7 @@ class TestGetEmergencyWorkflowAI:
 
     def test_workflow_suggestions_total_time(self, fx):
         """Test suggestion when avg total time > 60 minutes."""
-        c = fx.case(status='COMPLETED',
-                    created_at=datetime.now() - timedelta(minutes=90))
+        c = fx.case(status='COMPLETED', created_at=datetime.now() - timedelta(minutes=90))
         c.completed_at = datetime.now()
         db.session.commit()
 
@@ -284,14 +294,24 @@ class TestGetPatientVitalMonitoring:
     def test_vital_signs_analysis(self, fx):
         """Test vital signs analysis with various cases."""
         p = fx.patient()
-        c1 = fx.case(patient_id=p.id, vital_signs='{"critical": true, "hr": 150}',
-                     created_at=datetime.now() - timedelta(days=1))
-        c2 = fx.case(patient_id=p.id, vital_signs='{"abnormal": true, "bp": "180/120"}',
-                     created_at=datetime.now() - timedelta(days=2))
-        c3 = fx.case(patient_id=p.id, vital_signs='{"normal": true, "hr": 70, "bp": "120/80"}',
-                     created_at=datetime.now() - timedelta(days=3))
-        c4 = fx.case(patient_id=p.id, vital_signs=None,
-                     created_at=datetime.now() - timedelta(days=4))
+        c1 = fx.case(
+            patient_id=p.id,
+            vital_signs='{"critical": true, "hr": 150}',
+            created_at=datetime.now() - timedelta(days=1),
+        )
+        c2 = fx.case(
+            patient_id=p.id,
+            vital_signs='{"abnormal": true, "bp": "180/120"}',
+            created_at=datetime.now() - timedelta(days=2),
+        )
+        c3 = fx.case(
+            patient_id=p.id,
+            vital_signs='{"normal": true, "hr": 70, "bp": "120/80"}',
+            created_at=datetime.now() - timedelta(days=3),
+        )
+        c4 = fx.case(
+            patient_id=p.id, vital_signs=None, created_at=datetime.now() - timedelta(days=4)
+        )
         db.session.commit()
 
         result = get_patient_vital_monitoring()
@@ -306,8 +326,11 @@ class TestGetPatientVitalMonitoring:
     def test_critical_vitals_recommendation(self, fx):
         """Test recommendation when critical vitals present."""
         p = fx.patient()
-        fx.case(patient_id=p.id, vital_signs='{"critical": "severe"}',
-                created_at=datetime.now() - timedelta(days=1))
+        fx.case(
+            patient_id=p.id,
+            vital_signs='{"critical": "severe"}',
+            created_at=datetime.now() - timedelta(days=1),
+        )
         db.session.commit()
 
         result = get_patient_vital_monitoring()
@@ -318,8 +341,11 @@ class TestGetPatientVitalMonitoring:
         """Test recommendation when abnormal vitals > 5."""
         p = fx.patient()
         for _ in range(6):
-            fx.case(patient_id=p.id, vital_signs='{"abnormal": "elevated"}',
-                    created_at=datetime.now() - timedelta(days=1))
+            fx.case(
+                patient_id=p.id,
+                vital_signs='{"abnormal": "elevated"}',
+                created_at=datetime.now() - timedelta(days=1),
+            )
         db.session.commit()
 
         result = get_patient_vital_monitoring()
@@ -374,12 +400,21 @@ class TestGetTraumaProtocols:
     def test_trauma_analysis_structure(self, fx):
         """Test trauma analysis returns complete structure."""
         p = fx.patient()
-        fx.case(patient_id=p.id, chief_complaint='حادث سير، إصابة',
-                created_at=datetime.now() - timedelta(days=1))
-        fx.case(patient_id=p.id, chief_complaint='ألم في الصدر، ضيق تنفس',
-                created_at=datetime.now() - timedelta(days=2))
-        fx.case(patient_id=p.id, chief_complaint='جراحة طارئة للبطن',
-                created_at=datetime.now() - timedelta(days=3))
+        fx.case(
+            patient_id=p.id,
+            chief_complaint='حادث سير، إصابة',
+            created_at=datetime.now() - timedelta(days=1),
+        )
+        fx.case(
+            patient_id=p.id,
+            chief_complaint='ألم في الصدر، ضيق تنفس',
+            created_at=datetime.now() - timedelta(days=2),
+        )
+        fx.case(
+            patient_id=p.id,
+            chief_complaint='جراحة طارئة للبطن',
+            created_at=datetime.now() - timedelta(days=3),
+        )
         db.session.commit()
 
         result = get_trauma_protocols()
@@ -389,15 +424,20 @@ class TestGetTraumaProtocols:
         assert 'total_cases_analyzed' in result
 
         ta = result['trauma_analysis']
-        assert all(k in ta for k in
-                   ['trauma_cases', 'medical_emergencies', 'surgical_emergencies', 'other'])
+        assert all(
+            k in ta
+            for k in ['trauma_cases', 'medical_emergencies', 'surgical_emergencies', 'other']
+        )
 
     def test_trauma_protocol_recommendation(self, fx):
         """Test recommendation when trauma cases > 10."""
         p = fx.patient()
         for _ in range(11):
-            fx.case(patient_id=p.id, chief_complaint='حادث، إصابة بالغة',
-                    created_at=datetime.now() - timedelta(days=1))
+            fx.case(
+                patient_id=p.id,
+                chief_complaint='حادث، إصابة بالغة',
+                created_at=datetime.now() - timedelta(days=1),
+            )
         db.session.commit()
 
         result = get_trauma_protocols()
@@ -408,8 +448,11 @@ class TestGetTraumaProtocols:
         """Test recommendation when medical emergencies > 15."""
         p = fx.patient()
         for _ in range(16):
-            fx.case(patient_id=p.id, chief_complaint='ألم في الصدر، ضيق تنفس',
-                    created_at=datetime.now() - timedelta(days=1))
+            fx.case(
+                patient_id=p.id,
+                chief_complaint='ألم في الصدر، ضيق تنفس',
+                created_at=datetime.now() - timedelta(days=1),
+            )
         db.session.commit()
 
         result = get_trauma_protocols()
@@ -500,8 +543,7 @@ class TestGetSmartEmergencyRecommendations:
 
     def test_efficiency_recommendation(self, fx):
         """Test efficiency recommendation when avg response > 45 min."""
-        c = fx.case(status='COMPLETED',
-                    created_at=datetime.now() - timedelta(minutes=60))
+        c = fx.case(status='COMPLETED', created_at=datetime.now() - timedelta(minutes=60))
         c.completed_at = datetime.now()
         db.session.commit()
 
@@ -513,7 +555,9 @@ class TestGetSmartEmergencyRecommendations:
         """Test staff engagement recommendation when < 80% active."""
         fx.user(role='emergency', last_login=datetime.now() - timedelta(days=10))  # inactive
         fx.user(role='emergency', last_login=datetime.now() - timedelta(days=15))  # inactive
-        fx.user(role='emergency', last_login=datetime.now() - timedelta(hours=1))  # active (1 of 3 = 33%)
+        fx.user(
+            role='emergency', last_login=datetime.now() - timedelta(hours=1)
+        )  # active (1 of 3 = 33%)
         db.session.commit()
 
         recs = get_smart_emergency_recommendations()
@@ -542,7 +586,9 @@ class TestEdgeCases:
 
     def test_all_functions_handle_exceptions(self, fx):
         """All functions should handle exceptions gracefully."""
-        with patch('routes.emergency.analytics.db.session.execute', side_effect=Exception('DB Error')):
+        with patch(
+            'routes.emergency.analytics.db.session.execute', side_effect=Exception('DB Error')
+        ):
             functions = [
                 get_emergency_ai_triage,
                 get_critical_alert_system,

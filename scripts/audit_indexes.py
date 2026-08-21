@@ -59,7 +59,11 @@ with app.app_context():
     else:
         for r in missing:
             table, column, fk_name = r[0], r[1], r[2]
-            idx_name = f'ix_{table}_{column}' if '.' not in str(table) else f'ix_{str(table).split(".")[-1]}_{column}'
+            idx_name = (
+                f'ix_{table}_{column}'
+                if '.' not in str(table)
+                else f'ix_{str(table).split(".")[-1]}_{column}'
+            )
             print(f'  {table}.{column}  (fk: {fk_name})')
     print(f'\nTotal missing: {len(missing)} / {len(rows)} FK columns')
 
@@ -71,7 +75,7 @@ with app.app_context():
         table = str(r[0]).split('.')[-1]
         column = r[1]
         idx = f'idx_audit_fk_{table}_{column}'
-        print(f"CREATE INDEX IF NOT EXISTS {idx} ON {table}({column});")
+        print(f'CREATE INDEX IF NOT EXISTS {idx} ON {table}({column});')
 
     print()
     print('=' * 70)

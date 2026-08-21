@@ -10,9 +10,10 @@ semantics via op.create_index(checkfirst=True) so re-runs are safe.
 """
 
 from alembic import op
+import sqlalchemy as sa
 
 revision = 'p6_001_missing_fk_indexes'
-down_revision = ('c713f656048c', '8b9457bfc4d7')
+down_revision = '8b9457bfc4d7'
 branch_labels = None
 depends_on = None
 
@@ -43,10 +44,27 @@ MISSING_FK_INDEXES = [
 
 
 def upgrade():
+    # NOTE: some referenced tables (e.g. patient_consents) are absent from the
+    # historical migration chain (schema drift — they exist only in databases
+    # provisioned via db.create_all). Guard each index with to_regclass so
+    # fresh-DB upgrades skip gracefully instead of failing; the index will be
+    # created by a future consolidated drift-sync migration.
+    bind = op.get_bind()
     for idx_name, table, column in MISSING_FK_INDEXES:
-        op.create_index(idx_name, table, [column], if_not_exists=True)
+        exists = bind.execute(
+            sa.text("SELECT to_regclass(:rel) IS NOT NULL"),
+            {'rel': f'public.{table}'},
+        ).scalar()
+        if exists:
+            op.create_index(idx_name, table, [column], if_not_exists=True)
 
 
 def downgrade():
+    bind = op.get_bind()
     for idx_name, table, _column in MISSING_FK_INDEXES:
-        op.drop_index(idx_name, table_name=table, if_exists=True)
+        exists = bind.execute(
+            sa.text("SELECT to_regclass(:rel) IS NOT NULL"),
+            {'rel': f'public.{table}'},
+        ).scalar()
+        if exists:
+            op.drop_index(idx_name, table_name=table, if_exists=True)

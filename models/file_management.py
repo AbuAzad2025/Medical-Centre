@@ -111,6 +111,7 @@ class FileUpload(TenantMixin, db.Model):
         if self.storage_backend in ('s3', 'minio'):
             try:
                 from services.file_service import FileService
+
                 return FileService.generate_presigned_url(self, expiry)
             except Exception:
                 return None
@@ -146,12 +147,14 @@ class FileUpload(TenantMixin, db.Model):
             'file_url': self.get_file_url(),
         }
         if self.storage_backend in ('s3', 'minio'):
-            data.update({
-                'storage_backend': self.storage_backend,
-                's3_key': self.s3_key,
-                's3_bucket': self.s3_bucket,
-                's3_region': self.s3_region,
-            })
+            data.update(
+                {
+                    'storage_backend': self.storage_backend,
+                    's3_key': self.s3_key,
+                    's3_bucket': self.s3_bucket,
+                    's3_region': self.s3_region,
+                }
+            )
         return data
 
 

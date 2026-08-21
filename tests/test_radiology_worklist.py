@@ -164,9 +164,16 @@ class TestHandleRadiologyFileUploads:
     @patch('routes.radiology.worklist.secrets')
     @patch('routes.radiology.worklist.secure_filename')
     @patch('routes.radiology.worklist.db')
-    def test_processes_single_file(self, mock_db, mock_secure, mock_secrets, mock_os, ):
+    def test_processes_single_file(
+        self,
+        mock_db,
+        mock_secure,
+        mock_secrets,
+        mock_os,
+    ):
         """Test processing a single file upload."""
         from flask import current_app
+
         mock_app_config = {}
         mock_os.path.join = lambda *args: '/'.join(str(a) for a in args)
         mock_os.path.dirname = lambda *args: '/tmp'

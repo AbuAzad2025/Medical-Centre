@@ -14,6 +14,7 @@ def main():
     app = create_app('testing')
     with app.app_context():
         from tests.tenant_context import ensure_default_test_tenant
+
         ensure_default_test_tenant(app)
         print('Default tenant ensured successfully')
 

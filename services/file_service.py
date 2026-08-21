@@ -19,8 +19,19 @@ from utils.tenant_query import TenantContextError, get_tenant_record
 class FileService:
     # Default allowed extensions (can be overridden by config)
     DEFAULT_ALLOWED_EXTENSIONS = {
-        'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx',
-        'xls', 'xlsx', 'txt', 'csv', 'dcm', 'dicom'
+        'png',
+        'jpg',
+        'jpeg',
+        'gif',
+        'pdf',
+        'doc',
+        'docx',
+        'xls',
+        'xlsx',
+        'txt',
+        'csv',
+        'dcm',
+        'dicom',
     }
 
     @staticmethod
@@ -181,7 +192,7 @@ class FileService:
                         'tenant_id': str(tenant_id) if tenant_id else 'no_tenant',
                         'related_entity_type': related_entity_type,
                         'related_entity_id': str(related_entity_id),
-                    }
+                    },
                 )
                 # Get ETag for integrity verification
                 etag = s3_client.head_object(Bucket=bucket, Key=s3_key)['ETag'].strip('"')
@@ -258,9 +269,7 @@ class FileService:
                 expiry = current_app.config.get('S3_PRESIGNED_URL_EXPIRY', 3600)
 
             url = s3_client.generate_presigned_url(
-                'get_object',
-                Params={'Bucket': bucket, 'Key': key},
-                ExpiresIn=expiry
+                'get_object', Params={'Bucket': bucket, 'Key': key}, ExpiresIn=expiry
             )
             return url
         except Exception as e:

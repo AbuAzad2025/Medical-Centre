@@ -241,10 +241,16 @@ class Config:
     S3_ACCESS_KEY = os.environ.get('S3_ACCESS_KEY')
     S3_SECRET_KEY = os.environ.get('S3_SECRET_KEY')
     S3_PRESIGNED_URL_EXPIRY = int(os.environ.get('S3_PRESIGNED_URL_EXPIRY', '3600'))  # 1 hour
-    S3_FORCE_PATH_STYLE = os.environ.get('S3_FORCE_PATH_STYLE', 'false').lower() in ('true', 'on', '1')
+    S3_FORCE_PATH_STYLE = os.environ.get('S3_FORCE_PATH_STYLE', 'false').lower() in (
+        'true',
+        'on',
+        '1',
+    )
 
     # إعدادات التحقق من الملفات
-    ALLOWED_UPLOAD_EXTENSIONS = os.environ.get('ALLOWED_UPLOAD_EXTENSIONS', 'pdf,png,jpg,jpeg,gif,doc,docx,xls,xlsx,txt,csv,dcm').split(',')
+    ALLOWED_UPLOAD_EXTENSIONS = os.environ.get(
+        'ALLOWED_UPLOAD_EXTENSIONS', 'pdf,png,jpg,jpeg,gif,doc,docx,xls,xlsx,txt,csv,dcm'
+    ).split(',')
     MAX_FILE_SIZE_MB = int(os.environ.get('MAX_FILE_SIZE_MB', '16'))
 
     # إعدادات التقارير

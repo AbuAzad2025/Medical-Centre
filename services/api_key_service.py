@@ -18,12 +18,12 @@ logger = logging.getLogger(__name__)
 # Default per-endpoint-class rate limits for /api/* (requests, window seconds).
 # Applied to session-authenticated users; API-key requests use their own limits.
 DEFAULT_API_RATE_LIMITS = {
-    'search': (60, 60),      # /api/search — frequent but light
+    'search': (60, 60),  # /api/search — frequent but light
     'dashboard': (120, 60),  # /api/dashboard — polling dashboards
-    'user': (30, 60),        # /api/user — preferences updates
-    'lab': (120, 60),        # /api/lab — worklist refresh
+    'user': (30, 60),  # /api/user — preferences updates
+    'lab': (120, 60),  # /api/lab — worklist refresh
     'radiology': (120, 60),  # /api/radiology — worklist refresh
-    'fhir': (60, 60),        # /api/fhir — standards-based integrations
+    'fhir': (60, 60),  # /api/fhir — standards-based integrations
     '_default': (90, 60),
 }
 
@@ -159,9 +159,7 @@ def api_middleware() -> None:
     identity = getattr(getattr(g, '_login_user', None), 'id', None) or request.remote_addr or 'anon'
     limiter = RateLimiter(max_requests=max_reqs, window_seconds=window, namespace='apirl')
     if not limiter.is_allowed(f'{identity}:{request.endpoint}'):
-        resp = jsonify(
-            success=False, error='Too many requests', retry_after=window
-        )
+        resp = jsonify(success=False, error='Too many requests', retry_after=window)
         resp.headers['Retry-After'] = str(window)
         raise _ApiAuthError((resp, 429))
 

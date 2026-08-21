@@ -63,21 +63,36 @@ def _target_dbname() -> str:
 def _drop_target():
     kw = _conn_kwargs(_admin_dbname())
     subprocess.run(
-        ['dropdb', '--if-exists', '-h', kw['host'], '-p', kw['port'], '-U', kw['user'],
-         _target_dbname()],
-        capture_output=True, env=_env_with_password(),
+        [
+            'dropdb',
+            '--if-exists',
+            '-h',
+            kw['host'],
+            '-p',
+            kw['port'],
+            '-U',
+            kw['user'],
+            _target_dbname(),
+        ],
+        capture_output=True,
+        env=_env_with_password(),
     )
 
 
 def run_dump(out_path: str):
     print('[1/5] pg_dump (custom format) ...')
     cmd = [
-        'pg_dump', '-Fc', '--no-owner', '--no-privileges',
-        '-f', out_path,
+        'pg_dump',
+        '-Fc',
+        '--no-owner',
+        '--no-privileges',
+        '-f',
+        out_path,
         os.environ['DATABASE_URL'],
     ]
-    proc = subprocess.run(cmd, capture_output=True, text=True,
-                          env=_env_with_password(), timeout=1800)
+    proc = subprocess.run(
+        cmd, capture_output=True, text=True, env=_env_with_password(), timeout=1800
+    )
     if proc.returncode != 0:
         print(f'FAIL pg_dump rc={proc.returncode}: {(proc.stderr or "")[:500]}')
         return False
@@ -98,7 +113,9 @@ def run_restore(backup_path: str) -> tuple[bool, list[str]]:
     print(f'[2/5] createdb {target} ...')
     proc = subprocess.run(
         ['createdb', '-h', kw['host'], '-p', kw['port'], '-U', kw['user'], target],
-        capture_output=True, text=True, env=_env_with_password(),
+        capture_output=True,
+        text=True,
+        env=_env_with_password(),
     )
     if proc.returncode != 0:
         print(f'FAIL createdb: {(proc.stderr or "")[:300]}')
@@ -106,16 +123,29 @@ def run_restore(backup_path: str) -> tuple[bool, list[str]]:
 
     print(f'[3/5] pg_restore into {target} ...')
     proc = subprocess.run(
-        ['pg_restore', '--no-owner', '--no-privileges',
-         '-h', kw['host'], '-p', kw['port'], '-U', kw['user'],
-         '-d', target, backup_path],
-        capture_output=True, text=True, env=_env_with_password(), timeout=1800,
+        [
+            'pg_restore',
+            '--no-owner',
+            '--no-privileges',
+            '-h',
+            kw['host'],
+            '-p',
+            kw['port'],
+            '-U',
+            kw['user'],
+            '-d',
+            target,
+            backup_path,
+        ],
+        capture_output=True,
+        text=True,
+        env=_env_with_password(),
+        timeout=1800,
     )
     err_lines = [l for l in (proc.stderr or '').splitlines() if l.strip()]
     # pg_restore exits nonzero if ANY error occurred; collect them.
     real_errors = [
-        l for l in err_lines
-        if 'error' in l.lower() and 'already exists' not in l.lower()
+        l for l in err_lines if 'error' in l.lower() and 'already exists' not in l.lower()
     ]
     print(f'      pg_restore rc={proc.returncode}, {len(real_errors)} error line(s)')
     if real_errors[:10]:
@@ -135,7 +165,10 @@ def verify_integrity():
 
     def _count(conn, table):
         cur = conn.cursor()
-        cur.execute("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = %s)", (table,))
+        cur.execute(
+            'SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = %s)',
+            (table,),
+        )
         exists = cur.fetchone()[0]
         if not exists:
             return None

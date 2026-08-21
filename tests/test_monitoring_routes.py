@@ -45,7 +45,10 @@ class TestDiscoverTenantTables:
         mock_session = MagicMock()
         mock_session.execute.return_value.fetchall.return_value = mock_rows
 
-        with patch('routes.monitoring_routes.db.session', monkeypatch.setattr('routes.monitoring_routes.db.session', MagicMock())):
+        with patch(
+            'routes.monitoring_routes.db.session',
+            monkeypatch.setattr('routes.monitoring_routes.db.session', MagicMock()),
+        ):
             mock_session = MagicMock()
             mock_session.execute.return_value.fetchall.return_value = mock_rows
             with patch('routes.monitoring_routes.db.session', mock_session):
@@ -108,7 +111,9 @@ class TestCollectMetrics:
         mock_session = MagicMock()
         mock_session.execute.side_effect = [
             MagicMock(scalar=MagicMock(return_value=1)),  # DB health check
-            MagicMock(fetchall=MagicMock(return_value=[('patients',), ('visits',)])),  # discover tables
+            MagicMock(
+                fetchall=MagicMock(return_value=[('patients',), ('visits',)])
+            ),  # discover tables
             MagicMock(scalar=MagicMock(return_value=5)),  # patients orphan count
             MagicMock(scalar=MagicMock(return_value=3)),  # visits orphan count
         ]

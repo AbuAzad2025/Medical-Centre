@@ -9,6 +9,9 @@ from __future__ import annotations
 import pytest
 from unittest.mock import MagicMock, patch
 
+from sqlalchemy import select
+
+from app.extensions import db
 from tests.tenant_context import login_test_client
 from models.user import User
 from models.radiology_request import RadiologyRequest
@@ -32,11 +35,7 @@ def _login_role(client, role, test_tenant):
     """Login as a user with the given role, return authenticated client."""
     from models.user import User as _User
 
-    user = (
-        db.session.execute(select(_User).filter_by(username=f'e2e_{role}'))
-        .scalars()
-        .first()
-    )
+    user = db.session.execute(select(_User).filter_by(username=f'e2e_{role}')).scalars().first()
     if not user:
         user = _User(
             username=f'e2e_{role}',
@@ -113,7 +112,9 @@ def _radiology_e2e_base(app, test_tenant, db):
 class TestRadiologyE2ECreateRequest:
     """E2E: Doctor creates a radiology request via the doctor route."""
 
-    def test_doctor_creates_structured_request(self, client, app, test_tenant, db, _radiology_e2e_base, rad_visit):
+    def test_doctor_creates_structured_request(
+        self, client, app, test_tenant, db, _radiology_e2e_base, rad_visit
+    ):
         """Doctor can create a structured radiology request."""
         client = _login_role(client, 'doctor', test_tenant)
 
@@ -128,9 +129,7 @@ class TestRadiologyE2ECreateRequest:
         assert resp.status_code in (200, 302)
 
         req = (
-            db.session.execute(
-                select(RadiologyRequest).filter_by(visit_id=rad_visit.id)
-            )
+            db.session.execute(select(RadiologyRequest).filter_by(visit_id=rad_visit.id))
             .scalars()
             .first()
         )
@@ -161,7 +160,9 @@ class TestRadiologyE2ECreateRequest:
 class TestRadiologyE2EWorklist:
     """E2E: Technician views and interacts with the radiology worklist."""
 
-    def test_tech_views_worklist(self, client, app, test_tenant, db, _radiology_e2e_base, rad_visit):
+    def test_tech_views_worklist(
+        self, client, app, test_tenant, db, _radiology_e2e_base, rad_visit
+    ):
         """Technician can view the radiology worklist."""
         client = _login_role(client, 'radiology', test_tenant)
 
@@ -206,7 +207,9 @@ class TestRadiologyE2EClaimComplete:
         data = resp.get_json()
         assert data['success'] is True
 
-    def test_tech_completes_request_creates_result(self, client, app, test_tenant, db, _radiology_e2e_base):
+    def test_tech_completes_request_creates_result(
+        self, client, app, test_tenant, db, _radiology_e2e_base
+    ):
         """Technician completes a request, creating a new result."""
         client = _login_role(client, 'radiology', test_tenant)
 
@@ -221,7 +224,9 @@ class TestRadiologyE2EClaimComplete:
         data = resp.get_json()
         assert data['success'] is True
 
-    def test_tech_completes_request_updates_existing_result(self, client, app, test_tenant, db, _radiology_e2e_base):
+    def test_tech_completes_request_updates_existing_result(
+        self, client, app, test_tenant, db, _radiology_e2e_base
+    ):
         """Technician completes a request that already has a result (updates it)."""
         from models.radiology_result import RadiologyResult
         from app.extensions import db as _db
@@ -252,6 +257,7 @@ class TestRadiologyE2EClaimComplete:
 # ──────────────────────────────────────────────────────────────────────
 # TEST: Manager manages templates and macros
 # ──────────────────────────────────────────────────────────────────────
+
 
 class TestRadiologyE2EManagerTemplates:
     """E2E: Manager manages radiology report templates and macros."""
@@ -311,6 +317,7 @@ class TestRadiologyE2EManagerTemplates:
 # TEST: Authentication flow
 # ──────────────────────────────────────────────────────────────────────
 
+
 class TestAuthE2ELogin:
     """E2E: Authentication flow tests."""
 
@@ -320,6 +327,7 @@ class TestAuthE2ELogin:
 
         # Ensure a test user exists
         from models.user import User as _User
+
         user = (
             db.session.execute(select(_User).filter_by(username='pharmacist_test'))
             .scalars()
@@ -353,6 +361,7 @@ class TestAuthE2ELogin:
 # ──────────────────────────────────────────────────────────────────────
 # TEST: Access control
 # ──────────────────────────────────────────────────────────────────────
+
 
 class TestAccessControlE2E:
     """E2E: Access control tests for radiology routes."""

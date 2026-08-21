@@ -12,12 +12,33 @@ from routes.radiology import radiology_bp
 @pytest.fixture
 def template_data():
     return [
-        {'id': '1', 'name': 'Template 1', 'modality': 'XRAY', 'findings': 'F', 'impression': 'I',
-         'recommendations': 'R', 'is_active': True},
-        {'id': '2', 'name': 'Template 2', 'modality': 'CT', 'findings': 'F', 'impression': 'I',
-         'recommendations': 'R', 'is_active': False},
-        {'id': '3', 'name': 'Template 3', 'modality': 'MRI', 'findings': 'F', 'impression': 'I',
-         'recommendations': 'R', 'is_active': True},
+        {
+            'id': '1',
+            'name': 'Template 1',
+            'modality': 'XRAY',
+            'findings': 'F',
+            'impression': 'I',
+            'recommendations': 'R',
+            'is_active': True,
+        },
+        {
+            'id': '2',
+            'name': 'Template 2',
+            'modality': 'CT',
+            'findings': 'F',
+            'impression': 'I',
+            'recommendations': 'R',
+            'is_active': False,
+        },
+        {
+            'id': '3',
+            'name': 'Template 3',
+            'modality': 'MRI',
+            'findings': 'F',
+            'impression': 'I',
+            'recommendations': 'R',
+            'is_active': True,
+        },
     ]
 
 
@@ -97,12 +118,15 @@ class TestUpsertReportTemplate:
     def test_create_new_template(self, mock_save, mock_get, manager_auth_client):
         """Test creating a new template."""
         mock_get.return_value = []
-        response = manager_auth_client.post('/radiology/api/report-templates', json={
-            'name': 'New Template',
-            'modality': 'XRAY',
-            'findings': 'Findings',
-            'impression': 'Impression',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-templates',
+            json={
+                'name': 'New Template',
+                'modality': 'XRAY',
+                'findings': 'Findings',
+                'impression': 'Impression',
+            },
+        )
         assert response.status_code == 201
         data = response.get_json()
         assert data['success'] is True
@@ -113,15 +137,25 @@ class TestUpsertReportTemplate:
     def test_update_existing_template(self, mock_save, mock_get, manager_auth_client):
         """Test updating an existing template."""
         mock_get.return_value = [
-            {'id': '1', 'name': 'Old', 'modality': 'XRAY', 'findings': '', 'impression': '',
-             'recommendations': '', 'is_active': True},
+            {
+                'id': '1',
+                'name': 'Old',
+                'modality': 'XRAY',
+                'findings': '',
+                'impression': '',
+                'recommendations': '',
+                'is_active': True,
+            },
         ]
-        response = manager_auth_client.post('/radiology/api/report-templates', json={
-            'id': '1',
-            'name': 'Updated Template',
-            'modality': 'CT',
-            'findings': 'New findings',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-templates',
+            json={
+                'id': '1',
+                'name': 'Updated Template',
+                'modality': 'CT',
+                'findings': 'New findings',
+            },
+        )
         assert response.status_code == 200
         data = response.get_json()
         assert data['success'] is True
@@ -132,33 +166,49 @@ class TestUpsertReportTemplate:
     def test_update_nonexistent_template(self, mock_save, mock_get, manager_auth_client):
         """Test updating a non-existent template."""
         mock_get.return_value = [
-            {'id': '1', 'name': 'Old', 'modality': 'XRAY', 'findings': '', 'impression': '',
-             'recommendations': '', 'is_active': True},
+            {
+                'id': '1',
+                'name': 'Old',
+                'modality': 'XRAY',
+                'findings': '',
+                'impression': '',
+                'recommendations': '',
+                'is_active': True,
+            },
         ]
-        response = manager_auth_client.post('/radiology/api/report-templates', json={
-            'id': '999',
-            'name': 'Test',
-            'modality': 'XRAY',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-templates',
+            json={
+                'id': '999',
+                'name': 'Test',
+                'modality': 'XRAY',
+            },
+        )
         assert response.status_code == 404
 
     @patch('routes.radiology.templates._get_radiology_report_templates')
     def test_create_template_missing_name(self, mock_get, manager_auth_client):
         """Test creating template without name."""
         mock_get.return_value = []
-        response = manager_auth_client.post('/radiology/api/report-templates', json={
-            'modality': 'XRAY',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-templates',
+            json={
+                'modality': 'XRAY',
+            },
+        )
         assert response.status_code == 400
 
     @patch('routes.radiology.templates._get_radiology_report_templates')
     def test_create_template_invalid_modality(self, mock_get, manager_auth_client):
         """Test creating template with invalid modality."""
         mock_get.return_value = []
-        response = manager_auth_client.post('/radiology/api/report-templates', json={
-            'name': 'Test',
-            'modality': 'INVALID',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-templates',
+            json={
+                'name': 'Test',
+                'modality': 'INVALID',
+            },
+        )
         assert response.status_code == 400
 
     @patch('routes.radiology.templates._get_radiology_report_templates')
@@ -166,11 +216,14 @@ class TestUpsertReportTemplate:
     def test_create_template_active_from_string(self, mock_save, mock_get, manager_auth_client):
         """Test creating template with is_active as string."""
         mock_get.return_value = []
-        response = manager_auth_client.post('/radiology/api/report-templates', json={
-            'name': 'Test',
-            'modality': 'CT',
-            'is_active': 'true',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-templates',
+            json={
+                'name': 'Test',
+                'modality': 'CT',
+                'is_active': 'true',
+            },
+        )
         assert response.status_code == 201
 
     @patch('routes.radiology.templates._get_radiology_report_templates')
@@ -178,11 +231,14 @@ class TestUpsertReportTemplate:
     def test_create_template_active_false_string(self, mock_save, mock_get, manager_auth_client):
         """Test creating template with is_active=false string."""
         mock_get.return_value = []
-        response = manager_auth_client.post('/radiology/api/report-templates', json={
-            'name': 'Test',
-            'modality': 'CT',
-            'is_active': 'false',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-templates',
+            json={
+                'name': 'Test',
+                'modality': 'CT',
+                'is_active': 'false',
+            },
+        )
         assert response.status_code == 201
 
     @patch('routes.radiology.templates._get_radiology_report_templates')
@@ -190,10 +246,13 @@ class TestUpsertReportTemplate:
     def test_create_template_from_form(self, mock_save, mock_get, manager_auth_client):
         """Test creating template from form data instead of JSON."""
         mock_get.return_value = []
-        response = manager_auth_client.post('/radiology/api/report-templates', data={
-            'name': 'Form Template',
-            'modality': 'MRI',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-templates',
+            data={
+                'name': 'Form Template',
+                'modality': 'MRI',
+            },
+        )
         assert response.status_code == 201
 
     @patch('routes.radiology.templates._get_radiology_report_templates')
@@ -201,11 +260,14 @@ class TestUpsertReportTemplate:
     def test_create_template_is_active_default_true(self, mock_save, mock_get, manager_auth_client):
         """Test creating template with is_active=None defaults to True."""
         mock_get.return_value = []
-        response = manager_auth_client.post('/radiology/api/report-templates', json={
-            'name': 'Test',
-            'modality': 'CT',
-            'is_active': None,
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-templates',
+            json={
+                'name': 'Test',
+                'modality': 'CT',
+                'is_active': None,
+            },
+        )
         assert response.status_code == 201
 
     @patch('routes.radiology.templates._get_radiology_report_templates')
@@ -213,14 +275,24 @@ class TestUpsertReportTemplate:
     def test_update_template_with_id_not_found(self, mock_save, mock_get, manager_auth_client):
         """Test updating template where id doesn't match."""
         mock_get.return_value = [
-            {'id': '999', 'name': 'Other', 'modality': 'XRAY', 'findings': '', 'impression': '',
-             'recommendations': '', 'is_active': True},
+            {
+                'id': '999',
+                'name': 'Other',
+                'modality': 'XRAY',
+                'findings': '',
+                'impression': '',
+                'recommendations': '',
+                'is_active': True,
+            },
         ]
-        response = manager_auth_client.post('/radiology/api/report-templates', json={
-            'id': '1',
-            'name': 'Test',
-            'modality': 'XRAY',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-templates',
+            json={
+                'id': '1',
+                'name': 'Test',
+                'modality': 'XRAY',
+            },
+        )
         assert response.status_code == 404
 
 
@@ -232,10 +304,24 @@ class TestDeleteReportTemplate:
     def test_delete_existing_template(self, mock_save, mock_get, manager_auth_client):
         """Test deleting an existing template."""
         mock_get.return_value = [
-            {'id': '1', 'name': 'T1', 'modality': 'XRAY', 'findings': '', 'impression': '',
-             'recommendations': '', 'is_active': True},
-            {'id': '2', 'name': 'T2', 'modality': 'CT', 'findings': '', 'impression': '',
-             'recommendations': '', 'is_active': True},
+            {
+                'id': '1',
+                'name': 'T1',
+                'modality': 'XRAY',
+                'findings': '',
+                'impression': '',
+                'recommendations': '',
+                'is_active': True,
+            },
+            {
+                'id': '2',
+                'name': 'T2',
+                'modality': 'CT',
+                'findings': '',
+                'impression': '',
+                'recommendations': '',
+                'is_active': True,
+            },
         ]
         response = manager_auth_client.post('/radiology/api/report-templates/1/delete')
         assert response.status_code == 200
@@ -290,7 +376,11 @@ class TestApiReportMacros:
     @patch('routes.radiology.templates._get_radiology_report_macros')
     def test_get_macros_skips_non_dicts(self, mock_get, manager_auth_client):
         """Test GET macros skips non-dict entries."""
-        mock_get.return_value = [None, 'string', {'id': '1', 'name': 'M1', 'text': 'T', 'is_active': True}]
+        mock_get.return_value = [
+            None,
+            'string',
+            {'id': '1', 'name': 'M1', 'text': 'T', 'is_active': True},
+        ]
         response = manager_auth_client.get('/radiology/api/report-macros?active_only=false')
         assert response.status_code == 200
         data = response.get_json()
@@ -305,10 +395,13 @@ class TestUpsertReportMacro:
     def test_create_new_macro(self, mock_save, mock_get, manager_auth_client):
         """Test creating a new macro."""
         mock_get.return_value = []
-        response = manager_auth_client.post('/radiology/api/report-macros', json={
-            'name': 'New Macro',
-            'text': 'Some text',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-macros',
+            json={
+                'name': 'New Macro',
+                'text': 'Some text',
+            },
+        )
         assert response.status_code == 201
 
     @patch('routes.radiology.templates._get_radiology_report_macros')
@@ -318,11 +411,14 @@ class TestUpsertReportMacro:
         mock_get.return_value = [
             {'id': '1', 'name': 'Old', 'text': 'Old text', 'is_active': True},
         ]
-        response = manager_auth_client.post('/radiology/api/report-macros', json={
-            'id': '1',
-            'name': 'Updated',
-            'text': 'Updated text',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-macros',
+            json={
+                'id': '1',
+                'name': 'Updated',
+                'text': 'Updated text',
+            },
+        )
         assert response.status_code == 200
 
     @patch('routes.radiology.templates._get_radiology_report_macros')
@@ -332,20 +428,26 @@ class TestUpsertReportMacro:
         mock_get.return_value = [
             {'id': '1', 'name': 'Old', 'text': 'Old', 'is_active': True},
         ]
-        response = manager_auth_client.post('/radiology/api/report-macros', json={
-            'id': '999',
-            'name': 'Test',
-            'text': 'Text',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-macros',
+            json={
+                'id': '999',
+                'name': 'Test',
+                'text': 'Text',
+            },
+        )
         assert response.status_code == 404
 
     @patch('routes.radiology.templates._get_radiology_report_macros')
     def test_create_macro_missing_name(self, mock_get, manager_auth_client):
         """Test creating macro without name."""
         mock_get.return_value = []
-        response = manager_auth_client.post('/radiology/api/report-macros', json={
-            'text': 'Some text',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-macros',
+            json={
+                'text': 'Some text',
+            },
+        )
         assert response.status_code == 400
 
     @patch('routes.radiology.templates._get_radiology_report_macros')
@@ -353,11 +455,14 @@ class TestUpsertReportMacro:
     def test_create_macro_active_from_string(self, mock_save, mock_get, manager_auth_client):
         """Test creating macro with is_active as string."""
         mock_get.return_value = []
-        response = manager_auth_client.post('/radiology/api/report-macros', json={
-            'name': 'Test',
-            'text': 'Text',
-            'is_active': 'true',
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-macros',
+            json={
+                'name': 'Test',
+                'text': 'Text',
+                'is_active': 'true',
+            },
+        )
         assert response.status_code == 201
 
     @patch('routes.radiology.templates._get_radiology_report_macros')
@@ -365,11 +470,14 @@ class TestUpsertReportMacro:
     def test_create_macro_active_none_default(self, mock_save, mock_get, manager_auth_client):
         """Test creating macro with is_active=None defaults to True."""
         mock_get.return_value = []
-        response = manager_auth_client.post('/radiology/api/report-macros', json={
-            'name': 'Test',
-            'text': 'Text',
-            'is_active': None,
-        })
+        response = manager_auth_client.post(
+            '/radiology/api/report-macros',
+            json={
+                'name': 'Test',
+                'text': 'Text',
+                'is_active': None,
+            },
+        )
         assert response.status_code == 201
 
 
@@ -401,7 +509,11 @@ class TestDeleteReportMacro:
     @patch('routes.radiology.templates._save_radiology_report_macros')
     def test_delete_macro_skips_non_dicts(self, mock_save, mock_get, manager_auth_client):
         """Test deleting macro skips non-dict entries."""
-        mock_get.return_value = [None, 'string', {'id': '1', 'name': 'M1', 'text': 'T', 'is_active': True}]
+        mock_get.return_value = [
+            None,
+            'string',
+            {'id': '1', 'name': 'M1', 'text': 'T', 'is_active': True},
+        ]
         response = manager_auth_client.post('/radiology/api/report-macros/999/delete')
         assert response.status_code == 404
 
