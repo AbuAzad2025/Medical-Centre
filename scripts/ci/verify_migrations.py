@@ -11,7 +11,10 @@ import sqlalchemy as sa
 
 ADMIN_URL = os.environ['MIGRATE_ADMIN_URL']
 TARGET_URL = os.environ['MIGRATE_DATABASE_URL']
-ALEMBIC_HEAD = 'p5_004_add_controlled_schedule_to_medication'
+# The migration chain was unified under merge revision 8b9457bfc4d7
+# (merging the five historical branch heads) followed by p6_001 (FK indexes)
+# and p6_002 (api_keys).  Exactly one head must exist.
+EXPECTED_HEADS = {'p6_002_api_keys'}
 
 
 def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
@@ -66,11 +69,14 @@ def main() -> int:
 
     print(f'OK  head revisions: {", ".join(head_revisions)}')
 
-    # Verify p5_004 is among the heads
-    if ALEMBIC_HEAD not in head_revisions:
-        print(f'FAIL expected head {ALEMBIC_HEAD} not found in heads: {head_revisions}')
+    # Verify exactly the expected single-head lineage
+    if set(head_revisions) != EXPECTED_HEADS:
+        print(
+            f'FAIL heads mismatch: expected {sorted(EXPECTED_HEADS)}, '
+            f'got {sorted(head_revisions)}'
+        )
         return 1
-    print(f'OK  expected head {ALEMBIC_HEAD} present')
+    print(f'OK  expected head(s) present: {", ".join(sorted(head_revisions))}')
 
     # Verify alembic_version has one of the heads
     _target = sa.create_engine(TARGET_URL)
