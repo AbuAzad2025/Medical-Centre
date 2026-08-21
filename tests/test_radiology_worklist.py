@@ -20,7 +20,9 @@ class TestParseRadiologyPayload:
         """Test parsing JSON payload."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
-            mock_request.get_json.return_value = {'is_critical': True, 'findings': 'test'}
+            mock_request.get_json = MagicMock(
+                return_value={'is_critical': True, 'findings': 'test'}
+            )
             payload, is_critical = _parse_radiology_payload()
             assert payload == {'is_critical': True, 'findings': 'test'}
             assert is_critical is True
@@ -29,10 +31,7 @@ class TestParseRadiologyPayload:
         """Test parsing form payload."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = False
-            mock_form = MagicMock()
-            mock_form.to_dict.return_value = {'is_critical': 'on', 'findings': 'test'}
-            mock_form.to_dict.side_effect = lambda: {'is_critical': 'on', 'findings': 'test'}
-            mock_request.form = mock_form
+            mock_request.form = {'is_critical': 'on', 'findings': 'test'}
             payload, is_critical = _parse_radiology_payload()
             assert 'findings' in payload
             assert is_critical is True
@@ -50,7 +49,7 @@ class TestParseRadiologyPayload:
         """Test is_critical from list value."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
-            mock_request.get_json.return_value = {'is_critical': ['true']}
+            mock_request.get_json = MagicMock(return_value={'is_critical': ['true']})
             payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
@@ -58,7 +57,7 @@ class TestParseRadiologyPayload:
         """Test is_critical from boolean value."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
-            mock_request.get_json.return_value = {'is_critical': True}
+            mock_request.get_json = MagicMock(return_value={'is_critical': True})
             payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
@@ -66,7 +65,7 @@ class TestParseRadiologyPayload:
         """Test is_critical from int value."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
-            mock_request.get_json.return_value = {'is_critical': 1}
+            mock_request.get_json = MagicMock(return_value={'is_critical': 1})
             payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
@@ -74,9 +73,7 @@ class TestParseRadiologyPayload:
         """Test is_critical from 'on' string."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = False
-            mock_form = MagicMock()
-            mock_form.to_dict.return_value = {'is_critical': 'on'}
-            mock_request.form = mock_form
+            mock_request.form = {'is_critical': 'on'}
             payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
@@ -84,9 +81,7 @@ class TestParseRadiologyPayload:
         """Test is_critical from 'yes' string."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = False
-            mock_form = MagicMock()
-            mock_form.to_dict.return_value = {'is_critical': 'yes'}
-            mock_request.form = mock_form
+            mock_request.form = {'is_critical': 'yes'}
             payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
@@ -94,9 +89,7 @@ class TestParseRadiologyPayload:
         """Test is_critical from '1' string."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = False
-            mock_form = MagicMock()
-            mock_form.to_dict.return_value = {'is_critical': '1'}
-            mock_request.form = mock_form
+            mock_request.form = {'is_critical': '1'}
             payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
@@ -104,9 +97,7 @@ class TestParseRadiologyPayload:
         """Test is_critical from 'true' string."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = False
-            mock_form = MagicMock()
-            mock_form.to_dict.return_value = {'is_critical': 'true'}
-            mock_request.form = mock_form
+            mock_request.form = {'is_critical': 'true'}
             payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
@@ -114,9 +105,7 @@ class TestParseRadiologyPayload:
         """Test is_critical from 'false' string."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = False
-            mock_form = MagicMock()
-            mock_form.to_dict.return_value = {'is_critical': 'false'}
-            mock_request.form = mock_form
+            mock_request.form = {'is_critical': 'false'}
             payload, is_critical = _parse_radiology_payload()
             assert is_critical is False
 
@@ -124,7 +113,7 @@ class TestParseRadiologyPayload:
         """Test is_critical from empty list."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
-            mock_request.get_json.return_value = {'is_critical': []}
+            mock_request.get_json = MagicMock(return_value={'is_critical': []})
             payload, is_critical = _parse_radiology_payload()
             assert is_critical is False
 
@@ -132,7 +121,7 @@ class TestParseRadiologyPayload:
         """Test is_critical is None."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
-            mock_request.get_json.return_value = {}
+            mock_request.get_json = MagicMock(return_value={})
             payload, is_critical = _parse_radiology_payload()
             assert is_critical is False
 
@@ -140,7 +129,7 @@ class TestParseRadiologyPayload:
         """Test JSON payload without is_critical key."""
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
-            mock_request.get_json.return_value = {'findings': 'test'}
+            mock_request.get_json = MagicMock(return_value={'findings': 'test'})
             payload, is_critical = _parse_radiology_payload()
             assert payload == {'findings': 'test'}
             assert is_critical is False
@@ -159,6 +148,7 @@ class TestHandleRadiologyFileUploads:
         result = _handle_radiology_file_uploads([], MagicMock(), {})
         assert result is None
 
+    @patch('routes.radiology.worklist.current_user')
     @patch('routes.radiology.worklist.current_app')
     @patch('routes.radiology.worklist.os')
     @patch('routes.radiology.worklist.secrets')
@@ -170,10 +160,11 @@ class TestHandleRadiologyFileUploads:
         mock_secure,
         mock_secrets,
         mock_os,
+        mock_app,
+        mock_user,
     ):
         """Test processing a single file upload."""
-        from flask import current_app
-
+        mock_user.id = 7
         mock_app_config = {}
         mock_os.path.join = lambda *args: '/'.join(str(a) for a in args)
         mock_os.path.dirname = lambda *args: '/tmp'
@@ -204,15 +195,20 @@ class TestHandleRadiologyFileUploads:
         result_obj.id = 1
         _handle_radiology_file_uploads([mock_file], result_obj, {})
 
+    @patch('routes.radiology.worklist.current_user')
     @patch('routes.radiology.worklist.current_app')
     @patch('routes.radiology.worklist.os')
     @patch('routes.radiology.worklist.secure_filename')
     @patch('routes.radiology.worklist.db')
-    def test_handles_empty_filename_after_secure(self, mock_db, mock_secure, mock_os, mock_app):
+    def test_handles_empty_filename_after_secure(
+        self, mock_db, mock_secure, mock_os, mock_app, mock_user
+    ):
         """Test handling when secure_filename returns empty string."""
+        mock_user.id = 7
         mock_app.config = {}
         mock_os.path.join = lambda *args: '/'.join(str(a) for a in args)
         mock_os.path.dirname = lambda *args: '/tmp'
+        mock_os.path.splitext = lambda x: (x, '.dcm')
         mock_os.makedirs = MagicMock()
         mock_secure.return_value = ''  # Forces fallback
 
@@ -242,7 +238,7 @@ class TestNotifyRadiologyComplete:
         with patch('services.notification_service.NotificationService') as mock_service_cls:
             mock_service_cls.return_value = mock_service
             _notify_radiology_complete(mock_req, False)
-            mock_service.send_notification.assert_called_once()
+            mock_service_cls.send_notification.assert_called_once()
 
     def test_notify_with_doctor_id_critical(self):
         """Test notification when critical."""
@@ -256,7 +252,7 @@ class TestNotifyRadiologyComplete:
         with patch('services.notification_service.NotificationService') as mock_service_cls:
             mock_service_cls.return_value = mock_service
             _notify_radiology_complete(mock_req, True)
-            assert mock_service.send_notification.call_count == 2
+            assert mock_service_cls.send_notification.call_count == 2
 
     def test_notify_without_doctor(self):
         """Test notification without requester."""
