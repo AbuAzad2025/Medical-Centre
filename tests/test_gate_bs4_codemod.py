@@ -86,12 +86,14 @@ class TestReceptionQueueBs5Modals:
 class TestClinicalThemeLinked:
     def test_main_base_links_bs5_and_clinical_css(self):
         html = BASE_HTML.read_text(encoding='utf-8')
-        assert 'bootstrap@5.3.2' in html
+        # Bootstrap 5.3.2 is self-hosted in static/vendor (P1 hardening —
+        # no third-party CDN dependency).
+        assert 'vendor/bootstrap/css/bootstrap.rtl.min.css' in html
         assert 'clinical.css' in html
 
     def test_portal_base_links_bs5_and_clinical_css(self):
         html = PORTAL_BASE.read_text(encoding='utf-8')
-        assert 'bootstrap@5.3.2' in html
+        assert 'vendor/bootstrap/css/bootstrap.rtl.min.css' in html
         assert 'clinical.css' in html
 
     def test_clinical_css_has_compat_bridge(self):

@@ -74,8 +74,12 @@ API_BP_ROLE = {
 # Intentionally public (no auth) — excluded from the auth-gating assertion (2).
 #  - survey: patient satisfaction filled via tokenized link (no account)
 #  - biometric.authenticate_challenge: WebAuthn challenge issued pre-login
+#  - auth.forgot_password: self-service reset request (rate-limited,
+#    enumeration-safe; must be reachable while logged out)
+#  - auth.reset_password: token-gated reset completion (random URLsafe token)
 _PUBLIC_RE = re.compile(
-    r'^(auth\.login|auth\.api_tenants_list|auth\.register|kiosk\.|booking\.|main\.(index|landing|'
+    r'^(auth\.login|auth\.api_tenants_list|auth\.register|auth\.forgot_password|'
+    r'auth\.reset_password|kiosk\.|booking\.|main\.(index|landing|'
     r'privacy|terms|support|about)|pwa\.|static|reception\.survey|'
     r'biometric\.authenticate_challenge|saas\.|main\.api_search_tenants)',
 )

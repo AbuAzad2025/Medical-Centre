@@ -53,7 +53,7 @@ def app():
             # audit columns below.
             _db.session.execute(
                 text(
-                    "ALTER TABLE file_uploads ADD COLUMN IF NOT EXISTS storage_backend "
+                    'ALTER TABLE file_uploads ADD COLUMN IF NOT EXISTS storage_backend '
                     "VARCHAR(20) DEFAULT 'local' NOT NULL"
                 )
             )
@@ -70,7 +70,9 @@ def app():
                 text('ALTER TABLE file_uploads ADD COLUMN IF NOT EXISTS s3_etag VARCHAR(64)')
             )
             # Model relaxed file_path to nullable (S3 rows carry the key instead).
-            _db.session.execute(text('ALTER TABLE file_uploads ALTER COLUMN file_path DROP NOT NULL'))
+            _db.session.execute(
+                text('ALTER TABLE file_uploads ALTER COLUMN file_path DROP NOT NULL')
+            )
             _db.session.execute(
                 text('CREATE INDEX IF NOT EXISTS idx_file_storage ON file_uploads(storage_backend)')
             )

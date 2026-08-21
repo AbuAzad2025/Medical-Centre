@@ -7,13 +7,12 @@ import sys
 
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
-# Expected heads in the migration graph (multiple independent chains)
+# Expected heads in the migration graph.
+# The five historical branch chains were unified under merge revision
+# 8b9457bfc4d7; p6_* migrations (FK indexes, api_keys, api_keys RLS,
+# file_uploads S3 columns) extend that single lineage.
 EXPECTED_HEADS = {
-    'e8a1c9021b44',
-    'p3_002_lab_radiology_audit_cols',
-    'p3_003_adt_columns',
-    'p4_002_drop_queue_payment_status',
-    'p5_004_add_controlled_schedule_to_medication',
+    'p6_004_file_uploads_s3_columns',
 }
 
 

@@ -31,6 +31,7 @@ def ctx(rollback_db, test_tenant):
 
     def _patient(**kw):
         p = Patient(
+            tenant_id=kw.get('tenant_id', test_tenant.id),
             first_name=kw.get('first_name', 'مريض'),
             last_name=kw.get('last_name', 'اختبار'),
             phone=kw.get('phone', '050' + format(uuid.uuid4().int % 10**7, '07d')),
@@ -43,6 +44,7 @@ def ctx(rollback_db, test_tenant):
     def _department(**kw):
         tag = uuid.uuid4().hex[:6]
         d = Department(
+            tenant_id=kw.get('tenant_id', test_tenant.id),
             name=kw.get('name', f'Dept-{tag}'),
             name_ar=kw.get('name_ar', f'قسم-{tag}'),
             is_active=True,
@@ -54,6 +56,7 @@ def ctx(rollback_db, test_tenant):
     def _user(**kw):
         role = kw.get('role', 'doctor')
         u = User(
+            tenant_id=kw.get('tenant_id', test_tenant.id),
             username=kw.get('username', f'{role}_{uuid.uuid4().hex[:6]}'),
             email=kw.get('email', f'{uuid.uuid4().hex[:8]}@test.local'),
             full_name=kw.get('full_name', 'مستخدم'),
@@ -67,6 +70,7 @@ def ctx(rollback_db, test_tenant):
 
     def _visit(**kw):
         v = Visit(
+            tenant_id=kw.get('tenant_id', test_tenant.id),
             patient_id=kw.get('patient_id'),
             department_id=kw.get('department_id'),
             doctor_id=kw.get('doctor_id'),

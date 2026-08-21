@@ -12,9 +12,10 @@ import sqlalchemy as sa
 ADMIN_URL = os.environ['MIGRATE_ADMIN_URL']
 TARGET_URL = os.environ['MIGRATE_DATABASE_URL']
 # The migration chain was unified under merge revision 8b9457bfc4d7
-# (merging the five historical branch heads) followed by p6_001 (FK indexes),
-# p6_002 (api_keys) and p6_003 (api_keys RLS).  Exactly one head must exist.
-EXPECTED_HEADS = {'p6_003_api_keys_rls'}
+# (merging the five historical branch heads) followed by p6_* migrations
+# (FK indexes, api_keys, api_keys RLS, file_uploads S3 columns).
+# Exactly one head must exist.
+EXPECTED_HEADS = {'p6_004_file_uploads_s3_columns'}
 
 
 def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
