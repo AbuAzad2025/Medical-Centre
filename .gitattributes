@@ -1,0 +1,14 @@
+# Normalize line endings — prevent Windows(CRLF)/CI(LF) divergence that
+# caused ruff I001 to pass locally and fail on CI for identical commits.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.dcm binary
