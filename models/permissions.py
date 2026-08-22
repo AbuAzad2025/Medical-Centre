@@ -404,6 +404,13 @@ def create_default_permissions():
             PermissionCategory.SETTINGS,
             PermissionLevel.ADMIN,
         ),
+        # عمليات الاستقبال الإدارية (إنشاء زيارة/موعد، نقل، إضافة طابور)
+        (
+            'reception.manage',
+            'عمليات الاستقبال الإدارية',
+            PermissionCategory.PATIENT_MANAGEMENT,
+            PermissionLevel.WRITE,
+        ),
     ]
 
     for name, description, category, level in permissions:

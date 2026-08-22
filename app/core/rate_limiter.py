@@ -175,6 +175,13 @@ def rate_limit(
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
+            # E2E tests: bypass rate limiting to avoid false failures when
+            # many sequential tests authenticate against the same endpoint.
+            if (
+                os.environ.get('E2E_TESTING', '').lower() in ('1', 'true')
+                and os.environ.get('APP_ENV') == 'testing'
+            ):
+                return f(*args, **kwargs)
             key = f'{request.remote_addr}:{request.endpoint}'
             if not limiter.is_allowed(key):
                 return jsonify(

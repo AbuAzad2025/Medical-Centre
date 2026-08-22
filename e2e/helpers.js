@@ -6,15 +6,15 @@ const STATE_DIR = path.join(__dirname, '.auth');
 
 const CREDS = {
   reception: {
-    user: process.env.E2E_RECEPTION_USER || 'reception_e2e',
+    user: process.env.E2E_RECEPTION_USER || 'reception',
     pass: process.env.E2E_RECEPTION_PASS || 'ValidPass123!',
   },
   doctor: {
-    user: process.env.E2E_DOCTOR_USER || 'doctor_e2e',
+    user: process.env.E2E_DOCTOR_USER || 'doctor',
     pass: process.env.E2E_DOCTOR_PASS || 'ValidPass123!',
   },
   pharmacist: {
-    user: process.env.E2E_PHARMACIST_USER || 'pharmacist_test',
+    user: process.env.E2E_PHARMACIST_USER || 'pharmacist',
     pass: process.env.E2E_PHARMACIST_PASS || 'ValidPass123!',
   },
 };
@@ -49,4 +49,18 @@ async function uiLogin(page, role) {
   await page.waitForLoadState('networkidle');
 }
 
-module.exports = { CREDS, stateFile, loginAs, uiLogin };
+/**
+ * Login via the JSON API using page.request - cookies are shared with the
+ * page context, so subsequent navigations are authenticated.  Avoids the
+ * login-form rate limiter when many functional tests run back-to-back.
+ */
+async function apiLogin(page, role) {
+  const { user, pass } = CREDS[role];
+  const resp = await page.request.post('/auth/login', {
+    form: { username: user, password: pass },
+    maxRedirects: 0,
+  });
+  return resp.status() < 400;
+}
+
+module.exports = { CREDS, stateFile, loginAs, uiLogin, apiLogin };

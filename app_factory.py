@@ -1291,6 +1291,7 @@ def create_app(config_name: str | None = None) -> Flask:
                         'patient_update',
                         'medical_records_read',
                         'queue_settings_manage',
+                        'reception.manage',
                     ],
                 )
                 _assign(
