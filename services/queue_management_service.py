@@ -6,12 +6,13 @@ Medical System Queue Management Service
 import logging
 from datetime import UTC, datetime
 
-from sqlalchemy import case, func, select
+from flask import g
+from sqlalchemy import case, func, select, text
 
 from app.extensions import db
 from app.shared.enums import PaymentStatus, QueueState, VisitState
 from services.visit_state_machine_service import VisitStateMachineService
-from utils.db_safety import safe_commit
+from utils.db_safety import safe_commit, safe_rollback
 from utils.tenant_query import TenantContextError, get_tenant_record
 
 
@@ -523,44 +524,77 @@ class QueueManagementService:
             return None
 
     def call_next_patient(self, department_id, doctor_id=None, called_by=None):
-        """استدعاء المريض التالي"""
+        """استدعاء المريض التالي.
+
+        Concurrency-safe claim (race-condition fix):
+        The previous implementation did SELECT-then-UPDATE with no locking, so
+        two concurrent "call next" actions could both select the SAME waiting
+        entry and call the same patient twice.  We now:
+          1. Rank candidate ids with the existing ordering logic (read-only).
+          2. Atomically claim a candidate via a single conditional UPDATE
+             (WHERE id = :id AND status = 'WAITING'), so only one caller can
+             ever transition a given entry; losers advance to the next
+             candidate.  This is optimistic atomic claiming - no locks held
+             across requests, safe under SKIP-LOCKED-style contention.
+        """
         try:
             from models.queue_management import QueueManagement
             from models.visit import Visit
 
-            # البحث عن المريض التالي
-            query = select(QueueManagement)
-            query = query.outerjoin(Visit, Visit.id == QueueManagement.visit_id)
+            now = datetime.now(UTC)
+
+            # 1) Ranked candidate ids (READ ONLY - no state mutation here).
+            query = select(QueueManagement.id).outerjoin(
+                Visit, Visit.id == QueueManagement.visit_id
+            )
             if doctor_id:
                 query = query.filter(Visit.doctor_id == doctor_id)
+            query = query.filter(QueueManagement.status == QueueState.WAITING)
+            if getattr(g, 'tenant_id', None):
+                query = query.filter(QueueManagement.tenant_id == g.tenant_id)
 
             priority_rank = self._priority_rank_expr(QueueManagement)
             kind_rank = self._visit_kind_rank_expr(QueueManagement, Visit)
-            next_patient = (
+            candidate_ids = (
                 db.session.execute(
                     query.order_by(
                         kind_rank.asc(), priority_rank.asc(), QueueManagement.queued_at.asc()
-                    )
+                    ).limit(25)
                 )
                 .scalars()
-                .first()
+                .all()
             )
 
-            if not next_patient:
-                return False, 'لا يوجد مرضى في الطابور'
+            # 2) Atomic conditional claim per candidate.
+            for qid in candidate_ids:
+                claimed = db.session.execute(
+                    text(
+                        """
+                        UPDATE queue_management
+                        SET status = :called, called_at = :now
+                        WHERE id = :qid AND status = :waiting
+                        RETURNING id, queue_number, patient_id
+                        """
+                    ),
+                    {
+                        'called': QueueState.CALLED.value,
+                        'waiting': QueueState.WAITING.value,
+                        'now': now,
+                        'qid': qid,
+                    },
+                ).first()
 
-            # تحديث حالة المريض
-            next_patient.status = QueueState.CALLED
-            next_patient.called_at = datetime.now(UTC)
+                if claimed is not None:
+                    if not safe_commit(db.session, error_message='فشل عملية الطابور'):
+                        continue
+                    self.logger.info(f'Patient {claimed.patient_id} called from queue')
+                    return True, f'تم استدعاء المريض - التذكرة رقم {claimed.queue_number}'
 
-            if not safe_commit(db.session, error_message='فشل عملية الطابور'):
-                return False, 'تعذر تنفيذ العملية حالياً'
-
-            self.logger.info(f'Patient {next_patient.patient_id} called from queue')
-            return True, f'تم استدعاء المريض - التذكرة رقم {next_patient.queue_number}'
+            return False, 'لا يوجد مرضى في الطابور'
 
         except Exception as e:
             self.logger.exception('Error calling next patient: %s')
+            safe_rollback(db.session, error_message='database rollback')
             return False, f'حدث خطأ في استدعاء المريض: {e!s}'
 
     def get_wait_metrics_today(self, department_ids):

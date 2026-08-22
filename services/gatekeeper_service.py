@@ -17,7 +17,7 @@ from models.invoice import InvoiceService
 from models.payment import Payment
 from models.user import User
 from models.visit import Visit
-from utils.db_safety import safe_commit
+from utils.db_safety import safe_commit, safe_rollback
 from utils.tenant_query import TenantContextError, get_tenant_record
 
 logger = logging.getLogger(__name__)
@@ -387,12 +387,30 @@ class GatekeeperService:
             if not can_archive:
                 return False, message
 
-            # تحديث الزيارة
-            visit.archive_status = 'ARCHIVED'
-            visit.archived_by = user_id
-            visit.archived_at = datetime.now(UTC)
+            # Atomic conditional claim — only ONE concurrent archiver can flip
+            # archive_status ACTIVE->ARCHIVED. Losers get a clean rejection.
+            from sqlalchemy import text as _text
 
-            safe_commit(db.session, error_message='فشل أرشفة الزيارة', reraise=True)
+            now = datetime.now(UTC)
+            claimed = db.session.execute(
+                _text(
+                    """
+                    UPDATE visits
+                    SET archive_status = 'ARCHIVED',
+                        archived_by = :uid,
+                        archived_at = :now
+                    WHERE id = :vid
+                      AND status = 'COMPLETED'
+                      AND COALESCE(archive_status, 'ACTIVE') <> 'ARCHIVED'
+                    RETURNING id
+                    """
+                ),
+                {'uid': user_id, 'now': now, 'vid': visit_id},
+            ).first()
+
+            if claimed is None:
+                safe_rollback(db.session, error_message='database rollback')
+                return False, 'الزيارة مؤرشفة مسبقاً'
 
             # تسجيل التدقيق
             audit = AuditTrail(
@@ -405,6 +423,7 @@ class GatekeeperService:
                 description='تم الأرشفة',
             )
             db.session.add(audit)
+            safe_commit(db.session, error_message='فشل أرشفة الزيارة', reraise=True)
 
             return True, 'تم الأرشفة'
 

@@ -1,0 +1,101 @@
+name: Load Test (manual smoke)
+
+# Manual, on-demand smoke load profile against a locally booted production-
+# style server (gunicorn). NOT run on push — load tests are noisy by nature.
+# Profile: 25 users ramp 5/s for 90s; gate = error_rate <2% AND p95 <1500ms.
+on:
+  workflow_dispatch:
+    inputs:
+      users:
+        description: 'Concurrent virtual users'
+        default: '25'
+      run_time:
+        description: 'Duration (e.g. 90s / 5m)'
+        default: '90s'
+
+concurrency:
+  group: load-test
+  cancel-in-progress: true
+
+jobs:
+  locust-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: medical_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    env:
+      SECRET_KEY: ci-load-secret-key-not-production
+      APP_ENV: testing
+      FLASK_ENV: testing
+      FLASK_APP: wsgi:app
+      DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_test
+      TEST_DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_test
+      REDIS_URL: redis://localhost:6379/0
+      ENABLE_SAAS_MODE: 'true'
+      RLS_BYPASS_ALLOWED: '1'
+      SUPPRESS_BACKGROUND_WORKER: '1'
+      SKIP_PLATFORM_BOOTSTRAP: '1'
+      FIELD_ENCRYPTION_KEY: test-encryption-key-32-chars-long!!
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install locust==2.31.6
+
+      - name: Migrate + seed load accounts
+        run: |
+          python -m flask db upgrade heads
+          python scripts/seed_load_users.py
+
+      - name: Boot app (gunicorn, 4 workers)
+        run: |
+          gunicorn --bind 127.0.0.1:8080 --workers 4 --threads 2 \
+                   --timeout 30 --access-logfile - wsgi:app &
+          for i in $(seq 1 40); do
+            curl -fsS http://127.0.0.1:8080/__health >/dev/null 2>&1 && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8080/__health
+
+      - name: Run Locust smoke profile
+        run: |
+          mkdir -p artifacts
+          locust -f locustfile.py --headless \
+            -H http://127.0.0.1:8080 \
+            -u ${{ github.event.inputs.users || '25' }} \
+            -r 5 \
+            --run-time ${{ github.event.inputs.run_time || '90s' }} \
+            --csv artifacts/load --only-summary
+
+      - name: SLO gate (error_rate <2%, p95 <1500ms)
+        run: python scripts/check_load_slo.py artifacts/load_stats.csv
+
+      - name: Upload load artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-results
+          path: artifacts/

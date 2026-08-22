@@ -1,118 +1,131 @@
-"""Load test script for the Medical System using Locust.
+"""
+Load-test suite — Locust (professional rewrite).
 
-Tests basic radiology and authentication endpoints under load.
+Design
+──────
+• Role-based virtual users mirroring real usage mix:
+    ReceptionUser  50%  – patients search, queue views, visit lists
+    DoctorUser     30%  – dashboard, patient queue, own visits
+    PharmacistUser 10%  – medication dashboard / inventory
+    ManagerUser    10%  – manager + financial dashboards
+• Login happens ONCE per simulated user in on_start (realistic sessions);
+  a failed login stops that user instead of spamming the endpoint.
+• Read-dominated profile (~90% GET) — safe to run against a seeded env.
+
+Run (smoke profile)
+───────────────────
+    locust -f locustfile.py --headless \
+        -H http://127.0.0.1:8080 -u 25 -r 5 --run-time 90s \
+        --csv artifacts/load --only-summary --exit-code-on-error 2%
+
+Credentials default to the accounts created by scripts/seed_load_users.py;
+override via LOAD_PASSWORD env if needed.
 """
 
-from locust import HttpUser, task, between, events
-import json
+import os
+import random
+
+from locust import HttpUser, between, task
+
+PASSWORD = os.getenv('LOAD_PASSWORD', 'ValidPass123!')
 
 
-# Configuration
-HOST = 'http://localhost:5000'
-# Wait time between tasks
-wait_time = between(1, 3)
+class _RoleUser(HttpUser):
+    """Base: one realistic login per simulated user, then read-heavy tasks."""
 
+    abstract = True
+    wait_time = between(1.0, 3.0)
 
-class MedicalUser(HttpUser):
-    """Simulates a medical staff user performing typical operations."""
+    role_username: str = ''
 
-    @task(10)
-    def auth_login(self):
-        """Simulate user login."""
-        self.client.post(
+    def on_start(self):
+        resp = self.client.post(
             '/auth/login',
-            data={'username': 'doctor_user', 'password': 'ValidPass123!'},
-            catch_errors=True,
+            data={'username': self.role_username, 'password': PASSWORD},
+            headers={'X-Requested-With': 'XMLHttpRequest'},
+            catch_response=True,
+            name=f'[login:{self.role_username}]',
         )
+        if resp.status_code != 200 or b'"success": true' not in resp.content:
+            resp.failure(f'login failed for {self.role_username}: HTTP {resp.status_code}')
+            self.environment.runner.quit()
 
-    @task(15)
-    def view_worklist(self):
-        """Simulate technician viewing the radiology worklist."""
-        self.client.get('/radiology/worklist?status=REQUESTED', catch_errors=True)
+    # Shared lightweight probes available to every role -------------------
+    @task(2)
+    def health(self):
+        self.client.get('/health', name='[health]', catch_response=True)
 
-    @task(5)
-    def view_templates(self):
-        """Simulate manager viewing templates."""
-        self.client.get('/radiology/api/report-templates', catch_errors=True)
 
-    @task(3)
-    def claim_request(self):
-        """Simulate technician claiming a request."""
-        import random
-
-        req_id = random.randint(1, 100)
-        self.client.post(
-            f'/radiology/worklist/claim/{req_id}',
-            headers={'Accept': 'application/json'},
-            catch_errors=True,
-        )
+class ReceptionUser(_RoleUser):
+    abstract = False
+    weight = 50
+    role_username = 'reception'
 
     @task(8)
-    def complete_request(self):
-        """Simulate technician completing a request."""
-        import random
-
-        req_id = random.randint(1, 100)
-        self.client.post(
-            f'/radiology/worklist/complete/{req_id}',
-            headers={'Accept': 'application/json'},
-            json={'findings': 'No acute findings', 'impression': 'Normal'},
-            catch_errors=True,
+    def patients_search(self):
+        q = random.choice(['a', 'm', 'س', '05'])
+        self.client.get(
+            f'/reception/patients?search={q}',
+            name='/reception/patients?search',
+            catch_response=True,
         )
+
+    @task(6)
+    def queue_view(self):
+        self.client.get('/reception/queue', name='/reception/queue', catch_response=True)
+
+    @task(5)
+    def visits_list(self):
+        self.client.get('/reception/visits', name='/reception/visits', catch_response=True)
 
     @task(3)
-    def create_request(self):
-        """Simulate doctor creating a radiology request."""
-        self.client.post(
-            '/doctor/radiology-request/1',
-            data={'modality': 'XRAY', 'body_part': 'Chest', 'notes': 'PA view'},
-            catch_errors=True,
-        )
-
-    @task(2)
-    def create_template(self):
-        """Simulate manager creating a template."""
-        self.client.post(
-            '/radiology/api/report-templates',
-            json={
-                'name': 'Load Test Template',
-                'modality': 'XRAY',
-                'findings': 'Test findings',
-                'impression': 'Test impression',
-            },
-            catch_errors=True,
+    def appointments(self):
+        self.client.get(
+            '/reception/appointments', name='/reception/appointments', catch_response=True
         )
 
 
-# Events
-@events.test_start.adddef
-def on_test_start(environment, **kwargs):
-    """Called when the test starts."""
-    environment.runner.inject_ramp_users(users_count=10, spawn_rate=2)
-    print(f'\\n=== Load test started ===')
-    print(f'Target host: {HOST}')
-    print(f'Users: 10, spawn rate: 2/s')
+class DoctorUser(_RoleUser):
+    abstract = False
+    weight = 30
+    role_username = 'doctor'
+
+    @task(7)
+    def dashboard(self):
+        self.client.get('/doctor/dashboard', name='/doctor/dashboard', catch_response=True)
+
+    @task(5)
+    def patient_queue(self):
+        self.client.get('/doctor/patient_queue', name='/doctor/patient_queue', catch_response=True)
+
+    @task(3)
+    def visits(self):
+        self.client.get('/doctor/visits', name='/doctor/visits', catch_response=True)
 
 
-@events.test_stop.adddef
-def on_test_stop(environment, **kwargs):
-    """Called when the test stops."""
-    print('\\n=== Load test stopped ===')
-    print(f'Total requests: {environment.stats.total}')
-    print(f'Average response time: {environment.stats.avg_response_time:.2f}ms')
+class PharmacistUser(_RoleUser):
+    abstract = False
+    weight = 10
+    role_username = 'pharmacist'
+
+    @task(6)
+    def med_dashboard(self):
+        self.client.get('/medication/dashboard', name='/medication/dashboard', catch_response=True)
+
+    @task(4)
+    def inventory(self):
+        self.client.get('/medication/inventory', name='/medication/inventory', catch_response=True)
 
 
-# Hook to report failures
-@events.test_request_failure.adddef
-def on_request_failure(request_type, name, response_time, response_length, exception, **kwargs):
-    """Log failed requests."""
-    print(f'FAIL: {request_type} {name} - {exception}')
+class ManagerUser(_RoleUser):
+    abstract = False
+    weight = 10
+    role_username = 'manager'
 
+    @task(5)
+    def manager_dashboard(self):
+        self.client.get('/manager/dashboard', name='/manager/dashboard', catch_response=True)
 
-# Summary report hook
-@events.test_stop.adddef
-def on_test_stop_debug(environment, **kwargs):
-    """Print detailed statistics at test stop."""
-    print('\\n=== Response Time Distribution ===')
-    for pct, ms in environment.stats.get_percents().items():
-        print(f'  {pct}th percentile: {ms:.1f}ms')
+    @task(4)
+    def financial(self):
+        self.client.get('/manager/financial', name='/manager/financial', catch_response=True)
