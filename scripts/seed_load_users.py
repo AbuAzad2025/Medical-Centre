@@ -8,14 +8,12 @@ Usage:
     python scripts/seed_load_users.py
 """
 
-import os
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app_factory import create_app  # noqa: E402
-
 
 ROLES = {
     'reception': 'reception',

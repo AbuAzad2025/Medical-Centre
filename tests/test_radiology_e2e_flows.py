@@ -6,20 +6,17 @@ core radiology workflows end-to-end against a live PostgreSQL database.
 
 from __future__ import annotations
 
-import pytest
 import uuid
-from unittest.mock import MagicMock, patch
 
+import pytest
 from sqlalchemy import select
 
 from app.extensions import db
-from tests.tenant_context import login_test_client
-from models.user import User
+from models.patient import Patient
 from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
 from models.visit import Visit
-from models.patient import Patient
-
+from tests.tenant_context import login_test_client
 
 pytestmark = [
     pytest.mark.e2e,
@@ -61,9 +58,8 @@ def _login_role(client, role, test_tenant):
 @pytest.fixture
 def _radiology_e2e_base(app, test_tenant, db):
     """Create test data for E2E radiology flow tests."""
-    from models.patient import Patient
-    from models.visit import Visit
     from datetime import UTC, datetime
+
     from models.radiology_request import RadiologyRequest
     from models.user import User as _User
 
@@ -255,8 +251,6 @@ class TestRadiologyE2EClaimComplete:
         self, client, app, test_tenant, db, _radiology_e2e_base
     ):
         """Technician completes a request that already has a result (updates it)."""
-        from models.radiology_result import RadiologyResult
-        from app.extensions import db as _db
 
         req = _radiology_e2e_base['request']
 
@@ -350,10 +344,9 @@ class TestAuthE2ELogin:
 
     def test_login_with_valid_credentials(self, client, app, test_tenant, db):
         """User can login with valid credentials."""
-        from tests.tenant_context import login_test_client
-
         # Ensure a test user exists
         from models.user import User as _User
+        from tests.tenant_context import login_test_client
 
         user = (
             db.session.execute(select(_User).filter_by(username='pharmacist_test'))

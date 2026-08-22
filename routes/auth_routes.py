@@ -724,6 +724,7 @@ def forgot_password() -> ResponseReturnValue:
 
             try:
                 from flask_mail import Message
+
                 from app.extensions import mail
 
                 msg = Message(
@@ -827,7 +828,7 @@ def reset_password(token: str, user_id: int) -> ResponseReturnValue:
 
         # Validate password policy
         try:
-            from services.password_policy_service import PasswordPolicyService, PasswordPolicyError
+            from services.password_policy_service import PasswordPolicyService
 
             user = db.session.get(User, user_id)
             if user:

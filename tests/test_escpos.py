@@ -3,8 +3,6 @@
 Covers the ThermalPrinter class - ESC/POS thermal receipt printer driver.
 """
 
-import os
-
 import pytest
 
 from app.integrations.printing.escpos import ThermalPrinter, logger

@@ -27,15 +27,15 @@ class SecurityHeadersMiddleware:
             nonce = getattr(g, 'csp_nonce', '')
             csp = (
                 "default-src 'self'; "
-                "script-src 'self' 'nonce-{nonce}'; "
-                "style-src 'self' 'nonce-{nonce}' fonts.googleapis.com; "
+                f"script-src 'self' 'nonce-{nonce}'; "
+                f"style-src 'self' 'nonce-{nonce}' fonts.googleapis.com; "
                 "img-src 'self' data: blob:; "
                 "font-src 'self' fonts.gstatic.com data:; "
                 "connect-src 'self'; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "
                 "form-action 'self';"
-            ).format(nonce=nonce)
+            )
             response.headers['Content-Security-Policy'] = csp
             # Prevent MIME sniffing
             response.headers['X-Content-Type-Options'] = 'nosniff'

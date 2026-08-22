@@ -13,7 +13,6 @@ Exits 0 on pass, 1 on breach (so CI can gate on it).
 import csv
 import sys
 
-
 ERROR_RATE_MAX = 0.02  # 2%
 P95_MS_MAX = 1500.0  # ms
 

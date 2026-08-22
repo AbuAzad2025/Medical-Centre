@@ -4,9 +4,6 @@ Covers LabReagent CRUD routes.
 """
 
 import pytest
-from unittest.mock import MagicMock, patch
-
-from routes.lab.reagents import reagents, add_reagent, edit_reagent
 
 
 class TestReagentsList:

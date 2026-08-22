@@ -297,7 +297,7 @@ class TestDispenseRace:
         assert len(wins) == 1, f'exactly one dispense must win: {results}'
         assert len(losses) == 3, results
         allowed_errors = {'Insufficient stock', 'already dispensed'}
-        assert all(any(a in l['error'] for a in allowed_errors) for l in losses), results
+        assert all(any(a in loss['error'] for a in allowed_errors) for loss in losses), results
 
         db.session.expire_all()
         fresh_med = db.session.get(Medication, med_id)

@@ -3,27 +3,26 @@
 Covers all AI analytics and smart recommendation functions.
 """
 
-import json
 import types
 import uuid
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from app.extensions import db
 from models.emergency import EmergencyCase
-from models.user import User
 from models.patient import Patient
+from models.user import User
 from routes.emergency.analytics import (
-    get_emergency_ai_triage,
     get_critical_alert_system,
+    get_emergency_ai_triage,
+    get_emergency_analytics,
+    get_emergency_resource_management,
     get_emergency_workflow_ai,
     get_patient_vital_monitoring,
-    get_emergency_resource_management,
-    get_trauma_protocols,
-    get_emergency_analytics,
     get_smart_emergency_recommendations,
+    get_trauma_protocols,
 )
 
 
@@ -215,7 +214,7 @@ class TestGetCriticalAlertSystem:
 
     def test_long_waiting_alert(self, fx):
         """Test alert for cases waiting > 30 minutes."""
-        c = fx.case(status='WAITING', created_at=datetime.now() - timedelta(minutes=45))
+        fx.case(status='WAITING', created_at=datetime.now() - timedelta(minutes=45))
         db.session.commit()
 
         alerts = get_critical_alert_system()
@@ -294,24 +293,22 @@ class TestGetPatientVitalMonitoring:
     def test_vital_signs_analysis(self, fx):
         """Test vital signs analysis with various cases."""
         p = fx.patient()
-        c1 = fx.case(
+        fx.case(
             patient_id=p.id,
             vital_signs='{"critical": true, "hr": 150}',
             created_at=datetime.now() - timedelta(days=1),
         )
-        c2 = fx.case(
+        fx.case(
             patient_id=p.id,
             vital_signs='{"abnormal": true, "bp": "180/120"}',
             created_at=datetime.now() - timedelta(days=2),
         )
-        c3 = fx.case(
+        fx.case(
             patient_id=p.id,
             vital_signs='{"normal": true, "hr": 70, "bp": "120/80"}',
             created_at=datetime.now() - timedelta(days=3),
         )
-        c4 = fx.case(
-            patient_id=p.id, vital_signs=None, created_at=datetime.now() - timedelta(days=4)
-        )
+        fx.case(patient_id=p.id, vital_signs=None, created_at=datetime.now() - timedelta(days=4))
         db.session.commit()
 
         result = get_patient_vital_monitoring()
@@ -465,7 +462,7 @@ class TestGetEmergencyAnalytics:
 
     def test_analytics_structure(self, fx):
         """Test analytics returns complete structure."""
-        p = fx.patient()
+        fx.patient()
         fx.case(status='WAITING')
         fx.case(status='COMPLETED')
         fx.case(status='COMPLETED')

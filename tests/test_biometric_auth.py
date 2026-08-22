@@ -3,8 +3,8 @@
 Covers the BiometricAuth class - biometric credential management.
 """
 
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
-from datetime import datetime, timezone, timedelta
 
 import pytest
 
@@ -80,139 +80,159 @@ class TestEnroll:
         """Test enrolling with explicit credential_id."""
         auth = BiometricAuth(tenant_id=1)
         mock_db = MagicMock()
-        with patch('app.integrations.devices.biometric.db', mock_db):
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                result = auth.enroll(
-                    user_id=1,
-                    credential_id='cred-123',
-                    public_key='key-data',
-                )
-                assert result is True
-                mock_db.session.add.assert_called_once()
+        with (
+            patch('app.integrations.devices.biometric.db', mock_db),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            result = auth.enroll(
+                user_id=1,
+                credential_id='cred-123',
+                public_key='key-data',
+            )
+            assert result is True
+            mock_db.session.add.assert_called_once()
 
     def test_enroll_with_dict_template(self):
         """Test enrolling with dict template."""
         auth = BiometricAuth(tenant_id=1)
-        with patch('app.integrations.devices.biometric.db'):
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                result = auth.enroll(
-                    user_id=1,
-                    template={
-                        'credential_id': 'cred-456',
-                        'public_key': 'key-456',
-                        'device_type': 'platform',
-                        'device_name': 'Fingerprint',
-                        'aaguid': 'test-aaguid',
-                        'authenticator_attachment': 'platform',
-                    },
-                )
-                assert result is True
+        with (
+            patch('app.integrations.devices.biometric.db'),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            result = auth.enroll(
+                user_id=1,
+                template={
+                    'credential_id': 'cred-456',
+                    'public_key': 'key-456',
+                    'device_type': 'platform',
+                    'device_name': 'Fingerprint',
+                    'aaguid': 'test-aaguid',
+                    'authenticator_attachment': 'platform',
+                },
+            )
+            assert result is True
 
     def test_enroll_with_bytes_template(self):
         """Test enrolling with bytes template."""
         auth = BiometricAuth(tenant_id=1)
-        with patch('app.integrations.devices.biometric.db'):
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                result = auth.enroll(
-                    user_id=1,
-                    template=b'some-key-data',
-                    public_key=None,
-                )
-                assert result is True
+        with (
+            patch('app.integrations.devices.biometric.db'),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            result = auth.enroll(
+                user_id=1,
+                template=b'some-key-data',
+                public_key=None,
+            )
+            assert result is True
 
     def test_enroll_generates_credential_id(self):
         """Test that credential_id is auto-generated when not provided."""
         auth = BiometricAuth(tenant_id=1)
-        with patch('app.integrations.devices.biometric.db'):
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch(
-                    'app.integrations.devices.biometric.secrets.token_urlsafe',
-                    return_value='generated-id',
-                ):
-                    result = auth.enroll(user_id=1)
-                    assert result is True
+        with (
+            patch('app.integrations.devices.biometric.db'),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            with patch(
+                'app.integrations.devices.biometric.secrets.token_urlsafe',
+                return_value='generated-id',
+            ):
+                result = auth.enroll(user_id=1)
+                assert result is True
 
     def test_enroll_with_explicit_tenant_id(self):
         """Test enrolling with explicit tenant_id override."""
         auth = BiometricAuth(tenant_id=1)
-        with patch('app.integrations.devices.biometric.db'):
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                result = auth.enroll(
-                    user_id=1,
-                    credential_id='cred',
-                    public_key='key',
-                    tenant_id=99,
-                )
-                assert result is True
+        with (
+            patch('app.integrations.devices.biometric.db'),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            result = auth.enroll(
+                user_id=1,
+                credential_id='cred',
+                public_key='key',
+                tenant_id=99,
+            )
+            assert result is True
 
     def test_enroll_resolves_tenant_from_g(self):
         """Test enrolling resolves tenant from flask.g."""
         auth = BiometricAuth()
         mock_g = MagicMock()
         mock_g.tenant_id = 5
-        with patch('app.integrations.devices.biometric.db'):
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch('flask.g', mock_g):
-                    result = auth.enroll(
-                        user_id=1,
-                        credential_id='cred',
-                        public_key='key',
-                    )
-                    assert result is True
-
-    def test_enroll_with_kwargs(self):
-        """Test enrolling with extra kwargs."""
-        auth = BiometricAuth(tenant_id=1)
-        with patch('app.integrations.devices.biometric.db'):
-            with patch('app.integrations.devices.biometric.safe_commit'):
+        with (
+            patch('app.integrations.devices.biometric.db'),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            with patch('flask.g', mock_g):
                 result = auth.enroll(
                     user_id=1,
                     credential_id='cred',
                     public_key='key',
-                    aaguid='test-aaguid',
-                    authenticator_attachment='platform',
                 )
                 assert result is True
+
+    def test_enroll_with_kwargs(self):
+        """Test enrolling with extra kwargs."""
+        auth = BiometricAuth(tenant_id=1)
+        with (
+            patch('app.integrations.devices.biometric.db'),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            result = auth.enroll(
+                user_id=1,
+                credential_id='cred',
+                public_key='key',
+                aaguid='test-aaguid',
+                authenticator_attachment='platform',
+            )
+            assert result is True
 
     def test_enroll_generates_token_when_no_credential_id(self):
         """Test enrolling generates token when credential_id not in template."""
         auth = BiometricAuth(tenant_id=1)
-        with patch('app.integrations.devices.biometric.db'):
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch(
-                    'app.integrations.devices.biometric.secrets.token_urlsafe',
-                    return_value='gen-token',
-                ):
-                    result = auth.enroll(
-                        user_id=1,
-                        template={'public_key': 'pk'},
-                        public_key=None,
-                    )
-                    assert result is True
+        with (
+            patch('app.integrations.devices.biometric.db'),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            with patch(
+                'app.integrations.devices.biometric.secrets.token_urlsafe',
+                return_value='gen-token',
+            ):
+                result = auth.enroll(
+                    user_id=1,
+                    template={'public_key': 'pk'},
+                    public_key=None,
+                )
+                assert result is True
 
     def test_enroll_generates_public_key_from_bytes(self):
         """Test enrolling uses template bytes as public_key."""
         auth = BiometricAuth(tenant_id=1)
-        with patch('app.integrations.devices.biometric.db'):
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                result = auth.enroll(
-                    user_id=1,
-                    template=b'raw-template-data',
-                    public_key=None,
-                )
-                assert result is True
+        with (
+            patch('app.integrations.devices.biometric.db'),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            result = auth.enroll(
+                user_id=1,
+                template=b'raw-template-data',
+                public_key=None,
+            )
+            assert result is True
 
     def test_enroll_no_public_key_no_bytes(self):
         """Test enrolling with no public_key and non-bytes template."""
         auth = BiometricAuth(tenant_id=1)
-        with patch('app.integrations.devices.biometric.db'):
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                result = auth.enroll(
-                    user_id=1,
-                    template={'public_key': 'from-payload'},
-                    public_key=None,
-                )
-                assert result is True
+        with (
+            patch('app.integrations.devices.biometric.db'),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            result = auth.enroll(
+                user_id=1,
+                template={'public_key': 'from-payload'},
+                public_key=None,
+            )
+            assert result is True
 
 
 class TestVerify:
@@ -231,10 +251,12 @@ class TestVerify:
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = None
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.verify(user_id=1, credential_id='cred-123')
-                assert result is False
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.verify(user_id=1, credential_id='cred-123')
+            assert result is False
 
     def test_verify_false_on_replay_attack(self):
         """Test verify returns False on sign_count replay."""
@@ -247,11 +269,13 @@ class TestVerify:
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = mock_credential
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db') as mock_db:
-                with patch('app.integrations.devices.biometric.safe_commit'):
-                    result = auth.verify(user_id=1, credential_id='cred-123', sign_count=50)
-                    assert result is False
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            with patch('app.integrations.devices.biometric.safe_commit'):
+                result = auth.verify(user_id=1, credential_id='cred-123', sign_count=50)
+                assert result is False
 
     def test_verify_updates_sign_count(self):
         """Test verify updates sign_count when valid."""
@@ -264,12 +288,14 @@ class TestVerify:
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = mock_credential
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db') as mock_db:
-                with patch('app.integrations.devices.biometric.safe_commit'):
-                    result = auth.verify(user_id=1, credential_id='cred-123', sign_count=150)
-                    assert result is True
-                    assert mock_credential.sign_count == 150
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            with patch('app.integrations.devices.biometric.safe_commit'):
+                result = auth.verify(user_id=1, credential_id='cred-123', sign_count=150)
+                assert result is True
+                assert mock_credential.sign_count == 150
 
     def test_verify_sets_last_used_at(self):
         """Test verify sets last_used_at."""
@@ -282,12 +308,14 @@ class TestVerify:
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = mock_credential
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                with patch('app.integrations.devices.biometric.safe_commit'):
-                    result = auth.verify(user_id=1, credential_id='cred-123', sign_count=200)
-                    assert result is True
-                    assert mock_credential.last_used_at is not None
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            with patch('app.integrations.devices.biometric.safe_commit'):
+                result = auth.verify(user_id=1, credential_id='cred-123', sign_count=200)
+                assert result is True
+                assert mock_credential.last_used_at is not None
 
     def test_verify_with_tenant_filter(self):
         """Test verify with tenant filter."""
@@ -299,16 +327,18 @@ class TestVerify:
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = mock_credential
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                with patch('app.integrations.devices.biometric.safe_commit'):
-                    result = auth.verify(
-                        user_id=1,
-                        credential_id='cred-123',
-                        sign_count=200,
-                        tenant_id=99,
-                    )
-                    assert result is True
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            with patch('app.integrations.devices.biometric.safe_commit'):
+                result = auth.verify(
+                    user_id=1,
+                    credential_id='cred-123',
+                    sign_count=200,
+                    tenant_id=99,
+                )
+                assert result is True
 
     def test_verify_from_payload(self):
         """Test verify with credential_id from payload dict."""
@@ -320,14 +350,16 @@ class TestVerify:
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = mock_credential
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                with patch('app.integrations.devices.biometric.safe_commit'):
-                    result = auth.verify(
-                        user_id=1,
-                        template={'credential_id': 'from-payload', 'sign_count': 200},
-                    )
-                    assert result is True
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            with patch('app.integrations.devices.biometric.safe_commit'):
+                result = auth.verify(
+                    user_id=1,
+                    template={'credential_id': 'from-payload', 'sign_count': 200},
+                )
+                assert result is True
 
     def test_verify_no_sign_count_in_payload(self):
         """Test verify with no sign_count in payload."""
@@ -339,14 +371,16 @@ class TestVerify:
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = mock_credential
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                with patch('app.integrations.devices.biometric.safe_commit'):
-                    result = auth.verify(
-                        user_id=1,
-                        credential_id='cred-123',
-                    )
-                    assert result is True
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            with patch('app.integrations.devices.biometric.safe_commit'):
+                result = auth.verify(
+                    user_id=1,
+                    credential_id='cred-123',
+                )
+                assert result is True
 
     def test_verify_with_tenant_id_in_resolve(self):
         """Test verify resolves tenant via _resolve_tenant_id."""
@@ -358,16 +392,20 @@ class TestVerify:
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = mock_credential
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                with patch('app.integrations.devices.biometric.safe_commit'):
-                    with patch('flask.g', tenant_id=5):
-                        result = auth.verify(
-                            user_id=1,
-                            credential_id='cred-123',
-                            sign_count=200,
-                        )
-                        assert result is True
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            with (
+                patch('app.integrations.devices.biometric.safe_commit'),
+                patch('flask.g', tenant_id=5),
+            ):
+                result = auth.verify(
+                    user_id=1,
+                    credential_id='cred-123',
+                    sign_count=200,
+                )
+                assert result is True
 
 
 class TestListCredentials:
@@ -380,10 +418,12 @@ class TestListCredentials:
         mock_query.filter_by.return_value = mock_query
         mock_query.order_by.return_value.all.return_value = []
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.list_credentials(user_id=1)
-                assert result == []
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.list_credentials(user_id=1)
+            assert result == []
 
     def test_list_credentials_with_results(self):
         """Test listing credentials with results."""
@@ -400,16 +440,18 @@ class TestListCredentials:
         mock_query.filter_by.return_value = mock_query
         mock_query.order_by.return_value.all.return_value = [mock_credential]
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.list_credentials(user_id=1)
-                assert isinstance(result, list)
-                assert result[0]['id'] == 1
-                assert result[0]['credential_id'] == 'cred-1'
-                assert result[0]['device_type'] == 'security_key'
-                assert result[0]['device_name'] == 'Key'
-                assert result[0]['last_used_at'] is None
-                assert result[0]['created_at'] is None
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.list_credentials(user_id=1)
+            assert isinstance(result, list)
+            assert result[0]['id'] == 1
+            assert result[0]['credential_id'] == 'cred-1'
+            assert result[0]['device_type'] == 'security_key'
+            assert result[0]['device_name'] == 'Key'
+            assert result[0]['last_used_at'] is None
+            assert result[0]['created_at'] is None
 
     def test_list_credentials_with_datetime(self):
         """Test listing credentials with datetime fields."""
@@ -419,19 +461,21 @@ class TestListCredentials:
         mock_credential.credential_id = 'cred-1'
         mock_credential.device_type = 'security_key'
         mock_credential.device_name = 'Key'
-        mock_credential.last_used_at = datetime.now(timezone.utc)
-        mock_credential.created_at = datetime.now(timezone.utc)
+        mock_credential.last_used_at = datetime.now(UTC)
+        mock_credential.created_at = datetime.now(UTC)
 
         mock_query = MagicMock()
         mock_query.filter_by.return_value = mock_query
         mock_query.order_by.return_value.all.return_value = [mock_credential]
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.list_credentials(user_id=1)
-                assert isinstance(result, list)
-                assert 'last_used_at' in result[0]
-                assert 'created_at' in result[0]
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.list_credentials(user_id=1)
+            assert isinstance(result, list)
+            assert 'last_used_at' in result[0]
+            assert 'created_at' in result[0]
 
     def test_list_credentials_no_user_id_filter(self):
         """Test listing credentials without user_id filter (no filter_by called)."""
@@ -448,10 +492,12 @@ class TestListCredentials:
         mock_query.filter_by.return_value = mock_query
         mock_query.order_by.return_value.all.return_value = [mock_credential]
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.list_credentials(user_id=1)
-                assert isinstance(result, list)
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.list_credentials(user_id=1)
+            assert isinstance(result, list)
 
     def test_list_credentials_with_tenant_filter(self):
         """Test listing credentials with tenant filter."""
@@ -468,11 +514,13 @@ class TestListCredentials:
         mock_query.filter_by.return_value = mock_query
         mock_query.order_by.return_value.all.return_value = [mock_credential]
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                with patch('flask.g', tenant_id=5):
-                    result = auth.list_credentials(user_id=1)
-                    assert isinstance(result, list)
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            with patch('flask.g', tenant_id=5):
+                result = auth.list_credentials(user_id=1)
+                assert isinstance(result, list)
 
 
 class TestCreateChallenge:
@@ -481,57 +529,65 @@ class TestCreateChallenge:
     def test_create_challenge_default(self):
         """Test creating challenge with defaults."""
         auth = BiometricAuth(tenant_id=1)
-        with patch('app.integrations.devices.biometric.db') as mock_db:
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch(
-                    'app.integrations.devices.biometric.secrets.token_urlsafe',
-                    return_value='challenge123',
-                ):
-                    result = auth.create_challenge()
-                    assert result == 'challenge123'
-                    mock_db.session.add.assert_called_once()
+        with (
+            patch('app.integrations.devices.biometric.db') as mock_db,
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            with patch(
+                'app.integrations.devices.biometric.secrets.token_urlsafe',
+                return_value='challenge123',
+            ):
+                result = auth.create_challenge()
+                assert result == 'challenge123'
+                mock_db.session.add.assert_called_once()
 
     def test_create_challenge_with_parameters(self):
         """Test creating challenge with custom parameters."""
         auth = BiometricAuth(tenant_id=1)
-        with patch('app.integrations.devices.biometric.db') as mock_db:
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch(
-                    'app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'
-                ):
-                    result = auth.create_challenge(
-                        user_id=42,
-                        challenge_type='registration',
-                        ttl_minutes=10,
-                        tenant_id=5,
-                    )
-                    assert result == 'ch'
-                    mock_db.session.add.assert_called_once()
+        with (
+            patch('app.integrations.devices.biometric.db') as mock_db,
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            with patch(
+                'app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'
+            ):
+                result = auth.create_challenge(
+                    user_id=42,
+                    challenge_type='registration',
+                    ttl_minutes=10,
+                    tenant_id=5,
+                )
+                assert result == 'ch'
+                mock_db.session.add.assert_called_once()
 
     def test_create_challenge_resolves_tenant(self):
         """Test challenge resolves tenant from instance."""
         auth = BiometricAuth(tenant_id=1)
-        with patch('app.integrations.devices.biometric.db'):
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch(
-                    'app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'
-                ):
-                    result = auth.create_challenge()
-                    assert result == 'ch'
+        with (
+            patch('app.integrations.devices.biometric.db'),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            with patch(
+                'app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'
+            ):
+                result = auth.create_challenge()
+                assert result == 'ch'
 
     def test_create_challenge_resolves_tenant_from_g(self):
         """Test challenge resolves tenant from flask.g."""
         auth = BiometricAuth()
         mock_g = MagicMock()
         mock_g.tenant_id = 7
-        with patch('app.integrations.devices.biometric.db'):
-            with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch(
-                    'app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'
-                ):
-                    with patch('flask.g', mock_g):
-                        result = auth.create_challenge()
-                        assert result == 'ch'
+        with (
+            patch('app.integrations.devices.biometric.db'),
+            patch('app.integrations.devices.biometric.safe_commit'),
+        ):
+            with patch(
+                'app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'
+            ):
+                with patch('flask.g', mock_g):
+                    result = auth.create_challenge()
+                    assert result == 'ch'
 
 
 class TestConsumeChallenge:
@@ -544,77 +600,87 @@ class TestConsumeChallenge:
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = None
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.consume_challenge('nonexistent')
-                assert result is False
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.consume_challenge('nonexistent')
+            assert result is False
 
     def test_consume_challenge_expired(self):
         """Test when challenge is expired."""
         auth = BiometricAuth(tenant_id=1)
         mock_challenge = MagicMock()
-        mock_challenge.expires_at = datetime.now(timezone.utc) - timedelta(minutes=5)
+        mock_challenge.expires_at = datetime.now(UTC) - timedelta(minutes=5)
         mock_challenge.used = False
 
         mock_query = MagicMock()
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = mock_challenge
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.consume_challenge('expired-challenge')
-                assert result is False
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.consume_challenge('expired-challenge')
+            assert result is False
 
     def test_consume_challenge_success(self):
         """Test successful challenge consumption."""
         auth = BiometricAuth(tenant_id=1)
         mock_challenge = MagicMock()
-        mock_challenge.expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+        mock_challenge.expires_at = datetime.now(UTC) + timedelta(minutes=5)
         mock_challenge.used = False
 
         mock_query = MagicMock()
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = mock_challenge
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                with patch('app.integrations.devices.biometric.safe_commit'):
-                    result = auth.consume_challenge('valid-challenge')
-                    assert result is True
-                    assert mock_challenge.used is True
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            with patch('app.integrations.devices.biometric.safe_commit'):
+                result = auth.consume_challenge('valid-challenge')
+                assert result is True
+                assert mock_challenge.used is True
 
     def test_consume_challenge_with_type_filter(self):
         """Test consuming with challenge_type filter."""
         auth = BiometricAuth(tenant_id=1)
         mock_challenge = MagicMock()
-        mock_challenge.expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+        mock_challenge.expires_at = datetime.now(UTC) + timedelta(minutes=5)
         mock_challenge.used = False
 
         mock_query = MagicMock()
         mock_query.filter_by.return_value = mock_query
         mock_query.first.return_value = mock_challenge
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                with patch('app.integrations.devices.biometric.safe_commit'):
-                    result = auth.consume_challenge('ch', challenge_type='authentication')
-                    assert result is True
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            with patch('app.integrations.devices.biometric.safe_commit'):
+                result = auth.consume_challenge('ch', challenge_type='authentication')
+                assert result is True
 
     def test_consume_challenge_without_type_filter(self):
         """Test consuming without challenge_type filter."""
         auth = BiometricAuth(tenant_id=1)
         mock_challenge = MagicMock()
-        mock_challenge.expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+        mock_challenge.expires_at = datetime.now(UTC) + timedelta(minutes=5)
 
         mock_query = MagicMock()
         # When challenge_type is None, filter_by is not called
         mock_query.first.return_value = mock_challenge
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                with patch('app.integrations.devices.biometric.safe_commit'):
-                    result = auth.consume_challenge('ch')
-                    assert result is True
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            with patch('app.integrations.devices.biometric.safe_commit'):
+                result = auth.consume_challenge('ch')
+                assert result is True
 
 
 class TestIsEnabled:
@@ -627,10 +693,12 @@ class TestIsEnabled:
         mock_query.filter_by.return_value = mock_query
         mock_query.count.return_value = 5
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.is_enabled(user_id=1)
-                assert result is True
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.is_enabled(user_id=1)
+            assert result is True
 
     def test_is_enabled_false(self):
         """Test is_enabled returns False when no credentials."""
@@ -639,10 +707,12 @@ class TestIsEnabled:
         mock_query.filter_by.return_value = mock_query
         mock_query.count.return_value = 0
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.is_enabled()
-                assert result is False
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.is_enabled()
+            assert result is False
 
     def test_is_enabled_with_user_id(self):
         """Test is_enabled with user_id filter."""
@@ -651,10 +721,12 @@ class TestIsEnabled:
         mock_query.filter_by.return_value = mock_query
         mock_query.count.return_value = 1
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.is_enabled(user_id=1)
-                assert result is True
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.is_enabled(user_id=1)
+            assert result is True
 
     def test_is_enabled_resolves_tenant(self):
         """Test is_enabled resolves tenant."""
@@ -663,10 +735,12 @@ class TestIsEnabled:
         mock_query.filter_by.return_value = mock_query
         mock_query.count.return_value = 1
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.is_enabled()
-                assert result is True
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.is_enabled()
+            assert result is True
 
     def test_is_enabled_no_user_id_no_tenant(self):
         """Test is_enabled with no user_id and no tenant."""
@@ -675,10 +749,12 @@ class TestIsEnabled:
         mock_query.filter_by.return_value = mock_query
         mock_query.count.return_value = 3
 
-        with patch('app.integrations.devices.biometric.select', return_value=mock_query):
-            with patch('app.integrations.devices.biometric.db'):
-                result = auth.is_enabled()
-                assert result is True
+        with (
+            patch('app.integrations.devices.biometric.select', return_value=mock_query),
+            patch('app.integrations.devices.biometric.db'),
+        ):
+            result = auth.is_enabled()
+            assert result is True
 
 
 class TestLogger:

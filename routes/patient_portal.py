@@ -437,8 +437,7 @@ def download_document(file_id):
                 safe_rollback(db.session, error_message='database rollback')
                 logging.exception('Error updating file access time: %s')
             return redirect(presigned_url)
-        else:
-            abort(404)
+        abort(404)
 
     # Local storage fallback
     if not upload.file_path or not os.path.isfile(upload.file_path):

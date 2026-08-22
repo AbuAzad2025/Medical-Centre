@@ -15,13 +15,13 @@ from flask.json.provider import DefaultJSONProvider
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
-from flask_session import Session
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import inspect as _sa_inspect
 from sqlalchemy import select
 
+from flask_session import Session
 from utils.db_safety import safe_commit, safe_rollback
 
 # ============================================================
@@ -1160,7 +1160,7 @@ def create_app(config_name: str | None = None) -> Flask:
     AuditContextMiddleware().init_app(app)
 
     # API middleware — per-endpoint rate limits + X-API-Key authentication for /api/*
-    from services.api_key_service import ApiKeyService, _ApiAuthError
+    from services.api_key_service import _ApiAuthError
 
     @app.errorhandler(_ApiAuthError)
     def handle_api_auth_error(e):

@@ -5,7 +5,6 @@ FileService — secure file management with tenant isolation and S3/MinIO suppor
 import hashlib
 import os
 from datetime import UTC, datetime
-from typing import Optional
 
 from flask import current_app, g
 from sqlalchemy import select
@@ -43,8 +42,8 @@ class FileService:
         """Get configured S3/MinIO client"""
         try:
             import boto3
-        except ImportError:
-            raise RuntimeError('boto3 is required for S3/MinIO storage')
+        except ImportError as exc:
+            raise RuntimeError('boto3 is required for S3/MinIO storage') from exc
 
         endpoint_url = current_app.config.get('S3_ENDPOINT_URL')
         region = current_app.config.get('S3_REGION', 'us-east-1')
@@ -72,7 +71,7 @@ class FileService:
         """Get allowed extensions from config or use defaults"""
         allowed = current_app.config.get('ALLOWED_UPLOAD_EXTENSIONS')
         if allowed:
-            return set(ext.strip().lower() for ext in allowed)
+            return {ext.strip().lower() for ext in allowed}
         return FileService.DEFAULT_ALLOWED_EXTENSIONS
 
     @staticmethod
@@ -216,8 +215,8 @@ class FileService:
                     uploaded_by=(getattr(g, 'current_user', None) and g.current_user.id) or 0,
                     description=description,
                 )
-            except Exception as e:
-                current_app.logger.exception(f'S3 upload failed: {e}')
+            except Exception:
+                current_app.logger.exception('S3 upload failed:')
                 return None
         else:
             # Local storage (legacy)
@@ -268,12 +267,11 @@ class FileService:
             if expiry is None:
                 expiry = current_app.config.get('S3_PRESIGNED_URL_EXPIRY', 3600)
 
-            url = s3_client.generate_presigned_url(
+            return s3_client.generate_presigned_url(
                 'get_object', Params={'Bucket': bucket, 'Key': key}, ExpiresIn=expiry
             )
-            return url
-        except Exception as e:
-            current_app.logger.exception(f'Failed to generate presigned URL: {e}')
+        except Exception:
+            current_app.logger.exception('Failed to generate presigned URL:')
             return None
 
     @staticmethod
@@ -299,8 +297,8 @@ class FileService:
                         return None
 
                 return file_data, upload.original_filename, upload.file_type
-            except Exception as e:
-                current_app.logger.exception(f'S3 download failed: {e}')
+            except Exception:
+                current_app.logger.exception('S3 download failed:')
                 return None
         else:
             # Local storage
@@ -311,8 +309,8 @@ class FileService:
                 with open(file_path, 'rb') as f:
                     file_data = f.read()
                 return file_data, upload.original_filename, upload.file_type
-            except Exception as e:
-                current_app.logger.exception(f'Local file download failed: {e}')
+            except Exception:
+                current_app.logger.exception('Local file download failed:')
                 return None
 
     @staticmethod
@@ -343,15 +341,14 @@ class FileService:
                 key = upload.s3_key or upload.file_path
                 if bucket and key:
                     s3_client.delete_object(Bucket=bucket, Key=key)
-            else:
-                # Local storage
-                if upload.file_path and os.path.exists(upload.file_path):
-                    os.remove(upload.file_path)
+            # Local storage
+            elif upload.file_path and os.path.exists(upload.file_path):
+                os.remove(upload.file_path)
 
             db.session.delete(upload)
             return safe_commit(db.session, error_message='Failed to delete file record')
-        except Exception as e:
-            current_app.logger.exception(f'File delete failed: {e}')
+        except Exception:
+            current_app.logger.exception('File delete failed:')
             return False
 
     @staticmethod
@@ -367,6 +364,6 @@ class FileService:
 
             response = s3_client.get_object(Bucket=bucket, Key=key)
             return response['Body'].iter_chunks(chunk_size=chunk_size)
-        except Exception as e:
-            current_app.logger.exception(f'S3 stream failed: {e}')
+        except Exception:
+            current_app.logger.exception('S3 stream failed:')
             return None

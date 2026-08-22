@@ -21,8 +21,6 @@ from urllib.parse import unquote, urlparse
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app_factory import create_app
-from app.extensions import db
 
 MIN_BACKUP_BYTES = 1024
 CRITICAL_TABLES = ['users', 'patients', 'visits', 'audit_trails']
@@ -35,13 +33,13 @@ def _parsed():
 
 def _conn_kwargs(dbname=None):
     p = _parsed()
-    return dict(
-        host=p.hostname or 'localhost',
-        port=str(p.port or 5432),
-        user=unquote(p.username or 'postgres'),
-        password=unquote(p.password or ''),
-        dbname=dbname or (p.path or '/').lstrip('/'),
-    )
+    return {
+        'host': p.hostname or 'localhost',
+        'port': str(p.port or 5432),
+        'user': unquote(p.username or 'postgres'),
+        'password': unquote(p.password or ''),
+        'dbname': dbname or (p.path or '/').lstrip('/'),
+    }
 
 
 def _env_with_password():
@@ -142,15 +140,15 @@ def run_restore(backup_path: str) -> tuple[bool, list[str]]:
         env=_env_with_password(),
         timeout=1800,
     )
-    err_lines = [l for l in (proc.stderr or '').splitlines() if l.strip()]
+    err_lines = [ln for ln in (proc.stderr or '').splitlines() if ln.strip()]
     # pg_restore exits nonzero if ANY error occurred; collect them.
     real_errors = [
-        l for l in err_lines if 'error' in l.lower() and 'already exists' not in l.lower()
+        ln for ln in err_lines if 'error' in ln.lower() and 'already exists' not in ln.lower()
     ]
     print(f'      pg_restore rc={proc.returncode}, {len(real_errors)} error line(s)')
     if real_errors[:10]:
-        for l in real_errors[:10]:
-            print(f'        ! {l[:160]}')
+        for ln in real_errors[:10]:
+            print(f'        ! {ln[:160]}')
     return proc.returncode == 0 and not real_errors, real_errors
 
 
@@ -259,7 +257,7 @@ def main() -> int:
             print('DR DRILL FAILED (integrity mismatch)')
         return 1
     finally:
-        if tmp_dir and os.path.isdir(tmp_dir):
+        if tmp_dir and Path(tmp_dir).is_dir():
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 

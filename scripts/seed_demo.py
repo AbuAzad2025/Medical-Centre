@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Seed script to create default demo data for the Medical System."""
 
-import sys
 import os
+import sys
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

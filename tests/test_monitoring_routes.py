@@ -3,13 +3,11 @@
 Covers Prometheus metrics endpoint and metric collection.
 """
 
-import time
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.extensions import db
-from routes.monitoring_routes import monitoring_bp, _collect_metrics, _discover_tenant_tables
+from routes.monitoring_routes import _collect_metrics, _discover_tenant_tables
 
 
 @pytest.fixture

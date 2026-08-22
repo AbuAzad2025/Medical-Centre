@@ -133,6 +133,8 @@ unfixable = ["E711", "E712"]
     "B017",   # pytest.raises(Exception) - common in tests
     "ANN001", # type annotations optional in tests (if ANN enabled)
     "PLR2004", # magic value comparison (test constants)
+    "SIM117", # nested patch() contexts are intentional in tests; merging
+              # 3+ multi-line patches into one statement exceeds line length
 ]
 "scripts/*" = [
     "T201",   # print

@@ -6,8 +6,8 @@ Covers module-to-route mapping and core blueprint identification utilities.
 import pytest
 
 from app.core.module_route_map import (
-    MODULE_ROUTE_MAP,
     CORE_BLUEPRINTS,
+    MODULE_ROUTE_MAP,
     get_module_for_prefix,
     get_prefixes_for_module,
     is_core_blueprint,
@@ -46,7 +46,7 @@ class TestGetModuleForPrefix:
 
     def test_all_modules_have_prefixes(self):
         """Test that every module in the map has at least one prefix."""
-        for module, info in MODULE_ROUTE_MAP.items():
+        for _module, info in MODULE_ROUTE_MAP.items():
             assert 'prefixes' in info
             assert len(info['prefixes']) > 0
             assert 'blueprints' in info

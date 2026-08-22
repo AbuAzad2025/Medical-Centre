@@ -3,12 +3,13 @@
 Covers WhatsAppNotificationService and WhatsAppClient.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 
-from app.integrations.whatsapp.service import WhatsAppNotificationService
-from app.integrations.whatsapp.client import WhatsAppClient
+import pytest
+
 from app.integrations.whatsapp import WhatsAppNotificationService as ServiceFromPackage
+from app.integrations.whatsapp.client import WhatsAppClient
+from app.integrations.whatsapp.service import WhatsAppNotificationService
 
 
 @pytest.fixture
@@ -165,26 +166,31 @@ class TestWhatsAppClient:
 
     def test_init_raises_without_credentials(self):
         """Test init raises RuntimeError when credentials missing."""
-        with patch.dict('os.environ', {}, clear=False):
-            with patch('os.environ.get', return_value=None):
-                with pytest.raises(RuntimeError, match='are required'):
-                    WhatsAppClient()
+        with patch.dict('os.environ', {}, clear=False), patch('os.environ.get', return_value=None):
+            with pytest.raises(RuntimeError, match='are required'):
+                WhatsAppClient()
 
     def test_init_raises_with_partial_credentials(self):
         """Test init raises when only token is provided but not phone_id."""
         env = {'WHATSAPP_API_TOKEN': 'partial-token'}
-        with patch.dict('os.environ', env, clear=True):
-            with pytest.raises(RuntimeError, match='are required'):
-                WhatsAppClient()
+        with (
+            patch.dict('os.environ', env, clear=True),
+            pytest.raises(RuntimeError, match='are required'),
+        ):
+            WhatsAppClient()
 
     def test_init_with_only_token_provided(self):
         """Test init raises when only api_token is provided."""
-        with patch(
-            'os.environ.get',
-            side_effect=lambda key, default=None: 'token' if key == 'WHATSAPP_API_TOKEN' else None,
+        with (
+            patch(
+                'os.environ.get',
+                side_effect=lambda key, _default=None: (
+                    'token' if key == 'WHATSAPP_API_TOKEN' else None
+                ),
+            ),
+            pytest.raises(RuntimeError, match='are required'),
         ):
-            with pytest.raises(RuntimeError, match='are required'):
-                WhatsAppClient()
+            WhatsAppClient()
 
     def test_url_method(self):
         """Test _url generates correct URL."""

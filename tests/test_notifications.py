@@ -3,8 +3,9 @@
 Covers the NotificationDispatcher class.
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from app.core.notifications import NotificationDispatcher, logger
 

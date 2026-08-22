@@ -3,10 +3,9 @@
 Covers radiology report template CRUD operations.
 """
 
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-from routes.radiology import radiology_bp
+import pytest
 
 
 @pytest.fixture

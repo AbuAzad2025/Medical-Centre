@@ -5,14 +5,13 @@ Run:  python scripts/audit_indexes.py
 Outputs a report and optionally generates CREATE INDEX statements.
 """
 
-import os
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app_factory import create_app
 from app.extensions import db
+from app_factory import create_app
 
 # FK columns WITHOUT an index are candidates. Composite-leading-column
 # indexes already cover the FK, so we check for any index whose FIRST

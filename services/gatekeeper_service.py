@@ -378,7 +378,7 @@ class GatekeeperService:
                 return False, 'ليس لديك الصلاحية لأرشفة الزيارة'
 
             try:
-                visit = get_tenant_record(Visit, visit_id)
+                get_tenant_record(Visit, visit_id)
             except TenantContextError:
                 return False, 'الزيارة غير موجودة'
 

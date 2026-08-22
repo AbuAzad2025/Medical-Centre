@@ -67,9 +67,8 @@ def download_file(file_id):
                 except Exception:
                     safe_rollback(db.session, error_message='database rollback')
                 return redirect(presigned_url)
-            else:
-                flash('تعذر إنشاء رابط التحميل', 'error')
-                return redirect(url_for('radiology.worklist'))
+            flash('تعذر إنشاء رابط التحميل', 'error')
+            return redirect(url_for('radiology.worklist'))
 
         # Local storage fallback
         if not f.file_path or not os.path.exists(f.file_path):

@@ -60,7 +60,7 @@ class TestApiKeyModel:
 
         from models.api_key import ApiKey
 
-        raw, prefix, digest = ApiKey.generate_raw_key()
+        _raw, prefix, digest = ApiKey.generate_raw_key()
         # NOTE: column defaults apply at flush; pass values explicitly for
         # un-flushed instances.
         key = ApiKey(name='t', key_prefix=prefix, key_hash=digest, is_active=True)

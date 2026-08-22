@@ -3,13 +3,14 @@
 Covers radiology worklist routes and helper functions.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from routes.radiology.worklist import (
-    _parse_radiology_payload,
     _handle_radiology_file_uploads,
     _notify_radiology_complete,
+    _parse_radiology_payload,
 )
 
 
@@ -50,7 +51,7 @@ class TestParseRadiologyPayload:
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
             mock_request.get_json = MagicMock(return_value={'is_critical': ['true']})
-            payload, is_critical = _parse_radiology_payload()
+            _payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
     def test_is_critical_from_bool(self):
@@ -58,7 +59,7 @@ class TestParseRadiologyPayload:
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
             mock_request.get_json = MagicMock(return_value={'is_critical': True})
-            payload, is_critical = _parse_radiology_payload()
+            _payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
     def test_is_critical_from_int(self):
@@ -66,7 +67,7 @@ class TestParseRadiologyPayload:
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
             mock_request.get_json = MagicMock(return_value={'is_critical': 1})
-            payload, is_critical = _parse_radiology_payload()
+            _payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
     def test_is_critical_from_string_on(self):
@@ -74,7 +75,7 @@ class TestParseRadiologyPayload:
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = False
             mock_request.form = {'is_critical': 'on'}
-            payload, is_critical = _parse_radiology_payload()
+            _payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
     def test_is_critical_from_string_yes(self):
@@ -82,7 +83,7 @@ class TestParseRadiologyPayload:
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = False
             mock_request.form = {'is_critical': 'yes'}
-            payload, is_critical = _parse_radiology_payload()
+            _payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
     def test_is_critical_from_string_1(self):
@@ -90,7 +91,7 @@ class TestParseRadiologyPayload:
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = False
             mock_request.form = {'is_critical': '1'}
-            payload, is_critical = _parse_radiology_payload()
+            _payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
     def test_is_critical_from_string_true(self):
@@ -98,7 +99,7 @@ class TestParseRadiologyPayload:
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = False
             mock_request.form = {'is_critical': 'true'}
-            payload, is_critical = _parse_radiology_payload()
+            _payload, is_critical = _parse_radiology_payload()
             assert is_critical is True
 
     def test_is_critical_false_string(self):
@@ -106,7 +107,7 @@ class TestParseRadiologyPayload:
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = False
             mock_request.form = {'is_critical': 'false'}
-            payload, is_critical = _parse_radiology_payload()
+            _payload, is_critical = _parse_radiology_payload()
             assert is_critical is False
 
     def test_is_critical_empty_list(self):
@@ -114,7 +115,7 @@ class TestParseRadiologyPayload:
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
             mock_request.get_json = MagicMock(return_value={'is_critical': []})
-            payload, is_critical = _parse_radiology_payload()
+            _payload, is_critical = _parse_radiology_payload()
             assert is_critical is False
 
     def test_is_critical_none(self):
@@ -122,7 +123,7 @@ class TestParseRadiologyPayload:
         with patch('routes.radiology.worklist.request') as mock_request:
             mock_request.is_json = True
             mock_request.get_json = MagicMock(return_value={})
-            payload, is_critical = _parse_radiology_payload()
+            _payload, is_critical = _parse_radiology_payload()
             assert is_critical is False
 
     def test_json_payload_no_is_critical(self):
@@ -165,12 +166,11 @@ class TestHandleRadiologyFileUploads:
     ):
         """Test processing a single file upload."""
         mock_user.id = 7
-        mock_app_config = {}
-        mock_os.path.join = lambda *args: '/'.join(str(a) for a in args)
-        mock_os.path.dirname = lambda *args: '/tmp'
-        mock_os.path.abspath = lambda *args: '/tmp/test.py'
-        mock_os.path.splitext = lambda x: (x, '.dcm')
-        mock_os.path.getsize = lambda x: 1024
+        mock_os.path.join = lambda *parts: '/'.join(str(p_) for p_ in parts)
+        mock_os.path.dirname = lambda *_a: '/tmp'
+        mock_os.path.abspath = lambda *_a: '/tmp/test.py'
+        mock_os.path.splitext = lambda name_: (name_, '.dcm')
+        mock_os.path.getsize = lambda _path: 1024
         mock_os.makedirs = MagicMock()
         mock_secrets.token_hex.return_value = 'abc123'
         mock_secure.return_value = 'test.dcm'
@@ -206,9 +206,9 @@ class TestHandleRadiologyFileUploads:
         """Test handling when secure_filename returns empty string."""
         mock_user.id = 7
         mock_app.config = {}
-        mock_os.path.join = lambda *args: '/'.join(str(a) for a in args)
-        mock_os.path.dirname = lambda *args: '/tmp'
-        mock_os.path.splitext = lambda x: (x, '.dcm')
+        mock_os.path.join = lambda *parts: '/'.join(str(p_) for p_ in parts)
+        mock_os.path.dirname = lambda *_args: '/tmp'
+        mock_os.path.splitext = lambda name_: (name_, '.dcm')
         mock_os.makedirs = MagicMock()
         mock_secure.return_value = ''  # Forces fallback
 
