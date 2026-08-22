@@ -7,8 +7,12 @@ core radiology workflows end-to-end against a live PostgreSQL database.
 from __future__ import annotations
 
 import pytest
+import uuid
 from unittest.mock import MagicMock, patch
 
+from sqlalchemy import select
+
+from app.extensions import db
 from tests.tenant_context import login_test_client
 from models.user import User
 from models.radiology_request import RadiologyRequest
@@ -32,11 +36,7 @@ def _login_role(client, role, test_tenant):
     """Login as a user with the given role, return authenticated client."""
     from models.user import User as _User
 
-    user = (
-        db.session.execute(select(_User).filter_by(username=f'e2e_{role}'))
-        .scalars()
-        .first()
-    )
+    user = db.session.execute(select(_User).filter_by(username=f'e2e_{role}')).scalars().first()
     if not user:
         user = _User(
             username=f'e2e_{role}',
@@ -65,6 +65,7 @@ def _radiology_e2e_base(app, test_tenant, db):
     from models.visit import Visit
     from datetime import UTC, datetime
     from models.radiology_request import RadiologyRequest
+    from models.user import User as _User
 
     # Create patient
     patient = Patient(
@@ -85,13 +86,26 @@ def _radiology_e2e_base(app, test_tenant, db):
     db.session.add(visit)
     db.session.commit()
 
-    # Create radiology request
+    # Create the requesting physician (FK target for requested_by)
+    tech = _User(
+        username=f'e2e_req_{uuid.uuid4().hex[:6]}',
+        email=f'e2e_req_{uuid.uuid4().hex[:6]}@test.local',
+        full_name='E2E Requester',
+        role='doctor',
+        is_active=True,
+        tenant_id=test_tenant.id,
+    )
+    tech.set_password('ValidPass123!')
+    db.session.add(tech)
+    db.session.commit()
+
+    # Create radiology request (unique number per run)
     req = RadiologyRequest(
         tenant_id=test_tenant.id,
         visit_id=visit.id,
         patient_id=patient.id,
-        requested_by=1,
-        request_number='RAD-E2E-001',
+        requested_by=tech.id,
+        request_number=f'RAD-E2E-{uuid.uuid4().hex[:8].upper()}',
         status='REQUESTED',
         modality='XRAY',
         body_part='Chest',
@@ -105,6 +119,18 @@ def _radiology_e2e_base(app, test_tenant, db):
     return {'patient': patient, 'visit': visit, 'request': req}
 
 
+@pytest.fixture
+def rad_visit(_radiology_e2e_base):
+    """The Visit created by the radiology E2E base fixture."""
+    return _radiology_e2e_base['visit']
+
+
+@pytest.fixture
+def rad_request(_radiology_e2e_base):
+    """The RadiologyRequest created by the radiology E2E base fixture."""
+    return _radiology_e2e_base['request']
+
+
 # ──────────────────────────────────────────────────────────────────────
 # TEST: Doctor creates radiology request
 # ──────────────────────────────────────────────────────────────────────
@@ -113,7 +139,9 @@ def _radiology_e2e_base(app, test_tenant, db):
 class TestRadiologyE2ECreateRequest:
     """E2E: Doctor creates a radiology request via the doctor route."""
 
-    def test_doctor_creates_structured_request(self, client, app, test_tenant, db, _radiology_e2e_base, rad_visit):
+    def test_doctor_creates_structured_request(
+        self, client, app, test_tenant, db, _radiology_e2e_base, rad_visit
+    ):
         """Doctor can create a structured radiology request."""
         client = _login_role(client, 'doctor', test_tenant)
 
@@ -128,9 +156,7 @@ class TestRadiologyE2ECreateRequest:
         assert resp.status_code in (200, 302)
 
         req = (
-            db.session.execute(
-                select(RadiologyRequest).filter_by(visit_id=rad_visit.id)
-            )
+            db.session.execute(select(RadiologyRequest).filter_by(visit_id=rad_visit.id))
             .scalars()
             .first()
         )
@@ -161,7 +187,9 @@ class TestRadiologyE2ECreateRequest:
 class TestRadiologyE2EWorklist:
     """E2E: Technician views and interacts with the radiology worklist."""
 
-    def test_tech_views_worklist(self, client, app, test_tenant, db, _radiology_e2e_base, rad_visit):
+    def test_tech_views_worklist(
+        self, client, app, test_tenant, db, _radiology_e2e_base, rad_visit
+    ):
         """Technician can view the radiology worklist."""
         client = _login_role(client, 'radiology', test_tenant)
 
@@ -175,11 +203,11 @@ class TestRadiologyE2EWorklist:
         resp = client.get('/radiology/worklist?status=REQUESTED')
         assert resp.status_code == 200
 
-    def test_tech_views_request_detail(self, client, app, test_tenant, db, rad_visit):
+    def test_tech_views_request_detail(self, client, app, test_tenant, db, rad_request):
         """Technician can view a specific worklist request detail."""
         client = _login_role(client, 'radiology', test_tenant)
 
-        resp = client.get(f'/radiology/worklist/request/{rad_visit.id}')
+        resp = client.get(f'/radiology/worklist/request/{rad_request.id}')
         assert resp.status_code == 200
 
 
@@ -206,7 +234,9 @@ class TestRadiologyE2EClaimComplete:
         data = resp.get_json()
         assert data['success'] is True
 
-    def test_tech_completes_request_creates_result(self, client, app, test_tenant, db, _radiology_e2e_base):
+    def test_tech_completes_request_creates_result(
+        self, client, app, test_tenant, db, _radiology_e2e_base
+    ):
         """Technician completes a request, creating a new result."""
         client = _login_role(client, 'radiology', test_tenant)
 
@@ -221,7 +251,9 @@ class TestRadiologyE2EClaimComplete:
         data = resp.get_json()
         assert data['success'] is True
 
-    def test_tech_completes_request_updates_existing_result(self, client, app, test_tenant, db, _radiology_e2e_base):
+    def test_tech_completes_request_updates_existing_result(
+        self, client, app, test_tenant, db, _radiology_e2e_base
+    ):
         """Technician completes a request that already has a result (updates it)."""
         from models.radiology_result import RadiologyResult
         from app.extensions import db as _db
@@ -252,6 +284,7 @@ class TestRadiologyE2EClaimComplete:
 # ──────────────────────────────────────────────────────────────────────
 # TEST: Manager manages templates and macros
 # ──────────────────────────────────────────────────────────────────────
+
 
 class TestRadiologyE2EManagerTemplates:
     """E2E: Manager manages radiology report templates and macros."""
@@ -311,6 +344,7 @@ class TestRadiologyE2EManagerTemplates:
 # TEST: Authentication flow
 # ──────────────────────────────────────────────────────────────────────
 
+
 class TestAuthE2ELogin:
     """E2E: Authentication flow tests."""
 
@@ -320,6 +354,7 @@ class TestAuthE2ELogin:
 
         # Ensure a test user exists
         from models.user import User as _User
+
         user = (
             db.session.execute(select(_User).filter_by(username='pharmacist_test'))
             .scalars()
@@ -339,13 +374,14 @@ class TestAuthE2ELogin:
             db.session.commit()
 
         login_test_client(client, user, test_tenant)
-        assert 'tenant_id' in client.session
+        with client.session_transaction() as sess:
+            assert 'tenant_id' in sess
 
     def test_login_requires_valid_credentials(self, client, app, test_tenant, db):
-        """Login fails with invalid credentials."""
+        """Login fails with invalid credentials (JSON path returns 401)."""
         resp = client.post(
             '/auth/login',
-            data={'username': 'nonexistent', 'password': 'wrongpassword'},
+            json={'username': 'nonexistent', 'password': 'wrongpassword'},
         )
         assert resp.status_code == 401
 
@@ -353,6 +389,7 @@ class TestAuthE2ELogin:
 # ──────────────────────────────────────────────────────────────────────
 # TEST: Access control
 # ──────────────────────────────────────────────────────────────────────
+
 
 class TestAccessControlE2E:
     """E2E: Access control tests for radiology routes."""

@@ -129,12 +129,14 @@ class TestPrintReceipt:
     def test_includes_items(self):
         """Test that items are included."""
         printer = ThermalPrinter()
-        result = printer.print_receipt({
-            'items': [
-                {'name': 'Consultation', 'amount': '100.00'},
-                {'name': 'Medicine', 'amount': '50.00'},
-            ]
-        })
+        result = printer.print_receipt(
+            {
+                'items': [
+                    {'name': 'Consultation', 'amount': '100.00'},
+                    {'name': 'Medicine', 'amount': '50.00'},
+                ]
+            }
+        )
         assert b'Consultation' in result
         assert b'Medicine' in result
         assert b'100.00' in result

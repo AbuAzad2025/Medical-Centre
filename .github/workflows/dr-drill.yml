@@ -1,0 +1,50 @@
+name: Monthly DR Drill
+
+# Automated Point-In-Time Recovery / restore verification.
+# See docs/DISASTER_RECOVERY.md section 5.
+on:
+  schedule:
+    - cron: '0 3 1 * *' # first day of month, 03:00 UTC
+  workflow_dispatch: {} # manual trigger
+
+jobs:
+  pitr-restore-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: drillpass
+          POSTGRES_DB: medical_system_drill
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_no_psycopg2.txt || pip install -r requirements.txt
+
+      - name: Run restore drill
+        env:
+          DATABASE_URL: postgresql://postgres:drillpass@localhost:5432/medical_system_drill
+          SECRET_KEY: ci-drill-only-key-not-secret
+          APP_ENV: testing
+          SKIP_PLATFORM_BOOTSTRAP: '1'
+        run: python scripts/test_pitr_restore.py
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::warning::Monthly DR drill FAILED - backup/restore path is broken."
+          exit 1

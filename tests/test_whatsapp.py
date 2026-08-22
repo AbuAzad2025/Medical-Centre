@@ -179,7 +179,10 @@ class TestWhatsAppClient:
 
     def test_init_with_only_token_provided(self):
         """Test init raises when only api_token is provided."""
-        with patch('os.environ.get', side_effect=lambda key, default=None: 'token' if key == 'WHATSAPP_API_TOKEN' else None):
+        with patch(
+            'os.environ.get',
+            side_effect=lambda key, default=None: 'token' if key == 'WHATSAPP_API_TOKEN' else None,
+        ):
             with pytest.raises(RuntimeError, match='are required'):
                 WhatsAppClient()
 
@@ -277,7 +280,9 @@ class TestWhatsAppClient:
         mock_response.json.return_value = {'success': True}
         mock_requests.post.return_value = mock_response
 
-        client.send_document(to='+123', document_url='https://example.com/doc.pdf', caption='Invoice')
+        client.send_document(
+            to='+123', document_url='https://example.com/doc.pdf', caption='Invoice'
+        )
 
         call_args = mock_requests.post.call_args
         assert call_args[1]['json']['type'] == 'document'

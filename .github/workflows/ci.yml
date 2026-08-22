@@ -38,6 +38,7 @@ jobs:
           pip install ruff mypy pip-audit bandit types-requests
 
       - name: Ruff lint overview (progressive -- legacy style baseline)
+        continue-on-error: true # documented as non-failing reporting; strict gates follow
         run: ruff check . --statistics
 
       - name: Ruff format check (strict)

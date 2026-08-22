@@ -228,7 +228,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/chartjs/chart.umd.min.js') }}"></script>
 <script id="nurse-chart-data" type="application/json">{{ {
   'spark': [stats.patients_today or 0, stats.active_visits or 0, stats.pending_tasks or 0, stats.smart_analytics.efficiency_score or 0],
   'mainData': [stats.patients_today or 0, stats.active_visits or 0, stats.pending_tasks or 0, stats.medications_needed or 0, stats.smart_analytics.completed_tasks or 0]

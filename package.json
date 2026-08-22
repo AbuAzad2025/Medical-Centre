@@ -7,9 +7,16 @@
     "lint:css": "stylelint \"static/css/**/*.css\"",
     "lint:css:fix": "stylelint \"static/css/**/*.css\" --fix",
     "spellcheck": "cspell \"**/*.{py,html,js,css,md,json,toml,yaml,yml,sql,ini,cfg,conf,sh,bat,ps1}\"",
-    "spellcheck:fix": "cspell \"**/*.{py,html,js,css,md,json,toml,yaml,yml,sql,ini,cfg,conf,sh,bat,ps1}\" --fix"
+    "spellcheck:fix": "cspell \"**/*.{py,html,js,css,md,json,toml,yaml,yml,sql,ini,cfg,conf,sh,bat,ps1}\" --fix",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:ui": "playwright test --ui",
+    "e2e:install": "playwright install chromium",
+    "build": "node scripts/build-assets.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "esbuild": "^0.24.0",
     "stylelint": "16.26.1",
     "stylelint-config-standard": "36.0.1",
     "stylelint-config-recess-order": "5.1.1",

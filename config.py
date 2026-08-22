@@ -199,6 +199,18 @@ class Config:
     )
     SESSION_COOKIE_SAMESITE = 'Lax'
 
+    # إعدادات جلسة Redis (Flask-Session)
+    SESSION_TYPE = os.environ.get('SESSION_TYPE', 'filesystem')  # filesystem, redis, sqlalchemy
+    SESSION_REDIS_URL = os.environ.get('SESSION_REDIS_URL')  # redis://host:port/db
+    SESSION_REDIS_PREFIX = os.environ.get('SESSION_REDIS_PREFIX', 'medical_session:')
+    SESSION_USE_SIGNER = True
+    SESSION_PERMANENT = True
+    SESSION_KEY_PREFIX = 'medical:'
+    # تفعيل Redis session في الإنتاج إذا توفر SESSION_REDIS_URL
+    if SESSION_TYPE == 'redis' and not SESSION_REDIS_URL:
+        # fallback to filesystem if Redis not configured
+        SESSION_TYPE = 'filesystem'
+
     # إعدادات WTF
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = 3600
@@ -220,6 +232,26 @@ class Config:
     # إعدادات الملفات
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
+
+    # إعدادات التخزين السحابي (S3/MinIO)
+    STORAGE_BACKEND = os.environ.get('STORAGE_BACKEND', 'local').lower()  # local, s3, minio
+    S3_BUCKET = os.environ.get('S3_BUCKET')
+    S3_REGION = os.environ.get('S3_REGION', 'us-east-1')
+    S3_ENDPOINT_URL = os.environ.get('S3_ENDPOINT_URL')  # For MinIO
+    S3_ACCESS_KEY = os.environ.get('S3_ACCESS_KEY')
+    S3_SECRET_KEY = os.environ.get('S3_SECRET_KEY')
+    S3_PRESIGNED_URL_EXPIRY = int(os.environ.get('S3_PRESIGNED_URL_EXPIRY', '3600'))  # 1 hour
+    S3_FORCE_PATH_STYLE = os.environ.get('S3_FORCE_PATH_STYLE', 'false').lower() in (
+        'true',
+        'on',
+        '1',
+    )
+
+    # إعدادات التحقق من الملفات
+    ALLOWED_UPLOAD_EXTENSIONS = os.environ.get(
+        'ALLOWED_UPLOAD_EXTENSIONS', 'pdf,png,jpg,jpeg,gif,doc,docx,xls,xlsx,txt,csv,dcm'
+    ).split(',')
+    MAX_FILE_SIZE_MB = int(os.environ.get('MAX_FILE_SIZE_MB', '16'))
 
     # إعدادات التقارير
     REPORT_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'reports')

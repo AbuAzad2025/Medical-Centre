@@ -54,7 +54,25 @@ def download_file(file_id):
         if f.is_expired():
             flash('انتهت صلاحية الملف', 'error')
             return redirect(url_for('radiology.worklist'))
-        if not os.path.exists(f.file_path):
+
+        # For S3/MinIO, redirect to pre-signed URL
+        if f.storage_backend in ('s3', 'minio'):
+            from services.file_service import FileService
+
+            presigned_url = FileService.generate_presigned_url(f)
+            if presigned_url:
+                try:
+                    f.last_accessed = datetime.now(UTC)
+                    safe_commit(db.session, error_message='database commit failed', reraise=True)
+                except Exception:
+                    safe_rollback(db.session, error_message='database rollback')
+                return redirect(presigned_url)
+            else:
+                flash('تعذر إنشاء رابط التحميل', 'error')
+                return redirect(url_for('radiology.worklist'))
+
+        # Local storage fallback
+        if not f.file_path or not os.path.exists(f.file_path):
             flash('الملف غير موجود على القرص', 'error')
             return redirect(url_for('radiology.worklist'))
         try:

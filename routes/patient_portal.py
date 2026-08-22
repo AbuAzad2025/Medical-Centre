@@ -423,6 +423,24 @@ def download_document(file_id):
     upload = db.get_or_404(FileUpload, file_id)
     if not _patient_owns_file(patient, upload):
         abort(403)
+
+    # For S3/MinIO, redirect to pre-signed URL
+    if upload.storage_backend in ('s3', 'minio'):
+        from services.file_service import FileService
+
+        presigned_url = FileService.generate_presigned_url(upload)
+        if presigned_url:
+            try:
+                upload.last_accessed = datetime.now(UTC)
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
+            except Exception:
+                safe_rollback(db.session, error_message='database rollback')
+                logging.exception('Error updating file access time: %s')
+            return redirect(presigned_url)
+        else:
+            abort(404)
+
+    # Local storage fallback
     if not upload.file_path or not os.path.isfile(upload.file_path):
         abort(404)
     try:

@@ -5,6 +5,7 @@ Medical System Authentication Routes
 
 import contextlib
 import logging
+import secrets
 from datetime import UTC, datetime, timedelta
 
 from flask import (
@@ -22,7 +23,7 @@ from flask.typing import ResponseReturnValue
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_wtf.csrf import generate_csrf, validate_csrf
 from sqlalchemy import func, select
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.core.rate_limiter import rate_limit
 from app.extensions import db
@@ -589,9 +590,8 @@ def change_password():
             return jsonify({'success': False, 'message': 'كلمة المرور الحالية غير صحيحة'}), 400
 
         # تحديث كلمة المرور
-        from werkzeug.security import generate_password_hash
-
         current_user.password_hash = generate_password_hash(new_password)
+        current_user.session_version = (current_user.session_version or 0) + 1
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         return jsonify({'success': True, 'message': 'تم تغيير كلمة المرور بنجاح'})
@@ -599,6 +599,299 @@ def change_password():
     except Exception:
         logging.exception('Change password error')
         return jsonify({'success': False, 'message': 'حدث خطأ في تغيير كلمة المرور'}), 500
+
+
+# =============================================
+# PASSWORD RESET (FORGOT PASSWORD) FLOW
+# =============================================
+
+
+def _generate_reset_token() -> str:
+    """Generate a secure password reset token."""
+    return secrets.token_urlsafe(32)
+
+
+def _store_reset_token(user_id: int, token: str, expires_at: datetime) -> None:
+    """Store password reset token in user preferences JSON."""
+    user = db.session.get(User, user_id)
+    if not user:
+        return
+    prefs = user.preferences or {}
+    prefs['password_reset_token'] = token
+    prefs['password_reset_expires'] = expires_at.isoformat()
+    user.preferences = prefs
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
+
+
+def _verify_reset_token(user_id: int, token: str) -> bool:
+    """Verify password reset token."""
+    user = db.session.get(User, user_id)
+    if not user or not user.preferences:
+        return False
+    stored_token = user.preferences.get('password_reset_token')
+    expires_str = user.preferences.get('password_reset_expires')
+    if not stored_token or not expires_str:
+        return False
+    if stored_token != token:
+        return False
+    try:
+        expires_at = datetime.fromisoformat(expires_str)
+        if datetime.now(UTC) > expires_at:
+            return False
+    except Exception:
+        return False
+    return True
+
+
+def _clear_reset_token(user_id: int) -> None:
+    """Clear password reset token after use."""
+    user = db.session.get(User, user_id)
+    if not user or not user.preferences:
+        return
+    prefs = user.preferences
+    prefs.pop('password_reset_token', None)
+    prefs.pop('password_reset_expires', None)
+    user.preferences = prefs
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
+
+
+@auth_bp.route('/forgot-password', methods=['GET', 'POST'])
+@rate_limit(max_requests=3, window_seconds=3600, namespace='auth')
+def forgot_password() -> ResponseReturnValue:
+    """طلب إعادة تعيين كلمة المرور - يرسل رمزاً بالبريد الإلكتروني أو واتساب"""
+    if request.method == 'GET':
+        token = generate_csrf()
+        from flask import make_response
+
+        resp = make_response(render_template('auth/forgot_password.html'))
+        secure = current_app.config.get('SESSION_COOKIE_SECURE', True)
+        resp.set_cookie('csrf_token', token, samesite='Lax', secure=secure)
+        return resp
+
+    # POST - Process forgot password request
+    try:
+        is_ajax = request.headers.get('Content-Type') == 'application/json' or request.is_json
+        data = request.get_json() if is_ajax else request.form
+
+        # CSRF validation
+        csrf_enabled = current_app.config.get('WTF_CSRF_ENABLED', True)
+        if csrf_enabled:
+            token = (
+                request.headers.get('X-CSRFToken')
+                or request.headers.get('X-CSRF-Token')
+                or data.get('csrf_token')
+                or request.cookies.get('csrf_token')
+            )
+            try:
+                validate_csrf(token)
+            except Exception:
+                msg = 'جلسة غير صالحة، يرجى تحديث الصفحة والمحاولة مرة أخرى'
+                if is_ajax:
+                    return jsonify({'success': False, 'message': msg}), 400
+                flash(msg, 'error')
+                return render_template('auth/forgot_password.html'), 400
+
+        identifier = (data.get('identifier') or '').strip()  # username or email
+        if not identifier:
+            msg = 'اسم المستخدم أو البريد الإلكتروني مطلوب'
+            if is_ajax:
+                return jsonify({'success': False, 'message': msg}), 400
+            flash(msg, 'error')
+            return render_template('auth/forgot_password.html')
+
+        # Find user by username or email
+        user = (
+            db.session.execute(
+                select(User).filter((User.username == identifier) | (User.email == identifier))
+            )
+            .scalars()
+            .first()
+        )
+
+        # Always return success to prevent user enumeration
+        success_msg = 'إذا كان الحساب موجوداً، سيتم إرسال رابط إعادة تعيين كلمة المرور'
+
+        if user and user.is_active:
+            # Generate reset token (valid for 1 hour)
+            reset_token = _generate_reset_token()
+            expires_at = datetime.now(UTC) + timedelta(hours=1)
+            _store_reset_token(user.id, reset_token, expires_at)
+
+            # Send reset link via email
+            reset_url = url_for(
+                'auth.reset_password', token=reset_token, user_id=user.id, _external=True
+            )
+
+            try:
+                from flask_mail import Message
+                from app.extensions import mail
+
+                msg = Message(
+                    subject='إعادة تعيين كلمة المرور - نظام الإدارة الطبية',
+                    recipients=[user.email],
+                    html=render_template(
+                        'emails/password_reset.html',
+                        user=user,
+                        reset_url=reset_url,
+                        expires_hours=1,
+                    ),
+                )
+                mail.send(msg)
+                logging.info(f'Password reset email sent to user {user.id}')
+            except Exception as e:
+                logging.warning(f'Failed to send password reset email: {e}')
+                # Try WhatsApp as fallback
+                try:
+                    from app.integrations.whatsapp.service import WhatsAppService
+
+                    whatsapp = WhatsAppService()
+                    whatsapp.send_message(
+                        to=user.phone,
+                        body=f'رابط إعادة تعيين كلمة المرور: {reset_url} (صالح لساعة واحدة)',
+                    )
+                except Exception:
+                    pass
+
+        if is_ajax:
+            return jsonify({'success': True, 'message': success_msg})
+        flash(success_msg, 'success')
+        return redirect(url_for('auth.login'))
+
+    except Exception:
+        logging.exception('Forgot password error')
+        if is_ajax:
+            return jsonify({'success': False, 'message': 'حدث خطأ في معالجة الطلب'}), 500
+        flash('حدث خطأ في معالجة الطلب', 'error')
+        return render_template('auth/forgot_password.html')
+
+
+@auth_bp.route('/reset-password/<token>/<int:user_id>', methods=['GET', 'POST'])
+def reset_password(token: str, user_id: int) -> ResponseReturnValue:
+    """صفحة إعادة تعيين كلمة المرور برمز مؤقت"""
+    if not _verify_reset_token(user_id, token):
+        flash('رمز إعادة التعيين غير صالح أو منتهي الصلاحية', 'error')
+        return redirect(url_for('auth.forgot_password'))
+
+    if request.method == 'GET':
+        token = generate_csrf()
+        from flask import make_response
+
+        resp = make_response(
+            render_template('auth/reset_password.html', token=token, user_id=user_id)
+        )
+        secure = current_app.config.get('SESSION_COOKIE_SECURE', True)
+        resp.set_cookie('csrf_token', token, samesite='Lax', secure=secure)
+        return resp
+
+    # POST - Process password reset
+    try:
+        is_ajax = request.headers.get('Content-Type') == 'application/json' or request.is_json
+        data = request.get_json() if is_ajax else request.form
+
+        # CSRF validation
+        csrf_enabled = current_app.config.get('WTF_CSRF_ENABLED', True)
+        if csrf_enabled:
+            csrf_token = (
+                request.headers.get('X-CSRFToken')
+                or request.headers.get('X-CSRF-Token')
+                or data.get('csrf_token')
+                or request.cookies.get('csrf_token')
+            )
+            try:
+                validate_csrf(csrf_token)
+            except Exception:
+                msg = 'جلسة غير صالحة، يرجى تحديث الصفحة والمحاولة مرة أخرى'
+                if is_ajax:
+                    return jsonify({'success': False, 'message': msg}), 400
+                flash(msg, 'error')
+                return render_template(
+                    'auth/reset_password.html', token=token, user_id=user_id
+                ), 400
+
+        new_password = (data.get('new_password') or '').strip()
+        confirm_password = (data.get('confirm_password') or '').strip()
+
+        if not new_password or not confirm_password:
+            msg = 'كلمة المرور الجديدة وتأكيدها مطلوبان'
+            if is_ajax:
+                return jsonify({'success': False, 'message': msg}), 400
+            flash(msg, 'error')
+            return render_template('auth/reset_password.html', token=token, user_id=user_id)
+
+        if new_password != confirm_password:
+            msg = 'كلمة المرور غير متطابقة'
+            if is_ajax:
+                return jsonify({'success': False, 'message': msg}), 400
+            flash(msg, 'error')
+            return render_template('auth/reset_password.html', token=token, user_id=user_id)
+
+        # Validate password policy
+        try:
+            from services.password_policy_service import PasswordPolicyService, PasswordPolicyError
+
+            user = db.session.get(User, user_id)
+            if user:
+                ok, violations = PasswordPolicyService().validate(
+                    new_password,
+                    user_context={
+                        'username': user.username,
+                        'email': user.email,
+                        'first_name': user.full_name.split()[0] if user.full_name else '',
+                    },
+                )
+                if not ok:
+                    msg = '; '.join(violations)
+                    if is_ajax:
+                        return jsonify({'success': False, 'message': msg}), 400
+                    flash(msg, 'error')
+                    return render_template('auth/reset_password.html', token=token, user_id=user_id)
+        except ImportError:
+            pass
+
+        # Update password and invalidate sessions
+        user = db.session.get(User, user_id)
+        if user:
+            user.set_password(new_password, enforce_policy=False)
+            user.session_version = (user.session_version or 0) + 1
+            _clear_reset_token(user_id)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+
+            # Log audit trail
+            try:
+                from models.audit_trail import AuditTrail
+
+                db.session.add(
+                    AuditTrail(
+                        entity_type='user',
+                        entity_id=user.id,
+                        action='password_reset',
+                        user_id=user.id,
+                        user_ip=request.remote_addr,
+                        user_agent=request.headers.get('User-Agent'),
+                        description='إعادة تعيين كلمة المرور عبر رابط استعادة',
+                    )
+                )
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
+            except Exception:
+                pass
+
+        if is_ajax:
+            return jsonify(
+                {
+                    'success': True,
+                    'message': 'تم إعادة تعيين كلمة المرور بنجاح',
+                    'redirect_url': url_for('auth.login'),
+                }
+            )
+        flash('تم إعادة تعيين كلمة المرور بنجاح', 'success')
+        return redirect(url_for('auth.login'))
+
+    except Exception:
+        logging.exception('Reset password error')
+        if is_ajax:
+            return jsonify({'success': False, 'message': 'حدث خطأ في إعادة تعيين كلمة المرور'}), 500
+        flash('حدث خطأ في إعادة تعيين كلمة المرور', 'error')
+        return render_template('auth/reset_password.html', token=token, user_id=user_id)
 
 
 def get_redirect_url_by_role(role):

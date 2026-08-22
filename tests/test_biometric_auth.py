@@ -125,7 +125,10 @@ class TestEnroll:
         auth = BiometricAuth(tenant_id=1)
         with patch('app.integrations.devices.biometric.db'):
             with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch('app.integrations.devices.biometric.secrets.token_urlsafe', return_value='generated-id'):
+                with patch(
+                    'app.integrations.devices.biometric.secrets.token_urlsafe',
+                    return_value='generated-id',
+                ):
                     result = auth.enroll(user_id=1)
                     assert result is True
 
@@ -176,7 +179,10 @@ class TestEnroll:
         auth = BiometricAuth(tenant_id=1)
         with patch('app.integrations.devices.biometric.db'):
             with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch('app.integrations.devices.biometric.secrets.token_urlsafe', return_value='gen-token'):
+                with patch(
+                    'app.integrations.devices.biometric.secrets.token_urlsafe',
+                    return_value='gen-token',
+                ):
                     result = auth.enroll(
                         user_id=1,
                         template={'public_key': 'pk'},
@@ -477,7 +483,10 @@ class TestCreateChallenge:
         auth = BiometricAuth(tenant_id=1)
         with patch('app.integrations.devices.biometric.db') as mock_db:
             with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch('app.integrations.devices.biometric.secrets.token_urlsafe', return_value='challenge123'):
+                with patch(
+                    'app.integrations.devices.biometric.secrets.token_urlsafe',
+                    return_value='challenge123',
+                ):
                     result = auth.create_challenge()
                     assert result == 'challenge123'
                     mock_db.session.add.assert_called_once()
@@ -487,7 +496,9 @@ class TestCreateChallenge:
         auth = BiometricAuth(tenant_id=1)
         with patch('app.integrations.devices.biometric.db') as mock_db:
             with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch('app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'):
+                with patch(
+                    'app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'
+                ):
                     result = auth.create_challenge(
                         user_id=42,
                         challenge_type='registration',
@@ -502,7 +513,9 @@ class TestCreateChallenge:
         auth = BiometricAuth(tenant_id=1)
         with patch('app.integrations.devices.biometric.db'):
             with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch('app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'):
+                with patch(
+                    'app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'
+                ):
                     result = auth.create_challenge()
                     assert result == 'ch'
 
@@ -513,7 +526,9 @@ class TestCreateChallenge:
         mock_g.tenant_id = 7
         with patch('app.integrations.devices.biometric.db'):
             with patch('app.integrations.devices.biometric.safe_commit'):
-                with patch('app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'):
+                with patch(
+                    'app.integrations.devices.biometric.secrets.token_urlsafe', return_value='ch'
+                ):
                     with patch('flask.g', mock_g):
                         result = auth.create_challenge()
                         assert result == 'ch'

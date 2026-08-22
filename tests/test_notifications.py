@@ -77,9 +77,7 @@ class TestNotifyAppointmentConfirmed:
     def test_handles_whatsapp_failure(self, mock_whatsapp):
         """Test that WhatsApp failure is caught and logged."""
         dispatcher = NotificationDispatcher()
-        mock_whatsapp.send_appointment_reminder = MagicMock(
-            side_effect=Exception('API error')
-        )
+        mock_whatsapp.send_appointment_reminder = MagicMock(side_effect=Exception('API error'))
 
         # Should not raise
         dispatcher.notify_appointment_confirmed(
@@ -121,14 +119,14 @@ class TestNotifyLabResultsReady:
             visit_number='V123',
         )
 
-        mock_whatsapp.send_lab_results_ready.assert_called_once_with('+123456789', 'Jane Doe', 'V123', None)
+        mock_whatsapp.send_lab_results_ready.assert_called_once_with(
+            '+123456789', 'Jane Doe', 'V123', None
+        )
 
     def test_handles_whatsapp_failure(self, mock_whatsapp):
         """Test that WhatsApp failure is caught and logged."""
         dispatcher = NotificationDispatcher()
-        mock_whatsapp.send_lab_results_ready = MagicMock(
-            side_effect=Exception('API error')
-        )
+        mock_whatsapp.send_lab_results_ready = MagicMock(side_effect=Exception('API error'))
 
         # Should not raise
         dispatcher.notify_lab_results_ready(
@@ -173,9 +171,7 @@ class TestNotifyInvoiceGenerated:
     def test_handles_whatsapp_failure(self, mock_whatsapp):
         """Test that WhatsApp failure is caught and logged."""
         dispatcher = NotificationDispatcher()
-        mock_whatsapp.send_invoice = MagicMock(
-            side_effect=Exception('API error')
-        )
+        mock_whatsapp.send_invoice = MagicMock(side_effect=Exception('API error'))
 
         # Should not raise
         dispatcher.notify_invoice_generated(
@@ -207,9 +203,7 @@ class TestNotifyMedicationDispensed:
     def test_handles_whatsapp_failure(self, mock_whatsapp):
         """Test that WhatsApp failure is caught and logged."""
         dispatcher = NotificationDispatcher()
-        mock_whatsapp.send_medication_reminder = MagicMock(
-            side_effect=Exception('API error')
-        )
+        mock_whatsapp.send_medication_reminder = MagicMock(side_effect=Exception('API error'))
 
         # Should not raise
         dispatcher.notify_medication_dispensed(
