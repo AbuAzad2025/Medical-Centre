@@ -222,10 +222,23 @@ class TestDispenseRace:
         from app.shared.enums import PrescriptionState
         from models.medication import Medication, PharmacySale, Prescription
         from models.patient import Patient
+        from models.user import User
         from models.visit import Visit
         from services.pharmacy_sale_service import PharmacySaleService
 
         tag = uuid.uuid4().hex[:6]
+        pharmacist = User(
+            tenant_id=test_tenant.id,
+            username=f'ph_{tag}',
+            email=f'ph_{tag}@test.local',
+            full_name='صيدلي التزامن',
+            role='pharmacist',
+            is_active=True,
+        )
+        pharmacist.set_password('ValidPass123!')
+        db.session.add(pharmacist)
+        db.session.flush()
+
         med = Medication(
             tenant_id=test_tenant.id,
             trade_name=f'M-{tag}',
@@ -263,6 +276,7 @@ class TestDispenseRace:
         db.session.commit()
         rx_id = rx.id
         med_id = med.id
+        dispenser_id = pharmacist.id
 
         def dispenser(i):
             with app.test_request_context():
@@ -271,7 +285,7 @@ class TestDispenseRace:
                 g.tenant_id = test_tenant.id
                 return PharmacySaleService.create_sale(
                     prescription_id=rx_id,
-                    dispensed_by=7,
+                    dispensed_by=dispenser_id,
                     items=[{'medication_id': med_id, 'quantity': 5, 'unit_price': 10}],
                     tenant_id=test_tenant.id,
                 )
