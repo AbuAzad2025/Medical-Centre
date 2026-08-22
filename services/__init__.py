@@ -1,8 +1,5 @@
 # Medical System Services
 
-from services.ai_governance_service import (
-    AIRecommendationGovernanceService as AIRecommendationGovernanceService,
-)
 from services.billing_state_service import BillingStateService as BillingStateService
 from services.billing_state_service import ReceiptService as ReceiptService
 from services.booking_conversion_service import (
