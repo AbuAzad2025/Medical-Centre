@@ -14,8 +14,8 @@ sys.path.insert(0, str(__import__('pathlib').Path(__file__).parent.parent))
 
 def get_registered_permissions():
     """Extract permission names from create_default_permissions()."""
-    from app_factory import create_app
     from app.extensions import db
+    from app_factory import create_app
 
     app = create_app('testing')
     with app.app_context():
@@ -34,8 +34,8 @@ def get_template_permissions(templates_dir):
     for f in tpl_path.rglob('*.html'):
         content = f.read_text(encoding='utf-8', errors='replace')
         rel = str(f.relative_to(tpl_path))
-        for m in re.finditer(r"has_permission\(['\"]([^'\"]+)['\"]\)", content):
-            perm = m.group(1)
+        for _m in re.finditer(r"has_permission\(['\"]([^'\"]+)['\"]\)", content):
+            perm = _m.group(1)
             if perm not in perms:
                 perms[perm] = []
             if rel not in perms[perm]:
@@ -50,13 +50,13 @@ def get_python_permissions(routes_dir, services_dir):
         for f in Path(d).rglob('*.py'):
             content = f.read_text(encoding='utf-8', errors='replace')
             rel = str(f.relative_to(Path(d).parent))
-            for m in re.finditer(r"has_permission\(['\"]([^'\"]+)['\"]\)", content):
-                perm = m.group(1)
+            for _m in re.finditer(r"has_permission\(['\"]([^'\"]+)['\"]\)", content):
+                perm = _m.group(1)
                 if perm not in perms:
                     perms[perm] = []
                 if rel not in perms[perm]:
                     perms[perm].append(rel)
-            for m in re.finditer(r'@role_required\(([^)]+)\)', content):
+            for _m in re.finditer(r'@role_required\(([^)]+)\)', content):
                 # These are role-based, not permission-based — skip
                 pass
     return perms
@@ -90,9 +90,8 @@ def main():
         print()
         print('FIX: Register these in create_default_permissions()')
         return 1
-    else:
-        print('NO phantom permissions detected!')
-        return 0
+    print('NO phantom permissions detected!')
+    return 0
 
 
 if __name__ == '__main__':
