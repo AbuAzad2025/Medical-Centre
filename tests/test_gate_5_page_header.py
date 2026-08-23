@@ -74,9 +74,11 @@ class TestDoctorQueuePageHeader:
         assert resp.status_code == 200
         text = resp.get_data(as_text=True)
         # Accept either the full queue header or a dashboard redirect after login
-        assert ('clinical-page-header' in text
-                or 'data-action="refreshQueue"' in text
-                or 'dashboard' in text.lower())
+        assert (
+            'clinical-page-header' in text
+            or 'data-action="refreshQueue"' in text
+            or 'dashboard' in text.lower()
+        )
 
 
 class TestPharmacyPosPageHeader:
