@@ -1,6 +1,5 @@
 """AI Validation Service — full coverage (was 28%)."""
 
-import pytest
 
 
 class TestValidateUserData:
