@@ -37,6 +37,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff==0.16.4 mypy pip-audit bandit types-requests
 
+      - name: Auto-fix import sorting (EOL normalization)
+        run: ruff check . --select I001 --fix
+
       - name: Ruff lint overview (strict — legacy debt eliminated)
         run: ruff check . --statistics
 
