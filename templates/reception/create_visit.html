@@ -267,7 +267,7 @@
                                                     <div class="col-md-4">
                                                         <div class="mb-3">
                                                             <label for="card_holder_name" class="form-label">اسم حامل البطاقة</label>
-                                                            <input type="text" class="form-control" id="card_holder_name" name="card_holder_name">
+                                                            <input type="text" class="form-control" id="card_holder_name" name="card_holder_name" maxlength="100">
                                                         </div>
                                                     </div>
                                                     <div class="col-md-4">
@@ -301,7 +301,7 @@
                                                     <div class="col-md-4">
                                                         <div class="mb-3">
                                                             <label for="insurance_provider" class="form-label">شركة التأمين</label>
-                                                            <input type="text" class="form-control" id="insurance_provider" name="insurance_provider" list="insuranceProviders">
+                                                            <input type="text" class="form-control" id="insurance_provider" name="insurance_provider" list="insuranceProviders" maxlength="200">
                                                             <datalist id="insuranceProviders">
                                                                 {% for ic in insurance_companies or [] %}
                                                                 <option value="{{ ic.name_ar or ic.name }}"></option>
@@ -312,7 +312,7 @@
                                                     <div class="col-md-4">
                                                         <div class="mb-3">
                                                             <label for="insurance_policy_number" class="form-label">رقم البوليصة</label>
-                                                            <input type="text" class="form-control" id="insurance_policy_number" name="insurance_policy_number">
+                                                            <input type="text" class="form-control" id="insurance_policy_number" name="insurance_policy_number" maxlength="60">
                                                         </div>
                                                     </div>
                                                     <div class="col-md-4">

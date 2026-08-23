@@ -877,8 +877,20 @@ def create_visit():
     preselected_patient_id = request.args.get('patient_id', type=int)
     preselected_department_id = request.args.get('department_id', type=int)
     preselected_doctor_id = request.args.get('doctor_id', type=int)
-    preselected_patient = (
+    _pre_patient = (
         db.session.get(Patient, preselected_patient_id) if preselected_patient_id else None
+    )
+    # Serialize only safe fields — full ORM object breaks |tojson on
+    # EncryptedString columns and relationship attributes.
+    preselected_patient = (
+        {
+            'id': _pre_patient.id,
+            'first_name_ar': _pre_patient.first_name_ar or '',
+            'last_name_ar': _pre_patient.last_name_ar or '',
+            'full_name': _pre_patient.full_name,
+        }
+        if _pre_patient
+        else None
     )
 
     return render_template(
