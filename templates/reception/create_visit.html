@@ -301,7 +301,7 @@
                                                     <div class="col-md-4">
                                                         <div class="mb-3">
                                                             <label for="insurance_provider" class="form-label">شركة التأمين</label>
-                                                            <input type="text" class="form-control" id="insurance_provider" name="insurance_provider" list="insuranceProviders" maxlength="200">
+                                                            <input type="text" class="form-control" id="insurance_provider" name="insurance_provider" list="insuranceProviders" maxlength="100">
                                                             <datalist id="insuranceProviders">
                                                                 {% for ic in insurance_companies or [] %}
                                                                 <option value="{{ ic.name_ar or ic.name }}"></option>

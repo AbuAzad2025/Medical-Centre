@@ -10,7 +10,7 @@ import pytest
 @pytest.fixture()
 def _module_client(client, db, test_tenant):
     """Authenticated client with all test modules enabled."""
-    from tests.tenant_context import login_test_client, ensure_test_user
+    from tests.tenant_context import ensure_test_user, login_test_client
 
     user = ensure_test_user(db, test_tenant, username='modules_test', role='admin')
     login_test_client(client, user, test_tenant)
