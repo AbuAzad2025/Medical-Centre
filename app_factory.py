@@ -10,7 +10,7 @@ from datetime import datetime as _dt
 from decimal import ROUND_HALF_UP, Decimal
 
 import click
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, g, redirect, render_template, request, url_for
 from flask.json.provider import DefaultJSONProvider
 from flask_login import LoginManager
 from flask_mail import Mail
@@ -207,6 +207,10 @@ def create_app(config_name: str | None = None) -> Flask:
         app.logger.warning(f'Session init failed, falling back to signed cookies: {e}')
 
     def _get_format_map():
+        # Request-level cache: avoids 200+ DB queries per page render
+        cached = getattr(g, '_format_map_cache', None)
+        if cached is not None:
+            return cached
         try:
             from models.system_config import SystemConfig
 
@@ -233,7 +237,9 @@ def create_app(config_name: str | None = None) -> Flask:
         time_map = {'hh:mm': '%H:%M', 'hh:mm:ss': '%H:%M:%S'}
         dfmt = date_map.get(df or 'yyyy-mm-dd')
         tfmt = time_map.get(tf or 'hh:mm')
-        return dfmt, tfmt, f'{dfmt} {tfmt}'
+        result = (dfmt, tfmt, f'{dfmt} {tfmt}')
+        g._format_map_cache = result
+        return result
 
     def _fmt_date(val):
         if not val:
@@ -556,14 +562,18 @@ def create_app(config_name: str | None = None) -> Flask:
     # تزويد القوالب بمتغيرات العلامة التجارية ومعلومات المطور
     @app.context_processor
     def inject_branding():
+        # Request-level cache: avoid repeated DB queries in nested templates
+        cached = getattr(g, '_branding_request_cache', None)
+        if cached is not None:
+            return cached
         try:
             import time
 
-            from flask import g
+            from flask import g as _g
 
             from app.shared.branding_context import build_branding_payload, get_branding_row
 
-            tenant = getattr(g, 'current_tenant', None)
+            tenant = getattr(_g, 'current_tenant', None)
             cache_key = (
                 f'tenant:{tenant.id}' if tenant and getattr(tenant, 'id', None) else 'platform'
             )
@@ -580,6 +590,7 @@ def create_app(config_name: str | None = None) -> Flask:
                 }
             data = dict(caches[cache_key]['data'])
             data['branding'] = get_branding_row()
+            g._branding_request_cache = data
             return data
         except Exception:
             return {}

@@ -1,0 +1,46 @@
+name: ✨ Feature Request
+description: Suggest a new feature or improvement
+labels: ['enhancement', 'triage']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / need
+      description: What clinical or operational need does this address?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What should happen?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Affected module
+      options:
+        - Reception / Patients
+        - Doctor / Clinical
+        - Lab
+        - Radiology
+        - Pharmacy
+        - Emergency
+        - Nursing
+        - Billing / Finance
+        - Appointments / Booking
+        - SaaS / Tenant
+        - Infrastructure / DevOps
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: breaking
+    attributes:
+      label: Impact
+      options:
+        - label: This is a breaking change (existing workflows affected)

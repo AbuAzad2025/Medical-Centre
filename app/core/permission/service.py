@@ -136,6 +136,20 @@ class PermissionService:
         if getattr(user, 'role', None) == 'super_admin':
             return True
 
+        # Request-level cache: avoids 3 DB queries per template permission check
+        from flask import g
+
+        cache_key = f'_perm:{getattr(user, "id", "?")}:{user.role}:{permission}'
+        cached = getattr(g, cache_key, None)
+        if cached is not None:
+            return cached
+
+        result = PermissionService._resolve_permission(user, permission)
+        setattr(g, cache_key, result)
+        return result
+
+    @staticmethod
+    def _resolve_permission(user, permission: str) -> bool:
         # 1. Try DB-driven permissions
         try:
             from sqlalchemy import inspect, select
