@@ -1,0 +1,27 @@
+{#
+  Entity audit trail partial — shows who created/modified a record.
+  Usage: {% from 'partials/_audit_trail.html' import audit_badge %}
+         {{ audit_badge(entity) }}
+  Expects entity to have: created_at, updated_at (optional: created_by relationship)
+#}
+{% macro audit_badge(entity) %}
+{% if entity and entity.created_at %}
+<span class="text-muted small" title="سجل الإنشاء والتعديل">
+    <i class="fas fa-clock me-1"></i>
+    {{ entity.created_at|format_datetime }}
+    {% if entity.updated_at and entity.updated_at != entity.created_at %}
+    <span class="mx-1">·</span>عُدّل {{ entity.updated_at|format_datetime }}
+    {% endif %}
+</span>
+{% endif %}
+{% endmacro %}
+
+{% macro audit_column_header() %}
+<th class="text-muted small">التاريخ</th>
+{% endmacro %}
+
+{% macro audit_column_cell(entity) %}
+<td class="text-muted small">
+    {% if entity and entity.created_at %}{{ entity.created_at|format_date }}{% else %}-{% endif %}
+</td>
+{% endmacro %}

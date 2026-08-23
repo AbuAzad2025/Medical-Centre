@@ -411,6 +411,41 @@ def create_default_permissions():
             PermissionCategory.PATIENT_MANAGEMENT,
             PermissionLevel.WRITE,
         ),
+        # وصول لوحة الإدارة
+        (
+            'admin.access',
+            'الوصول للوحة الإدارة',
+            PermissionCategory.SYSTEM_ADMIN,
+            PermissionLevel.ADMIN,
+        ),
+        # وصول الطبيب للوحة القسم
+        (
+            'doctor.access',
+            'وصول الطبيب',
+            PermissionCategory.MEDICAL_RECORDS,
+            PermissionLevel.READ,
+        ),
+        # عرض البيانات المالية
+        (
+            'finance.view',
+            'عرض البيانات المالية',
+            PermissionCategory.FINANCIAL,
+            PermissionLevel.READ,
+        ),
+        # بوابة المريض
+        (
+            'patient.portal',
+            'بوابة المريض',
+            PermissionCategory.PATIENT_MANAGEMENT,
+            PermissionLevel.READ,
+        ),
+        # إدارة الصيدلية
+        (
+            'pharmacy.manage',
+            'إدارة الصيدلية',
+            PermissionCategory.PATIENT_MANAGEMENT,
+            PermissionLevel.WRITE,
+        ),
     ]
 
     for name, description, category, level in permissions:

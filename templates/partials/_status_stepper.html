@@ -1,0 +1,25 @@
+{#
+  Workflow status stepper — shows progress through stages.
+  Usage:
+      {% from 'partials/_status_stepper.html' import status_stepper %}
+      {{ status_stepper(stages=['مسودة', 'مراجعة', 'اعتماد', 'تنفيذ'],
+                        current_index=1) }}
+#}
+{% macro status_stepper(stages, current_index=0) %}
+<div class="d-flex align-items-center justify-content-center flex-wrap gap-1 my-3">
+    {% for stage in stages %}
+    <div class="d-flex align-items-center">
+        {% if loop.index0 < current_index %}
+        <span class="badge bg-success rounded-pill px-2 py-1">{{ stage }}</span>
+        {% elif loop.index0 == current_index %}
+        <span class="badge bg-primary rounded-pill px-3 py-1 fw-bold">{{ stage }}</span>
+        {% else %}
+        <span class="badge bg-secondary opacity-50 rounded-pill px-2 py-1">{{ stage }}</span>
+        {% endif %}
+        {% if not loop.last %}
+        <i class="fas fa-chevron-left text-muted mx-1 small"></i>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endmacro %}

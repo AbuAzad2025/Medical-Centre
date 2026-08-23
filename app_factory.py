@@ -1279,6 +1279,7 @@ def create_app(config_name: str | None = None) -> Flask:
                         'reports_create',
                         'reports_export',
                         'queue_settings_manage',
+                        'admin.access',
                     ],
                 )
                 _assign(
@@ -1292,6 +1293,7 @@ def create_app(config_name: str | None = None) -> Flask:
                         'patient_read',
                         'patient_update',
                         'queue_settings_manage',
+                        'finance.view',
                     ],
                 )
                 _assign(
@@ -1312,6 +1314,8 @@ def create_app(config_name: str | None = None) -> Flask:
                         'medical_records_read',
                         'medical_records_update',
                         'patient_read',
+                        'doctor.access',
+                        'finance.view',
                     ],
                 )
                 _assign('nurse', ['patient_read', 'medical_records_read', 'medical_records_update'])
@@ -1331,7 +1335,10 @@ def create_app(config_name: str | None = None) -> Flask:
                         'pricing_manage',
                     ],
                 )
-                _assign('pharmacist', ['medical_records_read', 'reports_view'])
+                _assign(
+                    'pharmacist',
+                    ['medical_records_read', 'reports_view', 'pharmacy.manage'],
+                )
 
             pass
         except Exception:

@@ -1,0 +1,27 @@
+{#
+  Breadcrumb navigation partial.
+  Usage: {% include 'partials/_breadcrumbs.html' %}
+  Expects `breadcrumbs` variable = list of (label, url_or_None) tuples.
+  Falls back to role-based dashboard link if not provided.
+#}
+{% if breadcrumbs and breadcrumbs|length > 0 %}
+<nav aria-label="breadcrumb" class="bg-transparent px-3 py-2">
+    <ol class="breadcrumb mb-0 small">
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('main.dashboard') }}" class="text-decoration-none">
+                <i class="fas fa-home me-1"></i>الرئيسية
+            </a>
+        </li>
+        {% for label, url in breadcrumbs %}
+        {% if loop.last %}
+        <li class="breadcrumb-item active" aria-current="page">{{ label }}</li>
+        {% else %}
+        <li class="breadcrumb-item">
+            {% if url %}<a href="{{ url }}" class="text-decoration-none">{{ label }}</a>
+            {% else %}{{ label }}{% endif %}
+        </li>
+        {% endif %}
+        {% endfor %}
+    </ol>
+</nav>
+{% endif %}
