@@ -25,8 +25,8 @@ class TestMedicationRoutes:
     def test_dashboard(self, _ph):
         assert _ph.get('/medication/dashboard').status_code in (200, 302)
 
-    def test_inventory(self, _ph):
-        assert _ph.get('/medication/inventory').status_code in (200, 302)
+    def test_stock_alerts(self, _ph):
+        assert _ph.get('/medication/stock-alerts').status_code in (200, 302)
 
     def test_suppliers_list(self, _ph):
         assert _ph.get('/medication/suppliers').status_code in (200, 302)
