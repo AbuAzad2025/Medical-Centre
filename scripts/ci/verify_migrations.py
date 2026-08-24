@@ -15,7 +15,7 @@ TARGET_URL = os.environ['MIGRATE_DATABASE_URL']
 # (merging the five historical branch heads) followed by p6_* migrations
 # (FK indexes, api_keys, api_keys RLS, file_uploads S3 columns).
 # Exactly one head must exist.
-EXPECTED_HEADS = {'p6_004_file_uploads_s3_columns'}
+EXPECTED_HEADS = {'p7_001_walk_in_nullable_visit'}
 
 
 def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:

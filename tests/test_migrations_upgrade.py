@@ -12,7 +12,7 @@ from migrations.migration_utils import column_exists, fk_exists, index_exists, t
 # 8b9457bfc4d7; p6_* migrations (FK indexes, api_keys, api_keys RLS,
 # file_uploads S3 columns) extend that single lineage.
 EXPECTED_HEADS = {
-    'p6_004_file_uploads_s3_columns',
+    'p7_001_walk_in_nullable_visit',
 }
 
 
