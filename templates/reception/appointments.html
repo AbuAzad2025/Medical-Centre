@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container-fluid">
     {% set hdr_actions = [] %}
-    {% if current_user.is_authenticated and has_permission('reception.manage') %}
+    {% if current_user.is_authenticated and has_permission('patient_create') %}
         {% set _ = hdr_actions.append({'type': 'button', 'label': 'موعد جديد', 'icon': 'fas fa-plus', 'data_action': 'new-appointment', 'style': 'primary'}) %}
     {% endif %}
     {% set _ = hdr_actions.append({'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-file-excel', 'data_action': 'export-appointments', 'style': 'success'}) %}
@@ -309,7 +309,7 @@
                         {% else %}
                           <h5 class="text-muted">لا توجد مواعيد</h5>
                           <p class="text-muted">ابدأ بإنشاء موعد جديد</p>
-                          {% if current_user.is_authenticated and has_permission('reception.manage') %}
+                          {% if current_user.is_authenticated and has_permission('patient_create') %}
                           <button class="btn btn-primary" data-action="new-appointment">
                               <i class="fas fa-plus me-1"></i>
                               موعد جديد
@@ -332,7 +332,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        {% if current_user.is_authenticated and has_permission('reception.manage') %}
+                        {% if current_user.is_authenticated and has_permission('patient_create') %}
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-primary w-100" data-action="new-appointment">
                                 <i class="fas fa-plus me-2"></i>

@@ -91,6 +91,7 @@
         {% include 'partials/_sidebar_dynamic.html' %}
         
         <main class="main-container" id="mainContent">
+            {% include 'partials/_breadcrumbs.html' %}
             {% block content %}{% endblock %}
         </main>
     </div>

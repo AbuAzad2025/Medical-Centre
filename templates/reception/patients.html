@@ -53,6 +53,12 @@
                                 </tr>
                             </thead>
                             <tbody id="patientsTableBody">
+                                {% if not patients %}
+                                <tr><td colspan="8" class="text-center py-4 text-muted">
+                                    <i class="fas fa-users fa-2x d-block mb-2 opacity-50"></i>
+                                    لا يوجد مرضى مسجلون{% if search %} matching "{{ search }}"{% endif %}
+                                </td></tr>
+                                {% endif %}
                                 {% for p in patients %}
                                 <tr>
                                     <td>{{ p.id }}</td>

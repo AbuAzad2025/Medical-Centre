@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}إنشاء زيارة جديدة - الاستقبال{% endblock %}
 
@@ -96,7 +96,7 @@
                         </div>{# end step 0 #}
 
                         <div class="form-step-panel d-none" data-step="1" hidden>
-                        {% if current_user.is_authenticated and has_permission('reception.manage') %}
+                        {% if current_user.is_authenticated and has_permission('patient_create') %}
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <div class="mb-3">

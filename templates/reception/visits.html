@@ -12,7 +12,7 @@
     {% set visit_header_actions = [
         {'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-download', 'style': 'success', 'data_action': 'export-visits'}
     ] %}
-    {% if has_permission('reception.manage') %}
+    {% if has_permission('patient_create') %}
     {% set visit_header_actions = [
         {'url': url_for('reception.create_visit'), 'label': 'زيارة جديدة', 'icon': 'fas fa-plus', 'style': 'primary'},
         {'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-download', 'style': 'success', 'data_action': 'export-visits'}
@@ -69,6 +69,12 @@
                             <div class="fw-bold">التاريخ</div>
                             <div>{{ visit.created_at|format_date }}</div>
                             <div class="text-muted">{{ visit.created_at|format_time }}</div>
+                            {% if visit.created_by %}
+                            <div class="text-muted small mt-1">
+                                <i class="fas fa-user me-1"></i>موظف #{{
+                                visit.created_by if visit.created_by else '-' }}
+                            </div>
+                            {% endif %}
                         </div>
                         {% if module_active('billing') %}
                         <div class="col-md-3">
@@ -293,7 +299,7 @@
                                                 <i class="fas fa-print"></i> <span class="btn-label">طباعة</span>
                                             </button>
                                             {% endif %}
-                                            {% if has_permission('reception.manage') %}
+                                            {% if has_permission('patient_create') %}
                                             <button type="button" class="btn btn-sm btn-outline-dark" 
                                                     data-action="openTransfer" data-visit-id="visit.id" title="تحويل">
                                                 <i class="fas fa-random"></i> <span class="btn-label">عشوائي</span>
@@ -344,7 +350,7 @@
                         {% else %}
                             <h5 class="text-muted">لا توجد زيارات</h5>
                             <p class="text-muted">ابدأ بإنشاء زيارة جديدة</p>
-                            {% if has_permission('reception.manage') %}
+                            {% if has_permission('patient_create') %}
                             <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i>
                                 إنشاء زيارة جديدة
@@ -359,7 +365,7 @@
     </div>
 </div>
 
-{% if has_permission('reception.manage') %}
+{% if has_permission('patient_create') %}
 <div class="modal fade" id="transferVisitModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
