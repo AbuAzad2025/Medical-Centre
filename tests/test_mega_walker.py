@@ -83,7 +83,7 @@ class TestMegaWalkerReception:
         routes = _get_routes(app)
         walked = [u for u in routes if any(u.startswith(p) for p in ['/reception/'])]
         codes = [_safe(sa_client, u) for u in walked]
-        errors = [(u, c) for u, c in zip(walked, codes) if c is not None and c >= 500]
+        errors = [(u, c) for u, c in zip(walked, codes, strict=False) if c is not None and c >= 500]
         print(f'\n[RC] {len(walked)} routes, server_errors={len(errors)}')
         for u, c in errors[:5]:
             print(f'  5xx: {u} -> {c}')
@@ -93,7 +93,7 @@ class TestMegaWalkerDoctor:
     def test_walk_doctor_all(self, app, sa_client):
         routes = _get_routes(app)
         walked = [u for u in routes if any(u.startswith(p) for p in ['/doctor/'])]
-        codes = [_safe(sa_client, u) for u in walked]
+        [_safe(sa_client, u) for u in walked]
         print(f'\n[DR] {len(walked)} routes')
 
 
@@ -101,7 +101,7 @@ class TestMegaWalkerPharmacy:
     def test_walk_pharmacy_medication(self, app, sa_client):
         routes = _get_routes(app)
         walked = [u for u in routes if any(u.startswith(p) for p in ['/medication/', '/pharmacy/'])]
-        codes = [_safe(sa_client, u) for u in walked]
+        [_safe(sa_client, u) for u in walked]
         print(f'\n[PH] {len(walked)} routes')
 
 
@@ -113,7 +113,7 @@ class TestMegaWalkerNurse:
             for u in routes
             if any(u.startswith(p) for p in ['/nurse/', '/nursing-assessment/', '/bed/', '/emar/'])
         ]
-        codes = [_safe(sa_client, u) for u in walked]
+        [_safe(sa_client, u) for u in walked]
         print(f'\n[NU] {len(walked)} routes')
 
 
@@ -125,7 +125,7 @@ class TestMegaWalkerLabRadiology:
             for u in routes
             if any(u.startswith(p) for p in ['/lab/', '/radiology/', '/dicom/', '/ai-imaging/'])
         ]
-        codes = [_safe(sa_client, u) for u in walked]
+        [_safe(sa_client, u) for u in walked]
         print(f'\n[LR] {len(walked)} routes')
 
 
@@ -137,7 +137,7 @@ class TestMegaWalkerFinance:
             for u in routes
             if any(u.startswith(p) for p in ['/finance/', '/accountant/', '/billing/', '/payment/'])
         ]
-        codes = [_safe(sa_client, u) for u in walked]
+        [_safe(sa_client, u) for u in walked]
         print(f'\n[FI] {len(walked)} routes')
 
 
@@ -159,7 +159,7 @@ class TestMegaWalkerManager:
                 ]
             )
         ]
-        codes = [_safe(sa_client, u) for u in walked]
+        [_safe(sa_client, u) for u in walked]
         print(f'\n[MG] {len(walked)} routes')
 
 
@@ -174,7 +174,7 @@ class TestMegaWalkerEmergency:
                 for p in ['/emergency/', '/or/', '/vaccination/', '/referral/', '/cds/']
             )
         ]
-        codes = [_safe(sa_client, u) for u in walked]
+        [_safe(sa_client, u) for u in walked]
         print(f'\n[EM] {len(walked)} routes')
 
 
@@ -196,7 +196,7 @@ class TestMegaWalkerSpecialty:
                 ]
             )
         ]
-        codes = [_safe(sa_client, u) for u in walked]
+        [_safe(sa_client, u) for u in walked]
         print(f'\n[SP] {len(walked)} routes')
 
 
@@ -253,5 +253,5 @@ class TestMegaWalkerMisc:
             '/biometric',
         ]
         misc = [u for u in routes if not any(u.startswith(p) for p in known_prefixes)]
-        codes = [_safe(sa_client, u) for u in misc]
+        [_safe(sa_client, u) for u in misc]
         print(f'\n[MISC] {len(misc)} routes')

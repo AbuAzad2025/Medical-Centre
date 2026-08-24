@@ -11,7 +11,7 @@ def _po(client, db, test_tenant):
     login_test_client(client, u, test_tenant)
     # Get CSRF token
     client.get('/reception/patients')
-    resp = client.get('/reception/patients')
+    client.get('/reception/patients')
     return client
 
 
@@ -139,7 +139,7 @@ class TestOwnerPOST:
             },
             follow_redirects=True,
         )
-        assert resp.status_code < 500
+        assert resp.status_code < 500  # May fail on template rendering
 
 
 class TestServicePOST:
