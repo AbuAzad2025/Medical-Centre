@@ -210,7 +210,6 @@ class TestRouteWalkerEmergency:
         login_test_client(client, u, test_tenant)
 
         routes = _get_all_get_routes(app)
-        prefixes = ['/emergency/']
         server_errors = []
 
         for url, ep in routes:
