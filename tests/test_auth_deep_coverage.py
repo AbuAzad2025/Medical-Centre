@@ -64,7 +64,7 @@ class TestLoginDeepCoverage:
 
         # Insert failed attempts directly to trigger lockout threshold
         now = datetime.now(UTC)
-        for i in range(6):
+        for _ in range(6):
             db.session.add(
                 LoginAttempt(
                     username=u.username,
@@ -81,13 +81,13 @@ class TestLoginDeepCoverage:
         assert resp.status_code in (200, 429)
 
     def test_inactive_user_login_rejected(self, app, db, test_tenant):
+        from sqlalchemy import text as _sa_text
+
         from tests.tenant_context import ensure_test_user
 
         u = ensure_test_user(db, test_tenant, username='inactive_cov', role='reception')
         db.session.execute(
-            sa_text := __import__('sqlalchemy').text(
-                'UPDATE users SET is_active = false WHERE id = :i'
-            ),
+            _sa_text('UPDATE users SET is_active = false WHERE id = :i'),
             {'i': u.id},
         )
         db.session.commit()
