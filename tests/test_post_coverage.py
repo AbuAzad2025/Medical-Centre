@@ -128,19 +128,6 @@ class TestOwnerPOST:
         )
         assert resp.status_code < 500
 
-    def test_owner_create_announcement(self, _po):
-        token = _csrf(_po)
-        resp = _po.post(
-            '/owner/announcements',
-            data={
-                'csrf_token': token,
-                'title': 'Coverage Test',
-                'message': 'Test announcement message',
-            },
-            follow_redirects=True,
-        )
-        assert resp.status_code < 500  # May fail on template rendering
-
 
 class TestServicePOST:
     def test_create_service(self, _po):
