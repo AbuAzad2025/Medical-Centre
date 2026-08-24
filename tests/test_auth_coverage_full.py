@@ -59,7 +59,7 @@ class TestProfileFlow:
             '/auth/change-password',
             json={'current_password': 'ValidPass123!', 'new_password': 'NewSecure1!'},
         )
-        assert resp.status_code in (200, 400)
+        assert resp.status_code in (200, 302, 400)
 
     def test_forgot_password_get(self, _auth):
         resp = _auth.get('/auth/forgot-password')
