@@ -16,7 +16,7 @@ class LabRequest(TenantMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     visit_id = db.Column(
-        db.Integer, db.ForeignKey('visits.id', ondelete='CASCADE'), nullable=False, index=True
+        db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True
     )
     patient_id = db.Column(
         db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True
