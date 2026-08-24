@@ -1,7 +1,7 @@
 """Fresh setup — proper multi-department medical center tenant."""
+
 import os
 import sys
-import uuid
 
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).parent.parent))
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -12,8 +12,8 @@ os.environ['DATABASE_URL'] = 'postgresql://postgres:123@localhost:5432/medical_s
 
 from sqlalchemy import select, text
 
-from app_factory import create_app
 from app.extensions import db
+from app_factory import create_app
 
 app = create_app('testing')
 
@@ -33,20 +33,34 @@ with app.app_context():
     db.session.add(tenant)
     db.session.flush()
     tid = tenant.id
-    print(f'Tenant created: {slug_placeholder if False else tenant.slug} (id={tid})')
+    print(f'Tenant created: {tenant.slug} (id={tid})')
 
     # Enable ALL modules for this tenant
     from app.shared.enums import TenantStatus
 
     tenant.status = TenantStatus.ACTIVE
     settings = tenant.settings or {}
-    settings['modules'] = {
-        m: True for m in [
-            'reception', 'doctor', 'lab', 'radiology', 'pharmacy', 'emergency',
-            'nursing', 'billing', 'inventory', 'reporting', 'appointments',
-            'portal', 'accounting', 'manager', 'admin', 'dicom',
-        ]
-    }
+    settings['modules'] = dict.fromkeys(
+        [
+            'reception',
+            'doctor',
+            'lab',
+            'radiology',
+            'pharmacy',
+            'emergency',
+            'nursing',
+            'billing',
+            'inventory',
+            'reporting',
+            'appointments',
+            'portal',
+            'accounting',
+            'manager',
+            'admin',
+            'dicom',
+        ],
+        True,
+    )
     tenant.settings = settings
     db.session.commit()
 
@@ -67,9 +81,14 @@ with app.app_context():
     ]
     user_ids = {}
     for username, role, password, full_name in staff:
-        u = User(tenant_id=tid, username=username,
-                 email=f'{username}@medical-center.local',
-                 full_name=full_name, role=role, is_active=True)
+        u = User(
+            tenant_id=tid,
+            username=username,
+            email=f'{username}@medical-center.local',
+            full_name=full_name,
+            role=role,
+            is_active=True,
+        )
         u.set_password(password)
         db.session.add(u)
         db.session.flush()
@@ -113,10 +132,14 @@ with app.app_context():
     patient_ids = []
     for fn_ar, ln_ar, g, ph, bd in patients_data:
         p = Patient(
-            tenant_id=tid, first_name_ar=fn_ar, last_name_ar=ln_ar,
-            gender=g, phone=ph,
+            tenant_id=tid,
+            first_name_ar=fn_ar,
+            last_name_ar=ln_ar,
+            gender=g,
+            phone=ph,
             birth_date=__import__('datetime').datetime.strptime(bd, '%Y-%m-%d').date(),
-            first_name=fn_ar, last_name=ln_ar,
+            first_name=fn_ar,
+            last_name=ln_ar,
         )
         db.session.add(p)
         db.session.flush()
@@ -137,27 +160,37 @@ with app.app_context():
         ('Atorvastatin 20mg', 'Atorvastatin', 35.00, 120),
     ]
     for tn, sn, price, stock in meds_data:
-        db.session.add(Medication(
-            tenant_id=tid, trade_name=tn, scientific_name=sn,
-            dosage_form='tablet', strength=tn.split()[-1],
-            price=price, stock_quantity=stock, minimum_stock=30,
-            category='general', is_active=True,
-        ))
+        db.session.add(
+            Medication(
+                tenant_id=tid,
+                trade_name=tn,
+                scientific_name=sn,
+                dosage_form='tablet',
+                strength=tn.split()[-1],
+                price=price,
+                stock_quantity=stock,
+                minimum_stock=30,
+                category='general',
+                is_active=True,
+            )
+        )
 
     # ── 7. Create supplier ──
     from models.medication import Supplier
 
-    db.session.add(Supplier(
-        tenant_id=tid, name='شركة الأدوية المتحدة',
-        contact_person='أبو خالد', phone='0481234567',
-        email='supplier@united-pharma.local', is_active=True,
-    ))
+    db.session.add(
+        Supplier(
+            tenant_id=tid,
+            name='شركة الأدوية المتحدة',
+            contact_person='أبو خالد',
+            phone='0481234567',
+            email='supplier@united-pharma.local',
+            is_active=True,
+        )
+    )
 
     # ── 8. Assign permissions via app_factory mechanism ──
     from models.permissions import (
-        Permission,
-        Role,
-        RolePermission,
         assign_super_admin_permissions,
         create_default_permissions,
         create_default_roles,
@@ -175,22 +208,45 @@ with app.app_context():
     # Use direct SQL for role-permission assignment (same as app_factory)
     role_perm_map = {
         'admin': ['admin.access', 'user_read', 'system_settings'],
-        'reception': ['patient_create', 'patient_read', 'patient_update',
-                      'reception.manage', 'medical_records_read', 'queue_settings_manage'],
-        'doctor': ['medical_records_create', 'medical_records_read',
-                   'medical_records_update', 'patient_read',
-                   'doctor.access', 'finance.view'],
+        'reception': [
+            'patient_create',
+            'patient_read',
+            'patient_update',
+            'reception.manage',
+            'medical_records_read',
+            'queue_settings_manage',
+        ],
+        'doctor': [
+            'medical_records_create',
+            'medical_records_read',
+            'medical_records_update',
+            'patient_read',
+            'doctor.access',
+            'finance.view',
+        ],
         'nurse': ['patient_read', 'medical_records_read', 'medical_records_update'],
         'lab': ['reports_view', 'medical_records_read'],
         'radiology': ['reports_view', 'medical_records_read'],
-        'emergency': ['patient_create', 'patient_update', 'patient_read',
-                      'medical_records_create'],
-        'accountant': ['financial_view', 'financial_manage', 'financial_reports',
-                       'financial_export', 'pricing_manage'],
+        'emergency': ['patient_create', 'patient_update', 'patient_read', 'medical_records_create'],
+        'accountant': [
+            'financial_view',
+            'financial_manage',
+            'financial_reports',
+            'financial_export',
+            'pricing_manage',
+        ],
         'pharmacist': ['medical_records_read', 'reports_view', 'pharmacy.manage'],
-        'manager': ['reports_view', 'reports_create', 'financial_reports',
-                    'financial_view', 'pricing_manage', 'patient_read',
-                    'patient_update', 'queue_settings_manage', 'finance.view'],
+        'manager': [
+            'reports_view',
+            'reports_create',
+            'financial_reports',
+            'financial_view',
+            'pricing_manage',
+            'patient_read',
+            'patient_update',
+            'queue_settings_manage',
+            'finance.view',
+        ],
     }
 
     for role_name, perm_names in role_perm_map.items():
@@ -198,14 +254,14 @@ with app.app_context():
         if not r:
             continue
         for pname in perm_names:
-            pm = db.session.execute(
-                select(PermModel).filter_by(name=pname)
-            ).scalars().first()
+            pm = db.session.execute(select(PermModel).filter_by(name=pname)).scalars().first()
             if not pm:
                 continue
-            exists = db.session.execute(
-                select(RPModel).filter_by(role_id=r.id, permission_id=pm.id)
-            ).scalars().first()
+            exists = (
+                db.session.execute(select(RPModel).filter_by(role_id=r.id, permission_id=pm.id))
+                .scalars()
+                .first()
+            )
             if not exists:
                 db.session.add(RPModel(role_id=r.id, permission_id=pm.id))
 
@@ -226,4 +282,4 @@ with app.app_context():
     print('\n=== FRESH SETUP COMPLETE ===')
     for k, v in counts.items():
         print(f'  {k}: {v}')
-    print(f'\nLogin at http://127.0.0.1:8080/auth/login')
+    print('\nLogin at http://127.0.0.1:8080/auth/login')
