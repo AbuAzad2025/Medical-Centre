@@ -26,8 +26,8 @@ class TestManagerRoutes:
         resp = _mgr_client.get('/manager/dashboard')
         assert resp.status_code in (200, 302)
 
-    def test_manager_financial(self, _mgr_client):
-        resp = _mgr_client.get('/manager/financial')
+    def test_manager_financial_reports(self, _mgr_client):
+        resp = _mgr_client.get('/manager/financial-reports')
         assert resp.status_code in (200, 302)
 
     def test_manager_reports(self, _mgr_client):

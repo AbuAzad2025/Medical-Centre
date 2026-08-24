@@ -2,12 +2,7 @@
 
 
 class TestCoreQueries:
-    def test_import(self):
-        from services.core_queries import get_core_queries
+    def test_module_import(self):
+        from services.core_queries import CoreQueryService
 
-        assert callable(get_core_queries) or True  # module imports successfully
-
-    def test_module_exists(self):
-        import services.core_queries
-
-        assert services.core_queries is not None
+        assert CoreQueryService is not None
