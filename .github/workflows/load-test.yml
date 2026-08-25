@@ -74,8 +74,10 @@ jobs:
 
       - name: Boot app (gunicorn, 4 workers)
         run: |
-          # Full server output captured for post-mortem (login tracebacks etc.)
-          gunicorn --bind 127.0.0.1:8080 --workers 4 --threads 2 \
+          # Pure multi-process mode: shared-thread sessions trigger
+          # ResourceClosedError in lazy relationship loads (seen in CI),
+          # so no --threads; each worker owns its connections.
+          gunicorn --bind 127.0.0.1:8080 --workers 4 \
                    --timeout 30 --access-logfile - --error-logfile - \
                    --capture-output wsgi:app > gunicorn.log 2>&1 &
           for _ in $(seq 1 40); do
