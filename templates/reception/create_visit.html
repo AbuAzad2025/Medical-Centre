@@ -4,8 +4,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/smart-components.css') }}">
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="/static/vendor/tom-select/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<link href="/static/vendor/select2/css/select2.min.css" rel="stylesheet" />
 {% endblock %}
 
 {% from 'partials/_form_stepper.html' import form_stepper %}
@@ -503,9 +503,9 @@
 <script>window.__M=window.__M||[];__M0__={{ (preselected_patient_id or 'null')|tojson }};__M1__={{ (preselected_department_id or 'null')|tojson }};__M2__={{ (preselected_doctor_id or 'null')|tojson }};__M3__={{ preselected_patient|tojson if preselected_patient else 'null' }};</script>
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="/static/vendor/jquery/jquery.min.js"></script>
+<script src="/static/vendor/tom-select/js/tom-select.complete.min.js"></script>
+<script src="/static/vendor/select2/js/select2.min.js"></script>
 <script src="{{ url_for('static', filename='js/smart-search.js') }}"></script>
 <script src="{{ url_for('static', filename='js/smart-select.js') }}"></script>
 <script src="{{ url_for('static', filename='js/form-stepper.js') }}"></script>
