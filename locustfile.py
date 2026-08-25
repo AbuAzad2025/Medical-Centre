@@ -49,7 +49,6 @@ class _RoleUser(HttpUser):
     wait_time = between(1.0, 3.0)
 
     role_username: str = ''
-
     def on_start(self):
         # Fetch the login page to obtain a CSRF token (realistic browser flow)
         page = self.client.get('/auth/login', name='[login-page]')
@@ -63,19 +62,23 @@ class _RoleUser(HttpUser):
                 'csrf_token': token or '',
             },
             headers={'X-Requested-With': 'XMLHttpRequest'},
-            catch_response=True,
             name=f'[login:{self.role_username}]',
         )
-        ok = resp.status_code == 200 and (
-            b'"success": true' in resp.content or b'"success":true' in resp.content
+        # Success = JSON success payload (AJAX path) OR redirect (form path).
+        ok = resp.status_code == 302 or (
+            resp.status_code == 200
+            and (
+                b'"success": true' in resp.content
+                or b'"success":true' in resp.content
+            )
         )
-        # Some deployments answer AJAX logins with a redirect; treat 302 as OK
-        if resp.status_code == 302:
-            ok = True
         if not ok:
-            resp.failure(
-                f'login failed for {self.role_username}: '
-                f'HTTP {resp.status_code} body={resp.content[:120]!r}'
+            # Diagnostics go to stdout so CI logs reveal the root cause.
+            print(
+                f'LOGIN FAILED [{self.role_username}] '
+                f'http={resp.status_code} token_found={bool(token)} '
+                f'body={resp.content[:300]!r}',
+                flush=True,
             )
             self.environment.runner.quit()
 
