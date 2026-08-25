@@ -45,7 +45,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_test
       TEST_DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_test
       REDIS_URL: redis://localhost:6379/0
-      ENABLE_SAAS_MODE: 'true'
+      ENABLE_SAAS_MODE: 'false'
       RLS_BYPASS_ALLOWED: '1'
       SUPPRESS_BACKGROUND_WORKER: '1'
       SKIP_PLATFORM_BOOTSTRAP: '1'

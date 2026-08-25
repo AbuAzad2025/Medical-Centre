@@ -1,65 +1,62 @@
-#!/usr/bin/env python3
-"""Seed role accounts used by the load-test suite (idempotent).
-
-Creates one user per simulated role under the default test tenant so
-locustfile.py can log in as reception/doctor/pharmacist/manager.
-
-Usage:
-    python scripts/seed_load_users.py
-"""
-
+"""Seed load test users — standalone (no pytest fixtures)."""
+import os
 import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent))
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-from app_factory import create_app  # noqa: E402
+from app_factory import create_app
+from app.extensions import db
 
-ROLES = {
-    'reception': 'reception',
-    'doctor': 'doctor',
-    'pharmacist': 'pharmacist',
-    'manager': 'manager',
-}
-PASSWORD = 'ValidPass123!'
+app = create_app("testing")
 
+with app.app_context():
+    from sqlalchemy import select, text
 
-def main() -> int:
-    app = create_app('testing')
-    with app.app_context():
-        from sqlalchemy import select
+    # Get or create default tenant
+    from app.core.tenant.models import Tenant
 
-        from app.extensions import db
-        from tests.tenant_context import ensure_default_test_tenant
+    tenant = db.session.execute(select(Tenant).filter_by(slug="medical-center")).scalars().first()
+    if not tenant:
+        tenant = Tenant(
+            slug="medical-center",
+            name="medical-center",
+            name_ar="المركز الطبي",
+            contact_email="admin@mc.local",
+            product_profile_code="multi_department_center",
+        )
+        db.session.add(tenant)
+        db.session.commit()
+    tid = tenant.id
+    print(f"Tenant: {tenant.slug} (id={tid})")
 
-        tenant = ensure_default_test_tenant(app)
+    # Bind tenant context for ORM queries
+    db.session.execute(text(f"SET LOCAL app.tenant_id = '{tid}'"))
 
-        from models.user import User
+    from models.user import User
 
-        created = 0
-        for username, role in ROLES.items():
-            existing = (
-                db.session.execute(select(User).filter_by(username=username)).scalars().first()
-            )
-            if existing:
-                existing.role = role
-                existing.is_active = True
-                continue
+    accounts = [
+        ("reception", "reception", "ValidPass123!"),
+        ("doctor", "doctor", "ValidPass123!"),
+        ("pharmacist", "pharmacist", "ValidPass123!"),
+        ("manager", "manager", "ValidPass123!"),
+    ]
+    created = 0
+    for username, role, password in accounts:
+        existing = db.session.execute(
+            select(User).filter_by(username=username)
+        ).scalars().first()
+        if not existing:
             u = User(
-                tenant_id=tenant.id,
+                tenant_id=tid,
                 username=username,
-                email=f'{username}@load.local',
-                full_name=f'Load {role.title()}',
+                email=f"{username}@load.local",
+                full_name=username.title(),
                 role=role,
                 is_active=True,
             )
-            u.set_password(PASSWORD)
+            u.set_password(password)
             db.session.add(u)
             created += 1
-        db.session.commit()
-        print(f'load users ready (created={created}, tenant={tenant.slug})')
-    return 0
-
-
-if __name__ == '__main__':
-    raise SystemExit(main())
+    db.session.commit()
+    print(f"Load users ready (created={created})")
