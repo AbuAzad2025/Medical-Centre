@@ -1,19 +1,19 @@
-"""
-Load-test suite — Locust (professional rewrite).
+﻿"""
+Load-test suite â€” Locust (professional rewrite).
 
 Design
-──────
-• Role-based virtual users mirroring real usage mix:
-    ReceptionUser  50%  – patients search, queue views, visit lists
-    DoctorUser     30%  – dashboard, patient queue, own visits
-    PharmacistUser 10%  – medication dashboard / inventory
-    ManagerUser    10%  – manager + financial dashboards
-• Login happens ONCE per simulated user in on_start (realistic sessions);
+â”€â”€â”€â”€â”€â”€
+â€¢ Role-based virtual users mirroring real usage mix:
+    ReceptionUser  50%  â€“ patients search, queue views, visit lists
+    DoctorUser     30%  â€“ dashboard, patient queue, own visits
+    PharmacistUser 10%  â€“ medication dashboard / inventory
+    ManagerUser    10%  â€“ manager + financial dashboards
+â€¢ Login happens ONCE per simulated user in on_start (realistic sessions);
   a failed login stops that user instead of spamming the endpoint.
-• Read-dominated profile (~90% GET) — safe to run against a seeded env.
+â€¢ Read-dominated profile (~90% GET) â€” safe to run against a seeded env.
 
 Run (smoke profile)
-───────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     locust -f locustfile.py --headless \
         -H http://127.0.0.1:8080 -u 25 -r 5 --run-time 90s \
         --csv artifacts/load --only-summary --exit-code-on-error 2%
@@ -74,7 +74,7 @@ class _RoleUser(HttpUser):
         )
         if not ok:
             # Diagnostics go to stdout so CI logs reveal the root cause.
-            print(
+            print(  # noqa: T201
                 f'LOGIN FAILED [{self.role_username}] '
                 f'http={resp.status_code} token_found={bool(token)} '
                 f'body={resp.content[:300]!r}',
@@ -95,7 +95,7 @@ class ReceptionUser(_RoleUser):
 
     @task(8)
     def patients_search(self):
-        q = random.choice(['a', 'm', 'س', '05'])
+        q = random.choice(['a', 'm', 'Ø³', '05'])
         self.client.get(
             f'/reception/patients?search={q}',
             name='/reception/patients?search',
