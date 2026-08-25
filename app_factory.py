@@ -1083,6 +1083,54 @@ def create_app(config_name: str | None = None) -> Flask:
         }
 
     @app.context_processor
+    def inject_breadcrumbs():
+        """Auto-generate breadcrumbs from current blueprint name."""
+        from flask import request
+
+        breadcrumbs = []
+        if request and request.blueprint:
+            bp_labels = {
+                'reception': 'الاستقبال',
+                'doctor': 'الطبيب',
+                'lab': 'المختبر',
+                'radiology': 'الأشعة',
+                'medication': 'الصيدلية',
+                'nurse': 'التمريض',
+                'emergency': 'الطوارئ',
+                'accountant': 'المحاسبة',
+                'manager': 'الإدارة',
+                'finance': 'المالية',
+                'booking': 'الحجوزات',
+                'owner': 'لوحة المالك',
+                'super_admin': 'إدارة النظام',
+                'payment': 'الدفع',
+                'bed': 'الأسرّة',
+                'dicom': 'الأشعة الرقمية',
+                'emar': 'eMAR',
+                'inbox': 'صندوق الوارد',
+            }
+            label = bp_labels.get(request.blueprint, request.blueprint.replace('_', ' ').title())
+            breadcrumbs.append((label, None))
+
+            # Add page-specific crumb from endpoint
+            ep_parts = request.endpoint.rsplit('.', 1)[-1] if request.endpoint else ''
+            ep_labels = {
+                'patients': 'المرضى',
+                'visits': 'الزيارات',
+                'queue_management': 'الطابور',
+                'create_visit': 'زيارة جديدة',
+                'add_patient': 'مريض جديد',
+                'dashboard': 'لوحة التحكم',
+                'appointments': 'المواعيد',
+                'inventory': 'المخزون',
+                'pos': 'نقطة البيع',
+            }
+            if ep_parts in ep_labels:
+                breadcrumbs.append((ep_labels[ep_parts], None))
+
+        return {'breadcrumbs': breadcrumbs}
+
+    @app.context_processor
     def inject_nav():
         from flask_login import current_user
 
