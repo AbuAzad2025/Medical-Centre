@@ -25,8 +25,14 @@ os.environ.setdefault('FLASK_DEBUG', '0')
 os.environ.setdefault('SUPPRESS_DEPRECATION_WARNINGS', '1')
 
 from app_factory import create_app
+from config import config as app_config
 
-app = create_app('production')
+_env = os.environ.get('APP_ENV', 'production')
+# Only honor known config names; anything else falls back to production.
+if _env not in app_config:
+    _env = 'production'
+
+app = create_app(_env)
 
 if __name__ == '__main__':
     # Development only - use gunicorn/uvicorn in production

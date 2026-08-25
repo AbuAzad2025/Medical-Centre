@@ -1,4 +1,4 @@
-﻿"""
+"""
 Load-test suite â€” Locust (professional rewrite).
 
 Design
@@ -49,6 +49,7 @@ class _RoleUser(HttpUser):
     wait_time = between(1.0, 3.0)
 
     role_username: str = ''
+
     def on_start(self):
         # Fetch the login page to obtain a CSRF token (realistic browser flow)
         page = self.client.get('/auth/login', name='[login-page]')
@@ -67,10 +68,7 @@ class _RoleUser(HttpUser):
         # Success = JSON success payload (AJAX path) OR redirect (form path).
         ok = resp.status_code == 302 or (
             resp.status_code == 200
-            and (
-                b'"success": true' in resp.content
-                or b'"success":true' in resp.content
-            )
+            and (b'"success": true' in resp.content or b'"success":true' in resp.content)
         )
         if not ok:
             # Diagnostics go to stdout so CI logs reveal the root cause.

@@ -39,8 +39,10 @@ jobs:
 
     env:
       SECRET_KEY: ci-load-secret-key-not-production
-      APP_ENV: testing
-      FLASK_ENV: testing
+      # 'local' profile: CSRF enabled + non-secure cookies (works over plain
+      # HTTP). 'testing' would disable CSRF entirely; 'production' sets
+      # SESSION_COOKIE_SECURE=true which breaks cookies over http://127.0.0.1.
+      APP_ENV: local
       FLASK_APP: wsgi:app
       DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_test
       TEST_DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_test
