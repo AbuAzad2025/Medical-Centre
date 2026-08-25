@@ -379,6 +379,39 @@ def test_tenant(app):
         'dicom',
     ]:
         t.settings['modules'][module_name] = True
+
+    # Create TenantModule rows so module guards recognize enabled modules
+    from app.core.module.models import TenantModule
+
+    for module_name in [
+        'reception',
+        'doctor',
+        'lab',
+        'radiology',
+        'pharmacy',
+        'emergency',
+        'nursing',
+        'billing',
+        'inventory',
+        'reporting',
+        'appointments',
+        'owner',
+        'portal',
+        'ai_imaging',
+        'accounting',
+        'admin',
+        'manager',
+        'dicom',
+    ]:
+        exists = (
+            _db.session.execute(
+                select(TenantModule).filter_by(tenant_id=t.id, module_name=module_name)
+            )
+            .scalars()
+            .first()
+        )
+        if not exists:
+            _db.session.add(TenantModule(tenant_id=t.id, module_name=module_name, is_active=True))
     _db.session.commit()
     return t
 

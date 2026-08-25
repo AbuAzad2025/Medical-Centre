@@ -667,10 +667,16 @@ class TestStrongSessionProtection:
         with client.session_transaction() as sess:
             sess['_user_id'] = str(user_id)
             sess['_fresh'] = True
+            # Flask-Login gives permanent sessions only 'basic' treatment
+            # (login_manager.py:398) — strong-mode invalidation requires a
+            # non-permanent session, so ensure the forged session is not
+            # marked permanent (Flask-Session marks sessions permanent).
+            sess.permanent = False
             # Intentionally omit _id
 
         with client.session_transaction() as sess:
             assert sess.get('_id') is None, '_id should be absent in broken-helper test'
+            assert not sess.permanent, 'session must stay non-permanent for strong protection'
 
         resp = client.get(f'/t/{slug}/reception/visits')
         assert resp.status_code == 302, f'Expected 302 redirect to login, got {resp.status_code}'
