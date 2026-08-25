@@ -248,6 +248,7 @@ def login() -> ResponseReturnValue:
                             LoginAttempt(
                                 username=username,
                                 user_id=user.id,
+                                tenant_id=user.tenant_id,
                                 success=True,
                                 user_ip=request.remote_addr,
                                 user_agent=request.headers.get('User-Agent'),
@@ -258,6 +259,7 @@ def login() -> ResponseReturnValue:
                             AuditTrail(
                                 entity_type='user',
                                 entity_id=user.id,
+                                tenant_id=user.tenant_id,
                                 action='login',
                                 user_id=user.id,
                                 user_ip=request.remote_addr,
@@ -393,29 +395,41 @@ def login() -> ResponseReturnValue:
                 from models.audit_trail import AuditTrail, LoginAttempt
 
                 now = datetime.now(UTC)
-                db.session.add(
-                    LoginAttempt(
-                        username=username,
-                        user_id=(user.id if user else None),
-                        success=False,
-                        user_ip=request.remote_addr,
-                        user_agent=request.headers.get('User-Agent'),
-                        created_at=now,
+                # Security audit rows must persist even for unknown usernames
+                # (no tenant context) — temporarily bypass the fail-closed
+                # tenant guard for these two inserts only.
+                from flask import g as _audit_g
+
+                _prev_bypass = _audit_g.get('_tenant_filter_bypass', False)
+                _audit_g._tenant_filter_bypass = True
+                try:
+                    db.session.add(
+                        LoginAttempt(
+                            username=username,
+                            user_id=(user.id if user else None),
+                            tenant_id=(user.tenant_id if user else None),
+                            success=False,
+                            user_ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent'),
+                            created_at=now,
+                        )
                     )
-                )
-                db.session.add(
-                    AuditTrail(
-                        entity_type='system',
-                        entity_id=0,
-                        action='login_failed',
-                        user_id=(user.id if user else None),
-                        user_ip=request.remote_addr,
-                        user_agent=request.headers.get('User-Agent'),
-                        description='فشل تسجيل دخول',
-                        notes=f'username={username}',
+                    db.session.add(
+                        AuditTrail(
+                            entity_type='system',
+                            entity_id=0,
+                            tenant_id=(user.tenant_id if user else None),
+                            action='login_failed',
+                            user_id=(user.id if user else None),
+                            user_ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent'),
+                            description='فشل تسجيل دخول',
+                            notes=f'username={username}',
+                        )
                     )
-                )
-                safe_commit(db.session, error_message='database commit failed', reraise=True)
+                    safe_commit(db.session, error_message='database commit failed', reraise=True)
+                finally:
+                    _audit_g._tenant_filter_bypass = _prev_bypass
             except Exception:
                 try:
                     safe_rollback(db.session, error_message='database rollback')
