@@ -1,19 +1,19 @@
 """
-Load-test suite â€” Locust (professional rewrite).
+Load-test suite Ã¢â‚¬â€ Locust (professional rewrite).
 
 Design
-â”€â”€â”€â”€â”€â”€
-â€¢ Role-based virtual users mirroring real usage mix:
-    ReceptionUser  50%  â€“ patients search, queue views, visit lists
-    DoctorUser     30%  â€“ dashboard, patient queue, own visits
-    PharmacistUser 10%  â€“ medication dashboard / inventory
-    ManagerUser    10%  â€“ manager + financial dashboards
-â€¢ Login happens ONCE per simulated user in on_start (realistic sessions);
+Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+Ã¢â‚¬Â¢ Role-based virtual users mirroring real usage mix:
+    ReceptionUser  50%  Ã¢â‚¬â€œ patients search, queue views, visit lists
+    DoctorUser     30%  Ã¢â‚¬â€œ dashboard, patient queue, own visits
+    PharmacistUser 10%  Ã¢â‚¬â€œ medication dashboard / inventory
+    ManagerUser    10%  Ã¢â‚¬â€œ manager + financial dashboards
+Ã¢â‚¬Â¢ Login happens ONCE per simulated user in on_start (realistic sessions);
   a failed login stops that user instead of spamming the endpoint.
-â€¢ Read-dominated profile (~90% GET) â€” safe to run against a seeded env.
+Ã¢â‚¬Â¢ Read-dominated profile (~90% GET) Ã¢â‚¬â€ safe to run against a seeded env.
 
 Run (smoke profile)
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     locust -f locustfile.py --headless \
         -H http://127.0.0.1:8080 -u 25 -r 5 --run-time 90s \
         --csv artifacts/load --only-summary --exit-code-on-error 2%
@@ -25,6 +25,8 @@ override via LOAD_PASSWORD env if needed.
 import os
 import random
 import re
+
+import gevent
 
 from locust import HttpUser, between, task
 
@@ -51,12 +53,15 @@ class _RoleUser(HttpUser):
     role_username: str = ''
 
     def on_start(self):
+        # Stagger logins: 25 users spawning at once from one IP would spike
+        # the auth rate limiter in the first second (thundering herd).
+        gevent.sleep(random.uniform(0, 3))
         # Fetch the login page to obtain a CSRF token (realistic browser flow)
         page = self.client.get('/auth/login', name='[login-page]')
         token = _extract_csrf(page.text) if page.status_code == 200 else None
 
         # The backend treats a request as AJAX only when Content-Type is
-        # application/json (auth_routes.py:96) — send JSON like the real UI.
+        # application/json (auth_routes.py:96) â€” send JSON like the real UI.
         headers = {'X-Requested-With': 'XMLHttpRequest'}
         if token:
             headers['X-CSRFToken'] = token
@@ -98,7 +103,7 @@ class ReceptionUser(_RoleUser):
 
     @task(8)
     def patients_search(self):
-        q = random.choice(['a', 'm', 'Ø³', '05'])
+        q = random.choice(['a', 'm', 'Ã˜Â³', '05'])
         self.client.get(
             f'/reception/patients?search={q}',
             name='/reception/patients?search',

@@ -76,7 +76,10 @@ def api_tenants_list():
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
-@rate_limit(max_requests=10, window_seconds=60, namespace='auth')
+# 30 POSTs/min/IP: clinics behind one NAT legitimately exceed 10 logins/min
+# during morning shift. Brute-force defense-in-depth remains the per-username
+# LoginAttempt lockout (5 failures -> temporary lock) enforced below.
+@rate_limit(max_requests=30, window_seconds=60, namespace='auth')
 def login() -> ResponseReturnValue:
     """تسجيل الدخول"""
     if request.method == 'GET':
