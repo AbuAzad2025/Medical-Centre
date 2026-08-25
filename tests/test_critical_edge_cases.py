@@ -322,8 +322,9 @@ class TestC8KioskDedup:
         from models.visit import Visit
         from services.kiosk_checkin_service import perform_kiosk_checkin
 
-        _kiosk_fixture(db, test_tenant.id, 'C8NATPAR0001')
+        _p, _appt = _kiosk_fixture(db, test_tenant.id, 'C8NATPAR0001')
         db.session.commit()
+        marker_like = f'%[APPOINTMENT:{_appt.id}]%'
 
         with tenant_test_context(app, test_tenant):
             results = [perform_kiosk_checkin('C8NATPAR0001') for _ in range(12)]
@@ -376,9 +377,12 @@ class TestBoundaries:
         from services.kiosk_checkin_service import perform_kiosk_checkin
 
         n = 40
+        appt_ids = []
         for i in range(n):
-            _kiosk_fixture(db, test_tenant.id, f'BDCONC{i:05d}')
+            _p, _a = _kiosk_fixture(db, test_tenant.id, f'BDCONC{i:05d}')
+            appt_ids.append(_a.id)
         db.session.commit()
+        marker_likes = [f'%[APPOINTMENT:{aid}]%' for aid in appt_ids]
 
         with tenant_test_context(app, test_tenant):
             results = [perform_kiosk_checkin(f'BDCONC{i:05d}') for i in range(n)]
@@ -386,7 +390,9 @@ class TestBoundaries:
             assert not failed, failed[:5]
 
             created_n = (
-                db.session.execute(select(Visit).where(Visit.notes.like('%BDCONC%')))
+                db.session.execute(
+                    select(Visit).where(db.or_(*[Visit.notes.like(ml) for ml in marker_likes]))
+                )
                 .scalars()
                 .all()
             )
