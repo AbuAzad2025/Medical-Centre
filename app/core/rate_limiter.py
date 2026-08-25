@@ -162,15 +162,19 @@ class RateLimiter:
 
 
 def rate_limit(
-    max_requests: int = 60, window_seconds: int = 60, namespace: str = 'rl', use_redis: bool = True
+    max_requests: int = 60,
+    window_seconds: int = 60,
+    namespace: str = 'rl',
+    use_redis: bool = True,
+    methods: tuple = ('POST',),
 ):
-    """Decorator to rate-limit a route by IP + endpoint."""
-    limiter = RateLimiter(
-        max_requests=max_requests,
-        window_seconds=window_seconds,
-        namespace=namespace,
-        use_redis=use_redis,
-    )
+    """Decorator to rate-limit a route by IP + endpoint.
+
+    Only requests whose method is in ``methods`` are counted. By default
+    only POST is limited — fetching forms via GET must stay unrestricted
+    so legitimate users behind shared IPs (clinic NAT) can load pages,
+    while brute-force attempts (which are always POSTs) remain throttled.
+    """
 
     def decorator(f):
         @wraps(f)
@@ -178,6 +182,8 @@ def rate_limit(
             # Skip rate limiting in testing mode — sequential tests exceed
             # auth rate limits causing false failures.  Production unaffected.
             if current_app.config.get('TESTING', False):
+                return f(*args, **kwargs)
+            if request.method not in methods:
                 return f(*args, **kwargs)
             key = f'{request.remote_addr}:{request.endpoint}'
             if not limiter.is_allowed(key):
