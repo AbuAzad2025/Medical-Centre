@@ -176,6 +176,13 @@ def rate_limit(
     while brute-force attempts (which are always POSTs) remain throttled.
     """
 
+    limiter = RateLimiter(
+        max_requests=max_requests,
+        window_seconds=window_seconds,
+        namespace=namespace,
+        use_redis=use_redis,
+    )
+
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
