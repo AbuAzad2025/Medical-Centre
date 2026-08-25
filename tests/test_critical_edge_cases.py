@@ -327,17 +327,16 @@ class TestC8KioskDedup:
 
         with tenant_test_context(app, test_tenant):
             results = [perform_kiosk_checkin('C8NATPAR0001') for _ in range(12)]
+            successes = [r for r in results if r.get('success')]
+            assert successes, results
+            visit_ids = {r.get('visit_id') for r in successes}
+            assert len(visit_ids) == 1, visit_ids
 
-        successes = [r for r in results if r.get('success')]
-        assert successes, results
-        visit_ids = {r.get('visit_id') for r in successes}
-        assert len(visit_ids) == 1, visit_ids
-
-        created = (
-            db.session.execute(select(Visit).where(Visit.notes.like('%C8NATPAR0001%')))
-            .scalars()
-            .all()
-        )
+            created = (
+                db.session.execute(select(Visit).where(Visit.notes.like('%C8NATPAR0001%')))
+                .scalars()
+                .all()
+            )
         assert len(created) == 1, f'{len(created)} visits for one check-in'
 
 
@@ -383,13 +382,14 @@ class TestBoundaries:
 
         with tenant_test_context(app, test_tenant):
             results = [perform_kiosk_checkin(f'BDCONC{i:05d}') for i in range(n)]
+            failed = [r for r in results if not r.get('success')]
+            assert not failed, failed[:5]
 
-        failed = [r for r in results if not r.get('success')]
-        assert not failed, failed[:5]
-
-        created_n = (
-            db.session.execute(select(Visit).where(Visit.notes.like('%BDCONC%'))).scalars().all()
-        )
+            created_n = (
+                db.session.execute(select(Visit).where(Visit.notes.like('%BDCONC%')))
+                .scalars()
+                .all()
+            )
         assert len(created_n) == n, f'expected {n} visits, got {len(created_n)}'
 
 
