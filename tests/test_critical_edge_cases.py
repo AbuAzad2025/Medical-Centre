@@ -46,7 +46,7 @@ class TestC2BundlePatientLimit:
         monkeypatch.setattr(
             resolver_mod.EntitlementResolver,
             'get_limit',
-            staticmethod(lambda tid, key, *_a, **_k: 0 if key == 'max_patients' else None),
+            staticmethod(lambda _tid, key, *_a, **_k: 0 if key == 'max_patients' else None),
         )
         monkeypatch.setattr(tf_mod, '_check_bundle_limits_on_create', enforce_limit)
 
