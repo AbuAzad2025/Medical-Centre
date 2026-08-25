@@ -24,6 +24,7 @@ with app.app_context():
             name_ar='المركز الطبي',
             contact_email='admin@mc.local',
             product_profile_code='multi_department_center',
+            status='active',
         )
         db.session.add(tenant)
         db.session.commit()

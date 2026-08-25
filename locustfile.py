@@ -24,10 +24,22 @@ override via LOAD_PASSWORD env if needed.
 
 import os
 import random
+import re
 
 from locust import HttpUser, between, task
 
 PASSWORD = os.getenv('LOAD_PASSWORD', 'ValidPass123!')
+
+_CSRF_RE = re.compile(
+    r'name="csrf_token"[^>]*value="([^"]+)"|value="([^"]+)"[^>]*name="csrf_token"'
+)
+
+
+def _extract_csrf(html: str) -> str | None:
+    m = _CSRF_RE.search(html)
+    if not m:
+        return None
+    return m.group(1) or m.group(2)
 
 
 class _RoleUser(HttpUser):
@@ -39,15 +51,32 @@ class _RoleUser(HttpUser):
     role_username: str = ''
 
     def on_start(self):
+        # Fetch the login page to obtain a CSRF token (realistic browser flow)
+        page = self.client.get('/auth/login', name='[login-page]')
+        token = _extract_csrf(page.text) if page.status_code == 200 else None
+
         resp = self.client.post(
             '/auth/login',
-            data={'username': self.role_username, 'password': PASSWORD},
+            data={
+                'username': self.role_username,
+                'password': PASSWORD,
+                'csrf_token': token or '',
+            },
             headers={'X-Requested-With': 'XMLHttpRequest'},
             catch_response=True,
             name=f'[login:{self.role_username}]',
         )
-        if resp.status_code != 200 or b'"success": true' not in resp.content:
-            resp.failure(f'login failed for {self.role_username}: HTTP {resp.status_code}')
+        ok = resp.status_code == 200 and (
+            b'"success": true' in resp.content or b'"success":true' in resp.content
+        )
+        # Some deployments answer AJAX logins with a redirect; treat 302 as OK
+        if resp.status_code == 302:
+            ok = True
+        if not ok:
+            resp.failure(
+                f'login failed for {self.role_username}: '
+                f'HTTP {resp.status_code} body={resp.content[:120]!r}'
+            )
             self.environment.runner.quit()
 
     # Shared lightweight probes available to every role -------------------

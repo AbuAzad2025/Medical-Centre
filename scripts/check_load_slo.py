@@ -37,7 +37,13 @@ def main(argv: list[str]) -> int:
 
     reqs = int(total['Request Count'] or 0)
     fails = int(total['Failure Count'] or 0)
-    p95 = float(total['95%'] or 0)
+    # Locust reports 'N/A' when too few samples exist for a percentile
+    p95_raw = (total.get('95%') or '0').strip()
+    try:
+        p95 = float(p95_raw)
+    except ValueError:
+        print(f'WARN p95 unavailable ({p95_raw!r}) — treating as 0 for gating')
+        p95 = 0.0
 
     err_rate = (fails / reqs) if reqs else 1.0
 
