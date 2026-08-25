@@ -7,7 +7,7 @@ results = []
 total_forms = 0
 no_protection = []
 
-for root, dirs, files in os.walk('templates'):
+for root, _dirs, files in os.walk('templates'):
     for f in files:
         if not f.endswith('.html'):
             continue
