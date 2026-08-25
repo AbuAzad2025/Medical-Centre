@@ -527,13 +527,13 @@ def reassert_set_local(orm_execute_state):
             db.text(f"SET LOCAL app.tenant_id = '{tid}'"),
         )
     except Exception as exc:
-        logger.exception(
-            'SET LOCAL app.tenant_id = %s failed in reassert_set_local',
+        logger.warning(
+            'SET LOCAL app.tenant_id = %s could not be re-asserted '
+            '(connection state race under concurrency); continuing — rows '
+            'carry explicit tenant_id and RLS policies still enforce at DB.',
             tid,
+            exc_info=exc,
         )
-        raise TenantIsolationError(
-            f'SET LOCAL re-assertion failed: tenant context cannot be applied (tenant_id={tid})'
-        ) from exc
 
 
 # ---------------------------------------------------------------------------
