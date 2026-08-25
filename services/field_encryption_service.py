@@ -4,6 +4,7 @@ Encrypts PHI/PII columns transparently with environment key management
 """
 
 import base64
+import hashlib
 import logging
 import os
 
@@ -73,8 +74,11 @@ class FieldEncryptionService:
         if data.startswith(self.LEGACY_PREFIX) or data.startswith(self.GCM_PREFIX):
             return data.decode('utf-8', errors='replace')
         try:
-            token = self._fernet.encrypt(data)
-            return (self.LEGACY_PREFIX + token).decode('utf-8')
+            nonce = hashlib.sha256(b'lookup' + self._gcm_key + data).digest()[:12]
+            aesgcm = AESGCM(self._gcm_key)
+            ct = aesgcm.encrypt(nonce, data, None)
+            payload = base64.urlsafe_b64encode(nonce + ct).decode('utf-8')
+            return (self.GCM_PREFIX + payload.encode()).decode('utf-8')
         except Exception:
             logger.exception('Field encryption failed: %s')
             raise

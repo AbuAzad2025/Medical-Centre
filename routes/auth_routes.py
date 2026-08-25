@@ -936,6 +936,24 @@ def impersonate(user_id):
         return jsonify({'success': False, 'message': 'لا يمكن انتحال شخصية نفسك'}), 400
     session['impersonator_id'] = current_user.id
     session['impersonator_role'] = current_user.role
+
+    from models.audit_trail import AuditTrail
+
+    db.session.add(
+        AuditTrail(
+            entity_type='user',
+            entity_id=target.id,
+            tenant_id=target.tenant_id,
+            action='IMPERSONATE',
+            user_id=current_user.id,
+            user_ip=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            description=f'انتحال هوية المستخدم {target.username}',
+            notes=f'actor={current_user.username}, target_user_id={target.id}',
+        )
+    )
+    safe_commit(db.session, error_message='impersonation audit write failed')
+
     login_user(target)
     from services.dashboard_routing import resolve_dashboard_for_user
 
@@ -962,6 +980,24 @@ def impersonate_exit():
         logout_user()
         return jsonify({'success': False, 'message': 'تم تسجيل الخروج'}), 401
     login_user(owner)
+
+    from models.audit_trail import AuditTrail
+
+    db.session.add(
+        AuditTrail(
+            entity_type='user',
+            entity_id=owner.id,
+            tenant_id=owner.tenant_id,
+            action='IMPERSONATE',
+            user_id=owner.id,
+            user_ip=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            description='إنهاء جلسة انتحال هوية والعودة لحساب المالك',
+            notes=f'actor={owner.username}, ended_target_session=True',
+        )
+    )
+    safe_commit(db.session, error_message='impersonation exit audit write failed')
+
     return jsonify(
         {
             'success': True,

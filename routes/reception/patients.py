@@ -299,6 +299,13 @@ def add_patient():
             flash('تم إضافة المريض بنجاح.', 'success')
             return redirect(url_for('reception.patients'))
 
+        except ValueError as ve:
+            safe_rollback(db.session, error_message='bundle-limit rollback')
+            msg = str(ve) or 'تم تجاوز الحد الأقصى للحزمة'
+            if _wants_json():
+                return jsonify({'success': False, 'message': msg}), 400
+            flash(msg, 'error')
+            return redirect(url_for('reception.patients', show_add=1))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
             logging.exception('Error adding patient: %s')

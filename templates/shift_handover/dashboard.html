@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}تسليم الشيفتات{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <h4 class="mb-3"><i class="fas fa-right-left me-2 text-primary"></i>تسليم واستلام الشيفتات</h4>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header">فتح شيفت جديد</div>
+    <div class="card-body row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small mb-1" for="ho-role">الدور</label>
+        <select id="ho-role" class="form-select form-select-sm">
+          <option value="reception">استقبال</option>
+          <option value="nurse">تمريض</option>
+          <option value="pharmacist">صيدلية</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small mb-1" for="ho-to">المستلم المعيّن (اختياري)</label>
+        <input type="number" id="ho-to" class="form-control form-control-sm" placeholder="رقم المستخدم">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small mb-1" for="ho-notes">ملاحظات الافتتاح</label>
+        <input type="text" id="ho-notes" class="form-control form-control-sm" maxlength="300" dir="auto">
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary btn-sm w-100" id="ho-btn-open">
+          <i class="fas fa-play me-1"></i>فتح
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header"><i class="fas fa-list me-2"></i>سجل الشيفتات</div>
+    <div class="table-responsive">
+      <table class="table table-hover table-sm align-middle mb-0">
+        <thead class="table-light">
+          <tr><th>#</th><th>الدور</th><th>الحالة</th><th>فُتح بواسطة</th><th>وقت الفتح</th><th>فرق الصندوق</th><th>إجراءات</th></tr>
+        </thead>
+        <tbody id="ho-rows">
+          {% for s in shifts %}
+          <tr data-id="{{ s.id }}">
+            <td>{{ s.id }}</td>
+            <td>{{ s.role }}</td>
+            <td>
+              {% if s.status == 'OPEN' %}<span class="badge bg-warning text-dark">مفتوح</span>
+              {% elif s.status == 'CLOSED' %}<span class="badge bg-info text-dark">مغلق — بانتظار التأكيد</span>
+              {% else %}<span class="badge bg-success">مؤكد الاستلام</span>{% endif %}
+            </td>
+            <td>{{ s.opened_by_id }}</td>
+            <td class="small">{{ s.opened_at }}</td>
+            <td class="small">
+              {% if s.cash_summary and s.cash_summary.get('register') %}
+                {{ s.cash_summary['register'].get('difference', '—') }}
+              {% else %}—{% endif %}
+            </td>
+            <td class="text-nowrap">
+              {% if s.status == 'OPEN' and current_user.id == s.opened_by_id %}
+                <button class="btn btn-outline-danger btn-sm btn-close-shift" data-id="{{ s.id }}">إغلاق</button>
+              {% elif s.status == 'CLOSED' and current_user.id == s.to_user_id %}
+                <button class="btn btn-success btn-sm btn-ack-shift" data-id="{{ s.id }}">تأكيد الاستلام</button>
+              {% endif %}
+              {% if s.pending_items %}
+                <button class="btn btn-outline-secondary btn-sm" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#snap-{{ s.id }}">لقطات</button>
+              {% endif %}
+            </td>
+          </tr>
+          {% if s.pending_items %}
+          <tr class="collapse" id="snap-{{ s.id }}"><td colspan="7" class="bg-light small">
+            <strong>لقطات مجمدة وقت الإغلاق:</strong>
+            <ul class="mb-0 mt-1">
+              <li>طابور منتظر: {{ s.pending_items.get('queue_waiting', {}).get('count', 0) }}</li>
+              <li>مختبر معلق: {{ s.pending_items.get('pending_labs', {}).get('count', 0) }}</li>
+              <li>أشعة معلقة: {{ s.pending_items.get('pending_radiology', {}).get('count', 0) }}</li>
+              <li>وصفات لم تُصرَّف: {{ s.pending_items.get('pending_prescriptions', {}).get('count', 0) }}</li>
+            </ul>
+          </td></tr>
+          {% endif %}
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-4">لا توجد شيفتات بعد — ابدأ بفتح شيفت جديد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal fade" id="closeModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+      <form id="close-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header"><h5 class="modal-title">إغلاق الشيفت #<span id="cm-id"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label small" for="cm-note">سبب الفرق في الصندوق (إلزامي عند وجود فرق)</label>
+            <textarea id="cm-note" class="form-control" rows="2" maxlength="500" dir="auto"></textarea>
+          </div>
+          <div class="mb-1">
+            <label class="form-label small" for="cm-to">تحويل إلى مستخدم (اختياري، نفس الدور)</label>
+            <input type="number" id="cm-to" class="form-control form-control-sm" placeholder="رقم المستخدم">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">تراجع</button>
+          <button type="submit" class="btn btn-danger btn-sm">تأكيد الإغلاق</button>
+        </div>
+      </form>
+    </div></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ g.csp_nonce if g is defined and g.csp_nonce else '' }}">
+(function () {
+  'use strict';
+  var CSRF = document.querySelector('#close-form [name="csrf_token"]').value;
+
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body: JSON.stringify(body || {})
+    }).then(function (r) {
+      return r.json().catch(function () { throw new Error(r.status); });
+    });
+  }
+
+  function num(v) {
+    var n = parseInt(v, 10);
+    return isNaN(n) ? null : n;
+  }
+
+  document.getElementById('ho-btn-open').addEventListener('click', function () {
+    var btn = this;
+    btn.disabled = true;
+    post('/handover/open', {
+      role: document.getElementById('ho-role').value,
+      to_user_id: num(document.getElementById('ho-to').value),
+      notes: document.getElementById('ho-notes').value.trim()
+    }).then(function (j) {
+      if (j.success) window.location.reload();
+      else { alert(j.message); btn.disabled = false; }
+    }).catch(function () { alert('حدث خطأ أثناء فتح الشيفت'); btn.disabled = false; });
+  });
+
+  var pendingCloseId = null;
+  document.addEventListener('click', function (e) {
+    var c = e.target.closest('.btn-close-shift');
+    if (c) {
+      pendingCloseId = parseInt(c.getAttribute('data-id'), 10);
+      document.getElementById('cm-id').textContent = pendingCloseId;
+      new bootstrap.Modal(document.getElementById('closeModal')).show();
+    }
+    var a = e.target.closest('.btn-ack-shift');
+    if (a) {
+      a.disabled = true;
+      post('/handover/' + a.getAttribute('data-id') + '/acknowledge', {})
+        .then(function (j) { j.success ? window.location.reload() : (alert(j.message), a.disabled = false); })
+        .catch(function () { alert('حدث خطأ أثناء التأكيد'); a.disabled = false; });
+    }
+  });
+
+  document.getElementById('close-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    post('/handover/' + pendingCloseId + '/close', {
+      close_note: document.getElementById('cm-note').value.trim(),
+      to_user_id: num(document.getElementById('cm-to').value)
+    }).then(function (j) {
+      if (j.success) window.location.reload();
+      else alert(j.message);
+    }).catch(function () { alert('حدث خطأ أثناء الإغلاق'); });
+  });
+})();
+</script>
+{% endblock %}

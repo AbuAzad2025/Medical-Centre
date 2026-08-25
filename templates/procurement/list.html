@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}المشتريات والمخزون{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="fas fa-truck-ramp-box me-2 text-primary"></i>أوامر الشراء</h4>
+    {% if current_user.role in ('manager', 'admin', 'owner', 'super_admin') %}
+    <a href="{{ url_for('procurement.new_po_form') }}" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus me-1"></i>أمر شراء جديد
+    </a>
+    {% endif %}
+  </div>
+
+  {% if orders %}
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>التاريخ</th>
+            <th>المورد</th>
+            <th>عدد الأصناف</th>
+            <th>بنود غير مستلمة</th>
+            <th>الإجمالي</th>
+            <th>الحالة</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in orders %}
+          <tr>
+            <td>{{ o.purchase_date }}</td>
+            <td>
+              {%- set sup = suppliers | selectattr('id', 'equalto', o.supplier_id) | list | first -%}
+              {{ sup.name if sup else ('مورد #' ~ o.supplier_id) }}
+            </td>
+            <td>{{ o.items | length }}</td>
+            <td>{{ o.open_lines }}</td>
+            <td class="fw-bold">{{ '%.2f' % o.total }}</td>
+            <td>
+              {% if o.open_lines == 0 %}
+                <span class="badge bg-success">مستلم بالكامل</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">بانتظار الاستلام</span>
+              {% endif %}
+            </td>
+            <td>
+              <button class="btn btn-outline-primary btn-sm"
+                      type="button" data-bs-toggle="collapse"
+                      data-bs-target="#po-{{ loop.index }}">
+                التفاصيل
+              </button>
+            </td>
+          </tr>
+          <tr class="collapse" id="po-{{ loop.index }}">
+            <td colspan="7">
+              <table class="table table-sm mb-0">
+                <thead><tr><th>الدواء</th><th>الكمية</th><th>المتبقي للاستلام</th><th>السعر</th><th>التشغيلة</th><th></th></tr></thead>
+                <tbody>
+                  {% for p in o['items'] %}
+                  <tr>
+                    <td>
+                      {%- set med = medications_map.get(p.medication_id) if medications_map else None -%}
+                      {{ med.trade_name if med else ('دواء #' ~ p.medication_id) }}
+                    </td>
+                    <td>{{ p.quantity }}</td>
+                    <td>{{ p.remaining_quantity }}</td>
+                    <td>{{ '%.2f' % (p.purchase_price or 0) }}</td>
+                    <td>{{ p.batch_number }}</td>
+                    <td>
+                      {% if p.remaining_quantity and p.remaining_quantity > 0
+                            and current_user.role in ('manager','admin','owner','super_admin','pharmacist') %}
+                        <button class="btn btn-success btn-sm btn-receive"
+                                data-id="{{ p.id }}"
+                                data-name="{{ p.batch_number }}">
+                          <i class="fas fa-check me-1"></i>استلام
+                        </button>
+                      {% elif p.remaining_quantity == 0 %}
+                        <span class="badge bg-secondary">✓ مستلم</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% else %}
+  {% from 'partials/_empty_state.html' import empty_state %}
+  {{ empty_state(
+      icon='fas fa-truck-ramp-box',
+      title='لا توجد أوامر شراء بعد',
+      subtitle='ابدأ بإنشاء أول أمر شراء لتوريد الأدوية إلى المخزون',
+      action_url=url_for('procurement.new_po_form'),
+      action_text='إنشاء أمر شراء'
+  ) }}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ g.csp_nonce if g is defined and g.csp_nonce else '' }}">
+(function () {
+  'use strict';
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.btn-receive');
+    if (!btn) return;
+    e.preventDefault();
+    var id = btn.getAttribute('data-id');
+
+    if (!window.confirm('تأكيد استلام هذا الصنف وإضافته للمخزون؟')) return;
+
+    btn.disabled = true;
+    fetch('/procurement/receive/' + id, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'X-CSRFToken': document.querySelector('input[name="csrf_token"]')
+          ? document.querySelector('input[name="csrf_token"]').value
+          : '{{ csrf_token() if csrf_token is defined else "" }}',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(function (r) { return r.json().catch(function () { throw new Error(r.status); }); })
+      .then(function (j) {
+        if (j.success) {
+          window.location.reload();
+        } else {
+          alert(j.message || 'تعذر الاستلام');
+          btn.disabled = false;
+        }
+      })
+      .catch(function () {
+        alert('حدث خطأ أثناء الاستلام. تحقق من الاتصال وحاول مرة أخرى.');
+        btn.disabled = false;
+      });
+  });
+})();
+</script>
+{% endblock %}

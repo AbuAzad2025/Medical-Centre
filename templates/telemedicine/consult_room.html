@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}غرفة الاستشارة عن بُعد{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h4 class="mb-0">
+      <i class="fas fa-video me-2 text-primary"></i>استشارة #{{ cons.id }}
+      <span class="badge bg-secondary ms-2">{{ cons.status }}</span>
+    </h4>
+    {% if participant_role == 'moderator' %}
+    <div class="d-flex gap-2">
+      <button class="btn btn-success btn-sm" id="btn-start"
+              {% if cons.status != 'SCHEDULED' %}disabled{% endif %}>
+        <i class="fas fa-play me-1"></i>بدء
+      </button>
+      <button class="btn btn-danger btn-sm" id="btn-end"
+              {% if cons.status != 'LIVE' %}disabled{% endif %}>
+        <i class="fas fa-stop me-1"></i>إنهاء
+      </button>
+      <button class="btn btn-outline-warning btn-sm" id="btn-noshow"
+              {% if cons.status not in ('SCHEDULED','LIVE') %}disabled{% endif %}>
+        المريض لم يحضر
+      </button>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div id="jitsi-root" style="height: 75vh; border-radius: .25rem; overflow: hidden;"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ g.csp_nonce if g is defined and g.csp_nonce else '' }}"
+        src="https://{{ jitsi_domain }}/external_api.js"></script>
+<script nonce="{{ g.csp_nonce if g is defined and g.csp_nonce else '' }}">
+(function () {
+  'use strict';
+  var STATUS = '{{ cons.status }}';
+  var CID = {{ cons.id }};
+
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token() }}'
+      },
+      body: JSON.stringify(body || {})
+    }).then(function (r) { return r.json().catch(function () { throw new Error(r.status); }); });
+  }
+
+  function mountRoom() {
+    if (!window.JitsiMeetExternalAPI) {
+      document.getElementById('jitsi-root').innerHTML =
+        '<div class="alert alert-warning m-3">تعذر تحميل مكوّن الفيديو. تحقق من اتصال الخادم.</div>';
+      return;
+    }
+    try {
+      new JitsiMeetExternalAPI('{{ jitsi_domain }}', {
+        roomName: '{{ room_name }}',
+        parentNode: document.getElementById('jitsi-root'),
+        jwt: '{{ jwt_token }}',
+        userInfo: { displayName: '{{ participant_name or "" }}' },
+        width: '100%', height: '100%',
+        configOverwrite: { startWithAudioMuted: false, prejoinPageEnabled: false },
+        interfaceConfigOverwrite: { DEFAULT_LOGO_URL: '', SHOW_JITSI_WATERMARK: false }
+      });
+    } catch (e) {
+      document.getElementById('jitsi-root').innerHTML =
+        '<div class="alert alert-danger m-3">حدث خطأ أثناء تشغيل الغرفة.</div>';
+    }
+  }
+
+  var moderator = ('{{ participant_role }}' === 'moderator');
+  if (STATUS === 'LIVE' || (moderator && STATUS === 'SCHEDULED')) {
+    mountRoom();
+  } else {
+    document.getElementById('jitsi-root').innerHTML =
+      '<div class="alert alert-info m-3 mb-0">الغرفة تبدأ عند بدء الاستشارة من الطبيب.</div>';
+  }
+
+  var bStart = document.getElementById('btn-start');
+  if (bStart) bStart.addEventListener('click', function () {
+    post('/telemedicine/consult/' + CID + '/start', {}).then(function (j) {
+      j.success ? window.location.reload() : alert(j.message);
+    });
+  });
+  var bEnd = document.getElementById('btn-end');
+  if (bEnd) bEnd.addEventListener('click', function () {
+    var notes = prompt('ملخص الاستشارة (اختياري):') || '';
+    post('/telemedicine/consult/' + CID + '/end', { notes: notes }).then(function (j) {
+      j.success ? window.location.reload() : alert(j.message);
+    });
+  });
+  var bNs = document.getElementById('btn-noshow');
+  if (bNs) bNs.addEventListener('click', function () {
+    post('/telemedicine/consult/' + CID + '/no-show', {}).then(function (j) {
+      j.success ? window.location.reload() : alert(j.message);
+    });
+  });
+})();
+</script>
+{% endblock %}

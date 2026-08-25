@@ -486,9 +486,9 @@ def set_tenant_context():
 
     if tenant.status == TenantStatus.PENDING:
         if not any(request.path.startswith(p) for p in _PENDING_ALLOWED_PREFIXES):
-            from flask import abort
+            from app.shared.http_errors import SubscriptionRequired
 
-            abort(402, description='Subscription payment required before accessing this resource.')
+            raise SubscriptionRequired('يتطلب الوصول تفعيل الاشتراك قبل استخدام هذه الخدمة.')
 
     # Inject module/feature/profile context
     try:

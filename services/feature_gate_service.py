@@ -1,3 +1,5 @@
+from app.shared.http_errors import SubscriptionRequired  # noqa: E402
+
 """
 FeatureGateService — Unified feature/module/action gating
 """
@@ -138,7 +140,7 @@ def require_module_route(module: str):
             if not tenant:
                 abort(403, description='Tenant context required')
             if not FeatureGateService.tenant_has_valid_payment(tenant):
-                abort(402, description='Subscription payment required')
+                raise SubscriptionRequired('هذه الميزة تتطلب ترقية الباقة')
             if not FeatureGateService.module_enabled(tenant.id, module):
                 abort(403, description=f"Module '{module}' is not enabled")
             return f(*args, **kwargs)
@@ -161,7 +163,7 @@ def guard_module(module_name: str):
     if not tenant:
         abort(403, description='Tenant context required for module access')
     if not FeatureGateService.tenant_has_valid_payment(tenant):
-        abort(402, description='Subscription payment required')
+        raise SubscriptionRequired('هذه الميزة تتطلب ترقية الباقة')
     if not FeatureGateService.module_enabled(tenant.id, module_name):
         abort(403, description=f"Module '{module_name}' is not enabled")
 

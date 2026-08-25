@@ -314,7 +314,7 @@ def _check_bundle_limits_on_create(instance, tenant_id):
         ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_users', current_count, increment=1)
         if not ok:
             cap = EntitlementResolver.get_limit(tenant_id, 'max_users')
-            raise ValueError(f'Bundle limit exceeded: maximum {cap} users allowed')
+            raise ValueError(f'تم تجاوز الحد الأقصى للحزمة: يُسمح بـ {cap} مستخدم كحد أقصى')
     elif table == 'patients':
         current_count = (
             db.session.execute(
@@ -328,7 +328,7 @@ def _check_bundle_limits_on_create(instance, tenant_id):
         )
         if not ok:
             cap = EntitlementResolver.get_limit(tenant_id, 'max_patients')
-            raise ValueError(f'Bundle limit exceeded: maximum {cap} patients allowed')
+            raise ValueError(f'تم تجاوز الحد الأقصى للحزمة: يُسمح بـ {cap} مريض كحد أقصى')
 
 
 # ---------------------------------------------------------------------------
@@ -649,7 +649,7 @@ def _check_bundle_limits_on_update(instance, tenant_id):
         ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_users', current_count)
         if not ok:
             cap = EntitlementResolver.get_limit(tenant_id, 'max_users')
-            raise ValueError(f'Bundle limit exceeded: maximum {cap} users allowed')
+            raise ValueError(f'تم تجاوز الحد الأقصى للحزمة: يُسمح بـ {cap} مستخدم كحد أقصى')
     elif table == 'patients':
         current_count = (
             db.session.execute(
@@ -661,7 +661,7 @@ def _check_bundle_limits_on_update(instance, tenant_id):
         ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_patients', current_count)
         if not ok:
             cap = EntitlementResolver.get_limit(tenant_id, 'max_patients')
-            raise ValueError(f'Bundle limit exceeded: maximum {cap} patients allowed')
+            raise ValueError(f'تم تجاوز الحد الأقصى للحزمة: يُسمح بـ {cap} مريض كحد أقصى')
 
 
 @event.listens_for(db.session.__class__, 'before_flush')

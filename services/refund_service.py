@@ -34,17 +34,17 @@ class RefundService:
         try:
             payment = get_tenant_record(Payment, payment_id)
         except TenantContextError:
-            return False, 'Payment not found'
+            return False, 'الدفعة غير موجودة'
         if payment.tenant_id != tenant_id:
-            return False, 'Tenant mismatch'
+            return False, 'عدم تطابق المركز'
         if payment.status not in (PaymentStatus.CONFIRMED, PaymentStatus.PAID):
-            return False, 'Payment is not in a refundable state'
+            return False, 'حالة الدفعة لا تسمح بالاسترداد'
 
         refund_amount = Decimal(str(amount))
         if refund_amount <= 0:
-            return False, 'Refund amount must be positive'
+            return False, 'يجب أن يكون مبلغ الاسترداد موجباً'
         if refund_amount > Decimal(str(payment.amount or 0)):
-            return False, 'Refund amount exceeds payment amount'
+            return False, 'مبلغ الاسترداد يتجاوز المبلغ المدفوع'
 
         # Prevent over-refunding: sum all non-rejected requests for this payment.
         total_existing = db.session.execute(
@@ -54,7 +54,7 @@ class RefundService:
             )
         ).scalar()
         if Decimal(str(total_existing or 0)) + refund_amount > Decimal(str(payment.amount or 0)):
-            return False, 'Cumulative refund amount would exceed payment amount'
+            return False, 'إجمالي الاستردادات سيتجاوز المبلغ المدفوع'
 
         # Prevent duplicate pending requests for the same payment.
         existing = (
@@ -174,7 +174,7 @@ class RefundService:
             if Decimal(str(total_executed or 0)) + refund_amount > Decimal(
                 str(payment.amount or 0)
             ):
-                return False, 'Cumulative refund amount would exceed payment amount'
+                return False, 'إجمالي الاستردادات سيتجاوز المبلغ المدفوع'
 
             if payment.visit_id:
                 invoices = (

@@ -1,287 +1,231 @@
 {% extends "base.html" %}
-{% from "partials/_page_header.html" import page_header %}
 
-{% block title %}سجلات الأمان - السوبر أدمن{% endblock %}
+{% block title %}سجلات الأمان - إدارة النظام{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('سجلات الأمان', subtitle='مراقبة شاملة لأحداث الأمان', icon='fas fa-shield-alt', actions=[
-        {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-logs', 'style': 'primary'},
-        {'type': 'button', 'label': 'تصدير السجلات', 'icon': 'fas fa-download', 'data_action': 'export-logs', 'style': 'success'}
-    ]) }}
 
-    <!-- Security Overview -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col ms-2">
-                            <div class="text-xs fw-bold text-danger text-uppercase mb-1">
-                                التهديدات المكتشفة
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">12</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col ms-2">
-                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                                محاولات الدخول الفاشلة
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">45</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-times fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col ms-2">
-                            <div class="text-xs fw-bold text-info text-uppercase mb-1">
-                                المستخدمين المحظورين
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">3</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-ban fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col ms-2">
-                            <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                                حالة الأمان
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">محمي</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-shield-alt fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="row g-3 mb-3" id="sec-kpis">
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm h-100"><div class="card-body py-3">
+        <div class="text-muted small">دخول ناجح اليوم</div>
+        <div class="fs-4 fw-bold" id="kpi-logins-today">—</div>
+      </div></div>
     </div>
-
-    <!-- Security Logs -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">سجلات الأمان</h6>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" data-action="filter-logs" data-value="all">الكل</button>
-                        <button class="btn btn-sm btn-outline-danger" data-action="filter-logs" data-value="critical">حرجة</button>
-                        <button class="btn btn-sm btn-outline-warning" data-action="filter-logs" data-value="warning">تحذيرات</button>
-                        <button class="btn btn-sm btn-outline-info" data-action="filter-logs" data-value="info">معلومات</button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="securityLogsTable">
-                            <thead>
-                                <tr>
-                                    <th>الوقت</th>
-                                    <th>المستوى</th>
-                                    <th>المستخدم</th>
-                                    <th>العنوان IP</th>
-                                    <th>الحدث</th>
-                                    <th>التفاصيل</th>
-                                    <th>الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr data-level="critical">
-                                    <td>2024-01-15 10:30:25</td>
-                                    <td><span class="badge bg-danger">حرجة</span></td>
-                                    <td>admin</td>
-                                    <td>192.168.1.100</td>
-                                    <td>محاولة دخول غير مصرح بها</td>
-                                    <td>محاولة الوصول إلى صفحة محظورة</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary" data-action="viewLogDetails" data-value="log1">
-                                            <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr data-level="warning">
-                                    <td>2024-01-15 10:25:15</td>
-                                    <td><span class="badge bg-warning">WARNING</span></td>
-                                    <td>user1</td>
-                                    <td>192.168.1.101</td>
-                                    <td>محاولة دخول فاشلة</td>
-                                    <td>كلمة مرور خاطئة</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary" data-action="viewLogDetails" data-value="log2">
-                                            <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr data-level="info">
-                                    <td>2024-01-15 10:20:05</td>
-                                    <td><span class="badge bg-info">INFO</span></td>
-                                    <td>doctor1</td>
-                                    <td>192.168.1.102</td>
-                                    <td>تسجيل دخول ناجح</td>
-                                    <td>تم تسجيل الدخول بنجاح</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary" data-action="viewLogDetails" data-value="log3">
-                                            <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr data-level="critical">
-                                    <td>2024-01-15 10:15:30</td>
-                                    <td><span class="badge bg-danger">حرجة</span></td>
-                                    <td>unknown</td>
-                                    <td>192.168.1.103</td>
-                                    <td>هجوم محتمل</td>
-                                    <td>محاولة SQL injection</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary" data-action="viewLogDetails" data-value="log4">
-                                            <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm h-100"><div class="card-body py-3">
+        <div class="text-muted small">محاولات دخول فاشلة</div>
+        <div class="fs-4 fw-bold text-warning" id="kpi-failed">—</div>
+      </div></div>
     </div>
-
-    <!-- Security Alerts -->
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">تنبيهات الأمان</h6>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>تنبيه حرج:</strong> تم اكتشاف محاولة هجوم من IP: 192.168.1.103
-                    </div>
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        <strong>تحذير:</strong> عدد كبير من محاولات الدخول الفاشلة من نفس IP
-                    </div>
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>معلومات:</strong> تم تحديث إعدادات الأمان بنجاح
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">إحصائيات الأمان</h6>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>الأحداث الحرجة</span>
-                            <span class="fw-bold text-danger">12</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>التحذيرات</span>
-                            <span class="fw-bold text-warning">45</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>الأحداث العادية</span>
-                            <span class="fw-bold text-info">1,234</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>حالة الأمان</span>
-                            <span class="badge bg-success">محمي</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm h-100"><div class="card-body py-3">
+        <div class="text-muted small">دخول محظور</div>
+        <div class="fs-4 fw-bold text-danger" id="kpi-blocked">—</div>
+      </div></div>
     </div>
-
-    <!-- Security Actions -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">إجراءات الأمان</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <button class="btn btn-danger w-100" data-action="block-ip">
-                                <i class="fas fa-ban me-2"></i>
-                                حظر IP
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <button class="btn btn-warning w-100" data-action="reset-failed-logins">
-                                <i class="fas fa-undo me-2"></i>
-                                إعادة تعيين محاولات الدخول
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <button class="btn btn-info w-100" data-action="clear-logs">
-                                <i class="fas fa-trash me-2"></i>
-                                مسح السجلات القديمة
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <button class="btn btn-success w-100" data-action="export-security-report">
-                                <i class="fas fa-download me-2"></i>
-                                تصدير تقرير الأمان
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm h-100"><div class="card-body py-3">
+        <div class="text-muted small">انتحال هوية</div>
+        <div class="fs-4 fw-bold" id="kpi-impersonation">—</div>
+      </div></div>
     </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+      <form id="sec-filters" class="row g-2 align-items-end">
+        <div class="col-md-2">
+          <label class="form-label small mb-1" for="f-action">الحدث</label>
+          <select id="f-action" class="form-select form-select-sm">
+            <option value="">الكل</option>
+            <option value="login">دخول ناجح</option>
+            <option value="login_failed">دخول فاشل/محظور</option>
+            <option value="logout">خروج</option>
+            <option value="password_reset">إعادة تعيين كلمة مرور</option>
+            <option value="IMPERSONATE">انتحال هوية</option>
+            <option value="force_logout">إجهاض جلسة</option>
+            <option value="create">إنشاء</option>
+            <option value="update">تعديل</option>
+            <option value="delete">حذف</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small mb-1" for="f-severity">الخطورة</label>
+          <select id="f-severity" class="form-select form-select-sm">
+            <option value="">الكل</option>
+            <option value="critical">حرجة</option>
+            <option value="high">عالية</option>
+            <option value="medium">متوسطة</option>
+            <option value="low">منخفضة</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small mb-1" for="f-from">من تاريخ</label>
+          <input type="date" id="f-from" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small mb-1" for="f-to">إلى تاريخ</label>
+          <input type="date" id="f-to" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small mb-1" for="f-q">بحث</label>
+          <input type="search" id="f-q" class="form-control form-control-sm"
+                 placeholder="مستخدم، مركز، زيارة...">
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary btn-sm flex-fill">
+            <i class="fas fa-filter me-1"></i>تصفية
+          </button>
+          <button type="reset" id="f-reset" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-rotate-right"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span><i class="fas fa-shield-halved me-2"></i>أحداث الأمان</span>
+      <span class="badge bg-secondary" id="sec-total">0</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover table-sm mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>التاريخ والوقت</th>
+            <th>الحدث</th>
+            <th>الخطورة</th>
+            <th>المستخدم</th>
+            <th>IP</th>
+            <th>التفاصيل</th>
+          </tr>
+        </thead>
+        <tbody id="sec-rows">
+          <tr><td colspan="6" class="text-center text-muted py-4">جارٍ التحميل...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer d-flex justify-content-between align-items-center">
+      <button class="btn btn-outline-secondary btn-sm" id="sec-prev">
+        <i class="fas fa-chevron-right me-1"></i>السابق
+      </button>
+      <span class="small text-muted">صفحة <span id="sec-page">1</span> من <span id="sec-pages">1</span></span>
+      <button class="btn btn-outline-secondary btn-sm" id="sec-next">
+        التالي<i class="fas fa-chevron-left ms-1"></i>
+      </button>
+    </div>
+  </div>
 </div>
+{% endblock %}
 
-<style>
-.btn-block:hover {
-    text-decoration: none;
-    transform: translateY(-2px);
-    transition: all 0.3s ease;
-}
-#securityLogsTable {
-    font-size: 0.9rem;
-}
-</style>
+{% block extra_js %}
+<script nonce="{{ g.csp_nonce if g is defined and g.csp_nonce else '' }}">
+(function () {
+  'use strict';
 
-<script src="{{ url_for('static', filename='js/pages/super_admin/security_logs.js') }}"></script>
+  var state = { page: 1, pages: 1 };
+
+  var ACTION_AR = {
+    login: 'دخول', login_failed: 'دخول فاشل', login_blocked: 'دخول محظور',
+    logout: 'خروج', password_reset: 'إعادة تعيين كلمة مرور',
+    IMPERSONATE: 'انتحال هوية', force_logout: 'إجهاض جلسة',
+    create: 'إنشاء', update: 'تعديل', delete: 'حذف',
+    security: 'أمني', unauthorized_access: 'وصول غير مصرح',
+    permission_denied: 'صلاحية مرفوضة'
+  };
+  var SEV_BADGE = {
+    critical: '<span class="badge bg-danger">حرجة</span>',
+    high: '<span class="badge bg-warning text-dark">عالية</span>',
+    medium: '<span class="badge bg-info text-dark">متوسطة</span>',
+    low: '<span class="badge bg-secondary">منخفضة</span>'
+  };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function loadSummary() {
+    fetch('/super-admin/api/security-logs/summary', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (j) {
+        document.getElementById('kpi-logins-today').textContent = j.logins_today;
+        document.getElementById('kpi-failed').textContent = j.failed_logins;
+        document.getElementById('kpi-blocked').textContent = j.blocked_logins;
+        document.getElementById('kpi-impersonation').textContent = j.impersonations;
+      })
+      .catch(function () {  });
+  }
+
+  function loadRows() {
+    var p = new URLSearchParams();
+    p.set('page', state.page);
+    ['action', 'severity', 'from', 'to', 'q'].forEach(function (k) {
+      var v = document.getElementById('f-' + k).value;
+      if (v) p.set(k === 'from' ? 'date_from' : k === 'to' ? 'date_to' : k, v);
+    });
+
+    var tbody = document.getElementById('sec-rows');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">جارٍ التحميل...</td></tr>';
+
+    fetch('/super-admin/api/security-logs?' + p.toString(), { credentials: 'same-origin' })
+      .then(function (r) {
+        if (r.status === 403) throw new Error('forbidden');
+        return r.ok ? r.json() : Promise.reject(r.status);
+      })
+      .then(function (j) {
+        state.pages = Math.max(1, j.pagination.pages);
+        document.getElementById('sec-total').textContent = j.pagination.total;
+        document.getElementById('sec-page').textContent = j.pagination.page;
+        document.getElementById('sec-pages').textContent = state.pages;
+        document.getElementById('sec-prev').disabled = j.pagination.page <= 1;
+        document.getElementById('sec-next').disabled = j.pagination.page >= state.pages;
+
+        if (!j.items.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">' +
+            '<i class="fas fa-inbox me-2"></i>لا توجد أحداث مطابقة للفلاتر الحالية</td></tr>';
+          return;
+        }
+        tbody.innerHTML = j.items.map(function (it) {
+          return '<tr>' +
+            '<td class="text-nowrap small">' + esc(it.created_at) + '</td>' +
+            '<td>' + esc(ACTION_AR[it.action] || it.action) + '</td>' +
+            '<td>' + (SEV_BADGE[it.severity] || '') + '</td>' +
+            '<td>' + esc(it.username) + '</td>' +
+            '<td class="small" dir="ltr">' + esc(it.ip) + '</td>' +
+            '<td class="small text-muted">' + esc(it.description || it.notes || '') + '</td>' +
+            '</tr>';
+        }).join('');
+      })
+      .catch(function (e) {
+        var msg = e && e.message === 'forbidden'
+          ? 'ليس لديك صلاحية لعرض سجلات الأمان'
+          : 'حدث خطأ أثناء تحميل السجلات. حاول تحديث الصفحة.';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + esc(msg) + '</td></tr>';
+      });
+  }
+
+  document.getElementById('sec-filters').addEventListener('submit', function (e) {
+    e.preventDefault();
+    state.page = 1;
+    loadRows();
+  });
+  document.getElementById('f-reset').addEventListener('click', function () {
+
+    setTimeout(function () { state.page = 1; loadRows(); }, 0);
+  });
+  document.getElementById('sec-prev').addEventListener('click', function () {
+    if (state.page > 1) { state.page--; loadRows(); }
+  });
+  document.getElementById('sec-next').addEventListener('click', function () {
+    if (state.page < state.pages) { state.page++; loadRows(); }
+  });
+
+  loadSummary();
+  loadRows();
+})();
+</script>
 {% endblock %}

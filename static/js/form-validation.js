@@ -98,9 +98,6 @@
       }
     });
 
-    // Bidi safety: free-text fields follow the language being typed
-    // (Arabic names render RTL, Latin codes/foreign names render LTR)
-    // instead of inheriting the page's forced RTL direction.
     document.querySelectorAll(
       'input[type="text"]:not([dir]), input[type="search"]:not([dir]), textarea:not([dir])'
     ).forEach(function (el) {

@@ -1,5 +1,5 @@
 """
-مسارات المختبر - Laboratory Routes
+Ù…Ø³Ø§Ø±Ø§Øª Ø§Ù„Ù…Ø®ØªØ¨Ø± - Laboratory Routes
 Medical System Laboratory Routes
 """
 
@@ -68,7 +68,7 @@ def _log_lab_workflow(request_id, status, action, notes=None):
 
 
 def get_lab_smart_analytics():
-    """التحليلات الذكية للمختبر"""
+    """Ø§Ù„ØªØ­Ù„ÙŠÙ„Ø§Øª Ø§Ù„Ø°ÙƒÙŠØ© Ù„Ù„Ù…Ø®ØªØ¨Ø±"""
     try:
         total_requests = db.session.execute(select(func.count()).select_from(LabRequest)).scalar()
         completed_requests = db.session.execute(
@@ -125,7 +125,7 @@ def get_lab_smart_analytics():
 
 
 def get_lab_test_optimization():
-    """تحسين الفحوصات"""
+    """ØªØ­Ø³ÙŠÙ† Ø§Ù„ÙØ­ÙˆØµØ§Øª"""
     try:
         total_requests = db.session.execute(select(func.count()).select_from(LabRequest)).scalar()
         try:
@@ -159,7 +159,7 @@ def get_lab_test_optimization():
 
 
 def get_lab_quality_control():
-    """مراقبة الجودة"""
+    """Ù…Ø±Ø§Ù‚Ø¨Ø© Ø§Ù„Ø¬ÙˆØ¯Ø©"""
     try:
         total_completed = db.session.execute(
             select(func.count())
@@ -193,7 +193,7 @@ def get_lab_quality_control():
 
 
 def get_lab_equipment_monitoring():
-    """مراقبة المعدات"""
+    """Ù…Ø±Ø§Ù‚Ø¨Ø© Ø§Ù„Ù…Ø¹Ø¯Ø§Øª"""
     try:
         equipment_status = {
             'analyzers': 'operational',
@@ -217,7 +217,7 @@ def get_lab_equipment_monitoring():
 
 
 def get_lab_result_analysis():
-    """تحليل النتائج"""
+    """ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ù†ØªØ§Ø¦Ø¬"""
     try:
         total_results = db.session.execute(select(func.count()).select_from(LabResult)).scalar()
         abnormal_results = db.session.execute(
@@ -243,7 +243,13 @@ def get_lab_result_analysis():
                 LabResult.created_at < (today - timedelta(days=7)),
             )
         ).scalar()
-        trend_analysis = 'تصاعدي' if last_7 > prev_7 else 'تنازلي' if last_7 < prev_7 else 'مستقر'
+        trend_analysis = (
+            'ØªØµØ§Ø¹Ø¯ÙŠ'
+            if last_7 > prev_7
+            else 'ØªÙ†Ø§Ø²Ù„ÙŠ'
+            if last_7 < prev_7
+            else 'Ù…Ø³ØªÙ‚Ø±'
+        )
         return {
             'total_results': total_results,
             'abnormal_results': abnormal_results,
@@ -256,7 +262,7 @@ def get_lab_result_analysis():
 
 
 def get_lab_workflow_automation():
-    """أتمتة سير العمل"""
+    """Ø£ØªÙ…ØªØ© Ø³ÙŠØ± Ø§Ù„Ø¹Ù…Ù„"""
     try:
         total_requests = db.session.execute(select(func.count()).select_from(LabRequest)).scalar()
         done_requests = db.session.execute(
@@ -313,23 +319,23 @@ def get_lab_predictive_insights():
 
 
 def calculate_lab_efficiency(completion_rate, pending_requests):
-    """حساب كفاءة المختبر"""
+    """Ø­Ø³Ø§Ø¨ ÙƒÙØ§Ø¡Ø© Ø§Ù„Ù…Ø®ØªØ¨Ø±"""
     try:
         base_score = completion_rate
-        penalty = min(pending_requests * 2, 20)  # خصم لكل طلب معلق
+        penalty = min(pending_requests * 2, 20)  # Ø®ØµÙ… Ù„ÙƒÙ„ Ø·Ù„Ø¨ Ù…Ø¹Ù„Ù‚
         return max(base_score - penalty, 0)
     except (TypeError, ValueError):
         return 0
 
 
 def calculate_test_efficiency(avg_time, total_tests):
-    """حساب كفاءة الفحوصات"""
+    """Ø­Ø³Ø§Ø¨ ÙƒÙØ§Ø¡Ø© Ø§Ù„ÙØ­ÙˆØµØ§Øª"""
     try:
-        if avg_time <= 2:  # ساعتان أو أقل
+        if avg_time <= 2:  # Ø³Ø§Ø¹ØªØ§Ù† Ø£Ùˆ Ø£Ù‚Ù„
             return 95
-        if avg_time <= 4:  # 4 ساعات أو أقل
+        if avg_time <= 4:  # 4 Ø³Ø§Ø¹Ø§Øª Ø£Ùˆ Ø£Ù‚Ù„
             return 85
-        if avg_time <= 6:  # 6 ساعات أو أقل
+        if avg_time <= 6:  # 6 Ø³Ø§Ø¹Ø§Øª Ø£Ùˆ Ø£Ù‚Ù„
             return 75
         return 60
     except (TypeError, ValueError):
@@ -337,26 +343,27 @@ def calculate_test_efficiency(avg_time, total_tests):
 
 
 def generate_optimization_suggestions(avg_time):
-    """توليد اقتراحات التحسين"""
+    """ØªÙˆÙ„ÙŠØ¯ Ø§Ù‚ØªØ±Ø§Ø­Ø§Øª Ø§Ù„ØªØ­Ø³ÙŠÙ†"""
     suggestions = []
 
     if avg_time > 4:
-        suggestions.append('تحسين تدفق العينات')
+        suggestions.append('ØªØ­Ø³ÙŠÙ† ØªØ¯ÙÙ‚ Ø§Ù„Ø¹ÙŠÙ†Ø§Øª')
     if avg_time > 6:
-        suggestions.append('إضافة معدات جديدة')
+        suggestions.append('Ø¥Ø¶Ø§ÙØ© Ù…Ø¹Ø¯Ø§Øª Ø¬Ø¯ÙŠØ¯Ø©')
     if avg_time > 8:
-        suggestions.append('زيادة عدد الفنيين')
+        suggestions.append('Ø²ÙŠØ§Ø¯Ø© Ø¹Ø¯Ø¯ Ø§Ù„ÙÙ†ÙŠÙŠÙ†')
 
     return suggestions
 
 
-# ═══════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # SUBMODULE IMPORTS
-# ═══════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 from . import barcode as barcode
 from . import dashboard as dashboard
 from . import fhir as fhir
+from . import lis_import as lis_import
 from . import quality as quality
 from . import reagents as reagents
 from . import reports as reports
