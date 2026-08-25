@@ -334,7 +334,7 @@ class TestC8KioskDedup:
             assert len(visit_ids) == 1, visit_ids
 
             created = (
-                db.session.execute(select(Visit).where(Visit.notes.like('%C8NATPAR0001%')))
+                db.session.execute(select(Visit).where(Visit.notes.like(marker_like)))
                 .scalars()
                 .all()
             )
