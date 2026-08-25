@@ -55,14 +55,19 @@ class _RoleUser(HttpUser):
         page = self.client.get('/auth/login', name='[login-page]')
         token = _extract_csrf(page.text) if page.status_code == 200 else None
 
+        # The backend treats a request as AJAX only when Content-Type is
+        # application/json (auth_routes.py:96) — send JSON like the real UI.
+        headers = {'X-Requested-With': 'XMLHttpRequest'}
+        if token:
+            headers['X-CSRFToken'] = token
         resp = self.client.post(
             '/auth/login',
-            data={
+            json={
                 'username': self.role_username,
                 'password': PASSWORD,
                 'csrf_token': token or '',
             },
-            headers={'X-Requested-With': 'XMLHttpRequest'},
+            headers=headers,
             name=f'[login:{self.role_username}]',
         )
         # Success = JSON success payload (AJAX path) OR redirect (form path).
@@ -75,7 +80,7 @@ class _RoleUser(HttpUser):
             print(  # noqa: T201
                 f'LOGIN FAILED [{self.role_username}] '
                 f'http={resp.status_code} token_found={bool(token)} '
-                f'body={resp.content[:300]!r}',
+                f'body={resp.content[:600]!r}',
                 flush=True,
             )
             self.environment.runner.quit()
