@@ -13,7 +13,7 @@ for root, _dirs, files in os.walk('templates'):
             continue
         path = os.path.join(root, f)
         rel = path.replace(os.sep, '/')
-        s = open(path, encoding='utf-8', errors='replace').read()
+        s = Path(path).read_text(encoding='utf-8', errors='replace')
 
         post_forms = re.findall(r'<form[^>]*method\s*=\s*["\']?POST["\']?', s, re.I)
         if not post_forms:
