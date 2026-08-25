@@ -90,7 +90,6 @@
   font-size: 0.65rem;
   font-weight: 600;
   color: var(--owner-text-muted);
-  letter-spacing: 0.5px;
 }
 
 /* Sidebar Nav */
@@ -102,7 +101,6 @@
   font-weight: 800;
   color: var(--owner-text-muted);
   text-transform: uppercase;
-  letter-spacing: 1px;
   opacity: 0.7;
 }
 
@@ -185,8 +183,8 @@
   flex: 1;
   flex-direction: column;
   min-height: 100vh;
-  margin-right: var(--owner-sidebar-width);
-  transition: margin-right var(--owner-transition);
+  margin-inline-start: var(--owner-sidebar-width);
+  transition: margin-inline-start var(--owner-transition);
 }
 
 /* Owner Header */
@@ -219,7 +217,7 @@
   font-weight: 800;
   color: var(--owner-text);
 }
-.owner-header-actions { display: flex; gap: 0.5rem; margin-right: auto; }
+.owner-header-actions { display: flex; gap: 0.5rem; margin-inline-start: auto; }
 
 /* User Menu */
 
@@ -404,7 +402,6 @@
   font-weight: 700;
   color: var(--owner-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
   white-space: nowrap;
   background: var(--owner-bg);
   border-bottom: 2px solid var(--owner-border);
@@ -446,7 +443,6 @@
   padding: 0.35rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.3px;
   border-radius: 0.5rem;
 }
 
@@ -645,7 +641,7 @@
     transform: translateX(100%);
   }
   .owner-sidebar.open { box-shadow: var(--owner-shadow-lg); transform: translateX(0); }
-  .owner-main { margin-right: 0; }
+  .owner-main { margin-inline-start: 0; }
 
   .owner-sidebar-overlay {
     position: fixed;
@@ -695,7 +691,6 @@
   color: var(--owner-text-muted);
   text-align: right; /* Default for RTL */
   text-transform: uppercase;
-  letter-spacing: 0.5px;
   background: var(--owner-bg);
   border-bottom: 2px solid var(--owner-border);
 }
@@ -734,7 +729,7 @@
 .owner-input, .owner-select, 
 
 .owner-select {
-  padding-left: 2.5rem;
+  padding-inline-end: 2.5rem;
   appearance: none;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
@@ -822,15 +817,16 @@
 .gap-4 { gap: 1.5rem !important; }
 .justify-content-end { justify-content: flex-end !important; }
 .align-items-center { align-items: center !important; }
-.text-end { text-align: left !important; } /* For action buttons in RTL */
-.text-start { text-align: right !important; } /* For labels in RTL */
+/* Logical properties — direction-agnostic (Bootstrap RTL flips these natively) */
+.text-end { text-align: end !important; }
+.text-start { text-align: start !important; }
 .ms-2 { margin-inline-start: 0.5rem !important; }
 .me-2 { margin-inline-end: 0.5rem !important; }
 .mb-4 { margin-bottom: 1.5rem !important; }
 .mt-2 { margin-top: 0.5rem !important; }
 .p-0 { padding: 0 !important; }
 .py-3 { padding-top: 1rem; padding-bottom: 1rem; }
-.px-4 { padding-right: 1.5rem; padding-left: 1.5rem; }
+.px-4 { padding-inline: 1.5rem; }
 .w-auto { width: auto !important; }
 .h-100 { height: 100% !important; }
 .small { font-size: 0.875rem !important; }

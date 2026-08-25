@@ -37,7 +37,7 @@
             <div class="card card-stat bg-warning text-white">
                 <div class="icon-bg"><i class="fas fa-user-md"></i></div>
                 <h6 class="text-white-50">الطبيب</h6>
-                <h3>{{ current_user.full_name or current_user.username }}</h3>
+                <h3><bdi>{{ current_user.full_name or current_user.username }}</bdi></h3>
             </div>
         </div>
     </div>
@@ -75,10 +75,10 @@
                                         {% if p.patient %}
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;">
-                                                    {{ p.patient.full_name[0] }}
+                                                    <bdi>{{ p.patient.full_name[0] }}</bdi>
                                                 </div>
                                                 <div>
-                                                    <div class="fw-bold">{{ p.patient.full_name }}</div>
+                                                    <div class="fw-bold"><bdi>{{ p.patient.full_name }}</bdi></div>
                                                     <small class="text-muted">{{ p.patient.phone or '' }}</small>
                                                 </div>
                                             </div>

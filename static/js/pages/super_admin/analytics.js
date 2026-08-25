@@ -1,3 +1,12 @@
+/* Chart RTL defaults — Arabic UI renders charts right-to-left */
+if (typeof Chart !== 'undefined') {
+  Chart.defaults.plugins.tooltip.rtl = true;
+  Chart.defaults.plugins.tooltip.textDirection = 'rtl';
+  Chart.defaults.plugins.legend.rtl = true;
+  Chart.defaults.plugins.legend.labels.font = Chart.defaults.plugins.legend.labels.font || {};
+  Chart.defaults.font.family = "'Cairo', 'Tajawal', sans-serif";
+}
+
 function refreshAnalytics() {
     location.reload();
 }

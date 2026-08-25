@@ -267,7 +267,7 @@ body.clinical-theme {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-right: auto;
+  margin-inline-start: auto;
 }
 
 /* ── Vital signs card ── */
@@ -312,7 +312,6 @@ body.clinical-theme {
   font-weight: 600;
   color: var(--clinical-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .vitals-card .vital-item.vital-abnormal {
@@ -340,7 +339,6 @@ body.clinical-theme {
   font-weight: 700;
   color: var(--azad-blue);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
   border-bottom: 2px solid rgb(15 76 129 / 0.1);
 }
 
@@ -749,7 +747,6 @@ body.clinical-theme .user-profile-btn {
   font-size: 0.7rem;
   color: var(--clinical-muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 .patient-summary-bar .ps-item .ps-value { font-weight: 600; color: var(--clinical-text); }
 
@@ -802,7 +799,6 @@ body.clinical-theme .user-profile-btn {
   font-weight: 600;
   color: var(--clinical-muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
   white-space: nowrap;
   background: #f8fafc;
   border-bottom: 2px solid var(--clinical-border);
@@ -914,7 +910,6 @@ body.clinical-theme .user-profile-btn {
   color: var(--clinical-muted);
   text-align: right;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
   white-space: nowrap;
   background: #f8fafc;
   border-bottom: 2px solid var(--clinical-border);
@@ -1039,7 +1034,7 @@ body.clinical-theme .user-profile-btn {
 
 .clinical-timeline {
   position: relative;
-  padding-right: 2rem;
+  padding-inline-start: 2rem;
 }
 
 .clinical-timeline::before {

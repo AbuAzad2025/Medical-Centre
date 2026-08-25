@@ -105,7 +105,7 @@ class NotificationService:
 
             # Fail-closed: drop module-role notifications for inactive modules.
             if _skip_notification_for_disabled_module(recipient_role):
-                return {'success': False, 'message': 'target module disabled'}
+                return {'success': False, 'message': 'الوحدة المستهدفة غير مفعلة'}
 
             # إنشاء الإشعار (بدون حقول غير موجودة في النموذج)
             notification = Notification(

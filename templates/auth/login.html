@@ -6,7 +6,7 @@
         <title>تسجيل الدخول - {{ branding.organization_name if branding else 'المركز الطبي' }}</title>
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <link href="{{ url_for('static', filename='vendor/fontawesome/css/all.min.css') }}" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="/static/vendor/fonts/fonts.css" rel="stylesheet">
         <link href="{{ url_for('static', filename='css/medical-login.css') }}" rel="stylesheet">
     </head>
     <body class="medical-login-page">

@@ -576,10 +576,8 @@ input, select, textarea {
 .container-fluid {
   width: 100%;
   max-width: 1400px;
-  padding-right: 1rem;
-  padding-left: 1rem;
-  margin-right: auto;
-  margin-left: auto;
+  padding-inline: 1rem;
+  margin-inline: auto;
 }
 
 /* Reduced motion for mobile battery */

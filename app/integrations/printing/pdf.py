@@ -7,13 +7,22 @@ import logging
 import os
 from datetime import UTC, date, datetime
 from io import BytesIO
+from pathlib import Path
 
 from app.extensions import db
 
 logger = logging.getLogger(__name__)
 
-_FONT_PATH = r'C:\Windows\Fonts\trado.ttf'
-_FONT_NAME = 'TraditionalArabic'
+# Bundled open-source Arabic fonts (OFL-licensed) ship with the app so PDF
+# generation works on any OS. Windows 'trado.ttf' remains a fallback for
+# legacy deployments; Helvetica (non-Arabic) is the last resort.
+_APP_ROOT = Path(__file__).resolve().parents[3]
+_FONT_CANDIDATES = [
+    _APP_ROOT / 'static' / 'vendor' / 'fonts' / 'Tajawal-Regular.ttf',
+    _APP_ROOT / 'static' / 'vendor' / 'fonts' / 'Cairo-Regular.ttf',
+    Path(os.environ.get('WINDIRS', r'C:\Windows\Fonts')) / 'trado.ttf',
+]
+_FONT_NAME = 'ArabicPDF'
 
 
 class PDFReportPrinter:
@@ -28,9 +37,15 @@ class PDFReportPrinter:
             from reportlab.pdfbase import pdfmetrics
             from reportlab.pdfbase.ttfonts import TTFont
 
-            if os.path.exists(_FONT_PATH):
-                pdfmetrics.registerFont(TTFont(_FONT_NAME, _FONT_PATH))
-                self._font_registered = True
+            for candidate in _FONT_CANDIDATES:
+                if candidate.exists():
+                    try:
+                        pdfmetrics.registerFont(TTFont(_FONT_NAME, str(candidate)))
+                    except Exception as e:
+                        logger.warning('Unusable font %s: %s', candidate, e)
+                        continue
+                    self._font_registered = True
+                    break
         except Exception as e:
             logger.warning('Could not register Arabic font: %s', e)
 

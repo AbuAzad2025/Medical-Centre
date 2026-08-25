@@ -25,12 +25,14 @@ class SecurityHeadersMiddleware:
             # All third-party libraries are self-hosted in static/vendor/,
             # so no external script/style/connect sources are required.
             nonce = getattr(g, 'csp_nonce', '')
+            # Fonts are fully self-hosted (static/vendor/fonts) — no external
+            # style/font origins are whitelisted.
             csp = (
                 "default-src 'self'; "
                 f"script-src 'self' 'nonce-{nonce}'; "
-                f"style-src 'self' 'nonce-{nonce}' fonts.googleapis.com; "
+                f"style-src 'self' 'nonce-{nonce}'; "
                 "img-src 'self' data: blob:; "
-                "font-src 'self' fonts.gstatic.com data:; "
+                "font-src 'self' data:; "
                 "connect-src 'self'; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "

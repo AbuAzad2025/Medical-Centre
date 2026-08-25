@@ -1,7 +1,7 @@
 {% extends 'print/print_base_minimal.html' %}
 {% set doc_type = 'barcode' %}
 
-{% block doc_title %}باركود طلب مختبر — {{ lab_request.patient.full_name }}{% endblock %}
+{% block doc_title %}باركود طلب مختبر — <bdi>{{ lab_request.patient.full_name }}</bdi>{% endblock %}
 {% block print_button_label %}طباعة{% endblock %}
 
 {% block extra_print_head %}
@@ -41,7 +41,7 @@
 
 {% block body %}
 <div class="print-barcode-label">
-  <h3 class="print-barcode-label__patient">{{ lab_request.patient.full_name }}</h3>
+  <h3 class="print-barcode-label__patient"><bdi>{{ lab_request.patient.full_name }}</bdi></h3>
   <p class="print-barcode-label__id">طلب: {{ lab_request.request_number or lab_request.id }}</p>
   <div class="print-barcode-label__image">
     <img src="data:image/png;base64,{{ lab_request.barcode_image }}" alt="QR">

@@ -186,7 +186,6 @@ body.clinical-theme .clinical-sidebar .nav-section-title {
   font-weight: 700;
   color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 body.clinical-theme .clinical-sidebar .nav-link {

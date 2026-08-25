@@ -141,7 +141,6 @@
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 /* Stat cards — refined typography */
@@ -151,7 +150,6 @@
   font-size: 2.4rem;
   font-weight: 800;
   line-height: 1.1;
-  letter-spacing: -0.03em;
 }
 
 .card-stat .card-stat__label {
@@ -167,7 +165,6 @@
   font-weight: 800;
   line-height: 1.2;
   color: var(--azad-blue);
-  letter-spacing: -0.02em;
 }
 
 .stat-label {
@@ -175,7 +172,6 @@
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 /* Modern card variant */
@@ -345,7 +341,6 @@
   color: var(--azad-blue);
   text-align: start;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
   white-space: nowrap;
   background: linear-gradient(180deg, rgb(15 76 129 / 0.04), rgb(15 76 129 / 0.01));
   border-bottom: 2px solid var(--border-subtle);
@@ -389,7 +384,6 @@
   color: var(--azad-blue);
   text-align: right;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
   white-space: nowrap;
   background: linear-gradient(180deg, rgb(15 76 129 / 0.06), rgb(15 76 129 / 0.02));
   border-top: none;
@@ -517,7 +511,7 @@
 /* Form select */
 
 .form-select {
-  padding-left: 2.25rem;
+  padding-inline-end: 2.25rem;
   appearance: none;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
@@ -652,7 +646,6 @@
   font-size: 0.72rem;
   font-weight: 600;
   text-align: center;
-  letter-spacing: 0.02em;
   white-space: nowrap;
   vertical-align: baseline;
   border-radius: 50px;
@@ -908,7 +901,7 @@
 
 .dropdown-item i {
   width: 18px;
-  margin-left: 0.4rem;
+  margin-inline-end: 0.4rem;
   text-align: center;
   opacity: 0.7;
 }
@@ -923,7 +916,6 @@
   font-size: 0.7rem;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 /* ═══════════════════════════════════════════════
@@ -1097,7 +1089,7 @@
 
 .toast-close {
   padding: 0;
-  margin-right: auto;
+  margin-inline-start: auto;
   font-size: 1.1rem;
   line-height: 1;
   color: var(--text-secondary);
@@ -1147,7 +1139,7 @@
 
 .timeline {
   position: relative;
-  padding-right: 1.5rem;
+  padding-inline-start: 1.5rem;
 }
 
 .timeline::before {
@@ -1454,7 +1446,7 @@
 /* Button label */
 
 .btn-label {
-  margin-right: 0.35rem;
+  margin-inline-start: 0.35rem;
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -1481,8 +1473,7 @@
 
 .portal-card-centered {
   max-width: 600px;
-  margin-right: auto;
-  margin-left: auto;
+  margin-inline: auto;
 }
 .report-fields-box { min-height: 80px; }
 .slow-query-cell { max-width: 520px; white-space: pre-wrap; }
@@ -1600,7 +1591,7 @@ textarea.form-control:focus {
   display: inline-flex;
   gap: 0.25rem;
   align-items: center;
-  margin-right: 0.5rem;
+  margin-inline-start: 0.5rem;
   font-size: 0.7rem;
   color: var(--text-light);
 }

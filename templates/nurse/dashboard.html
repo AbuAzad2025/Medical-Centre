@@ -15,7 +15,7 @@
                                 <i class="fas fa-user-nurse me-3"></i>
                                 لوحة التمريض الاحترافية
                             </h1>
-                            <p class="mb-0 text-white-50 fs-5">مرحباً {{ current_user.full_name }} - رعاية طبية متقدمة ومتخصصة</p>
+                            <p class="mb-0 text-white-50 fs-5">مرحباً <bdi>{{ current_user.full_name }}</bdi> - رعاية طبية متقدمة ومتخصصة</p>
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
@@ -274,7 +274,7 @@
                         <div class="card-body">
                             <div class="d-flex align-items-center justify-content-between">
                                 <div>
-                                    <h5 class="mb-1">{{ current_user.full_name }}</h5>
+                                    <h5 class="mb-1"><bdi>{{ current_user.full_name }}</bdi></h5>
                                     <p class="text-muted mb-0">{{ current_user.get_role_display() }}</p>
                                     <small class="text-muted">آخر دخول: {{ current_user.last_login|format_datetime if current_user.last_login else 'الآن' }}</small>
                                 </div>
@@ -799,8 +799,8 @@
                                     <tbody>
                                         {% for visit in active_visits_list %}
                                         <tr>
-                                            <td>{{ visit.patient.full_name if visit.patient else 'غير محدد' }}</td>
-                                            <td>{{ visit.doctor.full_name if visit.doctor else 'غير محدد' }}</td>
+                                            <td><bdi>{{ visit.patient.full_name if visit.patient else 'غير محدد' }}</bdi></td>
+                                            <td><bdi>{{ visit.doctor.full_name if visit.doctor else 'غير محدد' }}</bdi></td>
                                             <td>{{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else (visit.created_at.strftime('%Y-%m-%d') if visit.created_at else 'غير محدد') }}</td>
                                             <td>
                                                 {% if visit.status == 'OPEN' %}
@@ -860,8 +860,8 @@
                                         <tbody>
                                             {% for visit in recent_visits %}
                                             <tr>
-                                                <td>{{ visit.patient.full_name if visit.patient else 'غير محدد' }}</td>
-                                                <td>{{ visit.doctor.full_name if visit.doctor else 'غير محدد' }}</td>
+                                                <td><bdi>{{ visit.patient.full_name if visit.patient else 'غير محدد' }}</bdi></td>
+                                                <td><bdi>{{ visit.doctor.full_name if visit.doctor else 'غير محدد' }}</bdi></td>
                                                 <td>{{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else (visit.created_at.strftime('%Y-%m-%d') if visit.created_at else 'غير محدد') }}</td>
                                                 <td>
                                                     {% if visit.status == 'OPEN' %}

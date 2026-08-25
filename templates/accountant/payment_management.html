@@ -46,7 +46,7 @@
                                 {% for p in patients %}
                                 <tr>
                                     <td>{{ p.id }}</td>
-                                    <td>{{ p.full_name }}</td>
+                                    <td><bdi>{{ p.full_name }}</bdi></td>
                                     <td>{{ p.phone or '-' }}</td>
                                     <td>{{ p.national_id or '-' }}</td>
                                     <td class="text-end">
@@ -66,7 +66,7 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h5 class="mb-1">كشف حساب: {{ selected_patient.full_name }}</h5>
+                                            <h5 class="mb-1">كشف حساب: <bdi>{{ selected_patient.full_name }}</bdi></h5>
                                             <div class="text-muted">هاتف: {{ selected_patient.phone or '-' }} | هوية: {{ selected_patient.national_id or '-' }}</div>
                                         </div>
                                         <a class="btn btn-outline-secondary" href="{{ url_for('accountant.financial') }}">تفريغ</a>

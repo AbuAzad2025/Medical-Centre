@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}خريطة الأسنان - {{ patient.full_name }}{% endblock %}
+{% block title %}خريطة الأسنان - <bdi>{{ patient.full_name }}</bdi>{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
         <div class="col">
-            <h4><i class="fas fa-tooth me-2 text-primary"></i>خريطة الأسنان — {{ patient.full_name }}</h4>
+            <h4><i class="fas fa-tooth me-2 text-primary"></i>خريطة الأسنان — <bdi>{{ patient.full_name }}</bdi></h4>
             <small class="text-muted">FDI numbering | اضغط على السن لتغيير حالته</small>
         </div>
         <div class="col-auto">

@@ -2,7 +2,7 @@
 {% block title %}تاريخ الوصفات{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-3">تاريخ الوصفات: {{ patient.full_name }}</h2>
+  <h2 class="mb-3">تاريخ الوصفات: <bdi>{{ patient.full_name }}</bdi></h2>
   <div class="card shadow-sm"><div class="card-body">
     <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>رقم الوصفة</th><th>الدواء</th><th>الجرعة</th><th>التكرار</th><th>المدة</th><th>تاريخ</th><th></th></tr></thead><tbody>
       {% for p in prescriptions or [] %}

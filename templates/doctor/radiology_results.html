@@ -3,7 +3,7 @@
 {% block content %}
 {% if module_active('radiology') %}
 <div class="container-fluid">
-  <h2 class="mb-3">نتائج الأشعة: {{ patient.full_name }}</h2>
+  <h2 class="mb-3">نتائج الأشعة: <bdi>{{ patient.full_name }}</bdi></h2>
   <div class="card shadow-sm"><div class="card-body">
     <div class="table-responsive">
       <table class="table table-striped">
