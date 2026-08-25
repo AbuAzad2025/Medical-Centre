@@ -27,7 +27,6 @@ import random
 import re
 
 import gevent
-
 from locust import HttpUser, between, task
 
 PASSWORD = os.getenv('LOAD_PASSWORD', 'ValidPass123!')
