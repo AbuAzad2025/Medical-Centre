@@ -95,7 +95,7 @@ class RefundService:
         try:
             request = get_tenant_record(RefundRequest, refund_id)
         except TenantContextError:
-            return False, 'Refund request not found'
+            return False, 'طلب الاسترداد غير موجود'
         if request.status != RefundStatus.PENDING:
             return False, 'Refund request is not pending'
 
@@ -116,7 +116,7 @@ class RefundService:
         try:
             request = get_tenant_record(RefundRequest, refund_id)
         except TenantContextError:
-            return False, 'Refund request not found'
+            return False, 'طلب الاسترداد غير موجود'
         if request.status != RefundStatus.PENDING:
             return False, 'Refund request is not pending'
 
@@ -145,7 +145,7 @@ class RefundService:
         try:
             request = get_tenant_record(RefundRequest, refund_id)
         except TenantContextError:
-            return False, 'Refund request not found'
+            return False, 'طلب الاسترداد غير موجود'
         if request.status != RefundStatus.APPROVED:
             return False, 'Refund request is not approved'
 
@@ -158,9 +158,9 @@ class RefundService:
                 .first()
             )
         except TenantContextError:
-            return False, 'Original payment not found'
+            return False, 'الدفعة الأصلية غير موجودة'
         if not payment:
-            return False, 'Original payment not found'
+            return False, 'الدفعة الأصلية غير موجودة'
 
         try:
             refund_amount = Decimal(str(request.amount))

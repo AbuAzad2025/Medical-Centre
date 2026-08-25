@@ -204,31 +204,31 @@ class TestRequestRefund:
         ok, msg = RS.request_refund(
             tenant_id=fx.tenant_id, payment_id=99999999, amount=10, reason='r'
         )
-        assert ok is False and 'not found' in msg
+        assert ok is False and 'غير موجود' in msg
 
     def test_tenant_mismatch(self, fx):
         pay = fx.payment(tenant_id=fx.tenant_id)
         ok, msg = RS.request_refund(tenant_id=999, payment_id=pay.id, amount=10, reason='r')
-        assert ok is False and 'mismatch' in msg.lower()
+        assert ok is False and 'عدم تطابق' in msg
 
     def test_non_refundable_status(self, fx):
         pay = fx.payment(amount=100, status='PENDING')
         ok, msg = RS.request_refund(
             tenant_id=fx.tenant_id, payment_id=pay.id, amount=10, reason='r'
         )
-        assert ok is False and 'refundable' in msg.lower()
+        assert ok is False and 'الاسترداد' in msg
 
     def test_amount_must_be_positive(self, fx):
         pay = fx.payment(amount=100, status='CONFIRMED')
         ok, msg = RS.request_refund(tenant_id=fx.tenant_id, payment_id=pay.id, amount=0, reason='r')
-        assert ok is False and 'positive' in msg.lower()
+        assert ok is False and 'موجباً' in msg
 
     def test_amount_exceeds_payment(self, fx):
         pay = fx.payment(amount=50, status='CONFIRMED')
         ok, msg = RS.request_refund(
             tenant_id=fx.tenant_id, payment_id=pay.id, amount=100, reason='r'
         )
-        assert ok is False and 'exceeds' in msg.lower()
+        assert ok is False and 'يتجاوز' in msg
 
     def test_success(self, fx):
         pay = fx.payment(amount=100, status='CONFIRMED')
@@ -268,7 +268,7 @@ class TestApproveReject:
 
     def test_approve_not_found(self, fx):
         ok, msg = RS.approve_refund(99999999, approved_by=1)
-        assert ok is False and 'not found' in msg
+        assert ok is False and 'غير موجود' in msg
 
     def test_approve_non_pending(self, fx):
         req = self._pending(fx)
@@ -294,7 +294,7 @@ class TestApproveReject:
 class TestExecuteRefund:
     def test_not_found(self, fx):
         ok, msg = RS.execute_refund(99999999, executed_by=1)
-        assert ok is False and 'not found' in msg
+        assert ok is False and 'غير موجود' in msg
 
     def test_not_approved(self, fx):
         pay = fx.payment(amount=100, status='CONFIRMED')
