@@ -91,6 +91,12 @@ def get_logging_config(log_level='INFO', json_format=False):
         'loggers': {
             'sqlalchemy.engine': {'level': 'WARNING'},
             'werkzeug': {'level': 'WARNING'},
+            # Gunicorn's own loggers must not propagate to root: their
+            # records use %-style args that crash our PII formatter
+            # (TypeError %d), swallowing real tracebacks. Route them through
+            # the same console handler instead.
+            'gunicorn.error': {'level': log_level, 'propagate': False},
+            'gunicorn.access': {'level': log_level, 'propagate': False},
         },
     }
 
