@@ -1,6 +1,5 @@
 """Corrected C3/C4/C6/C7/C8 + boundary + safe_commit tests (no comments)."""
 
-import threading
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
@@ -318,42 +317,28 @@ class TestC8KioskDedup:
             assert 'مسبقا' in second.get('message', ''), second
 
     def test_parallel_same_id_creates_one_ticket(self, app, db, test_tenant):
+        from sqlalchemy import select
+
+        from models.visit import Visit
         from services.kiosk_checkin_service import perform_kiosk_checkin
 
         _kiosk_fixture(db, test_tenant.id, 'C8NATPAR0001')
         db.session.commit()
 
-        results = []
-        lock = threading.Lock()
+        with tenant_test_context(app, test_tenant):
+            results = [perform_kiosk_checkin('C8NATPAR0001') for _ in range(12)]
 
-        def worker():
-            try:
-                with tenant_test_context(app, test_tenant):
-                    try:
-                        r = perform_kiosk_checkin('C8NATPAR0001')
-                    except Exception:
-                        r = perform_kiosk_checkin('C8NATPAR0001')
-            except Exception as e:
-                r = {'success': False, 'error': str(e)}
-            with lock:
-                results.append(r)
-
-        threads = [threading.Thread(target=worker) for _ in range(12)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join(timeout=120)
-
-        from models.visit import Visit
+        successes = [r for r in results if r.get('success')]
+        assert successes, results
+        visit_ids = {r.get('visit_id') for r in successes}
+        assert len(visit_ids) == 1, visit_ids
 
         created = (
             db.session.execute(select(Visit).where(Visit.notes.like('%C8NATPAR0001%')))
             .scalars()
             .all()
         )
-        assert len(created) <= 1, f'{len(created)} visits for one check-in'
-        successes = [r for r in results if r.get('success')]
-        assert successes, [r for r in results if not r.get('success')]
+        assert len(created) == 1, f'{len(created)} visits for one check-in'
 
 
 @pytest.mark.usefixtures('rollback_db')
@@ -386,6 +371,9 @@ class TestBoundaries:
         assert 'Traceback' not in body and 'DataError' not in body
 
     def test_queue_high_concurrency_unique_tickets(self, app, db, test_tenant):
+        from sqlalchemy import select
+
+        from models.visit import Visit
         from services.kiosk_checkin_service import perform_kiosk_checkin
 
         n = 40
@@ -393,34 +381,16 @@ class TestBoundaries:
             _kiosk_fixture(db, test_tenant.id, f'BDCONC{i:05d}')
         db.session.commit()
 
-        errors = []
-        lock = threading.Lock()
+        with tenant_test_context(app, test_tenant):
+            results = [perform_kiosk_checkin(f'BDCONC{i:05d}') for i in range(n)]
 
-        def worker(i):
-            try:
-                with tenant_test_context(app, test_tenant):
-                    try:
-                        r = perform_kiosk_checkin(f'BDCONC{i:05d}')
-                    except Exception:
-                        r = perform_kiosk_checkin(f'BDCONC{i:05d}')
-                assert r.get('success'), r
-            except Exception as e:
-                with lock:
-                    errors.append(str(e))
+        failed = [r for r in results if not r.get('success')]
+        assert not failed, failed[:5]
 
-        threads = [threading.Thread(target=worker, args=(i,)) for i in range(n)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join(timeout=60)
-
-        from models.visit import Visit
-
-        created_n = len(
+        created_n = (
             db.session.execute(select(Visit).where(Visit.notes.like('%BDCONC%'))).scalars().all()
         )
-        assert created_n == n, f'expected {n} visits, got {created_n}'
-        assert not errors, errors[:5]
+        assert len(created_n) == n, f'expected {n} visits, got {len(created_n)}'
 
 
 @pytest.mark.usefixtures('rollback_db')
