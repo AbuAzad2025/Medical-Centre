@@ -151,7 +151,7 @@ class TestRefundService:
             requested_by=refund_accountant.id,
         )
         assert ok is False
-        assert 'exceeds' in msg.lower()
+        assert 'يتجاوز' in msg
 
     def test_request_refund_rejects_non_confirmed_payment(
         self, test_tenant, refund_payment, refund_accountant
@@ -166,7 +166,7 @@ class TestRefundService:
             requested_by=refund_accountant.id,
         )
         assert ok is False
-        assert 'refundable' in msg.lower()
+        assert 'الاسترداد' in msg
 
     def test_approve_refund(self, test_tenant, refund_payment, refund_accountant, refund_manager):
         ok, req = RefundService.request_refund(
