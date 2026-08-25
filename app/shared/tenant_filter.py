@@ -492,6 +492,13 @@ def reassert_set_local(orm_execute_state):
     prior commit, where ``before_flush`` does not fire (no flush occurs
     for a plain SELECT).
     """
+    # Outside SaaS mode there is no RLS/GUC machinery to maintain — and
+    # executing a nested statement here (inside another statement's
+    # do_orm_execute) corrupts the outer cursor (ResourceClosedError /
+    # PGRES_TUPLES_OK seen under gunicorn). Only run in SaaS mode.
+    if not _is_saas_mode():
+        return
+
     # Skip raw text clauses to avoid recursive dispatch —
     # our own session.execute(db.text("SET LOCAL …")) triggers
     # do_orm_execute, which would re-enter this handler.
