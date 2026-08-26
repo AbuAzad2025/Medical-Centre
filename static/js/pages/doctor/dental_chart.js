@@ -57,7 +57,7 @@ function updateSummary() {
         const cnt = counts[key] || 0;
         if (cnt > 0) {
             list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                <span><span class="badge me-1" style="background:${info.color}">&nbsp;</span>${info.label}</span>
+                <span><span class="badge me-1" style="background:${info.color}">&nbsp;</span>${window.escHtml(info.label)}</span>
                 <span class="badge bg-secondary">${cnt}</span>
             </li>`;
         }
@@ -68,10 +68,14 @@ function updateSummary() {
 function saveChart() {
     fetch(__M2__, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json', 'X-CSRFToken': __M3__},
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': __M3__, 'X-Requested-With': 'XMLHttpRequest'},
+        credentials: 'same-origin',
         body: JSON.stringify({patient_id: __M4__, visit_id: __M5__, teeth: teethData, notes: ''})
     })
-    .then(r => r.json())
+    .then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+    })
     .then(data => {
         if (data.success) window.notify.success('تم حفظ مخطط الأسنان');
         else window.notify.error(data.message || 'تعذّر حفظ مخطط الأسنان. حاول مرة أخرى.');

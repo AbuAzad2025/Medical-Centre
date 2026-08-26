@@ -271,9 +271,9 @@
         catalogData.forEach(t => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${t.code}</td>
-                <td>${t.name_ar}${t.name_en ? ' (' + t.name_en + ')' : ''}</td>
-                <td>${t.unit || '-'}</td>
+                <td>${window.escHtml(t.code)}</td>
+                <td>${window.escHtml(t.name_ar)}${t.name_en ? ' (' + t.name_en + ')' : ''}</td>
+                <td>${window.escHtml(t.unit || '-')}</td>
                 <td>${t.default_reference_range || '-'}</td>
                 <td><button class="btn btn-sm btn-success" onclick="addFromCatalog(${t.id})">إضافة</button></td>
             `;
@@ -296,12 +296,12 @@
         tr.innerHTML = `
             <td>
                 <input type="hidden" name="result_id[]" value="">
-                <input type="text" class="form-control" name="test_code[]" value="${test.code}">
+                <input type="text" class="form-control" name="test_code[]" value="${window.escHtml(test.code)}">
             </td>
-            <td><input type="text" class="form-control" name="test_name[]" value="${test.name_ar}"></td>
+            <td><input type="text" class="form-control" name="test_name[]" value="${window.escHtml(test.name_ar)}"></td>
             <td><input type="text" class="form-control" name="value[]" value=""></td>
-            <td><input type="text" class="form-control" name="unit[]" value="${test.unit || ''}"></td>
-            <td><input type="text" class="form-control" name="reference_range[]" value="${test.default_reference_range || ''}"></td>
+            <td><input type="text" class="form-control" name="unit[]" value="${window.escHtml(test.unit || '')}"></td>
+            <td><input type="text" class="form-control" name="reference_range[]" value="${window.escHtml(test.default_reference_range || '')}"></td>
             <td>
                 <select class="form-control" name="is_critical[]">
                     <option value="0" selected>لا</option>

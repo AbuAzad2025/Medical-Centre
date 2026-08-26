@@ -73,7 +73,8 @@ let smartSearchTimer = null;
 
         smartSearchTimer = window.setTimeout(() => {
             fetch(((window.API_ROUTES && window.API_ROUTES.smart_patient_search) || '/reception/api/smart-patient-search') + `?q=${encodeURIComponent(q)}`, {
-                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
             })
                 .then(r => r.ok ? r.json() : Promise.reject(r))
                 .then(d => renderResults(d.patients || []))
@@ -125,12 +126,17 @@ document.getElementById('last_menstruation_date_modal')?.addEventListener('chang
 document.getElementById('savePatientModalBtn')?.addEventListener('click', function() {
     const form = document.getElementById('patientFormModal');
     const fd = new FormData(form);
+    const csrfEl = form.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
     if (!fd.get('first_name') || !fd.get('last_name') || !fd.get('phone')) {
         Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
         return;
     }
-    fetch(form.action, { method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: fd })
-        .then(r => r.json())
+    fetch(form.action, { method: 'POST', headers: Object.assign({ 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}), credentials: 'same-origin', body: fd })
+        .then(r => {
+            if (!r.ok) throw new Error(r.status);
+            return r.json();
+        })
         .then(d => {
             if (d.success) {
                 Swal.fire({ title: 'تم الحفظ', text: 'تم حفظ المريض بنجاح', icon: 'success' }).then(() => { location.reload(); });
@@ -197,12 +203,17 @@ document.getElementById('savePatientEditBtn')?.addEventListener('click', functio
     const form = document.getElementById('patientFormEdit');
     if (!form) return;
     const fd = new FormData(form);
+    const csrfEl = form.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
     if (!fd.get('first_name') || !fd.get('last_name') || !fd.get('phone')) {
         Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
         return;
     }
-    fetch(form.action, { method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: fd })
-        .then(r => r.ok ? r.json() : r.text().then(t => ({ success: false, message: t })))
+    fetch(form.action, { method: 'POST', headers: Object.assign({ 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}), credentials: 'same-origin', body: fd })
+        .then(r => {
+            if (!r.ok) throw new Error(r.status);
+            return r.json();
+        })
         .then(d => {
             if (d.success) {
                 Swal.fire({ title: 'تم الحفظ', text: 'تم حفظ التعديلات بنجاح', icon: 'success' }).then(() => {

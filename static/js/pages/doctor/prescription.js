@@ -156,16 +156,24 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!hasItems) return;
     e.preventDefault();
     const fd = new FormData(form);
-    fetch(form.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-      .then(function(r) { return r.json(); })
+    const csrfEl = form.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
+    fetch(form.action, { method: 'POST', body: fd, credentials: 'same-origin', headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}) })
+      .then(function(r) {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      })
       .then(function(data) {
         if (data.success) { window.location.href = form.getAttribute('data-success-url') || window.location.href; }
         else if (data.hard_stops && data.hard_stops.length) {
           showSafetyModal(data.hard_stops, function(note) {
             fd.append('overridden', '1');
             fd.append('override_note', note);
-            fetch(form.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-              .then(function(r2) { return r2.json(); })
+            fetch(form.action, { method: 'POST', body: fd, credentials: 'same-origin', headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}) })
+              .then(function(r2) {
+                if (!r2.ok) throw new Error(r2.status);
+                return r2.json();
+              })
               .then(function(d2) {
                 if (d2.success) { window.location.href = form.getAttribute('data-success-url') || window.location.href; }
                 else { showSafetyModal([d2.message || 'خطأ غير معروف'], function(){}); }

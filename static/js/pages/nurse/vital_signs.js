@@ -12,10 +12,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(form.action, {
                 method: 'POST',
                 body: formData,
+                credentials: 'same-origin',
                 headers: {
-                    'X-CSRFToken': csrf
+                    'X-CSRFToken': csrf,
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
+            if (!response.ok) throw new Error(response.status);
             const result = await response.json();
             if (result && result.success) {
                 window.location.reload();

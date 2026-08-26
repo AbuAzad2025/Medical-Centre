@@ -19,7 +19,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'js_error', message: msg, source: source, url: global.location.href }),
-        }).catch(() => {});
+        }).catch(() => { console.warn('فشل إرسال سجل الخطأ'); });
       } catch (e) {}
     }
   }
@@ -56,8 +56,8 @@
       '<div class="entitlement-lock-screen entitlement-lock-overlay__panel" data-capability="' +
       String(capability).replace(/"/g, '&quot;') + '">' +
       '<div class="entitlement-lock-screen__icon" aria-hidden="true"><i class="fas fa-lock"></i></div>' +
-      '<h5 class="mb-2">' + title + '</h5>' +
-      '<p class="text-muted mb-3">' + message + '</p>' +
+      '<h5 class="mb-2">' + global.escHtml(String(title)) + '</h5>' +
+      '<p class="text-muted mb-3">' + global.escHtml(String(message)) + '</p>' +
       (upgradeUrl
         ? '<a href="' + upgradeUrl + '" class="btn btn-primary btn-sm">ترقية الباقة</a>'
         : '<button type="button" class="btn btn-secondary btn-sm" data-dismiss-lock>إغلاق</button>') +

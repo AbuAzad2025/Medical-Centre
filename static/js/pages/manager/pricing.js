@@ -94,11 +94,14 @@ async function saveService() {
             method: method,
             headers: {
                 'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRFToken': __M0__
             },
+            credentials: 'same-origin',
             body: JSON.stringify(data)
         });
         
+        if (!response.ok) throw new Error('http_' + response.status);
         const result = await response.json();
         
         if (result.success) {
@@ -133,10 +136,13 @@ async function deleteService(id) {
             const response = await fetch(baseUrl + '/' + id, {
                 method: 'DELETE',
                 headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRFToken': __M1__
-                }
+                },
+                credentials: 'same-origin'
             });
             
+            if (!response.ok) throw new Error('http_' + response.status);
             const result = await response.json();
             
             if (result.success) {

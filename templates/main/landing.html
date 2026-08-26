@@ -1094,11 +1094,11 @@
             }
             
             searchResults.innerHTML = tenants.map(t => `
-                <a href="/t/${t.slug}/auth/login" class="dropdown-item d-flex align-items-center gap-2 p-2" style="text-decoration: none; color: inherit;">
+                <a href="/t/${window.escHtml(t.slug)}/auth/login" class="dropdown-item d-flex align-items-center gap-2 p-2" style="text-decoration: none; color: inherit;">
                     <i class="fas fa-building text-primary"></i>
                     <div>
-                        <div class="fw-medium">${t.name_ar || t.name}</div>
-                        <small class="text-muted">${t.slug}</small>
+                        <div class="fw-medium">${window.escHtml(t.name_ar || t.name)}</div>
+                        <small class="text-muted">${window.escHtml(t.slug)}</small>
                     </div>
                 </a>
             `).join('');

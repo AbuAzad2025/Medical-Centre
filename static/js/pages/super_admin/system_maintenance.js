@@ -48,7 +48,7 @@ function clearLogs() {
 }
 
 function loadSystemStatus() {
-    fetch((window.API_ROUTES && window.API_ROUTES.health) || '/health', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    fetch((window.API_ROUTES && window.API_ROUTES.health) || '/health', { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
         .then(r => r.json())
         .then(data => {
             const el = document.getElementById('systemStatusIndicator');
@@ -60,7 +60,7 @@ function loadSystemStatus() {
             el.textContent = overallOk ? '● النظام سليم' : '● النظام يعاني من مشاكل';
             el.title = `DB: ${data.database} | Redis: ${data.redis} | v${data.version || '?'}`;
         })
-        .catch(() => {});
+        .catch(() => { console.warn('تعذر تحميل حالة النظام'); });
 }
 
 // تحديث الإحصائيات كل 30 ثانية

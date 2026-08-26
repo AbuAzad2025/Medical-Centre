@@ -22,7 +22,8 @@ function intInput(value, min, max) {
 
 async function loadSettings() {
   try {
-    const r = await fetch(`__M0__?action=load`, { method: 'GET' });
+    const r = await fetch(`__M0__?action=load`, { method: 'GET', credentials: 'same-origin' });
+    if (!r.ok) throw new Error('http_' + r.status);
     const data = await r.json().catch(() => ({}));
     if (!data || !data.success) {
       tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">فشل التحميل</td></tr>';
@@ -34,7 +35,7 @@ async function loadSettings() {
       const tr = document.createElement('tr');
       tr.dataset.departmentId = it.department_id;
       tr.innerHTML = `
-        <td class="ps-3 fw-semibold">${String(it.department_name || it.department_id)}</td>
+        <td class="ps-3 fw-semibold">${window.escHtml(String(it.department_name || it.department_id))}</td>
         <td>${intInput(it.max_queue_size, 1, 999)}</td>
         <td>${boolSelect(it.payment_required)}</td>
         <td>${boolSelect(it.emergency_payment_waived)}</td>
@@ -49,7 +50,7 @@ async function loadSettings() {
       tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">لا بيانات</td></tr>';
     }
   } catch (err) {
-    /* خطأ في الاتصال: */
+    if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات'); else alert('حدث خطأ أثناء تحميل البيانات');
   }
 }
 
@@ -84,7 +85,8 @@ if (saveBtn) {
     try {
       const r = await fetch(`__M1__`, {
         method: 'POST',
-        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        credentials: 'same-origin',
         body: JSON.stringify(payload)
       });
       saveBtn.disabled = false;
@@ -100,7 +102,7 @@ if (saveBtn) {
       }
       if (window.notify) window.notify.error('تعذّر حفظ الإعدادات. حاول مرة أخرى.');
     } catch (err) {
-      /* خطأ في الاتصال: */
+      if (window.showToast) window.showToast('حدث خطأ أثناء حفظ الإعدادات'); else alert('حدث خطأ أثناء تحميل البيانات');
     }
   });
 }

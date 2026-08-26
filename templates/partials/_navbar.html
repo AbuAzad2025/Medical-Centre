@@ -137,10 +137,10 @@
                         searchResults.innerHTML = '<div class="p-3 text-center text-muted small">لا توجد نتائج</div>';
                     } else {
                         searchResults.innerHTML = data.results.map(function(r) {
-                            return '<a href="' + (r.url || '#') + '" class="dropdown-item d-flex align-items-center gap-2 py-2">' +
+                            return '<a href="' + window.escHtml(r.url || '#') + '" class="dropdown-item d-flex align-items-center gap-2 py-2">' +
                                 '<i class="' + (r.icon || 'fas fa-circle') + ' text-muted"></i>' +
-                                '<div><div class="fw-medium" style="font-size:0.85rem;">' + r.title + '</div>' +
-                                (r.subtitle ? '<small class="text-muted">' + r.subtitle + '</small>' : '') +
+                                '<div><div class="fw-medium" style="font-size:0.85rem;">' + window.escHtml(r.title) + '</div>' +
+                                (r.subtitle ? '<small class="text-muted">' + window.escHtml(r.subtitle) + '</small>' : '') +
                                 '</div></a>';
                         }).join('');
                     }

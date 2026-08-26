@@ -15,12 +15,34 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="row">
                             <div class="col-md-8">
-                                <label class="form-label">الفحوصات المطلوبة</label>
-                                <input type="text" class="form-control" name="tests" placeholder="أدخل أسماء الفحوصات">
+                                <label class="form-label" for="testsSelect">الفحوصات المطلوبة</label>
+                                <select class="form-select" id="testsSelect" name="tests[]" multiple required size="8">
+                                    <option value="CBC">صورة دم كاملة (CBC)</option>
+                                    <option value="RBS">سكر عشوائي (RBS)</option>
+                                    <option value="BUN">يوريا (BUN)</option>
+                                    <option value="CREAT">كرياتينين (Creatinine)</option>
+                                    <option value="LYTES">أملاح (Electrolytes)</option>
+                                    <option value="LFT">وظائف كبد (LFT)</option>
+                                    <option value="COAG">تخثر (Coagulation)</option>
+                                    <option value="CRP">بروتين سي التفاعلي (CRP)</option>
+                                    <option value="TROP">التروبونين (Troponin)</option>
+                                    <option value="URINE">تحليل بول (Urine Analysis)</option>
+                                </select>
+                                <small class="text-muted">اضغط Ctrl (أو Cmd) لاختيار أكثر من فحص</small>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">تعليمات خاصة</label>
-                                <input type="text" class="form-control" name="instructions" placeholder="تعليمات للطبيب أو المختبر">
+                                <div class="mb-3">
+                                    <label class="form-label" for="urgencySelect">درجة الاستعجال</label>
+                                    <select class="form-select" id="urgencySelect" name="urgency">
+                                        <option value="ROUTINE" selected>روتيني</option>
+                                        <option value="URGENT">عاجل</option>
+                                        <option value="STAT">فوري</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="notesField">ملاحظات</label>
+                                    <textarea class="form-control" id="notesField" name="notes" rows="4" placeholder="ملاحظات للطبيب أو المختبر"></textarea>
+                                </div>
                             </div>
                         </div>
                         <div class="row mt-3">

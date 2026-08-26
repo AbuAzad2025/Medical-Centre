@@ -1,16 +1,19 @@
 var __M = window.__M || [];
+const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 document.getElementById('addStaffForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const userId = document.getElementById('user_id').value;
     
     fetch((window.API_ROUTES && window.API_ROUTES.add_department_staff) ? window.API_ROUTES.add_department_staff.replace('/0', '/' + __M0__) : `/super-admin/department-staff/${__M0__}/add`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        credentials: 'same-origin',
         body: JSON.stringify({ user_id: userId })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('http_' + response.status);
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             location.reload();
@@ -33,12 +36,14 @@ function removeFromDepartment(userId) {
         if (result.isConfirmed) {
             fetch((window.API_ROUTES && window.API_ROUTES.remove_department_staff) ? window.API_ROUTES.remove_department_staff.replace('/0', '/' + __M1__) : `/super-admin/department-staff/${__M1__}/remove`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin',
                 body: JSON.stringify({ user_id: userId })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('http_' + response.status);
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     location.reload();

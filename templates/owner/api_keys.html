@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                     <i class="fas fa-check"></i>
                 </div>
-                <div class="fw-bold">${message}</div>
+                <div class="fw-bold">${window.escHtml(message)}</div>
             </div>
         `;
         container.appendChild(toastEl);

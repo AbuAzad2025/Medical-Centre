@@ -1,3 +1,6 @@
+var __M = window.__M || [];
+const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+
 function swalInfo(message) {
     Swal.fire({
         title: 'معلومة',
@@ -31,7 +34,9 @@ function deleteUser(userId) {
     }).then((result) => {
         if (result.isConfirmed) {
             fetch(((window.API_ROUTES && window.API_ROUTES.super_admin_delete_user) || '/super-admin/users/0/delete').replace('/0', '/' + userId), {
-                method: 'POST'
+                method: 'POST',
+                headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
             }).then((resp) => {
                 if (resp.ok) {
                     location.reload();
@@ -56,8 +61,13 @@ function resetPassword(userId) {
     }).then((result) => {
         if (result.isConfirmed) {
             fetch(((window.API_ROUTES && window.API_ROUTES.super_admin_reset_password) || '/super-admin/users/0/reset-password').replace('/0', '/' + userId), {
-                method: 'POST'
-            }).then(r => r.json()).then(data => {
+                method: 'POST',
+                headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
+            }).then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            }).then(data => {
                 if (data.success) {
                     const el = document.getElementById(`temp-pass-${userId}`);
                     el.textContent = data.temp_password;

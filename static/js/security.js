@@ -365,7 +365,7 @@ class AuditLogger {
             method: 'POST',
             headers,
             body: JSON.stringify(logEntry)
-        }).catch(() => {});
+        }).catch(() => { console.warn('فشل إرسال سجل التدقيق'); });
     }
 }
 

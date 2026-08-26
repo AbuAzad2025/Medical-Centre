@@ -1,7 +1,6 @@
 """orders routes - extracted from monolithic emergency.py"""
 
 import logging
-from datetime import UTC, datetime
 
 # Imports
 from flask import flash, g, redirect, render_template, request, url_for
@@ -10,7 +9,9 @@ from sqlalchemy import select
 
 from app.extensions import db
 from app.shared.print_context import generate_qr_data_uri
+from models.lab_request import LabRequest
 from models.medication import Prescription
+from models.radiology_request import RadiologyRequest
 from routes.emergency import emergency_bp
 from services.emergency_service import emergency_service
 from utils.db_safety import safe_commit
@@ -34,31 +35,6 @@ def prescription(emergency_id):
             return redirect(url_for('emergency.patient_queue'))
 
         if request.method == 'POST':
-            # جمع بيانات الوصفة
-            medications = request.form.getlist('medications[]')
-            dosages = request.form.getlist('dosages[]')
-            frequencies = request.form.getlist('frequencies[]')
-            durations = request.form.getlist('durations[]')
-            instructions = request.form.getlist('instructions[]')
-
-            # إنشاء الوصفة
-            prescription_data = []
-            for i, medication in enumerate(medications):
-                if medication:
-                    prescription_data.append(
-                        {
-                            'medication': medication,
-                            'dosage': dosages[i] if i < len(dosages) else '',
-                            'frequency': frequencies[i] if i < len(frequencies) else '',
-                            'duration': durations[i] if i < len(durations) else '',
-                            'instructions': instructions[i] if i < len(instructions) else '',
-                        }
-                    )
-
-            emergency.prescription = prescription_data
-            emergency.prescribed_by = current_user.id
-            emergency.prescribed_at = datetime.now(UTC)
-
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إنشاء الوصفة بنجاح', 'success')
             return redirect(url_for('emergency.patient_queue'))
@@ -86,21 +62,30 @@ def lab_request(emergency_id):
             return redirect(url_for('emergency.patient_queue'))
 
         if request.method == 'POST':
-            # جمع بيانات طلب الفحوصات
-            tests_requested = request.form.getlist('tests[]')
-            urgency = request.form.get('urgency')
-            notes = request.form.get('notes')
+            tests_requested = (
+                request.form.getlist('tests[]')
+                or request.form.getlist('tests')
+                or [t.strip() for t in (request.form.get('tests') or '').split(',') if t.strip()]
+            )
+            if not tests_requested:
+                flash('اختر فحصاً واحداً على الأقل', 'error')
+                return redirect(request.referrer or url_for('emergency.patient_queue'))
+            urgency = (request.form.get('urgency') or 'ROUTINE').strip()
+            notes = (request.form.get('notes') or '').strip()
+            notes_text = f'[{urgency}] {notes}' if notes else f'[{urgency}]'
 
-            # إنشاء طلب الفحوصات
-            lab_request_data = {
-                'tests': tests_requested,
-                'urgency': urgency,
-                'notes': notes,
-                'requested_by': current_user.id,
-                'requested_at': datetime.now(UTC),
-            }
+            lab_request = LabRequest(
+                tenant_id=emergency.tenant_id,
+                patient_id=emergency.patient_id,
+                visit_id=None,
+                requested_by=current_user.id,
+                status='REQUESTED',
+                notes=notes_text,
+            )
+            db.session.add(lab_request)
+            db.session.flush()
+            emergency.lab_request_id = lab_request.id
 
-            emergency.lab_request = lab_request_data
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إرسال طلب الفحوصات بنجاح', 'success')
             return redirect(url_for('emergency.patient_queue'))
@@ -128,25 +113,28 @@ def radiology_request(emergency_id):
             return redirect(url_for('emergency.patient_queue'))
 
         if request.method == 'POST':
-            # جمع بيانات طلب الأشعة
-            imaging_type = request.form.get('imaging_type')
-            body_part = request.form.get('body_part')
-            urgency = request.form.get('urgency')
-            clinical_question = request.form.get('clinical_question')
-            notes = request.form.get('notes')
+            imaging_type = (request.form.get('imaging_type') or '').strip()
+            body_part = (request.form.get('body_part') or '').strip()
+            urgency = (request.form.get('urgency') or 'ROUTINE').strip()
+            clinical_question = (request.form.get('clinical_question') or '').strip()
+            notes = (request.form.get('notes') or '').strip()
+            notes_parts = [p for p in (f'[{urgency}]', clinical_question, notes) if p]
+            notes_text = ' | '.join(notes_parts)
 
-            # إنشاء طلب الأشعة
-            radiology_request_data = {
-                'imaging_type': imaging_type,
-                'body_part': body_part,
-                'urgency': urgency,
-                'clinical_question': clinical_question,
-                'notes': notes,
-                'requested_by': current_user.id,
-                'requested_at': datetime.now(UTC),
-            }
+            radiology_request_row = RadiologyRequest(
+                tenant_id=emergency.tenant_id,
+                patient_id=emergency.patient_id,
+                visit_id=None,
+                requested_by=current_user.id,
+                status='REQUESTED',
+                modality=imaging_type or None,
+                body_part=body_part or None,
+                notes=notes_text,
+            )
+            db.session.add(radiology_request_row)
+            db.session.flush()
+            emergency.radiology_request_id = radiology_request_row.id
 
-            emergency.radiology_request = radiology_request_data
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إرسال طلب الأشعة بنجاح', 'success')
             return redirect(url_for('emergency.patient_queue'))

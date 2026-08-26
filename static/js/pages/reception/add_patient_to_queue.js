@@ -31,8 +31,11 @@ document.getElementById('department_id').addEventListener('change', function() {
     
     if (departmentId) {
         // جلب الأطباء للقسم المحدد
-        fetch(((window.API_ROUTES && window.API_ROUTES.api_doctors) || '/reception/api/doctors') + `?department_id=${departmentId}`)
-            .then(response => response.json())
+        fetch(((window.API_ROUTES && window.API_ROUTES.api_doctors) || '/reception/api/doctors') + `?department_id=${departmentId}`, { credentials: 'same-origin' })
+            .then(response => {
+                if (!response.ok) throw new Error(response.status);
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
@@ -45,7 +48,8 @@ document.getElementById('department_id').addEventListener('change', function() {
                 }
             })
             .catch(error => {
-                /* خطأ: */
+                if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
+                else alert('حدث خطأ أثناء تحميل البيانات');
             });
     } else {
         doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
@@ -102,23 +106,23 @@ function showConfirmModal(formData) {
     let confirmInfo = `
         <div class="alert alert-info">
             <h6>تأكيد إضافة المريض للطابور</h6>
-            <p><strong>المريض:</strong> ${patientText}</p>
-            <p><strong>القسم:</strong> ${departmentText}</p>
-            <p><strong>الطبيب:</strong> ${doctorText}</p>
-            <p><strong>نوع الطابور:</strong> ${queueTypeText}</p>
-            <p><strong>حالة الدفع:</strong> ${paymentStatusText}</p>
+            <p><strong>المريض:</strong> ${window.escHtml(patientText)}</p>
+            <p><strong>القسم:</strong> ${window.escHtml(departmentText)}</p>
+            <p><strong>الطبيب:</strong> ${window.escHtml(doctorText)}</p>
+            <p><strong>نوع الطابور:</strong> ${window.escHtml(queueTypeText)}</p>
+            <p><strong>حالة الدفع:</strong> ${window.escHtml(paymentStatusText)}</p>
     `;
     
     if (formData.get('is_emergency') === 'on') {
-        confirmInfo += `<p><strong>حالة الطوارئ:</strong> نعم - ${formData.get('emergency_reason')}</p>`;
+        confirmInfo += `<p><strong>حالة الطوارئ:</strong> نعم - ${window.escHtml(formData.get('emergency_reason'))}</p>`;
     }
     
     if (formData.get('force_entry') === 'on') {
-        confirmInfo += `<p><strong>الدخول القوي:</strong> نعم - ${formData.get('force_entry_reason')}</p>`;
+        confirmInfo += `<p><strong>الدخول القوي:</strong> نعم - ${window.escHtml(formData.get('force_entry_reason'))}</p>`;
     }
     
     if (formData.get('notes')) {
-        confirmInfo += `<p><strong>ملاحظات:</strong> ${formData.get('notes')}</p>`;
+        confirmInfo += `<p><strong>ملاحظات:</strong> ${window.escHtml(formData.get('notes'))}</p>`;
     }
     
     confirmInfo += '</div>';
@@ -135,8 +139,12 @@ function submitForm() {
     const form = document.getElementById('addPatientForm');
     const formData = new FormData(form);
     
+    const csrfEl = form.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
     fetch(form.action, {
         method: 'POST',
+        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        credentials: 'same-origin',
         body: formData
     })
     .then(response => {

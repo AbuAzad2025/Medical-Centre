@@ -10,8 +10,11 @@ document.addEventListener('DOMContentLoaded', function() {
       const q = (this.value || '').trim();
       if (q.length < 2) { list.style.display = 'none'; list.innerHTML=''; return; }
       to = setTimeout(() => {
-        fetch(__M0__ + '?q=' + encodeURIComponent(q))
-          .then(r => r.json())
+        fetch(__M0__ + '?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
+          .then(r => {
+            if (!r.ok) throw new Error(r.status);
+            return r.json();
+          })
           .then(d => {
             const pts = d.patients || [];
             list.innerHTML = '';
@@ -50,8 +53,11 @@ function refreshQueue() {
     const dept = parseInt((container && container.getAttribute('data-dept')) || '0');
     if (!dept) return;
     const queueStatusUrl = (window.API_ROUTES && window.API_ROUTES.queue_status) || '/reception/api/queue-status/0';
-    fetch(queueStatusUrl.replace('/0', '/' + dept) + '?doctor_id=' + __M2__)
-        .then(r => r.json())
+    fetch(queueStatusUrl.replace('/0', '/' + dept) + '?doctor_id=' + __M2__, { credentials: 'same-origin' })
+        .then(r => {
+            if (!r.ok) throw new Error(r.status);
+            return r.json();
+        })
         .then(d => {
             const s = d && d.data ? d.data : {};
             const waiting = Array.isArray(s.waiting_patients) ? s.waiting_patients.length : 0;
@@ -64,7 +70,10 @@ function refreshQueue() {
             set('stat-in-progress', inProgress);
             set('stat-wait', s.estimated_wait_time || 15);
         })
-        .catch(() => {});
+        .catch(() => {
+            if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
+            else alert('حدث خطأ أثناء تحميل البيانات');
+        });
 }
 
 // Auto-refresh every 30 seconds

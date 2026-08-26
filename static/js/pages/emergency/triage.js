@@ -16,12 +16,17 @@ document.getElementById('triageForm').addEventListener('submit', function(e) {
     
     formData.set('vital_signs', JSON.stringify(vitalSigns));
     
+    const csrfToken = formData.get('csrf_token') || '';
     fetch(__M0__, {
         method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error(response.status);
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             Swal.fire({ title: 'تم', text: 'تم حفظ بيانات الفرز بنجاح', icon: 'success' });

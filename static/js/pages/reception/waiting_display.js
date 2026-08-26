@@ -20,24 +20,40 @@ const apiUrl = __M0__;
                 }
                 card.innerHTML = `
                     <div class="queue-number">${it.queue_number || '-'}</div>
-                    <div class="ticker">${it.department_name || ''}</div>
-                    <div class="text-muted">${it.doctor_name || ''}</div>
-                    <div class="text-muted">${it.room_name ? 'غرفة ' + it.room_name : ''}</div>
+                    <div class="ticker">${window.escHtml(it.department_name || '')}</div>
+                    <div class="text-muted">${window.escHtml(it.doctor_name || '')}</div>
+                    <div class="text-muted">${it.room_name ? 'غرفة ' + window.escHtml(it.room_name) : ''}</div>
                 `;
                 el.appendChild(card);
             });
         }
 
+        function markStale() {
+            ['current-list', 'called-list', 'waiting-list'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.setAttribute('data-stale', '');
+            });
+        }
+
         function refresh() {
-            fetch(apiUrl, { headers: { 'Accept': 'application/json' } })
-                .then(r => r.json())
+            fetch(apiUrl, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+                .then(r => {
+                    if (!r.ok) throw new Error(r.status);
+                    return r.json();
+                })
                 .then(data => {
                     if (!data || !data.success) return;
+                    ['current-list', 'called-list', 'waiting-list'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.removeAttribute('data-stale');
+                    });
                     renderList(document.getElementById('current-list'), data.current, 'لا يوجد');
                     renderList(document.getElementById('called-list'), data.called, 'لا يوجد');
                     renderList(document.getElementById('waiting-list'), data.waiting, 'لا يوجد');
                 })
-                .catch(() => {});
+                .catch(() => {
+                    markStale();
+                });
         }
 
         function tickClock() {

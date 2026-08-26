@@ -2,6 +2,8 @@ function refreshUnits() {
     location.reload();
 }
 
+const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+
 function exportUnitsReport() {
     var rows = document.querySelectorAll('#unitsTable tbody tr');
     var csv = "\u0627\u0633\u0645 \u0627\u0644\u0648\u062d\u062f\u0629,\u0627\u0644\u0646\u0648\u0639,\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646,\u0627\u0644\u062d\u0627\u0644\u0629\n";
@@ -40,10 +42,14 @@ function toggleUnit(moduleName, btn) {
         formData.append('module_name', moduleName);
         fetch(toggleUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+            credentials: 'same-origin',
             body: JSON.stringify({ module_name: moduleName })
         })
-        .then(function(res) { return res.json(); })
+        .then(function(res) {
+            if (!res.ok) throw new Error('http_' + res.status);
+            return res.json();
+        })
         .then(function(data) {
             if (data.success) {
                 Swal.fire({ title: '\u062a\u0645', text: data.message, icon: 'success', timer: 1500, showConfirmButton: false })
@@ -81,9 +87,13 @@ function bulkActivate() {
             promises.push(
                 fetch(toggleUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                    credentials: 'same-origin',
                     body: JSON.stringify({ module_name: mod })
-                }).then(function(res) { return res.json(); })
+                }).then(function(res) {
+                    if (!res.ok) throw new Error('http_' + res.status);
+                    return res.json();
+                })
             );
         });
         Promise.all(promises).then(function() {
@@ -118,9 +128,13 @@ function bulkDeactivate() {
             promises.push(
                 fetch(toggleUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                    credentials: 'same-origin',
                     body: JSON.stringify({ module_name: mod })
-                }).then(function(res) { return res.json(); })
+                }).then(function(res) {
+                    if (!res.ok) throw new Error('http_' + res.status);
+                    return res.json();
+                })
             );
         });
         Promise.all(promises).then(function() {

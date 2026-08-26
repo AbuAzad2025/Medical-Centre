@@ -59,8 +59,11 @@ function exportLogs() {
 // تحديث تلقائي كل دقيقة
 setInterval(function() {
     // تحديث حالة الوحدات
-    fetch(__M7__ + '?ajax=true')
-        .then(response => response.json())
+    fetch(__M7__ + '?ajax=true', { credentials: 'same-origin' })
+        .then(response => {
+            if (!response.ok) throw new Error('http_' + response.status);
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 // تحديث البيانات في الصفحة
@@ -68,7 +71,7 @@ setInterval(function() {
             }
         })
         .catch(error => {
-            /* Error updating monitoring data: */
+            console.warn('تعذر تحديث بيانات المراقبة');
         });
 }, 60000); // دقيقة واحدة
 

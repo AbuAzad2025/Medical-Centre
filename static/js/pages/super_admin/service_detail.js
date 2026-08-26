@@ -1,3 +1,5 @@
+const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+
 function activateService(serviceId) {
     Swal.fire({
         title: 'تأكيد',
@@ -10,11 +12,13 @@ function activateService(serviceId) {
         if (result.isConfirmed) {
             fetch(((window.API_ROUTES && window.API_ROUTES.activate_service) || '/super-admin/activate-service/0').replace('/0', '/' + serviceId), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('http_' + response.status);
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     location.reload();
@@ -39,11 +43,13 @@ function deactivateService(serviceId) {
         if (result.isConfirmed) {
             fetch(((window.API_ROUTES && window.API_ROUTES.deactivate_service) || '/super-admin/deactivate-service/0').replace('/0', '/' + serviceId), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('http_' + response.status);
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     location.reload();

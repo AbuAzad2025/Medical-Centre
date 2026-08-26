@@ -37,7 +37,7 @@
     fetch(ENDPOINT, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => { if (data && data.metrics) applyMetrics(data.metrics); })
-      .catch(() => {});
+      .catch(() => { console.warn('تعذر تحديث المؤشرات الحية'); });
   }
 
   function startPolling() {

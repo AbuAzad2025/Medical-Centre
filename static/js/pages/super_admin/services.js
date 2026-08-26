@@ -1,4 +1,5 @@
 // Search functionality
+const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 document.getElementById('searchInput').addEventListener('input', function() {
     const searchTerm = this.value.toLowerCase();
     const table = document.getElementById('servicesTable');
@@ -43,11 +44,13 @@ function activateService(serviceId) {
         if (result.isConfirmed) {
             fetch(((window.API_ROUTES && window.API_ROUTES.activate_service) || '/super-admin/activate-service/0').replace('/0', '/' + serviceId), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('http_' + response.status);
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     location.reload();
@@ -72,11 +75,13 @@ function deactivateService(serviceId) {
         if (result.isConfirmed) {
             fetch(((window.API_ROUTES && window.API_ROUTES.deactivate_service) || '/super-admin/deactivate-service/0').replace('/0', '/' + serviceId), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('http_' + response.status);
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     location.reload();
@@ -103,9 +108,14 @@ document.getElementById('addServiceForm').addEventListener('submit', function(e)
     const createUrl = (window.API_ROUTES && window.API_ROUTES.create_service) || '/super-admin/services/create';
     fetch(createUrl, {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        credentials: 'same-origin'
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('http_' + response.status);
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             location.reload();

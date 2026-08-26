@@ -13,11 +13,12 @@ const baseCurrency = __M0__;
       return;
     }
     try {
-      const r = await fetch(((window.API_ROUTES && window.API_ROUTES.check_rate) || '/reception/api/check-rate') + `?from=${from}&to=${baseCurrency}`);
+      const r = await fetch(((window.API_ROUTES && window.API_ROUTES.check_rate) || '/reception/api/check-rate') + `?from=${from}&to=${baseCurrency}`, { credentials: 'same-origin' });
+      if (!r.ok) throw new Error('http_' + r.status);
       const d = await r.json();
       if (d.available) {
         rateInfo.classList.remove('d-none');
-        rateInfo.innerHTML = `<i class="fas fa-check text-success me-1"></i>سعر الصرف: 1 ${from} = ${d.rate.toFixed(4)} ${baseCurrency}`;
+        rateInfo.innerHTML = `<i class="fas fa-check text-success me-1"></i>سعر الصرف: 1 ${window.escHtml(from)} = ${d.rate.toFixed(4)} ${window.escHtml(baseCurrency)}`;
       } else {
         rateInfo.classList.remove('d-none');
         rateInfo.innerHTML = `<i class="fas fa-exclamation-triangle text-warning me-1"></i>سعر الصرف غير متوفر — سيتم طلبه عند التأكيد`;

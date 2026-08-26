@@ -48,6 +48,15 @@ class EmergencyCase(TenantMixin, db.Model):
         onupdate=lambda: datetime.now(UTC),
         index=True,
     )
+    lab_request_id = db.Column(
+        db.Integer, db.ForeignKey('lab_requests.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    radiology_request_id = db.Column(
+        db.Integer,
+        db.ForeignKey('radiology_requests.id', ondelete='SET NULL'),
+        nullable=True,
+        index=True,
+    )
 
     __table_args__ = (
         Index('idx_emergency_patient_status', 'patient_id', 'status'),

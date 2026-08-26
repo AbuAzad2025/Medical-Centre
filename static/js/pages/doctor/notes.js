@@ -22,13 +22,15 @@ function autoResize() {
 
 async function fetchTemplates() {
     try {
-        const r = await fetch(__M0__, { method: 'GET' });
+        const r = await fetch(__M0__, { method: 'GET', credentials: 'same-origin' });
+        if (!r.ok) throw new Error(r.status);
         const data = await r.json().catch(() => ({}));
         const arr = data && data.templates ? data.templates : [];
         templatesCache = Array.isArray(arr) ? arr : [];
         return templatesCache;
     } catch (err) {
-        /* خطأ في الاتصال: */
+        if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
+        else alert('حدث خطأ أثناء تحميل البيانات');
     }
 }
 
@@ -146,7 +148,8 @@ if (dntForm) {
         try {
             const r = await fetch(__M1__, {
                 method: 'POST',
-                headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin',
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                 body: JSON.stringify(payload)
             });
             if (!r.ok) {
@@ -178,7 +181,8 @@ if (dntTableBody) {
             try {
                 const r = await fetch(`__M2__`.replace('__T__', encodeURIComponent(id)), {
                     method: 'POST',
-                    headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
+                    credentials: 'same-origin',
+                    headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {})
                 });
                 if (!r.ok) {
                     window.notify.error('تعذّر حذف القالب. حاول مرة أخرى.');

@@ -65,8 +65,8 @@ document.getElementById('patient_search').addEventListener('input', function() {
     
     if (matches.length > 0) {
         suggestions.innerHTML = matches.map(option => 
-            `<div class="list-group-item" onclick="selectPatient('${option.value}', '${option.textContent}')">
-                ${option.textContent}
+            `<div class="list-group-item" onclick="selectPatient('${option.value}', '${window.escHtml(option.textContent)}')">
+                ${window.escHtml(option.textContent)}
             </div>`
         ).join('');
         suggestions.style.display = 'block';
@@ -107,8 +107,11 @@ function loadDoctors() {
     const params = new URLSearchParams();
     if (appointmentType) params.append('appointment_type', appointmentType);
     if (departmentId) params.append('department_id', departmentId);
-    fetch(((window.API_ROUTES && window.API_ROUTES.booking_available_doctors) || '/booking/api/available-doctors') + `?${params.toString()}`)
-        .then(response => response.json())
+    fetch(((window.API_ROUTES && window.API_ROUTES.booking_available_doctors) || '/booking/api/available-doctors') + `?${params.toString()}`, { credentials: 'same-origin' })
+        .then(response => {
+            if (!response.ok) throw new Error(response.status);
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 data.doctors.forEach(doctor => {
@@ -120,7 +123,8 @@ function loadDoctors() {
             }
         })
         .catch(error => {
-            /* Error تحميل doctors: */
+            if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
+            else alert('حدث خطأ أثناء تحميل البيانات');
         });
 }
 
@@ -135,8 +139,11 @@ document.getElementById('doctor_id').addEventListener('change', function() {
     
     if (doctorId && appointmentDate) {
         // جلب الأوقات المتاحة للطبيب في التاريخ المحدد
-        fetch(((window.API_ROUTES && window.API_ROUTES.booking_available_times) || '/booking/api/available-times') + `?doctor_id=${doctorId}&date=${appointmentDate}`)
-        .then(response => response.json())
+        fetch(((window.API_ROUTES && window.API_ROUTES.booking_available_times) || '/booking/api/available-times') + `?doctor_id=${doctorId}&date=${appointmentDate}`, { credentials: 'same-origin' })
+        .then(response => {
+            if (!response.ok) throw new Error(response.status);
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 const timeSelect = document.getElementById('appointment_time');
@@ -151,7 +158,8 @@ document.getElementById('doctor_id').addEventListener('change', function() {
             }
         })
         .catch(error => {
-            /* Error تحميل available times: */
+            if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
+            else alert('حدث خطأ أثناء تحميل البيانات');
         });
     }
 });
@@ -163,8 +171,11 @@ document.getElementById('appointment_date').addEventListener('change', function(
     
     if (doctorId && appointmentDate) {
         // جلب الأوقات المتاحة للطبيب في التاريخ المحدد
-        fetch(((window.API_ROUTES && window.API_ROUTES.booking_available_times) || '/booking/api/available-times') + `?doctor_id=${doctorId}&date=${appointmentDate}`)
-        .then(response => response.json())
+        fetch(((window.API_ROUTES && window.API_ROUTES.booking_available_times) || '/booking/api/available-times') + `?doctor_id=${doctorId}&date=${appointmentDate}`, { credentials: 'same-origin' })
+        .then(response => {
+            if (!response.ok) throw new Error(response.status);
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 const timeSelect = document.getElementById('appointment_time');
@@ -179,7 +190,8 @@ document.getElementById('appointment_date').addEventListener('change', function(
             }
         })
         .catch(error => {
-            /* Error تحميل available times: */
+            if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
+            else alert('حدث خطأ أثناء تحميل البيانات');
         });
     }
 });

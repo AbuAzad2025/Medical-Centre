@@ -1,3 +1,5 @@
+const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+
 function createBackup() {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
@@ -13,11 +15,13 @@ function createBackup() {
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...'; }
             fetch(createUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data && data.success) {
                     Swal.fire({ title: 'تم', text: 'تم إنشاء النسخة الاحتياطية بنجاح', icon: 'success' }).then(() => { location.reload(); });
@@ -37,8 +41,11 @@ function createBackup() {
 function scheduleBackup() {
     var scheduleUrl = (window.API_ROUTES && window.API_ROUTES.backup_schedule) || '/super-admin/backup/schedule';
     Swal.showLoading();
-    fetch(scheduleUrl)
-        .then(r => r.json())
+    fetch(scheduleUrl, { credentials: 'same-origin' })
+        .then(r => {
+            if (!r.ok) throw new Error('http_' + r.status);
+            return r.json();
+        })
         .then(data => {
             if (!data.success) throw new Error(data.message);
             
@@ -82,10 +89,14 @@ function scheduleBackup() {
                     Swal.showLoading();
                     fetch(scheduleUrl, {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
+                        headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                        credentials: 'same-origin',
                         body: JSON.stringify(result.value)
                     })
-                    .then(r => r.json())
+                    .then(r => {
+                        if (!r.ok) throw new Error('http_' + r.status);
+                        return r.json();
+                    })
                     .then(res => {
                         if (res.success) {
                             Swal.fire('تم', res.message, 'success');
@@ -117,12 +128,14 @@ function createFullBackup() {
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
             fetch(createUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin',
                 body: JSON.stringify({ type: 'full' })
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data && data.success) {
                     Swal.fire({ title: 'تم', text: 'تم إنشاء النسخة الكاملة بنجاح', icon: 'success' }).then(() => { location.reload(); });
@@ -154,12 +167,14 @@ function createIncrementalBackup() {
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
             fetch(createUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin',
                 body: JSON.stringify({ type: 'incremental' })
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data && data.success) {
                     Swal.fire({ title: 'تم', text: 'تم إنشاء النسخة التدريجية بنجاح', icon: 'success' }).then(() => { location.reload(); });
@@ -191,12 +206,14 @@ function createDatabaseBackup() {
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
             fetch(createUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin',
                 body: JSON.stringify({ type: 'database' })
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data && data.success) {
                     Swal.fire({ title: 'تم', text: 'تم إنشاء نسخة قاعدة البيانات بنجاح', icon: 'success' }).then(() => { location.reload(); });
@@ -228,12 +245,14 @@ function createFilesBackup() {
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
             fetch(createUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin',
                 body: JSON.stringify({ type: 'files' })
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data && data.success) {
                     Swal.fire({ title: 'تم', text: 'تم إنشاء نسخة الملفات بنجاح', icon: 'success' }).then(() => { location.reload(); });
@@ -283,11 +302,13 @@ function restoreBackup(backupId) {
             Swal.showLoading();
             fetch(restoreUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire('تم', data.message, 'success').then(() => location.reload());
@@ -316,11 +337,13 @@ function deleteBackup(backupId) {
             Swal.showLoading();
             fetch(deleteUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire('تم', data.message, 'success').then(() => location.reload());
@@ -349,11 +372,13 @@ function cancelBackup(backupId) {
             Swal.showLoading();
             fetch(cancelUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire('تم', data.message, 'success').then(() => location.reload());
@@ -394,10 +419,14 @@ function retryBackup(type) {
             
             fetch(createUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin',
                 body: JSON.stringify({ type: reqType })
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire('تم', 'تم إنشاء النسخة الاحتياطية بنجاح', 'success').then(() => location.reload());
@@ -431,12 +460,14 @@ function saveBackupSettings() {
             Swal.showLoading();
             fetch(settingsUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin',
                 body: JSON.stringify(data)
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            })
             .then(response => {
                 if (response.success) {
                     Swal.fire('تم', response.message, 'success');
@@ -462,8 +493,11 @@ function exportBackupLogs() {
 function viewBackupHistory() {
     var historyUrl = (window.API_ROUTES && window.API_ROUTES.backup_history) || '/super-admin/backup/history';
     Swal.showLoading();
-    fetch(historyUrl)
-    .then(r => r.json())
+    fetch(historyUrl, { credentials: 'same-origin' })
+    .then(r => {
+        if (!r.ok) throw new Error('http_' + r.status);
+        return r.json();
+    })
     .then(data => {
         if (data.success) {
             let html = '<div class="text-start" class="scrollable-400"><ul class="list-group">';
@@ -479,10 +513,10 @@ function viewBackupHistory() {
                     html += `
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <span class="badge bg-${badgeClass} me-2">${item.status}</span>
-                                <span>${item.type}</span>
+                                <span class="badge bg-${badgeClass} me-2">${window.escHtml(String(item.status || ''))}</span>
+                                <span>${window.escHtml(String(item.type || ''))}</span>
                             </div>
-                            <small class="text-muted" dir="ltr">${item.created_at}</small>
+                            <small class="text-muted" dir="ltr">${window.escHtml(String(item.created_at || ''))}</small>
                         </li>
                     `;
                 });

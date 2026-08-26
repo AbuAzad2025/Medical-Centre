@@ -41,9 +41,12 @@
                 return;
             }
             btn.disabled = true;
+            const csrfEl = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
             fetch(chargeUrl, {
                 method: 'POST',
-                headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+                headers: Object.assign({ 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin',
                 body: new URLSearchParams({ amount: String(amount) }),
             })
                 .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })

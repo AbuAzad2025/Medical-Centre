@@ -76,9 +76,11 @@ var __M = window.__M || [];
                 try {
                     const r = await fetch(__M0__, {
                         method: 'POST',
-                        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                        headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                        credentials: 'same-origin',
                         body: JSON.stringify(payload)
                     });
+                    if (!r.ok) throw new Error('http_' + r.status);
                     const data = await r.json().catch(() => ({}));
                     aiAssistBtn.disabled = false;
                     if (!data || !data.success || !data.data) {
@@ -100,31 +102,34 @@ var __M = window.__M || [];
                     }
                     aiAssistOutput.textContent = lines.join('\n');
                 } catch (err) {
-                    /* خطأ في الاتصال: */
+                    aiAssistBtn.disabled = false;
+                    if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات'); else alert('حدث خطأ أثناء تحميل البيانات');
                 }
             }
 
             async function fetchTemplates() {
                 try {
-                    const r = await fetch(__M1__, { method: 'GET' });
+                    const r = await fetch(__M1__, { method: 'GET', credentials: 'same-origin' });
+                    if (!r.ok) throw new Error('http_' + r.status);
                     const data = await r.json().catch(() => ({}));
                     const arr = data && data.templates ? data.templates : [];
                     templatesCache = Array.isArray(arr) ? arr : [];
                     return templatesCache;
                 } catch (err) {
-                    /* خطأ في الاتصال: */
+                    if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات'); else alert('حدث خطأ أثناء تحميل البيانات');
                 }
             }
 
             async function fetchMacros() {
                 try {
-                    const r = await fetch(__M2__, { method: 'GET' });
+                    const r = await fetch(__M2__, { method: 'GET', credentials: 'same-origin' });
+                    if (!r.ok) throw new Error('http_' + r.status);
                     const data = await r.json().catch(() => ({}));
                     const arr = data && data.macros ? data.macros : [];
                     macrosCache = Array.isArray(arr) ? arr : [];
                     return macrosCache;
                 } catch (err) {
-                    /* خطأ في الاتصال: */
+                    if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات'); else alert('حدث خطأ أثناء تحميل البيانات');
                 }
             }
 
@@ -211,8 +216,8 @@ var __M = window.__M || [];
                     const tr = document.createElement('tr');
                     const active = t.is_active !== false;
                     tr.innerHTML = `
-                        <td>${String(t.name || '')}</td>
-                        <td><span class="badge bg-light text-dark">${String((t.modality || '').toUpperCase())}</span></td>
+                        <td>${window.escHtml(String(t.name || ''))}</td>
+                        <td><span class="badge bg-light text-dark">${window.escHtml(String((t.modality || '').toUpperCase()))}</span></td>
                         <td>${active ? '<span class="badge bg-success">نعم</span>' : '<span class="badge bg-secondary">لا</span>'}</td>
                         <td class="text-end">
                             <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${t.id}">تعديل</button>
@@ -239,7 +244,7 @@ var __M = window.__M || [];
                     const tr = document.createElement('tr');
                     const active = m.is_active !== false;
                     tr.innerHTML = `
-                        <td>${String(m.name || '')}</td>
+                        <td>${window.escHtml(String(m.name || ''))}</td>
                         <td>${active ? '<span class="badge bg-success">نعم</span>' : '<span class="badge bg-secondary">لا</span>'}</td>
                         <td class="text-end">
                             <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${m.id}">تعديل</button>
@@ -331,7 +336,8 @@ var __M = window.__M || [];
                     try {
                         const r = await fetch(__M4__, {
                             method: 'POST',
-                            headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                            headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                            credentials: 'same-origin',
                             body: JSON.stringify(payload)
                         });
                         if (!r.ok) {
@@ -341,7 +347,7 @@ var __M = window.__M || [];
                         resetMacroForm();
                         await refreshMacrosUI();
                     } catch (err) {
-                        /* خطأ في الاتصال: */
+                        if (window.showToast) window.showToast('حدث خطأ أثناء حفظ الماكرو'); else alert('حدث خطأ أثناء تحميل البيانات');
                     }
                 });
             }
@@ -364,7 +370,8 @@ var __M = window.__M || [];
                         try {
                             const r = await fetch(`__M5__`.replace('__M__', encodeURIComponent(id)), {
                                 method: 'POST',
-                                headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
+                                headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                                credentials: 'same-origin'
                             });
                             if (!r.ok) {
                                 if (window.notify) window.notify.error('تعذّر الحذف. حاول مرة أخرى.');
@@ -372,7 +379,7 @@ var __M = window.__M || [];
                             }
                             await refreshMacrosUI();
                         } catch (err) {
-                            /* خطأ في الاتصال: */
+                            if (window.showToast) window.showToast('حدث خطأ أثناء الحذف'); else alert('حدث خطأ أثناء تحميل البيانات');
                         }
                     }
                 });
@@ -409,7 +416,8 @@ var __M = window.__M || [];
                         try {
                             const r = await fetch(`__M6__`.replace('__TPL__', encodeURIComponent(id)), {
                                 method: 'POST',
-                                headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
+                                headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                                credentials: 'same-origin'
                             });
                             if (!r.ok) {
                                 if (window.notify) window.notify.error('تعذّر الحذف. حاول مرة أخرى.');
@@ -417,7 +425,7 @@ var __M = window.__M || [];
                             }
                             await refreshTemplatesUI();
                         } catch (err) {
-                            /* خطأ في الاتصال: */
+                            if (window.showToast) window.showToast('حدث خطأ أثناء الحذف'); else alert('حدث خطأ أثناء تحميل البيانات');
                         }
                     }
                 });
@@ -437,7 +445,8 @@ var __M = window.__M || [];
                     try {
                         const r = await fetch(__M7__, {
                             method: 'POST',
-                            headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                            headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                            credentials: 'same-origin',
                             body: JSON.stringify(payload)
                         });
                         if (!r.ok) {
@@ -447,7 +456,7 @@ var __M = window.__M || [];
                         resetTemplateForm();
                         await refreshTemplatesUI();
                     } catch (err) {
-                        /* خطأ في الاتصال: */
+                        if (window.showToast) window.showToast('حدث خطأ أثناء حفظ القالب'); else alert('حدث خطأ أثناء تحميل البيانات');
                     }
                 });
             }

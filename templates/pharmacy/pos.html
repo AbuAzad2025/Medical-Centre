@@ -26,8 +26,8 @@
                 <div class="row g-2" id="quickMedications">
                 {% for m in medications %}
                     <div class="col-md-4 col-6">
-                        <button class="btn btn-outline-primary w-100 quick-add" data-id="{{ m.id }}" data-name="{{ m.trade_name }}" data-price="{{ m.selling_price or 0 }}" data-stock="{{ m.stock_quantity or 0 }}">
-                            {{ m.trade_name }}<br><small class="text-muted">{{ m.selling_price or 0 }} ₪</small>
+                        <button class="btn btn-outline-primary w-100 quick-add" data-id="{{ m.id }}" data-name="{{ m.trade_name }}" data-price="{{ m.price or 0 }}" data-stock="{{ m.stock_quantity or 0 }}">
+                            {{ m.trade_name }}<br><small class="text-muted">{{ m.price or 0 }} ₪</small>
                         </button>
                     </div>
                 {% endfor %}

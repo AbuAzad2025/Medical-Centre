@@ -3,14 +3,19 @@ var __M = window.__M || [];
 function saveBranding() {
     const form = document.getElementById('brandingForm');
     const formData = new FormData(form);
+    const csrfEl = form.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
 
     fetch(__M0__, {
         method: 'POST',
         body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         credentials: 'same-origin',
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('http_' + response.status);
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             Swal.fire({ title: 'تم', text: 'تم حفظ إعدادات العلامة التجارية بنجاح', icon: 'success' }).then(() => {
@@ -38,15 +43,19 @@ function resetBranding() {
 
 function selectTheme(themeId) {
     const body = new FormData();
-    body.append('csrf_token', typeof __CSRF__ !== 'undefined' ? __CSRF__ : '');
+    const csrfToken = typeof __CSRF__ !== 'undefined' ? __CSRF__ : '';
+    body.append('csrf_token', csrfToken);
 
     fetch(`${__M2__}/${themeId}`, {
         method: 'POST',
         body: body,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         credentials: 'same-origin',
     })
-    .then(r => r.json())
+    .then(r => {
+        if (!r.ok) throw new Error('http_' + r.status);
+        return r.json();
+    })
     .then(data => {
         if (!data.success) {
             Swal.fire({ title: 'خطأ', text: data.error || 'تعذر تطبيق الثيم', icon: 'error' });

@@ -14,10 +14,14 @@ function startTreatment(visitId) {
         if (res.isConfirmed) {
             fetch(`__M0__`.replace('0', visitId), {
                 method: 'POST',
-                headers: __csrfToken ? { 'X-CSRFToken': __csrfToken } : {},
+                credentials: 'same-origin',
+                headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, __csrfToken ? { 'X-CSRFToken': __csrfToken } : {}),
                 body: new FormData()
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error(response.status);
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire({ title: 'تم البدء', text: 'تم بدء العلاج بنجاح', icon: 'success' }).then(() => { location.reload(); });
@@ -48,13 +52,17 @@ function completeVisit(visitId) {
             const notes = res.value || '';
             fetch(`__M1__`.replace('0', visitId), {
                 method: 'POST',
-                headers: {
+                credentials: 'same-origin',
+                headers: Object.assign({
                     'Content-Type': 'application/json',
-                    ...( __csrfToken ? { 'X-CSRFToken': __csrfToken } : {} )
-                },
+                    'X-Requested-With': 'XMLHttpRequest'
+                }, __csrfToken ? { 'X-CSRFToken': __csrfToken } : {}),
                 body: JSON.stringify({ notes })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error(response.status);
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire({ title: 'تم الإنهاء', text: 'تم إنهاء الحالة وإرجاعها للاستقبال', icon: 'success' }).then(() => { location.reload(); });

@@ -30,7 +30,7 @@ function renderSettings(items) {
         row.innerHTML = `
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="panel_${item.id}" ${item.enabled ? 'checked' : ''}>
-                <label class="form-check-label" for="panel_${item.id}">${item.title || item.id}</label>
+                <label class="form-check-label" for="panel_${item.id}">${window.escHtml(item.title || item.id)}</label>
             </div>
             <input type="number" class="form-control form-control-sm" style="width: 80px;" value="${item.order || 0}" data-panel="${item.id}">
         `;
@@ -40,7 +40,8 @@ function renderSettings(items) {
 
 async function loadLayout() {
     try {
-        const r = await fetch(dashboardLayoutUrl);
+        const r = await fetch(dashboardLayoutUrl, { credentials: 'same-origin' });
+        if (!r.ok) throw new Error(r.status);
         const data = await r.json().catch(() => ({}));
         if (!data || !data.items) return;
         applyLayout(data.items);
@@ -66,9 +67,11 @@ async function saveLayout() {
     try {
         const r = await fetch(dashboardLayoutUrl, {
             method: 'POST',
-            headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+            credentials: 'same-origin',
+            headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
             body: JSON.stringify({ items })
         });
+        if (!r.ok) throw new Error(r.status);
         const data = await r.json().catch(() => ({}));
         if (data && data.items) {
             applyLayout(data.items);
@@ -94,7 +97,8 @@ const STATS_POLL_INTERVAL_MS = 30000; // 30 seconds
 
 async function refreshDashboardStats() {
     try {
-        const r = await fetch((window.API_ROUTES && window.API_ROUTES.doctor_dashboard_stats) || '/doctor/api/dashboard-stats');
+        const r = await fetch((window.API_ROUTES && window.API_ROUTES.doctor_dashboard_stats) || '/doctor/api/dashboard-stats', { credentials: 'same-origin' });
+        if (!r.ok) throw new Error(r.status);
         const data = await r.json().catch(() => ({}));
         if (!data || !data.success || !data.stats) return;
 
@@ -112,7 +116,8 @@ async function refreshDashboardStats() {
         update('[data-stat="pending-lab"]', s.pending_lab);
         update('[data-stat="pending-radiology"]', s.pending_radiology);
     } catch (err) {
-        // Silently fail on polling errors
+        if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
+        else alert('حدث خطأ أثناء تحميل البيانات');
     }
 }
 

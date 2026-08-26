@@ -19,10 +19,10 @@ const apiUrl = __M0__;
                 col.innerHTML = `
                     <div class="call-card p-4 rounded">
                         <div class="queue-number text-warning">${it.queue_number || '-'}</div>
-                        <div class="fs-5">${it.department_name || ''}</div>
-                        <div class="text-muted">${it.doctor_name || ''}</div>
-                        <div class="text-muted">${it.room_name ? 'غرفة ' + it.room_name : ''}</div>
-                        <div class="text-muted">${it.status || ''}</div>
+                        <div class="fs-5">${window.escHtml(it.department_name || '')}</div>
+                        <div class="text-muted">${window.escHtml(it.doctor_name || '')}</div>
+                        <div class="text-muted">${it.room_name ? 'غرفة ' + window.escHtml(it.room_name) : ''}</div>
+                        <div class="text-muted">${window.escHtml(it.status || '')}</div>
                     </div>
                 `;
                 grid.appendChild(col);
@@ -30,13 +30,19 @@ const apiUrl = __M0__;
         }
 
         function refresh() {
-            fetch(apiUrl, { headers: { 'Accept': 'application/json' } })
-                .then(r => r.json())
+            fetch(apiUrl, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+                .then(r => {
+                    if (!r.ok) throw new Error(r.status);
+                    return r.json();
+                })
                 .then(data => {
                     if (!data || !data.success) return;
+                    grid.removeAttribute('data-stale');
                     render(data.items || []);
                 })
-                .catch(() => {});
+                .catch(() => {
+                    grid.setAttribute('data-stale', '');
+                });
         }
 
         function tickClock() {

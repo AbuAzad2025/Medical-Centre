@@ -50,8 +50,11 @@ document.getElementById('transferDepartment')?.addEventListener('change', functi
     const doctorSelect = document.getElementById('transferDoctor');
     doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
     if (!deptId) return;
-    fetch(((window.API_ROUTES && window.API_ROUTES.api_department_staff) || '/reception/api/department-staff') + `?department_id=${deptId}`)
-        .then(r => r.json())
+    fetch(((window.API_ROUTES && window.API_ROUTES.api_department_staff) || '/reception/api/department-staff') + `?department_id=${deptId}`, { credentials: 'same-origin' })
+        .then(r => {
+            if (!r.ok) throw new Error(r.status);
+            return r.json();
+        })
         .then(d => {
             const staff = d.staff || [];
             staff.forEach(s => {
@@ -60,7 +63,10 @@ document.getElementById('transferDepartment')?.addEventListener('change', functi
                 opt.textContent = s.full_name;
                 doctorSelect.appendChild(opt);
             });
-        }).catch(() => {});
+        }).catch(() => {
+            if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
+            else alert('حدث خطأ أثناء تحميل البيانات');
+        });
 });
 
 document.getElementById('confirmTransferBtn')?.addEventListener('click', function() {
@@ -69,11 +75,17 @@ document.getElementById('confirmTransferBtn')?.addEventListener('click', functio
     const doctorId = document.getElementById('transferDoctor').value;
     const statusEl = document.getElementById('transferStatus');
     if (!deptId) { Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى اختيار القسم', icon: 'warning' }); return; }
+    const csrfEl = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
     fetch(((window.API_ROUTES && window.API_ROUTES.transfer_visit) || '/reception/visits/0/transfer').replace('/0', '/' + visitId), {
         method: 'POST',
-        headers: { 'Accept': 'application/json' },
+        headers: Object.assign({ 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        credentials: 'same-origin',
         body: new URLSearchParams({ department_id: deptId, doctor_id: doctorId })
-    }).then(r => r.json()).then(d => {
+    }).then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+    }).then(d => {
         if (d.success) { Swal.fire({ title: 'تم', text: 'تم تحويل الزيارة بنجاح', icon: 'success' }).then(() => { location.reload(); }); }
         else { Swal.fire({ title: 'خطأ', text: (d.message || 'فشل التحويل'), icon: 'error' }); }
     }).catch(() => { Swal.fire({ title: 'خطأ', text: 'خطأ اتصال', icon: 'error' }); });

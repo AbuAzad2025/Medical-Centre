@@ -14,7 +14,7 @@ function renderFieldsForEntity(key, selectedFields) {
   const selected = new Set(selectedFields || []);
   entities[key].fields.forEach(f => {
     const checked = selected.size ? selected.has(f) : true;
-    container.innerHTML += '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" name="fields" value="'+f+'"'+(checked?' checked':'')+'><label class="form-check-label">'+f+'</label></div>';
+    container.innerHTML += '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" name="fields" value="'+window.escHtml(f)+'"'+(checked?' checked':'')+'><label class="form-check-label">'+window.escHtml(f)+'</label></div>';
   });
 }
 
@@ -46,14 +46,14 @@ function collectPayload() {
 function renderTable(data) {
   const el = document.getElementById('reportResult');
   if (!data.success) {
-    el.innerHTML = '<div class="alert alert-danger">'+ (data.message || 'تعذّر إنشاء التقرير') +'</div>';
+    el.innerHTML = '<div class="alert alert-danger">'+ window.escHtml(String(data.message || 'تعذّر إنشاء التقرير')) +'</div>';
     return;
   }
   let html = '<table class="table table-sm table-bordered"><thead><tr>';
-  data.headers.forEach(h => html += '<th>'+h+'</th>');
+  data.headers.forEach(h => html += '<th>'+window.escHtml(String(h))+'</th>');
   html += '</tr></thead><tbody>';
   data.rows.forEach(row => {
-    html += '<tr>'; data.headers.forEach(h => html += '<td>'+(row[h]||'')+'</td>'); html += '</tr>';
+    html += '<tr>'; data.headers.forEach(h => html += '<td>'+window.escHtml(String(row[h]||''))+'</td>'); html += '</tr>';
   });
   html += '</tbody></table>';
   el.innerHTML = html;
@@ -63,9 +63,13 @@ function generateReport() {
   const payload = collectPayload();
   fetch(previewUrl, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken},
+    credentials: 'same-origin',
     body: JSON.stringify(payload)
-  }).then(r => r.json()).then(renderTable).catch(() => {
+  }).then(r => {
+    if (!r.ok) throw new Error('http_' + r.status);
+    return r.json();
+  }).then(renderTable).catch(() => {
     document.getElementById('reportResult').innerHTML = '<div class="alert alert-danger">انقطع الاتصال. حاول مرة أخرى.</div>';
   });
 }
@@ -80,16 +84,22 @@ document.getElementById('saveTemplateBtn').addEventListener('click', function() 
   }
   fetch(saveUrl, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken},
+    credentials: 'same-origin',
     body: JSON.stringify(payload)
-  }).then(r => r.json()).then(data => {
+  }).then(r => {
+    if (!r.ok) throw new Error('http_' + r.status);
+    return r.json();
+  }).then(data => {
     if (!data.success) {
-      document.getElementById('reportResult').innerHTML = '<div class="alert alert-danger">'+ (data.message || 'تعذّر حفظ القالب') +'</div>';
+      document.getElementById('reportResult').innerHTML = '<div class="alert alert-danger">'+ window.escHtml(String(data.message || 'تعذّر حفظ القالب')) +'</div>';
       return;
     }
     activeTemplateId = data.template.id;
     document.getElementById('runTemplateBtn').disabled = false;
     document.getElementById('reportResult').innerHTML = '<div class="alert alert-success">تم حفظ القالب بنجاح.</div>';
+  }).catch(() => {
+    document.getElementById('reportResult').innerHTML = '<div class="alert alert-danger">انقطع الاتصال. حاول مرة أخرى.</div>';
   });
 });
 
@@ -98,9 +108,15 @@ document.getElementById('runTemplateBtn').addEventListener('click', function() {
   const runUrl = __M7__ + activeTemplateId + '/run';
   fetch(runUrl, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken},
+    credentials: 'same-origin',
     body: '{}'
-  }).then(r => r.json()).then(renderTable);
+  }).then(r => {
+    if (!r.ok) throw new Error('http_' + r.status);
+    return r.json();
+  }).then(renderTable).catch(() => {
+    document.getElementById('reportResult').innerHTML = '<div class="alert alert-danger">انقطع الاتصال. حاول مرة أخرى.</div>';
+  });
 });
 
 if (initialConfig.entity) {

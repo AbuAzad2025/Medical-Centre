@@ -1,4 +1,5 @@
 var __M = window.__M || [];
+const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 function saveSettings() {
     const forms = ['generalSettingsForm', 'securitySettingsForm', 'databaseSettingsForm', 'notificationsSettingsForm', 'backupSettingsForm'];
     const settings = {};
@@ -19,12 +20,14 @@ function saveSettings() {
     });
     fetch(__M0__, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        credentials: 'same-origin',
         body: JSON.stringify(settings)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('http_' + response.status);
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             Swal.fire({ title: 'تم', text: 'تم حفظ الإعدادات بنجاح', icon: 'success' });
@@ -55,10 +58,14 @@ function testSmsConnection() {
     if (!testPhone) return;
     fetch(__M5__, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        credentials: 'same-origin',
         body: JSON.stringify({ phone_number: testPhone })
     })
-    .then(r => r.json())
+    .then(r => {
+        if (!r.ok) throw new Error('http_' + r.status);
+        return r.json();
+    })
     .then(d => {
         Swal.fire({ title: d.success ? 'تم' : 'فشل', text: d.message, icon: d.success ? 'success' : 'error' });
     })
@@ -69,8 +76,15 @@ function testSmsConnection() {
 }
 
 function processNotificationQueue() {
-    fetch(__M6__, { method: 'POST' })
-    .then(r => r.json())
+    fetch(__M6__, {
+        method: 'POST',
+        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        credentials: 'same-origin'
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('http_' + r.status);
+        return r.json();
+    })
     .then(d => {
         Swal.fire({ title: d.success ? 'تم' : 'خطأ', text: d.message, icon: d.success ? 'success' : 'error' });
     })
@@ -111,12 +125,14 @@ function testConnection() {
     
     fetch(__M1__ + '?action=test_db', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        credentials: 'same-origin',
         body: JSON.stringify(dbSettings)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('http_' + response.status);
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             Swal.fire({ title: 'تم', text: 'تم الاتصال بقاعدة البيانات بنجاح', icon: 'success' });
@@ -133,8 +149,11 @@ function testConnection() {
 // تحميل الإعدادات عند فتح الصفحة
 document.addEventListener('DOMContentLoaded', function() {
     // تحميل الإعدادات الحالية
-    fetch(__M2__ + '?action=load')
-        .then(response => response.json())
+    fetch(__M2__ + '?action=load', { credentials: 'same-origin' })
+        .then(response => {
+            if (!response.ok) throw new Error('http_' + response.status);
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 // تطبيق الإعدادات على النماذج
@@ -153,11 +172,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            /* Error تحميل settings: */
+            if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات'); else alert('حدث خطأ أثناء تحميل البيانات');
         });
 
-    fetch(__M3__ + '?action=load')
-        .then(response => response.json())
+    fetch(__M3__ + '?action=load', { credentials: 'same-origin' })
+        .then(response => {
+            if (!response.ok) throw new Error('http_' + response.status);
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 const tbody = document.querySelector('#deptQueueTable tbody');
@@ -165,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 data.items.forEach(item => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td data-id="${item.department_id}">${item.department_name}</td>
+                        <td data-id="${item.department_id}">${window.escHtml(String(item.department_name || ''))}</td>
                         <td><input type="number" class="dept-max" value="${item.max_queue_size}" min="1" style="width:100px"></td>
                         <td><input type="checkbox" class="dept-required" ${item.payment_required ? 'checked' : ''}></td>
                         <td><input type="checkbox" class="dept-emergency-waived" ${item.emergency_payment_waived ? 'checked' : ''}></td>
@@ -178,7 +200,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         })
-        .catch(function(err) { /* خطأ: */ });
+        .catch(function(err) {
+            if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات'); else alert('حدث خطأ أثناء تحميل البيانات');
+        });
 
     document.getElementById('saveDeptQueueSettings').addEventListener('click', function() {
         const rows = document.querySelectorAll('#deptQueueTable tbody tr');
@@ -196,13 +220,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         fetch(__M4__, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+            credentials: 'same-origin',
             body: JSON.stringify({ items })
         })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) throw new Error('http_' + r.status);
+            return r.json();
+        })
         .then(d => { if (d.success) { Swal.fire({ title: 'تم', text: 'تم حفظ إعدادات الأقسام بنجاح', icon: 'success' }); } else { Swal.fire({ title: 'خطأ', text: 'فشل حفظ إعدادات الأقسام', icon: 'error' }); } })
-        .catch(function(err) { /* خطأ: */ });
+        .catch(function(err) {
+            if (window.showToast) window.showToast('حدث خطأ أثناء حفظ الإعدادات'); else alert('حدث خطأ أثناء تحميل البيانات');
+        });
     });
 });

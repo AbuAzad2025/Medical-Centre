@@ -22,11 +22,18 @@ var __M = window.__M || [];
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 var data = new FormData(form);
+                var csrfEl = form.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
+                var csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
                 fetch(form.action, { 
                         method: 'POST', 
+                        credentials: 'same-origin',
+                        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                         body: data 
                     })
-                    .then(function(r){ return r.json(); })
+                    .then(function(r){
+                        if (!r.ok) throw new Error(r.status);
+                        return r.json();
+                    })
                     .then(function(j){
                         if (j && j.success) {
                             Swal.fire({ title: 'تم', text: 'تم نقل الحالة بنجاح', icon: 'success' }).then(() => {

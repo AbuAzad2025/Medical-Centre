@@ -1,3 +1,5 @@
+const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+
 function activateDepartment(deptId) {
     Swal.fire({
         title: 'تأكيد',
@@ -10,11 +12,13 @@ function activateDepartment(deptId) {
         if (result.isConfirmed) {
             fetch(((window.API_ROUTES && window.API_ROUTES.activate_department) || '/super-admin/activate-department/0').replace('/0', '/' + deptId), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('http_' + response.status);
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     location.reload();
@@ -37,11 +41,13 @@ function deactivateDepartment(deptId) {
         if (result.isConfirmed) {
             fetch(((window.API_ROUTES && window.API_ROUTES.deactivate_department) || '/super-admin/deactivate-department/0').replace('/0', '/' + deptId), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin'
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('http_' + response.status);
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     location.reload();

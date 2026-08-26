@@ -12,9 +12,11 @@ if (saveBtn) {
     try {
       const r = await fetch(__M0__, {
         method: 'POST',
-        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        credentials: 'same-origin',
         body: JSON.stringify(payload)
       });
+      if (!r.ok) throw new Error('http_' + r.status);
       const data = await r.json().catch(() => ({}));
       if (r.ok && data.success) {
         alert('تم حفظ الإعدادات');
@@ -22,7 +24,7 @@ if (saveBtn) {
         alert('تعذر الحفظ');
       }
     } catch (err) {
-      /* خطأ في الاتصال: */
+      if (window.showToast) window.showToast('حدث خطأ أثناء حفظ الإعدادات'); else alert('حدث خطأ أثناء تحميل البيانات');
     }
   });
 }

@@ -10,14 +10,18 @@ var __M = window.__M || [];
             cancelButtonText: 'إلغاء'
         }).then((res) => {
             if (res.isConfirmed) {
+                const csrfEl = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
                 fetch(__M0__, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    credentials: 'same-origin',
+                    headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                     body: JSON.stringify({})
                 })
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) throw new Error(r.status);
+                    return r.json();
+                })
                 .then(d => {
                     if (d.success) {
                         Swal.fire({ title: 'تم', text: 'تم حل الحالة بنجاح', icon: 'success' }).then(() => { location.reload(); });
@@ -44,14 +48,18 @@ var __M = window.__M || [];
         }).then((res) => {
             if (res.isConfirmed) {
                 const transferNotes = res.value || '';
+                const csrfEl = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
                 fetch(__M1__, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    credentials: 'same-origin',
+                    headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                     body: JSON.stringify({ transfer_notes: transferNotes })
                 })
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) throw new Error(r.status);
+                    return r.json();
+                })
                 .then(d => {
                     if (d.success) {
                         Swal.fire({ title: 'تم النقل', text: 'تم نقل الحالة بنجاح', icon: 'success' }).then(() => { location.reload(); });

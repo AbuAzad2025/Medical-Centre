@@ -28,8 +28,11 @@ function updateQueueStatus() {
     if (fo && fo.checked) params.set('force_entry', '1');
     if (currentUserRole === 'doctor' && currentDoctorId) params.set('doctor_id', currentDoctorId);
     const url = `/reception/api/queue-status-all?${params.toString()}`;
-    fetch(url)
-        .then(response => response.json())
+    fetch(url, { credentials: 'same-origin' })
+        .then(response => {
+            if (!response.ok) throw new Error(response.status);
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 displayQueueStatusAll(data.data);
@@ -49,8 +52,11 @@ function updateQueueStatus() {
 function updateWaitMetrics(departmentId) {
     const params = new URLSearchParams();
     if (departmentId) params.set('department_id', departmentId);
-    fetch(((window.API_ROUTES && window.API_ROUTES.api_queue_wait_metrics) || '/reception/api/queue-wait-metrics') + `?${params.toString()}`)
-        .then(r => r.json())
+    fetch(((window.API_ROUTES && window.API_ROUTES.api_queue_wait_metrics) || '/reception/api/queue-wait-metrics') + `?${params.toString()}`, { credentials: 'same-origin' })
+        .then(r => {
+            if (!r.ok) throw new Error(r.status);
+            return r.json();
+        })
         .then(data => {
             const overallEl = document.getElementById('avg-wait-today');
             const deptEl = document.getElementById('avg-wait-dept');
@@ -94,15 +100,15 @@ function displayQueueStatusAll(status) {
         else if (t.status === 'in_progress') rowClass = 'table-success';
         rows.push(`
             <tr class="${rowClass}">
-                <td>${t.ticket_number || '-'}</td>
-                <td>${t.patient_name || '-'}</td>
-                <td>${t.department_name || '-'}</td>
-                <td>${t.doctor_name || '-'}</td>
-                <td>${t.status_display || t.status || '-'}${t.is_emergency ? ' <span class=\"badge bg-danger\">طوارئ</span>' : ''}${t.force_entry ? ' <span class=\"badge bg-warning\">دخول قوي</span>' : ''}</td>
-                <td>${t.priority_display || t.priority_level || '-'}</td>
-                <td>${t.queued_at_display || '-'}</td>
+                <td>${window.escHtml(t.ticket_number || '-')}</td>
+                <td>${window.escHtml(t.patient_name || '-')}</td>
+                <td>${window.escHtml(t.department_name || '-')}</td>
+                <td>${window.escHtml(t.doctor_name || '-')}</td>
+                <td>${window.escHtml(t.status_display || t.status || '-')}${t.is_emergency ? ' <span class=\"badge bg-danger\">طوارئ</span>' : ''}${t.force_entry ? ' <span class=\"badge bg-warning\">دخول قوي</span>' : ''}</td>
+                <td>${window.escHtml(t.priority_display || t.priority_level || '-')}</td>
+                <td>${window.escHtml(t.queued_at_display || '-')}</td>
                 <td>${waitTxt}</td>
-                <td>${t.called_at_display || '-'}</td>
+                <td>${window.escHtml(t.called_at_display || '-')}</td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
                         ${t.status === 'waiting' ? `<button class="btn btn-outline-warning" onclick="skipPatient(${t.ticket_id})" title="تخطي" aria-label="تخطي المريض"><i class='fas fa-forward'></i> <span class='btn-label'>تخطي</span></button>` : ''}
@@ -135,8 +141,11 @@ function callNextPatient(departmentId) {
     const url = currentUserRole === 'doctor'
         ? `/reception/queue/call-next/${departmentId}?doctor_id=${currentDoctorId}`
         : `/reception/queue/call-next/${departmentId}`;
-    fetch(url)
-        .then(response => response.text())
+    fetch(url, { credentials: 'same-origin' })
+        .then(response => {
+            if (!response.ok) throw new Error(response.status);
+            return response.text();
+        })
         .then(() => {
             updateQueueStatus();
         })
@@ -164,8 +173,11 @@ function callPatient(ticketId) {
 
 // بدء العلاج
 function startTreatment(ticketId) {
-    fetch(((window.API_ROUTES && window.API_ROUTES.start_treatment) || '/reception/queue/start-treatment/0').replace('/0', '/' + ticketId))
-        .then(response => response.text())
+    fetch(((window.API_ROUTES && window.API_ROUTES.start_treatment) || '/reception/queue/start-treatment/0').replace('/0', '/' + ticketId), { credentials: 'same-origin' })
+        .then(response => {
+            if (!response.ok) throw new Error(response.status);
+            return response.text();
+        })
         .then(() => {
             updateQueueStatus();
             const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('callPatientModal'));
@@ -179,8 +191,11 @@ function startTreatment(ticketId) {
 
 // إكمال العلاج
 function completeTreatment(ticketId) {
-    fetch(((window.API_ROUTES && window.API_ROUTES.complete_treatment) || '/reception/queue/complete-treatment/0').replace('/0', '/' + ticketId))
-        .then(response => response.text())
+    fetch(((window.API_ROUTES && window.API_ROUTES.complete_treatment) || '/reception/queue/complete-treatment/0').replace('/0', '/' + ticketId), { credentials: 'same-origin' })
+        .then(response => {
+            if (!response.ok) throw new Error(response.status);
+            return response.text();
+        })
         .then(() => {
             updateQueueStatus();
         })
@@ -211,16 +226,22 @@ function transferVisit(visitId) {
     deptSelect.addEventListener('change', function() {
         const deptId = this.value;
         if (!deptId) { docSelect.innerHTML = '<option value="">اختر بعد القسم...</option>'; return; }
-        fetch(((window.API_ROUTES && window.API_ROUTES.api_department_staff) || '/reception/api/department-staff') + `?department_id=${deptId}`)
-            .then(r => r.json())
+        fetch(((window.API_ROUTES && window.API_ROUTES.api_department_staff) || '/reception/api/department-staff') + `?department_id=${deptId}`, { credentials: 'same-origin' })
+            .then(r => {
+                if (!r.ok) throw new Error(r.status);
+                return r.json();
+            })
             .then(data => {
                 docSelect.innerHTML = '<option value="">بدون تحديد موظف</option>';
                 (data.staff || []).forEach(s => {
                     const roleAr = {'doctor':'طبيب','nurse':'ممرض','lab':'فني مختبر','radiology':'فني أشعة','emergency':'طوارئ'}[s.role] || s.role;
-                    docSelect.innerHTML += `<option value="${s.id}">${s.full_name} - ${roleAr}</option>`;
+                    docSelect.innerHTML += `<option value="${s.id}">${window.escHtml(s.full_name)} - ${window.escHtml(roleAr)}</option>`;
                 });
             })
-            .catch(function(err) { /* خطأ: */ });
+            .catch(function(err) {
+                if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
+                else alert('حدث خطأ أثناء تحميل البيانات');
+            });
     }, {once: false});
     const modal = new bootstrap.Modal(document.getElementById('transferVisitModal'));
     modal.show();
@@ -236,8 +257,16 @@ document.getElementById('transferVisitForm') && document.getElementById('transfe
     fd.append('csrf_token', getCsrfToken());
     fd.append('department_id', deptId);
     if (docId) fd.append('doctor_id', docId);
-    fetch(((window.API_ROUTES && window.API_ROUTES.transfer_visit) || '/reception/visits/0/transfer').replace('/0', '/' + visitId), {method:'POST', body:fd})
-        .then(r => r.json())
+    fetch(((window.API_ROUTES && window.API_ROUTES.transfer_visit) || '/reception/visits/0/transfer').replace('/0', '/' + visitId), {
+        method: 'POST',
+        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, getCsrfToken() ? { 'X-CSRFToken': getCsrfToken() } : {}),
+        credentials: 'same-origin',
+        body: fd
+    })
+        .then(r => {
+            if (!r.ok) throw new Error(r.status);
+            return r.json();
+        })
         .then(data => {
             const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('transferVisitModal'));
             modal.hide();
@@ -265,7 +294,15 @@ function returnToQueue(ticketId) {
         fd.append('reason', res.value || '');
         const csrf = getCsrfToken();
         if (csrf) fd.append('csrf_token', csrf);
-        fetch(((window.API_ROUTES && window.API_ROUTES.return_to_queue) || '/reception/queue/return-to-queue/0').replace('/0', '/' + ticketId), { method: 'POST', body: fd })
+        fetch(((window.API_ROUTES && window.API_ROUTES.return_to_queue) || '/reception/queue/return-to-queue/0').replace('/0', '/' + ticketId), {
+            method: 'POST',
+            headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
+            credentials: 'same-origin',
+            body: fd
+        })
+            .then(r => {
+                if (!r.ok) throw new Error(r.status);
+            })
             .then(() => updateQueueStatus())
             .catch(() => Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إرجاع المريض للطابور', icon: 'error' }));
     });
@@ -294,9 +331,14 @@ document.getElementById('skipPatientForm').addEventListener('submit', function(e
     
     fetch(((window.API_ROUTES && window.API_ROUTES.skip_patient) || '/reception/queue/skip-patient/0').replace('/0', '/' + currentTicketId), {
         method: 'POST',
+        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
+        credentials: 'same-origin',
         body: formData
     })
-    .then(response => response.text())
+    .then(response => {
+        if (!response.ok) throw new Error(response.status);
+        return response.text();
+    })
     .then(() => {
         updateQueueStatus();
         const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('skipPatientModal'));
@@ -317,9 +359,14 @@ document.getElementById('cancelTicketForm').addEventListener('submit', function(
     
     fetch(((window.API_ROUTES && window.API_ROUTES.cancel_ticket) || '/reception/queue/cancel-ticket/0').replace('/0', '/' + currentTicketId), {
         method: 'POST',
+        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
+        credentials: 'same-origin',
         body: formData
     })
-    .then(response => response.text())
+    .then(response => {
+        if (!response.ok) throw new Error(response.status);
+        return response.text();
+    })
     .then(() => {
         updateQueueStatus();
         const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('cancelTicketModal'));
@@ -340,9 +387,14 @@ document.getElementById('approveEmergencyDebtForm').addEventListener('submit', f
     
     fetch(((window.API_ROUTES && window.API_ROUTES.approve_emergency_debt) || '/reception/queue/approve-emergency-debt/0').replace('/0', '/' + currentTicketId), {
         method: 'POST',
+        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
+        credentials: 'same-origin',
         body: formData
     })
-    .then(response => response.text())
+    .then(response => {
+        if (!response.ok) throw new Error(response.status);
+        return response.text();
+    })
     .then(() => {
         updateQueueStatus();
         const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('approveEmergencyDebtModal'));
@@ -363,9 +415,14 @@ document.getElementById('approveForceEntryForm').addEventListener('submit', func
     
     fetch(((window.API_ROUTES && window.API_ROUTES.approve_force_entry) || '/reception/queue/approve-force-entry/0').replace('/0', '/' + currentTicketId), {
         method: 'POST',
+        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
+        credentials: 'same-origin',
         body: formData
     })
-    .then(response => response.text())
+    .then(response => {
+        if (!response.ok) throw new Error(response.status);
+        return response.text();
+    })
     .then(() => {
         updateQueueStatus();
         const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('approveForceEntryModal'));

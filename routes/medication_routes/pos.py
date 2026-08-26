@@ -2,6 +2,7 @@
 
 import contextlib
 import logging
+import re
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
@@ -89,7 +90,7 @@ def api_medications_search():
             'id': m.id,
             'trade_name': m.trade_name,
             'scientific_name': m.scientific_name,
-            'price': float(m.price or 0),
+            'price': float(getattr(m, 'price', 0) or 0),
             'stock': m.stock_quantity or 0,
             'dosage': m.get_dosage_display(),
             'category': m.category or '',
@@ -110,10 +111,20 @@ def pos_sell():
             return jsonify({'success': False, 'message': 'لا توجد أصناف في الفاتورة'}), 400
 
         items_data = data['items']
-        customer_name = data.get('customer_name', '').strip()
+        customer_name = data.get('customer_name', '').strip()[:200]
         notes = data.get('notes', '').strip()
         payment_method = (data.get('payment_method') or 'cash').strip().lower()
-        card_last_digits = (data.get('card_last_digits') or '').strip() or None
+        card_last_digits = re.sub(r'\D', '', data.get('card_last_digits') or '')
+        if payment_method in ('card', 'visa', 'mada') and len(card_last_digits) != 4:
+            flash('آخر 4 أرقام للبطاقة مطلوبة', 'error')
+            return jsonify(
+                {
+                    'success': False,
+                    'message': 'آخر 4 أرقام للبطاقة مطلوبة',
+                }
+            ), 400
+        if len(card_last_digits) != 4:
+            card_last_digits = None
         transaction_id = (data.get('transaction_id') or '').strip() or None
 
         if payment_method in ('card', 'visa', 'mada') and not transaction_id:
@@ -160,7 +171,7 @@ def pos_sell():
                     {'success': False, 'message': f'الدواء غير موجود (الرقم {med_id})'}
                 ), 400
 
-            unit_price = Decimal(str(med.price or 0))
+            unit_price = Decimal(str(getattr(med, 'price', 0) or 0))
             total_price = unit_price * qty
 
             sale_item = PharmacySaleItem(
