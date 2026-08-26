@@ -5,6 +5,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Auto-save every 30 seconds
     setInterval(function() {
+  function notifyErr(msg) {
+    if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
+    else console.warn('[doctor-page]', msg);
+  }
+
         const formData = new FormData(form);
         const csrfEl = form.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
         const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
@@ -17,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error(response.status);
         }).catch(error => {
             if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
-            else alert('حدث خطأ أثناء تحميل البيانات');
+            else notifyErr('حدث خطأ أثناء تحميل البيانات');
         });
     }, 30000);
     

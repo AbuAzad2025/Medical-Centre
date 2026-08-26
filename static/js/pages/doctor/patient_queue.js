@@ -72,12 +72,17 @@ function refreshQueue() {
         })
         .catch(() => {
             if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
-            else alert('حدث خطأ أثناء تحميل البيانات');
+            else notifyErr('حدث خطأ أثناء تحميل البيانات');
         });
 }
 
 // Auto-refresh every 30 seconds
 setInterval(function() {
+  function notifyErr(msg) {
+    if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
+    else console.warn('[doctor-page]', msg);
+  }
+
     refreshQueue();
 }, 30000);
 

@@ -1,3 +1,8 @@
+  function notifyErr(msg) {
+    if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
+    else console.warn('[doctor-page]', msg);
+  }
+
 var __M = window.__M || [];
 const dashboardLayoutUrl = __M0__;
 const csrfToken = __M1__;
@@ -117,7 +122,7 @@ async function refreshDashboardStats() {
         update('[data-stat="pending-radiology"]', s.pending_radiology);
     } catch (err) {
         if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
-        else alert('حدث خطأ أثناء تحميل البيانات');
+        else notifyErr('حدث خطأ أثناء تحميل البيانات');
     }
 }
 

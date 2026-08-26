@@ -30,7 +30,7 @@ async function fetchTemplates() {
         return templatesCache;
     } catch (err) {
         if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
-        else alert('حدث خطأ أثناء تحميل البيانات');
+        else notifyErr('حدث خطأ أثناء تحميل البيانات');
     }
 }
 
@@ -89,6 +89,11 @@ if (noteTextEl) {
     noteTextEl.addEventListener('input', function() {
         clearTimeout(autoSaveTimeout);
         autoSaveTimeout = setTimeout(function() {
+  function notifyErr(msg) {
+    if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
+    else console.warn('[doctor-page]', msg);
+  }
+
             sessionStorage.setItem('medical_notes_draft', noteTextEl.value);
         }, 1000);
     });
