@@ -425,7 +425,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 document.querySelectorAll('.edit-tenant-user-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
         const id = this.dataset.id;

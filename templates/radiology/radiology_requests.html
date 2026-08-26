@@ -212,7 +212,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 // Claim (start) a radiology request
 async function claimRequest(requestId) {
     const btn = document.querySelector('.btn-action-claim[data-request-id="' + requestId + '"]');

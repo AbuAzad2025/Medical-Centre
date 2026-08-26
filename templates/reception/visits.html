@@ -431,7 +431,7 @@
 }
 </style>
 
-<script>window.__M=window.__M||[];__M0__={{ current_user.role|tojson }};__M1__={{ 'true' if billing_active else 'false' }};</script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">window.__M=window.__M||[];__M0__={{ current_user.role|tojson }};__M1__={{ 'true' if billing_active else 'false' }};</script>
 <script src="{{ url_for('static', filename='js/pages/reception/visits.js') }}"></script>
 
 {% endblock %}

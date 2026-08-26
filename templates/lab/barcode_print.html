@@ -51,7 +51,7 @@
 {% endblock %}
 
 {% block extra_print_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
   window.onload = function() {
     setTimeout(function() { window.print(); }, 300);
   };

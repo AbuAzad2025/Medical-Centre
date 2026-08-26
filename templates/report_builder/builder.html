@@ -4,8 +4,9 @@
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0">منشئ التقارير المخصصة</h2>
+    {% if module_active('reporting') %}
     <a href="{{ url_for('manager.reports_center') }}" class="btn btn-outline-secondary btn-sm">
-      <i class="fas fa-chart-bar me-1"></i>مركز التقارير
+    {% endif %}      <i class="fas fa-chart-bar me-1"></i>مركز التقارير
     </a>
   </div>
   <div class="card animate-in">
@@ -57,7 +58,7 @@
     </div>
   </div>
 </div>
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__={{ entities|tojson }};
         __M1__='{{ url_for('report_builder.preview') }}';

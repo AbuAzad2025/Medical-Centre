@@ -13,9 +13,9 @@ document.addEventListener('DOMContentLoaded', function() {
         (function initPreselectedPatient(){
             selectedPatientId.value = PRESELECTED_PATIENT.id;
             selectedPatientInfo.innerHTML = `
-                <strong>المريض المحدد:</strong> ${PRESELECTED_PATIENT.full_name} | 
-                الهوية: ${PRESELECTED_PATIENT.national_id} | 
-                الهاتف: ${PRESELECTED_PATIENT.phone}
+                <strong>المريض المحدد:</strong> ${window.escHtml(PRESELECTED_PATIENT.full_name)} | 
+                الهوية: ${window.escHtml(PRESELECTED_PATIENT.national_id)} | 
+                الهاتف: ${window.escHtml(PRESELECTED_PATIENT.phone)}
             `;
             selectedPatientInfo.classList.remove('d-none');
             selectedPatientInfo.style.display = 'block';

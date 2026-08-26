@@ -408,7 +408,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__='{{ url_for("radiology.api_ai_assist") }}'; __M1__='{{ url_for("radiology.api_report_templates") }}'; __M2__='{{ url_for("radiology.api_report_macros") }}'; __M3__='{{BODY_PART}}'; __M4__='{{ url_for("radiology.upsert_report_macro") }}'; __M5__={{ url_for("radiology.delete_report_macro", macro_id="__M__") }}; __M6__={{ url_for("radiology.delete_report_template", template_id="__TPL__") }}; __M7__='{{ url_for("radiology.upsert_report_template") }}';
         </script>

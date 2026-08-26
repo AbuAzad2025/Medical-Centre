@@ -2,6 +2,7 @@
   <div class="cc-widget__body p-3 text-center">
     <i class="fas fa-pills fa-2x text-primary mb-2"></i>
     <p class="mb-2">نقطة البيع والصرف</p>
+    {% if module_active('pharmacy') %}
     <a href="{{ url_for('medication.pos') }}" class="btn btn-primary btn-sm">فتح نقطة البيع</a>
-  </div>
+    {% endif %}  </div>
 </div>

@@ -49,7 +49,7 @@
     <script src="{{ url_for('static', filename='vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/base.js') }}"></script>
     <script src="{{ url_for('static', filename='js/events.js') }}"></script>
-    <script>window.__VALIDATION_RULES__ = {{ validation_rules|default({})|tojson }};</script>
+    <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">window.__VALIDATION_RULES__ = {{ validation_rules|default({})|tojson }};</script>
     <script src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
     <script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
     {% block extra_js %}{% endblock %}

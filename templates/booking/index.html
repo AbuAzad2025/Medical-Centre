@@ -49,7 +49,7 @@
     </div>
   </form>
 </div>
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__='{{ url_for('booking.api_available_doctors') }}'; __M1__='{{ url_for('booking.api_available_times') }}';
         </script>

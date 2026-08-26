@@ -140,7 +140,7 @@
         <p>تصميم وتطوير: <strong>شركة أزاد للأنظمة الذكية</strong> — رام الله، فلسطين</p>
     </footer>
 
-    <script>
+    <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
     {% if saas_enabled and mode != 'owner' %}
     (function() {
         var tenantField = document.getElementById('tenantField');
@@ -176,7 +176,7 @@
     {% endif %}
 
     <!-- Toggle password visibility -->
-    <script>
+    <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
     document.getElementById('togglePassword')?.addEventListener('click', function() {
         var pwd = document.getElementById('password');
         var icon = this.querySelector('i');
@@ -193,7 +193,7 @@
     </script>
 
     <!-- Caps lock detection -->
-    <script>
+    <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
     var capsLockInput = document.getElementById('password');
     var capsLockAlert = document.getElementById('capsLock');
 

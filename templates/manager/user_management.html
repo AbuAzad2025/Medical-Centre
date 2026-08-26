@@ -373,6 +373,6 @@
 }
 </style>
 
-<script>window.__M=window.__M||[];</script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">window.__M=window.__M||[];</script>
 <script src="{{ url_for('static', filename='js/pages/manager/user_management.js') }}"></script>
 {% endblock %}

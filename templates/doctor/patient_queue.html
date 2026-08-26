@@ -372,7 +372,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__='{{ url_for("doctor.api_patient_search") }}'; {% if module_active('reception') %}__M1__='{{ url_for("reception.view_patient", patient_id=0) }}';{% endif %} __M2__='{{ current_user.id }}';
         </script>

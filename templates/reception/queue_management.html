@@ -345,7 +345,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__='{{ current_user.role }}'; __M1__={{ 'null' if not has_permission('doctor.access') else current_user.id }}; __M2__={{ 'true' if billing_active else 'false' }};
         </script>

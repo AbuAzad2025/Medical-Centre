@@ -441,7 +441,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 window.__M = window.__M || [];
 __M0__='{{ url_for("doctor.api_dashboard_layout") }}'; __M1__='{{ csrf_token() }}'; __M2__='{{ url_for("doctor.patient_queue") }}'; __M3__='{{ url_for("doctor.patients") }}'; __M4__='{{ url_for("doctor.prescriptions") }}'; __M5__='{{ url_for("doctor.appointments") }}';
 </script>

@@ -88,7 +88,7 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/components/pos-charge.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pages/pharmacy/pos.js') }}"></script>
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 window.__PHARMACY_POS__ = {
     sellUrl: {{ url_for('medication.pos_sell') | tojson }},
     receiptUrl: {{ url_for('medication.sale_detail', sale_id=0) | tojson }},

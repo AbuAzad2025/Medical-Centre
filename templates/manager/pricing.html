@@ -233,7 +233,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__='{{ csrf_token() if csrf_token else "" }}'; __M1__='{{ csrf_token() if csrf_token else "" }}';
         </script>

@@ -75,7 +75,7 @@
         </footer>
     </div>
 
-    <script>
+    <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
     document.querySelector('[data-action="print"]')?.addEventListener('click', function () { window.print(); });
     </script>
     {% block extra_print_js %}{% endblock %}

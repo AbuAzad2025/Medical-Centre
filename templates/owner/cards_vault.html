@@ -195,7 +195,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 function viewCard(id) {
     console.log('View card:', id);
     // TODO: Implement view card details modal

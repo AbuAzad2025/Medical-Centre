@@ -9,8 +9,9 @@
         <td>{{ v.visit_number or v.id }}</td>
         <td>{{ v.patient.full_name if v.patient else '—' }}</td>
         <td><span class="badge bg-secondary">{{ v.status | enum_label('VisitState') }}</span></td>
+        {% if module_active('doctor') %}
         <td><a href="{{ url_for('doctor.patient_details', visit_id=v.id) }}" class="btn btn-sm btn-primary">فتح</a></td>
-      </tr>
+        {% endif %}      </tr>
       {% else %}
       <tr><td colspan="4" class="text-center text-muted py-3">لا مرضى بالانتظار</td></tr>
       {% endfor %}

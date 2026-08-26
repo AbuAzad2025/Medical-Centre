@@ -36,7 +36,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__={{ url_for('super_admin.queue_settings') }}; __M1__={{ url_for('super_admin.queue_settings') }};
         </script>

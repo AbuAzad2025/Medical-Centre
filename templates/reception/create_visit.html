@@ -501,7 +501,7 @@
 }
 </style>
 
-<script>window.__M=window.__M||[];__M0__={{ (preselected_patient_id or 'null')|tojson }};__M1__={{ (preselected_department_id or 'null')|tojson }};__M2__={{ (preselected_doctor_id or 'null')|tojson }};__M3__={{ preselected_patient|tojson if preselected_patient else 'null' }};</script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">window.__M=window.__M||[];__M0__={{ (preselected_patient_id or 'null')|tojson }};__M1__={{ (preselected_department_id or 'null')|tojson }};__M2__={{ (preselected_doctor_id or 'null')|tojson }};__M3__={{ preselected_patient|tojson if preselected_patient else 'null' }};</script>
 
 {% block extra_js %}
 <script src="/static/vendor/jquery/jquery.min.js"></script>

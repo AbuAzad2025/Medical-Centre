@@ -258,7 +258,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 function gatherBundleData(form) {
     const fd = new FormData(form);
     const data = {};

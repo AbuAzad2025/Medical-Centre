@@ -247,7 +247,7 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='vendor/chartjs/chart.umd.min.js') }}"></script>
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__={{ {
   'spark': [stats.today_payments or 0, stats.monthly_revenue or 0, stats.pending_invoices or 0, stats.financial_health.overall_score or 100],

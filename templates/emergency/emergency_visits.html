@@ -193,7 +193,7 @@
         </div>
 </div>
 
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__={{ url_for('emergency.emergency_treatment', visit_id=0) }}; __M1__={{ url_for('emergency.complete_visit', visit_id=0) }};
         </script>

@@ -377,7 +377,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__='{{ url_for('reception.view_patient', patient_id=patient.id) if patient else url_for('reception.patients') }}'; __M1__={{ 'true' if mode == 'edit' and patient else 'false' }};
         </script>

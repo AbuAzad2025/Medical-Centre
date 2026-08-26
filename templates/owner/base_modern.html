@@ -76,7 +76,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('ownerSidebar');
     const overlay = document.getElementById('ownerSidebarOverlay');

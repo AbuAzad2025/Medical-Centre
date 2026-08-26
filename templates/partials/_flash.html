@@ -25,7 +25,7 @@
     {% endif %}
 {% endwith %}
 
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 // Auto-dismiss flash messages
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.flash-message[data-auto-dismiss]').forEach(function(el) {

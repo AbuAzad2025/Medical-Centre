@@ -1056,7 +1056,7 @@
         <p>تصميم وتطوير: <strong>شركة أزاد للأنظمة الذكية</strong> — رام الله، فلسطين &copy; 2026</p>
     </footer>
 
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
     // Tenant search functionality for B2B gateway
     (function() {
         const searchInput = document.getElementById('tenant-search-input');

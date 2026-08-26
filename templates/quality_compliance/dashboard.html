@@ -161,7 +161,7 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='vendor/chartjs/chart.umd.min.js') }}"></script>
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__='{{ url_for("quality.api_quality_metrics") }}';
         </script>

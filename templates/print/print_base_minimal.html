@@ -15,7 +15,7 @@
     <div class="print-page print-page--minimal">
         {% block body %}{% endblock %}
     </div>
-    <script>
+    <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
     window.onload = function() { setTimeout(function() { window.print(); }, 300); };
     </script>
     {% block extra_print_js %}{% endblock %}

@@ -454,7 +454,7 @@
 }
 </style>
 
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 window.__M = window.__M || [];
 __M0__='{{ url_for("super_admin.update_branding") }}';
 __M1__='{{ url_for("super_admin.branding_print_preview") }}';

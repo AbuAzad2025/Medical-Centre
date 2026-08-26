@@ -46,7 +46,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
   window.__CC_WIDGETS__ = {{ customizable_widgets|default([])|tojson }};
   window.__CC_HIDDEN__ = {{ hidden_widget_ids|default([])|tojson }};
 </script>

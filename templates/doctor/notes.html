@@ -206,7 +206,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__='{{ url_for("doctor.api_note_templates") }}'; __M1__='{{ url_for("doctor.upsert_note_template") }}'; __M2__={{ url_for("doctor.delete_note_template", template_id="__T__") }};
         </script>

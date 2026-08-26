@@ -61,7 +61,7 @@ function renderTemplatesTable() {
         const active = t.is_active !== false;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${String(t.name || '')}</td>
+            <td>${window.escHtml(t.name)}</td>
             <td>${active ? '<span class="badge bg-success">نعم</span>' : '<span class="badge bg-secondary">لا</span>'}</td>
             <td class="text-end">
                 <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${t.id}">تعديل</button>
@@ -87,13 +87,13 @@ if (noteTextEl) {
     noteTextEl.addEventListener('input', function() {
         clearTimeout(autoSaveTimeout);
         autoSaveTimeout = setTimeout(function() {
-            localStorage.setItem('medical_notes_draft', noteTextEl.value);
+            sessionStorage.setItem('medical_notes_draft', noteTextEl.value);
         }, 1000);
     });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const draft = localStorage.getItem('medical_notes_draft');
+    const draft = sessionStorage.getItem('medical_notes_draft');
     if (draft && noteTextEl) {
         noteTextEl.value = draft;
         autoResize();
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.querySelector('form').addEventListener('submit', function() {
-    localStorage.removeItem('medical_notes_draft');
+    sessionStorage.removeItem('medical_notes_draft');
 });
 
 if (applyTplBtn) {

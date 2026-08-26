@@ -138,7 +138,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 function editIntegration(id) {
     console.log('Edit integration:', id);
     // TODO: Implement edit integration

@@ -20,8 +20,10 @@
   <hr class="my-4">
   <p class="small text-muted mb-2">ليس لديك حساب مريض بعد؟</p>
   <div class="d-flex flex-wrap gap-2">
+    {% if module_active('appointments') %}
     <a href="{{ url_for('booking.register') }}" class="btn btn-outline-primary btn-sm">إنشاء حساب وحجز</a>
+    {% endif %}    {% if module_active('appointments') %}
     <a href="{{ url_for('booking.index') }}" class="btn btn-outline-secondary btn-sm">حجز موعد بدون تسجيل</a>
-  </div>
+    {% endif %}  </div>
 </div>
 {% endblock %}

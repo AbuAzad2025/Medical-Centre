@@ -28,7 +28,7 @@ body { background: #0b1020; color: #f1f5f9; }
     </div>
 
     <script src="/static/vendor/socketio/socket.io.min.js"></script>
-    <script>
+    <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__='{{ url_for('reception.api_display_calls') }}';
         </script>

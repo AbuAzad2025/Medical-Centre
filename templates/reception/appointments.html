@@ -387,6 +387,6 @@
 }
 </style>
 
-<script>window.__M=window.__M||[];__M0__={{ appointments_json|tojson }};__M1__={{ per_page|tojson }};</script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">window.__M=window.__M||[];__M0__={{ appointments_json|tojson }};__M1__={{ per_page|tojson }};</script>
 <script src="{{ url_for('static', filename='js/pages/reception/appointments.js') }}"></script>
 {% endblock %}

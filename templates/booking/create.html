@@ -41,7 +41,7 @@
     <div class="mt-3 d-flex gap-2"><button class="btn btn-primary" type="submit">حفظ</button><a class="btn btn-secondary" href="{{ url_for('booking.index') }}">رجوع</a></div>
   </form>
 </div>
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__={{ preset_doctor_id or 'null' }}; __M1__={{ (preset_time|tojson) if preset_time else 'null' }}; __M2__='{{ url_for('booking.api_available_doctors') }}'; __M3__='{{ url_for('booking.api_available_times') }}'; __M4__='{{ url_for('booking.api_smart_slots') }}';
         </script>

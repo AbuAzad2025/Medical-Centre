@@ -100,7 +100,7 @@
     </div>
 </nav>
 
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 (function() {
     function updateClock() {
         var now = new Date();

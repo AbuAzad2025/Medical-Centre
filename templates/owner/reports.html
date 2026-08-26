@@ -256,7 +256,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 function exportReport(type) {
     window.open('{{ url_for("owner.owner_reports") }}?export=' + type, '_blank');
 }

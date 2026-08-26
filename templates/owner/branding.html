@@ -148,7 +148,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 document.addEventListener('DOMContentLoaded', function() {
     function setupColorPicker(pickerId, textId) {
         const picker = document.getElementById(pickerId);

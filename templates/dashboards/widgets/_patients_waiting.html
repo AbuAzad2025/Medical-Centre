@@ -2,6 +2,7 @@
   <div class="cc-widget__body p-3 text-center">
     <div class="display-6 text-primary" data-metric-value>{{ widget_data.metrics.waiting_patients or 0 }}</div>
     <div class="text-muted">مريض بالانتظار</div>
+    {% if module_active('doctor') %}
     <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-sm btn-outline-primary mt-2">الطابور</a>
-  </div>
+    {% endif %}  </div>
 </div>

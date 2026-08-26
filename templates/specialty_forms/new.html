@@ -40,7 +40,7 @@
 </form>
 {% endblock %}
 {% block extra_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 (function () {
     var body = document.getElementById('fields-body');
     var nameInput = document.getElementById('name');

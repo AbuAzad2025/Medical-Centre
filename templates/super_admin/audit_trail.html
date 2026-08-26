@@ -443,7 +443,7 @@
 }
 </style>
 
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 window.__M = window.__M || [];
 __M0__ = {{ audit_logs_json|tojson }};
 </script>

@@ -474,7 +474,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__='{{ url_for("super_admin.system_config") }}'; __M1__='{{ url_for("super_admin.system_config") }}'; __M2__='{{ url_for("super_admin.system_config") }}'; __M3__='{{ url_for("super_admin.queue_settings") }}'; __M4__='{{ url_for("super_admin.queue_settings") }}'; __M5__='{{ url_for("super_admin.test_sms") }}'; __M6__='{{ url_for("super_admin.process_notification_queue_route") }}';
         </script>

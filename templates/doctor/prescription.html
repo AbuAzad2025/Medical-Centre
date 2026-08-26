@@ -129,7 +129,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__={{ (doctor_templates or [])|tojson }};
         </script>

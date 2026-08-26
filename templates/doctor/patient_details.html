@@ -667,7 +667,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
         __M0__='{{ url_for('doctor.diagnosis', visit_id=visit.id) }}'; __M1__='{{ url_for('doctor.prescription', visit_id=visit.id) }}';
         </script>

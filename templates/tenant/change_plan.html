@@ -88,7 +88,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
 function confirmPlanChange(form) {
     var action = form.querySelector('button[type="submit"]:focus')?.value || 'upgrade';
     var msg = action === 'downgrade'
