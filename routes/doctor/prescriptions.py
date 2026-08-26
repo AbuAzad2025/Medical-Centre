@@ -28,7 +28,6 @@ from utils.decorators import role_required
 
 
 def _check_drug_interaction_warnings(used_med_ids):
-    """التحقق من التداخلات الدوائية بين الأدوية المختارة"""
     warnings = []
     try:
         med_ids_sorted = sorted({int(x) for x in used_med_ids if x})
@@ -41,6 +40,8 @@ def _check_drug_interaction_warnings(used_med_ids):
         if pairs:
             from sqlalchemy import and_, or_
 
+            from models.medication import Medication
+
             conds = [
                 and_(DrugInteraction.medication_a_id == a, DrugInteraction.medication_b_id == b)
                 for a, b in pairs
@@ -52,9 +53,25 @@ def _check_drug_interaction_warnings(used_med_ids):
                 .scalars()
                 .all()
             )
+            needed = set()
             for row in rows:
-                a = prescription_service.get_medication(row.medication_a_id)
-                b = prescription_service.get_medication(row.medication_b_id)
+                needed.add(row.medication_a_id)
+                needed.add(row.medication_b_id)
+            med_map = {}
+            if needed:
+                meds = (
+                    db.session.execute(
+                        select(Medication).filter(
+                            Medication.id.in_(needed), Medication.tenant_id == g.tenant_id
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+                med_map = {m.id: m for m in meds}
+            for row in rows:
+                a = med_map.get(row.medication_a_id)
+                b = med_map.get(row.medication_b_id)
                 warnings.append(
                     f'تحذير: تداخل دوائي {a.trade_name if a else row.medication_a_id} ↔ {b.trade_name if b else row.medication_b_id} ({row.severity})'
                 )

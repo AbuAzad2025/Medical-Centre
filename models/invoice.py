@@ -65,12 +65,15 @@ class Invoice(TenantMixin, db.Model):
 
     @property
     def balance_due(self):
-        """P3-003: Remaining balance on this invoice (controlled projection)."""
-        from decimal import Decimal
+        from decimal import ROUND_HALF_UP, Decimal
 
-        total = Decimal(str(self.total_amount or 0))
-        paid = Decimal(str(self.paid_amount or 0))
-        due = total - paid
+        total = Decimal(str(self.total_amount or 0)).quantize(
+            Decimal('0.01'), rounding=ROUND_HALF_UP
+        )
+        paid = Decimal(str(self.paid_amount or 0)).quantize(
+            Decimal('0.01'), rounding=ROUND_HALF_UP
+        )
+        due = (total - paid).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         return float(due) if due > 0 else 0.0
 
     def to_dict(self) -> dict:

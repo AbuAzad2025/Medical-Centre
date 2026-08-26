@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import time as _time
 from datetime import UTC, datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from sqlalchemy import and_, select
@@ -106,6 +106,9 @@ class PaymentService:
                     existing.replayed = True
                     return True, existing
 
+                amount_dec = Decimal(str(amount)).quantize(
+                    Decimal('0.01'), rounding=ROUND_HALF_UP
+                )
                 payment = Payment(
                     tenant_id=tenant_id,
                     operation_type=operation_type,
@@ -114,7 +117,7 @@ class PaymentService:
                     visit_id=visit_id,
                     invoice_id=invoice_id,
                     method=method,
-                    amount=Decimal(str(amount)),
+                    amount=amount_dec,
                     currency=currency,
                     status=status,
                     reference=reference,
@@ -127,8 +130,6 @@ class PaymentService:
                 db.session.add(payment)
                 db.session.flush()
 
-                # P3-002: allocate confirmed payments against visit invoices within
-                # the same transaction boundary.
                 if status == 'CONFIRMED' and visit_id:
                     from models.visit import Visit
                     from services.billing_state_service import PaymentAllocationService
@@ -170,8 +171,8 @@ class PaymentService:
             finally:
                 lock.release(lock_key)
 
-        # No idempotency key – standard create path (no lock needed)
         try:
+            amount_dec = Decimal(str(amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             payment = Payment(
                 tenant_id=tenant_id,
                 operation_type=operation_type,
@@ -180,7 +181,7 @@ class PaymentService:
                 visit_id=visit_id,
                 invoice_id=invoice_id,
                 method=method,
-                amount=Decimal(str(amount)),
+                amount=amount_dec,
                 currency=currency,
                 status=status,
                 reference=reference,

@@ -200,6 +200,11 @@ class Patient(TenantMixin, db.Model):
             cleaned = ''.join(c for c in value if c.isdigit() or c in '+-() ')
             if len(cleaned) < 7:
                 raise ValueError(f'رقم الهاتف قصير جداً: {value}')
+            if len(cleaned) > 20:
+                raise ValueError(f'رقم الهاتف طويل جداً: {value}')
+            digits_only = ''.join(c for c in cleaned if c.isdigit())
+            if len(digits_only) < 7:
+                raise ValueError(f'رقم الهاتف قصير جداً: {value}')
             return cleaned
         return value
 

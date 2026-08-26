@@ -55,6 +55,33 @@ from services.webhook_service import (
 from utils.db_safety import safe_commit, safe_rollback
 
 
+def _wants_json():
+    return request.accept_mimetypes.best == 'application/json' or request.path.endswith('.json') or request.is_json
+
+
+def _clamped_per_page(default=25, max_val=100):
+    raw = request.args.get('per_page', default, type=int)
+    if raw is None:
+        raw = default
+    return max(1, min(raw, max_val))
+
+
+def _clamped_page(default=1):
+    raw = request.args.get('page', default, type=int)
+    if raw is None:
+        raw = default
+    return max(1, raw)
+
+
+def _mask_secret(value, keep=4):
+    if not value:
+        return ''
+    s = str(value)
+    if len(s) <= keep:
+        return '*' * len(s)
+    return s[:keep] + '*' * (len(s) - keep)
+
+
 def _log_action(action, entity_type, entity_id=None, details=None):
     try:
         log = PlatformAuditLog(
@@ -696,19 +723,20 @@ def owner_users():
     """Cross-tenant user management for platform owners."""
     from models.user import User
 
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 25, type=int)
-    search = (request.args.get('q') or '').strip()
-    role_filter = (request.args.get('role') or '').strip()
+    page = _clamped_page()
+    per_page = _clamped_per_page(default=25, max_val=100)
+    search = (request.args.get('q') or '').strip()[:100]
+    role_filter = (request.args.get('role') or '').strip()[:50]
     tenant_filter = request.args.get('tenant_id', type=int)
 
     query = User.query
     if search:
+        like = f'%{search}%'
         query = query.filter(
             db.or_(
-                User.username.ilike(f'%{search}%'),
-                User.full_name.ilike(f'%{search}%'),
-                User.email.ilike(f'%{search}%'),
+                User.username.ilike(like),
+                User.full_name.ilike(like),
+                User.email.ilike(like),
             )
         )
     if role_filter:
@@ -778,7 +806,6 @@ def owner_edit_user(user_id):
 @login_required
 @owner_required
 def owner_reset_user_password(user_id):
-    """Reset a user's password."""
     import secrets
 
     from werkzeug.security import generate_password_hash
@@ -788,9 +815,13 @@ def owner_reset_user_password(user_id):
     user = db.get_or_404(User, user_id)
     try:
         new_password = request.form.get('password', '').strip()
+        generated = False
         if not new_password:
-            new_password = secrets.token_urlsafe(8)
+            new_password = secrets.token_urlsafe(12)
+            generated = True
         elif len(new_password) < 6:
+            if _wants_json():
+                return jsonify({'success': False, 'message': 'كلمة المرور قصيرة'}), 400
             flash('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error')
             ref = request.referrer or url_for('owner.owner_users')
             return redirect(ref)
@@ -798,13 +829,20 @@ def owner_reset_user_password(user_id):
         user.session_version = (user.session_version or 0) + 1
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         _log_action('RESET_PASSWORD', 'user', user.id, f'Reset password for {user.username}')
-        flash(
-            f'تم إعادة تعيين كلمة المرور لـ {user.username}: <strong>{new_password}</strong>',
-            'success',
-        )
+        if _wants_json():
+            payload = {'success': True, 'message': 'تم إعادة تعيين كلمة المرور'}
+            if generated:
+                payload['temp_password'] = new_password
+            return jsonify(payload)
+        if generated:
+            flash('تم إعادة تعيين كلمة المرور — تحقق من الاستجابة الآمنة', 'success')
+        else:
+            flash(f'تم إعادة تعيين كلمة المرور لـ {user.username}', 'success')
     except Exception as e:
         safe_rollback(db.session, error_message='database rollback')
-        flash(f'خطأ: {e}', 'error')
+        if _wants_json():
+            return jsonify({'success': False, 'message': str(e)}), 500
+        flash('تعذر إعادة التعيين', 'error')
     ref = request.referrer or url_for('owner.owner_users')
     return redirect(ref)
 
@@ -883,7 +921,7 @@ def owner_reveal_user_password(user_id):
 
     user = db.get_or_404(User, user_id)
     try:
-        temp_password = secrets.token_urlsafe(8)
+        temp_password = secrets.token_urlsafe(12)
         user.password_hash = generate_password_hash(temp_password)
         user.session_version = (user.session_version or 0) + 1
         db.session.add(
@@ -900,12 +938,14 @@ def owner_reveal_user_password(user_id):
             )
         )
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        flash(
-            f'كلمة المرور الجديدة لـ {user.username}: <strong>{temp_password}</strong>', 'success'
-        )
+        if _wants_json():
+            return jsonify({'success': True, 'temp_password': temp_password})
+        flash('تم إنشاء كلمة مرور مؤقتة — راجع الاستجابة الآمنة', 'success')
     except Exception as e:
         safe_rollback(db.session, error_message='database rollback')
-        flash(f'خطأ: {e}', 'error')
+        if _wants_json():
+            return jsonify({'success': False, 'message': str(e)}), 500
+        flash('تعذر إنشاء كلمة المرور', 'error')
     ref = request.referrer or url_for('owner.owner_users')
     return redirect(ref)
 
@@ -1274,14 +1314,30 @@ def owner_delete_announcement(announcement_id):
 @login_required
 @owner_required
 def owner_support_tickets():
-
-    status_filter = request.args.get('status', '')
+    status_filter = (request.args.get('status', '') or '').strip()[:20]
+    page = _clamped_page()
+    per_page = _clamped_per_page(default=25, max_val=100)
     q = SupportTicket.query
     if status_filter:
         q = q.filter_by(status=status_filter)
-    tickets = q.order_by(SupportTicket.created_at.desc()).limit(50).all()
+    pagination = q.order_by(SupportTicket.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    tickets = pagination.items
+    if _wants_json():
+        return jsonify(
+            {
+                'tickets': [t.to_dict() if hasattr(t, 'to_dict') else {'id': t.id} for t in tickets],
+                'page': page,
+                'per_page': per_page,
+                'total': pagination.total,
+            }
+        )
     return render_template(
-        'owner/support_tickets.html', tickets=tickets, status_filter=status_filter
+        'owner/support_tickets.html',
+        tickets=tickets,
+        pagination=pagination,
+        status_filter=status_filter,
     )
 
 
@@ -1317,15 +1373,35 @@ def owner_update_ticket(ticket_id):
 @login_required
 @owner_required
 def owner_audit_logs():
-
-    entity_type = request.args.get('entity_type', '')
-    search = request.args.get('q', '')
+    entity_type = (request.args.get('entity_type', '') or '').strip()[:50]
+    search = (request.args.get('q', '') or '').strip()[:100]
+    page = _clamped_page()
+    per_page = _clamped_per_page(default=25, max_val=100)
     q = PlatformAuditLog.query
     if entity_type:
         q = q.filter_by(entity_type=entity_type)
-    logs = q.order_by(PlatformAuditLog.created_at.desc()).limit(100).all()
+    if search:
+        like = f'%{search}%'
+        q = q.filter(PlatformAuditLog.details.ilike(like))
+    pagination = q.order_by(PlatformAuditLog.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    logs = pagination.items
+    if _wants_json():
+        return jsonify(
+            {
+                'logs': [l.to_dict() if hasattr(l, 'to_dict') else {'id': l.id} for l in logs],
+                'page': page,
+                'per_page': per_page,
+                'total': pagination.total,
+            }
+        )
     return render_template(
-        'owner/audit_logs.html', logs=logs, entity_type=entity_type, search=search, pagination=None
+        'owner/audit_logs.html',
+        logs=logs,
+        entity_type=entity_type,
+        search=search,
+        pagination=pagination,
     )
 
 
@@ -1336,7 +1412,22 @@ def owner_audit_logs():
 @login_required
 @owner_required
 def owner_resource_usage():
-
+    page = _clamped_page()
+    per_page = _clamped_per_page(default=25, max_val=100)
+    if _wants_json():
+        usages = (
+            db.session.execute(
+                select(ResourceUsage)
+                .order_by(ResourceUsage.recorded_at.desc())
+                .offset((page - 1) * per_page)
+                .limit(per_page)
+            )
+            .scalars()
+            .all()
+        )
+        return jsonify(
+            {'usages': [u.to_dict() for u in usages], 'page': page, 'per_page': per_page}
+        )
     usages = (
         db.session.execute(
             select(ResourceUsage).order_by(ResourceUsage.recorded_at.desc()).limit(100)
@@ -1510,7 +1601,13 @@ def owner_webhooks():
             .first()
         )
         if cfg_wh and cfg_wh.config_value:
-            webhooks = json.loads(cfg_wh.config_value)
+            raw_hooks = json.loads(cfg_wh.config_value)
+            for wh in raw_hooks:
+                wh_copy = dict(wh)
+                if wh_copy.get('secret'):
+                    wh_copy['secret'] = _mask_secret(wh_copy['secret'], keep=4)
+                    wh_copy['secret_masked'] = True
+                webhooks.append(wh_copy)
     except Exception:
         pass
 
@@ -1618,7 +1715,8 @@ def owner_api_keys_page():
                     {
                         'name': k.get('name'),
                         'scopes': k.get('scopes'),
-                        'key': k.get('key'),
+                        'key': _mask_secret(k.get('key', ''), keep=6),
+                        'key_masked': True,
                         'created_at': k.get('created_at'),
                         'tenant': tenant,
                     }
@@ -1666,7 +1764,9 @@ def owner_api_keys_page():
                 db.session.add(cfg)
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             _log_action('CREATE_API_KEY', 'system', new_key['tenant_id'], new_key['name'])
-            flash(f'تم إنشاء API Key: {new_key["key"][:20]}...', 'success')
+            if _wants_json():
+                return jsonify({'success': True, 'key_prefix': new_key['key'][:6] + '***'})
+            flash('تم إنشاء API Key بنجاح — تم إخفاء المفتاح الكامل', 'success')
         except Exception as e:
             safe_rollback(db.session, error_message='database rollback')
             flash(f'خطأ: {e}', 'error')
@@ -2303,18 +2403,21 @@ def owner_packages():
 @login_required
 @owner_required
 def owner_create_package():
-    """Create a new Package + initial PackageVersion."""
-    name = request.form.get('name', '').strip()
-    name_ar = request.form.get('name_ar', '').strip()
-    slug = request.form.get('slug', '').strip()
-    category = request.form.get('category', 'bundle').strip()
-    version = request.form.get('version', '1.0.0').strip()
+    name = (request.form.get('name') or '').strip()[:100]
+    name_ar = (request.form.get('name_ar') or '').strip()[:100]
+    slug = (request.form.get('slug') or '').strip()[:50]
+    category = (request.form.get('category', 'bundle') or 'bundle').strip()[:20]
+    version = (request.form.get('version', '1.0.0') or '1.0.0').strip()[:20]
 
     if not name or not slug:
+        if _wants_json():
+            return jsonify({'success': False, 'message': 'اسم Package وSlug مطلوبان'}), 400
         flash('اسم Package وSlug مطلوبان', 'error')
         return redirect(url_for('owner.owner_packages'))
 
     if db.session.execute(select(Package).filter_by(slug=slug)).scalars().first():
+        if _wants_json():
+            return jsonify({'success': False, 'message': 'Slug مستخدم مسبقاً'}), 400
         flash('Slug مستخدم مسبقاً', 'error')
         return redirect(url_for('owner.owner_packages'))
 

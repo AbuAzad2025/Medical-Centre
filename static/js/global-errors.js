@@ -15,11 +15,14 @@
     if (window.__ENV === 'production') {
       try {
         var auditLogUrl = (window.API_ROUTES && window.API_ROUTES.audit_log) || '/super-admin/api/audit-log';
+        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        var csrfVal = csrfMeta ? csrfMeta.content : '';
         fetch(auditLogUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfVal, 'X-Requested-With': 'XMLHttpRequest' },
           body: JSON.stringify({ action: 'js_error', message: msg, source: source, url: global.location.href }),
-        }).catch(() => { console.warn('فشل إرسال سجل الخطأ'); });
+        }).catch(function(){ console.warn('فشل إرسال سجل الخطأ'); });
       } catch (e) {}
     }
   }
@@ -54,12 +57,12 @@
     overlay.innerHTML =
       '<div class="entitlement-lock-overlay__backdrop"></div>' +
       '<div class="entitlement-lock-screen entitlement-lock-overlay__panel" data-capability="' +
-      String(capability).replace(/"/g, '&quot;') + '">' +
+      global.escHtml(String(capability)) + '">' +
       '<div class="entitlement-lock-screen__icon" aria-hidden="true"><i class="fas fa-lock"></i></div>' +
       '<h5 class="mb-2">' + global.escHtml(String(title)) + '</h5>' +
       '<p class="text-muted mb-3">' + global.escHtml(String(message)) + '</p>' +
       (upgradeUrl
-        ? '<a href="' + upgradeUrl + '" class="btn btn-primary btn-sm">ترقية الباقة</a>'
+        ? '<a href="' + global.escHtml(String(upgradeUrl)) + '" class="btn btn-primary btn-sm">ترقية الباقة</a>'
         : '<button type="button" class="btn btn-secondary btn-sm" data-dismiss-lock>إغلاق</button>') +
       '</div>';
     document.body.appendChild(overlay);

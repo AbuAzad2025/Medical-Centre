@@ -328,7 +328,12 @@ def add_patient():
 def view_patient(patient_id):
     """عرض تفاصيل المريض - الوحدة المركزية"""
 
-    patient = db.session.get(Patient, patient_id)
+    from utils.tenant_query import TenantContextError, get_tenant_record
+
+    try:
+        patient = get_tenant_record(Patient, patient_id)
+    except TenantContextError:
+        patient = None
     if not patient:
         flash('المريض غير موجود', 'error')
         return redirect(url_for('reception.queue_management'))
@@ -396,7 +401,12 @@ def view_patient(patient_id):
 @can_modify_patient_data
 def edit_patient(patient_id):
     """تعديل بيانات المريض - الوحدة المركزية"""
-    patient = db.session.get(Patient, patient_id)
+    from utils.tenant_query import TenantContextError, get_tenant_record
+
+    try:
+        patient = get_tenant_record(Patient, patient_id)
+    except TenantContextError:
+        patient = None
     if not patient:
         flash('المريض غير موجود', 'error')
         return redirect(url_for('reception.queue_management'))

@@ -41,18 +41,24 @@ def _sign_room_token(consultation_id: int, role: str, name: str) -> str:
 
 
 def _verify_room_token(token: str, consultation_id: int) -> dict:
-    """Raise werkzeug HTTPException on any failure (clean 401 page)."""
+    if not token or not isinstance(token, str) or not token.strip():
+        abort(401, description='رابط الغرفة غير صالح.')
     try:
         payload = pyjwt.decode(
             token,
             current_app.config['SECRET_KEY'],
             algorithms=['HS256'],
+            options={'require': ['exp', 'iat', 'consultation_id']},
         )
     except pyjwt.ExpiredSignatureError:
         abort(401, description='انتهت صلاحية رابط الغرفة. اطلب رابطاً جديداً من العيادة.')
     except pyjwt.InvalidTokenError:
         abort(401, description='رابط الغرفة غير صالح.')
-    if int(payload.get('consultation_id', -1)) != int(consultation_id):
+    try:
+        token_cid = int(payload.get('consultation_id', -1))
+    except (TypeError, ValueError):
+        abort(401, description='رابط الغرفة غير صالح.')
+    if token_cid != int(consultation_id):
         abort(401, description='هذا الرابط يخص غرفة أخرى.')
     return payload
 
@@ -65,7 +71,10 @@ def create_consultation():
         return jsonify({'success': False, 'message': 'إنشاء الاستشارة متاح للأطباء فقط'}), 403
 
     data = request.get_json(silent=True) or request.form
-    visit_id = int(data.get('visit_id') or 0)
+    try:
+        visit_id = int(data.get('visit_id') or 0)
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'رقم الزيارة مطلوب'}), 400
     if not visit_id:
         return jsonify({'success': False, 'message': 'رقم الزيارة مطلوب'}), 400
 
@@ -173,15 +182,16 @@ def start_consult(cid):
 @telemedicine_bp.route('/consult/<int:cid>/end', methods=['POST'])
 @login_required
 def end_consult(cid):
+    notes_val = None
+    if request.is_json:
+        j = request.get_json(silent=True) or {}
+        notes_val = j.get('notes')
+    if not notes_val:
+        notes_val = request.form.get('notes')
     return _transition(
         cid,
         'COMPLETED',
-        extra={
-            'notes': (
-                request.form.get('notes') or request.json.get('notes') if request.is_json else None
-            )
-            or None
-        },
+        extra={'notes': notes_val or None},
     )
 
 

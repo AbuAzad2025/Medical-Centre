@@ -38,11 +38,11 @@ class eMARAdministration(TenantMixin, db.Model):
         db.Integer, db.ForeignKey('medications.id', ondelete='SET NULL'), nullable=True, index=True
     )
 
-    # Administration details
+    ALLOWED_STATUSES = {'SCHEDULED', 'GIVEN', 'NOT_GIVEN', 'HELD', 'REFUSED', 'PARTIAL', 'MISSED', 'LATE'}
+    TERMINAL_STATUSES = {'GIVEN', 'REFUSED', 'HELD', 'NOT_GIVEN', 'PARTIAL', 'MISSED'}
     scheduled_time = db.Column(db.DateTime, nullable=False)
     administered_time = db.Column(db.DateTime, nullable=True)
     status = db.Column(db.String(30), default='SCHEDULED')
-    # SCHEDULED, GIVEN, NOT_GIVEN, HELD, REFUSED, PARTIAL, MISSED, LATE
 
     # Dose given
     dose_given = db.Column(db.String(100), nullable=True)
@@ -85,6 +85,16 @@ class eMARAdministration(TenantMixin, db.Model):
     medication = db.relationship('Medication', back_populates='emar_administrations')
     nurse = db.relationship('User', foreign_keys=[nurse_id])
     witnessed_by = db.relationship('User', foreign_keys=[witnessed_by_id])
+
+    @db.validates('status')
+    def validate_status(self, key, value):
+        if value and value.upper() not in self.ALLOWED_STATUSES:
+            raise ValueError(f'حالة إعطاء الدواء غير صالحة: {value}')
+        return value.upper() if value else value
+
+    @property
+    def is_terminal(self):
+        return (self.status or '').upper() in self.TERMINAL_STATUSES
 
     def __repr__(self):
         return f'<eMARAdministration {self.status}>'

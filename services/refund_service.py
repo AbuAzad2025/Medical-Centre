@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from sqlalchemy import func, select
@@ -40,20 +40,25 @@ class RefundService:
         if payment.status not in (PaymentStatus.CONFIRMED, PaymentStatus.PAID):
             return False, 'حالة الدفعة لا تسمح بالاسترداد'
 
-        refund_amount = Decimal(str(amount))
+        refund_amount = Decimal(str(amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         if refund_amount <= 0:
             return False, 'يجب أن يكون مبلغ الاسترداد موجباً'
-        if refund_amount > Decimal(str(payment.amount or 0)):
+        payment_amount = Decimal(str(payment.amount or 0)).quantize(
+            Decimal('0.01'), rounding=ROUND_HALF_UP
+        )
+        if refund_amount > payment_amount:
             return False, 'مبلغ الاسترداد يتجاوز المبلغ المدفوع'
 
-        # Prevent over-refunding: sum all non-rejected requests for this payment.
         total_existing = db.session.execute(
             select(func.coalesce(func.sum(RefundRequest.amount), 0)).filter(
                 RefundRequest.payment_id == payment.id,
                 RefundRequest.status != RefundStatus.REJECTED,
             )
         ).scalar()
-        if Decimal(str(total_existing or 0)) + refund_amount > Decimal(str(payment.amount or 0)):
+        total_existing_dec = Decimal(str(total_existing or 0)).quantize(
+            Decimal('0.01'), rounding=ROUND_HALF_UP
+        )
+        if total_existing_dec + refund_amount > payment_amount:
             return False, 'إجمالي الاستردادات سيتجاوز المبلغ المدفوع'
 
         # Prevent duplicate pending requests for the same payment.
@@ -90,6 +95,7 @@ class RefundService:
         refund_id: int,
         approved_by: int,
     ) -> tuple[bool, Any | str]:
+        from models.payment import Payment
         from models.refund_request import RefundRequest, RefundStatus
 
         try:
@@ -98,7 +104,22 @@ class RefundService:
             return False, 'طلب الاسترداد غير موجود'
         if request.status != RefundStatus.PENDING:
             return False, 'Refund request is not pending'
-
+        payment = db.session.get(Payment, request.payment_id)
+        if payment:
+            total_existing = db.session.execute(
+                select(func.coalesce(func.sum(RefundRequest.amount), 0)).filter(
+                    RefundRequest.payment_id == payment.id,
+                    RefundRequest.status != RefundStatus.REJECTED,
+                )
+            ).scalar()
+            total_existing_dec = Decimal(str(total_existing or 0)).quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
+            payment_amount = Decimal(str(payment.amount or 0)).quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
+            if total_existing_dec > payment_amount:
+                return False, 'إجمالي الاستردادات سيتجاوز المبلغ المدفوع'
         request.status = RefundStatus.APPROVED
         request.approved_by = approved_by
         request.approved_at = datetime.now(UTC)
@@ -163,17 +184,22 @@ class RefundService:
             return False, 'الدفعة الأصلية غير موجودة'
 
         try:
-            refund_amount = Decimal(str(request.amount))
-            # Re-check cumulative limit under row lock.
+            refund_amount = Decimal(str(request.amount)).quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
             total_executed = db.session.execute(
                 select(func.coalesce(func.sum(RefundRequest.amount), 0)).filter(
                     RefundRequest.payment_id == payment.id,
                     RefundRequest.status == RefundStatus.EXECUTED,
                 )
             ).scalar()
-            if Decimal(str(total_executed or 0)) + refund_amount > Decimal(
-                str(payment.amount or 0)
-            ):
+            total_executed_dec = Decimal(str(total_executed or 0)).quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
+            payment_amount = Decimal(str(payment.amount or 0)).quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
+            if total_executed_dec + refund_amount > payment_amount:
                 return False, 'إجمالي الاستردادات سيتجاوز المبلغ المدفوع'
 
             if payment.visit_id:
@@ -190,15 +216,23 @@ class RefundService:
                 for inv in invoices:
                     if remaining <= 0:
                         break
-                    current_paid = Decimal(str(inv.paid_amount or 0))
+                    current_paid = Decimal(str(inv.paid_amount or 0)).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
                     reversal = min(current_paid, remaining)
-                    inv.paid_amount = float(current_paid - reversal)
+                    inv.paid_amount = (current_paid - reversal).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
                     remaining -= reversal
-
-                    # Update invoice status based on remaining paid amount.
-                    if Decimal(str(inv.paid_amount or 0)) >= Decimal(str(inv.total_amount or 0)):
+                    paid_dec = Decimal(str(inv.paid_amount or 0)).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
+                    total_dec = Decimal(str(inv.total_amount or 0)).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
+                    if paid_dec >= total_dec:
                         inv.status = 'PAID'
-                    elif Decimal(str(inv.paid_amount or 0)) > 0:
+                    elif paid_dec > 0:
                         inv.status = 'PARTIAL'
                     else:
                         inv.status = 'ISSUED'

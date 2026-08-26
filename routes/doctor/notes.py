@@ -53,7 +53,9 @@ def notes(visit_id):
             flash('لا يمكن إضافة ملاحظات بعد أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))
 
-        note_type = request.args.get('type') or request.form.get('note_type')
+        note_type = (request.args.get('type') or request.form.get('note_type') or '').strip() or None
+        if note_type not in {'lab', 'radiology', 'general', None}:
+            note_type = None
         prefill_notes = None
         if note_type == 'lab':
             prefill_notes = 'مذكرة تحاليل:\nنوع الفحص:\nسبب الفحص:\nتعليمات إضافية:'
@@ -63,37 +65,46 @@ def notes(visit_id):
             prefill_notes = 'مذكرة عامة:\nالموضوع:\nتفاصيل:\nتعليمات للمريض:'
 
         if request.method == 'POST':
-            medical_notes = request.form.get('medical_notes')
-            if medical_notes:
-                # إضافة الملاحظات الطبية
-                if not visit.notes:
-                    visit.notes = ''
-                label = '[ملاحظات طبية]'
-                if note_type == 'lab':
-                    label = '[مذكرة تحاليل]'
-                elif note_type == 'radiology':
-                    label = '[مذكرة تصوير]'
-                elif note_type == 'general':
-                    label = '[مذكرة عامة]'
-                visit.notes += f'\n{label} - {datetime.now(UTC).strftime("%Y-%m-%d %H:%M")} - الطبيب: {current_user.full_name}\n{medical_notes}'
-                safe_commit(db.session, error_message='database commit failed', reraise=True)
-                try:
-                    db.session.add(
-                        AuditTrail(
-                            entity_type='visit',
-                            entity_id=visit_id,
-                            action='update',
-                            user_id=current_user.id,
-                            user_ip=request.remote_addr,
-                            user_agent=request.headers.get('User-Agent'),
-                            description='إضافة ملاحظات طبية',
-                        )
+            medical_notes = (request.form.get('medical_notes') or '').strip()
+            if not medical_notes:
+                flash('نص الملاحظة مطلوب', 'warning')
+                return render_template(
+                    'doctor/notes.html', visit=visit, note_type=note_type, prefill_notes=prefill_notes
+                )
+            if len(medical_notes) > 5000:
+                flash('نص الملاحظة طويل جداً (الحد 5000 حرف)', 'warning')
+                return render_template(
+                    'doctor/notes.html', visit=visit, note_type=note_type, prefill_notes=prefill_notes
+                )
+            if not visit.notes:
+                visit.notes = ''
+            label = '[ملاحظات طبية]'
+            if note_type == 'lab':
+                label = '[مذكرة تحاليل]'
+            elif note_type == 'radiology':
+                label = '[مذكرة تصوير]'
+            elif note_type == 'general':
+                label = '[مذكرة عامة]'
+            visit.notes += f'\n{label} - {datetime.now(UTC).strftime("%Y-%m-%d %H:%M")} - الطبيب: {current_user.full_name}\n{medical_notes}'
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+            try:
+                db.session.add(
+                    AuditTrail(
+                        tenant_id=g.tenant_id,
+                        entity_type='visit',
+                        entity_id=visit_id,
+                        action='update',
+                        user_id=current_user.id,
+                        user_ip=request.remote_addr,
+                        user_agent=request.headers.get('User-Agent'),
+                        description='إضافة ملاحظات طبية',
                     )
-                    safe_commit(db.session, error_message='database commit failed', reraise=True)
-                except Exception as e:
-                    logging.warning(f'Error in {__name__}: {e}')
-                flash('تم حفظ الملاحظات الطبية بنجاح', 'success')
-                return redirect(url_for('doctor.patient_queue'))
+                )
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
+            except Exception as e:
+                logging.warning(f'Error in {__name__}: {e}')
+            flash('تم حفظ الملاحظات الطبية بنجاح', 'success')
+            return redirect(url_for('doctor.patient_queue'))
 
         return render_template(
             'doctor/notes.html', visit=visit, note_type=note_type, prefill_notes=prefill_notes
@@ -169,6 +180,10 @@ def upsert_note_template():
     template_id = (payload.get('id') or '').strip() or None
     name = (payload.get('name') or '').strip()
     text = payload.get('text') or ''
+    if len(name) > 100:
+        return jsonify({'success': False, 'message': 'اسم القالب طويل جداً'}), 400
+    if len(text) > 5000:
+        return jsonify({'success': False, 'message': 'نص القالب طويل جداً'}), 400
     is_active = payload.get('is_active')
     if isinstance(is_active, str):
         is_active = is_active.strip().lower() in {'1', 'true', 'yes', 'on'}
@@ -178,6 +193,8 @@ def upsert_note_template():
         return jsonify({'success': False, 'message': 'اسم القالب مطلوب'}), 400
 
     templates = _get_doctor_note_templates()
+    if not template_id and len(templates) >= 50:
+        return jsonify({'success': False, 'message': 'تم الوصول للحد الأقصى للقوالب'}), 400
     if template_id:
         updated = False
         for t in templates:

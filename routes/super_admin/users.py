@@ -22,12 +22,31 @@ from utils.decorators import privileged_user_manager_required, super_admin_requi
 @login_required
 @super_admin_required
 def users():
-    """إدارة المستخدمين والأدوار والصلاحيات"""
     try:
         from models.department import Department
         from models.user import User
 
-        users_list = db.session.execute(select(User)).scalars().all()
+        page = max(1, request.args.get('page', 1, type=int) or 1)
+        per_page_raw = request.args.get('per_page', 25, type=int) or 25
+        per_page = max(1, min(per_page_raw, 100))
+        wants_json = request.accept_mimetypes.best == 'application/json' or request.is_json
+        query = select(User).order_by(User.created_at.desc())
+        if wants_json:
+            total = db.session.execute(select(db.func.count()).select_from(User)).scalar() or 0
+            offset = (page - 1) * per_page
+            users_list = db.session.execute(query.offset(offset).limit(per_page)).scalars().all()
+            return jsonify(
+                {
+                    'users': [
+                        {'id': u.id, 'username': u.username, 'role': u.role} for u in users_list
+                    ],
+                    'page': page,
+                    'per_page': per_page,
+                    'total': total,
+                }
+            )
+        offset = (page - 1) * per_page
+        users_list = db.session.execute(query.offset(offset).limit(per_page)).scalars().all()
 
         roles_list = [
             ('super_admin', 'السوبر أدمن'),

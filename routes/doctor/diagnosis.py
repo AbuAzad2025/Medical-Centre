@@ -56,26 +56,33 @@ def diagnosis(visit_id):
             return redirect(url_for('doctor.patient_queue'))
 
         if request.method == 'POST':
-            # البيانات الأساسية
-            chief_complaint = request.form.get('chief_complaint')
-            symptoms = request.form.get('symptoms')
-            diagnosis = request.form.get('diagnosis')
-            differential_diagnosis = request.form.get('differential_diagnosis')
-            treatment_plan = request.form.get('treatment_plan')
-            follow_up_notes = request.form.get('follow_up_notes')
-            follow_up_required = bool(request.form.get('follow_up_required'))
+            chief_complaint = (request.form.get('chief_complaint') or '').strip() or None
+            symptoms = (request.form.get('symptoms') or '').strip() or None
+            diagnosis = (request.form.get('diagnosis') or '').strip() or None
+            differential_diagnosis = (request.form.get('differential_diagnosis') or '').strip() or None
+            treatment_plan = (request.form.get('treatment_plan') or '').strip() or None
+            follow_up_notes = (request.form.get('follow_up_notes') or '').strip() or None
+            raw_follow_up = (request.form.get('follow_up_required') or '').strip().lower()
+            follow_up_required = raw_follow_up in {'on', '1', 'true', 'yes'} if raw_follow_up else False
             follow_up_date_raw = (request.form.get('follow_up_date') or '').strip()
             additional_notes = (request.form.get('notes') or '').strip()
+            if chief_complaint and len(chief_complaint) > 2000:
+                flash('الشكوى الرئيسية طويلة جداً', 'warning')
+                return redirect(url_for('doctor.diagnosis', visit_id=visit_id))
+            if diagnosis and len(diagnosis) > 2000:
+                flash('التشخيص طويل جداً', 'warning')
+                return redirect(url_for('doctor.diagnosis', visit_id=visit_id))
+            if additional_notes and len(additional_notes) > 5000:
+                flash('الملاحظات طويلة جداً', 'warning')
+                return redirect(url_for('doctor.diagnosis', visit_id=visit_id))
 
-            # الفحص السريري
             vital_signs = {
-                'blood_pressure': request.form.get('blood_pressure'),
-                'heart_rate': request.form.get('heart_rate'),
-                'temperature': request.form.get('temperature'),
-                'respiratory_rate': request.form.get('respiratory_rate'),
+                'blood_pressure': (request.form.get('blood_pressure') or '').strip() or None,
+                'heart_rate': (request.form.get('heart_rate') or '').strip() or None,
+                'temperature': (request.form.get('temperature') or '').strip() or None,
+                'respiratory_rate': (request.form.get('respiratory_rate') or '').strip() or None,
             }
 
-            # تحديث الزيارة
             visit.chief_complaint = chief_complaint
             visit.symptoms = symptoms
             visit.diagnosis = diagnosis
@@ -87,10 +94,11 @@ def diagnosis(visit_id):
                 try:
                     visit.follow_up_date = datetime.strptime(follow_up_date_raw, '%Y-%m-%d').date()
                 except Exception:
+                    flash('صيغة تاريخ المتابعة غير صحيحة', 'warning')
                     visit.follow_up_date = None
             else:
                 visit.follow_up_date = None
-            visit.vital_signs = str(vital_signs)
+            visit.vital_signs = json.dumps(vital_signs, ensure_ascii=False)
             try:
                 VisitStateMachineService.ensure_in_progress(visit, actor=current_user)
             except ValueError:
@@ -104,9 +112,10 @@ def diagnosis(visit_id):
                 _sync_follow_up_request_for_visit(visit, current_user.id)
             except Exception as e:
                 logging.warning(f'Error in {__name__}: {e}')
-            # إنشاء سجل طبي
             medical_record = MedicalRecord(
+                tenant_id=visit.tenant_id,
                 patient_id=visit.patient_id,
+                visit_id=visit.id,
                 title='تشخيص طبي',
                 details=f'الشكوى الرئيسية: {chief_complaint}\nالأعراض: {symptoms}\nالتشخيص: {diagnosis}',
                 created_by=current_user.id,
@@ -117,6 +126,7 @@ def diagnosis(visit_id):
             try:
                 db.session.add(
                     AuditTrail(
+                        tenant_id=visit.tenant_id,
                         entity_type='visit',
                         entity_id=visit_id,
                         action='update',
@@ -139,11 +149,18 @@ def diagnosis(visit_id):
         raw_vital_signs = getattr(visit, 'vital_signs', None)
         if raw_vital_signs:
             try:
-                parsed = literal_eval(raw_vital_signs)
+                parsed = json.loads(raw_vital_signs)
                 if isinstance(parsed, dict):
                     structured_vital_signs = parsed
+                else:
+                    raise ValueError('not dict')
             except Exception:
-                structured_vital_signs = {}
+                try:
+                    parsed = literal_eval(raw_vital_signs)
+                    if isinstance(parsed, dict):
+                        structured_vital_signs = parsed
+                except Exception:
+                    structured_vital_signs = {}
         return render_template(
             'doctor/diagnosis.html', visit=visit, structured_vital_signs=structured_vital_signs
         )

@@ -492,30 +492,21 @@ def reassert_set_local(orm_execute_state):
     prior commit, where ``before_flush`` does not fire (no flush occurs
     for a plain SELECT).
     """
-    # Outside SaaS mode there is no RLS/GUC machinery to maintain — and
-    # executing a nested statement here (inside another statement's
-    # do_orm_execute) corrupts the outer cursor (ResourceClosedError /
-    # PGRES_TUPLES_OK seen under gunicorn). Only run in SaaS mode.
     if not _is_saas_mode():
         return
-
-    # Skip raw text clauses to avoid recursive dispatch —
-    # our own session.execute(db.text("SET LOCAL …")) triggers
-    # do_orm_execute, which would re-enter this handler.
     if isinstance(orm_execute_state.statement, TextClause):
         return
-
     tid = _current_tenant_id(session=orm_execute_state.session)
-    # SET LOCAL is PostgreSQL-specific; skip on SQLite etc.
-    dialect = getattr(db.engine, 'dialect', None)
+    try:
+        bind = orm_execute_state.session.get_bind()
+        dialect = getattr(bind, 'dialect', None) if bind is not None else getattr(db.engine, 'dialect', None)
+    except Exception:
+        dialect = getattr(db.engine, 'dialect', None)
     if dialect is None or dialect.name != 'postgresql':
         return
     if tid is None:
-        # No tenant context — explicitly clear any stale GUC so that
-        # RLS policies see a clean state (empty string means "no tenant"
-        # and will not match any tenant_id since they're positive ints).
         try:
-            orm_execute_state.session.execute(db.text("SET LOCAL app.tenant_id = ''"))
+            orm_execute_state.session.execute(db.text("SELECT set_config('app.tenant_id', '', true)"))
         except Exception as exc:
             logger.exception('RESET app.tenant_id failed in reassert_set_local')
             raise TenantIsolationError(
@@ -523,8 +514,10 @@ def reassert_set_local(orm_execute_state):
             ) from exc
         return
     try:
+        tid_int = int(tid)
         orm_execute_state.session.execute(
-            db.text(f"SET LOCAL app.tenant_id = '{tid}'"),
+            db.text("SELECT set_config('app.tenant_id', :tid, true)"),
+            {"tid": str(tid_int)},
         )
     except Exception as exc:
         logger.exception(
@@ -570,13 +563,18 @@ def auto_assign_tenant(session, flush_context, instances):
                     )
         return
 
-    # Re-assert SET LOCAL — the previous transaction's commit (if any) cleared it,
-    # so the RLS WITH CHECK on the coming INSERT would see NULL and fail.
-    # Only applies to PostgreSQL; skip on SQLite etc.
-    dialect = getattr(db.engine, 'dialect', None)
+    try:
+        bind = session.get_bind()
+        dialect = getattr(bind, 'dialect', None) if bind is not None else getattr(db.engine, 'dialect', None)
+    except Exception:
+        dialect = getattr(db.engine, 'dialect', None)
     if dialect is not None and dialect.name == 'postgresql':
         try:
-            session.execute(db.text(f"SET LOCAL app.tenant_id = '{tid}'"))
+            tid_int = int(tid)
+            session.execute(
+                db.text("SELECT set_config('app.tenant_id', :tid, true)"),
+                {"tid": str(tid_int)},
+            )
         except Exception as exc:
             logger.exception(
                 'SET LOCAL app.tenant_id = %s failed in auto_assign_tenant',

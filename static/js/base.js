@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } catch (e) {}
                 const url = pane.getAttribute('data-load-url');
                 if (url && !pane.getAttribute('data-loaded')) {
-                    fetch(url, { method: 'GET', headers: { 'Accept': 'text/html' } })
+                    fetch(url, { method: 'GET', headers: { 'Accept': 'text/html' }, credentials: 'same-origin' })
                         .then(r => r.text())
                         .then(html => {
                             if (typeof DOMPurify !== 'undefined') {
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                             pane.setAttribute('data-loaded','1');
                         })
-                        .catch(()=>{});
+                        .catch(function(){ if(window.showToast) window.showToast('فشل تحميل المحتوى','error'); });
                 }
             }
         });
@@ -359,7 +359,7 @@ function updateClock() {
     });
     const clockElements = document.querySelectorAll('.live-clock');
     clockElements.forEach(element => {
-        element.innerHTML = `${timeString} - ${dateString}`;
+        element.textContent = timeString + ' - ' + dateString;
     });
 }
 
@@ -436,7 +436,7 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
         navigator.serviceWorker.register('/static/pwa/sw.js', { scope: '/' })
             .then(function(registration) {})
-            .catch(function(err) {});
+            .catch(function(err) { console.warn('فشل تسجيل serviceWorker'); });
     });
 }
 

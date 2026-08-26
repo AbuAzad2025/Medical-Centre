@@ -37,7 +37,7 @@
         'X-CSRFToken': token ? token.content : '',
       },
       body: JSON.stringify({ theme: theme }),
-    }).catch(function () {});
+    }).catch(function(){ if(window.showToast) window.showToast('تعذر حفظ المظهر','error'); });
   }
 
   document.addEventListener('DOMContentLoaded', function () {

@@ -37,6 +37,21 @@ class FieldEncryptionService:
         svc = FieldEncryptionService()
         encrypted = svc.encrypt("sensitive data")
         decrypted = svc.decrypt(encrypted)
+
+    # Lazy singleton instance
+    _svc_instance = None
+
+
+    def get_service() -> "FieldEncryptionService | None":
+        """Get the singleton service instance, or None if key is invalid."""
+        global _svc_instance
+        if _svc_instance is not None:
+            return _svc_instance
+        try:
+            _svc_instance = FieldEncryptionService()
+            return _svc_instance
+        except EncryptionConfigurationError:
+            return None
     """
 
     LEGACY_PREFIX = b'$enc$'
@@ -131,16 +146,39 @@ class FieldEncryptionService:
             raise
 
     def is_encrypted(self, value: str | bytes | None) -> bool:
-        """Check if a value appears to be already encrypted."""
         if value is None:
             return False
         if isinstance(value, str):
             value = value.encode('utf-8')
         return value.startswith(self.LEGACY_PREFIX) or value.startswith(self.GCM_PREFIX)
 
+    def hash_for_lookup(self, plaintext: str | bytes | None) -> str | None:
+        if plaintext is None or plaintext == '':
+            return plaintext
+        data = plaintext.encode('utf-8') if isinstance(plaintext, str) else plaintext
+        return hashlib.sha256(self._gcm_key + data).hexdigest()
+
+    def encrypt_deterministic(self, plaintext: str | bytes | None) -> str | None:
+        return self.encrypt(plaintext)
+
+    def encrypt_random(self, plaintext: str | bytes | None) -> str | None:
+        if plaintext is None or plaintext == '':
+            return plaintext
+        data = plaintext.encode('utf-8') if isinstance(plaintext, str) else plaintext
+        if data.startswith(self.LEGACY_PREFIX) or data.startswith(self.GCM_PREFIX):
+            return data.decode('utf-8', errors='replace')
+        try:
+            aesgcm = AESGCM(self._gcm_key)
+            nonce = os.urandom(12)
+            ct = aesgcm.encrypt(nonce, data, None)
+            payload = base64.urlsafe_b64encode(nonce + ct).decode('utf-8')
+            return f'{self.GCM_PREFIX.decode("utf-8")}{payload}'
+        except Exception:
+            logger.exception('Large field encryption failed: %s')
+            raise
+
     @classmethod
     def generate_key(cls) -> str:
-        """Generate a new Fernet-compatible encryption key."""
         return Fernet.generate_key().decode('utf-8')
 
     @classmethod

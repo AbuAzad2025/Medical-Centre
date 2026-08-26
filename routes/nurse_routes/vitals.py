@@ -146,25 +146,54 @@ def record_vital_signs(patient_id):
                 bp_systolic_raw, bp_diastolic_raw = parts[0], parts[1]
 
         def _to_int(val):
-            val = (val or '').strip()
-            return int(val) if val else None
+            try:
+                val = (val or '').strip()
+                return int(val) if val else None
+            except Exception:
+                return None
 
         def _to_float(val):
-            val = (val or '').strip()
-            return float(val) if val else None
+            try:
+                val = (val or '').strip()
+                return float(val) if val else None
+            except Exception:
+                return None
 
+        systolic = _to_int(bp_systolic_raw)
+        diastolic = _to_int(bp_diastolic_raw)
+        heart_rate = _to_int(request.form.get('heart_rate'))
+        temperature = _to_float(request.form.get('temperature'))
+        oxygen_saturation = _to_int(request.form.get('oxygen_saturation'))
+        respiratory_rate = _to_int(request.form.get('respiratory_rate'))
+        weight = _to_float(request.form.get('weight'))
+        height = _to_float(request.form.get('height'))
+        blood_sugar = _to_float(request.form.get('blood_sugar'))
+        notes_val = (request.form.get('notes') or '').strip() or None
+        if systolic is not None and diastolic is not None and diastolic >= systolic:
+            return jsonify({'success': False, 'message': 'ضغط الدم غير منطقي'}), 400
+        if temperature is not None and not 30 <= temperature <= 45:
+            return jsonify({'success': False, 'message': 'درجة الحرارة خارج النطاق'}), 400
+        if heart_rate is not None and not 20 <= heart_rate <= 250:
+            return jsonify({'success': False, 'message': 'معدل النبض خارج النطاق'}), 400
+        if oxygen_saturation is not None and not 50 <= oxygen_saturation <= 100:
+            return jsonify({'success': False, 'message': 'تشبع الأكسجين خارج النطاق'}), 400
+        if any(v is None for v in [systolic, diastolic, heart_rate, temperature, oxygen_saturation, respiratory_rate, weight, height, blood_sugar]) and not notes_val:
+            has_any = any(v is not None for v in [systolic, diastolic, heart_rate, temperature, oxygen_saturation, respiratory_rate, weight, height, blood_sugar])
+            if not has_any:
+                return jsonify({'success': False, 'message': 'لا توجد علامات حيوية للإدخال'}), 400
         record = VitalSigns(
             patient_id=patient.id,
             nurse_id=nurse_profile.id,
-            blood_pressure_systolic=_to_int(bp_systolic_raw),
-            blood_pressure_diastolic=_to_int(bp_diastolic_raw),
-            heart_rate=_to_int(request.form.get('heart_rate')),
-            temperature=_to_float(request.form.get('temperature')),
-            oxygen_saturation=_to_int(request.form.get('oxygen_saturation')),
-            respiratory_rate=_to_int(request.form.get('respiratory_rate')),
-            weight=_to_float(request.form.get('weight')),
-            height=_to_float(request.form.get('height')),
-            notes=(request.form.get('notes') or '').strip() or None,
+            blood_pressure_systolic=systolic,
+            blood_pressure_diastolic=diastolic,
+            heart_rate=heart_rate,
+            temperature=temperature,
+            oxygen_saturation=oxygen_saturation,
+            respiratory_rate=respiratory_rate,
+            weight=weight,
+            height=height,
+            blood_sugar=blood_sugar,
+            notes=notes_val,
         )
         db.session.add(record)
         safe_commit(db.session, error_message='database commit failed', reraise=True)

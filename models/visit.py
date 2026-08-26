@@ -265,6 +265,8 @@ class Visit(TenantMixin, db.Model):
 
     def can_be_archived(self):
         """هل يمكن أرشفة الزيارة"""
+        if self.archive_status == 'ARCHIVED':
+            return False, 'الزيارة مؤرشفة مسبقاً'
         if self.status != 'COMPLETED':
             return False, 'الزيارة غير مكتملة'
 
@@ -280,10 +282,18 @@ class Visit(TenantMixin, db.Model):
         """حساب مبالغ التأمين تلقائياً"""
         if (
             str(self.payment_method or '').lower() == 'insurance'
-            and self.insurance_coverage_percentage
+            and self.insurance_coverage_percentage is not None
         ):
-            coverage = Decimal(str(self.insurance_coverage_percentage)) / Decimal('100')
+            try:
+                cov_raw = Decimal(str(self.insurance_coverage_percentage))
+            except Exception:
+                return
+            if cov_raw < 0 or cov_raw > 100:
+                return
+            coverage = cov_raw / Decimal('100')
             total = Decimal(str(self.total_amount or 0))
+            if total < 0:
+                total = Decimal('0')
             self.insurance_amount = total * coverage
             self.patient_share = total * (Decimal('1') - coverage)
 

@@ -35,12 +35,15 @@ def api_doctors():
     """API لجلب الأطباء"""
 
     department_id = request.args.get('department_id')
-    request.args.get('appointment_type')
 
-    query = select(User)
+    query = select(User).filter(User.role == 'doctor', User.is_active.is_(True))
 
     if department_id:
-        query = query.filter_by(department_id=department_id)
+        try:
+            did = int(department_id)
+            query = query.filter(User.department_id == did)
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'message': 'معرف القسم غير صالح'}), 400
 
     doctors = db.session.execute(query).scalars().all()
 

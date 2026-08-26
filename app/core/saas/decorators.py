@@ -17,10 +17,21 @@ from app.core.saas.resolver import EntitlementResolver
 from app.extensions import db
 
 
+_BYPASS_ROLES = frozenset({'super_admin', 'owner', 'platform_owner'})
+
+
 def _is_admin_user() -> bool:
-    """True if the current user is a global super_admin bypassing tenant restrictions."""
     try:
-        return current_user.is_authenticated and current_user.role == 'super_admin'
+        return current_user.is_authenticated and current_user.role in _BYPASS_ROLES
+    except Exception:
+        return False
+
+
+def _is_json_request() -> bool:
+    try:
+        from flask import request
+
+        return request.accept_mimetypes.best == 'application/json' or request.is_json
     except Exception:
         return False
 
@@ -49,6 +60,10 @@ def require_entitlement(capability_key: str):
                 abort(403, description='Tenant context required.')
 
             if not EntitlementResolver.is_entitled(tenant.id, capability_key):
+                if _is_json_request():
+                    from flask import jsonify
+
+                    return jsonify({'error': 'entitlement_required', 'capability': capability_key}), 403
                 abort(403, description=f"Tenant not entitled to '{capability_key}'.")
 
             return f(*args, **kwargs)

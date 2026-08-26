@@ -76,7 +76,6 @@ class VitalSigns(TenantMixin, db.Model):
         db.Integer, db.ForeignKey('nurses.id', ondelete='SET NULL'), nullable=True, index=True
     )
 
-    # العلامات الحيوية
     blood_pressure_systolic = db.Column(db.Integer, nullable=True)
     blood_pressure_diastolic = db.Column(db.Integer, nullable=True)
     heart_rate = db.Column(db.Integer, nullable=True)
@@ -85,10 +84,45 @@ class VitalSigns(TenantMixin, db.Model):
     weight = db.Column(db.Float, nullable=True)
     height = db.Column(db.Float, nullable=True)
     respiratory_rate = db.Column(db.Integer, nullable=True)
-
-    # ملاحظات
+    blood_sugar = db.Column(db.Float, nullable=True)
     notes = db.Column(db.Text, nullable=True)
     recorded_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+
+    @db.validates('temperature')
+    def validate_temperature(self, key, value):
+        if value is not None and not 30 <= float(value) <= 45:
+            raise ValueError(f'درجة الحرارة خارج النطاق: {value}')
+        return value
+
+    @db.validates('heart_rate')
+    def validate_heart_rate(self, key, value):
+        if value is not None and not 20 <= int(value) <= 250:
+            raise ValueError(f'معدل النبض خارج النطاق: {value}')
+        return value
+
+    @db.validates('blood_pressure_systolic')
+    def validate_systolic(self, key, value):
+        if value is not None and not 50 <= int(value) <= 300:
+            raise ValueError(f'الضغط الانقباضي خارج النطاق: {value}')
+        return value
+
+    @db.validates('blood_pressure_diastolic')
+    def validate_diastolic(self, key, value):
+        if value is not None and not 30 <= int(value) <= 200:
+            raise ValueError(f'الضغط الانبساطي خارج النطاق: {value}')
+        return value
+
+    @db.validates('oxygen_saturation')
+    def validate_oxygen(self, key, value):
+        if value is not None and not 50 <= int(value) <= 100:
+            raise ValueError(f'تشبع الأكسجين خارج النطاق: {value}')
+        return value
+
+    @db.validates('respiratory_rate')
+    def validate_respiratory(self, key, value):
+        if value is not None and not 5 <= int(value) <= 80:
+            raise ValueError(f'معدل التنفس خارج النطاق: {value}')
+        return value
 
     # العلاقات
     patient = db.relationship('Patient', back_populates='vital_signs')
@@ -104,7 +138,6 @@ class VitalSigns(TenantMixin, db.Model):
         return 'غير محدد'
 
     def to_dict(self):
-        """تحويل إلى قاموس"""
         return {
             'id': self.id,
             'tenant_id': self.tenant_id,
@@ -119,6 +152,7 @@ class VitalSigns(TenantMixin, db.Model):
             'weight': self.weight,
             'height': self.height,
             'respiratory_rate': self.respiratory_rate,
+            'blood_sugar': self.blood_sugar,
             'notes': self.notes,
             'recorded_at': self.recorded_at.isoformat() if self.recorded_at else None,
         }

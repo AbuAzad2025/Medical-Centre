@@ -96,18 +96,21 @@ class EmergencyCase(TenantMixin, db.Model):
 
     @priority.setter
     def priority(self, value):
-        val = (value or '').upper()
+        val = (value or '').upper().strip()
         priority_map = {
             'CRITICAL': 'CRITICAL',
             'URGENT': 'HIGH',
             'HIGH': 'HIGH',
             'NORMAL': 'MODERATE',
             'MODERATE': 'MODERATE',
+            'MEDIUM': 'MODERATE',
             'LOW': 'LOW',
         }
         mapped = priority_map.get(val)
         if mapped:
             self.severity = mapped
+        elif val:
+            raise ValueError(f'قيمة الأولوية غير صالحة: {value}')
 
     def __repr__(self):
         return f'<EmergencyCase {self.case_number}>'

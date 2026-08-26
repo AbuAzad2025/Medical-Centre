@@ -5,6 +5,7 @@ All `db.session.commit()` and `db.session.rollback()` calls in the
 codebase MUST be replaced by calls to this module.
 """
 
+import logging
 from contextlib import contextmanager
 
 from flask import current_app
@@ -42,8 +43,17 @@ def safe_commit(db_session, *, error_message='Database error', reraise=False, lo
         db_session.commit()
         return True
     except Exception as e:
-        db_session.rollback()
-        (logger or current_app.logger).error(f'{error_message}: {e}')
+        try:
+            db_session.rollback()
+        except Exception:
+            pass
+        _log = logger
+        if _log is None:
+            try:
+                _log = current_app.logger
+            except Exception:
+                _log = logging.getLogger(__name__)
+        _log.error(f'{error_message}: {e}')
         if reraise:
             raise
         return False
@@ -61,7 +71,13 @@ def safe_rollback(db_session, *, error_message='Database rollback', logger=None)
     try:
         db_session.rollback()
     except Exception as e:
-        (logger or current_app.logger).error(f'{error_message}: {e}')
+        _log = logger
+        if _log is None:
+            try:
+                _log = current_app.logger
+            except Exception:
+                _log = logging.getLogger(__name__)
+        _log.error(f'{error_message}: {e}')
 
 
 @contextmanager
@@ -89,6 +105,15 @@ def safe_transaction(db_session, *, error_message='Database error', logger=None)
         yield
         db_session.commit()
     except Exception as e:
-        db_session.rollback()
-        (logger or current_app.logger).error(f'{error_message}: {e}')
+        try:
+            db_session.rollback()
+        except Exception:
+            pass
+        _log = logger
+        if _log is None:
+            try:
+                _log = current_app.logger
+            except Exception:
+                _log = logging.getLogger(__name__)
+        _log.error(f'{error_message}: {e}')
         raise

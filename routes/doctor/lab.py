@@ -48,10 +48,19 @@ def lab_request(visit_id):
             flash('لا يمكن طلب تحاليل إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         if request.method == 'POST':
-            notes = request.form.get('notes') or request.form.get('test_description') or ''
+            notes = (request.form.get('notes') or request.form.get('test_description') or '').strip()
+            if len(notes) > 2000:
+                flash('الوصف طويل جداً', 'warning')
+                return redirect(url_for('doctor.patient_details', visit_id=visit_id))
             memo_parts = []
             test_name = (request.form.get('test_name') or '').strip()
+            if len(test_name) > 200:
+                flash('اسم الفحص طويل جداً', 'warning')
+                return redirect(url_for('doctor.patient_details', visit_id=visit_id))
             urgency = (request.form.get('urgency') or '').strip()
+            if len(urgency) > 50:
+                flash('الأولوية طويلة جداً', 'warning')
+                return redirect(url_for('doctor.patient_details', visit_id=visit_id))
             if test_name:
                 memo_parts.append(f'الفحص: {test_name}')
             if notes:
@@ -90,6 +99,7 @@ def lab_request(visit_id):
             try:
                 db.session.add(
                     AuditTrail(
+                        tenant_id=g.tenant_id,
                         entity_type='lab_test',
                         entity_id=visit.id,
                         action='create',
@@ -140,7 +150,7 @@ def lab_results(patient_id):
         lab_requests = (
             db.session.execute(
                 select(LabRequest)
-                .filter(LabRequest.patient_id == patient_id)
+                .filter(LabRequest.patient_id == patient_id, LabRequest.tenant_id == g.tenant_id)
                 .order_by(desc(LabRequest.created_at))
             )
             .scalars()
@@ -148,24 +158,27 @@ def lab_results(patient_id):
         )
 
         results = []
-        for req in lab_requests:
+        if lab_requests:
             try:
                 from models.lab_request import LabResult
 
-                req_results = (
+                req_ids = [r.id for r in lab_requests]
+                all_results = (
                     db.session.execute(
                         select(LabResult)
-                        .filter(LabResult.request_id == req.id)
+                        .filter(LabResult.request_id.in_(req_ids), LabResult.tenant_id == g.tenant_id)
                         .order_by(desc(LabResult.created_at))
                     )
                     .scalars()
                     .all()
                 )
-                for r in req_results:
+                req_map = {r.id: r for r in lab_requests}
+                for r in all_results:
+                    req = req_map.get(r.request_id)
                     results.append(
                         {
                             'test_name': getattr(r, 'test_name', None)
-                            or getattr(req, 'test_name', 'غير محدد'),
+                            or getattr(req, 'test_name', 'غير محدد') if req else getattr(r, 'test_name', None),
                             'value': getattr(r, 'value', None),
                             'unit': getattr(r, 'unit', None),
                             'reference_range': getattr(r, 'reference_range', None),

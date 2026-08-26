@@ -78,7 +78,6 @@ def _get_redis() -> object | None:
 
 
 def _cleanup_expired(window_seconds: int = 60):
-    """Periodically purge expired entries from in-memory store."""
     global _last_cleanup
     now = time.time()
     if now - _last_cleanup < 60:
@@ -86,9 +85,18 @@ def _cleanup_expired(window_seconds: int = 60):
     _last_cleanup = now
     cutoff = now - window_seconds
     with _store_lock:
-        expired = [k for k, v in _shared_store.items() if v and v[-1] < cutoff]
+        expired = []
+        for k, v in list(_shared_store.items()):
+            if not v:
+                expired.append(k)
+                continue
+            filtered = [t for t in v if t > cutoff]
+            if not filtered:
+                expired.append(k)
+            elif len(filtered) != len(v):
+                _shared_store[k] = filtered
         for k in expired:
-            del _shared_store[k]
+            _shared_store.pop(k, None)
 
 
 class RateLimiter:
@@ -109,23 +117,26 @@ class RateLimiter:
         self._fallback_count = 0
 
     def is_allowed(self, key: str) -> bool:
-        """Check if request is allowed under rate limit."""
         now = time.time()
         window_start = now - self.window
         full_key = f'{self.namespace}:{key}'
-
-        # Try Redis first
         if self.use_redis and self._redis:
             try:
-                # Use Redis sorted set for sliding window
+                import uuid
+
                 pipe = self._redis.pipeline()
                 pipe.zremrangebyscore(full_key, 0, window_start)
                 pipe.zcard(full_key)
-                pipe.zadd(full_key, {str(now): now})
-                pipe.expire(full_key, self.window + 1)
                 results = pipe.execute()
                 current_count = results[1]
-                return current_count < self.max_requests
+                if current_count >= self.max_requests:
+                    return False
+                member = f"{now}:{uuid.uuid4().hex}"
+                pipe2 = self._redis.pipeline()
+                pipe2.zadd(full_key, {member: now})
+                pipe2.expire(full_key, self.window + 1)
+                pipe2.execute()
+                return True
             except Exception as e:
                 logger.warning(f'Rate limiter Redis error, falling back to memory: {e}')
                 self._redis = None

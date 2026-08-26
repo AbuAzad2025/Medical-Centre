@@ -26,7 +26,6 @@ class PrescriptionService:
 
     @staticmethod
     def check_interactions(medication_ids: list[int]) -> list[dict]:
-        """Check for drug interactions between a list of medication IDs."""
         from models.drug_interaction import DrugInteraction
         from models.medication import Medication
 
@@ -53,27 +52,26 @@ class PrescriptionService:
                     .scalars()
                     .all()
                 )
+                med_ids_needed = set()
                 for row in rows:
-                    a = (
+                    med_ids_needed.add(row.medication_a_id)
+                    med_ids_needed.add(row.medication_b_id)
+                med_map = {}
+                if med_ids_needed:
+                    meds = (
                         db.session.execute(
                             select(Medication).filter(
-                                Medication.id == row.medication_a_id,
-                                Medication.tenant_id == g.tenant_id,
+                                Medication.id.in_(med_ids_needed),
+                                Medication.tenant_id == getattr(g, 'tenant_id', None),
                             )
                         )
                         .scalars()
-                        .first()
+                        .all()
                     )
-                    b = (
-                        db.session.execute(
-                            select(Medication).filter(
-                                Medication.id == row.medication_b_id,
-                                Medication.tenant_id == g.tenant_id,
-                            )
-                        )
-                        .scalars()
-                        .first()
-                    )
+                    med_map = {m.id: m for m in meds}
+                for row in rows:
+                    a = med_map.get(row.medication_a_id)
+                    b = med_map.get(row.medication_b_id)
                     a_name = a.trade_name if a else f'ID {row.medication_a_id}'
                     b_name = b.trade_name if b else f'ID {row.medication_b_id}'
                     warnings.append(
@@ -88,29 +86,27 @@ class PrescriptionService:
                         }
                     )
         except Exception:
-            pass
+            logging.exception('Error checking drug interactions')
         return warnings
 
     @staticmethod
     def check_patient_allergies(patient_id: int, medication_ids: list[int]) -> list[dict]:
-        """Check if any medications conflict with patient allergies."""
         from models.medication import Medication
         from models.patient import PatientAllergy
 
         conflicts = []
         try:
-            allergies = (
-                db.session.execute(select(PatientAllergy).filter_by(patient_id=patient_id))
-                .scalars()
-                .all()
-            )
+            tenant_id = getattr(g, 'tenant_id', None)
+            allergy_q = select(PatientAllergy).filter(PatientAllergy.patient_id == patient_id)
+            if tenant_id is not None:
+                allergy_q = allergy_q.filter(PatientAllergy.tenant_id == tenant_id)
+            allergies = db.session.execute(allergy_q).scalars().all()
             if not allergies:
                 return conflicts
-            meds = (
-                db.session.execute(select(Medication).filter(Medication.id.in_(medication_ids)))
-                .scalars()
-                .all()
-            )
+            med_q = select(Medication).filter(Medication.id.in_(medication_ids))
+            if tenant_id is not None:
+                med_q = med_q.filter(Medication.tenant_id == tenant_id)
+            meds = db.session.execute(med_q).scalars().all()
             for med in meds:
                 for allergy in allergies:
                     allergen = allergy.allergen
@@ -125,7 +121,7 @@ class PrescriptionService:
                             }
                         )
         except Exception:
-            pass
+            logging.exception('Error checking patient allergies')
         return conflicts
 
     # ==================== PRESCRIPTION CREATION ====================
@@ -198,9 +194,37 @@ class PrescriptionService:
                         msgs = '; '.join(a.message for a in hard_stops)
                         return False, msgs
 
+        if not isinstance(patient_id, int) or patient_id <= 0:
+            return False, 'Invalid patient_id'
+        if items:
+            for item_data in items:
+                qty = item_data.get('quantity', 1)
+                try:
+                    qty_int = int(qty) if qty is not None else 1
+                except Exception:
+                    return False, 'Invalid quantity value'
+                if qty_int <= 0 or qty_int > 1000:
+                    return False, f'Invalid quantity {qty_int}: must be 1-1000'
+                dur = item_data.get('duration_days', 7)
+                try:
+                    dur_int = int(dur) if dur is not None else 7
+                except Exception:
+                    return False, 'Invalid duration_days value'
+                if dur_int <= 0 or dur_int > 365:
+                    return False, f'Invalid duration_days {dur_int}: must be 1-365'
+                dosage = (item_data.get('dosage') or '').strip()
+                if not dosage:
+                    return False, 'dosage is required for each item'
+                med_id = item_data.get('medication_id')
+                if med_id is not None:
+                    try:
+                        int(med_id)
+                    except Exception:
+                        return False, f'Invalid medication_id {med_id}'
+
         try:
             prescription = Prescription(
-                tenant_id=tenant_id,
+                tenant_id=resolved_tenant_id,
                 patient_id=patient_id,
                 doctor_id=doctor_id,
                 visit_id=visit_id,
@@ -227,7 +251,9 @@ class PrescriptionService:
                         .first()
                     )
                     if not med:
-                        safe_commit(db.session, error_message='Medication not found, rolling back')
+                        from utils.db_safety import safe_rollback
+
+                        safe_rollback(db.session, error_message='Medication not found, rolling back')
                         return False, f'Medication {med_id} not found'
 
                     item_qty = int(item_data.get('quantity', 1) or 1)
@@ -235,7 +261,7 @@ class PrescriptionService:
                     total_price = unit_price * item_qty
 
                     item = PrescriptionItem(
-                        tenant_id=tenant_id,
+                        tenant_id=resolved_tenant_id,
                         prescription_id=prescription.id,
                         medication_id=med.id,
                         dosage=item_data.get('dosage', ''),
@@ -258,21 +284,21 @@ class PrescriptionService:
     @staticmethod
     @require_module('pharmacy')
     def verify_controlled_dispense(prescription_id: int) -> list[dict]:
-        """Return controlled-substance line items on a prescription (empty if none).
+        from models.medication import Medication, Prescription, PrescriptionItem
 
-        G-1 dispense verification: any item whose Medication has ``is_controlled``
-        set must be explicitly acknowledged before the pharmacy dispenses it.
-        """
-        from models.medication import Medication, PrescriptionItem
-
-        rows = db.session.execute(
+        tenant_id = getattr(g, 'tenant_id', None)
+        q = (
             select(Medication, PrescriptionItem)
             .join(PrescriptionItem, PrescriptionItem.medication_id == Medication.id)
+            .join(Prescription, Prescription.id == PrescriptionItem.prescription_id)
             .filter(
                 PrescriptionItem.prescription_id == prescription_id,
                 Medication.is_controlled.is_(True),
             )
-        ).all()
+        )
+        if tenant_id is not None:
+            q = q.filter(Prescription.tenant_id == tenant_id, Medication.tenant_id == tenant_id)
+        rows = db.session.execute(q).all()
         return [
             {'medication_id': m.id, 'trade_name': m.trade_name, 'schedule': m.schedule}
             for m, _ in rows
@@ -283,31 +309,22 @@ class PrescriptionService:
     def get_active_prescriptions(patient_id: int) -> list:
         from models.medication import Prescription
 
-        return (
-            db.session.execute(
-                select(Prescription)
-                .filter_by(patient_id=patient_id, status='active')
-                .order_by(Prescription.created_at.desc())
-            )
-            .scalars()
-            .all()
-        )
+        tenant_id = getattr(g, 'tenant_id', None)
+        q = select(Prescription).filter(Prescription.patient_id == patient_id, Prescription.status == 'active')
+        if tenant_id is not None:
+            q = q.filter(Prescription.tenant_id == tenant_id)
+        return db.session.execute(q.order_by(Prescription.created_at.desc())).scalars().all()
 
     @staticmethod
     @require_module('pharmacy')
     def get_prescriptions_by_doctor(doctor_id: int, limit: int = 50) -> list:
         from models.medication import Prescription
 
-        return (
-            db.session.execute(
-                select(Prescription)
-                .filter_by(doctor_id=doctor_id)
-                .order_by(Prescription.created_at.desc())
-                .limit(limit)
-            )
-            .scalars()
-            .all()
-        )
+        tenant_id = getattr(g, 'tenant_id', None)
+        q = select(Prescription).filter(Prescription.doctor_id == doctor_id)
+        if tenant_id is not None:
+            q = q.filter(Prescription.tenant_id == tenant_id)
+        return db.session.execute(q.order_by(Prescription.created_at.desc()).limit(limit)).scalars().all()
 
     # ==================== MEDICATION INVENTORY ====================
 
@@ -316,35 +333,29 @@ class PrescriptionService:
     def get_low_stock_medications(limit: int = 10) -> list:
         from models.medication import Medication
 
-        return (
-            db.session.execute(
-                select(Medication)
-                .filter(Medication.stock_quantity <= Medication.minimum_stock)
-                .limit(limit)
-            )
-            .scalars()
-            .all()
-        )
+        tenant_id = getattr(g, 'tenant_id', None)
+        q = select(Medication).filter(Medication.stock_quantity <= Medication.minimum_stock)
+        if tenant_id is not None:
+            q = q.filter(Medication.tenant_id == tenant_id)
+        return db.session.execute(q.limit(limit)).scalars().all()
 
     @staticmethod
     @require_module('pharmacy')
     def search_medications(query: str) -> list:
         from models.medication import Medication
 
-        return (
-            db.session.execute(
-                select(Medication)
-                .filter(
-                    or_(
-                        Medication.trade_name.ilike(f'%{query}%'),
-                        Medication.generic_name.ilike(f'%{query}%'),
-                    )
-                )
-                .order_by(Medication.trade_name)
+        if not query or not query.strip():
+            return []
+        tenant_id = getattr(g, 'tenant_id', None)
+        q = select(Medication).filter(
+            or_(
+                Medication.trade_name.ilike(f'%{query.strip()}%'),
+                Medication.generic_name.ilike(f'%{query.strip()}%'),
             )
-            .scalars()
-            .all()
         )
+        if tenant_id is not None:
+            q = q.filter(Medication.tenant_id == tenant_id)
+        return db.session.execute(q.order_by(Medication.trade_name)).scalars().all()
 
     @staticmethod
     @require_module('pharmacy')
@@ -352,6 +363,8 @@ class PrescriptionService:
         from models.medication import Medication
 
         try:
+            if not isinstance(quantity_change, (int, float)):
+                return False
             med = (
                 db.session.execute(
                     select(Medication).filter(
@@ -363,7 +376,10 @@ class PrescriptionService:
             )
             if not med:
                 return False
-            med.stock_quantity = (med.stock_quantity or 0) + quantity_change
+            new_qty = (med.stock_quantity or 0) + quantity_change
+            if new_qty < 0:
+                return False
+            med.stock_quantity = new_qty
             return safe_commit(db.session, error_message='Failed to update stock')
         except Exception:
             logging.exception('Error updating medication stock: %s')
@@ -380,6 +396,8 @@ class PrescriptionService:
         from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
 
         try:
+            if quantity is None or float(quantity) <= 0:
+                return None
             med = (
                 db.session.execute(
                     select(Medication).filter(
@@ -391,7 +409,9 @@ class PrescriptionService:
             )
             if not med:
                 return None
+            tenant_id = getattr(g, 'tenant_id', None) or med.tenant_id
             request = MedicationSupplyRequest(
+                tenant_id=tenant_id,
                 request_number=f'SR-{uuid.uuid4().hex[:8].upper()}',
                 status='DRAFT',
                 notes=notes,
@@ -402,9 +422,10 @@ class PrescriptionService:
             db.session.flush()
 
             item = MedicationSupplyRequestItem(
+                tenant_id=tenant_id,
                 request_id=request.id,
                 medication_id=medication_id,
-                requested_qty=quantity,
+                requested_qty=int(quantity),
             )
             db.session.add(item)
             if not safe_commit(db.session, error_message='Failed to create supply request'):
@@ -419,10 +440,13 @@ class PrescriptionService:
     def get_supply_requests(status: str | None = None) -> list:
         from models.supply_request import MedicationSupplyRequest
 
-        q = MedicationSupplyRequest.query
+        tenant_id = getattr(g, 'tenant_id', None)
+        q = select(MedicationSupplyRequest)
+        if tenant_id is not None:
+            q = q.filter(MedicationSupplyRequest.tenant_id == tenant_id)
         if status:
-            q = q.filter_by(status=status)
-        return q.order_by(MedicationSupplyRequest.created_at.desc()).all()
+            q = q.filter(MedicationSupplyRequest.status == status)
+        return db.session.execute(q.order_by(MedicationSupplyRequest.created_at.desc())).scalars().all()
 
     # ==================== NOTIFICATION ====================
 
@@ -439,7 +463,7 @@ class PrescriptionService:
                 notification_type='warning',
             )
         except Exception:
-            pass
+            logging.exception('Error notifying pharmacy about non-catalog medication')
 
     # ==================== AUDIT ====================
 
@@ -480,7 +504,9 @@ class PrescriptionService:
 
         _allowed = {'create', 'update', 'delete', 'view', 'export', 'import', 'security'}
         try:
+            tid = getattr(g, 'tenant_id', None)
             log = AuditTrail(
+                tenant_id=tid,
                 entity_type='system',
                 entity_id=0,
                 action=action if action in _allowed else 'update',
@@ -493,7 +519,7 @@ class PrescriptionService:
             db.session.add(log)
             safe_commit(db.session, error_message='Failed to log action')
         except Exception:
-            pass
+            logging.exception('Error logging prescription action')
 
 
 # Singleton

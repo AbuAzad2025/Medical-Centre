@@ -21,7 +21,7 @@
         'X-CSRFToken': csrf(),
       },
       body: JSON.stringify(updates),
-    }).catch(function () {});
+    }).catch(function(){ if(window.showToast) window.showToast('تعذر حفظ التفضيلات','error'); });
   }
 
   function applyDensity(value) {

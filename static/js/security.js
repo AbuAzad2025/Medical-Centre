@@ -356,16 +356,19 @@ class AuditLogger {
     }
 
     sendLog(logEntry) {
-        const headers = { 'Content-Type': 'application/json' };
-        if (this.csrfToken) {
-            headers['X-CSRFToken'] = this.csrfToken;
+        const headers = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
+        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        var token = this.csrfToken || (csrfMeta ? csrfMeta.content : '');
+        if (token) {
+            headers['X-CSRFToken'] = token;
         }
         const auditLogUrl = (window.API_ROUTES && window.API_ROUTES.audit_log) || '/super-admin/api/audit-log';
         fetch(auditLogUrl, {
             method: 'POST',
+            credentials: 'same-origin',
             headers,
             body: JSON.stringify(logEntry)
-        }).catch(() => { console.warn('فشل إرسال سجل التدقيق'); });
+        }).catch(function(){ console.warn('فشل إرسال سجل التدقيق'); });
     }
 }
 

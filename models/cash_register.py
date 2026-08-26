@@ -85,6 +85,6 @@ class CashRegister(TenantMixin, db.Model):
             'is_closed': self.is_closed,
             'opening_cash': float(self.opening_cash or 0),
             'expected_total': float(self.expected_total or 0),
-            'actual_total': float(self.actual_total or 0) if self.actual_total else None,
-            'variance': float(self.variance or 0) if self.variance else None,
+            'actual_total': float(self.actual_total) if self.actual_total is not None else None,
+            'variance': float(self.variance) if self.variance is not None else None,
         }

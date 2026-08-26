@@ -5,6 +5,7 @@ Medical System Report Management Service
 
 import logging
 from datetime import UTC, datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
 
 from sqlalchemy import and_, func, or_, select, text
 
@@ -610,28 +611,66 @@ class ReportService:
             for payment in payments_today:
                 method = payment.method
                 if method not in payment_by_method:
-                    payment_by_method[method] = {'count': 0, 'amount': 0}
+                    payment_by_method[method] = {
+                        'count': 0,
+                        'amount': Decimal('0.00'),
+                    }
                 payment_by_method[method]['count'] += 1
-                payment_by_method[method]['amount'] += float(payment.amount)
+                amt = Decimal(str(payment.amount or 0)).quantize(
+                    Decimal('0.01'), rounding=ROUND_HALF_UP
+                )
+                payment_by_method[method]['amount'] = (
+                    payment_by_method[method]['amount'] + amt
+                ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                payment_by_method[method]['amount'] = float(payment_by_method[method]['amount'])
 
-            # حساب المبالغ حسب الحالة
             payment_by_status = {}
             for payment in payments_today:
                 status = payment.status
                 if status not in payment_by_status:
-                    payment_by_status[status] = {'count': 0, 'amount': 0}
+                    payment_by_status[status] = {'count': 0, 'amount': Decimal('0.00')}
                 payment_by_status[status]['count'] += 1
-                payment_by_status[status]['amount'] += float(payment.amount)
+                amt = Decimal(str(payment.amount or 0)).quantize(
+                    Decimal('0.01'), rounding=ROUND_HALF_UP
+                )
+                payment_by_status[status]['amount'] = (
+                    payment_by_status[status]['amount'] + amt
+                ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                payment_by_status[status]['amount'] = float(payment_by_status[status]['amount'])
 
             total_collected = sum(
-                float(p.amount) for p in payments_today if p.status == PaymentStatus.CONFIRMED
-            )
+                (
+                    Decimal(str(p.amount or 0)).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
+                    for p in payments_today
+                    if p.status == PaymentStatus.CONFIRMED
+                ),
+                Decimal('0.00'),
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            total_collected = float(total_collected)
             total_pending = sum(
-                float(p.amount) for p in payments_today if p.status == PaymentStatus.PENDING
-            )
+                (
+                    Decimal(str(p.amount or 0)).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
+                    for p in payments_today
+                    if p.status == PaymentStatus.PENDING
+                ),
+                Decimal('0.00'),
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            total_pending = float(total_pending)
             total_cancelled = sum(
-                float(p.amount) for p in payments_today if p.status == PaymentStatus.CANCELLED
-            )
+                (
+                    Decimal(str(p.amount or 0)).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
+                    for p in payments_today
+                    if p.status == PaymentStatus.CANCELLED
+                ),
+                Decimal('0.00'),
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            total_cancelled = float(total_cancelled)
 
             payment_stats = {
                 'total_transactions': len(payments_today),
@@ -688,17 +727,46 @@ class ReportService:
             ]
 
             total_insurance_amount = sum(
-                float(v.insurance_amount or 0) for v in insurance_visits_today
-            )
-            total_patient_share = sum(float(v.patient_share or 0) for v in insurance_visits_today)
-            patient_share_collected = sum(float(v.paid_amount or 0) for v in insurance_visits_today)
+                (
+                    Decimal(str(v.insurance_amount or 0)).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
+                    for v in insurance_visits_today
+                ),
+                Decimal('0.00'),
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            total_insurance_amount = float(total_insurance_amount)
+            total_patient_share = sum(
+                (
+                    Decimal(str(v.patient_share or 0)).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
+                    for v in insurance_visits_today
+                ),
+                Decimal('0.00'),
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            total_patient_share = float(total_patient_share)
+            patient_share_collected = sum(
+                (
+                    Decimal(str(v.paid_amount or 0)).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
+                    for v in insurance_visits_today
+                ),
+                Decimal('0.00'),
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            patient_share_collected = float(patient_share_collected)
 
             insurance_stats = {
                 'total_visits': len(insurance_visits_today),
                 'total_insurance_amount': total_insurance_amount,
                 'total_patient_share': total_patient_share,
                 'patient_share_collected': patient_share_collected,
-                'patient_share_pending': total_patient_share - patient_share_collected,
+                'patient_share_pending': float(
+                    (Decimal(str(total_patient_share)) - Decimal(str(patient_share_collected))).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
+                ),
                 'by_provider': {},
             }
 
@@ -720,11 +788,17 @@ class ReportService:
                         'patient_share': 0,
                     }
                 insurance_stats['by_provider'][provider]['count'] += 1
-                insurance_stats['by_provider'][provider]['total_amount'] += float(
-                    visit.insurance_amount or 0
+                insurance_stats['by_provider'][provider]['total_amount'] = float(
+                    (
+                        Decimal(str(insurance_stats['by_provider'][provider]['total_amount'] or 0))
+                        + Decimal(str(visit.insurance_amount or 0))
+                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                 )
-                insurance_stats['by_provider'][provider]['patient_share'] += float(
-                    visit.patient_share or 0
+                insurance_stats['by_provider'][provider]['patient_share'] = float(
+                    (
+                        Decimal(str(insurance_stats['by_provider'][provider]['patient_share'] or 0))
+                        + Decimal(str(visit.patient_share or 0))
+                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                 )
 
             # ========== 5. قضايا التدقيق (Issues) ==========
@@ -764,7 +838,6 @@ class ReportService:
                     }
                 )
 
-            # التحقق من دفعات ملغاة
             cancelled_payments = [p for p in payments_today if p.status == PaymentStatus.CANCELLED]
             if cancelled_payments:
                 audit_issues.append(
@@ -776,7 +849,11 @@ class ReportService:
                         'details': [
                             {
                                 'payment_id': p.id,
-                                'amount': float(p.amount),
+                                'amount': float(
+                                    Decimal(str(p.amount or 0)).quantize(
+                                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                                    )
+                                ),
                                 'cancelled_by': p.cancelled_by,
                                 'reason': p.cancellation_reason,
                             }
@@ -785,9 +862,12 @@ class ReportService:
                     }
                 )
 
-            # التحقق من مبالغ كبيرة نقدية
             large_cash_payments = [
-                p for p in payments_today if p.method == 'CASH' and float(p.amount) > 1000
+                p
+                for p in payments_today
+                if p.method == 'CASH'
+                and Decimal(str(p.amount or 0)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                > Decimal('1000.00')
             ]
             if large_cash_payments:
                 audit_issues.append(
@@ -797,7 +877,14 @@ class ReportService:
                         'count': len(large_cash_payments),
                         'message': f'{len(large_cash_payments)} دفعة نقدية كبيرة (> 1000 شيكل)',
                         'details': [
-                            {'payment_id': p.id, 'amount': float(p.amount)}
+                            {
+                                'payment_id': p.id,
+                                'amount': float(
+                                    Decimal(str(p.amount or 0)).quantize(
+                                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                                    )
+                                ),
+                            }
                             for p in large_cash_payments
                         ],
                     }
@@ -926,20 +1013,54 @@ class ReportService:
                 .all()
             )
 
-            total_revenue = sum(float(p.amount) for p in payments_month)
-            cash_revenue = sum(float(p.amount) for p in payments_month if p.method == 'CASH')
-            card_revenue = sum(float(p.amount) for p in payments_month if p.method == 'CARD')
+            total_revenue = sum(
+                (
+                    Decimal(str(p.amount or 0)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    for p in payments_month
+                ),
+                Decimal('0.00'),
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            total_revenue = float(total_revenue)
+            cash_revenue = sum(
+                (
+                    Decimal(str(p.amount or 0)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    for p in payments_month
+                    if p.method == 'CASH'
+                ),
+                Decimal('0.00'),
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            cash_revenue = float(cash_revenue)
+            card_revenue = sum(
+                (
+                    Decimal(str(p.amount or 0)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    for p in payments_month
+                    if p.method == 'CARD'
+                ),
+                Decimal('0.00'),
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            card_revenue = float(card_revenue)
             insurance_revenue = sum(
-                float(p.amount) for p in payments_month if p.method == 'INSURANCE'
-            )
+                (
+                    Decimal(str(p.amount or 0)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    for p in payments_month
+                    if p.method == 'INSURANCE'
+                ),
+                Decimal('0.00'),
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            insurance_revenue = float(insurance_revenue)
 
-            # الإيرادات اليومية
             daily_revenue = {}
             for payment in payments_month:
                 day = payment.created_at.day
                 if day not in daily_revenue:
-                    daily_revenue[day] = 0
-                daily_revenue[day] += float(payment.amount)
+                    daily_revenue[day] = Decimal('0.00')
+                amt = Decimal(str(payment.amount or 0)).quantize(
+                    Decimal('0.01'), rounding=ROUND_HALF_UP
+                )
+                daily_revenue[day] = (daily_revenue[day] + amt).quantize(
+                    Decimal('0.01'), rounding=ROUND_HALF_UP
+                )
+            daily_revenue = {k: float(v) for k, v in daily_revenue.items()}
 
             financial_stats = {
                 'total_revenue': total_revenue,
@@ -977,8 +1098,28 @@ class ReportService:
                 'approval_rate': round(len(force_approved) / len(force_visits_month) * 100, 2)
                 if force_visits_month
                 else 0,
-                'total_amount': sum(float(v.total_amount or 0) for v in force_visits_month),
-                'collected_amount': sum(float(v.paid_amount or 0) for v in force_approved),
+                'total_amount': float(
+                    sum(
+                        (
+                            Decimal(str(v.total_amount or 0)).quantize(
+                                Decimal('0.01'), rounding=ROUND_HALF_UP
+                            )
+                            for v in force_visits_month
+                        ),
+                        Decimal('0.00'),
+                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                ),
+                'collected_amount': float(
+                    sum(
+                        (
+                            Decimal(str(v.paid_amount or 0)).quantize(
+                                Decimal('0.01'), rounding=ROUND_HALF_UP
+                            )
+                            for v in force_approved
+                        ),
+                        Decimal('0.00'),
+                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                ),
             }
 
             # ========== 4. تحليل التأمين ==========
@@ -988,11 +1129,39 @@ class ReportService:
                 if (getattr(v, 'payment_method', '') or '').lower() == 'insurance'
             ]
 
-            total_insurance_billed = sum(
-                float(v.insurance_amount or 0) for v in insurance_visits_month
+            total_insurance_billed = float(
+                sum(
+                    (
+                        Decimal(str(v.insurance_amount or 0)).quantize(
+                            Decimal('0.01'), rounding=ROUND_HALF_UP
+                        )
+                        for v in insurance_visits_month
+                    ),
+                    Decimal('0.00'),
+                ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             )
-            total_patient_share = sum(float(v.patient_share or 0) for v in insurance_visits_month)
-            patient_share_collected = sum(float(v.paid_amount or 0) for v in insurance_visits_month)
+            total_patient_share = float(
+                sum(
+                    (
+                        Decimal(str(v.patient_share or 0)).quantize(
+                            Decimal('0.01'), rounding=ROUND_HALF_UP
+                        )
+                        for v in insurance_visits_month
+                    ),
+                    Decimal('0.00'),
+                ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            )
+            patient_share_collected = float(
+                sum(
+                    (
+                        Decimal(str(v.paid_amount or 0)).quantize(
+                            Decimal('0.01'), rounding=ROUND_HALF_UP
+                        )
+                        for v in insurance_visits_month
+                    ),
+                    Decimal('0.00'),
+                ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            )
 
             insurance_analysis = {
                 'total_visits': len(insurance_visits_month),
@@ -1010,12 +1179,20 @@ class ReportService:
                 else 0,
             }
 
-            # ========== 5. KPIs الشهرية ==========
+            total_billed_sum = float(
+                sum(
+                    (
+                        Decimal(str(v.total_amount or 0)).quantize(
+                            Decimal('0.01'), rounding=ROUND_HALF_UP
+                        )
+                        for v in visits_month
+                    ),
+                    Decimal('0.00'),
+                ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            )
             kpis = {
-                'collection_rate': round(
-                    total_revenue / sum(float(v.total_amount or 0) for v in visits_month) * 100, 2
-                )
-                if visits_month
+                'collection_rate': round(total_revenue / total_billed_sum * 100, 2)
+                if visits_month and total_billed_sum
                 else 0,
                 'force_payment_percentage': force_payment_analysis['percentage_of_visits'],
                 'avg_visit_value': round(total_revenue / len(visits_month), 2)
@@ -1068,7 +1245,17 @@ class ReportService:
 
             debt_analysis = {
                 'total_debts': len(debts),
-                'total_amount': sum(float(v.remaining_amount) for v in debts),
+                'total_amount': float(
+                    sum(
+                        (
+                            Decimal(str(v.remaining_amount or 0)).quantize(
+                                Decimal('0.01'), rounding=ROUND_HALF_UP
+                            )
+                            for v in debts
+                        ),
+                        Decimal('0.00'),
+                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                ),
                 'by_reason': {},
                 'oldest_debt': min([v.created_at for v in debts]).isoformat() if debts else None,
             }
@@ -1136,7 +1323,11 @@ class ReportService:
             today = datetime.now()
             for debt in pending_debts:
                 age = (today - debt.created_at).days
-                remaining = float(debt.remaining_amount)
+                remaining = float(
+                    Decimal(str(debt.remaining_amount or 0)).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
+                )
 
                 debt_info = {
                     'visit_id': debt.id,
@@ -1149,8 +1340,16 @@ class ReportService:
                     'department_name': getattr(getattr(debt, 'department', None), 'name_ar', None),
                     'created_at': debt.created_at.isoformat(),
                     'age_days': age,
-                    'total_amount': float(debt.total_amount or 0),
-                    'paid_amount': float(debt.paid_amount or 0),
+                    'total_amount': float(
+                        Decimal(str(debt.total_amount or 0)).quantize(
+                            Decimal('0.01'), rounding=ROUND_HALF_UP
+                        )
+                    ),
+                    'paid_amount': float(
+                        Decimal(str(debt.paid_amount or 0)).quantize(
+                            Decimal('0.01'), rounding=ROUND_HALF_UP
+                        )
+                    ),
                     'remaining_amount': remaining,
                     'payment_method': debt.payment_method,
                     'is_force_payment': debt.is_force_payment,
@@ -1165,10 +1364,29 @@ class ReportService:
                 else:
                     debts_by_age['60+_days'].append(debt_info)
 
-            # حساب المبالغ
-            total_debt = sum(float(d.remaining_amount) for d in pending_debts)
+            total_debt = float(
+                sum(
+                    (
+                        Decimal(str(d.remaining_amount or 0)).quantize(
+                            Decimal('0.01'), rounding=ROUND_HALF_UP
+                        )
+                        for d in pending_debts
+                    ),
+                    Decimal('0.00'),
+                ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            )
             debt_by_age_amounts = {
-                key: sum(d['remaining_amount'] for d in debts)
+                key: float(
+                    sum(
+                        (
+                            Decimal(str(d['remaining_amount'] or 0)).quantize(
+                                Decimal('0.01'), rounding=ROUND_HALF_UP
+                            )
+                            for d in debts
+                        ),
+                        Decimal('0.00'),
+                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                )
                 for key, debts in debts_by_age.items()
             }
 

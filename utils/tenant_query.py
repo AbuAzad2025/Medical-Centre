@@ -80,6 +80,22 @@ def get_tenant_record(
     return record
 
 
+def _is_saas_mode() -> bool:
+    try:
+        from flask import current_app
+
+        return bool(current_app.config.get('ENABLE_SAAS_MODE', False))
+    except Exception:
+        return False
+
+
+def _is_tenant_bypass() -> bool:
+    try:
+        return bool(g.get('_tenant_filter_bypass', False))
+    except Exception:
+        return False
+
+
 def tenant_filter(model: type[DeclarativeMeta], tenant_id: int | None = None):
     """
     Return a base query scoped to the active tenant.
@@ -87,7 +103,16 @@ def tenant_filter(model: type[DeclarativeMeta], tenant_id: int | None = None):
     Useful when the caller needs to apply additional filters beyond a simple
     primary-key lookup.
     """
-    resolved_tenant_id = tenant_id if tenant_id is not None else getattr(g, 'tenant_id', None)
+    context_tenant_id = getattr(g, 'tenant_id', None)
+    if context_tenant_id is not None and tenant_id is not None and tenant_id != context_tenant_id:
+        raise TenantContextError('Unauthorized tenant context')
+    if tenant_id is not None and context_tenant_id is None:
+        raise TenantContextError('Unauthorized tenant context')
+    resolved_tenant_id = context_tenant_id if context_tenant_id is not None else tenant_id
+    if resolved_tenant_id is None and hasattr(model, 'tenant_id'):
+        if _is_saas_mode() and not _is_tenant_bypass():
+            raise TenantContextError('Unauthorized tenant context')
+        return model.query
     q = model.query
     if resolved_tenant_id is not None and hasattr(model, 'tenant_id'):
         q = q.filter(model.tenant_id == resolved_tenant_id)

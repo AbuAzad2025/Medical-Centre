@@ -21,17 +21,26 @@ class TenantContextService:
 
     @staticmethod
     def tenant_filter(query, model_cls):
-        """Apply tenant_id filter to a query if the model has tenant_id."""
         tenant_id = TenantContextService.get_current_tenant_id()
-        if tenant_id and hasattr(model_cls, 'tenant_id'):
+        if tenant_id is not None and hasattr(model_cls, 'tenant_id'):
             return query.filter(model_cls.tenant_id == tenant_id)
+        if hasattr(model_cls, 'tenant_id'):
+            try:
+                from flask import current_app
+
+                if current_app.config.get('ENABLE_SAAS_MODE', False):
+                    if not g.get('_tenant_filter_bypass', False):
+                        raise PermissionError('No tenant context found.')
+            except PermissionError:
+                raise
+            except Exception:
+                pass
         return query
 
     @staticmethod
     def apply_to_model(instance):
-        """Auto-assign tenant_id to a model instance before commit."""
         tenant_id = TenantContextService.get_current_tenant_id()
-        if tenant_id and hasattr(instance, 'tenant_id'):
+        if tenant_id is not None and hasattr(instance, 'tenant_id'):
             instance.tenant_id = tenant_id
 
     @staticmethod
@@ -51,9 +60,20 @@ class TenantContextService:
     def assert_tenant_access(record):
         tenant_id = TenantContextService.get_current_tenant_id()
         if tenant_id is None:
+            try:
+                from flask import current_app
+
+                if current_app.config.get('ENABLE_SAAS_MODE', False):
+                    if not g.get('_tenant_filter_bypass', False):
+                        from flask import abort
+
+                        abort(403, description='Cross-tenant access denied')
+            except Exception as exc:
+                if 'Cross-tenant' in str(exc):
+                    raise
             return
         record_tenant = getattr(record, 'tenant_id', None)
-        if record_tenant and record_tenant != tenant_id:
+        if record_tenant is not None and record_tenant != tenant_id:
             from flask import abort
 
             abort(403, description='Cross-tenant access denied')

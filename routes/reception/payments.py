@@ -354,9 +354,17 @@ def cash_register():
         .scalars()
         .all()
     )
-    exp_cash = sum(float(p.amount or 0) for p in payments if p.method == 'cash')
-    exp_card = sum(float(p.amount or 0) for p in payments if p.method == 'card')
-    exp_ins = sum(float(p.amount or 0) for p in payments if p.method == 'insurance')
+    exp_cash = sum(
+        float(p.amount or 0) for p in payments if str(p.method or '').lower() == 'cash'
+    )
+    exp_card = sum(
+        float(p.amount or 0)
+        for p in payments
+        if str(p.method or '').lower() in {'card', 'visa', 'mada'}
+    )
+    exp_ins = sum(
+        float(p.amount or 0) for p in payments if str(p.method or '').lower() == 'insurance'
+    )
     reg.expected_cash = exp_cash
     reg.expected_card = exp_card
     reg.expected_insurance = exp_ins
@@ -376,14 +384,21 @@ def daily_close():
     from models.cash_register import CashRegister
 
     reg = CashRegister.get_or_create_today(current_user.id)
+    if reg.is_closed:
+        flash('اليومية مغلقة مسبقاً', 'warning')
+        return redirect(url_for('reception.cash_register'))
     if request.method == 'POST':
         try:
-            reg.actual_cash = float(request.form.get('actual_cash', 0))
-            reg.actual_card = float(request.form.get('actual_card', 0))
-            reg.actual_insurance = float(request.form.get('actual_insurance', 0))
-            reg.actual_total = (
-                (reg.actual_cash or 0) + (reg.actual_card or 0) + (reg.actual_insurance or 0)
-            )
+            actual_cash = float(request.form.get('actual_cash', 0) or 0)
+            actual_card = float(request.form.get('actual_card', 0) or 0)
+            actual_insurance = float(request.form.get('actual_insurance', 0) or 0)
+            if actual_cash < 0 or actual_card < 0 or actual_insurance < 0:
+                flash('المبالغ لا يمكن أن تكون سالبة', 'error')
+                return redirect(url_for('reception.daily_close'))
+            reg.actual_cash = actual_cash
+            reg.actual_card = actual_card
+            reg.actual_insurance = actual_insurance
+            reg.actual_total = (reg.actual_cash or 0) + (reg.actual_card or 0) + (reg.actual_insurance or 0)
             reg.variance = (reg.actual_total or 0) - (float(reg.expected_total or 0))
             reg.is_closed = True
             reg.is_open = False
@@ -391,6 +406,10 @@ def daily_close():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إغلاق اليومية بنجاح', 'success')
             return redirect(url_for('reception.cash_register'))
+        except ValueError:
+            safe_rollback(db.session, error_message='database rollback')
+            flash('الرجاء إدخال أرقام صحيحة', 'error')
+            return redirect(url_for('reception.daily_close'))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
             logging.exception('Error in daily close: %s')

@@ -147,7 +147,8 @@ class LabService:
         }
         if status not in allowed:
             status = 'REQUESTED'
-        q = LabRequest.query
+        tid = getattr(g, 'tenant_id', None)
+        q = LabRequest.query.filter(LabRequest.tenant_id == tid) if tid else LabRequest.query
         if status == 'DONE_TODAY':
             q = q.filter(
                 LabRequest.status == 'DONE', db.func.date(LabRequest.completed_at) == today
@@ -236,56 +237,222 @@ class LabService:
     @staticmethod
     @require_module('lab')
     def create_results_from_form(lab_request: Any, form_data: dict) -> tuple[list, list]:
-        """Create LabResult entries from form data. Returns (created_ids, errors)."""
         from models.lab_request import LabResult
+        from models.lab_test_catalog import LabTestCatalog
 
-        result_ids = form_data.get('result_ids', [])
-        test_names = form_data.get('test_names', [])
-        values = form_data.get('values', [])
-        units = form_data.get('units', [])
-        ranges = form_data.get('ranges', [])
-        statuses = form_data.get('statuses', [])
-        notes_list = form_data.get('notes_list', [])
+        def _parse_critical_raw(v):
+            if isinstance(v, bool):
+                return v
+            if isinstance(v, (int, float)):
+                return bool(v)
+            if isinstance(v, str):
+                return v.strip().lower() in {'1', 'true', 'yes', 'on'}
+            return False
 
+        def _auto_critical(val, code, explicit):
+            if explicit:
+                return True
+            if not val or not code:
+                return False
+            try:
+                fv = float(str(val).strip())
+            except Exception:
+                return False
+            try:
+                cat = db.session.execute(
+                    select(LabTestCatalog).filter(
+                        LabTestCatalog.code == code,
+                        LabTestCatalog.tenant_id == getattr(lab_request, 'tenant_id', None),
+                    )
+                ).scalars().first()
+                if not cat:
+                    return False
+                lo = None
+                hi = None
+                try:
+                    lo = float(cat.critical_low) if cat.critical_low not in (None, '') else None
+                except Exception:
+                    lo = None
+                try:
+                    hi = float(cat.critical_high) if cat.critical_high not in (None, '') else None
+                except Exception:
+                    hi = None
+                if lo is not None and fv <= lo:
+                    return True
+                if hi is not None and fv >= hi:
+                    return True
+            except Exception:
+                return False
+            return False
+
+        rows = form_data.get('rows')
+        if isinstance(rows, list) and rows:
+            created_ids = []
+            errors = []
+            for idx, row in enumerate(rows):
+                try:
+                    if not isinstance(row, dict):
+                        errors.append(f'Row {idx}: invalid row')
+                        continue
+                    raw_id = row.get('result_id') or row.get('id') or row.get('result_ids')
+                    result_id = None
+                    try:
+                        result_id = int(str(raw_id).strip()) if raw_id not in (None, '') else None
+                    except Exception:
+                        result_id = None
+                    test_code = (row.get('test_code') or row.get('code') or '').strip()
+                    test_name = (row.get('test_name') or row.get('name') or test_code or '').strip()
+                    value = (row.get('value') or '').strip() if row.get('value') is not None else ''
+                    unit = (row.get('unit') or '').strip() if row.get('unit') is not None else ''
+                    ref = (row.get('reference_range') or row.get('range') or '').strip() if (row.get('reference_range') or row.get('range')) is not None else ''
+                    status_val = (row.get('status') or 'PENDING').strip().upper() or 'PENDING'
+                    notes = (row.get('notes') or '').strip() if row.get('notes') is not None else ''
+                    explicit_critical = _parse_critical_raw(row.get('is_critical'))
+                    if not test_code and not test_name and not value:
+                        continue
+                    is_critical = _auto_critical(value, test_code or test_name, explicit_critical)
+                    tenant_id = getattr(lab_request, 'tenant_id', None) or getattr(g, 'tenant_id', None)
+                    if result_id:
+                        result = db.session.execute(
+                            select(LabResult).filter(LabResult.id == result_id, LabResult.tenant_id == tenant_id)
+                        ).scalars().first()
+                        if not result:
+                            errors.append(f'Row {idx}: result not found')
+                            continue
+                        if test_code:
+                            result.test_code = test_code
+                        if test_name:
+                            result.test_name = test_name
+                        result.value = value
+                        result.unit = unit
+                        result.reference_range = ref
+                        result.status = status_val if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'} else 'PENDING'
+                        result.notes = notes
+                        result.is_critical = is_critical
+                        created_ids.append(result.id)
+                    else:
+                        if not test_code and not test_name:
+                            errors.append(f'Row {idx}: test_code or test_name required')
+                            continue
+                        result = LabResult(
+                            tenant_id=tenant_id,
+                            request_id=lab_request.id,
+                            patient_id=lab_request.patient_id,
+                            test_code=test_code or test_name or 'NA',
+                            test_name=test_name or test_code or 'NA',
+                            value=value,
+                            unit=unit,
+                            reference_range=ref,
+                            status=status_val if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'} else 'PENDING',
+                            notes=notes,
+                            is_critical=is_critical,
+                        )
+                        db.session.add(result)
+                        db.session.flush()
+                        created_ids.append(result.id)
+                except Exception as e:
+                    errors.append(f'Row {idx}: {e!s}')
+            return created_ids, errors
+
+        result_ids = list(form_data.get('result_ids') or [])
+        test_codes = list(form_data.get('test_codes') or [])
+        test_names = list(form_data.get('test_names') or [])
+        values = list(form_data.get('values') or [])
+        units = list(form_data.get('units') or [])
+        ranges = list(form_data.get('ranges') or [])
+        statuses = list(form_data.get('statuses') or [])
+        notes_list = list(form_data.get('notes_list') or [])
+        is_critical_list = list(form_data.get('is_critical') or form_data.get('is_critical_list') or form_data.get('critical_flags') or [])
+
+        if not test_codes and test_names:
+            test_codes = test_names[:]
+
+        n = max(len(result_ids), len(test_codes), len(test_names), len(values), len(units), len(ranges), len(statuses), len(notes_list), len(is_critical_list), 0)
         created_ids = []
         errors = []
-
-        for i in range(len(test_names)):
+        tenant_id = getattr(lab_request, 'tenant_id', None) or getattr(g, 'tenant_id', None)
+        for i in range(n):
             try:
-                result_id = int(result_ids[i]) if i < len(result_ids) and result_ids[i] else None
-                if result_id:
-                    result = (
-                        db.session.execute(
-                            select(LabResult).filter(
-                                LabResult.id == result_id, LabResult.tenant_id == g.tenant_id
-                            )
-                        )
-                        .scalars()
-                        .first()
-                    )
-                    if result:
-                        result.value = values[i] if i < len(values) else ''
-                        result.unit = units[i] if i < len(units) else ''
-                        result.reference_range = ranges[i] if i < len(ranges) else ''
-                        result.status = statuses[i] if i < len(statuses) else 'PENDING'
-                        result.notes = notes_list[i] if i < len(notes_list) else ''
+                raw_id = result_ids[i] if i < len(result_ids) else None
+                result_id = None
+                if raw_id not in (None, ''):
+                    try:
+                        result_id = int(str(raw_id).strip())
+                    except Exception:
+                        result_id = None
+                test_code = (test_codes[i] if i < len(test_codes) else '').strip() if i < len(test_codes) and test_codes[i] is not None else ''
+                test_name = (test_names[i] if i < len(test_names) else '').strip() if i < len(test_names) and test_names[i] is not None else ''
+                if not test_code and test_name:
+                    test_code = test_name
+                if not test_name and test_code:
+                    test_name = test_code
+                value = (values[i] if i < len(values) else '')
+                if value is None:
+                    value = ''
                 else:
-                    test_name = test_names[i] if i < len(test_names) else ''
+                    value = str(value).strip()
+                unit = (units[i] if i < len(units) else '')
+                if unit is None:
+                    unit = ''
+                else:
+                    unit = str(unit).strip()
+                ref = (ranges[i] if i < len(ranges) else '')
+                if ref is None:
+                    ref = ''
+                else:
+                    ref = str(ref).strip()
+                status_val = (statuses[i] if i < len(statuses) else 'PENDING')
+                if status_val is None:
+                    status_val = 'PENDING'
+                else:
+                    status_val = str(status_val).strip().upper() or 'PENDING'
+                notes = (notes_list[i] if i < len(notes_list) else '')
+                if notes is None:
+                    notes = ''
+                else:
+                    notes = str(notes).strip()
+                raw_critical = is_critical_list[i] if i < len(is_critical_list) else False
+                explicit_critical = _parse_critical_raw(raw_critical)
+                if not test_code and not test_name and not value and not unit and not ref and not notes:
+                    continue
+                is_critical = _auto_critical(value, test_code, explicit_critical)
+                if result_id:
+                    result = db.session.execute(
+                        select(LabResult).filter(LabResult.id == result_id, LabResult.tenant_id == tenant_id)
+                    ).scalars().first()
+                    if not result:
+                        errors.append(f'Row {i}: result not found')
+                        continue
+                    if test_code:
+                        result.test_code = test_code
+                    if test_name:
+                        result.test_name = test_name
+                    result.value = value
+                    result.unit = unit
+                    result.reference_range = ref
+                    result.status = status_val if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'} else 'PENDING'
+                    result.notes = notes
+                    result.is_critical = is_critical
+                    created_ids.append(result.id)
+                else:
+                    if not test_code and not test_name:
+                        continue
                     result = LabResult(
-                        tenant_id=getattr(lab_request, 'tenant_id', None),
+                        tenant_id=tenant_id,
                         request_id=lab_request.id,
                         patient_id=lab_request.patient_id,
-                        test_code=test_name or 'NA',
-                        test_name=test_name,
-                        value=values[i] if i < len(values) else '',
-                        unit=units[i] if i < len(units) else '',
-                        reference_range=ranges[i] if i < len(ranges) else '',
-                        status=statuses[i] if i < len(statuses) else 'PENDING',
-                        notes=notes_list[i] if i < len(notes_list) else '',
+                        test_code=test_code or test_name or 'NA',
+                        test_name=test_name or test_code or 'NA',
+                        value=value,
+                        unit=unit,
+                        reference_range=ref,
+                        status=status_val if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'} else 'PENDING',
+                        notes=notes,
+                        is_critical=is_critical,
                     )
                     db.session.add(result)
                     db.session.flush()
-                created_ids.append(result_id if result_id else result.id)
+                    created_ids.append(result.id)
             except Exception as e:
                 errors.append(f'Row {i}: {e!s}')
         return created_ids, errors

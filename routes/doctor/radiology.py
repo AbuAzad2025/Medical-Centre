@@ -48,10 +48,22 @@ def radiology_request(visit_id):
             flash('لا يمكن طلب تصوير أشعة إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         if request.method == 'POST':
-            test_name = request.form.get('test_name') or ''
-            notes = request.form.get('notes') or request.form.get('test_description') or ''
+            test_name = (request.form.get('test_name') or '').strip()
+            notes = (request.form.get('notes') or request.form.get('test_description') or '').strip()
+            if len(test_name) > 200:
+                flash('اسم التصوير طويل جداً', 'warning')
+                return redirect(url_for('doctor.patient_details', visit_id=visit_id))
+            if len(notes) > 2000:
+                flash('الوصف طويل جداً', 'warning')
+                return redirect(url_for('doctor.patient_details', visit_id=visit_id))
             modality = (request.form.get('modality') or '').strip()
             body_part = (request.form.get('body_part') or '').strip()
+            if len(modality) > 50:
+                flash('الآلية طويلة جداً', 'warning')
+                return redirect(url_for('doctor.patient_details', visit_id=visit_id))
+            if len(body_part) > 200:
+                flash('المنطقة طويلة جداً', 'warning')
+                return redirect(url_for('doctor.patient_details', visit_id=visit_id))
             memo_parts = []
             if test_name:
                 memo_parts.append(f'نوع التصوير: {test_name}')
@@ -91,6 +103,7 @@ def radiology_request(visit_id):
             try:
                 db.session.add(
                     AuditTrail(
+                        tenant_id=g.tenant_id,
                         entity_type='radiology_test',
                         entity_id=visit.id,
                         action='create',
@@ -141,7 +154,7 @@ def radiology_results(patient_id):
         rad_requests = (
             db.session.execute(
                 select(RadiologyRequest)
-                .filter(RadiologyRequest.patient_id == patient_id)
+                .filter(RadiologyRequest.patient_id == patient_id, RadiologyRequest.tenant_id == g.tenant_id)
                 .order_by(desc(RadiologyRequest.created_at))
             )
             .scalars()
@@ -149,24 +162,27 @@ def radiology_results(patient_id):
         )
 
         results = []
-        for req in rad_requests:
+        if rad_requests:
             try:
                 from models.radiology_result import RadiologyResult
 
-                req_results = (
+                req_ids = [r.id for r in rad_requests]
+                req_map = {r.id: r for r in rad_requests}
+                all_results = (
                     db.session.execute(
                         select(RadiologyResult)
-                        .filter(RadiologyResult.request_id == req.id)
+                        .filter(RadiologyResult.request_id.in_(req_ids), RadiologyResult.tenant_id == g.tenant_id)
                         .order_by(desc(RadiologyResult.created_at))
                     )
                     .scalars()
                     .all()
                 )
-                for r in req_results:
+                for r in all_results:
+                    req = req_map.get(r.request_id)
                     results.append(
                         {
-                            'modality': getattr(req, 'modality', 'غير محدد'),
-                            'body_part': getattr(req, 'body_part', 'غير محدد'),
+                            'modality': getattr(req, 'modality', 'غير محدد') if req else 'غير محدد',
+                            'body_part': getattr(req, 'body_part', 'غير محدد') if req else 'غير محدد',
                             'findings': getattr(r, 'findings', None),
                             'impression': getattr(r, 'impression', None),
                             'status': getattr(r, 'status', 'PENDING'),

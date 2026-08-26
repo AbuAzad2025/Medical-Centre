@@ -52,6 +52,8 @@ class EncryptedString(TypeDecorator):
         svc = self._get_service()
         if svc is None:
             return value
+        if isinstance(value, str) and ('%' in value or '_' in value):
+            return value
         return svc.encrypt(value)
 
     def process_result_value(self, value, dialect):
@@ -62,3 +64,13 @@ class EncryptedString(TypeDecorator):
             return value
         logger.debug('PHI field decrypted')
         return svc.decrypt(value)
+
+    @staticmethod
+    def hash_for_lookup(plaintext: str) -> str:
+        import hashlib
+        import hmac
+
+        key = os.environ.get('FIELD_ENCRYPTION_KEY', '')
+        if not key:
+            return plaintext
+        return hmac.new(key.encode(), plaintext.encode(), hashlib.sha256).hexdigest()
