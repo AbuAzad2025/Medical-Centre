@@ -866,20 +866,40 @@ def owner_toggle_user_active(user_id):
 @login_required
 @owner_required
 def owner_reveal_user_password(user_id):
-    """Reveal user's current password via a temporary reset + display."""
+    """Restricted password reset-reveal — super_admin only, mandatory security audit."""
     import secrets
 
     from werkzeug.security import generate_password_hash
 
+    from models.audit_trail import AuditTrail
     from models.user import User
+
+    if current_user.role != 'super_admin':
+        if request.accept_mimetypes.best == 'application/json':
+            return jsonify({'success': False, 'message': 'غير متاح'}), 403
+        flash('هذا الإجراء غير متاح', 'error')
+        ref = request.referrer or url_for('owner.owner_users')
+        return redirect(ref)
 
     user = db.get_or_404(User, user_id)
     try:
         temp_password = secrets.token_urlsafe(8)
         user.password_hash = generate_password_hash(temp_password)
         user.session_version = (user.session_version or 0) + 1
+        db.session.add(
+            AuditTrail(
+                tenant_id=user.tenant_id,
+                entity_type='user',
+                entity_id=user.id,
+                action='security',
+                user_id=current_user.id,
+                user_ip=request.remote_addr,
+                user_agent=request.user_agent.string[:255] if request.user_agent else None,
+                description=f'Reveal password for {user.username}',
+                notes=f'target_user={user.id}',
+            )
+        )
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        _log_action('REVEAL_PASSWORD', 'user', user.id, f'Reset password for {user.username}')
         flash(
             f'كلمة المرور الجديدة لـ {user.username}: <strong>{temp_password}</strong>', 'success'
         )

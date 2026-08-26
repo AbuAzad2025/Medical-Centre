@@ -392,66 +392,84 @@ def process_payment(visit_id):
                 flash(f'تعذر تسجيل الدفع: {payment_or_error}', 'error')
                 return redirect(url_for('payment.process_payment', visit_id=visit_id))
             payment = payment_or_error
+            replayed = bool(getattr(payment, 'replayed', False))
 
-            visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + converted_amount
-            visit.payment_method = method_value or visit.payment_method
-            if method_value == PaymentMethod.CARD:
-                if card_last_digits:
-                    visit.card_number_last_digits = card_last_digits
-                if card_holder_name:
-                    visit.card_holder_name = card_holder_name
-            if method_value == PaymentMethod.INSURANCE:
-                if insurance_provider:
-                    visit.insurance_provider = insurance_provider
-                if insurance_policy_number:
-                    visit.insurance_policy_number = insurance_policy_number
-                if insurance_coverage_raw:
-                    try:
-                        visit.insurance_coverage_percentage = Decimal(insurance_coverage_raw)
-                    except Exception as e:
-                        logging.warning(f'Error in {__name__}: {e}')
-                if insurance_company_id and insurance_company_id.isdigit():
-                    try:
-                        from models.insurance import InsuranceCompany
+            if not replayed:
+                nested = db.session.begin_nested()
+                visit = (
+                    db.session.execute(
+                        select(Visit)
+                        .filter_by(id=visit_id)
+                        .with_for_update()
+                        .execution_options(populate_existing=True)
+                    )
+                    .scalars()
+                    .first()
+                ) or visit
+                visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + converted_amount
+                visit.payment_method = method_value or visit.payment_method
+                if method_value == PaymentMethod.CARD:
+                    if card_last_digits:
+                        visit.card_number_last_digits = card_last_digits
+                    if card_holder_name:
+                        visit.card_holder_name = card_holder_name
+                if method_value == PaymentMethod.INSURANCE:
+                    if insurance_provider:
+                        visit.insurance_provider = insurance_provider
+                    if insurance_policy_number:
+                        visit.insurance_policy_number = insurance_policy_number
+                    if insurance_coverage_raw:
+                        try:
+                            visit.insurance_coverage_percentage = Decimal(insurance_coverage_raw)
+                        except Exception as e:
+                            logging.warning(f'Error in {__name__}: {e}')
+                    if insurance_company_id and insurance_company_id.isdigit():
+                        try:
+                            from models.insurance import InsuranceCompany
 
-                        company = db.session.get(InsuranceCompany, int(insurance_company_id))
-                        if company:
-                            visit.insurance_company_id = company.id
-                            if not visit.insurance_provider:
-                                visit.insurance_provider = company.name_ar or company.name
-                    except Exception as e:
-                        logging.warning(f'Error in {__name__}: {e}')
+                            company = db.session.get(InsuranceCompany, int(insurance_company_id))
+                            if company:
+                                visit.insurance_company_id = company.id
+                                if not visit.insurance_provider:
+                                    visit.insurance_provider = company.name_ar or company.name
+                        except Exception as e:
+                            logging.warning(f'Error in {__name__}: {e}')
                 # حساب مبالغ التأمين وحصة المريض
                 visit.calculate_insurance_amounts()
                 # عند الدفع بالتأمين يجب أن يكون المبلغ مساوياً لحصة المريض
                 if visit.patient_share and converted_amount > visit.patient_share:
                     msg = f'المبلغ المدخل ({converted_amount} {base_currency}) يتجاوز حصة المريض ({visit.patient_share} {base_currency})'
+                    nested.rollback()
                     if _wants_json():
                         return jsonify({'success': False, 'message': msg}), 400
                     flash(msg, 'error')
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
-            if is_force_payment:
-                visit.is_force_payment = True
-                if force_reason:
-                    visit.force_payment_reason = force_reason
-                visit.force_payment_approved_by = current_user.id
-                visit.force_payment_approved_at = datetime.now(UTC)
-            if visit.remaining_amount <= 0:
-                visit.payment_status = PaymentStatus.PAID
-            elif converted_amount > 0:
-                visit.payment_status = PaymentStatus.PARTIAL
-            else:
-                visit.payment_status = visit.payment_status or 'PENDING'
+                if is_force_payment:
+                    visit.is_force_payment = True
+                    if force_reason:
+                        visit.force_payment_reason = force_reason
+                    visit.force_payment_approved_by = current_user.id
+                    visit.force_payment_approved_at = datetime.now(UTC)
+                if visit.remaining_amount <= 0:
+                    visit.payment_status = PaymentStatus.PAID
+                elif converted_amount > 0:
+                    visit.payment_status = PaymentStatus.PARTIAL
+                else:
+                    visit.payment_status = visit.payment_status or 'PENDING'
 
-            # توليد رقم إيصال بسيط للزيارة عند الدفع
-            try:
-                if not visit.receipt_number:
-                    visit.receipt_number = f'RCPT-{visit.id}-{int(datetime.now(UTC).timestamp())}'
-            except Exception as e:
-                logging.warning(f'Error in {__name__}: {e}')
+                # توليد رقم إيصال بسيط للزيارة عند الدفع
+                try:
+                    if not visit.receipt_number:
+                        visit.receipt_number = (
+                            f'RCPT-{visit.id}-{int(datetime.now(UTC).timestamp())}'
+                        )
+                except Exception as e:
+                    logging.warning(f'Error in {__name__}: {e}')
+                nested.commit()
+
             safe_commit(db.session, error_message='database commit failed', reraise=True)
 
-            resp = {'success': True, 'payment_id': payment.id}
+            resp = {'success': True, 'payment_id': payment.id, 'replayed': replayed}
             if _wants_json():
                 return jsonify(resp)
             flash('تم تسجيل الدفع بنجاح', 'success')

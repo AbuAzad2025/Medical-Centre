@@ -170,8 +170,21 @@ class GatekeeperService:
         """
         try:
             try:
-                visit = get_tenant_record(Visit, visit_id)
+                get_tenant_record(Visit, visit_id)
             except TenantContextError:
+                return False, 'الزيارة غير موجودة'
+
+            visit = (
+                db.session.execute(
+                    select(Visit)
+                    .filter_by(id=visit_id)
+                    .with_for_update()
+                    .execution_options(populate_existing=True)
+                )
+                .scalars()
+                .first()
+            )
+            if not visit:
                 return False, 'الزيارة غير موجودة'
 
             # Ticket 4: archived visits cannot receive ordinary financial mutations
@@ -181,11 +194,13 @@ class GatekeeperService:
             # إنشاء رقم سند فريد
             receipt_number = f'RCP-{datetime.now().strftime("%Y%m%d%H%M%S")}-{visit_id}'
 
+            amount_decimal = Decimal(str(amount))
+
             # إنشاء الدفع
             payment = Payment(
                 visit_id=visit_id,
                 patient_id=visit.patient_id,
-                amount=amount,
+                amount=amount_decimal,
                 method=(payment_method or 'CASH').upper(),
                 receipt_number=receipt_number,
                 is_provisional=False,
@@ -194,13 +209,13 @@ class GatekeeperService:
 
             db.session.add(payment)
 
-            # تحديث الزيارة
+            # تحديث الزيارة (تراكمي وليس استبدال)
             visit.receipt_printed = True
             visit.receipt_number = receipt_number
-            visit.paid_amount = amount
+            visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + amount_decimal
 
             # إذا كان المبلغ المدفوع يساوي المطلوب، إزالة القفل المالي
-            if visit.paid_amount >= visit.total_amount:
+            if Decimal(str(visit.paid_amount or 0)) >= Decimal(str(visit.total_amount or 0)):
                 visit.financial_locked = False
                 visit.financial_completed_at = datetime.now(UTC)
 
@@ -233,8 +248,21 @@ class GatekeeperService:
         """
         try:
             try:
-                visit = get_tenant_record(Visit, visit_id)
+                get_tenant_record(Visit, visit_id)
             except TenantContextError:
+                return False, 'الزيارة غير موجودة'
+
+            visit = (
+                db.session.execute(
+                    select(Visit)
+                    .filter_by(id=visit_id)
+                    .with_for_update()
+                    .execution_options(populate_existing=True)
+                )
+                .scalars()
+                .first()
+            )
+            if not visit:
                 return False, 'الزيارة غير موجودة'
 
             # التحقق من أن الزيارة طوارئ أو دفع قوي
@@ -244,11 +272,13 @@ class GatekeeperService:
             # إنشاء رقم سند فريد
             receipt_number = f'PRV-{datetime.now().strftime("%Y%m%d%H%M%S")}-{visit_id}'
 
+            amount_decimal = Decimal(str(amount))
+
             # إنشاء الدفع
             payment = Payment(
                 visit_id=visit_id,
                 patient_id=visit.patient_id,
-                amount=amount,
+                amount=amount_decimal,
                 method=(payment_method or 'CASH').upper(),
                 receipt_number=receipt_number,
                 is_provisional=True,
@@ -258,8 +288,8 @@ class GatekeeperService:
 
             db.session.add(payment)
 
-            # تحديث الزيارة (بدون تغيير receipt_printed)
-            visit.paid_amount = amount
+            # تحديث الزيارة (بدون تغيير receipt_printed، تراكمي وليس استبدال)
+            visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + amount_decimal
             visit.financial_locked = True  # يبقى مقفل حتى السند النظامي
 
             safe_commit(db.session, error_message='فشل إنشاء السند المؤقت', reraise=True)

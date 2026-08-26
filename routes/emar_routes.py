@@ -2,9 +2,9 @@
 eMAR — Electronic Medication Administration Record Routes
 """
 
-from datetime import UTC, date, datetime
+from datetime import date
 
-from flask import Blueprint, flash, redirect, render_template, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
 
@@ -12,7 +12,7 @@ from app.extensions import db
 from app.shared.enums import eMARAdministrationStatus
 from models.emar import eMARAdministration
 from models.patient import Patient
-from utils.db_safety import safe_commit
+from services.nursing_service import NursingService
 from utils.decorators import handle_route_errors, role_required
 
 emar_bp = Blueprint('emar', __name__)
@@ -70,10 +70,16 @@ def patient_mar(patient_id):
 @role_required('nurse', 'admin')
 @handle_route_errors
 def administer(admin_id):
-    admin = db.get_or_404(eMARAdministration, admin_id)
-    admin.status = 'GIVEN'
-    admin.administered_time = datetime.now(UTC)
-    admin.nurse_id = current_user.id
-    safe_commit(db.session, error_message='database commit failed', reraise=True)
+    result = NursingService.record_emar_administration(
+        admin_id,
+        current_user.id,
+        status=(request.form.get('status') or 'GIVEN').strip().upper(),
+        notes=(request.form.get('notes') or '').strip() or None,
+        refusal_reason=(request.form.get('refusal_reason') or '').strip() or None,
+        patient_id=request.form.get('patient_id', type=int),
+        medication_id=request.form.get('medication_id', type=int),
+    )
+    if not result.get('success'):
+        return jsonify(result), 409
     flash('تم تسجيل إعطاء الدواء بنجاح', 'success')
     return redirect(url_for('emar.dashboard'))

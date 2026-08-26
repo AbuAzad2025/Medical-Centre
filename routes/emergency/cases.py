@@ -182,9 +182,10 @@ def edit_emergency_case(id):
                 if status_val == 'resolved':
                     emergency.completed_at = datetime.now(UTC)
             emergency.chief_complaint = (
-                request.form.get('chief_complaint') or emergency.chief_complaint
+                request.form.get('chief_complaint')
+                or request.form.get('symptoms')
+                or emergency.chief_complaint
             )
-            emergency.symptoms = request.form.get('symptoms') or emergency.symptoms
             vs = {
                 'bp_systolic': request.form.get('vital_signs_bp_systolic'),
                 'bp_diastolic': request.form.get('vital_signs_bp_diastolic'),
@@ -197,22 +198,10 @@ def edit_emergency_case(id):
             except Exception as e:
                 logging.warning(f'Error in {__name__}: {e}')
             emergency.diagnosis = request.form.get('initial_assessment') or emergency.diagnosis
-            emergency.treatment_plan = (
-                request.form.get('treatment_given') or emergency.treatment_plan
+            emergency.treatment_given = (
+                request.form.get('treatment_given') or emergency.treatment_given
             )
-            emergency.notes = request.form.get('notes') or emergency.notes
-            follow_up_required = bool(request.form.get('follow_up_required'))
-            emergency.follow_up_required = (
-                follow_up_required
-                if hasattr(emergency, 'follow_up_required')
-                else getattr(emergency, 'follow_up_required', False)
-            )
-            follow_up_date = request.form.get('follow_up_date')
-            if follow_up_date and hasattr(emergency, 'follow_up_date'):
-                try:
-                    emergency.follow_up_date = datetime.strptime(follow_up_date, '%Y-%m-%d').date()
-                except Exception as e:
-                    logging.warning(f'Error in {__name__}: {e}')
+            emergency.triage_notes = request.form.get('notes') or emergency.triage_notes
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم تحديث حالة الطوارئ بنجاح', 'success')
             return redirect(url_for('emergency.view_emergency_case', id=emergency.id))

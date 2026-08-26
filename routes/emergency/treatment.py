@@ -35,24 +35,20 @@ def treatment(emergency_id):
             return redirect(url_for('emergency.patient_queue'))
 
         if request.method == 'POST':
-            # جمع بيانات العلاج
             chief_complaint = request.form.get('chief_complaint')
             diagnosis = request.form.get('diagnosis')
             treatment_given = request.form.get('treatment_given')
             medications = request.form.get('medications')
             procedures = request.form.get('procedures')
-            treatment_notes = request.form.get('treatment_notes')
 
-            # تحديث حالة الطوارئ
             emergency.chief_complaint = chief_complaint
             emergency.diagnosis = diagnosis
             emergency.treatment_given = treatment_given
-            emergency.medications = medications
-            emergency.procedures = procedures
-            emergency.treatment_notes = treatment_notes
+            emergency.medications_text = medications
+            emergency.procedures_text = procedures
             _set_emergency_status(emergency, 'OBSERVATION')
-            emergency.treated_by = current_user.id
-            emergency.treated_at = datetime.now(UTC)
+            emergency.treated_by_id = current_user.id
+            emergency.treatment_completed_at = datetime.now(UTC)
 
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم تسجيل العلاج بنجاح', 'success')
@@ -80,7 +76,7 @@ def end_treatment(emergency_id):
         # إنهاء العلاج
         _set_emergency_status(emergency, 'COMPLETED')
         emergency.completed_at = datetime.now(UTC)
-        emergency.completed_by = current_user.id
+        emergency.completed_by_id = current_user.id
 
         # إخطار الاستقبال لإتمام إجراءات الزيارة المرتبطة دون تعديل الحالة مباشرة
         try:
@@ -121,7 +117,7 @@ def start_treatment(emergency_id):
         # تحديث حالة الطوارئ
         _set_emergency_status(emergency, 'TREATMENT')
         emergency.treatment_started_at = datetime.now(UTC)
-        emergency.treated_by = current_user.id
+        emergency.treated_by_id = current_user.id
 
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 

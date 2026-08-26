@@ -57,6 +57,17 @@ class EmergencyCase(TenantMixin, db.Model):
         nullable=True,
         index=True,
     )
+    treatment_given = db.Column(db.Text, nullable=True)
+    medications_text = db.Column(db.Text, nullable=True)
+    procedures_text = db.Column(db.Text, nullable=True)
+    treated_by_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    treatment_started_at = db.Column(db.DateTime, nullable=True)
+    treatment_completed_at = db.Column(db.DateTime, nullable=True)
+    completed_by_id = db.Column(
+        db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     __table_args__ = (
         Index('idx_emergency_patient_status', 'patient_id', 'status'),
@@ -114,6 +125,17 @@ class EmergencyCase(TenantMixin, db.Model):
             'vital_signs': self.vital_signs,
             'diagnosis': self.diagnosis,
             'treatment_plan': self.treatment_plan,
+            'treatment_given': self.treatment_given,
+            'medications_text': self.medications_text,
+            'procedures_text': self.procedures_text,
+            'treated_by_id': self.treated_by_id,
+            'treatment_started_at': self.treatment_started_at.isoformat()
+            if self.treatment_started_at
+            else None,
+            'treatment_completed_at': self.treatment_completed_at.isoformat()
+            if self.treatment_completed_at
+            else None,
+            'completed_by_id': self.completed_by_id,
             'status': self.status,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,
             'created_at': self.created_at.isoformat(),

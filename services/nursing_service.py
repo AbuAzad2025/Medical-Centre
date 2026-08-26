@@ -189,6 +189,65 @@ class NursingService:
             logging.exception('Error recording medication administration: %s')
             return False
 
+    @staticmethod
+    @require_module('nursing')
+    def record_emar_administration(
+        administration_id: int,
+        nurse_id: int,
+        status: str = 'GIVEN',
+        notes: str | None = None,
+        refusal_reason: str | None = None,
+        patient_id: int | None = None,
+        medication_id: int | None = None,
+    ) -> dict:
+        from app.shared.enums import eMARAdministrationStatus
+        from models.emar import eMARAdministration
+
+        try:
+            try:
+                record = get_tenant_record(eMARAdministration, administration_id)
+            except TenantContextError:
+                return {'success': False, 'message': 'سجل الدواء المجدول غير موجود'}
+            requested_status = (status or eMARAdministrationStatus.GIVEN.value).strip().upper()
+            if patient_id is not None and int(patient_id) != int(record.patient_id):
+                return {'success': False, 'message': 'المريض غير مطابق للموعد المجدول'}
+            if (
+                medication_id is not None
+                and record.medication_id is not None
+                and int(medication_id) != int(record.medication_id)
+            ):
+                return {'success': False, 'message': 'الدواء غير مطابق للوصفة المجدولة'}
+            current_status = (record.status or '').strip().upper()
+            if requested_status == eMARAdministrationStatus.GIVEN.value:
+                if current_status == eMARAdministrationStatus.GIVEN.value:
+                    return {
+                        'success': False,
+                        'message': 'تم إعطاء هذا الدواء مسبقاً ولا يمكن التكرار',
+                    }
+                if current_status != eMARAdministrationStatus.SCHEDULED.value:
+                    return {
+                        'success': False,
+                        'message': 'لا يمكن تسجيل الإعطاء إلا لسجل بحالة مجدول',
+                    }
+                record.status = eMARAdministrationStatus.GIVEN.value
+                record.administered_time = datetime.now(UTC)
+                record.nurse_id = nurse_id
+            elif requested_status == eMARAdministrationStatus.REFUSED.value:
+                reason = refusal_reason or notes
+                record.status = eMARAdministrationStatus.REFUSED.value
+                record.refusal_reason = reason
+                if notes:
+                    record.notes = notes
+                record.nurse_id = nurse_id
+            else:
+                return {'success': False, 'message': 'حالة التوثيق غير مدعومة'}
+            if not safe_commit(db.session, error_message='Failed to record eMAR administration'):
+                return {'success': False, 'message': 'تعذر حفظ سجل إعطاء الدواء'}
+            return {'success': True}
+        except Exception:
+            logging.exception('Error recording eMAR administration: %s')
+            return {'success': False, 'message': 'حدث خطأ في تسجيل إعطاء الدواء'}
+
     # ==================== CARE PLAN ====================
 
     @staticmethod

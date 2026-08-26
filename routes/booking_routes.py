@@ -6,11 +6,13 @@ Medical System Online Booking Routes
 import logging
 import secrets
 from datetime import UTC, datetime
+from decimal import ROUND_HALF_UP, Decimal
 
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user
 from sqlalchemy import select
 
+from app.core.rate_limiter import rate_limit
 from app.extensions import db
 from models.appointment import Appointment
 from models.department import Department
@@ -32,7 +34,36 @@ def _extract_meeting_link(notes):
     return None
 
 
+def _resolve_booking_fee(booking):
+    from models.pricing import DoctorPricing
+
+    tier_map = {'follow_up': 'follow_up', 'emergency': 'emergency'}
+    tier = tier_map.get((booking.visit_type or '').strip().lower(), 'consultation')
+    pricing = (
+        db.session.execute(
+            select(DoctorPricing)
+            .filter(
+                DoctorPricing.doctor_id == booking.doctor_id,
+                DoctorPricing.is_active,
+            )
+            .order_by(DoctorPricing.effective_from.desc())
+        )
+        .scalars()
+        .first()
+        if booking.doctor_id
+        else None
+    )
+    if pricing:
+        fee = pricing.get_price(tier)
+        if fee is not None:
+            return Decimal(str(fee)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    return Decimal(str(booking.payment_amount or 0)).quantize(
+        Decimal('0.01'), rounding=ROUND_HALF_UP
+    )
+
+
 @booking_bp.route('/register', methods=['GET', 'POST'])
+@rate_limit(max_requests=10, window_seconds=3600, namespace='booking_public')
 def register():
     if request.method == 'POST':
         try:
@@ -255,6 +286,7 @@ def index():
 
 
 @booking_bp.route('/create', methods=['GET', 'POST'])
+@rate_limit(max_requests=10, window_seconds=3600, namespace='booking_public')
 def create_booking():
     """إنشاء حجز جديد"""
     if request.method == 'POST':
@@ -476,6 +508,7 @@ def telemedicine_room(booking_id):
 
 
 @booking_bp.route('/payment/<int:booking_id>', methods=['GET', 'POST'])
+@rate_limit(max_requests=10, window_seconds=3600, namespace='booking_public')
 def payment(booking_id):
     """دفع رسوم الحجز"""
     booking = db.session.get(OnlineBooking, booking_id)
@@ -484,18 +517,25 @@ def payment(booking_id):
 
     if request.method == 'POST':
         try:
-            amount_raw = request.form.get('amount', 50.0)
+            expected_amount = _resolve_booking_fee(booking)
             try:
-                amount_val = float(amount_raw)
+                amount_val = Decimal(str(request.form.get('amount', '')).strip())
             except Exception:
-                amount_val = 50.0
+                amount_val = None
+            if amount_val is None or abs(amount_val - expected_amount) > Decimal('0.01'):
+                msg = 'المبلغ المطلوب غير مطابق'
+                if request.accept_mimetypes.best == 'application/json':
+                    return jsonify({'success': False, 'message': msg}), 400
+                flash(msg, 'error')
+                return redirect(url_for('booking.payment', booking_id=booking_id))
+
             payment_method = (request.form.get('payment_method') or 'CASH').strip().upper()
 
             # إنشاء معاملة دفع
             payment = PaymentTransaction(
                 booking_id=booking_id,
                 transaction_reference=PaymentTransaction.generate_transaction_reference(),
-                amount=amount_val,
+                amount=expected_amount,
                 payment_method=payment_method,
                 status='pending',
             )

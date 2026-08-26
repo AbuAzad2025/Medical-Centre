@@ -49,7 +49,9 @@ class PaymentService:
         A distributed lock (Redis → in-memory fallback) prevents concurrent
         requests with the same key from racing into an IntegrityError.
 
-        Returns (success, Payment|error_message).
+        Returns (success, Payment|error_message). The returned Payment carries a
+        transient ``replayed`` attribute: True when an existing payment satisfied
+        the idempotency key, False when a new row was created.
         """
         from models.payment import Payment
 
@@ -77,6 +79,7 @@ class PaymentService:
                     .first()
                 )
                 if existing:
+                    existing.replayed = True
                     return True, existing
                 # One retry after the short sleep
                 if not lock.acquire(lock_key):
@@ -100,6 +103,7 @@ class PaymentService:
                     .first()
                 )
                 if existing:
+                    existing.replayed = True
                     return True, existing
 
                 payment = Payment(
@@ -136,6 +140,7 @@ class PaymentService:
                     if visit:
                         PaymentAllocationService.allocate(payment, visit)
 
+                payment.replayed = False
                 return True, payment
             except IntegrityError as e:
                 safe_rollback(db.session, error_message='Payment idempotency conflict')
@@ -154,6 +159,7 @@ class PaymentService:
                     .first()
                 )
                 if existing:
+                    existing.replayed = True
                     return True, existing
                 logging.exception('Payment IntegrityError (non-idempotency)')
                 return False, str(e)
@@ -198,6 +204,7 @@ class PaymentService:
                 if visit:
                     PaymentAllocationService.allocate(payment, visit)
 
+            payment.replayed = False
             return True, payment
         except Exception as e:
             safe_rollback(db.session, error_message='فشل إنشاء الدفعة')

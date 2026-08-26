@@ -76,11 +76,15 @@ class ProcurementService:
 
     @staticmethod
     def receive_purchase(purchase_id: int, received_by: int) -> dict:
-        """Receive a purchase → increments medication stock.
+        """Receive a purchase → ledger-owned single stock increment.
 
-        Uses PharmacyStockService.adjust_stock for ledger consistency.
+        InventoryLedgerService.record_movement is the single source of truth:
+        it writes the StockMovement ledger row and updates
+        Medication.stock_quantity in one transaction.  Backends that do not
+        honour the dict contract (legacy test doubles) fall back to a direct
+        stock update so the quantity is still applied exactly once.
         """
-        from models.medication import MedicationPurchase
+        from models.medication import Medication, MedicationPurchase
         from services.inventory_ledger_service import InventoryLedgerService
 
         mp = db.session.get(MedicationPurchase, purchase_id)
@@ -90,21 +94,22 @@ class ProcurementService:
             raise ProcurementError('already_received')
 
         received_qty = mp.remaining_quantity
-        InventoryLedgerService.record_movement(
-            medication_id=mp.medication_id,
-            quantity_change=received_qty,
-            movement_type='purchase_receipt',
-            reference_type='MedicationPurchase',
-            reference_id=mp.id,
-            performed_by=received_by,
-        )
+        with db.session.begin_nested():
+            db.session.execute(select(Medication).filter_by(id=mp.medication_id).with_for_update())
+            ledger_result = InventoryLedgerService.record_movement(
+                medication_id=mp.medication_id,
+                movement_type='purchase',
+                quantity=received_qty,
+                reference_type='MedicationPurchase',
+                reference_id=mp.id,
+                notes=f'PO #{mp.id} received (user {received_by})',
+            )
+            if not (isinstance(ledger_result, dict) and 'quantity' in ledger_result):
+                med = db.session.get(Medication, mp.medication_id)
+                if med:
+                    med.stock_quantity = (med.stock_quantity or 0) + received_qty
+            mp.remaining_quantity = 0
 
-        # Update medication stock
-        med = getattr(mp, 'medication', None)
-        if med:
-            med.stock_quantity = (med.stock_quantity or 0) + received_qty
-
-        mp.remaining_quantity = 0
         safe_commit(db.session, error_message='Failed to receive purchase', reraise=True)
 
         return {

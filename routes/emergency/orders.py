@@ -1,25 +1,46 @@
 """orders routes - extracted from monolithic emergency.py"""
 
+import json
 import logging
+from datetime import UTC, datetime
 
 # Imports
 from flask import flash, g, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from app.extensions import db
 from app.shared.print_context import generate_qr_data_uri
+from models.audit_trail import AuditTrail
 from models.lab_request import LabRequest
-from models.medication import Prescription
+from models.medication import Medication, Prescription
 from models.radiology_request import RadiologyRequest
 from routes.emergency import emergency_bp
 from services.emergency_service import emergency_service
+from services.prescription_service import prescription_service
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
 
 # =============================================
 # ORDERS ROUTES
 # =============================================
+
+
+def _resolve_emergency_medication(name, tenant_id):
+    return (
+        db.session.execute(
+            select(Medication).filter(
+                Medication.tenant_id == tenant_id,
+                or_(
+                    Medication.trade_name.ilike(name),
+                    Medication.generic_name.ilike(name),
+                    Medication.scientific_name.ilike(name),
+                ),
+            )
+        )
+        .scalars()
+        .first()
+    )
 
 
 @emergency_bp.route('/prescription/<int:emergency_id>', methods=['GET', 'POST'])
@@ -35,7 +56,90 @@ def prescription(emergency_id):
             return redirect(url_for('emergency.patient_queue'))
 
         if request.method == 'POST':
-            safe_commit(db.session, error_message='database commit failed', reraise=True)
+            names = [(n or '').strip() for n in request.form.getlist('medications[]')]
+            dosages = request.form.getlist('dosages[]')
+            frequencies = request.form.getlist('frequencies[]')
+            durations = request.form.getlist('durations[]')
+            instructions_list = request.form.getlist('instructions[]')
+
+            items = []
+            non_catalog = []
+            for i, name in enumerate(names):
+                if not name:
+                    continue
+                med = _resolve_emergency_medication(name, emergency.tenant_id)
+                if not med:
+                    non_catalog.append(name)
+                    continue
+                dosage = (dosages[i] if i < len(dosages) else '').strip()
+                frequency = (frequencies[i] if i < len(frequencies) else '').strip()
+                stored_dosage = f'{dosage} | {frequency}' if dosage and frequency else dosage
+                stored_dosage = stored_dosage or frequency or name
+                try:
+                    duration_days = int((durations[i] if i < len(durations) else '').strip())
+                except Exception:
+                    duration_days = 7
+                if duration_days <= 0:
+                    duration_days = 7
+                items.append(
+                    {
+                        'medication_id': med.id,
+                        'dosage': stored_dosage,
+                        'quantity': 1,
+                        'duration_days': duration_days,
+                        'instructions': (
+                            instructions_list[i] if i < len(instructions_list) else ''
+                        ).strip()
+                        or None,
+                    }
+                )
+
+            if not items:
+                flash('يرجى إضافة دواء واحد على الأقل من القائمة', 'warning')
+                return redirect(url_for('emergency.prescription', emergency_id=emergency_id))
+
+            notes_parts = []
+            extra_notes = (request.form.get('additional_notes') or '').strip()
+            if extra_notes:
+                notes_parts.append(extra_notes)
+            if non_catalog:
+                notes_parts.append('أدوية غير موجودة بالمخزون:\n' + '\n'.join(non_catalog))
+            notes = '\n\n'.join(notes_parts) or None
+
+            visit = emergency.visit
+            prescriber_id = (visit.doctor_id if visit else None) or current_user.id
+
+            ok, result = prescription_service.create_prescription(
+                patient_id=emergency.patient_id,
+                doctor_id=prescriber_id,
+                visit_id=visit.id if visit else None,
+                tenant_id=getattr(current_user, 'tenant_id', None) or emergency.tenant_id,
+                items=items,
+                notes=notes,
+                diagnosis=emergency.diagnosis,
+                prescription_number=f'RX-EM-{emergency.id}-{int(datetime.now(UTC).timestamp())}',
+            )
+            if not ok:
+                flash(f'تعذر حفظ الوصفة: {result}', 'error')
+                return redirect(url_for('emergency.prescription', emergency_id=emergency_id))
+
+            try:
+                db.session.add(
+                    AuditTrail(
+                        entity_type='visit' if visit else 'patient',
+                        entity_id=visit.id if visit else emergency.patient_id,
+                        action='create',
+                        user_id=current_user.id,
+                        user_ip=request.remote_addr,
+                        user_agent=request.headers.get('User-Agent'),
+                        description=f'وصفة طبية لحالة الطوارئ #{emergency.id}',
+                        new_values=json.dumps({'prescription_id': result.id}),
+                    )
+                )
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
+            except Exception as e:
+                logging.warning(f'Error in {__name__}: {e}')
+
             flash('تم إنشاء الوصفة بنجاح', 'success')
             return redirect(url_for('emergency.patient_queue'))
 

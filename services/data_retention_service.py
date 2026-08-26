@@ -336,20 +336,22 @@ class DataRetentionService:
         Returns:
             (count_deleted, list_of_deleted_ids)
         """
-        from models.user import SessionLog
+        from models.digital_signature import SessionLog
 
         policy = self.get_policy(RetentionCategory.SESSION_LOG)
         if not policy:
             return 0, []
 
-        datetime.now(UTC) - timedelta(days=policy.retain_years * 365)
-        query = select(SessionLog)
+        cutoff = datetime.now(UTC) - timedelta(days=policy.retain_years * 365)
+        query = select(SessionLog).filter(
+            SessionLog.tenant_id == tenant_id,
+            SessionLog.created_at < cutoff,
+        )
 
         if dry_run:
             records = db.session.execute(query.limit(1000)).scalars().all()
             return len(records), [r.id for r in records]
 
-        # Actual deletion
         records = db.session.execute(query).scalars().all()
         deleted_ids = [r.id for r in records]
         for r in records:
