@@ -1596,7 +1596,7 @@ class TestReceptionPayments:
         with tenant_test_context(app, test_tenant):
             from app.shared.pos_charge import execute_pos_charge
 
-            res, code = execute_pos_charge(None)
+            _res1, code = execute_pos_charge(None)
             assert code == 400
             _res2, code = execute_pos_charge('0')
             assert code == 400
