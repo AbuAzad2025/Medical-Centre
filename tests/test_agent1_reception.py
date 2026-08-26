@@ -1598,7 +1598,7 @@ class TestReceptionPayments:
 
             res, code = execute_pos_charge(None)
             assert code == 400
-            res, code = execute_pos_charge('0')
+            _res2, code = execute_pos_charge('0')
             assert code == 400
             _res, code = execute_pos_charge('abc')
             assert code == 400
