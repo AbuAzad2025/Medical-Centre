@@ -259,12 +259,16 @@ class LabService:
             except Exception:
                 return False
             try:
-                cat = db.session.execute(
-                    select(LabTestCatalog).filter(
-                        LabTestCatalog.code == code,
-                        LabTestCatalog.tenant_id == getattr(lab_request, 'tenant_id', None),
+                cat = (
+                    db.session.execute(
+                        select(LabTestCatalog).filter(
+                            LabTestCatalog.code == code,
+                            LabTestCatalog.tenant_id == getattr(lab_request, 'tenant_id', None),
+                        )
                     )
-                ).scalars().first()
+                    .scalars()
+                    .first()
+                )
                 if not cat:
                     return False
                 lo = None
@@ -304,18 +308,30 @@ class LabService:
                     test_name = (row.get('test_name') or row.get('name') or test_code or '').strip()
                     value = (row.get('value') or '').strip() if row.get('value') is not None else ''
                     unit = (row.get('unit') or '').strip() if row.get('unit') is not None else ''
-                    ref = (row.get('reference_range') or row.get('range') or '').strip() if (row.get('reference_range') or row.get('range')) is not None else ''
+                    ref = (
+                        (row.get('reference_range') or row.get('range') or '').strip()
+                        if (row.get('reference_range') or row.get('range')) is not None
+                        else ''
+                    )
                     status_val = (row.get('status') or 'PENDING').strip().upper() or 'PENDING'
                     notes = (row.get('notes') or '').strip() if row.get('notes') is not None else ''
                     explicit_critical = _parse_critical_raw(row.get('is_critical'))
                     if not test_code and not test_name and not value:
                         continue
                     is_critical = _auto_critical(value, test_code or test_name, explicit_critical)
-                    tenant_id = getattr(lab_request, 'tenant_id', None) or getattr(g, 'tenant_id', None)
+                    tenant_id = getattr(lab_request, 'tenant_id', None) or getattr(
+                        g, 'tenant_id', None
+                    )
                     if result_id:
-                        result = db.session.execute(
-                            select(LabResult).filter(LabResult.id == result_id, LabResult.tenant_id == tenant_id)
-                        ).scalars().first()
+                        result = (
+                            db.session.execute(
+                                select(LabResult).filter(
+                                    LabResult.id == result_id, LabResult.tenant_id == tenant_id
+                                )
+                            )
+                            .scalars()
+                            .first()
+                        )
                         if not result:
                             errors.append(f'Row {idx}: result not found')
                             continue
@@ -326,7 +342,11 @@ class LabService:
                         result.value = value
                         result.unit = unit
                         result.reference_range = ref
-                        result.status = status_val if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'} else 'PENDING'
+                        result.status = (
+                            status_val
+                            if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'}
+                            else 'PENDING'
+                        )
                         result.notes = notes
                         result.is_critical = is_critical
                         created_ids.append(result.id)
@@ -343,7 +363,9 @@ class LabService:
                             value=value,
                             unit=unit,
                             reference_range=ref,
-                            status=status_val if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'} else 'PENDING',
+                            status=status_val
+                            if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'}
+                            else 'PENDING',
                             notes=notes,
                             is_critical=is_critical,
                         )
@@ -362,12 +384,28 @@ class LabService:
         ranges = list(form_data.get('ranges') or [])
         statuses = list(form_data.get('statuses') or [])
         notes_list = list(form_data.get('notes_list') or [])
-        is_critical_list = list(form_data.get('is_critical') or form_data.get('is_critical_list') or form_data.get('critical_flags') or [])
+        is_critical_list = list(
+            form_data.get('is_critical')
+            or form_data.get('is_critical_list')
+            or form_data.get('critical_flags')
+            or []
+        )
 
         if not test_codes and test_names:
             test_codes = test_names[:]
 
-        n = max(len(result_ids), len(test_codes), len(test_names), len(values), len(units), len(ranges), len(statuses), len(notes_list), len(is_critical_list), 0)
+        n = max(
+            len(result_ids),
+            len(test_codes),
+            len(test_names),
+            len(values),
+            len(units),
+            len(ranges),
+            len(statuses),
+            len(notes_list),
+            len(is_critical_list),
+            0,
+        )
         created_ids = []
         errors = []
         tenant_id = getattr(lab_request, 'tenant_id', None) or getattr(g, 'tenant_id', None)
@@ -380,46 +418,55 @@ class LabService:
                         result_id = int(str(raw_id).strip())
                     except Exception:
                         result_id = None
-                test_code = (test_codes[i] if i < len(test_codes) else '').strip() if i < len(test_codes) and test_codes[i] is not None else ''
-                test_name = (test_names[i] if i < len(test_names) else '').strip() if i < len(test_names) and test_names[i] is not None else ''
+                test_code = (
+                    (test_codes[i] if i < len(test_codes) else '').strip()
+                    if i < len(test_codes) and test_codes[i] is not None
+                    else ''
+                )
+                test_name = (
+                    (test_names[i] if i < len(test_names) else '').strip()
+                    if i < len(test_names) and test_names[i] is not None
+                    else ''
+                )
                 if not test_code and test_name:
                     test_code = test_name
                 if not test_name and test_code:
                     test_name = test_code
-                value = (values[i] if i < len(values) else '')
-                if value is None:
-                    value = ''
-                else:
-                    value = str(value).strip()
-                unit = (units[i] if i < len(units) else '')
-                if unit is None:
-                    unit = ''
-                else:
-                    unit = str(unit).strip()
-                ref = (ranges[i] if i < len(ranges) else '')
-                if ref is None:
-                    ref = ''
-                else:
-                    ref = str(ref).strip()
-                status_val = (statuses[i] if i < len(statuses) else 'PENDING')
+                value = values[i] if i < len(values) else ''
+                value = '' if value is None else str(value).strip()
+                unit = units[i] if i < len(units) else ''
+                unit = '' if unit is None else str(unit).strip()
+                ref = ranges[i] if i < len(ranges) else ''
+                ref = '' if ref is None else str(ref).strip()
+                status_val = statuses[i] if i < len(statuses) else 'PENDING'
                 if status_val is None:
                     status_val = 'PENDING'
                 else:
                     status_val = str(status_val).strip().upper() or 'PENDING'
-                notes = (notes_list[i] if i < len(notes_list) else '')
-                if notes is None:
-                    notes = ''
-                else:
-                    notes = str(notes).strip()
+                notes = notes_list[i] if i < len(notes_list) else ''
+                notes = '' if notes is None else str(notes).strip()
                 raw_critical = is_critical_list[i] if i < len(is_critical_list) else False
                 explicit_critical = _parse_critical_raw(raw_critical)
-                if not test_code and not test_name and not value and not unit and not ref and not notes:
+                if (
+                    not test_code
+                    and not test_name
+                    and not value
+                    and not unit
+                    and not ref
+                    and not notes
+                ):
                     continue
                 is_critical = _auto_critical(value, test_code, explicit_critical)
                 if result_id:
-                    result = db.session.execute(
-                        select(LabResult).filter(LabResult.id == result_id, LabResult.tenant_id == tenant_id)
-                    ).scalars().first()
+                    result = (
+                        db.session.execute(
+                            select(LabResult).filter(
+                                LabResult.id == result_id, LabResult.tenant_id == tenant_id
+                            )
+                        )
+                        .scalars()
+                        .first()
+                    )
                     if not result:
                         errors.append(f'Row {i}: result not found')
                         continue
@@ -430,7 +477,11 @@ class LabService:
                     result.value = value
                     result.unit = unit
                     result.reference_range = ref
-                    result.status = status_val if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'} else 'PENDING'
+                    result.status = (
+                        status_val
+                        if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'}
+                        else 'PENDING'
+                    )
                     result.notes = notes
                     result.is_critical = is_critical
                     created_ids.append(result.id)
@@ -446,7 +497,9 @@ class LabService:
                         value=value,
                         unit=unit,
                         reference_range=ref,
-                        status=status_val if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'} else 'PENDING',
+                        status=status_val
+                        if status_val in {'PENDING', 'READY', 'VALIDATED', 'COMPLETED'}
+                        else 'PENDING',
                         notes=notes,
                         is_critical=is_critical,
                     )

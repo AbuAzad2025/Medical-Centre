@@ -46,7 +46,9 @@ class EntitlementProjectionService:
         cls._apply_tenant_overrides(tenant_id, as_of_naive, capabilities, sources)
         cls._apply_feature_flag_grants(tenant_id, as_of_naive, capabilities, sources)
 
-        db.session.execute(delete(TenantEntitlement).where(TenantEntitlement.tenant_id == tenant_id))
+        db.session.execute(
+            delete(TenantEntitlement).where(TenantEntitlement.tenant_id == tenant_id)
+        )
 
         for capability_key, (effective_from, effective_to) in capabilities.items():
             projection = TenantEntitlement(

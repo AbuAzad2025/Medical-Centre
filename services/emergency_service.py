@@ -62,7 +62,8 @@ def _record_history(emergency_id: int, from_status: str | None, to_status: str):
                 emergency_id=emergency_id,
                 from_status=from_status,
                 to_status=to_status,
-                changed_by=getattr(g, 'tenant_id', None) and getattr(g, '_current_user_id', None) or getattr(getattr(g, 'current_user', None), 'id', None),
+                changed_by=(getattr(g, 'tenant_id', None) and getattr(g, '_current_user_id', None))
+                or getattr(getattr(g, 'current_user', None), 'id', None),
             )
         )
     except Exception:
@@ -189,11 +190,15 @@ class EmergencyService:
         start_today = datetime.combine(date.today(), datetime.min.time(), tzinfo=UTC)
         total_today = (
             db.session.execute(
-                select(func.count()).select_from(EmergencyCase).where(EmergencyCase.created_at >= start_today)
+                select(func.count())
+                .select_from(EmergencyCase)
+                .where(EmergencyCase.created_at >= start_today)
             ).scalar()
             or 0
         )
-        total_all = db.session.execute(select(func.count()).select_from(EmergencyCase)).scalar() or 0
+        total_all = (
+            db.session.execute(select(func.count()).select_from(EmergencyCase)).scalar() or 0
+        )
         return {
             'critical': _count('CRITICAL'),
             'high': _count('HIGH'),
@@ -272,7 +277,10 @@ class EmergencyService:
             return False
         if not case:
             return False
-        if case.status == EmergencyStatus.COMPLETED.value and normalized != EmergencyStatus.COMPLETED.value:
+        if (
+            case.status == EmergencyStatus.COMPLETED.value
+            and normalized != EmergencyStatus.COMPLETED.value
+        ):
             return False
         if case.status == normalized:
             return True

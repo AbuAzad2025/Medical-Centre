@@ -37,22 +37,20 @@ class FieldEncryptionService:
         svc = FieldEncryptionService()
         encrypted = svc.encrypt("sensitive data")
         decrypted = svc.decrypt(encrypted)
+    """
 
-    # Lazy singleton instance
-    _svc_instance = None
+    _svc_instance: 'FieldEncryptionService | None' = None
 
-
-    def get_service() -> "FieldEncryptionService | None":
-        """Get the singleton service instance, or None if key is invalid."""
-        global _svc_instance
-        if _svc_instance is not None:
-            return _svc_instance
+    @classmethod
+    def get_service(cls) -> 'FieldEncryptionService | None':
+        """Get the singleton instance, or None when the key is invalid."""
+        if cls._svc_instance is not None:
+            return cls._svc_instance
         try:
-            _svc_instance = FieldEncryptionService()
-            return _svc_instance
+            cls._svc_instance = cls()
+            return cls._svc_instance
         except EncryptionConfigurationError:
             return None
-    """
 
     LEGACY_PREFIX = b'$enc$'
     GCM_PREFIX = b'$gcm$'

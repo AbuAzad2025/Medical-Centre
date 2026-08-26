@@ -48,7 +48,9 @@ def lab_request(visit_id):
             flash('لا يمكن طلب تحاليل إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         if request.method == 'POST':
-            notes = (request.form.get('notes') or request.form.get('test_description') or '').strip()
+            notes = (
+                request.form.get('notes') or request.form.get('test_description') or ''
+            ).strip()
             if len(notes) > 2000:
                 flash('الوصف طويل جداً', 'warning')
                 return redirect(url_for('doctor.patient_details', visit_id=visit_id))
@@ -166,7 +168,9 @@ def lab_results(patient_id):
                 all_results = (
                     db.session.execute(
                         select(LabResult)
-                        .filter(LabResult.request_id.in_(req_ids), LabResult.tenant_id == g.tenant_id)
+                        .filter(
+                            LabResult.request_id.in_(req_ids), LabResult.tenant_id == g.tenant_id
+                        )
                         .order_by(desc(LabResult.created_at))
                     )
                     .scalars()
@@ -178,7 +182,9 @@ def lab_results(patient_id):
                     results.append(
                         {
                             'test_name': getattr(r, 'test_name', None)
-                            or getattr(req, 'test_name', 'غير محدد') if req else getattr(r, 'test_name', None),
+                            or getattr(req, 'test_name', 'غير محدد')
+                            if req
+                            else getattr(r, 'test_name', None),
                             'value': getattr(r, 'value', None),
                             'unit': getattr(r, 'unit', None),
                             'reference_range': getattr(r, 'reference_range', None),

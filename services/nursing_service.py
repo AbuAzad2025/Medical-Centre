@@ -86,9 +86,15 @@ class NursingService:
                 return None
             if heart_rate is not None and not 20 <= int(heart_rate) <= 250:
                 return None
-            if blood_pressure_systolic is not None and not 50 <= int(blood_pressure_systolic) <= 300:
+            if (
+                blood_pressure_systolic is not None
+                and not 50 <= int(blood_pressure_systolic) <= 300
+            ):
                 return None
-            if blood_pressure_diastolic is not None and not 30 <= int(blood_pressure_diastolic) <= 200:
+            if (
+                blood_pressure_diastolic is not None
+                and not 30 <= int(blood_pressure_diastolic) <= 200
+            ):
                 return None
             if respiratory_rate is not None and not 5 <= int(respiratory_rate) <= 80:
                 return None
@@ -272,7 +278,10 @@ class NursingService:
                 return {'success': False, 'message': 'تم توثيق هذا الموعد مسبقاً ولا يمكن التعديل'}
             if requested == eMARAdministrationStatus.GIVEN.value:
                 if current != eMARAdministrationStatus.SCHEDULED.value:
-                    return {'success': False, 'message': 'لا يمكن تسجيل الإعطاء إلا لسجل بحالة مجدول'}
+                    return {
+                        'success': False,
+                        'message': 'لا يمكن تسجيل الإعطاء إلا لسجل بحالة مجدول',
+                    }
                 record.status = eMARAdministrationStatus.GIVEN.value
                 record.administered_time = datetime.now(UTC)
                 record.nurse_id = nurse_id

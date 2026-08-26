@@ -53,7 +53,9 @@ def notes(visit_id):
             flash('لا يمكن إضافة ملاحظات بعد أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))
 
-        note_type = (request.args.get('type') or request.form.get('note_type') or '').strip() or None
+        note_type = (
+            request.args.get('type') or request.form.get('note_type') or ''
+        ).strip() or None
         if note_type not in {'lab', 'radiology', 'general', None}:
             note_type = None
         prefill_notes = None
@@ -69,12 +71,18 @@ def notes(visit_id):
             if not medical_notes:
                 flash('نص الملاحظة مطلوب', 'warning')
                 return render_template(
-                    'doctor/notes.html', visit=visit, note_type=note_type, prefill_notes=prefill_notes
+                    'doctor/notes.html',
+                    visit=visit,
+                    note_type=note_type,
+                    prefill_notes=prefill_notes,
                 )
             if len(medical_notes) > 5000:
                 flash('نص الملاحظة طويل جداً (الحد 5000 حرف)', 'warning')
                 return render_template(
-                    'doctor/notes.html', visit=visit, note_type=note_type, prefill_notes=prefill_notes
+                    'doctor/notes.html',
+                    visit=visit,
+                    note_type=note_type,
+                    prefill_notes=prefill_notes,
                 )
             if not visit.notes:
                 visit.notes = ''

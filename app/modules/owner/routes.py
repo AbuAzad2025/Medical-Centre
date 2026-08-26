@@ -56,7 +56,11 @@ from utils.db_safety import safe_commit, safe_rollback
 
 
 def _wants_json():
-    return request.accept_mimetypes.best == 'application/json' or request.path.endswith('.json') or request.is_json
+    return (
+        request.accept_mimetypes.best == 'application/json'
+        or request.path.endswith('.json')
+        or request.is_json
+    )
 
 
 def _clamped_per_page(default=25, max_val=100):
@@ -1327,7 +1331,9 @@ def owner_support_tickets():
     if _wants_json():
         return jsonify(
             {
-                'tickets': [t.to_dict() if hasattr(t, 'to_dict') else {'id': t.id} for t in tickets],
+                'tickets': [
+                    t.to_dict() if hasattr(t, 'to_dict') else {'id': t.id} for t in tickets
+                ],
                 'page': page,
                 'per_page': per_page,
                 'total': pagination.total,
@@ -1390,7 +1396,7 @@ def owner_audit_logs():
     if _wants_json():
         return jsonify(
             {
-                'logs': [l.to_dict() if hasattr(l, 'to_dict') else {'id': l.id} for l in logs],
+                'logs': [lg.to_dict() if hasattr(lg, 'to_dict') else {'id': lg.id} for lg in logs],
                 'page': page,
                 'per_page': per_page,
                 'total': pagination.total,

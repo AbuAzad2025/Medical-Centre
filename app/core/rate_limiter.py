@@ -131,7 +131,7 @@ class RateLimiter:
                 current_count = results[1]
                 if current_count >= self.max_requests:
                     return False
-                member = f"{now}:{uuid.uuid4().hex}"
+                member = f'{now}:{uuid.uuid4().hex}'
                 pipe2 = self._redis.pipeline()
                 pipe2.zadd(full_key, {member: now})
                 pipe2.expire(full_key, self.window + 1)

@@ -38,7 +38,16 @@ class eMARAdministration(TenantMixin, db.Model):
         db.Integer, db.ForeignKey('medications.id', ondelete='SET NULL'), nullable=True, index=True
     )
 
-    ALLOWED_STATUSES = {'SCHEDULED', 'GIVEN', 'NOT_GIVEN', 'HELD', 'REFUSED', 'PARTIAL', 'MISSED', 'LATE'}
+    ALLOWED_STATUSES = {
+        'SCHEDULED',
+        'GIVEN',
+        'NOT_GIVEN',
+        'HELD',
+        'REFUSED',
+        'PARTIAL',
+        'MISSED',
+        'LATE',
+    }
     TERMINAL_STATUSES = {'GIVEN', 'REFUSED', 'HELD', 'NOT_GIVEN', 'PARTIAL', 'MISSED'}
     scheduled_time = db.Column(db.DateTime, nullable=False)
     administered_time = db.Column(db.DateTime, nullable=True)

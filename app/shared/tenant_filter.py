@@ -499,14 +499,20 @@ def reassert_set_local(orm_execute_state):
     tid = _current_tenant_id(session=orm_execute_state.session)
     try:
         bind = orm_execute_state.session.get_bind()
-        dialect = getattr(bind, 'dialect', None) if bind is not None else getattr(db.engine, 'dialect', None)
+        dialect = (
+            getattr(bind, 'dialect', None)
+            if bind is not None
+            else getattr(db.engine, 'dialect', None)
+        )
     except Exception:
         dialect = getattr(db.engine, 'dialect', None)
     if dialect is None or dialect.name != 'postgresql':
         return
     if tid is None:
         try:
-            orm_execute_state.session.execute(db.text("SELECT set_config('app.tenant_id', '', true)"))
+            orm_execute_state.session.execute(
+                db.text("SELECT set_config('app.tenant_id', '', true)")
+            )
         except Exception as exc:
             logger.exception('RESET app.tenant_id failed in reassert_set_local')
             raise TenantIsolationError(
@@ -517,7 +523,7 @@ def reassert_set_local(orm_execute_state):
         tid_int = int(tid)
         orm_execute_state.session.execute(
             db.text("SELECT set_config('app.tenant_id', :tid, true)"),
-            {"tid": str(tid_int)},
+            {'tid': str(tid_int)},
         )
     except Exception as exc:
         logger.exception(
@@ -565,7 +571,11 @@ def auto_assign_tenant(session, flush_context, instances):
 
     try:
         bind = session.get_bind()
-        dialect = getattr(bind, 'dialect', None) if bind is not None else getattr(db.engine, 'dialect', None)
+        dialect = (
+            getattr(bind, 'dialect', None)
+            if bind is not None
+            else getattr(db.engine, 'dialect', None)
+        )
     except Exception:
         dialect = getattr(db.engine, 'dialect', None)
     if dialect is not None and dialect.name == 'postgresql':
@@ -573,7 +583,7 @@ def auto_assign_tenant(session, flush_context, instances):
             tid_int = int(tid)
             session.execute(
                 db.text("SELECT set_config('app.tenant_id', :tid, true)"),
-                {"tid": str(tid_int)},
+                {'tid': str(tid_int)},
             )
         except Exception as exc:
             logger.exception(

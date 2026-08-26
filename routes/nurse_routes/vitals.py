@@ -177,8 +177,37 @@ def record_vital_signs(patient_id):
             return jsonify({'success': False, 'message': 'معدل النبض خارج النطاق'}), 400
         if oxygen_saturation is not None and not 50 <= oxygen_saturation <= 100:
             return jsonify({'success': False, 'message': 'تشبع الأكسجين خارج النطاق'}), 400
-        if any(v is None for v in [systolic, diastolic, heart_rate, temperature, oxygen_saturation, respiratory_rate, weight, height, blood_sugar]) and not notes_val:
-            has_any = any(v is not None for v in [systolic, diastolic, heart_rate, temperature, oxygen_saturation, respiratory_rate, weight, height, blood_sugar])
+        if (
+            any(
+                v is None
+                for v in [
+                    systolic,
+                    diastolic,
+                    heart_rate,
+                    temperature,
+                    oxygen_saturation,
+                    respiratory_rate,
+                    weight,
+                    height,
+                    blood_sugar,
+                ]
+            )
+            and not notes_val
+        ):
+            has_any = any(
+                v is not None
+                for v in [
+                    systolic,
+                    diastolic,
+                    heart_rate,
+                    temperature,
+                    oxygen_saturation,
+                    respiratory_rate,
+                    weight,
+                    height,
+                    blood_sugar,
+                ]
+            )
             if not has_any:
                 return jsonify({'success': False, 'message': 'لا توجد علامات حيوية للإدخال'}), 400
         record = VitalSigns(

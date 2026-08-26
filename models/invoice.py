@@ -70,9 +70,7 @@ class Invoice(TenantMixin, db.Model):
         total = Decimal(str(self.total_amount or 0)).quantize(
             Decimal('0.01'), rounding=ROUND_HALF_UP
         )
-        paid = Decimal(str(self.paid_amount or 0)).quantize(
-            Decimal('0.01'), rounding=ROUND_HALF_UP
-        )
+        paid = Decimal(str(self.paid_amount or 0)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         due = (total - paid).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         return float(due) if due > 0 else 0.0
 

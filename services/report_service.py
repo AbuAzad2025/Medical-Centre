@@ -640,9 +640,7 @@ class ReportService:
 
             total_collected = sum(
                 (
-                    Decimal(str(p.amount or 0)).quantize(
-                        Decimal('0.01'), rounding=ROUND_HALF_UP
-                    )
+                    Decimal(str(p.amount or 0)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                     for p in payments_today
                     if p.status == PaymentStatus.CONFIRMED
                 ),
@@ -651,9 +649,7 @@ class ReportService:
             total_collected = float(total_collected)
             total_pending = sum(
                 (
-                    Decimal(str(p.amount or 0)).quantize(
-                        Decimal('0.01'), rounding=ROUND_HALF_UP
-                    )
+                    Decimal(str(p.amount or 0)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                     for p in payments_today
                     if p.status == PaymentStatus.PENDING
                 ),
@@ -662,9 +658,7 @@ class ReportService:
             total_pending = float(total_pending)
             total_cancelled = sum(
                 (
-                    Decimal(str(p.amount or 0)).quantize(
-                        Decimal('0.01'), rounding=ROUND_HALF_UP
-                    )
+                    Decimal(str(p.amount or 0)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                     for p in payments_today
                     if p.status == PaymentStatus.CANCELLED
                 ),
@@ -763,9 +757,9 @@ class ReportService:
                 'total_patient_share': total_patient_share,
                 'patient_share_collected': patient_share_collected,
                 'patient_share_pending': float(
-                    (Decimal(str(total_patient_share)) - Decimal(str(patient_share_collected))).quantize(
-                        Decimal('0.01'), rounding=ROUND_HALF_UP
-                    )
+                    (
+                        Decimal(str(total_patient_share)) - Decimal(str(patient_share_collected))
+                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                 ),
                 'by_provider': {},
             }

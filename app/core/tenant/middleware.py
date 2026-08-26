@@ -231,7 +231,9 @@ def bind_g_tenant(tenant: Tenant | None) -> None:
         from sqlalchemy import text
 
         tid = int(tenant.id)
-        db.session.execute(text("SELECT set_config('app.tenant_id', :tid, true)"), {"tid": str(tid)})
+        db.session.execute(
+            text("SELECT set_config('app.tenant_id', :tid, true)"), {'tid': str(tid)}
+        )
         db.session.info['_tenant_id'] = tid
     except Exception:
         pass

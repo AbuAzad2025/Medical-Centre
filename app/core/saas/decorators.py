@@ -16,7 +16,6 @@ from flask_login import current_user
 from app.core.saas.resolver import EntitlementResolver
 from app.extensions import db
 
-
 _BYPASS_ROLES = frozenset({'super_admin', 'owner', 'platform_owner'})
 
 
@@ -63,7 +62,9 @@ def require_entitlement(capability_key: str):
                 if _is_json_request():
                     from flask import jsonify
 
-                    return jsonify({'error': 'entitlement_required', 'capability': capability_key}), 403
+                    return jsonify(
+                        {'error': 'entitlement_required', 'capability': capability_key}
+                    ), 403
                 abort(403, description=f"Tenant not entitled to '{capability_key}'.")
 
             return f(*args, **kwargs)

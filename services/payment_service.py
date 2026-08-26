@@ -106,9 +106,7 @@ class PaymentService:
                     existing.replayed = True
                     return True, existing
 
-                amount_dec = Decimal(str(amount)).quantize(
-                    Decimal('0.01'), rounding=ROUND_HALF_UP
-                )
+                amount_dec = Decimal(str(amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                 payment = Payment(
                     tenant_id=tenant_id,
                     operation_type=operation_type,

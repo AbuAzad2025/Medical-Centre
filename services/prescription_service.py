@@ -253,7 +253,9 @@ class PrescriptionService:
                     if not med:
                         from utils.db_safety import safe_rollback
 
-                        safe_rollback(db.session, error_message='Medication not found, rolling back')
+                        safe_rollback(
+                            db.session, error_message='Medication not found, rolling back'
+                        )
                         return False, f'Medication {med_id} not found'
 
                     item_qty = int(item_data.get('quantity', 1) or 1)
@@ -310,7 +312,9 @@ class PrescriptionService:
         from models.medication import Prescription
 
         tenant_id = getattr(g, 'tenant_id', None)
-        q = select(Prescription).filter(Prescription.patient_id == patient_id, Prescription.status == 'active')
+        q = select(Prescription).filter(
+            Prescription.patient_id == patient_id, Prescription.status == 'active'
+        )
         if tenant_id is not None:
             q = q.filter(Prescription.tenant_id == tenant_id)
         return db.session.execute(q.order_by(Prescription.created_at.desc())).scalars().all()
@@ -324,7 +328,11 @@ class PrescriptionService:
         q = select(Prescription).filter(Prescription.doctor_id == doctor_id)
         if tenant_id is not None:
             q = q.filter(Prescription.tenant_id == tenant_id)
-        return db.session.execute(q.order_by(Prescription.created_at.desc()).limit(limit)).scalars().all()
+        return (
+            db.session.execute(q.order_by(Prescription.created_at.desc()).limit(limit))
+            .scalars()
+            .all()
+        )
 
     # ==================== MEDICATION INVENTORY ====================
 
@@ -446,7 +454,11 @@ class PrescriptionService:
             q = q.filter(MedicationSupplyRequest.tenant_id == tenant_id)
         if status:
             q = q.filter(MedicationSupplyRequest.status == status)
-        return db.session.execute(q.order_by(MedicationSupplyRequest.created_at.desc())).scalars().all()
+        return (
+            db.session.execute(q.order_by(MedicationSupplyRequest.created_at.desc()))
+            .scalars()
+            .all()
+        )
 
     # ==================== NOTIFICATION ====================
 

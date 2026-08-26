@@ -49,7 +49,9 @@ def radiology_request(visit_id):
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         if request.method == 'POST':
             test_name = (request.form.get('test_name') or '').strip()
-            notes = (request.form.get('notes') or request.form.get('test_description') or '').strip()
+            notes = (
+                request.form.get('notes') or request.form.get('test_description') or ''
+            ).strip()
             if len(test_name) > 200:
                 flash('اسم التصوير طويل جداً', 'warning')
                 return redirect(url_for('doctor.patient_details', visit_id=visit_id))
@@ -154,7 +156,10 @@ def radiology_results(patient_id):
         rad_requests = (
             db.session.execute(
                 select(RadiologyRequest)
-                .filter(RadiologyRequest.patient_id == patient_id, RadiologyRequest.tenant_id == g.tenant_id)
+                .filter(
+                    RadiologyRequest.patient_id == patient_id,
+                    RadiologyRequest.tenant_id == g.tenant_id,
+                )
                 .order_by(desc(RadiologyRequest.created_at))
             )
             .scalars()
@@ -171,7 +176,10 @@ def radiology_results(patient_id):
                 all_results = (
                     db.session.execute(
                         select(RadiologyResult)
-                        .filter(RadiologyResult.request_id.in_(req_ids), RadiologyResult.tenant_id == g.tenant_id)
+                        .filter(
+                            RadiologyResult.request_id.in_(req_ids),
+                            RadiologyResult.tenant_id == g.tenant_id,
+                        )
                         .order_by(desc(RadiologyResult.created_at))
                     )
                     .scalars()
@@ -182,7 +190,9 @@ def radiology_results(patient_id):
                     results.append(
                         {
                             'modality': getattr(req, 'modality', 'غير محدد') if req else 'غير محدد',
-                            'body_part': getattr(req, 'body_part', 'غير محدد') if req else 'غير محدد',
+                            'body_part': getattr(req, 'body_part', 'غير محدد')
+                            if req
+                            else 'غير محدد',
                             'findings': getattr(r, 'findings', None),
                             'impression': getattr(r, 'impression', None),
                             'status': getattr(r, 'status', 'PENDING'),

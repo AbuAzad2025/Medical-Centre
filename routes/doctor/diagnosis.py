@@ -59,11 +59,15 @@ def diagnosis(visit_id):
             chief_complaint = (request.form.get('chief_complaint') or '').strip() or None
             symptoms = (request.form.get('symptoms') or '').strip() or None
             diagnosis = (request.form.get('diagnosis') or '').strip() or None
-            differential_diagnosis = (request.form.get('differential_diagnosis') or '').strip() or None
+            differential_diagnosis = (
+                request.form.get('differential_diagnosis') or ''
+            ).strip() or None
             treatment_plan = (request.form.get('treatment_plan') or '').strip() or None
             follow_up_notes = (request.form.get('follow_up_notes') or '').strip() or None
             raw_follow_up = (request.form.get('follow_up_required') or '').strip().lower()
-            follow_up_required = raw_follow_up in {'on', '1', 'true', 'yes'} if raw_follow_up else False
+            follow_up_required = (
+                raw_follow_up in {'on', '1', 'true', 'yes'} if raw_follow_up else False
+            )
             follow_up_date_raw = (request.form.get('follow_up_date') or '').strip()
             additional_notes = (request.form.get('notes') or '').strip()
             if chief_complaint and len(chief_complaint) > 2000:

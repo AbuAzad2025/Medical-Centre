@@ -6,7 +6,7 @@ codebase MUST be replaced by calls to this module.
 """
 
 import logging
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 
 from flask import current_app
 
@@ -43,10 +43,8 @@ def safe_commit(db_session, *, error_message='Database error', reraise=False, lo
         db_session.commit()
         return True
     except Exception as e:
-        try:
+        with suppress(Exception):
             db_session.rollback()
-        except Exception:
-            pass
         _log = logger
         if _log is None:
             try:
@@ -105,10 +103,8 @@ def safe_transaction(db_session, *, error_message='Database error', logger=None)
         yield
         db_session.commit()
     except Exception as e:
-        try:
+        with suppress(Exception):
             db_session.rollback()
-        except Exception:
-            pass
         _log = logger
         if _log is None:
             try:

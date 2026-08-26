@@ -354,9 +354,7 @@ def cash_register():
         .scalars()
         .all()
     )
-    exp_cash = sum(
-        float(p.amount or 0) for p in payments if str(p.method or '').lower() == 'cash'
-    )
+    exp_cash = sum(float(p.amount or 0) for p in payments if str(p.method or '').lower() == 'cash')
     exp_card = sum(
         float(p.amount or 0)
         for p in payments
@@ -398,7 +396,9 @@ def daily_close():
             reg.actual_cash = actual_cash
             reg.actual_card = actual_card
             reg.actual_insurance = actual_insurance
-            reg.actual_total = (reg.actual_cash or 0) + (reg.actual_card or 0) + (reg.actual_insurance or 0)
+            reg.actual_total = (
+                (reg.actual_cash or 0) + (reg.actual_card or 0) + (reg.actual_insurance or 0)
+            )
             reg.variance = (reg.actual_total or 0) - (float(reg.expected_total or 0))
             reg.is_closed = True
             reg.is_open = False
