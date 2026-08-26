@@ -1,4 +1,12 @@
 (function() {
+
+  function escHtml(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  window.escHtml = window.escHtml || escHtml;
+
     const token = (document.querySelector('meta[name="csrf-token"]') || {}).content;
     if (!token || !window.fetch) return;
     const originalFetch = window.fetch.bind(window);
