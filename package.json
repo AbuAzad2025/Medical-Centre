@@ -12,7 +12,8 @@
     "e2e:headed": "playwright test --headed",
     "e2e:ui": "playwright test --ui",
     "e2e:install": "playwright install chromium",
-    "build": "node scripts/build-assets.mjs"
+    "build": "node scripts/build-assets.mjs",
+    "test:js": "node --test \"static/js/core/*.test.mjs\""
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",
