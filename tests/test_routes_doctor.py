@@ -1,10 +1,12 @@
 """HTTP route tests for the doctor blueprint."""
 
+import time
 import types
 import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from sqlalchemy import text
 
 from app.shared.enums import VisitState
 from models.appointment import Appointment
@@ -12,6 +14,37 @@ from models.department import Department
 from models.patient import Patient
 from models.user import User
 from models.visit import Visit
+
+_BLOOD_SUGAR_DDL = 'ALTER TABLE vital_signs ADD COLUMN IF NOT EXISTS blood_sugar DOUBLE PRECISION'
+
+_SCRUB_STATEMENTS = [
+    "UPDATE patients SET national_id = NULL WHERE national_id LIKE '$gcm$%' OR national_id LIKE '$enc$%'",
+    "UPDATE patients SET first_name = 'legacy' WHERE first_name LIKE '$gcm$%' OR first_name LIKE '$enc$%'",
+    "UPDATE patients SET last_name = 'legacy' WHERE last_name LIKE '$gcm$%' OR last_name LIKE '$enc$%'",
+    "UPDATE patients SET first_name_ar = NULL WHERE first_name_ar LIKE '$gcm$%' OR first_name_ar LIKE '$enc$%'",
+    "UPDATE patients SET last_name_ar = NULL WHERE last_name_ar LIKE '$gcm$%' OR last_name_ar LIKE '$enc$%'",
+    "UPDATE patients SET phone = NULL WHERE phone LIKE '$gcm$%' OR phone LIKE '$enc$%'",
+    "UPDATE patients SET address = NULL WHERE address LIKE '$gcm$%' OR address LIKE '$enc$%'",
+    'UPDATE patients SET insurance_member_number = NULL '
+    "WHERE insurance_member_number LIKE '$gcm$%' OR insurance_member_number LIKE '$enc$%'",
+]
+
+
+def _sanitize_shared_db(engine):
+    with engine.begin() as conn:
+        conn.execute(text(_BLOOD_SUGAR_DDL))
+        changed = 0
+        for stmt in _SCRUB_STATEMENTS:
+            changed += conn.execute(text(stmt)).rowcount or 0
+    return changed
+
+
+@pytest.fixture(autouse=True)
+def _guard_test_db(db):
+    for _ in range(20):
+        if not _sanitize_shared_db(db.engine):
+            break
+        time.sleep(0.25)
 
 
 @pytest.fixture(autouse=True)

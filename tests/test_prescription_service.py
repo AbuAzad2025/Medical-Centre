@@ -181,7 +181,9 @@ class TestCreatePrescription:
     def test_medication_not_found(self, rxfx):
         p = rxfx.patient()
         doc = rxfx.doctor()
-        ok, msg = RX.create_prescription(p.id, doc.id, items=[{'medication_id': 99999999}])
+        ok, msg = RX.create_prescription(
+            p.id, doc.id, items=[{'medication_id': 99999999, 'dosage': '1 tab'}]
+        )
         assert ok is False and 'not found' in msg
 
     def test_no_items_still_creates(self, rxfx):

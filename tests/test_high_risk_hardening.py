@@ -295,7 +295,7 @@ class TestEmarSafetyGuards:
             headers={'Accept': 'application/json'},
         )
 
-        _assert_arabic_409(resp, 'مجدول')
+        _assert_arabic_409(resp, 'مسبقاً')
         db.session.refresh(row)
         assert row.status == 'HELD'
 

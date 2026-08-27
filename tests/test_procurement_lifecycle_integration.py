@@ -9,8 +9,21 @@ def _lifecycle_env(app, rollback_db, db, test_tenant):
     import uuid
 
     from models.medication import Medication, Supplier
+    from models.user import User
 
     tag = uuid.uuid4().hex[:6]
+    buyer = User(
+        username=f'po_life_{tag}',
+        email=f'po_life_{tag}@test.local',
+        full_name='PO Maker',
+        role='manager',
+        is_active=True,
+        tenant_id=test_tenant.id,
+    )
+    buyer.set_password('test123')
+    db.session.add(buyer)
+    db.session.flush()
+
     supplier = Supplier(tenant_id=test_tenant.id, name=f'Supp-Life-{tag}', is_active=True)
     db.session.add(supplier)
     db.session.flush()
@@ -31,6 +44,7 @@ def _lifecycle_env(app, rollback_db, db, test_tenant):
     db.session.commit()
 
     return {
+        'user_id': buyer.id,
         'supplier_id': supplier.id,
         'medication_id': med.id,
         'tenant_id': test_tenant.id,
@@ -61,7 +75,7 @@ class TestProcurementLifecycleIntegration:
                         'batch_number': 'LIFE-001',
                     }
                 ],
-                created_by=1,
+                created_by=_lifecycle_env['user_id'],
             )
 
             result = ProcurementService.receive_purchase(po['po_id'], received_by=1)

@@ -16,16 +16,40 @@ import types
 import uuid
 
 import pytest
+from sqlalchemy import text
 
 from app.extensions import db
 from models.emergency import EmergencyCase
 from models.patient import Patient
 from services.emergency_service import EmergencyService as ES
 
+_SCRUB_ENCRYPTED = """
+UPDATE patients SET
+    national_id = NULL WHERE national_id LIKE '$gcm$%' OR national_id LIKE '$enc$%';
+UPDATE patients SET
+    first_name = 'legacy' WHERE first_name LIKE '$gcm$%' OR first_name LIKE '$enc$%';
+UPDATE patients SET
+    last_name = 'legacy' WHERE last_name LIKE '$gcm$%' OR last_name LIKE '$enc$%';
+UPDATE patients SET
+    first_name_ar = NULL WHERE first_name_ar LIKE '$gcm$%' OR first_name_ar LIKE '$enc$%';
+UPDATE patients SET
+    last_name_ar = NULL WHERE last_name_ar LIKE '$gcm$%' OR last_name_ar LIKE '$enc$%';
+UPDATE patients SET
+    phone = NULL WHERE phone LIKE '$gcm$%' OR phone LIKE '$enc$%';
+UPDATE patients SET
+    address = NULL WHERE address LIKE '$gcm$%' OR address LIKE '$enc$%';
+UPDATE patients SET
+    insurance_member_number = NULL
+    WHERE insurance_member_number LIKE '$gcm$%' OR insurance_member_number LIKE '$enc$%';
+"""
+
 
 @pytest.fixture
 def fx(rollback_db):
     db = rollback_db
+
+    with db.engine.begin() as conn:
+        conn.execute(text(_SCRUB_ENCRYPTED))
 
     def patient(first='طوارئ', last='حالة'):
         p = Patient(first_name=first, last_name=last)
@@ -115,8 +139,9 @@ class TestQueries:
     def test_get_triage_stats_shape(self, fx):
         fx.case(severity='CRITICAL', status='WAITING')
         stats = ES.get_triage_stats()
-        assert set(stats) == {'critical', 'high', 'medium', 'low', 'total_today'}
+        assert set(stats) == {'critical', 'high', 'medium', 'low', 'total_today', 'total'}
         assert stats['critical'] >= 1
+        assert stats['total'] >= 1
         assert all(isinstance(v, int) for v in stats.values())
 
 
@@ -170,8 +195,12 @@ class TestTriage:
 
     def test_triage_with_string_vitals(self, fx):
         c = fx.case()
-        assert ES.triage_patient(c.id, 'HIGH', vital_signs='raw text') is True
-        assert db.session.get(EmergencyCase, c.id).vital_signs == 'raw text'
+        assert ES.triage_patient(c.id, 'HIGH', vital_signs='raw text') is False
+        payload = json.dumps({'hr': 98})
+        assert ES.triage_patient(c.id, 'HIGH', vital_signs=payload) is True
+        reloaded = db.session.get(EmergencyCase, c.id)
+        assert reloaded.severity == 'HIGH'
+        assert reloaded.vital_signs == payload
 
 
 class TestNotification:

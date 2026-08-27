@@ -382,29 +382,30 @@ class TestFailClosedTenantBinding:
     """``SET LOCAL`` failures must propagate, not be silently swallowed."""
 
     def _patch_target_session(self, monkeypatch):
-        """Monkeypatch ``execute`` on the **underlying** ORM Session, not
-        the ``scoped_session`` wrapper.  Both ``reassert_set_local`` and
-        ``auto_assign_tenant`` receive the raw Session via their event
-        parameters, so the scoped_session patch misses them."""
+        """Intercept ``Session.execute`` class-wide.
+
+        Both ``reassert_set_local`` and ``auto_assign_tenant`` invoke
+        ``execute`` on whatever raw Session instance arrives via their
+        event parameters; per-scope instance patches (e.g. on the scoped
+        registry proxy) miss sessions resolved inside a different
+        request/app context, so the patch must live on the ORM Session
+        class itself.
+        """
+        from sqlalchemy.orm import Session as OrmSession
         from sqlalchemy.sql.elements import TextClause
 
-        sess = db.session.registry()
-        _orig = sess.execute
+        _orig = OrmSession.execute
 
-        def _mock(stmt, *a, **kw):
-            # Skip mock for RESET case (SET LOCAL app.tenant_id = '') which is
-            # a TextClause. reassert_set_local returns early for TextClause
-            # to avoid recursive dispatch. We only want to simulate failure
-            # for the actual SET LOCAL with a tenant_id value.
+        def _mock(session_self, stmt, *a, **kw):
             if isinstance(stmt, TextClause):
                 stmt_str = str(stmt)
                 if 'app.tenant_id' in stmt_str and "= ''" in stmt_str:
-                    return _orig(stmt, *a, **kw)
+                    return _orig(session_self, stmt, *a, **kw)
             if 'SET LOCAL' in str(stmt) and 'app.tenant_id' in str(stmt):
                 raise RuntimeError('Simulated SET LOCAL failure')
-            return _orig(stmt, *a, **kw)
+            return _orig(session_self, stmt, *a, **kw)
 
-        monkeypatch.setattr(sess, 'execute', _mock)
+        monkeypatch.setattr(OrmSession, 'execute', _mock)
 
     def test_fail_closed_when_reassert_set_local_fails(self, app, monkeypatch):
         """When ``reassert_set_local`` (do_orm_execute) cannot SET LOCAL,

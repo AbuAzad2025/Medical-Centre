@@ -9,8 +9,21 @@ def _proc_env(app, db, test_tenant):
     import uuid
 
     from models.medication import Medication, Supplier
+    from models.user import User
 
     tag = uuid.uuid4().hex[:6]
+    buyer = User(
+        username=f'po_{tag}',
+        email=f'po_{tag}@test.local',
+        full_name='PO Maker',
+        role='manager',
+        is_active=True,
+        tenant_id=test_tenant.id,
+    )
+    buyer.set_password('test123')
+    db.session.add(buyer)
+    db.session.flush()
+
     supplier = Supplier(tenant_id=test_tenant.id, name=f'Supp-{tag}', is_active=True)
     db.session.add(supplier)
     db.session.flush()
@@ -31,6 +44,7 @@ def _proc_env(app, db, test_tenant):
     db.session.commit()
 
     return {
+        'user_id': buyer.id,
         'supplier_id': supplier.id,
         'medication_id': med.id,
         'tenant_id': test_tenant.id,
@@ -56,7 +70,7 @@ class TestCreatePurchaseOrder:
                         'batch_number': 'B001',
                     }
                 ],
-                created_by=1,
+                created_by=_proc_env['user_id'],
             )
             assert result['total'] == 500.0
             assert result['item_count'] == 1
@@ -73,7 +87,7 @@ class TestCreatePurchaseOrder:
                 ProcurementService.create_purchase_order(
                     supplier_id=_proc_env['supplier_id'],
                     items=[],
-                    created_by=1,
+                    created_by=_proc_env['user_id'],
                 )
 
     def test_create_invalid_supplier_raises(self, app, _proc_env):
@@ -94,7 +108,7 @@ class TestCreatePurchaseOrder:
                             'batch_number': 'B',
                         }
                     ],
-                    created_by=1,
+                    created_by=_proc_env['user_id'],
                 )
 
     def test_create_invalid_item_raises(self, app, _proc_env):
@@ -109,7 +123,7 @@ class TestCreatePurchaseOrder:
                 ProcurementService.create_purchase_order(
                     supplier_id=_proc_env['supplier_id'],
                     items=[{'medication_id': None, 'quantity': 0, 'batch_number': ''}],
-                    created_by=1,
+                    created_by=_proc_env['user_id'],
                 )
 
 
@@ -133,7 +147,7 @@ class TestReceivePurchase:
                         'batch_number': 'B-RX',
                     }
                 ],
-                created_by=1,
+                created_by=_proc_env['user_id'],
             )
 
             med = db.session.get(Medication, _proc_env['medication_id'])
@@ -173,7 +187,7 @@ class TestReceivePurchase:
                         'batch_number': 'B-D',
                     }
                 ],
-                created_by=1,
+                created_by=_proc_env['user_id'],
             )
 
             from unittest.mock import patch
@@ -211,7 +225,7 @@ class TestSupplierSummary:
                         'batch_number': 'B-S1',
                     }
                 ],
-                created_by=1,
+                created_by=_proc_env['user_id'],
             )
 
             summary = ProcurementService.get_supplier_summary(_proc_env['supplier_id'])

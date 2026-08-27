@@ -208,34 +208,52 @@ class TestAuditReports:
         assert res['summary']['total_visits'] >= 1
 
     def test_daily_audit_issue_branches(self, seed):
-        # unpaid visit (PENDING, not force)
+        audit_dt = datetime(2020, 5, 18, 10, 30)
+        audit_day = audit_dt.date()
         seed.visit(
             status=VisitState.OPEN,
             payment_status='PENDING',
             is_force_payment=False,
             total_amount=100,
             paid_amount=0,
+            created_at=audit_dt,
         )
-        # force payment pending approval
         seed.visit(
             is_force_payment=True,
             force_payment_approved_by=None,
             force_payment_reason='عاجل',
             payment_status='PENDING',
+            created_at=audit_dt,
         )
-        # insurance visit
         seed.visit(
             payment_method='insurance',
             insurance_amount=300,
             patient_share=50,
             insurance_provider='شركة',
+            created_at=audit_dt,
         )
-        # cancelled + large cash payments today
-        v = seed.visit()
-        seed.payment(v.id, amount=1500, method='CASH', status='CONFIRMED')
-        seed.payment(v.id, amount=80, method='CASH', status='CANCELLED')
-        res = RP.get_daily_audit_report()
+        v = seed.visit(created_at=audit_dt)
+
+        def pay(amount, method, status):
+            p = Payment(
+                visit_id=v.id,
+                amount=amount,
+                method=method,
+                status=status,
+                currency='ILS',
+                operation_type='visit_payment',
+                payment_date=audit_dt,
+                created_at=audit_dt,
+            )
+            seed.db.session.add(p)
+            seed.db.session.commit()
+            return p
+
+        pay(1500, 'CASH', 'CONFIRMED')
+        pay(80, 'CARD', 'CANCELLED')
+        res = RP.get_daily_audit_report(target_date=audit_day)
         assert res['success'] is True
+        assert res['date'] == audit_day.isoformat()
         types_found = {i['type'] for i in res['audit_issues']}
         assert {
             'UNPAID_VISITS',
