@@ -202,6 +202,7 @@ class TestExport:
 
 class TestAuditReports:
     @pytest.mark.skip(reason='flaky in sharded CI')
+    @pytest.mark.skip(reason='flaky in sharded CI')
     def test_daily_audit_basic(self, seed):
         res = RP.get_daily_audit_report()
         assert res['success'] is True
@@ -263,6 +264,7 @@ class TestAuditReports:
             'LARGE_CASH_PAYMENTS',
         } <= types_found
 
+    @pytest.mark.skip(reason='flaky in sharded CI')
     @pytest.mark.skip(reason='flaky in sharded CI')
     def test_daily_audit_explicit_date(self, seed):
         res = RP.get_daily_audit_report(target_date=datetime.now())
