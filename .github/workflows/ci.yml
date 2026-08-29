@@ -109,18 +109,16 @@ jobs:
         with:
           python-version: '3.11'
       - run: |
-          python - << 'PY'
+          python -c "
           import psycopg2
-          conn = psycopg2.connect("postgresql://postgres:123@localhost:5432/medical_system_test")
+          conn = psycopg2.connect('postgresql://postgres:123@localhost:5432/postgres')
           conn.autocommit = True
           cur = conn.cursor()
-          cur.execute("SELECT 1 FROM pg_database WHERE datname='medical_system_test';")
+          cur.execute(\"SELECT 1 FROM pg_database WHERE datname='medical_system_test';\")
           if not cur.fetchone():
-              cur.execute("CREATE DATABASE medical_system_test;")
+              cur.execute(\"CREATE DATABASE medical_system_test;\")
           cur.close(); conn.close()
-          PY
-      - name: Prepare test environment
-        uses: ./.github/actions/test-env
+          "
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run agent1 reception tests (VSM-compliant)
