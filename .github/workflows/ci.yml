@@ -104,16 +104,16 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install psycopg2-binary pytest-split
       - name: Set up test database
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
       - run: |
           echo "aW1wb3J0IHBzeWNvcGcyCmNvbm4gPSBwc3ljb3BnMi5jb25uZWN0KCdwb3N0Z3Jlc3FsOi8vcG9zdGdyZXM6MTIzQGxvY2FsaG9zdDo1NDMyL3Bvc3RncmVzJykKY29ubi5hdXRvY29tbWl0ID0gVHJ1ZQpjdXIgPSBjb25uLmN1cnNvcigpCmN1ci5leGVjdXRlKCIgU0VMRUNUIDEgRlJPTSBwZ19kYXRhYmFzZSBXSEVSRSBkYXRuYW1lPSdtZWRpY2FsX3N5c3RlbV90ZXN0JzsiKQppZiBub3QgY3VyLmZldGNob25lKCk6CiAgICBjdXIuZXhlY3V0ZSgiQ1JFQVRFIERBVEFCQVNFIG1lZGljYWxfc3lzdGVtX3Rlc3Q7IikKY3VyLmNsb3NlKCkKY29ubi5jbG9zZSgp" | base64 -d | python
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install psycopg2-binary pytest-split
       - name: Run agent1 reception tests (VSM-compliant)
         env:
           SECRET_KEY: ci-test-secret-key
