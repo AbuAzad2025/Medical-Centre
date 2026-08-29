@@ -124,7 +124,7 @@ jobs:
           python -m pytest tests/test_agent1_reception.py -v --tb=short --no-header -q
       - name: Upload agent1 results
         if: always()
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v4
         with:
           name: agent1-reception-results
           path: test-results/
