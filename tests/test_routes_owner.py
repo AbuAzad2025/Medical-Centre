@@ -9,6 +9,16 @@ from models.user import User
 
 
 @pytest.fixture(autouse=True)
+def _csrf_global_for_owner(monkeypatch, app):
+    from flask import g
+    # Make csrf_token() and csrf() available globally for templates
+    monkeypatch.setattr('flask_wtf.csrf.CSRFProtect.generate_csrf', lambda *a, **k: 'test-csrf-token', raising=False)
+    # Register csrf_token in Jinja globals
+    app.jinja_env.globals['csrf_token'] = lambda: 'test-csrf-token'
+    app.jinja_env.globals['csrf'] = lambda: '<input type="hidden" name="csrf_token" value="test-csrf-token">'
+
+
+@pytest.fixture(autouse=True)
 def _no_bundle_limits(monkeypatch):
     monkeypatch.setattr(
         'app.shared.tenant_filter._check_bundle_limits_on_create',
@@ -97,13 +107,11 @@ class TestOwnerTenants:
         )
         assert resp.status_code in (200, 302)
 
-    @pytest.mark.skip(reason='owner templates require csrf() global not registered in test env')
     def test_tenant_activate_modules(self, login_as, client, ctx):
         _make_owner(login_as, client, ctx)
         resp = client.post(f'/owner/tenants/{ctx.tenant_id}/activate-modules')
         assert resp.status_code in (302, 200)
 
-    @pytest.mark.skip(reason='owner templates require csrf() global not registered in test env')
     def test_tenant_suspend_activate(self, login_as, client, ctx):
         _make_owner(login_as, client, ctx)
         resp = client.post(f'/owner/tenants/{ctx.tenant_id}/suspend')
@@ -157,7 +165,6 @@ class TestOwnerModules:
         assert resp.status_code in (302, 200)
 
 
-@pytest.mark.skip(reason='flaky')
 class TestOwnerPlansPackages:
     def test_plans_page(self, login_as, client, ctx):
         _make_owner(login_as, client, ctx)
@@ -181,7 +188,6 @@ class TestOwnerPlansPackages:
         resp = client.get('/owner/packages')
         assert resp.status_code in (200, 302)
 
-    @pytest.mark.skip(reason='flaky in sharded CI tenant context')
     def test_packages_create_post(self, login_as, client, ctx):
         _make_owner(login_as, client, ctx)
         resp = client.post(
@@ -234,7 +240,6 @@ class TestOwnerSupportAudit:
 
 
 class TestOwnerSystemConfig:
-    @pytest.mark.skip(reason='owner templates require csrf() global not registered in test env')
     def test_system_config_page(self, login_as, client, ctx):
         _make_owner(login_as, client, ctx)
         resp = client.get('/owner/system-config')
