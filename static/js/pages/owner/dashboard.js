@@ -1,5 +1,4 @@
-/* Chart RTL defaults — Arabic UI renders charts right-to-left */
-if (typeof Chart !== 'undefined') {
+﻿if (typeof Chart !== 'undefined') {
   Chart.defaults.plugins.tooltip.rtl = true;
   Chart.defaults.plugins.tooltip.textDirection = 'rtl';
   Chart.defaults.plugins.legend.rtl = true;
@@ -10,16 +9,16 @@ if (typeof Chart !== 'undefined') {
 var __M = window.__M || [];
 __M0__
 
-
 Chart.defaults.font.family = "'Segoe UI', 'Tahoma', sans-serif";
     Chart.defaults.color = '#6c757d';
 
-    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+    const chartDataEl = document.getElementById('chart-data');
+    if (!chartDataEl) return;
+    const chartData = JSON.parse(chartDataEl.textContent);
     const months = chartData.months;
     const tenantGrowth = chartData.tenantGrowth;
     const mrrTrend = chartData.mrrTrend;
 
-    // Main chart: Tenant growth + MRR
     new Chart(document.getElementById('mainChart'), {
         type: 'line',
         data: {
@@ -56,7 +55,6 @@ Chart.defaults.font.family = "'Segoe UI', 'Tahoma', sans-serif";
         }
     });
 
-    // Status distribution
     new Chart(document.getElementById('statusChart'), {
         type: 'doughnut',
         data: {
@@ -73,7 +71,6 @@ Chart.defaults.font.family = "'Segoe UI', 'Tahoma', sans-serif";
         }
     });
 
-    // Tickets chart
     new Chart(document.getElementById('ticketChart'), {
         type: 'bar',
         data: {
@@ -91,7 +88,6 @@ Chart.defaults.font.family = "'Segoe UI', 'Tahoma', sans-serif";
         }
     });
 
-    // Sparklines
     function sparkline(id, data, color) {
         const ctx = document.getElementById(id).getContext('2d');
         new Chart(ctx, {

@@ -1,4 +1,4 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 function submitScan() {
   const barcode = document.getElementById('barcodeInput').value;
   const action = document.getElementById('scanAction').value;
@@ -15,7 +15,7 @@ function submitScan() {
       el.innerHTML = '<div class="alert alert-danger"></div>';
       el.firstElementChild.textContent = data.message;
     }
-  }).catch(err => { /* فشل مسح الباركود: */ });
+  }).catch(err => {  });
 }
 document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') submitScan();

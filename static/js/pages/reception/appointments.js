@@ -1,4 +1,4 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 
 function getCsrfToken() {
     const el = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
@@ -14,7 +14,7 @@ function createNewVisit() {
 }
 
 function exportAppointments() {
-    var csvContent = "data:text/csv;charset=utf-8," 
+    var csvContent = "data:text/csv;charset=utf-8,"
         + __M0__.map(function(a) {
             var patient = a.patient ? a.patient.full_name : "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f";
             var doctor = a.doctor ? a.doctor.full_name : "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f";
@@ -22,7 +22,7 @@ function exportAppointments() {
             var time = a.starts_at && a.starts_at.includes("T") ? a.starts_at.split("T")[1].substring(0, 5) : "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f";
             return "#" + a.id + "," + patient + "," + doctor + "," + date + "," + time + "," + a.status + "," + (a.appointment_type || "\u0639\u0627\u0645") + "\n";
         }).join("");
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -33,7 +33,8 @@ function exportAppointments() {
 }
 
 function applyFilters() {
-    const searchTerm = (document.getElementById('searchInput').value || '').trim();
+    const searchInputEl = document.getElementById('searchInput');
+    const searchTerm = searchInputEl ? (searchInputEl.value || '').trim() : '';
     const departmentFilter = document.getElementById('departmentFilter').value;
     const statusFilter = document.getElementById('statusFilter').value;
     const doctorFilter = document.getElementById('doctorFilter').value;
@@ -54,7 +55,8 @@ function applyFilters() {
 }
 
 function clearFilters() {
-    document.getElementById('searchInput').value = '';
+    const searchInputEl = document.getElementById('searchInput');
+    if (searchInputEl) searchInputEl.value = '';
     document.getElementById('departmentFilter').value = '';
     document.getElementById('statusFilter').value = '';
     document.getElementById('doctorFilter').value = '';
@@ -67,7 +69,7 @@ function clearFilters() {
 function filterAppointments(filter, btnEl) {
     const rows = document.querySelectorAll('#appointmentsTable tbody tr');
     const today = new Date().toISOString().split('T')[0];
-    
+
     rows.forEach(row => {
         if (filter === 'all') {
             row.style.display = '';
@@ -79,8 +81,7 @@ function filterAppointments(filter, btnEl) {
             row.style.display = row.dataset.status === 'confirmed' ? '' : 'none';
         }
     });
-    
-    // تحديث أزرار التصفية
+
     document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -167,14 +168,14 @@ function bulkActions() {
     Swal.fire({ title: 'إجراءات', text: 'الإجراءات الجماعية', icon: 'info' });
 }
 
-// البحث المباشر
-document.getElementById('searchInput').addEventListener('input', function() {
-    applyFilters();
-});
+const searchInputEl = document.getElementById('searchInput');
+if (searchInputEl) {
+    searchInputEl.addEventListener('input', function() {
+        applyFilters();
+    });
+}
 
-// إضافة تأثيرات تفاعلية
 document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للصفوف
     const rows = document.querySelectorAll('#appointmentsTable tbody tr');
     rows.forEach(row => {
         row.addEventListener('mouseenter', function() {

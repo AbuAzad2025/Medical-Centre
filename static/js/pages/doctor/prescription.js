@@ -130,20 +130,26 @@ function ensureAtLeastOneRow() {
   if (!tbody.children.length) createRxRow();
 }
 
-document.getElementById('addRxItemBtn').addEventListener('click', function() {
-  createRxRow();
-});
+const addRxItemBtn = document.getElementById('addRxItemBtn');
+if (addRxItemBtn) {
+  addRxItemBtn.addEventListener('click', function() {
+    createRxRow();
+  });
+}
 
-document.getElementById('applyTemplateBtn').addEventListener('click', function() {
-  const tplId = (document.getElementById('templateSelect').value || '').trim();
-  if (!tplId) return;
-  const tpl = (RX_TEMPLATES || []).find(t => String(t.id) === String(tplId));
-  if (!tpl || !tpl.items) return;
-  const tbody = document.querySelector('#rxItemsTable tbody');
-  tbody.innerHTML = '';
-  (tpl.items || []).forEach(it => createRxRow(it));
-  ensureAtLeastOneRow();
-});
+const applyTemplateBtn = document.getElementById('applyTemplateBtn');
+if (applyTemplateBtn) {
+  applyTemplateBtn.addEventListener('click', function() {
+    const tplId = (document.getElementById('templateSelect').value || '').trim();
+    if (!tplId) return;
+    const tpl = (RX_TEMPLATES || []).find(t => String(t.id) === String(tplId));
+    if (!tpl || !tpl.items) return;
+    const tbody = document.querySelector('#rxItemsTable tbody');
+    tbody.innerHTML = '';
+    (tpl.items || []).forEach(it => createRxRow(it));
+    ensureAtLeastOneRow();
+  });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
   ensureAtLeastOneRow();

@@ -1,4 +1,4 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 
 function saveBranding() {
     const form = document.getElementById('brandingForm');
@@ -71,7 +71,6 @@ function selectTheme(themeId) {
         Swal.fire({ title: 'تم', text: 'تم تطبيق ألوان الثيم — احفظ لإبقاء التغييرات', icon: 'success' });
     })
     .catch(err => {
-        /* تم التقاط خطأ */
         Swal.fire({ title: 'خطأ', text: 'تعذر تطبيق الثيم', icon: 'error' });
     });
 }
@@ -90,29 +89,44 @@ function showDocFields(docType) {
     });
 }
 
-document.getElementById('primary_color').addEventListener('change', function() {
-    document.getElementById('primary-preview').style.backgroundColor = this.value;
-});
+const primaryColorEl = document.getElementById('primary_color');
+if (primaryColorEl) {
+    primaryColorEl.addEventListener('change', function() {
+        const preview = document.getElementById('primary-preview');
+        if (preview) preview.style.backgroundColor = this.value;
+    });
+}
 
-document.getElementById('secondary_color').addEventListener('change', function() {
-    document.getElementById('secondary-preview').style.backgroundColor = this.value;
-});
+const secondaryColorEl = document.getElementById('secondary_color');
+if (secondaryColorEl) {
+    secondaryColorEl.addEventListener('change', function() {
+        const preview = document.getElementById('secondary-preview');
+        if (preview) preview.style.backgroundColor = this.value;
+    });
+}
 
-document.getElementById('accent_color').addEventListener('change', function() {
-    document.getElementById('accent-preview').style.backgroundColor = this.value;
-});
+const accentColorEl = document.getElementById('accent_color');
+if (accentColorEl) {
+    accentColorEl.addEventListener('change', function() {
+        const preview = document.getElementById('accent-preview');
+        if (preview) preview.style.backgroundColor = this.value;
+    });
+}
 
-document.getElementById('logo_file').addEventListener('change', function() {
-    const file = this.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const logoPreview = document.querySelector('.logo-preview');
-            logoPreview.innerHTML = `<img src="${e.target.result}" alt="الشعار" class="img-thumbnail" style="max-height: 100px;">`;
-        };
-        reader.readAsDataURL(file);
-    }
-});
+const logoFileEl = document.getElementById('logo_file');
+if (logoFileEl) {
+    logoFileEl.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const logoPreview = document.querySelector('.logo-preview');
+                logoPreview.innerHTML = `<img src="${e.target.result}" alt="الشعار" class="img-thumbnail" style="max-height: 100px;">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.theme-card').forEach(card => {

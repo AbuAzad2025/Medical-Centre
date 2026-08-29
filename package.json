@@ -13,15 +13,20 @@
     "e2e:ui": "playwright test --ui",
     "e2e:install": "playwright install chromium",
     "build": "node scripts/build-assets.mjs",
-    "test:js": "node --test \"static/js/core/*.test.mjs\""
+    "test:js": "vitest run",
+    "test:js:watch": "vitest",
+    "test:js:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "cspell": "8.19.4",
     "esbuild": "^0.24.0",
+    "jsdom": "^30.0.1",
     "stylelint": "16.26.1",
-    "stylelint-config-standard": "36.0.1",
     "stylelint-config-recess-order": "5.1.1",
-    "cspell": "8.19.4"
+    "stylelint-config-standard": "36.0.1",
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=20.0.0"

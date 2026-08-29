@@ -1,5 +1,4 @@
-// CSRF Token Management (ES Module)
-export function initCsrf() {
+﻿export function initCsrf() {
   if (window.__csrfInitialized) return;
   const meta = document.querySelector('meta[name="csrf-token"]');
   const token = meta ? meta.getAttribute('content') : '';

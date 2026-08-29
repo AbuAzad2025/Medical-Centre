@@ -1,5 +1,4 @@
-/* Chart RTL defaults — Arabic UI renders charts right-to-left */
-if (typeof Chart !== 'undefined') {
+﻿if (typeof Chart !== 'undefined') {
   Chart.defaults.plugins.tooltip.rtl = true;
   Chart.defaults.plugins.tooltip.textDirection = 'rtl';
   Chart.defaults.plugins.legend.rtl = true;
@@ -8,10 +7,11 @@ if (typeof Chart !== 'undefined') {
 }
 
 var __M = window.__M || [];
-__M0__
 
-
-const d = JSON.parse(document.getElementById('emg-chart-data').textContent);
+(function() {
+  const el = document.getElementById('emg-chart-data');
+  if (!el) return;
+  const d = JSON.parse(el.textContent);
   function spark(id, data, color) {
     new Chart(document.getElementById(id).getContext('2d'), {
       type: 'line',
@@ -29,3 +29,4 @@ const d = JSON.parse(document.getElementById('emg-chart-data').textContent);
     data: { labels: ['اليوم', 'نشطة', 'مكتملة', 'عاجلة', 'حرجة'], datasets: [{ label: 'الحالات', data: d.mainData, backgroundColor: ['#dc3545', '#0d6efd', '#198754', '#ffc107', '#a52a2a'] }] },
     options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
   });
+})();

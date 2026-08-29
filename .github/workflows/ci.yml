@@ -58,6 +58,19 @@ jobs:
       - name: Bandit SAST -- high severity only (strict)
         run: bandit -r app/ services/ routes/ -lll
 
+  # ── Frontend JavaScript Unit Tests (Vitest) ──────────────────────────────
+  frontend-javascript-tests:
+    name: JavaScript unit tests (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci || npm install
+      - run: npx vitest run --reporter=verbose
+
   # ── Templates & i18n Validation Gate ───────────────────────────────────────
   templates-i18n:
     runs-on: ubuntu-latest

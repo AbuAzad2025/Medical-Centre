@@ -1,4 +1,4 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 
 function addNewUser() {
     Swal.fire({ title: 'إضافة مستخدم', text: 'إضافة مستخدم جديد', icon: 'info' });
@@ -79,9 +79,9 @@ function deleteUser(userId) {
     });
 }
 
-function filterUsers(filter) {
+function filterUsers(filter, e) {
     const rows = document.querySelectorAll('#usersTable tbody tr');
-    
+
     rows.forEach(row => {
         if (filter === 'all') {
             row.style.display = '';
@@ -93,13 +93,12 @@ function filterUsers(filter) {
             row.style.display = row.dataset.admin === 'admin' ? '' : 'none';
         }
     });
-    
-    // تحديث أزرار التصفية
+
     document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info').forEach(btn => {
         btn.classList.remove('active');
     });
-    
-    event.target.classList.add('active');
+
+    if (e) e.target.classList.add('active');
 }
 
 function bulkActivate() {
@@ -148,13 +147,12 @@ function bulkResetPassword() {
 }
 
 function bulkExport() {
-    // تصدير المستخدمين
+
     exportUsers();
 }
 
-// إضافة تأثيرات تفاعلية
 document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للصفوف
+
     const rows = document.querySelectorAll('#usersTable tbody tr');
     rows.forEach(row => {
         row.addEventListener('mouseenter', function() {

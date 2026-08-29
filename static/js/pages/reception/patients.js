@@ -1,4 +1,4 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 let smartSearchTimer = null;
 (function() {
     const input = document.getElementById('search');
@@ -99,7 +99,7 @@ function togglePregnancyModal() {
     const g = document.getElementById('gender_modal');
     const ms = document.getElementById('marital_status_modal');
     const s = document.getElementById('pregnancy_section_modal');
-    
+
     if (!g || !ms || !s) return;
 
     const show = g.value === 'F' && ms.value === 'married';
@@ -148,7 +148,6 @@ document.getElementById('savePatientModalBtn')?.addEventListener('click', functi
 });
 togglePregnancyModal();
 
-// فتح المودال تلقائياً إذا وُجد بارامتر show_add
 (function() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('show_add')) {
@@ -156,7 +155,7 @@ togglePregnancyModal();
             const modal = new bootstrap.Modal(document.getElementById('addPatientModal'));
             modal.show();
         } else {
-            // fallback: زر يملك data-bs-target، نحاول تشغيله برمجياً
+
             const btns = document.querySelectorAll('[data-bs-target="#addPatientModal"]');
             if (btns.length) btns[0].click();
         }
@@ -233,7 +232,6 @@ if (__M1__) {
     togglePregnancyEdit();
     calcAgeEdit();
 }
-
 
 function confirmDeletePatient(btn) {
     const form = btn.closest('form');

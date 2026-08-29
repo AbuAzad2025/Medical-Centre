@@ -1,8 +1,4 @@
-/**
- * Document OCR using Tesseract.js
- * Dropzone or file input for image/PDF OCR
- */
-(function() {
+﻿(function() {
   'use strict';
 
   function initOCR() {
@@ -42,7 +38,7 @@
           resultArea.textContent = text;
           if (progressArea) progressArea.textContent = 'اكتمل!';
         } catch (err) {
-          /* OCR خطأ */
+
           if (progressArea) progressArea.textContent = 'خطأ: ' + err.message;
         }
       });

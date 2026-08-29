@@ -1,8 +1,4 @@
-/**
- * Client validation from window.__VALIDATION_RULES__ (G-83)
- * + Global double-submit prevention
- */
-(function () {
+﻿(function () {
   'use strict';
 
   const rules = window.__VALIDATION_RULES__ || {};
@@ -46,7 +42,6 @@
     return setFieldState(input, validateValue(key, input.value));
   }
 
-  // ─── Double-submit prevention ────────────────────────────────────────
   function preventDoubleSubmit(form) {
     form.addEventListener('submit', function (e) {
       if (form.dataset.submitting === '1') {
@@ -63,7 +58,7 @@
           + (btn.textContent.trim() || '\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638...');
       });
     });
-    // Re-enable on bfcache restore (browser back button)
+
     window.addEventListener('pageshow', function () {
       delete form.dataset.submitting;
       form.querySelectorAll('[type="submit"]').forEach(function (btn) {
@@ -76,11 +71,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // Apply double-submit prevention to ALL forms globally
+
     document.querySelectorAll('form[method="POST"], form[method="post"]').forEach(preventDoubleSubmit);
 
-    // Global auto-maxlength: apply DB column lengths to text inputs by field name pattern.
-    // Covers all 412 templates without modifying each one individually.
     const GLOBAL_MAXLENGTH = {
       phone: 20, national_id: 32, email: 120, username: 80,
       first_name: 200, last_name: 200, full_name: 120,
@@ -104,7 +97,6 @@
       el.setAttribute('dir', 'auto');
     });
 
-    // Field-level validation
     document.querySelectorAll('[data-validate]').forEach((input) => {
       input.addEventListener('blur', () => validateInput(input));
       input.addEventListener('input', () => {

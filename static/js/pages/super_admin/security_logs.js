@@ -1,15 +1,15 @@
-function refreshLogs() {
+﻿function refreshLogs() {
     location.reload();
 }
 
 function exportLogs() {
-    const csvContent = "data:text/csv;charset=utf-8," 
+    const csvContent = "data:text/csv;charset=utf-8,"
         + "الوقت,المستوى,المستخدم,العنوان IP,الحدث,التفاصيل\n"
         + "2024-01-15 10:30:25,CRITICAL,admin,192.168.1.100,محاولة دخول غير مصرح بها,محاولة الوصول إلى صفحة محظورة\n"
         + "2024-01-15 10:25:15,WARNING,user1,192.168.1.101,محاولة دخول فاشلة,كلمة مرور خاطئة\n"
         + "2024-01-15 10:20:05,INFO,doctor1,192.168.1.102,تسجيل دخول ناجح,تم تسجيل الدخول بنجاح\n"
         + "2024-01-15 10:15:30,CRITICAL,unknown,192.168.1.103,هجوم محتمل,محاولة SQL injection\n";
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -19,9 +19,9 @@ function exportLogs() {
     document.body.removeChild(link);
 }
 
-function filterLogs(level) {
+function filterLogs(level, e) {
     const rows = document.querySelectorAll('#securityLogsTable tbody tr');
-    
+
     rows.forEach(row => {
         if (level === 'all' || row.dataset.level === level) {
             row.style.display = '';
@@ -29,13 +29,12 @@ function filterLogs(level) {
             row.style.display = 'none';
         }
     });
-    
-    // تحديث أزرار التصفية
+
     document.querySelectorAll('.btn-outline-primary, .btn-outline-danger, .btn-outline-warning, .btn-outline-info').forEach(btn => {
         btn.classList.remove('active');
     });
-    
-    event.target.classList.add('active');
+
+    if (e) e.target.classList.add('active');
 }
 
 function viewLogDetails(logId) {
@@ -88,9 +87,8 @@ function exportSecurityReport() {
     Swal.fire({ title: 'تم', text: 'تم تصدير تقرير الأمان', icon: 'success' });
 }
 
-// إضافة تأثيرات تفاعلية
 document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للصفوف
+
     const rows = document.querySelectorAll('#securityLogsTable tbody tr');
     rows.forEach(row => {
         row.addEventListener('mouseenter', function() {

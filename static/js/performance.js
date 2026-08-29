@@ -1,10 +1,4 @@
-/**
- * Performance Optimization JavaScript
- * Medical System - Advanced Performance Scripts
- */
-
-// Performance monitoring
-class PerformanceMonitor {
+﻿class PerformanceMonitor {
     constructor() {
         this.metrics = {};
         this.startTime = performance.now();
@@ -22,7 +16,7 @@ class PerformanceMonitor {
         window.addEventListener('load', () => {
             const loadTime = performance.now() - this.startTime;
             this.metrics.pageLoad = loadTime;
-            /* تم تحميل الصفحة في ${loadTime.toFixed(2)}ms */
+
         });
     }
 
@@ -57,17 +51,17 @@ class PerformanceMonitor {
         const measureFPS = () => {
             frameCount++;
             const currentTime = performance.now();
-            
+
             if (currentTime - lastTime >= 1000) {
                 fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
                 this.metrics.fps = fps;
                 frameCount = 0;
                 lastTime = currentTime;
             }
-            
+
             requestAnimationFrame(measureFPS);
         };
-        
+
         requestAnimationFrame(measureFPS);
     }
 
@@ -76,7 +70,6 @@ class PerformanceMonitor {
     }
 }
 
-// Lazy loading implementation
 class LazyLoader {
     constructor() {
         this.observer = null;
@@ -109,22 +102,22 @@ class LazyLoader {
 
     loadElement(element) {
         element.classList.add('loaded');
-        
-        // Load images
+
         if (element.tagName === 'IMG' && element.dataset.src) {
             element.src = element.dataset.src;
             element.removeAttribute('data-src');
         }
-        
-        // Load background images
+
         if (element.dataset.bg) {
-            element.style.backgroundImage = `url(${element.dataset.bg})`;
+            var bgUrl = element.dataset.bg;
+            if (/^https?:\/\//i.test(bgUrl)) {
+                element.style.backgroundImage = 'url(' + bgUrl + ')';
+            }
             element.removeAttribute('data-bg');
         }
     }
 }
 
-// Debounce utility
 function debounce(func, wait, immediate = false) {
     let timeout;
     return function executedFunction(...args) {
@@ -139,7 +132,6 @@ function debounce(func, wait, immediate = false) {
     };
 }
 
-// Throttle utility
 function throttle(func, limit) {
     let inThrottle;
     return function(...args) {
@@ -151,7 +143,6 @@ function throttle(func, limit) {
     };
 }
 
-// Optimized search
 class OptimizedSearch {
     constructor(inputSelector, resultsSelector, searchFunction) {
         this.input = document.querySelector(inputSelector);
@@ -175,7 +166,6 @@ class OptimizedSearch {
             return;
         }
 
-        // Check cache first
         if (this.cache.has(query)) {
             this.displayResults(this.cache.get(query));
             return;
@@ -186,15 +176,19 @@ class OptimizedSearch {
             this.cache.set(query, results);
             this.displayResults(results);
         } catch (error) {
-            /* Search خطأ: */
+
         }
     }
 
     displayResults(results) {
         if (this.results) {
-            this.results.innerHTML = results.map(result => 
-                `<div class="search-result">${result}</div>`
-            ).join('');
+            this.results.innerHTML = '';
+            results.forEach(function(result) {
+                var div = document.createElement('div');
+                div.className = 'search-result';
+                div.textContent = result;
+                this.results.appendChild(div);
+            }.bind(this));
         }
     }
 
@@ -205,7 +199,6 @@ class OptimizedSearch {
     }
 }
 
-// Optimized table
 class OptimizedTable {
     constructor(tableSelector) {
         this.table = document.querySelector(tableSelector);
@@ -258,7 +251,7 @@ class OptimizedTable {
     }
 
     addVirtualScrolling() {
-        // Implement virtual scrolling for large datasets
+
         const tbody = this.table.querySelector('tbody');
         if (tbody) {
             tbody.style.maxHeight = '400px';
@@ -267,8 +260,8 @@ class OptimizedTable {
     }
 
     filterData(query) {
-        this.filteredData = this.data.filter(row => 
-            Object.values(row).some(value => 
+        this.filteredData = this.data.filter(row =>
+            Object.values(row).some(value =>
                 String(value).toLowerCase().includes(query.toLowerCase())
             )
         );
@@ -286,7 +279,7 @@ class OptimizedTable {
         this.filteredData.sort((a, b) => {
             const aVal = a[column];
             const bVal = b[column];
-            
+
             if (aVal < bVal) return this.sortDirection === 'asc' ? -1 : 1;
             if (aVal > bVal) return this.sortDirection === 'asc' ? 1 : -1;
             return 0;
@@ -296,22 +289,27 @@ class OptimizedTable {
     }
 
     render() {
-        // Implement efficient rendering
+
         const tbody = this.table.querySelector('tbody');
         if (tbody) {
-            tbody.innerHTML = this.filteredData
+            tbody.innerHTML = '';
+            this.filteredData
                 .slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
-                .map(row => this.createRow(row))
-                .join('');
+                .forEach(row => tbody.appendChild(this.createRow(row)));
         }
     }
 
     createRow(row) {
-        return `<tr>${Object.values(row).map(cell => `<td>${cell}</td>`).join('')}</tr>`;
+        var tr = document.createElement('tr');
+        Object.values(row).forEach(function(cell) {
+            var td = document.createElement('td');
+            td.textContent = cell;
+            tr.appendChild(td);
+        });
+        return tr;
     }
 }
 
-// Optimized form validation
 class OptimizedFormValidator {
     constructor(formSelector) {
         this.form = document.querySelector(formSelector);
@@ -346,7 +344,7 @@ class OptimizedFormValidator {
     validateForm() {
         let isValid = true;
         const inputs = this.form.querySelectorAll('input, select, textarea');
-        
+
         inputs.forEach(input => {
             if (!this.validateField(input)) {
                 isValid = false;
@@ -403,7 +401,6 @@ class OptimizedFormValidator {
     }
 }
 
-// Optimized notifications
 class OptimizedNotifications {
     constructor() {
         this.notifications = [];
@@ -433,12 +430,10 @@ class OptimizedNotifications {
         this.container.appendChild(notification);
         this.notifications.push(notification);
 
-        // Animate in
         requestAnimationFrame(() => {
             notification.classList.add('show');
         });
 
-        // Auto remove
         setTimeout(() => {
             this.remove(notification);
         }, duration);
@@ -458,12 +453,17 @@ class OptimizedNotifications {
             border-left: 4px solid ${this.getColor(type)};
         `;
 
-        notification.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span>${message}</span>
-                <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 18px; cursor: pointer;">&times;</button>
-            </div>
-        `;
+        var msgSpan = document.createElement('span');
+        msgSpan.textContent = message;
+        var closeBtn = document.createElement('button');
+        closeBtn.textContent = '\u00d7';
+        closeBtn.style.cssText = 'background: none; border: none; font-size: 18px; cursor: pointer;';
+        closeBtn.addEventListener('click', function() { notification.remove(); });
+        var wrapper = document.createElement('div');
+        wrapper.style.cssText = 'display: flex; align-items: center; justify-content: space-between;';
+        wrapper.appendChild(msgSpan);
+        wrapper.appendChild(closeBtn);
+        notification.appendChild(wrapper);
 
         return notification;
     }
@@ -492,7 +492,6 @@ class OptimizedNotifications {
     }
 }
 
-// Optimized caching
 class OptimizedCache {
     constructor(maxSize = 100) {
         this.cache = new Map();
@@ -502,7 +501,7 @@ class OptimizedCache {
     get(key) {
         if (this.cache.has(key)) {
             const item = this.cache.get(key);
-            // Move to end (LRU)
+
             this.cache.delete(key);
             this.cache.set(key, item);
             return item.value;
@@ -510,9 +509,10 @@ class OptimizedCache {
         return null;
     }
 
-    set(key, value, ttl = 300000) { // 5 minutes default
+    set(key, value, ttl = 300000) {
+
         if (this.cache.size >= this.maxSize) {
-            // Remove oldest item
+
             const firstKey = this.cache.keys().next().value;
             this.cache.delete(firstKey);
         }
@@ -537,7 +537,6 @@ class OptimizedCache {
     }
 }
 
-// Initialize performance optimizations
 document.addEventListener('DOMContentLoaded', () => {
     const performanceMonitor = new PerformanceMonitor();
     const lazyLoader = new LazyLoader();
@@ -575,7 +574,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.optimizedCache = new OptimizedCache();
 });
 
-// Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         PerformanceMonitor,

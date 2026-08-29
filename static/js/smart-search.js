@@ -1,7 +1,4 @@
-/**
- * Smart patient/staff search — debounced dropdown (G-81)
- */
-(function () {
+﻿(function () {
   'use strict';
 
   function debounce(fn, ms) {

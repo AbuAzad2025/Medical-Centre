@@ -1,7 +1,4 @@
-/**
- * Pharmacy POS page logic (§35.4).
- */
-(function () {
+﻿(function () {
     const cfg = window.__PHARMACY_POS__ || {};
     let cart = [];
     let posChargeData = null;
@@ -158,7 +155,10 @@
         }
         fetch(cfg.sellUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            },
             body: JSON.stringify(payload),
         })
             .then(function (r) { return r.json(); })

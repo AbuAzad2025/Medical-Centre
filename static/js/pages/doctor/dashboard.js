@@ -1,4 +1,4 @@
-  function notifyErr(msg) {
+﻿  function notifyErr(msg) {
     if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
     else console.warn('[doctor-page]', msg);
   }
@@ -9,10 +9,6 @@ const csrfToken = __M1__;
 const panelContainer = document.getElementById('doctorPanels');
 const settingsList = document.getElementById('dashboardSettingsList');
 const saveSettingsBtn = document.getElementById('saveDashboardSettings');
-
-/* ═══════════════════════════════════════
-   Dashboard Layout — Customizable Panels
-   ═══════════════════════════════════════ */
 
 function applyLayout(items) {
     const map = {};
@@ -93,12 +89,8 @@ if (saveSettingsBtn) {
     saveSettingsBtn.addEventListener('click', saveLayout);
 }
 
-/* ═══════════════════════════════════════
-   Live Stats Polling — dashboard-new
-   ═══════════════════════════════════════ */
-
 let statsPolling = null;
-const STATS_POLL_INTERVAL_MS = 30000; // 30 seconds
+const STATS_POLL_INTERVAL_MS = 30000;
 
 async function refreshDashboardStats() {
     try {
@@ -139,10 +131,6 @@ function stopStatsPolling() {
     }
 }
 
-/* ═══════════════════════════════════════
-   Keyboard Shortcuts
-   ═══════════════════════════════════════ */
-
 document.addEventListener('keydown', function(e) {
     if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
     if (e.altKey && e.key.toLowerCase() === 'q') {
@@ -159,19 +147,14 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-/* ═══════════════════════════════════════
-   Init
-   ═══════════════════════════════════════ */
-
 document.addEventListener('DOMContentLoaded', function() {
     loadLayout();
-    // Only start polling on pages that have stat elements
+
     if (document.querySelector('[data-stat]')) {
         startStatsPolling();
     }
 });
 
-// Stop polling when tab is hidden to save resources
 document.addEventListener('visibilitychange', function() {
     if (document.hidden) {
         stopStatsPolling();

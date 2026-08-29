@@ -1,5 +1,5 @@
-var __M = window.__M || [];
-// حل حالة الطوارئ
+﻿var __M = window.__M || [];
+
     function resolveEmergency() {
         Swal.fire({
             title: 'حل الحالة',
@@ -33,8 +33,7 @@ var __M = window.__M || [];
             }
         });
     }
-    
-    // نقل حالة الطوارئ
+
     function transferEmergency() {
         Swal.fire({
             title: 'نقل الحالة',
@@ -71,14 +70,23 @@ var __M = window.__M || [];
             }
         });
     }
-    
-    // التحقق من صحة البيانات
-    document.getElementById('emergencyForm').addEventListener('submit', function(e) {
-        const requiredFields = ['patient_id', 'doctor_id', 'emergency_date', 'emergency_time', 'chief_complaint'];
-        let isValid = true;
-        
-        requiredFields.forEach(field => {
-            const input = document.querySelector(`[name="${field}"]`);
+
+    var originalData = {};
+    var form = document.getElementById('emergencyForm');
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(function(input) {
+            originalData[input.name] = input.value;
+        });
+    });
+
+    form.addEventListener('submit', function(e) {
+        var requiredFields = ['patient_id', 'doctor_id', 'emergency_date', 'emergency_time', 'chief_complaint'];
+        var isValid = true;
+
+        requiredFields.forEach(function(field) {
+            var input = document.querySelector('[name="' + field + '"]');
             if (!input.value.trim()) {
                 input.classList.add('is-invalid');
                 isValid = false;
@@ -86,39 +94,24 @@ var __M = window.__M || [];
                 input.classList.remove('is-invalid');
             }
         });
-        
+
         if (!isValid) {
             e.preventDefault();
             Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
+            return;
         }
-    });
-    
-    // تتبع التغييرات
-    let originalData = {};
-    const form = document.getElementById('emergencyForm');
-    
-    // حفظ البيانات الأصلية
-    document.addEventListener('DOMContentLoaded', function() {
-        const inputs = form.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            originalData[input.name] = input.value;
-        });
-    });
-    
-    // التحقق من التغييرات
-    form.addEventListener('submit', function(e) {
-        let hasChanges = false;
-        const inputs = form.querySelectorAll('input, select, textarea');
-        
-        inputs.forEach(input => {
+
+        var hasChanges = false;
+        var inputs = form.querySelectorAll('input, select, textarea');
+
+        inputs.forEach(function(input) {
             if (originalData[input.name] !== input.value) {
                 hasChanges = true;
             }
         });
-        
+
         if (!hasChanges) {
             e.preventDefault();
             Swal.fire({ title: 'لا تغييرات', text: 'لم يتم إجراء أي تغييرات', icon: 'info' });
-            return false;
         }
     });

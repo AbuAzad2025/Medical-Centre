@@ -1,4 +1,4 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 let currentTicketId = null;
 const currentUserRole = __M0__;
 const currentDoctorId = __M1__;
@@ -9,7 +9,6 @@ function getCsrfToken() {
     return meta ? meta.getAttribute('content') : '';
 }
 
-// تحديث حالة الطابور الموحد
 function updateQueueStatus() {
     const params = new URLSearchParams();
     const dep = document.getElementById('filterDepartment');
@@ -43,7 +42,6 @@ function updateQueueStatus() {
             }
         })
         .catch(error => {
-            /* خطأ: */
             const tbody = document.querySelector('#queue-status-all tbody');
             tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">خطأ في الاتصال</td></tr>';
         });
@@ -87,7 +85,6 @@ function updateWaitMetrics(departmentId) {
         });
 }
 
-// عرض حالة الطابور الموحد
 function displayQueueStatusAll(status) {
     const tbody = document.querySelector('#queue-status-all tbody');
     const rows = [];
@@ -136,7 +133,6 @@ function displayQueueStatusAll(status) {
     tbody.innerHTML = tbodyHtml;
 }
 
-// استدعاء المريض التالي
 function callNextPatient(departmentId) {
     const url = currentUserRole === 'doctor'
         ? `/reception/queue/call-next/${departmentId}?doctor_id=${currentDoctorId}`
@@ -150,7 +146,6 @@ function callNextPatient(departmentId) {
             updateQueueStatus();
         })
         .catch(error => {
-            /* خطأ: */
             Swal.fire({ title: 'خطأ', text: 'حدث خطأ في استدعاء المريض', icon: 'error' });
         });
 }
@@ -164,14 +159,12 @@ function callNextForSelectedDepartment() {
     callNextPatient(dep.value);
 }
 
-// استدعاء مريض محدد
 function callPatient(ticketId) {
     currentTicketId = ticketId;
     const modal = new bootstrap.Modal(document.getElementById('callPatientModal'));
     modal.show();
 }
 
-// بدء العلاج
 function startTreatment(ticketId) {
     fetch(((window.API_ROUTES && window.API_ROUTES.start_treatment) || '/reception/queue/start-treatment/0').replace('/0', '/' + ticketId), { credentials: 'same-origin' })
         .then(response => {
@@ -184,12 +177,10 @@ function startTreatment(ticketId) {
             modal.hide();
         })
         .catch(error => {
-            /* خطأ: */
             Swal.fire({ title: 'خطأ', text: 'حدث خطأ في بدء العلاج', icon: 'error' });
         });
 }
 
-// إكمال العلاج
 function completeTreatment(ticketId) {
     fetch(((window.API_ROUTES && window.API_ROUTES.complete_treatment) || '/reception/queue/complete-treatment/0').replace('/0', '/' + ticketId), { credentials: 'same-origin' })
         .then(response => {
@@ -200,19 +191,16 @@ function completeTreatment(ticketId) {
             updateQueueStatus();
         })
         .catch(error => {
-            /* خطأ: */
             Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إكمال العلاج', icon: 'error' });
         });
 }
 
-// تخطي المريض
 function skipPatient(ticketId) {
     currentTicketId = ticketId;
     const modal = new bootstrap.Modal(document.getElementById('skipPatientModal'));
     modal.show();
 }
 
-// إلغاء التذكرة
 function cancelTicket(ticketId) {
     currentTicketId = ticketId;
     const modal = new bootstrap.Modal(document.getElementById('cancelTicketModal'));
@@ -247,38 +235,41 @@ function transferVisit(visitId) {
     modal.show();
 }
 
-document.getElementById('transferVisitForm') && document.getElementById('transferVisitForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const visitId = document.getElementById('transfer_visit_id').value;
-    const deptId = document.getElementById('transfer_department_id').value;
-    const docId = document.getElementById('transfer_doctor_id').value;
-    if (!deptId) { Swal.fire({title:'تنبيه', text:'يجب اختيار القسم', icon:'warning'}); return; }
-    const fd = new FormData();
-    fd.append('csrf_token', getCsrfToken());
-    fd.append('department_id', deptId);
-    if (docId) fd.append('doctor_id', docId);
-    fetch(((window.API_ROUTES && window.API_ROUTES.transfer_visit) || '/reception/visits/0/transfer').replace('/0', '/' + visitId), {
-        method: 'POST',
-        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, getCsrfToken() ? { 'X-CSRFToken': getCsrfToken() } : {}),
-        credentials: 'same-origin',
-        body: fd
-    })
-        .then(r => {
-            if (!r.ok) throw new Error(r.status);
-            return r.json();
+const transferVisitFormEl = document.getElementById('transferVisitForm');
+if (transferVisitFormEl) {
+    transferVisitFormEl.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const visitId = document.getElementById('transfer_visit_id').value;
+        const deptId = document.getElementById('transfer_department_id').value;
+        const docId = document.getElementById('transfer_doctor_id').value;
+        if (!deptId) { Swal.fire({title:'تنبيه', text:'يجب اختيار القسم', icon:'warning'}); return; }
+        const fd = new FormData();
+        fd.append('csrf_token', getCsrfToken());
+        fd.append('department_id', deptId);
+        if (docId) fd.append('doctor_id', docId);
+        fetch(((window.API_ROUTES && window.API_ROUTES.transfer_visit) || '/reception/visits/0/transfer').replace('/0', '/' + visitId), {
+            method: 'POST',
+            headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, getCsrfToken() ? { 'X-CSRFToken': getCsrfToken() } : {}),
+            credentials: 'same-origin',
+            body: fd
         })
-        .then(data => {
-            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('transferVisitModal'));
-            modal.hide();
-            if (data.success) {
-                Swal.fire({title:'تم', text:'تم تحويل الزيارة بنجاح', icon:'success', timer:2000, showConfirmButton:false});
-                updateQueueStatus();
-            } else {
-                Swal.fire({title:'خطأ', text: data.message || 'فشل التحويل', icon:'error'});
-            }
-        })
-        .catch(() => Swal.fire({title:'خطأ', text:'حدث خطأ في التحويل', icon:'error'}));
-});
+            .then(r => {
+                if (!r.ok) throw new Error(r.status);
+                return r.json();
+            })
+            .then(data => {
+                const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('transferVisitModal'));
+                modal.hide();
+                if (data.success) {
+                    Swal.fire({title:'تم', text:'تم تحويل الزيارة بنجاح', icon:'success', timer:2000, showConfirmButton:false});
+                    updateQueueStatus();
+                } else {
+                    Swal.fire({title:'خطأ', text: data.message || 'فشل التحويل', icon:'error'});
+                }
+            })
+            .catch(() => Swal.fire({title:'خطأ', text:'حدث خطأ في التحويل', icon:'error'}));
+    });
+}
 
 function returnToQueue(ticketId) {
     Swal.fire({
@@ -308,137 +299,140 @@ function returnToQueue(ticketId) {
     });
 }
 
-// الموافقة على دين الطوارئ
 function approveEmergencyDebt(ticketId) {
     currentTicketId = ticketId;
     const modal = new bootstrap.Modal(document.getElementById('approveEmergencyDebtModal'));
     modal.show();
 }
 
-// الموافقة على الدخول القوي
 function approveForceEntry(ticketId) {
     currentTicketId = ticketId;
     const modal = new bootstrap.Modal(document.getElementById('approveForceEntryModal'));
     modal.show();
 }
 
-// معالجة النماذج
-document.getElementById('skipPatientForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    const csrf = getCsrfToken();
-    if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
-    
-    fetch(((window.API_ROUTES && window.API_ROUTES.skip_patient) || '/reception/queue/skip-patient/0').replace('/0', '/' + currentTicketId), {
-        method: 'POST',
-        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
-        credentials: 'same-origin',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(response.status);
-        return response.text();
-    })
-    .then(() => {
-        updateQueueStatus();
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('skipPatientModal'));
-        modal.hide();
-        this.reset();
-    })
-    .catch(error => {
-        /* خطأ: */
-        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في تخطي المريض', icon: 'error' });
+const skipPatientFormEl = document.getElementById('skipPatientForm');
+if (skipPatientFormEl) {
+    skipPatientFormEl.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const csrf = getCsrfToken();
+        if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
+        
+        fetch(((window.API_ROUTES && window.API_ROUTES.skip_patient) || '/reception/queue/skip-patient/0').replace('/0', '/' + currentTicketId), {
+            method: 'POST',
+            headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
+            credentials: 'same-origin',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error(response.status);
+            return response.text();
+        })
+        .then(() => {
+            updateQueueStatus();
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('skipPatientModal'));
+            modal.hide();
+            this.reset();
+        })
+        .catch(error => {
+            Swal.fire({ title: 'خطأ', text: 'حدث خطأ في تخطي المريض', icon: 'error' });
+        });
     });
-});
+}
 
-document.getElementById('cancelTicketForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    const csrf = getCsrfToken();
-    if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
-    
-    fetch(((window.API_ROUTES && window.API_ROUTES.cancel_ticket) || '/reception/queue/cancel-ticket/0').replace('/0', '/' + currentTicketId), {
-        method: 'POST',
-        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
-        credentials: 'same-origin',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(response.status);
-        return response.text();
-    })
-    .then(() => {
-        updateQueueStatus();
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('cancelTicketModal'));
-        modal.hide();
-        this.reset();
-    })
-    .catch(error => {
-        /* خطأ: */
-        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إلغاء التذكرة', icon: 'error' });
+const cancelTicketFormEl = document.getElementById('cancelTicketForm');
+if (cancelTicketFormEl) {
+    cancelTicketFormEl.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const csrf = getCsrfToken();
+        if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
+        
+        fetch(((window.API_ROUTES && window.API_ROUTES.cancel_ticket) || '/reception/queue/cancel-ticket/0').replace('/0', '/' + currentTicketId), {
+            method: 'POST',
+            headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
+            credentials: 'same-origin',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error(response.status);
+            return response.text();
+        })
+        .then(() => {
+            updateQueueStatus();
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('cancelTicketModal'));
+            modal.hide();
+            this.reset();
+        })
+        .catch(error => {
+            Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إلغاء التذكرة', icon: 'error' });
+        });
     });
-});
+}
 
-document.getElementById('approveEmergencyDebtForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    const csrf = getCsrfToken();
-    if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
-    
-    fetch(((window.API_ROUTES && window.API_ROUTES.approve_emergency_debt) || '/reception/queue/approve-emergency-debt/0').replace('/0', '/' + currentTicketId), {
-        method: 'POST',
-        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
-        credentials: 'same-origin',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(response.status);
-        return response.text();
-    })
-    .then(() => {
-        updateQueueStatus();
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('approveEmergencyDebtModal'));
-        modal.hide();
-        this.reset();
-    })
-    .catch(error => {
-        /* خطأ: */
-        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الموافقة على دين الطوارئ', icon: 'error' });
+const approveEmergencyDebtFormEl = document.getElementById('approveEmergencyDebtForm');
+if (approveEmergencyDebtFormEl) {
+    approveEmergencyDebtFormEl.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const csrf = getCsrfToken();
+        if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
+        
+        fetch(((window.API_ROUTES && window.API_ROUTES.approve_emergency_debt) || '/reception/queue/approve-emergency-debt/0').replace('/0', '/' + currentTicketId), {
+            method: 'POST',
+            headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
+            credentials: 'same-origin',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error(response.status);
+            return response.text();
+        })
+        .then(() => {
+            updateQueueStatus();
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('approveEmergencyDebtModal'));
+            modal.hide();
+            this.reset();
+        })
+        .catch(error => {
+            Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الموافقة على دين الطوارئ', icon: 'error' });
+        });
     });
-});
+}
 
-document.getElementById('approveForceEntryForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    const csrf = getCsrfToken();
-    if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
-    
-    fetch(((window.API_ROUTES && window.API_ROUTES.approve_force_entry) || '/reception/queue/approve-force-entry/0').replace('/0', '/' + currentTicketId), {
-        method: 'POST',
-        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
-        credentials: 'same-origin',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(response.status);
-        return response.text();
-    })
-    .then(() => {
-        updateQueueStatus();
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('approveForceEntryModal'));
-        modal.hide();
-        this.reset();
-    })
-    .catch(error => {
-        /* خطأ: */
-        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الموافقة على الدخول القوي', icon: 'error' });
+const approveForceEntryFormEl = document.getElementById('approveForceEntryForm');
+if (approveForceEntryFormEl) {
+    approveForceEntryFormEl.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const csrf = getCsrfToken();
+        if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
+        
+        fetch(((window.API_ROUTES && window.API_ROUTES.approve_force_entry) || '/reception/queue/approve-force-entry/0').replace('/0', '/' + currentTicketId), {
+            method: 'POST',
+            headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrf ? { 'X-CSRFToken': csrf } : {}),
+            credentials: 'same-origin',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error(response.status);
+            return response.text();
+        })
+        .then(() => {
+            updateQueueStatus();
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('approveForceEntryModal'));
+            modal.hide();
+            this.reset();
+        })
+        .catch(error => {
+            Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الموافقة على الدخول القوي', icon: 'error' });
+        });
     });
-});
+}
 
-// تحديث دوري
-setInterval(updateQueueStatus, 30000); // كل 30 ثانية
+setInterval(updateQueueStatus, 30000);
 
-// تحميل أولي
 document.addEventListener('DOMContentLoaded', function() {
     updateQueueStatus();
 });

@@ -1,7 +1,4 @@
-/**
- * Multi-step form UI — does not remove fields from DOM (G-20)
- */
-(function () {
+﻿(function () {
   'use strict';
 
   function initStepper(root) {

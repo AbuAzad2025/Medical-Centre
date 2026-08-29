@@ -1,7 +1,4 @@
-/**
- * Theme toggle — navbar button; syncs localStorage + server preferences.
- */
-(function () {
+﻿(function () {
   'use strict';
 
   function currentTheme() {

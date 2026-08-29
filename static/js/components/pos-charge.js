@@ -1,7 +1,4 @@
-/**
- * Shared POS terminal charge button (reception + pharmacy — §35.6).
- */
-(function (global) {
+﻿(function (global) {
     function initPosCharge(opts) {
         const btn = typeof opts.button === 'string'
             ? document.getElementById(opts.button)

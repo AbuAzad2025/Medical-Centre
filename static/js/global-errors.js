@@ -1,8 +1,4 @@
-/**
- * Global error handlers + fetch entitlement/network interceptors (Frontend QA Phase 3).
- * Loaded after api-feedback.js so notify.* is available.
- */
-(function (global) {
+﻿(function (global) {
   'use strict';
 
   function reportError(message, source) {
@@ -90,7 +86,6 @@
     });
   }
 
-  /** Wrap an existing fetch implementation (base.js CSRF wrapper). */
   function wrapFetchWithEntitlementHandling(fetchFn) {
     return function (input, init) {
       return fetchFn(input, init).then(function (response) {

@@ -368,7 +368,7 @@ var __M = window.__M || [];
                         const ok = window.confirm('حذف الماكرو؟');
                         if (!ok) return;
                         try {
-                            const r = await fetch(`__M5__`.replace('__M__', encodeURIComponent(id)), {
+                            const r = await fetch(__M5__.replace('__M__', encodeURIComponent(id)), {
                                 method: 'POST',
                                 headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                                 credentials: 'same-origin'
@@ -414,7 +414,7 @@ var __M = window.__M || [];
                         const ok = window.confirm('حذف القالب؟');
                         if (!ok) return;
                         try {
-                            const r = await fetch(`__M6__`.replace('__TPL__', encodeURIComponent(id)), {
+                            const r = await fetch(__M6__.replace('__TPL__', encodeURIComponent(id)), {
                                 method: 'POST',
                                 headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                                 credentials: 'same-origin'

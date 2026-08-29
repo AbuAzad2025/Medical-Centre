@@ -1,4 +1,4 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 function saveSettings() {
     const forms = ['generalSettingsForm', 'securitySettingsForm', 'databaseSettingsForm', 'notificationsSettingsForm', 'backupSettingsForm'];
@@ -36,13 +36,11 @@ function saveSettings() {
         }
     })
     .catch(error => {
-        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ الإعدادات', icon: 'error' });
     });
 }
 
 function resetSettings() {
-    // إعادة تعيين الإعدادات
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إعادة تعيين جميع الإعدادات إلى القيم الافتراضية؟',
@@ -71,7 +69,6 @@ function testSmsConnection() {
     })
     .catch(err => {
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إرسال الرسالة', icon: 'error' });
-        /* تم التقاط خطأ */
     });
 }
 
@@ -90,11 +87,9 @@ function processNotificationQueue() {
     })
     .catch(err => {
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في معالجة الطابور', icon: 'error' });
-        /* تم التقاط خطأ */
     });
 }
 
-// إظهار/إخفاء إعدادات Twilio بناءً على اختيار المزود
 document.addEventListener('DOMContentLoaded', function() {
     const providerSelect = document.getElementById('sms_provider');
     if (providerSelect) {
@@ -106,15 +101,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 twilioSettings.style.display = 'none';
             }
         });
-        // تفعيل عند التحميل
         if (providerSelect.value === 'twilio') {
-            document.getElementById('twilioSettings').style.display = 'block';
+            const twilioSettings = document.getElementById('twilioSettings');
+            if (twilioSettings) twilioSettings.style.display = 'block';
         }
     }
 });
 
 function testConnection() {
-    // اختبار اتصال قاعدة البيانات
     const dbSettings = {
         host: document.getElementById('db_host').value,
         port: document.getElementById('db_port').value,
@@ -141,14 +135,11 @@ function testConnection() {
         }
     })
     .catch(error => {
-        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في اختبار الاتصال', icon: 'error' });
     });
 }
 
-// تحميل الإعدادات عند فتح الصفحة
 document.addEventListener('DOMContentLoaded', function() {
-    // تحميل الإعدادات الحالية
     fetch(__M2__ + '?action=load', { credentials: 'same-origin' })
         .then(response => {
             if (!response.ok) throw new Error('http_' + response.status);
@@ -156,7 +147,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if (data.success) {
-                // تطبيق الإعدادات على النماذج
                 Object.keys(data.settings).forEach(key => {
                     const element = document.getElementById(key);
                     if (element) {
@@ -204,33 +194,36 @@ document.addEventListener('DOMContentLoaded', function() {
             if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات'); else alert('حدث خطأ أثناء تحميل البيانات');
         });
 
-    document.getElementById('saveDeptQueueSettings').addEventListener('click', function() {
-        const rows = document.querySelectorAll('#deptQueueTable tbody tr');
-        const items = [];
-        rows.forEach(row => {
-            const deptId = parseInt(row.querySelector('td[data-id]').getAttribute('data-id'));
-            const maxSize = parseInt(row.querySelector('.dept-max').value || '0');
-            const paymentRequired = row.querySelector('.dept-required').checked;
-            const emergencyWaived = row.querySelector('.dept-emergency-waived').checked;
-            const forceAllowed = row.querySelector('.dept-force').checked;
-            const avgWait = parseInt(row.querySelector('.dept-avg').value || '0');
-            const allowPartial = row.querySelector('.dept-partial').checked;
-            const allowDebt = row.querySelector('.dept-debt').checked;
-            items.push({ department_id: deptId, max_queue_size: maxSize, payment_required: paymentRequired, emergency_payment_waived: emergencyWaived, force_entry_allowed: forceAllowed, average_wait_time: avgWait, allow_partial_payment: allowPartial, allow_debt: allowDebt });
+    const saveDeptQueueSettingsEl = document.getElementById('saveDeptQueueSettings');
+    if (saveDeptQueueSettingsEl) {
+        saveDeptQueueSettingsEl.addEventListener('click', function() {
+            const rows = document.querySelectorAll('#deptQueueTable tbody tr');
+            const items = [];
+            rows.forEach(row => {
+                const deptId = parseInt(row.querySelector('td[data-id]').getAttribute('data-id'));
+                const maxSize = parseInt(row.querySelector('.dept-max').value || '0');
+                const paymentRequired = row.querySelector('.dept-required').checked;
+                const emergencyWaived = row.querySelector('.dept-emergency-waived').checked;
+                const forceAllowed = row.querySelector('.dept-force').checked;
+                const avgWait = parseInt(row.querySelector('.dept-avg').value || '0');
+                const allowPartial = row.querySelector('.dept-partial').checked;
+                const allowDebt = row.querySelector('.dept-debt').checked;
+                items.push({ department_id: deptId, max_queue_size: maxSize, payment_required: paymentRequired, emergency_payment_waived: emergencyWaived, force_entry_allowed: forceAllowed, average_wait_time: avgWait, allow_partial_payment: allowPartial, allow_debt: allowDebt });
+            });
+            fetch(__M4__, {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                credentials: 'same-origin',
+                body: JSON.stringify({ items })
+            })
+            .then(r => {
+                if (!r.ok) throw new Error('http_' + r.status);
+                return r.json();
+            })
+            .then(d => { if (d.success) { Swal.fire({ title: 'تم', text: 'تم حفظ إعدادات الأقسام بنجاح', icon: 'success' }); } else { Swal.fire({ title: 'خطأ', text: 'فشل حفظ إعدادات الأقسام', icon: 'error' }); } })
+            .catch(function(err) {
+                if (window.showToast) window.showToast('حدث خطأ أثناء حفظ الإعدادات'); else alert('حدث خطأ أثناء تحميل البيانات');
+            });
         });
-        fetch(__M4__, {
-            method: 'POST',
-            headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-            credentials: 'same-origin',
-            body: JSON.stringify({ items })
-        })
-        .then(r => {
-            if (!r.ok) throw new Error('http_' + r.status);
-            return r.json();
-        })
-        .then(d => { if (d.success) { Swal.fire({ title: 'تم', text: 'تم حفظ إعدادات الأقسام بنجاح', icon: 'success' }); } else { Swal.fire({ title: 'خطأ', text: 'فشل حفظ إعدادات الأقسام', icon: 'error' }); } })
-        .catch(function(err) {
-            if (window.showToast) window.showToast('حدث خطأ أثناء حفظ الإعدادات'); else alert('حدث خطأ أثناء تحميل البيانات');
-        });
-    });
+    }
 });

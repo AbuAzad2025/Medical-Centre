@@ -1,108 +1,109 @@
-// إظهار/إخفاء حقول الطوارئ
-document.getElementById('is_emergency').addEventListener('change', function() {
-    const reasonGroup = document.getElementById('emergency_reason_group');
-    if (this.checked) {
-        reasonGroup.style.display = 'block';
-        document.getElementById('emergency_reason').required = true;
-    } else {
-        reasonGroup.style.display = 'none';
-        document.getElementById('emergency_reason').required = false;
-        document.getElementById('emergency_reason').value = '';
-    }
-});
+﻿const isEmergencyEl = document.getElementById('is_emergency');
+if (isEmergencyEl) {
+    isEmergencyEl.addEventListener('change', function() {
+        const reasonGroup = document.getElementById('emergency_reason_group');
+        if (this.checked) {
+            reasonGroup.style.display = 'block';
+            document.getElementById('emergency_reason').required = true;
+        } else {
+            reasonGroup.style.display = 'none';
+            document.getElementById('emergency_reason').required = false;
+            document.getElementById('emergency_reason').value = '';
+        }
+    });
+}
 
-// إظهار/إخفاء حقول الدخول القوي
-document.getElementById('force_entry').addEventListener('change', function() {
-    const reasonGroup = document.getElementById('force_entry_reason_group');
-    if (this.checked) {
-        reasonGroup.style.display = 'block';
-        document.getElementById('force_entry_reason').required = true;
-    } else {
-        reasonGroup.style.display = 'none';
-        document.getElementById('force_entry_reason').required = false;
-        document.getElementById('force_entry_reason').value = '';
-    }
-});
+const forceEntryEl = document.getElementById('force_entry');
+if (forceEntryEl) {
+    forceEntryEl.addEventListener('change', function() {
+        const reasonGroup = document.getElementById('force_entry_reason_group');
+        if (this.checked) {
+            reasonGroup.style.display = 'block';
+            document.getElementById('force_entry_reason').required = true;
+        } else {
+            reasonGroup.style.display = 'none';
+            document.getElementById('force_entry_reason').required = false;
+            document.getElementById('force_entry_reason').value = '';
+        }
+    });
+}
 
-// تحديث الأطباء عند تغيير القسم
-document.getElementById('department_id').addEventListener('change', function() {
-    const departmentId = this.value;
-    const doctorSelect = document.getElementById('doctor_id');
-    
-    if (departmentId) {
-        // جلب الأطباء للقسم المحدد
-        fetch(((window.API_ROUTES && window.API_ROUTES.api_doctors) || '/reception/api/doctors') + `?department_id=${departmentId}`, { credentials: 'same-origin' })
-            .then(response => {
-                if (!response.ok) throw new Error(response.status);
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
-                    data.doctors.forEach(doctor => {
-                        const option = document.createElement('option');
-                        option.value = doctor.id;
-                        option.textContent = doctor.full_name;
-                        doctorSelect.appendChild(option);
-                    });
-                }
-            })
-            .catch(error => {
-                if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
-                else alert('حدث خطأ أثناء تحميل البيانات');
-            });
-    } else {
-        doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
-    }
-});
+const departmentIdEl = document.getElementById('department_id');
+if (departmentIdEl) {
+    departmentIdEl.addEventListener('change', function() {
+        const departmentId = this.value;
+        const doctorSelect = document.getElementById('doctor_id');
 
-// معالجة النموذج
-document.getElementById('addPatientForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // جمع البيانات
-    const formData = new FormData(this);
-    const patientId = formData.get('patient_id');
-    const departmentId = formData.get('department_id');
-    const isEmergency = formData.get('is_emergency') === 'on';
-    const forceEntry = formData.get('force_entry') === 'on';
-    
-    // التحقق من البيانات المطلوبة
-    if (!patientId || !departmentId) {
-        Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
-        return;
-    }
-    
-    // التحقق من الطوارئ
-    if (isEmergency && !formData.get('emergency_reason')) {
-        Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى إدخال سبب الطوارئ', icon: 'warning' });
-        return;
-    }
-    
-    // التحقق من الدخول القوي
-    if (forceEntry && !formData.get('force_entry_reason')) {
-        Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى إدخال سبب الدخول القوي', icon: 'warning' });
-        return;
-    }
-    
-    // عرض نافذة التأكيد
-    showConfirmModal(formData);
-});
+        if (departmentId) {
+            fetch(((window.API_ROUTES && window.API_ROUTES.api_doctors) || '/reception/api/doctors') + `?department_id=${departmentId}`, { credentials: 'same-origin' })
+                .then(response => {
+                    if (!response.ok) throw new Error(response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
+                        data.doctors.forEach(doctor => {
+                            const option = document.createElement('option');
+                            option.value = doctor.id;
+                            option.textContent = doctor.full_name;
+                            doctorSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
+                    else alert('حدث خطأ أثناء تحميل البيانات');
+                });
+        } else {
+            doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
+        }
+    });
+}
 
-// عرض نافذة التأكيد
+const addPatientFormEl = document.getElementById('addPatientForm');
+if (addPatientFormEl) {
+    addPatientFormEl.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const patientId = formData.get('patient_id');
+        const departmentId = formData.get('department_id');
+        const isEmergency = formData.get('is_emergency') === 'on';
+        const forceEntry = formData.get('force_entry') === 'on';
+
+        if (!patientId || !departmentId) {
+            Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
+            return;
+        }
+
+        if (isEmergency && !formData.get('emergency_reason')) {
+            Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى إدخال سبب الطوارئ', icon: 'warning' });
+            return;
+        }
+
+        if (forceEntry && !formData.get('force_entry_reason')) {
+            Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى إدخال سبب الدخول القوي', icon: 'warning' });
+            return;
+        }
+
+        showConfirmModal(formData);
+    });
+}
+
 function showConfirmModal(formData) {
     const patientSelect = document.getElementById('patient_id');
     const departmentSelect = document.getElementById('department_id');
     const doctorSelect = document.getElementById('doctor_id');
     const queueTypeSelect = document.getElementById('queue_type');
     const paymentStatusSelect = document.getElementById('payment_status');
-    
+
     const patientText = patientSelect.options[patientSelect.selectedIndex].text;
     const departmentText = departmentSelect.options[departmentSelect.selectedIndex].text;
     const doctorText = doctorSelect.value ? doctorSelect.options[doctorSelect.selectedIndex].text : 'غير محدد';
     const queueTypeText = queueTypeSelect.options[queueTypeSelect.selectedIndex].text;
     const paymentStatusText = paymentStatusSelect.options[paymentStatusSelect.selectedIndex].text;
-    
+
     let confirmInfo = `
         <div class="alert alert-info">
             <h6>تأكيد إضافة المريض للطابور</h6>
@@ -112,21 +113,21 @@ function showConfirmModal(formData) {
             <p><strong>نوع الطابور:</strong> ${window.escHtml(queueTypeText)}</p>
             <p><strong>حالة الدفع:</strong> ${window.escHtml(paymentStatusText)}</p>
     `;
-    
+
     if (formData.get('is_emergency') === 'on') {
         confirmInfo += `<p><strong>حالة الطوارئ:</strong> نعم - ${window.escHtml(formData.get('emergency_reason'))}</p>`;
     }
-    
+
     if (formData.get('force_entry') === 'on') {
         confirmInfo += `<p><strong>الدخول القوي:</strong> نعم - ${window.escHtml(formData.get('force_entry_reason'))}</p>`;
     }
-    
+
     if (formData.get('notes')) {
         confirmInfo += `<p><strong>ملاحظات:</strong> ${window.escHtml(formData.get('notes'))}</p>`;
     }
-    
+
     confirmInfo += '</div>';
-    
+
     document.getElementById('confirmInfo').innerHTML = confirmInfo;
     const modalEl = document.getElementById('confirmAddModal');
     if (modalEl && window.bootstrap) {
@@ -134,11 +135,10 @@ function showConfirmModal(formData) {
     }
 }
 
-// إرسال النموذج
 function submitForm() {
     const form = document.getElementById('addPatientForm');
     const formData = new FormData(form);
-    
+
     const csrfEl = form.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
     const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
     fetch(form.action, {
@@ -155,12 +155,10 @@ function submitForm() {
         }
     })
     .catch(error => {
-        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إضافة المريض للطابور', icon: 'error' });
     });
 }
 
-// تحميل أولي — التحقق من صحة الحقول المطلوبة
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('addPatientForm');
     if (!form) return;

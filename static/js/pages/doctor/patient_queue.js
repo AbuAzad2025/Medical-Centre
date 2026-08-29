@@ -1,5 +1,4 @@
-var __M = window.__M || [];
-// Doctor patient search with visit count
+﻿var __M = window.__M || [];
 document.addEventListener('DOMContentLoaded', function() {
   const input = document.getElementById('doctorPatientSearch');
   const list = document.getElementById('doctorPatientResults');
@@ -8,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     input.addEventListener('input', function() {
       clearTimeout(to);
       const q = (this.value || '').trim();
-      if (q.length < 2) { list.style.display = 'none'; list.innerHTML=''; return; }
+      if (q.length < 2) { if (list) { list.style.display = 'none'; list.innerHTML=''; } return; }
       to = setTimeout(() => {
         fetch(__M0__ + '?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
           .then(r => {
@@ -76,7 +75,6 @@ function refreshQueue() {
         });
 }
 
-// Auto-refresh every 30 seconds
 setInterval(function() {
   function notifyErr(msg) {
     if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
@@ -86,9 +84,7 @@ setInterval(function() {
     refreshQueue();
 }, 30000);
 
-// Add click handlers for better UX
 document.addEventListener('DOMContentLoaded', function() {
-    // Add hover effects to table rows
     const rows = document.querySelectorAll('table tbody tr');
     rows.forEach(row => {
         row.addEventListener('mouseenter', function() {
@@ -98,8 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.backgroundColor = '';
         });
     });
-    
-    // Add loading states to buttons
+
     const buttons = document.querySelectorAll('button[type="submit"]');
     buttons.forEach(button => {
         button.addEventListener('click', function() {

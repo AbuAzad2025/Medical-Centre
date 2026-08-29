@@ -87,7 +87,7 @@ function resetPassword(userId) {
     });
 }
 
-function filterUsers(status) {
+function filterUsers(status, e) {
     const rows = document.querySelectorAll('#usersTable tbody tr');
     rows.forEach(row => {
         if (status === 'all' || row.dataset.status === status) {
@@ -99,7 +99,7 @@ function filterUsers(status) {
     document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning').forEach(btn => {
         btn.classList.remove('active');
     });
-    event.target.classList.add('active');
+    if (e) e.target.classList.add('active');
 }
 
 document.addEventListener('DOMContentLoaded', function() {

@@ -1,10 +1,9 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 document.getElementById('triageForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     const formData = new FormData(this);
-    
-    // جمع العلامات الحيوية
+
     const vitalSigns = {
         blood_pressure: formData.get('blood_pressure'),
         heart_rate: formData.get('heart_rate'),
@@ -13,9 +12,9 @@ document.getElementById('triageForm').addEventListener('submit', function(e) {
         respiratory_rate: formData.get('respiratory_rate'),
         pain_level: formData.get('pain_level')
     };
-    
+
     formData.set('vital_signs', JSON.stringify(vitalSigns));
-    
+
     const csrfToken = formData.get('csrf_token') || '';
     fetch(__M0__, {
         method: 'POST',
@@ -30,14 +29,14 @@ document.getElementById('triageForm').addEventListener('submit', function(e) {
     .then(data => {
         if (data.success) {
             Swal.fire({ title: 'تم', text: 'تم حفظ بيانات الفرز بنجاح', icon: 'success' });
-            // إعادة توجيه للطوارئ
+
             window.location.href = __M1__;
         } else {
             Swal.fire({ title: 'خطأ', text: 'خطأ: ' + (data.error || ''), icon: 'error' });
         }
     })
     .catch(error => {
-        /* خطأ: */
+
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ بيانات الفرز', icon: 'error' });
     });
 });

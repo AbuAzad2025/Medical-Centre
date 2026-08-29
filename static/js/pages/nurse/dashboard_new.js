@@ -1,5 +1,4 @@
-/* Chart RTL defaults — Arabic UI renders charts right-to-left */
-if (typeof Chart !== 'undefined') {
+﻿if (typeof Chart !== 'undefined') {
   Chart.defaults.plugins.tooltip.rtl = true;
   Chart.defaults.plugins.tooltip.textDirection = 'rtl';
   Chart.defaults.plugins.legend.rtl = true;
@@ -10,8 +9,9 @@ if (typeof Chart !== 'undefined') {
 var __M = window.__M || [];
 __M0__
 
-
-const d = JSON.parse(document.getElementById('nurse-chart-data').textContent);
+const el = document.getElementById('nurse-chart-data');
+if (!el) return;
+const d = JSON.parse(el.textContent);
   function spark(id, data, color) {
     new Chart(document.getElementById(id).getContext('2d'), {
       type: 'line',

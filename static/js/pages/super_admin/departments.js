@@ -1,34 +1,32 @@
-// Search functionality
-const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
-document.getElementById('searchInput').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    const table = document.getElementById('departmentsTable');
-    const rows = table.getElementsByTagName('tr');
-    
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const text = row.textContent.toLowerCase();
-        if (text.includes(searchTerm)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
+﻿const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+const searchInputEl = document.getElementById('searchInput');
+if (searchInputEl) {
+    searchInputEl.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const table = document.getElementById('departmentsTable');
+        const rows = table.getElementsByTagName('tr');
+        
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const text = row.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
         }
-    }
-});
+    });
+}
 
-// Department management functions
 function viewDepartment(departmentId) {
-    // عرض تفاصيل القسم
     window.open((window.API_ROUTES && window.API_ROUTES.view_department) ? window.API_ROUTES.view_department.replace('/0', '/' + departmentId) : `/super-admin/department/${departmentId}`, '_blank');
 }
 
 function editDepartment(departmentId) {
-    // تعديل القسم
     window.location.href = (window.API_ROUTES && window.API_ROUTES.edit_department) ? window.API_ROUTES.edit_department.replace('/0', '/' + departmentId) : `/super-admin/edit-department/${departmentId}`;
 }
 
 function manageStaff(departmentId) {
-    // إدارة موظفي القسم
     window.location.href = (window.API_ROUTES && window.API_ROUTES.department_staff) ? window.API_ROUTES.department_staff.replace('/0', '/' + departmentId) : `/super-admin/department-staff/${departmentId}`;
 }
 
@@ -95,33 +93,34 @@ function deactivateDepartment(departmentId) {
 }
 
 function exportDepartments() {
-    // تصدير الأقسام
     window.open((window.API_ROUTES && window.API_ROUTES.export_departments) || '/super-admin/export-departments', '_blank');
 }
 
-// Add department form
-document.getElementById('addDepartmentForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    const createUrl = (window.API_ROUTES && window.API_ROUTES.create_department) || '/super-admin/departments/create';
-    fetch(createUrl, {
-        method: 'POST',
-        body: formData,
-        headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('http_' + response.status);
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إضافة القسم: ' + (data.message || ''), icon: 'error' });
-        }
-    })
-    .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
-});
+const addDepartmentFormEl = document.getElementById('addDepartmentForm');
+if (addDepartmentFormEl) {
+    addDepartmentFormEl.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        const createUrl = (window.API_ROUTES && window.API_ROUTES.create_department) || '/super-admin/departments/create';
+        fetch(createUrl, {
+            method: 'POST',
+            body: formData,
+            headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('http_' + response.status);
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إضافة القسم: ' + (data.message || ''), icon: 'error' });
+            }
+        })
+        .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
+    });
+}

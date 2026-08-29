@@ -1,5 +1,4 @@
-// Toast Notification System (IIFE - loaded as non-module script)
-(function () {
+﻿(function () {
   const toastContainer = (() => {
     let el = document.getElementById('toastContainer');
     if (!el) {

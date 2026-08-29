@@ -1,11 +1,14 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 const presetDoctorId = __M0__;
 const presetTime = __M1__;
 
 function loadDoctors(){
   const dept = document.getElementById('department_id').value;
   const url = __M2__ + (dept ? ('?department_id='+dept) : '');
-  fetch(url).then(r=>r.json()).then(d=>{
+  fetch(url).then(r=>{
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }).then(d=>{
     const sel = document.getElementById('doctor_id');
     const current = sel.value || (presetDoctorId ? String(presetDoctorId) : '');
     sel.innerHTML = '<option value="">اختر الطبيب</option>';
@@ -17,7 +20,7 @@ function loadDoctors(){
       sel.appendChild(o);
     });
     loadTimes();
-  }).catch(err => { /* فشل تحميل الأطباء: */ });
+  }).catch(err => { });
 }
 
 function loadTimes(){
@@ -29,7 +32,10 @@ function loadTimes(){
     return;
   }
   const url = __M3__ + `?doctor_id=${doc}&date=${dt}`;
-  fetch(url).then(r=>r.json()).then(d=>{
+  fetch(url).then(r=>{
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }).then(d=>{
     const current = sel.value || presetTime || '';
     sel.innerHTML = '<option value="">اختر الوقت</option>';
     (d.available_times||[]).forEach(t=>{
@@ -39,7 +45,7 @@ function loadTimes(){
       if (current && String(t) === String(current)) o.selected = true;
       sel.appendChild(o);
     });
-  }).catch(err => { /* فشل تحميل المواعيد: */ });
+  }).catch(err => { });
 }
 
 function loadSmartSlots(){
@@ -51,7 +57,10 @@ function loadSmartSlots(){
     return;
   }
   const url = __M4__ + `?doctor_id=${doc}&date=${dt}`;
-  fetch(url).then(r=>r.json()).then(d=>{
+  fetch(url).then(r=>{
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }).then(d=>{
     const list = d.suggested_times || [];
     if (hint) hint.textContent = list.length ? ('الأوقات المقترحة: ' + list.join('، ')) : 'لا توجد أوقات مقترحة';
     if (list.length) {
@@ -61,7 +70,7 @@ function loadSmartSlots(){
         sel.value = list[0];
       }
     }
-  }).catch(err => { /* فشل تحميل الأوقات المقترحة: */ });
+  }).catch(err => { });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

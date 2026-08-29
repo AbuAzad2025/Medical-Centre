@@ -1,4 +1,4 @@
-function generateReport() {
+﻿function generateReport() {
     Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير جديد', icon: 'info' });
 }
 
@@ -35,44 +35,43 @@ function generateMonthlyReport() {
 }
 
 function generateCustomReport() {
-    // إنشاء تقرير مخصص
+
     const form = document.getElementById('customReportForm');
     const formData = new FormData(form);
-    
+
     const reportData = {};
     for (let [key, value] of formData.entries()) {
         reportData[key] = value;
     }
-    
+
     if (!reportData.report_type || !reportData.date_from || !reportData.date_to) {
         Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
         return;
     }
-    
+
     Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير مخصص: ' + JSON.stringify(reportData), icon: 'info' });
 }
 
-function filterReports(filter) {
+function filterReports(filter, e) {
     const rows = document.querySelectorAll('#reportsTable tbody tr');
-    
+
     rows.forEach(row => {
         if (filter === 'all') {
             row.style.display = '';
         } else if (filter === 'recent') {
-            // تصفية التقارير الحديثة
+
             row.style.display = '';
         } else if (filter === 'favorite') {
-            // تصفية التقارير المفضلة
+
             row.style.display = '';
         }
     });
-    
-    // تحديث أزرار التصفية
+
     document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning').forEach(btn => {
         btn.classList.remove('active');
     });
-    
-    event.target.classList.add('active');
+
+    if (e) e.target.classList.add('active');
 }
 
 function viewReport(reportId) {
@@ -98,9 +97,8 @@ function deleteReport(reportId) {
     }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم حذف التقرير: ' + reportId, icon: 'success' }); } });
 }
 
-// إضافة تأثيرات تفاعلية
 document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للصفوف
+
     const rows = document.querySelectorAll('#reportsTable tbody tr');
     rows.forEach(row => {
         row.addEventListener('mouseenter', function() {

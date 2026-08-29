@@ -1,7 +1,4 @@
-/**
- * Command Center widget visibility — saves to User.preferences.dashboard.hidden_widgets
- */
-(function () {
+﻿(function () {
   'use strict';
 
   const ENDPOINT = (window.API_ROUTES && window.API_ROUTES.user_preferences) || '/api/user/preferences';

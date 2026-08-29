@@ -1,6 +1,6 @@
-const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+﻿const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 
-function createBackup() {
+function createBackup(e) {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
@@ -11,7 +11,7 @@ function createBackup() {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            const btn = event && event.target ? event.target.closest('button') : null;
+            const btn = e && e.target ? e.target.closest('button') : null;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...'; }
             fetch(createUrl, {
                 method: 'POST',
@@ -48,7 +48,7 @@ function scheduleBackup() {
         })
         .then(data => {
             if (!data.success) throw new Error(data.message);
-            
+
             Swal.fire({
                 title: 'جدولة النسخ الاحتياطي',
                 html: `
@@ -113,7 +113,7 @@ function scheduleBackup() {
         });
 }
 
-function createFullBackup() {
+function createFullBackup(e) {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
@@ -124,7 +124,7 @@ function createFullBackup() {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            const btn = event && event.target ? event.target.closest('button') : null;
+            const btn = e && e.target ? e.target.closest('button') : null;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
             fetch(createUrl, {
                 method: 'POST',
@@ -152,7 +152,7 @@ function createFullBackup() {
     });
 }
 
-function createIncrementalBackup() {
+function createIncrementalBackup(e) {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
@@ -163,7 +163,7 @@ function createIncrementalBackup() {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            const btn = event && event.target ? event.target.closest('button') : null;
+            const btn = e && e.target ? e.target.closest('button') : null;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
             fetch(createUrl, {
                 method: 'POST',
@@ -191,7 +191,7 @@ function createIncrementalBackup() {
     });
 }
 
-function createDatabaseBackup() {
+function createDatabaseBackup(e) {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
@@ -202,7 +202,7 @@ function createDatabaseBackup() {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            const btn = event && event.target ? event.target.closest('button') : null;
+            const btn = e && e.target ? e.target.closest('button') : null;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
             fetch(createUrl, {
                 method: 'POST',
@@ -230,7 +230,7 @@ function createDatabaseBackup() {
     });
 }
 
-function createFilesBackup() {
+function createFilesBackup(e) {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
@@ -241,7 +241,7 @@ function createFilesBackup() {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            const btn = event && event.target ? event.target.closest('button') : null;
+            const btn = e && e.target ? e.target.closest('button') : null;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
             fetch(createUrl, {
                 method: 'POST',
@@ -269,9 +269,9 @@ function createFilesBackup() {
     });
 }
 
-function filterBackups(status) {
+function filterBackups(status, e) {
     const rows = document.querySelectorAll('#backupsTable tbody tr');
-    
+
     rows.forEach(row => {
         if (status === 'all' || row.dataset.status === status) {
             row.style.display = '';
@@ -279,13 +279,12 @@ function filterBackups(status) {
             row.style.display = 'none';
         }
     });
-    
-    // تحديث أزرار التصفية
+
     document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger').forEach(btn => {
         btn.classList.remove('active');
     });
-    
-    event.target.classList.add('active');
+
+    if (e) e.target.classList.add('active');
 }
 
 function restoreBackup(backupId) {
@@ -396,7 +395,8 @@ function cancelBackup(backupId) {
 function retryBackup(type) {
     let reqType = 'full';
     if (type === 'incremental' || type === 'INCREMENTAL') reqType = 'incremental';
-    else if (type === 'differential' || type === 'DIFFERENTIAL') reqType = 'database'; // Defaulting to database
+    else if (type === 'differential' || type === 'DIFFERENTIAL') reqType = 'database';
+
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
 
     Swal.fire({
@@ -416,7 +416,7 @@ function retryBackup(type) {
                     Swal.showLoading();
                 }
             });
-            
+
             fetch(createUrl, {
                 method: 'POST',
                 headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
@@ -454,7 +454,7 @@ function saveBackupSettings() {
             const formData = new FormData(form);
             const data = {};
             formData.forEach((value, key) => data[key] = value);
-            // Handle checkbox manually because unchecked checkboxes are not included in FormData
+
             data['auto_backup'] = document.getElementById('auto_backup').checked;
 
             Swal.showLoading();
@@ -509,7 +509,7 @@ function viewBackupHistory() {
                     if (item.status === 'COMPLETED') badgeClass = 'success';
                     else if (item.status === 'FAILED') badgeClass = 'danger';
                     else if (item.status === 'IN_PROGRESS') badgeClass = 'warning';
-                    
+
                     html += `
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
@@ -522,7 +522,7 @@ function viewBackupHistory() {
                 });
             }
             html += '</ul></div>';
-            
+
             Swal.fire({
                 title: 'تاريخ النسخ الاحتياطي',
                 html: html,
@@ -536,9 +536,8 @@ function viewBackupHistory() {
     .catch(() => Swal.fire('خطأ', 'حدث خطأ في الاتصال', 'error'));
 }
 
-// إضافة تأثيرات تفاعلية
 document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للصفوف
+
     const rows = document.querySelectorAll('#backupsTable tbody tr');
     rows.forEach(row => {
         row.addEventListener('mouseenter', function() {

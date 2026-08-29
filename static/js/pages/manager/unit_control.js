@@ -164,7 +164,7 @@ function bulkExport() {
     exportUnitsReport();
 }
 
-function filterUnits(status) {
+function filterUnits(status, e) {
     var rows = document.querySelectorAll('#unitsTable tbody tr');
     rows.forEach(function(row) {
         if (status === 'all' || row.dataset.status === status) {
@@ -176,7 +176,7 @@ function filterUnits(status) {
     document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-danger').forEach(function(btn) {
         btn.classList.remove('active');
     });
-    event.target.classList.add('active');
+    if (e) e.target.classList.add('active');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('[data-action="filter-units"]').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            filterUnits(this.getAttribute('data-value'));
+            filterUnits(this.getAttribute('data-value'), e);
         });
     });
 });

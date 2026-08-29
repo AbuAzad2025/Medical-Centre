@@ -25,9 +25,9 @@ if (toggle && pwd) {
 }
 if (pwd) {
     pwd.addEventListener('keyup', function(e) {
-        if (e.getModifierState && e.getModifierState('CapsLock')) {
+        if (caps && e.getModifierState && e.getModifierState('CapsLock')) {
             caps.style.display = 'block';
-        } else {
+        } else if (caps) {
             caps.style.display = 'none';
         }
     });

@@ -108,9 +108,12 @@ document.addEventListener('DOMContentLoaded', function() {
     refreshTemplatesUI();
 });
 
-document.querySelector('form').addEventListener('submit', function() {
-    sessionStorage.removeItem('medical_notes_draft');
-});
+const form = document.querySelector('form');
+if (form) {
+    form.addEventListener('submit', function() {
+        sessionStorage.removeItem('medical_notes_draft');
+    });
+}
 
 if (applyTplBtn) {
     applyTplBtn.addEventListener('click', function() {
@@ -184,7 +187,7 @@ if (dntTableBody) {
         } else if (action === 'delete') {
             window.notify.confirm('هل تريد حذف هذا القالب؟', async function () {
             try {
-                const r = await fetch(`__M2__`.replace('__T__', encodeURIComponent(id)), {
+                const r = await fetch(__M2__.replace('__T__', encodeURIComponent(id)), {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {})

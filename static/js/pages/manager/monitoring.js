@@ -1,4 +1,4 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 function refreshMonitoring() {
     location.reload();
 }
@@ -14,8 +14,8 @@ function exportMonitoringReport() {
             disk_usage: 60
         }
     };
-    
-    const csvContent = "data:text/csv;charset=utf-8," 
+
+    const csvContent = "data:text/csv;charset=utf-8,"
         + "الوحدة,الحالة,الإحصائيات\n"
         + "الاستقبال,نشط,' + (' + __M1__ + ' || 0) + '\n"
         + "الطبيب,نشط,' + (' + __M2__ + ' || 0) + '\n"
@@ -23,7 +23,7 @@ function exportMonitoringReport() {
         + "المختبر,نشط,' + (' + __M4__ + ' || 0) + '\n"
         + "الأشعة,نشط,' + (' + __M5__ + ' || 0) + '\n"
         + "المحاسبة,نشط,' + (' + __M6__ + ' || 0) + '\n";
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -56,9 +56,8 @@ function exportLogs() {
     Swal.fire({ title: 'تم', text: 'تم تصدير السجلات', icon: 'success' });
 }
 
-// تحديث تلقائي كل دقيقة
 setInterval(function() {
-    // تحديث حالة الوحدات
+
     fetch(__M7__ + '?ajax=true', { credentials: 'same-origin' })
         .then(response => {
             if (!response.ok) throw new Error('http_' + response.status);
@@ -66,14 +65,14 @@ setInterval(function() {
         })
         .then(data => {
             if (data.success) {
-                // تحديث البيانات في الصفحة
+
                 updateUnitStatus(data.units_status);
             }
         })
         .catch(error => {
             console.warn('تعذر تحديث بيانات المراقبة');
         });
-}, 60000); // دقيقة واحدة
+}, 60000);
 
 function updateUnitStatus(unitsStatus) {
     const map = {

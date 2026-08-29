@@ -1,5 +1,4 @@
-/* Chart RTL defaults — Arabic UI renders charts right-to-left */
-if (typeof Chart !== 'undefined') {
+﻿if (typeof Chart !== 'undefined') {
   Chart.defaults.plugins.tooltip.rtl = true;
   Chart.defaults.plugins.tooltip.textDirection = 'rtl';
   Chart.defaults.plugins.legend.rtl = true;
@@ -9,7 +8,10 @@ if (typeof Chart !== 'undefined') {
 
 var __M = window.__M || [];
 fetch(__M0__)
-    .then(r => r.json())
+    .then(r => {
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    })
     .then(d => {
       new Chart(document.getElementById('qcMainChart'), {
         type: 'line',

@@ -1,21 +1,6 @@
-/**
- * UX Enhancement — global inline errors + progress bar + flash-to-field mapping
- *
- * 1. INLINE ERRORS: When any POST form returns 400/422 with JSON containing
- *    field-specific errors ({field_name: "message"}), this script maps them
- *    to the matching input fields and shows .invalid-feedback below them.
- *    Works retroactively for ALL forms without template changes.
- *
- * 2. PROGRESS BAR: Thin animated bar at the top of the page during any
- *    form submission or AJAX request (YouTube-style loading indicator).
- *
- * 3. FLASH AUTO-SCROLL: On page load, if there are error flashes,
- *    auto-scroll to bring them into view immediately.
- */
-(function () {
+﻿(function () {
   'use strict';
 
-  // ─── 1. PROGRESS BAR ──────────────────────────────────────────────
   function injectProgressBar() {
     if (document.getElementById('__uxProgressBar')) return;
     var bar = document.createElement('div');
@@ -35,7 +20,7 @@
     if (!bar) return;
     bar.style.width = '0%';
     bar.style.opacity = '1';
-    // Animate to 80% over 2s (simulated progress)
+
     setTimeout(function () { bar.style.width = '30%'; }, 100);
     setTimeout(function () { bar.style.width = '60%'; }, 800);
     setTimeout(function () { bar.style.width = '80%'; }, 1800);
@@ -51,7 +36,6 @@
     }, 300);
   }
 
-  // ─── 2. INLINE FIELD ERROR MAPPING ────────────────────────────────
   function showFieldErrors(form, errors) {
     if (!errors || typeof errors !== 'object') return false;
     var shown = false;
@@ -62,7 +46,7 @@
         if (Array.isArray(msg)) msg = msg.join('. ');
         else return;
       }
-      // Find input by name, id, or name with _modal/_edit suffix stripped
+
       var input = form.querySelector(
         '[name="' + fieldName + '"], [name="' + fieldName + '_modal"], '
         + '[name="' + fieldName + '_edit"], #' + fieldName
@@ -72,7 +56,6 @@
       input.classList.add('is-invalid');
       input.setAttribute('aria-invalid', 'true');
 
-      // Show feedback element
       var feedback = input.parentElement.querySelector('.invalid-feedback')
         || form.querySelector('[data-error-for="' + fieldName + '"]');
       if (!feedback) {
@@ -91,7 +74,6 @@
     return shown;
   }
 
-  // ─── 3. FLASH ERROR AUTO-SCROLL ───────────────────────────────────
   function scrollToErrors() {
     var errorFlash = document.querySelector(
       '.flash-error, .alert-danger, .alert-error, [class*="flash-error"]'
@@ -99,19 +81,16 @@
     if (errorFlash) {
       errorFlash.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
-      // If no error flash, check for success flash — scroll to top so user sees it
+
       var successFlash = document.querySelector('.flash-success, .alert-success');
       if (successFlash) window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
-  // ─── INIT ─────────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', function () {
 
-    // Auto-scroll to flash messages on page load
     scrollToErrors();
 
-    // Progress bar + inline error mapping for ALL POST forms
     document.querySelectorAll('form').forEach(function (form) {
       var method = (form.getAttribute('method') || '').toUpperCase();
       if (method !== 'POST' && !form.hasAttribute('data-validate-form')) return;
@@ -119,15 +98,12 @@
       form.addEventListener('submit', function () {
         startProgress();
 
-        // For AJAX forms: intercept response and map field errors inline
         if (form.hasAttribute('data-ajax') || form.dataset.ajaxForm === '1') return;
 
-        // For regular form submissions, stop progress after navigation attempt
         setTimeout(stopProgress, 5000);
       });
     });
 
-    // Intercept fetch() calls to show/hide progress bar globally
     if (window.fetch && !window.__uxFetchPatched) {
       window.__uxFetchPatched = true;
       var _origFetch = window.fetch;
@@ -144,7 +120,6 @@
     }
   });
 
-  // Expose for use by specific pages
   window.UXEnhance = {
     showFieldErrors: showFieldErrors,
     startProgress: startProgress,

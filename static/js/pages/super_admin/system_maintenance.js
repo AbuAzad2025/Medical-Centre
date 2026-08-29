@@ -1,4 +1,4 @@
-function optimizeDatabase() {
+﻿function optimizeDatabase() {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من تحسين قاعدة البيانات؟ قد يستغرق هذا بعض الوقت.',
@@ -63,7 +63,6 @@ function loadSystemStatus() {
         .catch(() => { console.warn('تعذر تحميل حالة النظام'); });
 }
 
-// تحديث الإحصائيات كل 30 ثانية
 setInterval(function() {
     loadSystemStatus();
 }, 30000);

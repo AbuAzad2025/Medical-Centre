@@ -1,14 +1,13 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 let serviceModal;
 
 document.addEventListener('DOMContentLoaded', function() {
     serviceModal = new bootstrap.Modal(document.getElementById('serviceModal'));
-    
-    // Search functionality
+
     document.getElementById('searchInput').addEventListener('keyup', function() {
         const value = this.value.toLowerCase();
         const rows = document.querySelectorAll('#pricingTable tbody tr');
-        
+
         rows.forEach(row => {
             const text = row.getAttribute('data-search').toLowerCase();
             if (text.includes(value)) {
@@ -56,7 +55,7 @@ function editService(id, data) {
     document.getElementById('serviceMaxDaily').value = data.max_daily || '';
     document.getElementById('serviceDescription').value = data.description || '';
     document.getElementById('isActive').checked = data.is_active;
-    
+
     document.getElementById('serviceModalLabel').innerText = 'تعديل الخدمة';
     serviceModal.show();
 }
@@ -64,7 +63,7 @@ function editService(id, data) {
 async function saveService() {
     const id = document.getElementById('serviceId').value;
     const isEdit = !!id;
-    
+
     const data = {
         code: document.getElementById('serviceCode').value,
         name: document.getElementById('serviceName').value,
@@ -79,16 +78,16 @@ async function saveService() {
         description: document.getElementById('serviceDescription').value,
         is_active: document.getElementById('isActive').checked
     };
-    
+
     if (!data.code || !data.name || !data.name_ar) {
         Swal.fire('خطأ', 'يرجى ملء الحقول المطلوبة', 'error');
         return;
     }
-    
+
     const baseUrl = (window.API_ROUTES && window.API_ROUTES.manager_pricing_services) || '/manager/api/pricing/services';
     const url = isEdit ? baseUrl + '/' + id : baseUrl;
     const method = isEdit ? 'PUT' : 'POST';
-    
+
     try {
         const response = await fetch(url, {
             method: method,
@@ -100,10 +99,10 @@ async function saveService() {
             credentials: 'same-origin',
             body: JSON.stringify(data)
         });
-        
+
         if (!response.ok) throw new Error('http_' + response.status);
         const result = await response.json();
-        
+
         if (result.success) {
             Swal.fire('نجاح', result.message, 'success').then(() => {
                 location.reload();
@@ -113,7 +112,7 @@ async function saveService() {
             Swal.fire('خطأ', result.message, 'error');
         }
     } catch (error) {
-        /* خطأ: */
+
         Swal.fire('خطأ', 'حدث خطأ أثناء حفظ البيانات', 'error');
     }
 }
@@ -129,7 +128,7 @@ async function deleteService(id) {
         confirmButtonText: 'نعم، احذفها!',
         cancelButtonText: 'إلغاء'
     });
-    
+
     if (result.isConfirmed) {
         try {
             const baseUrl = (window.API_ROUTES && window.API_ROUTES.manager_pricing_services) || '/manager/api/pricing/services';
@@ -141,10 +140,10 @@ async function deleteService(id) {
                 },
                 credentials: 'same-origin'
             });
-            
+
             if (!response.ok) throw new Error('http_' + response.status);
             const result = await response.json();
-            
+
             if (result.success) {
                 Swal.fire('تم الحذف!', result.message, 'success').then(() => {
                     location.reload();
@@ -153,7 +152,7 @@ async function deleteService(id) {
                 Swal.fire('خطأ', result.message, 'error');
             }
         } catch (error) {
-            /* خطأ: */
+
             Swal.fire('خطأ', 'حدث خطأ أثناء الحذف', 'error');
         }
     }

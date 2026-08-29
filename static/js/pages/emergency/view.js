@@ -1,19 +1,15 @@
-var __M = window.__M || [];
-// طباعة بيانات الحالة
+﻿var __M = window.__M || [];
+
     function printEmergency() {
         window.print();
     }
-    
-    // تصدير بيانات الحالة
+
     function exportEmergency() {
-        // يمكن إضافة وظيفة التصدير هنا
-        /* تصدير بيانات حالة الطوارئ */
+
     }
-    
-    // مشاركة بيانات الحالة
+
     function shareEmergency() {
-        // يمكن إضافة وظيفة المشاركة هنا
-        /* مشاركة بيانات حالة الطوارئ */
+
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -24,11 +20,11 @@ var __M = window.__M || [];
                 var data = new FormData(form);
                 var csrfEl = form.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
                 var csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
-                fetch(form.action, { 
-                        method: 'POST', 
+                fetch(form.action, {
+                        method: 'POST',
                         credentials: 'same-origin',
                         headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-                        body: data 
+                        body: data
                     })
                     .then(function(r){
                         if (!r.ok) throw new Error(r.status);

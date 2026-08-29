@@ -1,4 +1,4 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 
 document.addEventListener('DOMContentLoaded', function() {
     const selectedPatientId = document.getElementById('selectedPatientId');
@@ -22,14 +22,12 @@ document.addEventListener('DOMContentLoaded', function() {
         })();
     }
 
-    // البحث الذكي — يُدار عبر smart-search.js + /api/search/patients
+    if (addNewPatientBtn) {
+        addNewPatientBtn.addEventListener('click', function() {
+            window.open(((window.API_ROUTES && window.API_ROUTES.reception_patients) || '/reception/patients') + '?show_add=1', '_blank');
+        });
+    }
 
-    // إضافة مريض جديد
-    addNewPatientBtn.addEventListener('click', function() {
-        window.open(((window.API_ROUTES && window.API_ROUTES.reception_patients) || '/reception/patients') + '?show_add=1', '_blank');
-    });
-
-    // تحديث الموظفين عند تغيير القسم
     const departmentSelect = document.getElementById('department_id');
     const staffSelect = document.getElementById('staff_id');
     const staffContainer = document.getElementById('staff_container');
@@ -49,10 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(svc => {
                         const isLabOrRad = svc.category === 'lab' || svc.category === 'radiology';
                         
-                        // دائماً إظهار اختيار الموظف (لأن المختبر والأشعة لديهم موظفين أيضاً)
                         staffContainer.style.display = '';
                         
-                        // جلب الموظفين لهذا القسم (سواء كان عيادة أو مختبر أو أشعة)
                         staffSelect.innerHTML = '<option value="">جاري التحميل...</option>';
                         fetch(((window.API_ROUTES && window.API_ROUTES.api_department_staff) || '/reception/api/department-staff') + `?department_id=${departmentId}`, { credentials: 'same-origin' })
                             .then(response => {
@@ -72,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 } else {
                                     staffSelect.innerHTML += '<option value="" disabled>لا يوجد موظفون في هذا القسم</option>';
                                 }
-                                // إعادة تهيئة Select2 للموظفين
                                 if ($('#staff_id').hasClass('select2-hidden-accessible')) {
                                     $('#staff_id').select2('destroy');
                                 }
@@ -91,7 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 staffSelect.innerHTML = '<option value="">خطأ في التحميل</option>';
                             });
 
-                        // تحديث label الفحوصات حسب نوع القسم
                         const testsLabel = document.getElementById('tests_section_label');
                         if (testsLabel) {
                             if (svc.category === 'lab') testsLabel.textContent = 'التحاليل المخبرية المطلوبة';
@@ -100,7 +94,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         if (isLabOrRad) {
                             testSection.style.display = 'flex';
-                            document.getElementById('custom_services_section').style.display = 'block';
+                            const customSection = document.getElementById('custom_services_section');
+                            if (customSection) customSection.style.display = 'block';
                             if ($('#selected_tests').hasClass('select2-hidden-accessible')) {
                                 $('#selected_tests').select2('destroy');
                             }
@@ -127,7 +122,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             });
                         } else {
                             testSection.style.display = 'none';
-                            document.getElementById('custom_services_section').style.display = 'none';
+                            const customSection = document.getElementById('custom_services_section');
+                            if (customSection) customSection.style.display = 'none';
                             testsSelect.innerHTML = '';
                         }
                         calculateVisitCost();
@@ -147,7 +143,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // تحديث التكلفة عند تغيير المعايير
     function calculateVisitCost() {
         const departmentId = departmentSelect.value;
         const staffId = staffSelect.value;
@@ -157,7 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const paymentMethod = document.getElementById('payment_method').value || 'CASH';
         const selectedTestIds = Array.from(testsSelect.selectedOptions).map(o => o.value);
 
-        // جمع الخدمات اليدوية
         const customRows = document.querySelectorAll('.custom-service-row');
         const customNames = [];
         const customPrices = [];
@@ -224,7 +218,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return total.toFixed(2);
     }
 
-    // إضافة مستمعي الأحداث للتكلفة
     document.getElementById('visit_type').addEventListener('change', calculateVisitCost);
     document.getElementById('tax_type').addEventListener('change', calculateVisitCost);
     document.getElementById('is_emergency').addEventListener('change', calculateVisitCost);
@@ -232,7 +225,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('payment_method').addEventListener('change', calculateVisitCost);
     $('#selected_tests').on('change', calculateVisitCost);
 
-    // إدارة حقول الدفع الديناميكية
     const paymentMethod = document.getElementById('payment_method');
     const paymentFields = document.getElementById('paymentFields');
     const advancedEl = document.getElementById('advancedVisitFields');
@@ -250,15 +242,14 @@ document.addEventListener('DOMContentLoaded', function() {
     paymentMethod.addEventListener('change', function() {
         const method = this.value;
         
-        // إخفاء جميع الحقول
-        document.getElementById('visaFields').style.display = 'none';
+        const visaFieldsEl = document.getElementById('visaFields');
+        if (visaFieldsEl) visaFieldsEl.style.display = 'none';
         document.getElementById('insuranceFields').style.display = 'none';
         document.getElementById('forceFields').style.display = 'none';
         paymentFields.style.display = 'none';
 
-        // إظهار الحقول المناسبة
         if (method === 'CARD') {
-            document.getElementById('visaFields').style.display = 'block';
+            if (visaFieldsEl) visaFieldsEl.style.display = 'block';
             paymentFields.style.display = 'block';
             ensureAdvancedOpen();
         } else if (method === 'INSURANCE') {
@@ -271,9 +262,6 @@ document.addEventListener('DOMContentLoaded', function() {
             ensureAdvancedOpen();
         }
 
-        
-        
-        // إعادة حساب التكلفة عند تغيير طريقة الدفع
         calculateVisitCost();
     });
 
@@ -325,18 +313,18 @@ document.addEventListener('DOMContentLoaded', function() {
         cardLastDigitsId: 'card_last_digits',
         cardHolderId: 'card_holder_name',
     });
-    // حفظ وطباعة الوصل
-    document.getElementById('saveAndPrintBtn').addEventListener('click', function() {
-        // إضافة حقل مخفي للإشارة للطباعة
-        const printInput = document.createElement('input');
-        printInput.type = 'hidden';
-        printInput.name = 'print_receipt';
-        printInput.value = 'true';
-        document.getElementById('visitForm').appendChild(printInput);
-        
-        // إرسال النموذج
-        document.getElementById('visitForm').submit();
-    });
+    const saveAndPrintBtn = document.getElementById('saveAndPrintBtn');
+    if (saveAndPrintBtn) {
+        saveAndPrintBtn.addEventListener('click', function() {
+            const printInput = document.createElement('input');
+            printInput.type = 'hidden';
+            printInput.name = 'print_receipt';
+            printInput.value = 'true';
+            document.getElementById('visitForm').appendChild(printInput);
+            
+            document.getElementById('visitForm').submit();
+        });
+    }
 
     const quickModalEl = document.getElementById('quickEmergencyModal');
     const quickBtn = document.getElementById('quickEmergencyBtn');
@@ -450,9 +438,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // إخفاء نتائج البحث — smart-search.js
-
-    // ====== خدمات يدوية ======
     let customServiceCounter = 0;
 
     function addCustomServiceRow() {
@@ -488,7 +473,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // إضافة مستمعات حساب التكلفة للخدمات اليدوية
     document.getElementById('custom_services_container').addEventListener('input', function(e) {
         if (e.target.classList.contains('custom-service-price')) {
             calculateVisitCost();

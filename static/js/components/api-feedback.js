@@ -1,7 +1,4 @@
-/**
- * Arabic API / UI feedback — global notify.* (G-126, §36.2)
- */
-(function (global) {
+﻿(function (global) {
   'use strict';
 
   function swal() {

@@ -1,37 +1,36 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 
 var ROLE = __M0__;
 var billingActive = __M1__;
 (function() {
     if (!["reception", "manager"].includes(ROLE)) return;
 function viewVisit(visitId) {
-    // عرض تفاصيل الزيارة
+
     window.location.href = (window.API_ROUTES && window.API_ROUTES.view_visit) ? window.API_ROUTES.view_visit.replace('/0', '/' + visitId) : `/reception/view_visit/${visitId}`;
 }
 
 function processPayment(visitId) {
-    // معالجة الدفع
+
     window.location.href = (window.API_ROUTES && window.API_ROUTES.payment_process) ? window.API_ROUTES.payment_process.replace('/0', '/' + visitId) : `/payment/process/${visitId}`;
 }
 
 function printReceipt(visitId) {
-    // طباعة الوصل
+
     if (typeof billingActive !== 'undefined' && !billingActive) return;
     window.open((window.API_ROUTES && window.API_ROUTES.print_receipt) ? window.API_ROUTES.print_receipt.replace('/0', '/' + visitId) : `/reception/print_receipt/${visitId}`, '_blank');
 }
 
 function editVisit(visitId) {
-    // تعديل الزيارة
+
     window.location.href = (window.API_ROUTES && window.API_ROUTES.edit_visit) ? window.API_ROUTES.edit_visit.replace('/0', '/' + visitId) : `/reception/edit_visit/${visitId}`;
 }
 
 function exportVisits() {
-    // تصدير الزيارات
+
     const params = new URLSearchParams(window.location.search);
     window.open(((window.API_ROUTES && window.API_ROUTES.export_visits) || '/reception/export/visits') + `?${params.toString()}`, '_blank');
 }
 
-// Auto-refresh every 30 seconds
 setInterval(function() {
     if (document.visibilityState === 'visible') {
         location.reload();

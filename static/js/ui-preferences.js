@@ -1,7 +1,4 @@
-/**
- * UI preferences — density, radius; syncs localStorage + server.
- */
-(function () {
+﻿(function () {
   'use strict';
 
   function csrf() {

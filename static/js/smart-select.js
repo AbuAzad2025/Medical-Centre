@@ -1,7 +1,4 @@
-/**
- * Tom Select wrapper — data-smart-select (G-82)
- */
-(function () {
+﻿(function () {
   'use strict';
 
   function initSmartSelect(el) {

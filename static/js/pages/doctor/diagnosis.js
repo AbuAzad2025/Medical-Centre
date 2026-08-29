@@ -1,9 +1,8 @@
-// Auto-save functionality
-document.addEventListener('DOMContentLoaded', function() {
+﻿document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
+    if (!form) return;
     const inputs = form.querySelectorAll('input, textarea');
-    
-    // Auto-save every 30 seconds
+
     setInterval(function() {
   function notifyErr(msg) {
     if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
@@ -25,15 +24,13 @@ document.addEventListener('DOMContentLoaded', function() {
             else notifyErr('حدث خطأ أثناء تحميل البيانات');
         });
     }, 30000);
-    
-    // Mark form as dirty when user types
+
     inputs.forEach(input => {
         input.addEventListener('input', function() {
             form.classList.add('dirty');
         });
     });
-    
-    // Warn before leaving if form is dirty
+
     window.addEventListener('beforeunload', function(e) {
         if (form.classList.contains('dirty')) {
             e.preventDefault();

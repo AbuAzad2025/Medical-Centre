@@ -1,7 +1,6 @@
-var __M = window.__M || [];
+﻿var __M = window.__M || [];
 const __csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
 
-// بدء العلاج
 function startTreatment(visitId) {
     Swal.fire({
         title: 'بدء العلاج',
@@ -12,7 +11,7 @@ function startTreatment(visitId) {
         cancelButtonText: 'إلغاء'
     }).then((res) => {
         if (res.isConfirmed) {
-            fetch(`__M0__`.replace('0', visitId), {
+            fetch(`__M0__`.replace('__VISIT_ID__', visitId), {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, __csrfToken ? { 'X-CSRFToken': __csrfToken } : {}),
@@ -36,7 +35,6 @@ function startTreatment(visitId) {
     });
 }
 
-// إنهاء الزيارة
 function completeVisit(visitId) {
     Swal.fire({
         title: 'إنهاء الحالة',
@@ -50,7 +48,7 @@ function completeVisit(visitId) {
     }).then((res) => {
         if (res.isConfirmed) {
             const notes = res.value || '';
-            fetch(`__M1__`.replace('0', visitId), {
+            fetch(`__M1__`.replace('__VISIT_ID__', visitId), {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: Object.assign({

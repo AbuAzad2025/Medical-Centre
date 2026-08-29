@@ -1,11 +1,4 @@
-/**
- * Accessibility: Focus trap for Bootstrap modals.
- * Ensures Tab/Shift+Tab cycle within the modal instead of escaping to
- * background content. Auto-cleans on modal hide.
- *
- * Usage: automatic — applies to every .modal.show element via MutationObserver.
- */
-(function () {
+﻿(function () {
   'use strict';
 
   var FOCUSABLE = 'a[href], area[href], input:not([disabled]):not([type="hidden"]), '
@@ -20,7 +13,7 @@
 
     function handler(e) {
       if (e.key !== 'Tab') return;
-      // Re-query in case DOM changed since open
+
       var items = modal.querySelectorAll(FOCUSABLE);
       if (!items.length) return;
       var cur = document.activeElement;
@@ -47,7 +40,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    // Watch for modals being shown dynamically
+
     var observer = new MutationObserver(function (mutations) {
       mutations.forEach(function (m) {
         m.addedNodes.forEach(function (node) {
@@ -63,7 +56,6 @@
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Also handle existing modals
     document.querySelectorAll('.modal').forEach(function (m) {
       m.addEventListener('shown.bs.modal', function () { trapFocus(m); });
     });

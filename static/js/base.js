@@ -223,7 +223,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (typeof DOMPurify !== 'undefined') {
                                 pane.innerHTML = DOMPurify.sanitize(html);
                             } else {
-                                pane.innerHTML = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+                                var doc = new DOMParser().parseFromString(html, 'text/html');
+                                pane.textContent = '';
+                                pane.appendChild(doc.body);
                             }
                             pane.setAttribute('data-loaded','1');
                         })
