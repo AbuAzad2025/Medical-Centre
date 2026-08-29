@@ -815,7 +815,7 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  # ── Coverage aggregation ───────────────────────────────────────────────
+# ── Coverage aggregation ───────────────────────────────────────────────
   coverage-report:
     runs-on: ubuntu-latest
     needs: [core, unit, integration, clinical, frontend-javascript-tests]
@@ -846,40 +846,42 @@ jobs:
 
       - name: Coverage summary (Python)
         run: |
-          python -c "
-import json
-from collections import defaultdict
-data = json.load(open('coverage.json'))
-totals = data['totals']
-print(f'BACKEND TOTAL: {totals[\"percent_covered\"]:.1f}% ({totals[\"covered_lines\"]}/{totals[\"num_statements\"]} lines)')
-by_pkg = defaultdict(lambda: {'covered': 0, 'total': 0})
-for path, entry in data['files'].items():
-    parts = path.replace('\\\\', '/').split('/')
-    pkg = parts[0] if parts else 'other'
-    by_pkg[pkg]['covered'] += entry['summary']['covered_lines']
-    by_pkg[pkg]['total'] += entry['summary']['num_statements']
-for pkg in sorted(by_pkg):
-    c, t = by_pkg[pkg]['covered'], by_pkg[pkg]['total']
-    pct = (100.0 * c / t) if t else 0
-    print(f'  {pkg}: {pct:.1f}% ({c}/{t})')
-"
+          python - <<'PY'
+          import json
+          from collections import defaultdict
+          data = json.load(open("coverage.json"))
+          totals = data["totals"]
+          print(f"BACKEND TOTAL: {totals['percent_covered']:.1f}% "
+                f"({totals['covered_lines']}/{totals['num_statements']} lines)")
+          by_pkg = defaultdict(lambda: {"covered": 0, "total": 0})
+          for path, entry in data["files"].items():
+              parts = path.replace("\\", "/").split("/")
+              pkg = parts[0] if parts else "other"
+              by_pkg[pkg]["covered"] += entry["summary"]["covered_lines"]
+              by_pkg[pkg]["total"] += entry["summary"]["num_statements"]
+          for pkg in sorted(by_pkg):
+              c, t = by_pkg[pkg]["covered"], by_pkg[pkg]["total"]
+              pct = (100.0 * c / t) if t else 0
+              print(f"  {pkg}: {pct:.1f}% ({c}/{t})")
+          PY
 
       - name: Report frontend coverage
         if: always()
         run: |
           if [ -f covdata/coverage-final.json ]; then
-            python -c "
-import json
-data = json.load(open('covdata/coverage-final.json'))
-totals = data['totals']
-print(f'FRONTEND TOTAL: {totals[\"percent\"]:.1f}% ({totals[\"covered\"]}/{totals[\"total\"]} lines)')
-for pkg, entry in data.get('files', {}).items():
-    if 'summary' in entry:
-        c = entry['summary']['covered']
-        t = entry['summary']['total']
-        pct = (100.0 * c / t) if t else 0
-        print(f'  {pkg}: {pct:.1f}% ({c}/{t})')
-"
+            python - <<'PY'
+            import json
+            data = json.load(open("covdata/coverage-final.json"))
+            totals = data["totals"]
+            print(f"FRONTEND TOTAL: {totals['percent']:.1f}% "
+                  f"({totals['covered']}/{totals['total']} lines)")
+            for pkg, entry in data.get("files", {}).items():
+                if "summary" in entry:
+                    c = entry["summary"]["covered"]
+                    t = entry["summary"]["total"]
+                    pct = (100.0 * c / t) if t else 0
+                    print(f"  {pkg}: {pct:.1f}% ({c}/{t})")
+            PY
           else
             echo "Frontend coverage artifact not found"
           fi
