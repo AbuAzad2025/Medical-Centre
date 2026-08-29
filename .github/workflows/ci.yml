@@ -109,16 +109,7 @@ jobs:
         with:
           python-version: '3.11'
       - run: |
-          python -c "
-          import psycopg2
-          conn = psycopg2.connect('postgresql://postgres:123@localhost:5432/postgres')
-          conn.autocommit = True
-          cur = conn.cursor()
-          cur.execute(\"SELECT 1 FROM pg_database WHERE datname='medical_system_test';\")
-          if not cur.fetchone():
-              cur.execute(\"CREATE DATABASE medical_system_test;\")
-          cur.close(); conn.close()
-          "
+          echo "aW1wb3J0IHBzeWNvcGcyCmNvbm4gPSBwc3ljb3BnMi5jb25uZWN0KCdwb3N0Z3Jlc3FsOi8vcG9zdGdyZXM6MTIzQGxvY2FsaG9zdDo1NDMyL3Bvc3RncmVzJykKY29ubi5hdXRvY29tbWl0ID0gVHJ1ZQpjdXIgPSBjb25uLmN1cnNvcigpCmN1ci5leGVjdXRlKCIgU0VMRUNUIDEgRlJPTSBwZ19kYXRhYmFzZSBXSEVSRSBkYXRuYW1lPSdtZWRpY2FsX3N5c3RlbV90ZXN0JzsiKQppZiBub3QgY3VyLmZldGNob25lKCk6CiAgICBjdXIuZXhlY3V0ZSgiQ1JFQVRFIERBVEFCQVNFIG1lZGljYWxfc3lzdGVtX3Rlc3Q7IikKY3VyLmNsb3NlKCkKY29ubi5jbG9zZSgp" | base64 -d | python
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
