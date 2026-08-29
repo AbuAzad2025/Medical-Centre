@@ -129,11 +129,16 @@ jobs:
           APP_ENV: testing
           FLASK_ENV: testing
           DATABASE_URL: postgresql://postgres:123@localhost:5432/medical_system_test
+          TEST_DATABASE_URL: postgresql://postgres:123@localhost:5432/medical_system_test
+          REDIS_URL: redis://localhost:6379/0
+          CELERY_BROKER_URL: redis://localhost:6379/0
           RLS_BYPASS_ALLOWED: "1"
           ENABLE_SAAS_MODE: "true"
           SKIP_PLATFORM_BOOTSTRAP: "1"
           SUPPRESS_LOGGING: "1"
           SUPPRESS_BACKGROUND_WORKER: "1"
+          CELERY_ENABLED: "true"
+          CELERY_TASK_ALWAYS_EAGER: "true"
         run: |
           python -m pytest tests/test_agent1_reception.py -v --tb=short --no-header -q
       - name: Upload agent1 results
