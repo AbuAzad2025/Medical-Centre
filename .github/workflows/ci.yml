@@ -69,7 +69,15 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci || npm install
-      - run: npx vitest run --pool=threads --reporter=verbose
+      - run: npx vitest run --pool=threads --reporter=verbose --coverage
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v8
+        with:
+          name: cov-data-frontend
+          path: coverage/coverage-final.json
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: ignore
 
   # ── Templates & i18n Validation Gate ───────────────────────────────────────
   templates-i18n:
@@ -810,7 +818,7 @@ jobs:
   # ── Coverage aggregation ───────────────────────────────────────────────
   coverage-report:
     runs-on: ubuntu-latest
-    needs: [core, unit, integration, clinical]
+    needs: [core, unit, integration, clinical, frontend-javascript-tests]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
@@ -830,20 +838,20 @@ jobs:
           path: covdata
           merge-multiple: true
 
-      - name: Combine coverage and report
+      - name: Combine Python coverage and report
         run: |
           coverage combine covdata
           coverage report
           coverage json -o coverage.json
 
-      - name: Coverage summary
+      - name: Coverage summary (Python)
         run: |
           python - <<'PY'
           import json
           from collections import defaultdict
           data = json.load(open("coverage.json"))
           totals = data["totals"]
-          print(f"TOTAL: {totals['percent_covered']:.1f}% "
+          print(f"BACKEND TOTAL: {totals['percent_covered']:.1f}% "
                 f"({totals['covered_lines']}/{totals['num_statements']} lines)")
           by_pkg = defaultdict(lambda: {"covered": 0, "total": 0})
           for path, entry in data["files"].items():
@@ -856,3 +864,24 @@ jobs:
               pct = (100.0 * c / t) if t else 0
               print(f"  {pkg}: {pct:.1f}% ({c}/{t})")
           PY
+
+      - name: Report frontend coverage
+        if: always()
+        run: |
+          if [ -f covdata/coverage-final.json ]; then
+            python - <<'PY'
+            import json
+            data = json.load(open("covdata/coverage-final.json"))
+            totals = data["totals"]
+            print(f"FRONTEND TOTAL: {totals['percent']:.1f}% "
+                  f"({totals['covered']}/{totals['total']} lines)")
+            for pkg, entry in data.get("files", {}).items():
+                if "summary" in entry:
+                    c = entry["summary"]["covered"]
+                    t = entry["summary"]["total"]
+                    pct = (100.0 * c / t) if t else 0
+                    print(f"  {pkg}: {pct:.1f}% ({c}/{t})")
+            PY
+          else
+            echo "Frontend coverage artifact not found"
+          fi
