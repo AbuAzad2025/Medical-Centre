@@ -32,6 +32,7 @@ def ctx(app, db, test_tenant):
             full_name=kw.get('full_name', 'مستخدم'),
             role=role,
             is_active=True,
+            tenant_id=test_tenant.id,
         )
         u.set_password('test123')
         db.session.add(u)
