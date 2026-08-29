@@ -10,9 +10,8 @@ from models.user import User
 
 @pytest.fixture(autouse=True)
 def _csrf_global_for_owner(monkeypatch, app):
-    from flask import g
     # Make csrf_token() and csrf() available globally for templates
-    monkeypatch.setattr('flask_wtf.csrf.CSRFProtect.generate_csrf', lambda *a, **k: 'test-csrf-token', raising=False)
+    monkeypatch.setattr('flask_wtf.csrf.CSRFProtect.generate_csrf', lambda *_a, **_k: 'test-csrf-token', raising=False)
     # Register csrf_token in Jinja globals
     app.jinja_env.globals['csrf_token'] = lambda: 'test-csrf-token'
     app.jinja_env.globals['csrf'] = lambda: '<input type="hidden" name="csrf_token" value="test-csrf-token">'

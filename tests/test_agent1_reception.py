@@ -4,7 +4,6 @@ from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 import pytest
-
 from sqlalchemy import select
 
 from models.cash_register import CashRegister
