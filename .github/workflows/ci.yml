@@ -66,10 +66,10 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - run: npm ci || npm install
-      - run: npx vitest run --reporter=verbose
+      - run: npx vitest run --pool=threads --reporter=verbose
 
   # ── Templates & i18n Validation Gate ───────────────────────────────────────
   templates-i18n:
