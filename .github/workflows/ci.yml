@@ -846,6 +846,7 @@ jobs:
 
       - name: Coverage summary (Python)
         run: |
+          # shellcheck disable=SC2140
           python -c "
             import json, sys
             from collections import defaultdict
@@ -868,6 +869,7 @@ jobs:
         if: always()
         run: |
           if [ -f covdata/coverage-final.json ]; then
+            # shellcheck disable=SC2140
             python -c "
               import json
               data = json.load(open('covdata/coverage-final.json'))
