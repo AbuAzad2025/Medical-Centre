@@ -120,7 +120,9 @@ jobs:
           cur.close(); conn.close()
           "
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          pip install psycopg2-binary pytest-split
       - name: Run agent1 reception tests (VSM-compliant)
         env:
           SECRET_KEY: ci-test-secret-key
