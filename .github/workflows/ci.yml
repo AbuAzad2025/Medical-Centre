@@ -79,6 +79,58 @@ jobs:
           retention-days: 1
           if-no-files-found: ignore
 
+  # ── Agent1 Reception Deep Test (VSM-compliant, extended timeout) ───────────
+  agent1-reception:
+    name: Agent1 Reception Deep Tests (VSM-compliant)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Set up test database
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: |
+          python - << 'PY'
+          import psycopg2
+          conn = psycopg2.connect("postgresql://postgres:123@localhost:5432/medical_system_test")
+          conn.autocommit = True
+          cur = conn.cursor()
+          cur.execute("SELECT 1 FROM pg_database WHERE datname='medical_system_test';")
+          if not cur.fetchone():
+              cur.execute("CREATE DATABASE medical_system_test;")
+          cur.close(); conn.close()
+          PY
+      - name: Prepare test environment
+        uses: ./.github/actions/test-env
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run agent1 reception tests (VSM-compliant)
+        env:
+          SECRET_KEY: ci-test-secret-key
+          APP_ENV: testing
+          FLASK_ENV: testing
+          DATABASE_URL: postgresql://postgres:123@localhost:5432/medical_system_test
+          RLS_BYPASS_ALLOWED: "1"
+          ENABLE_SAAS_MODE: "true"
+          SKIP_PLATFORM_BOOTSTRAP: "1"
+          SUPPRESS_LOGGING: "1"
+          SUPPRESS_BACKGROUND_WORKER: "1"
+        run: |
+          python -m pytest tests/test_agent1_reception.py -v --tb=short --no-header -q
+      - name: Upload agent1 results
+        if: always()
+        uses: actions/upload-artifact@v8
+        with:
+          name: agent1-reception-results
+          path: test-results/
+          retention-days: 1
+          if-no-files-found: ignore
+
   # ── Templates & i18n Validation Gate ───────────────────────────────────────
   templates-i18n:
     runs-on: ubuntu-latest
