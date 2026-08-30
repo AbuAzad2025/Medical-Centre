@@ -955,7 +955,7 @@ class TestReceptionPatients:
             total_amount=Decimal('10'),
             paid_amount=Decimal('10'),
             remaining_amount=Decimal('0'),
-            payment_method='CASH',
+            payment_method='cash',
             receipt_number=f'R-{uuid.uuid4().hex[:6]}',
         )
         db.session.add(r)
