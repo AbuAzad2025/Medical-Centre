@@ -622,7 +622,9 @@ class ReportService:
                 payment_by_method[method]['amount'] = (
                     payment_by_method[method]['amount'] + amt
                 ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-                payment_by_method[method]['amount'] = float(payment_by_method[method]['amount'])
+
+            for _m, v in payment_by_method.items():
+                v['amount'] = float(v['amount'])
 
             payment_by_status = {}
             for payment in payments_today:
@@ -636,7 +638,9 @@ class ReportService:
                 payment_by_status[status]['amount'] = (
                     payment_by_status[status]['amount'] + amt
                 ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-                payment_by_status[status]['amount'] = float(payment_by_status[status]['amount'])
+
+            for _s, v in payment_by_status.items():
+                v['amount'] = float(v['amount'])
 
             total_collected = sum(
                 (
@@ -778,22 +782,22 @@ class ReportService:
                 if provider not in insurance_stats['by_provider']:
                     insurance_stats['by_provider'][provider] = {
                         'count': 0,
-                        'total_amount': 0,
-                        'patient_share': 0,
+                        'total_amount': Decimal('0.00'),
+                        'patient_share': Decimal('0.00'),
                     }
                 insurance_stats['by_provider'][provider]['count'] += 1
-                insurance_stats['by_provider'][provider]['total_amount'] = float(
-                    (
-                        Decimal(str(insurance_stats['by_provider'][provider]['total_amount'] or 0))
-                        + Decimal(str(visit.insurance_amount or 0))
-                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-                )
-                insurance_stats['by_provider'][provider]['patient_share'] = float(
-                    (
-                        Decimal(str(insurance_stats['by_provider'][provider]['patient_share'] or 0))
-                        + Decimal(str(visit.patient_share or 0))
-                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-                )
+                insurance_stats['by_provider'][provider]['total_amount'] = (
+                    Decimal(str(insurance_stats['by_provider'][provider]['total_amount']))
+                    + Decimal(str(visit.insurance_amount or 0))
+                ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                insurance_stats['by_provider'][provider]['patient_share'] = (
+                    Decimal(str(insurance_stats['by_provider'][provider]['patient_share']))
+                    + Decimal(str(visit.patient_share or 0))
+                ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+            for _prov, data in insurance_stats['by_provider'].items():
+                data['total_amount'] = float(data['total_amount'])
+                data['patient_share'] = float(data['patient_share'])
 
             # ========== 5. قضايا التدقيق (Issues) ==========
             audit_issues = []
@@ -905,7 +909,7 @@ class ReportService:
 
         except Exception as e:
             logging.error(f'Error generating daily audit report: {e!s}', exc_info=True)
-            return {'success': False, 'message': f'Error: {e!s}'}
+            return {'success': False, 'message': 'تعذر إنشاء تقرير التدقيق اليومي حالياً'}
 
     @staticmethod
     def get_monthly_audit_report(year=None, month=None):
