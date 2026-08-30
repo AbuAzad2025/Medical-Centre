@@ -1,0 +1,103 @@
+name: Stress & Concurrency Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+      - dev
+    paths:
+      - 'app/**'
+      - 'services/**'
+      - 'routes/**'
+      - 'models/**'
+      - 'scripts/stress_test.py'
+      - '.github/workflows/stress_test.yml'
+
+env:
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/medical_center_test
+  FLASK_ENV: testing
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  stress-test:
+    name: Financial Concurrency Stress Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: medical_center_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 10s
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "PostgreSQL is ready"
+              exit 0
+            fi
+            echo "Waiting for PostgreSQL... ($i/30)"
+            sleep 2
+          done
+          echo "PostgreSQL did not become ready in time"
+          exit 1
+
+      - name: Create database
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE medical_center_test;" || true
+
+      - name: Run database migrations
+        run: |
+          flask db upgrade || flask db stamp head
+
+      - name: Run stress tests
+        run: |
+          python -m scripts.stress_test --test all --concurrency 10 --iterations 50
+        continue-on-error: true
+
+      - name: Upload stress test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stress-test-reports
+          path: reports/stress_tests/*.json
+          retention-days: 14
+
+      - name: Display test summary
+        if: always()
+        run: |
+          echo "=== Stress Test Complete ==="
+          echo "Reports saved to: reports/stress_tests/"
+          if ls reports/stress_tests/*.json 1> /dev/null 2>&1; then
+            echo "Available reports:"
+            ls -la reports/stress_tests/*.json
+          else
+            echo "No reports generated"
+          fi
