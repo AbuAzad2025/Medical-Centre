@@ -8,11 +8,10 @@ import sys
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
 # Expected heads in the migration graph.
-# The five historical branch chains were unified under merge revision
-# 8b9457bfc4d7; p6_* migrations (FK indexes, api_keys, api_keys RLS,
-# file_uploads S3 columns) extend that single lineage.
+# All migration chains were unified under s2_011_clean_schema which depends
+# on p7_007_make_prescription_id_nullable (and its predecessors).
 EXPECTED_HEADS = {
-    'p7_007_make_prescription_id_nullable',
+    's2_011_clean_schema',
 }
 
 

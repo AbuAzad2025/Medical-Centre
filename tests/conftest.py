@@ -613,6 +613,33 @@ class FakeSession:
     def flush(self):
         self.flushes += 1
 
+    def execute(self, query):
+        """Execute a SQLAlchemy select query against the in-memory store."""
+        if not hasattr(query, '_where_criteria'):
+            raise TypeError("FakeSession.execute() only supports select() queries")
+
+        id_value = None
+        for filter_elem in query._where_criteria:
+            val = getattr(filter_elem, 'right', None)
+            if val is not None and hasattr(val, 'value'):
+                id_value = val.value
+
+        result = self.store.get(id_value)
+        return FakeResult(result)
+
+
+class FakeResult:
+    """Fake SQLAlchemy result object."""
+
+    def __init__(self, obj):
+        self._obj = obj
+
+    def scalars(self):
+        return self
+
+    def first(self):
+        return self._obj
+
 
 @pytest.fixture
 def patch_db_session(monkeypatch):
