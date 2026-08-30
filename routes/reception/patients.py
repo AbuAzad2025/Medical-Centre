@@ -208,6 +208,12 @@ def add_patient():
                     return jsonify({'success': False, 'message': message}), 400
                 flash(message, 'error')
                 raise ValueError(message)
+            if national_id_raw and not national_id:
+                message = 'رقم الهوية غير صالح'
+                if _wants_json():
+                    return jsonify({'success': False, 'message': message}), 400
+                flash(message, 'error')
+                raise ValueError(message)
             if not _validate_national_id(national_id):
                 message = 'رقم الهوية غير صالح'
                 if _wants_json():

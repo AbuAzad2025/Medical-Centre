@@ -20,6 +20,37 @@ def _reception(client, db, test_tenant, username=None):
     return u
 
 
+def _ensure_receptionist_user_for_tests(db, tenant_id):
+    """Ensure user id=1 exists as receptionist for FK constraints in agent1 fixtures."""
+    from flask import g
+
+    from models.user import User
+
+    prev_bypass = g.get('_tenant_filter_bypass', False)
+    g._tenant_filter_bypass = True
+    try:
+        u = db.session.execute(select(User).filter_by(id=1)).scalars().first()
+        if not u:
+            u = User(
+                id=1,
+                username='receptionist_default',
+                email='receptionist@test.local',
+                full_name='Receptionist Default',
+                role='reception',
+                is_active=True,
+                tenant_id=tenant_id,
+            )
+            u.set_password('ValidPass123!')
+            db.session.add(u)
+            db.session.commit()
+        return u
+    finally:
+        if prev_bypass:
+            g._tenant_filter_bypass = True
+        else:
+            g.pop('_tenant_filter_bypass', None)
+
+
 def _manager(client, db, test_tenant, username=None):
     username = username or f'mgr_{uuid.uuid4().hex[:6]}'
     u = ensure_test_user(db, test_tenant, username=username, role='manager')
@@ -255,16 +286,22 @@ class TestVisitModel:
             assert v2.is_archived is False
 
     def test_get_status_display(self, app, db, rollback_db, test_tenant):
+        from app.shared.enums import VisitState
+        from services.visit_state_machine_service import VisitStateMachineService
+
         with tenant_test_context(app, test_tenant):
             p = _patient(db)
             d = _department(db)
             v = _visit(db, patient_id=p.id, department_id=d.id, status='OPEN')
             assert v.get_status_display() == 'مفتوحة'
-            v.status = 'COMPLETED'
-            db.session.flush()
+            assert VisitStateMachineService.transition(v, VisitState.CHECKED_IN)
+            assert VisitStateMachineService.transition(v, VisitState.IN_PROGRESS)
+            assert VisitStateMachineService.transition(v, VisitState.COMPLETED)
             assert v.get_status_display() == 'مكتملة'
-            v.status = 'UNKNOWN'
-            assert v.get_status_display() == 'UNKNOWN'
+            v2 = Visit(patient_id=p.id, department_id=d.id, status='UNKNOWN')
+            db.session.add(v2)
+            db.session.commit()
+            assert v2.get_status_display() == 'UNKNOWN'
 
     def test_can_be_archived(self, app, db, rollback_db, test_tenant):
         with tenant_test_context(app, test_tenant):
@@ -515,6 +552,7 @@ class TestQueueManagementModel:
 class TestCashRegisterModel:
     def test_get_or_create_today(self, app, db, rollback_db, test_tenant):
         with tenant_test_context(app, test_tenant):
+            _ensure_receptionist_user_for_tests(db, test_tenant.id)
             r1 = CashRegister.get_or_create_today(user_id=1)
             r2 = CashRegister.get_or_create_today(user_id=1)
             assert r1.id == r2.id
@@ -903,11 +941,23 @@ class TestReceptionPatients:
         assert resp.status_code in (302, 200)
 
     def test_delete_patient_with_receipt(self, app, client, db, rollback_db, test_tenant):
+        from decimal import Decimal
+
         from models.receipt import Receipt
 
         _manager(client, db, test_tenant)
         p = _patient(db)
-        r = Receipt(patient_id=p.id, amount=10, receipt_number=f'R-{uuid.uuid4().hex[:6]}')
+        d = _department(db)
+        v = _visit(db, patient_id=p.id, department_id=d.id, status='OPEN')
+        r = Receipt(
+            patient_id=p.id,
+            visit_id=v.id,
+            total_amount=Decimal('10'),
+            paid_amount=Decimal('10'),
+            remaining_amount=Decimal('0'),
+            payment_method='CASH',
+            receipt_number=f'R-{uuid.uuid4().hex[:6]}',
+        )
         db.session.add(r)
         db.session.commit()
         resp = client.post(f'/reception/delete_patient/{p.id}')
@@ -1421,17 +1471,19 @@ class TestReceptionQueue:
             resp = client.post(url, data=data)
             assert resp.status_code in (302, 200)
 
-    def test_smart_queue(self, app, db, rollback_db, test_tenant):
-        with tenant_test_context(app, test_tenant):
-            from routes.reception.queue import (
-                get_patient_demand_forecast,
-                get_patient_satisfaction_ai,
-                get_smart_queue_management,
-            )
+    def test_smart_queue(self, app, client, db, rollback_db, test_tenant):
+        _reception(client, db, test_tenant)
+        d = _department(db)
+        from routes.reception.queue import get_patient_demand_forecast, get_patient_satisfaction_ai
 
-            assert isinstance(get_smart_queue_management(), dict)
+        with tenant_test_context(app, test_tenant):
             assert isinstance(get_patient_satisfaction_ai(), dict)
             assert isinstance(get_patient_demand_forecast(), dict)
+            resp = client.get(
+                f'/reception/api/queue-status/{d.id}', headers={'Accept': 'application/json'}
+            )
+            assert resp.status_code == 200
+            assert isinstance(resp.get_json(), dict)
 
     def test_save_settings(self, app, client, db, rollback_db, test_tenant):
         u = _reception(client, db, test_tenant)
@@ -1815,6 +1867,8 @@ class TestReceptionAppointments:
         assert resp3.status_code == 400
 
     def test_online_booking_checkin(self, app, client, db, rollback_db, test_tenant):
+        from datetime import time
+
         _reception(client, db, test_tenant)
         from models.online_booking import OnlineBooking
 
@@ -1829,6 +1883,7 @@ class TestReceptionAppointments:
             department_id=d.id,
             doctor_id=doc.id,
             appointment_date=date.today() + timedelta(days=1),
+            appointment_time=time(10, 0),
             status='pending',
         )
         db.session.add(b)
@@ -1839,6 +1894,8 @@ class TestReceptionAppointments:
         assert resp2.status_code in (302, 200)
 
     def test_online_booking_cancelled(self, app, client, db, rollback_db, test_tenant):
+        from datetime import time
+
         _reception(client, db, test_tenant)
         from models.online_booking import OnlineBooking
 
@@ -1850,6 +1907,7 @@ class TestReceptionAppointments:
             phone='0590000000',
             department_id=d.id,
             appointment_date=date.today() + timedelta(days=1),
+            appointment_time=time(10, 0),
             status='cancelled',
         )
         db.session.add(b)
@@ -1922,9 +1980,14 @@ class TestReceptionDashboard:
         _reception(client, db, test_tenant)
         from models.patient_satisfaction import PatientSatisfactionSurvey
 
+        p = _patient(db)
+        d = _department(db)
+        v = _visit(db, patient_id=p.id, department_id=d.id, status='OPEN')
         resp = client.get('/reception/survey/invalid-token')
         assert resp.status_code == 200
-        s = PatientSatisfactionSurvey(token=f'tok-{uuid.uuid4().hex[:8]}', rating=None)
+        s = PatientSatisfactionSurvey(
+            visit_id=v.id, patient_id=p.id, token=f'tok-{uuid.uuid4().hex[:8]}', rating=None
+        )
         db.session.add(s)
         db.session.commit()
         resp2 = client.get(f'/reception/survey/{s.token}')
