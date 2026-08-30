@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 
 from flask import g
 from sqlalchemy import case, func, select, text
+from sqlalchemy.orm import joinedload
 
 from app.extensions import db
 from app.shared.enums import PaymentStatus, QueueState, VisitState
@@ -305,12 +306,16 @@ class QueueManagementService:
         """الحصول على حالة الطابور"""
         try:
             from models.queue_management import QueueManagement
-            from models.user import User
             from models.visit import Visit
 
             query = (
                 select(QueueManagement)
                 .outerjoin(Visit, QueueManagement.visit_id == Visit.id)
+                .options(
+                    joinedload(QueueManagement.patient),
+                    joinedload(QueueManagement.department),
+                    joinedload(QueueManagement.visit).joinedload(Visit.doctor),
+                )
                 .filter(QueueManagement.department_id == department_id)
             )
             if doctor_id:
@@ -376,23 +381,8 @@ class QueueManagementService:
                     )
                     d['wait_minutes'] = wait_minutes
                     d['doctor_name'] = None
-                    if ticket.visit_id:
-                        v = get_tenant_record(Visit, ticket.visit_id)
-                        if v and v.doctor_id:
-                            doc = get_tenant_record(User, v.doctor_id)
-                    d['queued_at_display'] = (
-                        ticket.queued_at.strftime('%Y-%m-%d %H:%M') if ticket.queued_at else None
-                    )
-                    d['called_at_display'] = (
-                        ticket.called_at.strftime('%Y-%m-%d %H:%M') if ticket.called_at else None
-                    )
-                    d['wait_minutes'] = wait_minutes
-                    d['doctor_name'] = None
-                    if ticket.visit_id:
-                        v = get_tenant_record(Visit, ticket.visit_id)
-                        if v and v.doctor_id:
-                            doc = get_tenant_record(User, v.doctor_id)
-                            d['doctor_name'] = doc.full_name if doc else None
+                    if ticket.visit_id and ticket.visit and ticket.visit.doctor:
+                        d['doctor_name'] = ticket.visit.doctor.full_name
                     return d
                 except Exception:
                     return d

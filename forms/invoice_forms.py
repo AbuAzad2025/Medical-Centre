@@ -4,6 +4,7 @@ Medical System Invoice Forms
 """
 
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from wtforms import (
     BooleanField,
     DateField,
@@ -202,11 +203,17 @@ class ReceiptForm(FormBase, PaymentMixin):
 
     def load_dynamic_choices(self):
         """تحميل الخيارات الديناميكية"""
-        # تحميل الفواتير غير المدفوعة بالكامل
         from models.invoice import Invoice
+        from models.visit import Visit
 
         invoices = (
-            db.session.execute(select(Invoice).filter(Invoice.status != 'PAID')).scalars().all()
+            db.session.execute(
+                select(Invoice)
+                .options(joinedload(Invoice.visit).joinedload(Visit.patient))
+                .filter(Invoice.status != 'PAID')
+            )
+            .scalars()
+            .all()
         )
 
         def display_for(i):
@@ -267,7 +274,11 @@ class RefundForm(FormBase, PaymentMixin):
         from models.payment import Payment, PaymentStatus
 
         payments = (
-            db.session.execute(select(Payment).filter(Payment.status == PaymentStatus.CONFIRMED))
+            db.session.execute(
+                select(Payment)
+                .options(joinedload(Payment.patient))
+                .filter(Payment.status == PaymentStatus.CONFIRMED)
+            )
             .scalars()
             .all()
         )

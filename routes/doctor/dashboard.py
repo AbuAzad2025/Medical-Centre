@@ -465,11 +465,12 @@ def api_today_visits():
     """قائمة زيارات اليوم للوحة التحكم الحية"""
     try:
         today = date.today()
-        from app.shared.enums import VisitState
+        from sqlalchemy.orm import joinedload
 
         visits = (
             db.session.execute(
                 select(Visit)
+                .options(joinedload(Visit.patient))
                 .filter(
                     Visit.doctor_id == current_user.id,
                     Visit.visit_date == today,

@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 from app.extensions import db
 from app.shared.enums import AppointmentState
@@ -280,7 +281,10 @@ def appointments():
     status = request.args.get('status', '')
     date_str = (request.args.get('date') or '').strip()
 
-    query = Appointment.query
+    query = Appointment.query.options(
+        joinedload(Appointment.patient),
+        joinedload(Appointment.doctor),
+    )
 
     if search:
         query = query.join(Patient).filter(

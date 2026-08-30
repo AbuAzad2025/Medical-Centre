@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from flask import flash, g, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 from app.extensions import db
 from app.shared.enums import VisitState
@@ -154,7 +155,11 @@ def export_visits():
     search = request.args.get('search', '')
     department_id = request.args.get('department_id', type=int)
     status = request.args.get('status', '')
-    query = Visit.query
+    query = Visit.query.options(
+        joinedload(Visit.patient),
+        joinedload(Visit.department),
+        joinedload(Visit.doctor),
+    )
     if search:
         query = query.join(Patient).filter(
             db.or_(

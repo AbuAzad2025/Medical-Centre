@@ -7,6 +7,7 @@ from datetime import UTC, date
 from flask import flash, g, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func, select
+from sqlalchemy.orm import joinedload
 
 from app.extensions import db
 from app.shared.enums import OrderState, VisitState
@@ -58,24 +59,33 @@ def patient_queue():
         try:
             from models.queue_management import QueueManagement
 
-            for v in patients:
-                can_start_map[v.id] = bool(
+            if patients:
+                patient_ids = [v.id for v in patients]
+                dept_ids = [v.department_id for v in patients]
+                called_queues = (
                     db.session.execute(
-                        select(QueueManagement).filter_by(
-                            visit_id=v.id, department_id=v.department_id, status='called'
+                        select(QueueManagement).filter(
+                            QueueManagement.visit_id.in_(patient_ids),
+                            QueueManagement.department_id.in_(dept_ids),
+                            QueueManagement.status == 'called',
                         )
                     )
                     .scalars()
-                    .first()
+                    .all()
                 )
+                can_start_map = {q.visit_id: True for q in called_queues}
         except Exception:
-            for v in patients:
+            pass
+        for v in patients:
+            if v.id not in can_start_map:
                 can_start_map[v.id] = False
 
         today = date.today()
         todays_visits = (
             db.session.execute(
-                select(Visit).filter(
+                select(Visit)
+                .options(joinedload(Visit.patient))
+                .filter(
                     Visit.doctor_id == current_user.id,
                     Visit.visit_date == today,
                     Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]),
@@ -88,31 +98,37 @@ def patient_queue():
             .all()
         )
         linked_requests = []
-        for v in todays_visits:
-            lab_pending = db.session.execute(
-                select(func.count())
-                .select_from(LabRequest)
-                .filter(
-                    LabRequest.visit_id == v.id,
-                    LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
-                )
-            ).scalar()
-            rad_pending = db.session.execute(
-                select(func.count())
-                .select_from(RadiologyRequest)
-                .filter(
-                    RadiologyRequest.visit_id == v.id,
-                    RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
-                )
-            ).scalar()
-            linked_requests.append(
-                {
-                    'visit_id': v.id,
-                    'patient_name': getattr(v.patient, 'full_name', 'غير محدد'),
-                    'lab_pending': lab_pending,
-                    'rad_pending': rad_pending,
-                }
+        if todays_visits:
+            visit_ids = [v.id for v in todays_visits]
+            lab_counts = dict(
+                db.session.execute(
+                    select(LabRequest.visit_id, func.count(LabRequest.id))
+                    .filter(
+                        LabRequest.visit_id.in_(visit_ids),
+                        LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+                    )
+                    .group_by(LabRequest.visit_id)
+                ).all()
             )
+            rad_counts = dict(
+                db.session.execute(
+                    select(RadiologyRequest.visit_id, func.count(RadiologyRequest.id))
+                    .filter(
+                        RadiologyRequest.visit_id.in_(visit_ids),
+                        RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+                    )
+                    .group_by(RadiologyRequest.visit_id)
+                ).all()
+            )
+            for v in todays_visits:
+                linked_requests.append(
+                    {
+                        'visit_id': v.id,
+                        'patient_name': getattr(v.patient, 'full_name', 'غير محدد'),
+                        'lab_pending': lab_counts.get(v.id, 0),
+                        'rad_pending': rad_counts.get(v.id, 0),
+                    }
+                )
 
         flash('لزيارة قسم أو طبيب آخر، يرجى إنشاء زيارة جديدة من الاستقبال', 'info')
         return render_template(
