@@ -31,11 +31,19 @@ function exportVisits() {
     window.open(((window.API_ROUTES && window.API_ROUTES.export_visits) || '/reception/export/visits') + `?${params.toString()}`, '_blank');
 }
 
-setInterval(function() {
-    if (document.visibilityState === 'visible') {
-        location.reload();
+var __visitReloadInterval = null;
+(function() {
+    if (document.getElementById('visitsTable')) {
+        __visitReloadInterval = setInterval(function() {
+            if (document.visibilityState === 'visible') {
+                location.reload();
+            }
+        }, 30000);
     }
-}, 30000);
+})();
+window.addEventListener('beforeunload', function() {
+    if (__visitReloadInterval) clearInterval(__visitReloadInterval);
+});
 
 function openTransfer(visitId) {
     document.getElementById('transferVisitId').value = visitId;

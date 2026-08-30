@@ -143,7 +143,7 @@
 .flash-messages {
   position: fixed;
   top: 100px;
-  right: 2rem;
+  inset-inline-end: 2rem;
   z-index: 1050;
   max-width: 400px;
 }

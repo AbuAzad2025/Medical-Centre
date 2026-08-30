@@ -49,14 +49,14 @@
 .owner-sidebar {
   position: fixed;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   bottom: 0;
   z-index: 1040;
   width: var(--owner-sidebar-width);
   overflow: hidden auto;
   background: var(--owner-glass-bg);
   backdrop-filter: blur(20px) saturate(180%);
-  border-left: 1px solid var(--owner-glass-border);
+  border-inline-start: 1px solid var(--owner-glass-border);
   box-shadow: var(--owner-shadow-lg);
   transition: transform var(--owner-transition), width var(--owner-transition);
 }

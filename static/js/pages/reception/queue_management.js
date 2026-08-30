@@ -3,6 +3,7 @@ let currentTicketId = null;
 const currentUserRole = __M0__;
 const currentDoctorId = __M1__;
 const billingActive = __M2__;
+let __queueInterval = null;
 
 function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
@@ -37,13 +38,13 @@ function updateQueueStatus() {
                 displayQueueStatusAll(data.data);
                 updateWaitMetrics(dep && dep.value ? dep.value : '');
             } else {
-                const tbody = document.querySelector('#queue-status-all tbody');
-                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">خطأ في تحميل الطابور</td></tr>';
+                const tbody = document.querySelector('#queue-status-all tbody') || document.getElementById('queue-status-all')?.querySelector('tbody');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">خطأ في تحميل الطابور</td></tr>';
             }
         })
         .catch(error => {
-            const tbody = document.querySelector('#queue-status-all tbody');
-            tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">خطأ في الاتصال</td></tr>';
+            const tbody = document.querySelector('#queue-status-all tbody') || document.getElementById('queue-status-all')?.querySelector('tbody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">خطأ في الاتصال</td></tr>';
         });
 }
 
@@ -431,7 +432,11 @@ if (approveForceEntryFormEl) {
     });
 }
 
-setInterval(updateQueueStatus, 30000);
+__queueInterval = setInterval(updateQueueStatus, 30000);
+
+window.addEventListener('beforeunload', function() {
+    if (__queueInterval) clearInterval(__queueInterval);
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     updateQueueStatus();

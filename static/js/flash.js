@@ -32,26 +32,26 @@
     closeBtn.addEventListener('click', function () { removeToast(toast); });
     let remaining = duration;
     let start = Date.now();
-    let timer = setTimeout(function () { removeToast(toast); }, duration);
-    let progressTimer = setInterval(function () {
+    toast._timer = setTimeout(function () { removeToast(toast); }, duration);
+    toast._progressTimer = setInterval(function () {
       const elapsed = Date.now() - start;
       const pct = Math.max(0, 100 - (elapsed / duration) * 100);
       if (progress) progress.style.width = pct + '%';
-      if (pct <= 0) clearInterval(progressTimer);
+      if (pct <= 0) clearInterval(toast._progressTimer);
     }, 50);
     toast.addEventListener('mouseenter', function () {
-      clearTimeout(timer);
-      clearInterval(progressTimer);
+      clearTimeout(toast._timer);
+      clearInterval(toast._progressTimer);
       remaining -= Date.now() - start;
     });
     toast.addEventListener('mouseleave', function () {
       start = Date.now();
-      timer = setTimeout(function () { removeToast(toast); }, remaining);
-      progressTimer = setInterval(function () {
+      toast._timer = setTimeout(function () { removeToast(toast); }, remaining);
+      toast._progressTimer = setInterval(function () {
         const elapsed = Date.now() - start;
         const pct = Math.max(0, (remaining - elapsed) / remaining * 100);
         if (progress) progress.style.width = pct + '%';
-        if (pct <= 0) clearInterval(progressTimer);
+        if (pct <= 0) clearInterval(toast._progressTimer);
       }, 50);
     });
     return toast;
@@ -60,6 +60,8 @@
   function removeToast(toast) {
     if (!toast || toast.classList.contains('removing')) return;
     toast.classList.add('removing');
+    if (toast._timer) clearTimeout(toast._timer);
+    if (toast._progressTimer) clearInterval(toast._progressTimer);
     setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
   }
 

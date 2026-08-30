@@ -162,3 +162,7 @@ document.addEventListener('visibilitychange', function() {
         startStatsPolling();
     }
 });
+
+window.addEventListener('beforeunload', function() {
+    stopStatsPolling();
+});

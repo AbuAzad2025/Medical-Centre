@@ -972,7 +972,7 @@
   color: var(--azad-blue);
   background: linear-gradient(90deg, rgb(15 76 129 / 0.08), transparent);
   border-color: var(--border-subtle);
-  border-right: 3px solid var(--azad-blue);
+  border-inline-end: 3px solid var(--azad-blue);
 }
 
 .list-group-item:first-child {
@@ -991,8 +991,8 @@
 }
 
 .list-group-flush .list-group-item {
-  border-right: none;
-  border-left: none;
+  border-inline-end: none;
+  border-inline-start: none;
 }
 
 /* ═══════════════════════════════════════════════
@@ -1002,7 +1002,7 @@
 .toast-container {
   position: fixed;
   top: 1rem;
-  right: 1rem;
+  inset-inline-end: 1rem;
   z-index: 1060;
   display: flex;
   flex-direction: column;
@@ -1682,16 +1682,16 @@ tr[data-href]:hover {
    INLINE-EXTRACTED UTILITIES
    ═══════════════════════════════════════════════ */
 
-/* --- border-left --- */
+/* --- border-left (RTL-compatible) --- */
 
 /* AdminLTE-style border-left utilities */
-.border-left-primary { border-left: 0.25rem solid #4e73df !important; }
-.border-left-secondary { border-left: 0.25rem solid #858796 !important; }
-.border-left-success { border-left: 0.25rem solid #1cc88a !important; }
-.border-left-info { border-left: 0.25rem solid #36b9cc !important; }
-.border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
-.border-left-danger { border-left: 0.25rem solid #e74a3b !important; }
-.border-left-dark { border-left: 0.25rem solid #5a5c69 !important; }
+.border-left-primary { border-inline-start: 0.25rem solid #4e73df !important; }
+.border-left-secondary { border-inline-start: 0.25rem solid #858796 !important; }
+.border-left-success { border-inline-start: 0.25rem solid #1cc88a !important; }
+.border-left-info { border-inline-start: 0.25rem solid #36b9cc !important; }
+.border-left-warning { border-inline-start: 0.25rem solid #f6c23e !important; }
+.border-left-danger { border-inline-start: 0.25rem solid #e74a3b !important; }
+.border-left-dark { border-inline-start: 0.25rem solid #5a5c69 !important; }
 
 /* --- avatar-sm --- */
 .avatar-sm { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 14px; font-weight: 600; border-radius: 50%; }
