@@ -3,6 +3,10 @@
         this.csrfToken = null;
         this.sessionTimeout = 30 * 60 * 1000;
         this.lastActivity = Date.now();
+        this._activityHandlers = [];
+        this._blurHandler = null;
+        this._submitHandler = null;
+        this._sessionInterval = null;
         this.init();
     }
 
@@ -24,13 +28,15 @@
     }
 
     setupSessionTimeout() {
-        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-            document.addEventListener(event, () => {
-                this.lastActivity = Date.now();
-            }, true);
+        const activityHandler = () => {
+            this.lastActivity = Date.now();
+        };
+        this._activityHandlers = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].map(event => {
+            document.addEventListener(event, activityHandler, true);
+            return event;
         });
 
-        setInterval(() => {
+        this._sessionInterval = setInterval(() => {
             if (Date.now() - this.lastActivity > this.sessionTimeout) {
                 this.handleSessionTimeout();
             }
@@ -48,11 +54,12 @@
     }
 
     setupInputSanitization() {
-        document.addEventListener('blur', (e) => {
+        this._blurHandler = (e) => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
                 this.sanitizeInput(e.target);
             }
-        }, true);
+        };
+        document.addEventListener('blur', this._blurHandler, true);
     }
 
     sanitizeInput(input) {
@@ -70,7 +77,7 @@
     }
 
     setupCSRFProtection() {
-        document.addEventListener('submit', (e) => {
+        this._submitHandler = (e) => {
             if (e.target.tagName === 'FORM' && this.csrfToken) {
                 const existingToken = e.target.querySelector('input[name="csrf_token"]');
                 if (!existingToken) {
@@ -81,7 +88,8 @@
                     e.target.appendChild(tokenInput);
                 }
             }
-        });
+        };
+        document.addEventListener('submit', this._submitHandler);
     }
 
     setupClickjackingProtection() {
@@ -96,6 +104,21 @@
             csp.httpEquiv = 'Content-Security-Policy';
             csp.content = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; frame-src 'none';";
             document.head.appendChild(csp);
+        }
+    }
+
+    destroy() {
+        this._activityHandlers.forEach(event => {
+            document.removeEventListener(event, () => {}, true);
+        });
+        if (this._blurHandler) {
+            document.removeEventListener('blur', this._blurHandler, true);
+        }
+        if (this._submitHandler) {
+            document.removeEventListener('submit', this._submitHandler);
+        }
+        if (this._sessionInterval) {
+            clearInterval(this._sessionInterval);
         }
     }
 
@@ -429,9 +452,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.secureFileUpload = secureFileUpload;
     window.sessionManager = sessionManager;
     window.auditLogger = auditLogger;
-});
 
-if (typeof module !== 'undefined' && module.exports) {
+    window.addEventListener('beforeunload', function() {
+        securityManager.destroy();
+    });
+});
     module.exports = {
         SecurityManager,
         InputValidator,

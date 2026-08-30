@@ -2,13 +2,14 @@
     const form = document.querySelector('form');
     if (!form) return;
     const inputs = form.querySelectorAll('input, textarea');
+    let __diagnosisInterval = null;
 
-    setInterval(function() {
-  function notifyErr(msg) {
-    if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
-    else console.warn('[doctor-page]', msg);
-  }
+    function notifyErr(msg) {
+        if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
+        else console.warn('[doctor-page]', msg);
+    }
 
+    function periodicHealthCheck() {
         const formData = new FormData(form);
         const csrfEl = form.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
         const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
@@ -23,7 +24,9 @@
             if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات');
             else notifyErr('حدث خطأ أثناء تحميل البيانات');
         });
-    }, 30000);
+    }
+
+    __diagnosisInterval = setInterval(periodicHealthCheck, 30000);
 
     inputs.forEach(input => {
         input.addEventListener('input', function() {
@@ -36,5 +39,6 @@
             e.preventDefault();
             e.returnValue = '';
         }
+        if (__diagnosisInterval) clearInterval(__diagnosisInterval);
     });
 });

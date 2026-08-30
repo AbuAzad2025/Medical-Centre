@@ -29,7 +29,7 @@
         <div class="d-flex flex-column gap-3">
             {% for a in announcements %}
             <div class="owner-card animate-fadeInUp {% if a.priority == 'danger' %}border-start-danger{% else %}border-start-primary{% endif %}" 
-                 style="border-right: 4px solid {{ '#ef4444' if a.priority == 'danger' else '#2563eb' }};">
+                 style="border-inline-end: 4px solid {{ '#ef4444' if a.priority == 'danger' else '#2563eb' }};">
                 <div class="owner-card-body py-3">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div>
@@ -175,6 +175,6 @@
         -webkit-box-orient: vertical;  
         overflow: hidden;
     }
-    .border-start-danger { border-right: 4px solid var(--owner-danger) !important; }
-    .border-start-primary { border-right: 4px solid var(--owner-primary) !important; }
+    .border-start-danger { border-inline-end: 4px solid var(--owner-danger) !important; }
+    .border-start-primary { border-inline-end: 4px solid var(--owner-primary) !important; }
 </style>

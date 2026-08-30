@@ -21,7 +21,7 @@
     }
 
     monitorAPI() {
-        setInterval(() => {
+        this._apiInterval = setInterval(() => {
             const m = window.__apiMetrics;
             if (m) {
                 this.metrics.apiCalls = m.calls;
@@ -32,7 +32,7 @@
 
     monitorMemory() {
         if ('memory' in performance) {
-            setInterval(() => {
+            this._memoryInterval = setInterval(() => {
                 const memory = performance.memory;
                 this.metrics.memory = {
                     used: memory.usedJSHeapSize,
@@ -59,10 +59,16 @@
                 lastTime = currentTime;
             }
 
-            requestAnimationFrame(measureFPS);
+            this._fpsRaf = requestAnimationFrame(measureFPS);
         };
 
-        requestAnimationFrame(measureFPS);
+        this._fpsRaf = requestAnimationFrame(measureFPS);
+    }
+
+    stop() {
+        if (this._apiInterval) clearInterval(this._apiInterval);
+        if (this._memoryInterval) clearInterval(this._memoryInterval);
+        if (this._fpsRaf) cancelAnimationFrame(this._fpsRaf);
     }
 
     getMetrics() {
@@ -572,6 +578,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.performanceMonitor = performanceMonitor;
     window.optimizedCache = new OptimizedCache();
+
+    window.addEventListener('beforeunload', function() {
+        performanceMonitor.stop();
+    });
 });
 
 if (typeof module !== 'undefined' && module.exports) {

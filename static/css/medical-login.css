@@ -179,7 +179,7 @@ html, body {
 
 .medical-hero-accent {
   position: absolute;
-  right: 3rem;
+  inset-inline-end: 3rem;
   bottom: 3rem;
   z-index: 2;
   display: flex;
@@ -310,7 +310,7 @@ html, body {
 .input-wrap .field-icon {
   position: absolute;
   top: 50%;
-  right: 0.9rem;
+  inset-inline-end: 0.9rem;
   z-index: 2;
   font-size: 0.9rem;
   color: var(--md-text-muted);
@@ -361,7 +361,7 @@ html, body {
 .toggle-password-btn {
   position: absolute;
   top: 50%;
-  left: 0.65rem;
+  inset-inline-start: 0.65rem;
   display: flex;
   gap: 0.25rem;
   align-items: center;

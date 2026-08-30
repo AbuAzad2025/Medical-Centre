@@ -365,9 +365,6 @@ function updateClock() {
     });
 }
 
-setInterval(updateClock, 1000);
-updateClock();
-
 function initAutoSave(formId, interval = 30000) {
     const form = document.getElementById(formId);
     if (!form) return;
@@ -485,3 +482,15 @@ document.addEventListener('submit', function(e) {
         e.preventDefault();
     }
 }, true);
+
+var __baseClockInterval = null;
+(function() {
+    var clockEls = document.querySelectorAll('.live-clock');
+    if (clockEls.length > 0) {
+        __baseClockInterval = setInterval(updateClock, 1000);
+        updateClock();
+    }
+})();
+window.addEventListener('beforeunload', function() {
+    if (__baseClockInterval) clearInterval(__baseClockInterval);
+});

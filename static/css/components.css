@@ -115,8 +115,7 @@
 .stats-card::before {
   position: absolute;
   top: 0;
-  right: 0;
-  left: 0;
+  inset-inline: 0;
   height: 4px;
   content: '';
   background: var(--azad-blue);
@@ -297,7 +296,7 @@
 }
 
 .btn-modern:hover::before {
-  left: 100%;
+  inset-inline-start: 100%;
 }
 
 /* ═══════════════════════════════════════════════
@@ -526,7 +525,7 @@
 .form-floating label {
   position: absolute;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   height: 100%;
   padding: 1rem 0.75rem;
   color: var(--text-muted);
@@ -602,7 +601,7 @@
 .alert::before {
   position: absolute;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   bottom: 0;
   width: 4px;
   content: '';
@@ -622,7 +621,7 @@
 .alert-dismissible .btn-close {
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   padding: 1rem;
   cursor: pointer;
   background: transparent;
