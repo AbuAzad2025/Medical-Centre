@@ -61,7 +61,7 @@ class APMProfiler:
         with self.connect() as conn, conn.cursor() as cur:
             cur.execute(query, (limit,))
             cols = [desc[0] for desc in cur.description]
-            return [dict(zip(cols, row)) for row in cur.fetchall()]
+            return [dict(zip(cols, row, strict=True)) for row in cur.fetchall()]
 
     def get_index_usage(self) -> list[dict[str, Any]]:
         query = """
@@ -80,7 +80,7 @@ class APMProfiler:
         with self.connect() as conn, conn.cursor() as cur:
             cur.execute(query)
             cols = [desc[0] for desc in cur.description]
-            return [dict(zip(cols, row)) for row in cur.fetchall()]
+            return [dict(zip(cols, row, strict=True)) for row in cur.fetchall()]
 
     def get_unused_indexes(self) -> list[dict[str, Any]]:
         query = """
@@ -99,7 +99,7 @@ class APMProfiler:
         with self.connect() as conn, conn.cursor() as cur:
             cur.execute(query)
             cols = [desc[0] for desc in cur.description]
-            return [dict(zip(cols, row)) for row in cur.fetchall()]
+            return [dict(zip(cols, row, strict=True)) for row in cur.fetchall()]
 
     def get_lock_contention(self) -> list[dict[str, Any]]:
         query = """
@@ -121,7 +121,7 @@ class APMProfiler:
         with self.connect() as conn, conn.cursor() as cur:
             cur.execute(query)
             cols = [desc[0] for desc in cur.description]
-            return [dict(zip(cols, row)) for row in cur.fetchall()]
+            return [dict(zip(cols, row, strict=True)) for row in cur.fetchall()]
 
     def get_wait_events(self) -> list[dict[str, Any]]:
         query = """
@@ -142,7 +142,7 @@ class APMProfiler:
         with self.connect() as conn, conn.cursor() as cur:
             cur.execute(query)
             cols = [desc[0] for desc in cur.description]
-            return [dict(zip(cols, row)) for row in cur.fetchall()]
+            return [dict(zip(cols, row, strict=True)) for row in cur.fetchall()]
 
     def get_connection_stats(self) -> dict[str, Any]:
         query = """
@@ -163,7 +163,7 @@ class APMProfiler:
             cur.execute(query)
             row = cur.fetchone()
             cols = [desc[0] for desc in cur.description]
-            return dict(zip(cols, row)) if row else {}
+            return dict(zip(cols, row, strict=True)) if row else {}
 
     def get_table_bloat_analysis(self) -> list[dict[str, Any]]:
         query = """
@@ -187,7 +187,7 @@ class APMProfiler:
         with self.connect() as conn, conn.cursor() as cur:
             cur.execute(query)
             cols = [desc[0] for desc in cur.description]
-            return [dict(zip(cols, row)) for row in cur.fetchall()]
+            return [dict(zip(cols, row, strict=True)) for row in cur.fetchall()]
 
     def get_index_hit_ratio(self) -> list[dict[str, Any]]:
         query = """
@@ -207,7 +207,7 @@ class APMProfiler:
         with self.connect() as conn, conn.cursor() as cur:
             cur.execute(query)
             cols = [desc[0] for desc in cur.description]
-            return [dict(zip(cols, row)) for row in cur.fetchall()]
+            return [dict(zip(cols, row, strict=True)) for row in cur.fetchall()]
 
     def realtime_monitor(self, duration_seconds: int = 60, interval_seconds: int = 5):
         samples = []

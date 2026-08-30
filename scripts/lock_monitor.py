@@ -63,7 +63,7 @@ class LockMonitor:
         with self.connect() as conn, conn.cursor() as cur:
             cur.execute(query)
             cols = [desc[0] for desc in cur.description]
-            return [dict(zip(cols, row)) for row in cur.fetchall()]
+            return [dict(zip(cols, row, strict=True)) for row in cur.fetchall()]
 
     def get_lock_matrix(self) -> dict[str, Any]:
         locks = self.get_active_locks()
@@ -141,7 +141,7 @@ class LockMonitor:
             cur.execute(query)
             cols = [desc[0] for desc in cur.description]
             rows = cur.fetchall()
-            data = [dict(zip(cols, row)) for row in rows]
+            data = [dict(zip(cols, row, strict=True)) for row in rows]
 
         idle_in_tx = [d for d in data if 'idle in transaction' in str(d.get('state', ''))]
         long_running = [

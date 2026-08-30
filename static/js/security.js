@@ -457,11 +457,3 @@ document.addEventListener('DOMContentLoaded', () => {
         securityManager.destroy();
     });
 });
-    module.exports = {
-        SecurityManager,
-        InputValidator,
-        SecureFileUpload,
-        SessionManager,
-        AuditLogger
-    };
-}
