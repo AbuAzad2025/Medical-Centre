@@ -905,7 +905,7 @@ class ReportService:
 
         except Exception as e:
             logging.error(f'Error generating daily audit report: {e!s}', exc_info=True)
-            return {'success': False, 'message': 'تعذر إنشاء تقرير التدقيق اليومي حالياً'}
+            return {'success': False, 'message': f'Error: {e!s}'}
 
     @staticmethod
     def get_monthly_audit_report(year=None, month=None):
