@@ -121,6 +121,7 @@ jobs:
           SECRET_KEY: ci-test-secret-key
           APP_ENV: testing
           FLASK_ENV: testing
+          RLS_BYPASS_ALLOWED: "1"
         run: python -m flask db upgrade heads
       - name: Run agent1 reception tests (VSM-compliant)
         env:
