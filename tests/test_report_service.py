@@ -203,6 +203,8 @@ class TestExport:
 class TestAuditReports:
     def test_daily_audit_basic(self, seed):
         res = RP.get_daily_audit_report()
+        if not res['success']:
+            pytest.fail(f"daily_audit_basic failed: {res.get('message')}")
         assert res['success'] is True
         assert 'summary' in res and 'audit_issues' in res
         assert res['summary']['total_visits'] >= 1
@@ -264,6 +266,8 @@ class TestAuditReports:
 
     def test_daily_audit_explicit_date(self, seed):
         res = RP.get_daily_audit_report(target_date=datetime.now())
+        if not res['success']:
+            pytest.fail(f"daily_audit_explicit_date failed: {res.get('message')}")
         assert res['success'] is True
 
     def test_monthly_audit(self, seed):
