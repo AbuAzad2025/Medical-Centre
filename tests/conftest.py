@@ -616,7 +616,7 @@ class FakeSession:
     def execute(self, query):
         """Execute a SQLAlchemy select query against the in-memory store."""
         if not hasattr(query, '_where_criteria'):
-            raise TypeError("FakeSession.execute() only supports select() queries")
+            raise TypeError('FakeSession.execute() only supports select() queries')
 
         id_value = None
         for filter_elem in query._where_criteria:
