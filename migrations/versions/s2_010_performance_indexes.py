@@ -1,7 +1,7 @@
 """add performance indexes for N+1 and filter optimization
 
 Revision ID: s2_010_performance_indexes
-Revises: s2_009_schema_drift_sync
+Revises: p7_007_make_prescription_id_nullable
 Create Date: 2026-08-30
 
 Adds composite indexes for:
@@ -23,7 +23,7 @@ from alembic import op
 import sqlalchemy as sa
 
 revision = 's2_010_performance_indexes'
-down_revision = 's2_009_schema_drift_sync'
+down_revision = 'p7_007_make_prescription_id_nullable'
 branch_labels = None
 depends_on = None
 
