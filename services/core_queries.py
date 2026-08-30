@@ -42,13 +42,7 @@ class CoreQueryService:
     def get_patient_by_code(code: str) -> Patient | None:
         from models.patient import Patient
 
-        return (
-            db.session.execute(
-                tenant_filter(Patient).filter_by(code=code)
-            )
-            .scalars()
-            .first()
-        )
+        return db.session.execute(tenant_filter(Patient).filter_by(code=code)).scalars().first()
 
     @staticmethod
     def search_patients(
@@ -415,9 +409,7 @@ class CoreQueryService:
                 Visit, func.date(Visit.created_at) == today
             ),
             'total_users': _count_with_tenant(User),
-            'active_users': _count_with_tenant_and_date_filter(
-                User, User.is_active.is_(True)
-            ),
+            'active_users': _count_with_tenant_and_date_filter(User, User.is_active.is_(True)),
             'revenue_today': CoreQueryService.get_revenue_today(),
             'revenue_month': CoreQueryService.get_revenue_this_month(),
         }

@@ -74,9 +74,19 @@ def new_appointment():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إنشاء الموعد عن بعد بنجاح', 'success')
             return redirect(url_for('telemedicine.index'))
-        patients = db.session.execute(select(Patient).filter(
-            Patient.tenant_id == g.tenant_id if hasattr(Patient, 'tenant_id') and g.tenant_id else True
-        ).limit(100)).scalars().all()
+        patients = (
+            db.session.execute(
+                select(Patient)
+                .filter(
+                    Patient.tenant_id == g.tenant_id
+                    if hasattr(Patient, 'tenant_id') and g.tenant_id
+                    else True
+                )
+                .limit(100)
+            )
+            .scalars()
+            .all()
+        )
         doctors = db.session.execute(select(User).filter_by(is_active=True)).scalars().all()
         return render_template('telemedicine/new.html', patients=patients, doctors=doctors)
     except Exception:

@@ -28,6 +28,7 @@ def signatures():
             abort(404)
         try:
             from models.user import User
+
             get_tenant_record(User, user_id)
         except TenantContextError:
             abort(404)

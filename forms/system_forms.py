@@ -208,9 +208,15 @@ class FileUploadForm(FormBase, FileUploadMixin, StatusMixin):
         # تحميل المرضى
         from models.patient import Patient
 
-        patients = db.session.execute(
-            tenant_filter(Patient).filter(Patient.tenant_id == tenant_id).filter_by(status='ACTIVE')
-        ).scalars().all()
+        patients = (
+            db.session.execute(
+                tenant_filter(Patient)
+                .filter(Patient.tenant_id == tenant_id)
+                .filter_by(status='ACTIVE')
+            )
+            .scalars()
+            .all()
+        )
         self.patient_id.choices = [('', 'اختر المريض')] + [
             (p.id, f'{p.full_name} - {p.national_id}') for p in patients
         ]

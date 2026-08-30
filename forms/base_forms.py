@@ -154,9 +154,15 @@ class MedicalEntityMixin:
         # تحميل المرضى
         from models.patient import Patient
 
-        patients = db.session.execute(
-            tenant_filter(Patient).filter(Patient.tenant_id == tenant_id).filter_by(status='ACTIVE')
-        ).scalars().all()
+        patients = (
+            db.session.execute(
+                tenant_filter(Patient)
+                .filter(Patient.tenant_id == tenant_id)
+                .filter_by(status='ACTIVE')
+            )
+            .scalars()
+            .all()
+        )
         self.patient_id.choices = [(p.id, f'{p.full_name} - {p.national_id}') for p in patients]
 
         # تحميل الأطباء
@@ -164,7 +170,9 @@ class MedicalEntityMixin:
 
         doctors = (
             db.session.execute(
-                tenant_filter(User).filter(User.tenant_id == tenant_id).filter(User.role.in_(['doctor', 'admin', 'manager']))
+                tenant_filter(User)
+                .filter(User.tenant_id == tenant_id)
+                .filter(User.role.in_(['doctor', 'admin', 'manager']))
             )
             .scalars()
             .all()

@@ -201,7 +201,9 @@ def dashboard():
             .filter(
                 Appointment.patient_id == patient.id,
                 Appointment.starts_at >= datetime.now(UTC),
-                Appointment.tenant_id == g.tenant_id if hasattr(Appointment, 'tenant_id') and g.tenant_id else True,
+                Appointment.tenant_id == g.tenant_id
+                if hasattr(Appointment, 'tenant_id') and g.tenant_id
+                else True,
             )
             .order_by(Appointment.starts_at)
             .limit(5)
@@ -215,7 +217,9 @@ def dashboard():
             select(Visit)
             .filter(
                 Visit.patient_id == patient.id,
-                Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
+                Visit.tenant_id == g.tenant_id
+                if hasattr(Visit, 'tenant_id') and g.tenant_id
+                else True,
             )
             .order_by(Visit.created_at.desc())
             .limit(5)
@@ -270,7 +274,9 @@ def appointments():
             select(Appointment)
             .filter(
                 Appointment.patient_id == patient.id,
-                Appointment.tenant_id == g.tenant_id if hasattr(Appointment, 'tenant_id') and g.tenant_id else True,
+                Appointment.tenant_id == g.tenant_id
+                if hasattr(Appointment, 'tenant_id') and g.tenant_id
+                else True,
             )
             .order_by(Appointment.starts_at.desc())
             .limit(50)

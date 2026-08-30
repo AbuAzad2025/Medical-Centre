@@ -451,9 +451,11 @@ class InsurancePolicyForm(FormBase):
 
         # تحميل المرضى
         tenant_id = g.get('tenant_id', 0)
-        patients = db.session.execute(
-            tenant_filter(Patient).filter(Patient.tenant_id == tenant_id)
-        ).scalars().all()
+        patients = (
+            db.session.execute(tenant_filter(Patient).filter(Patient.tenant_id == tenant_id))
+            .scalars()
+            .all()
+        )
         self.patient_id.choices = [(p.id, f'{p.full_name} - {p.national_id}') for p in patients]
 
 

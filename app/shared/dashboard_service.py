@@ -77,8 +77,10 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
 
     if role in ('reception', 'manager'):
         stats = core_queries.get_basic_dashboard_stats()
-        q = select(func.count()).select_from(QueueManagement).filter(
-            QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED])
+        q = (
+            select(func.count())
+            .select_from(QueueManagement)
+            .filter(QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED]))
         )
         if tid and hasattr(QueueManagement, 'tenant_id'):
             q = q.filter(QueueManagement.tenant_id == tid)
@@ -87,12 +89,16 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         data['metrics']['visits_today'] = stats.get('visits_today', 0)
         data['metrics']['total_patients'] = stats.get('total_patients', 0)
         q = select(QueueManagement).filter(
-            QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
+            QueueManagement.status.in_(
+                [QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS]
+            )
         )
         if tid and hasattr(QueueManagement, 'tenant_id'):
             q = q.filter(QueueManagement.tenant_id == tid)
         data['lists']['active_queue'] = (
-            db.session.execute(q.order_by(QueueManagement.queued_at.asc()).limit(10)).scalars().all()
+            db.session.execute(q.order_by(QueueManagement.queued_at.asc()).limit(10))
+            .scalars()
+            .all()
         )
         q = select(Visit).filter(
             Visit.visit_date == today,
@@ -105,7 +111,13 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         )
         q = select(Appointment).filter(
             db.func.date(Appointment.starts_at) == today,
-            Appointment.status.in_([AppointmentState.SCHEDULED, AppointmentState.CONFIRMED, AppointmentState.CHECKED_IN]),
+            Appointment.status.in_(
+                [
+                    AppointmentState.SCHEDULED,
+                    AppointmentState.CONFIRMED,
+                    AppointmentState.CHECKED_IN,
+                ]
+            ),
         )
         if tid and hasattr(Appointment, 'tenant_id'):
             q = q.filter(Appointment.tenant_id == tid)
@@ -197,14 +209,18 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             data['metrics']['pending_requests'] = ls.get('pending_requests', 0)
             data['metrics']['completed_today'] = ls.get('completed_today', 0)
         except Exception:
-            q = select(func.count()).select_from(LabRequest).filter(
-                LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
+            q = (
+                select(func.count())
+                .select_from(LabRequest)
+                .filter(LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]))
             )
             if tid and hasattr(LabRequest, 'tenant_id'):
                 q = q.filter(LabRequest.tenant_id == tid)
             data['metrics']['pending_requests'] = db.session.execute(q).scalar()
         q = select(LabRequest).filter(
-            LabRequest.status.in_([OrderState.REQUESTED, OrderState.RECEIVED, OrderState.IN_PROGRESS])
+            LabRequest.status.in_(
+                [OrderState.REQUESTED, OrderState.RECEIVED, OrderState.IN_PROGRESS]
+            )
         )
         if tid and hasattr(LabRequest, 'tenant_id'):
             q = q.filter(LabRequest.tenant_id == tid)
@@ -213,8 +229,10 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         )
 
     if role == 'radiology':
-        q = select(func.count()).select_from(RadiologyRequest).filter(
-            RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
+        q = (
+            select(func.count())
+            .select_from(RadiologyRequest)
+            .filter(RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]))
         )
         if tid and hasattr(RadiologyRequest, 'tenant_id'):
             q = q.filter(RadiologyRequest.tenant_id == tid)
@@ -225,22 +243,30 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         if tid and hasattr(RadiologyRequest, 'tenant_id'):
             q = q.filter(RadiologyRequest.tenant_id == tid)
         data['lists']['pending_radiology'] = (
-            db.session.execute(q.order_by(RadiologyRequest.created_at.asc()).limit(10)).scalars().all()
+            db.session.execute(q.order_by(RadiologyRequest.created_at.asc()).limit(10))
+            .scalars()
+            .all()
         )
 
     if role == 'emergency':
         try:
             from models.emergency import EmergencyCase
 
-            q = select(func.count()).select_from(EmergencyCase).filter(
-                EmergencyCase.severity.in_(['HIGH', 'CRITICAL']),
-                EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED']),
+            q = (
+                select(func.count())
+                .select_from(EmergencyCase)
+                .filter(
+                    EmergencyCase.severity.in_(['HIGH', 'CRITICAL']),
+                    EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED']),
+                )
             )
             if tid and hasattr(EmergencyCase, 'tenant_id'):
                 q = q.filter(EmergencyCase.tenant_id == tid)
             critical = db.session.execute(q).scalar()
-            q = select(func.count()).select_from(EmergencyCase).filter(
-                EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED'])
+            q = (
+                select(func.count())
+                .select_from(EmergencyCase)
+                .filter(EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED']))
             )
             if tid and hasattr(EmergencyCase, 'tenant_id'):
                 q = q.filter(EmergencyCase.tenant_id == tid)
@@ -253,7 +279,9 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             if tid and hasattr(EmergencyCase, 'tenant_id'):
                 q = q.filter(EmergencyCase.tenant_id == tid)
             data['lists']['emergency_cases'] = (
-                db.session.execute(q.order_by(EmergencyCase.created_at.desc()).limit(10)).scalars().all()
+                db.session.execute(q.order_by(EmergencyCase.created_at.desc()).limit(10))
+                .scalars()
+                .all()
             )
             q = select(EmergencyCase).filter(
                 EmergencyCase.severity.in_(['HIGH', 'CRITICAL', 'URGENT']),
@@ -262,7 +290,9 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             if tid and hasattr(EmergencyCase, 'tenant_id'):
                 q = q.filter(EmergencyCase.tenant_id == tid)
             data['lists']['emergency_queue'] = (
-                db.session.execute(q.order_by(EmergencyCase.created_at.asc()).limit(10)).scalars().all()
+                db.session.execute(q.order_by(EmergencyCase.created_at.asc()).limit(10))
+                .scalars()
+                .all()
             )
         except Exception:
             data['metrics']['critical_count'] = 0
@@ -274,8 +304,10 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         try:
             from models.invoice import Invoice
 
-            q = select(func.count()).select_from(Invoice).filter(
-                Invoice.status.in_(['ISSUED', 'DRAFT'])
+            q = (
+                select(func.count())
+                .select_from(Invoice)
+                .filter(Invoice.status.in_(['ISSUED', 'DRAFT']))
             )
             if tid and hasattr(Invoice, 'tenant_id'):
                 q = q.filter(Invoice.tenant_id == tid)
@@ -299,25 +331,29 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         try:
             from models.medication import Medication, PharmacySale, Prescription
 
-            q = select(Medication).filter(
-                Medication.stock_quantity <= Medication.minimum_stock
-            )
+            q = select(Medication).filter(Medication.stock_quantity <= Medication.minimum_stock)
             if tid and hasattr(Medication, 'tenant_id'):
                 q = q.filter(Medication.tenant_id == tid)
             data['lists']['low_stock'] = (
-                db.session.execute(q.order_by(Medication.stock_quantity.asc()).limit(10)).scalars().all()
+                db.session.execute(q.order_by(Medication.stock_quantity.asc()).limit(10))
+                .scalars()
+                .all()
             )
             q = select(Prescription).filter(Prescription.status == 'active')
             if tid and hasattr(Prescription, 'tenant_id'):
                 q = q.filter(Prescription.tenant_id == tid)
             data['lists']['pending_prescriptions'] = (
-                db.session.execute(q.order_by(Prescription.created_at.desc()).limit(10)).scalars().all()
+                db.session.execute(q.order_by(Prescription.created_at.desc()).limit(10))
+                .scalars()
+                .all()
             )
             q = select(PharmacySale).filter(func.date(PharmacySale.created_at) == today)
             if tid and hasattr(PharmacySale, 'tenant_id'):
                 q = q.filter(PharmacySale.tenant_id == tid)
             data['lists']['recent_sales'] = (
-                db.session.execute(q.order_by(PharmacySale.created_at.desc()).limit(10)).scalars().all()
+                db.session.execute(q.order_by(PharmacySale.created_at.desc()).limit(10))
+                .scalars()
+                .all()
             )
             data['metrics']['dispense_today'] = len(data['lists']['recent_sales'])
             q = select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(

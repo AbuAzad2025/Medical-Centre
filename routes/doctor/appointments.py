@@ -37,7 +37,9 @@ def appointments():
         # Base query
         query = select(Appointment).filter(
             Appointment.doctor_id == current_user.id,
-            Appointment.tenant_id == g.tenant_id if hasattr(Appointment, 'tenant_id') and g.tenant_id else True,
+            Appointment.tenant_id == g.tenant_id
+            if hasattr(Appointment, 'tenant_id') and g.tenant_id
+            else True,
         )
         total = query.count()
         appointments = query.offset((page - 1) * per_page).limit(per_page).all()

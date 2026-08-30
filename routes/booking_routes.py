@@ -103,19 +103,29 @@ def register():
             patient = None
             if national_id:
                 patient = (
-                    db.session.execute(select(Patient).filter(
-                        Patient.national_id == national_id,
-                        Patient.tenant_id == g.tenant_id if hasattr(Patient, 'tenant_id') and g.tenant_id else True,
-                    ))
+                    db.session.execute(
+                        select(Patient).filter(
+                            Patient.national_id == national_id,
+                            Patient.tenant_id == g.tenant_id
+                            if hasattr(Patient, 'tenant_id') and g.tenant_id
+                            else True,
+                        )
+                    )
                     .scalars()
                     .first()
                 )
             if not patient and phone:
                 patient = (
-                    db.session.execute(select(Patient).filter(
-                        Patient.phone == phone,
-                        Patient.tenant_id == g.tenant_id if hasattr(Patient, 'tenant_id') and g.tenant_id else True,
-                    )).scalars().first()
+                    db.session.execute(
+                        select(Patient).filter(
+                            Patient.phone == phone,
+                            Patient.tenant_id == g.tenant_id
+                            if hasattr(Patient, 'tenant_id') and g.tenant_id
+                            else True,
+                        )
+                    )
+                    .scalars()
+                    .first()
                 )
             if not patient:
                 patient = Patient(
@@ -616,7 +626,9 @@ def api_available_times():
                 select(Appointment).filter(
                     Appointment.doctor_id == doctor_id,
                     func.date(Appointment.starts_at) == date_obj,
-                    Appointment.tenant_id == g.tenant_id if hasattr(Appointment, 'tenant_id') and g.tenant_id else True,
+                    Appointment.tenant_id == g.tenant_id
+                    if hasattr(Appointment, 'tenant_id') and g.tenant_id
+                    else True,
                 )
             )
             .scalars()
@@ -704,7 +716,9 @@ def api_smart_slots():
                 select(Appointment).filter(
                     Appointment.doctor_id == doctor_id,
                     func.date(Appointment.starts_at) == date_obj,
-                    Appointment.tenant_id == g.tenant_id if hasattr(Appointment, 'tenant_id') and g.tenant_id else True,
+                    Appointment.tenant_id == g.tenant_id
+                    if hasattr(Appointment, 'tenant_id') and g.tenant_id
+                    else True,
                 )
             )
             .scalars()

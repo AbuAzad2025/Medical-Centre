@@ -11,7 +11,18 @@ api_user_bp = Blueprint('api_user', __name__)
 
 @api_user_bp.route('/preferences', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'manager', 'doctor', 'nurse', 'reception', 'pharmacist', 'lab_tech', 'radiology', 'accountant', 'super_admin')
+@role_required(
+    'admin',
+    'manager',
+    'doctor',
+    'nurse',
+    'reception',
+    'pharmacist',
+    'lab_tech',
+    'radiology',
+    'accountant',
+    'super_admin',
+)
 def user_preferences():
     if request.method == 'GET':
         return jsonify({'preferences': get_user_preferences(current_user)})

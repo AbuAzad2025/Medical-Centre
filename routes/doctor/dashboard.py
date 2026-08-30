@@ -77,7 +77,9 @@ def dashboard_new():
                     Visit.doctor_id == current_user.id,
                     Visit.visit_date == today,
                     Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]),
-                    Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
+                    Visit.tenant_id == g.tenant_id
+                    if hasattr(Visit, 'tenant_id') and g.tenant_id
+                    else True,
                 )
                 .order_by(Visit.visit_time)
                 .limit(10)
@@ -93,7 +95,9 @@ def dashboard_new():
                 .filter(
                     Appointment.doctor_id == current_user.id,
                     func.date(Appointment.starts_at) == today,
-                    Appointment.tenant_id == g.tenant_id if hasattr(Appointment, 'tenant_id') and g.tenant_id else True,
+                    Appointment.tenant_id == g.tenant_id
+                    if hasattr(Appointment, 'tenant_id') and g.tenant_id
+                    else True,
                 )
                 .order_by(Appointment.starts_at)
                 .limit(10)
@@ -255,7 +259,9 @@ def dashboard_for_doctor(doctor_id):
                     Visit.doctor_id == doctor_id,
                     Visit.visit_date == today,
                     Visit.status.in_([VisitState.OPEN, VisitState.CHECKED_IN]),
-                    Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
+                    Visit.tenant_id == g.tenant_id
+                    if hasattr(Visit, 'tenant_id') and g.tenant_id
+                    else True,
                 )
                 .order_by(Visit.visit_time)
                 .limit(5)
@@ -314,7 +320,9 @@ def dashboard_for_doctor(doctor_id):
                         Visit.doctor_id == doctor_id,
                         Visit.visit_date == today,
                         Visit.status == VisitState.COMPLETED,
-                        Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
+                        Visit.tenant_id == g.tenant_id
+                        if hasattr(Visit, 'tenant_id') and g.tenant_id
+                        else True,
                     )
                 )
                 .scalars()
@@ -327,7 +335,9 @@ def dashboard_for_doctor(doctor_id):
                         Visit.doctor_id == doctor_id,
                         Visit.visit_date >= week_ago,
                         Visit.status == VisitState.COMPLETED,
-                        Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
+                        Visit.tenant_id == g.tenant_id
+                        if hasattr(Visit, 'tenant_id') and g.tenant_id
+                        else True,
                     )
                 )
                 .scalars()
@@ -340,7 +350,9 @@ def dashboard_for_doctor(doctor_id):
                         Visit.doctor_id == doctor_id,
                         Visit.visit_date >= month_start,
                         Visit.status == VisitState.COMPLETED,
-                        Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
+                        Visit.tenant_id == g.tenant_id
+                        if hasattr(Visit, 'tenant_id') and g.tenant_id
+                        else True,
                     )
                 )
                 .scalars()
@@ -462,7 +474,9 @@ def api_today_visits():
                     Visit.doctor_id == current_user.id,
                     Visit.visit_date == today,
                     Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]),
-                    Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
+                    Visit.tenant_id == g.tenant_id
+                    if hasattr(Visit, 'tenant_id') and g.tenant_id
+                    else True,
                 )
                 .order_by(Visit.visit_time)
             )

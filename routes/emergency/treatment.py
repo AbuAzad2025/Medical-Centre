@@ -135,17 +135,12 @@ def start_treatment(emergency_id):
 def emergency_visits():
     try:
         from flask import g
+
         tenant_id = getattr(g, 'tenant_id', None)
         visits_query = select(Visit).filter(Visit.visit_type == 'EMERGENCY')
         if tenant_id is not None and hasattr(Visit, 'tenant_id'):
             visits_query = visits_query.filter(Visit.tenant_id == tenant_id)
-        visits = (
-            db.session.execute(
-                visits_query.order_by(desc(Visit.created_at))
-            )
-            .scalars()
-            .all()
-        )
+        visits = db.session.execute(visits_query.order_by(desc(Visit.created_at))).scalars().all()
         return render_template('emergency/emergency_visits.html', visits=visits)
     except Exception:
         logging.exception('Error loading emergency visits: %s')
@@ -159,6 +154,7 @@ def emergency_visits():
 def emergency_treatment(visit_id):
     try:
         from flask import g
+
         tenant_id = getattr(g, 'tenant_id', None)
         visit_query = select(Visit).filter_by(id=visit_id)
         if tenant_id is not None and hasattr(Visit, 'tenant_id'):
@@ -210,6 +206,7 @@ def emergency_treatment(visit_id):
 def complete_visit(visit_id):
     try:
         from flask import g
+
         tenant_id = getattr(g, 'tenant_id', None)
         visit_query = select(Visit).filter_by(id=visit_id)
         if tenant_id is not None and hasattr(Visit, 'tenant_id'):

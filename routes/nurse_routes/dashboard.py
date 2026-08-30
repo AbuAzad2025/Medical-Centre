@@ -59,15 +59,21 @@ def dashboard():
 
         base['total_patients']
         db.session.execute(
-            select(func.count()).select_from(Patient).filter(
-                Patient.tenant_id == current_user.tenant_id if hasattr(Patient, 'tenant_id') and current_user.tenant_id else True,
-                Patient.created_at >= start_of_today
+            select(func.count())
+            .select_from(Patient)
+            .filter(
+                Patient.tenant_id == current_user.tenant_id
+                if hasattr(Patient, 'tenant_id') and current_user.tenant_id
+                else True,
+                Patient.created_at >= start_of_today,
             )
         ).scalar()
 
         active_visits_query = select(Visit)
         if current_user.tenant_id is not None and hasattr(Visit, 'tenant_id'):
-            active_visits_query = active_visits_query.filter(Visit.tenant_id == current_user.tenant_id)
+            active_visits_query = active_visits_query.filter(
+                Visit.tenant_id == current_user.tenant_id
+            )
         dept_ids = _accessible_department_ids()
         if dept_ids is not None and dept_ids:
             active_visits_query = active_visits_query.filter(Visit.department_id.in_(dept_ids))
@@ -85,15 +91,26 @@ def dashboard():
         )
 
         db.session.execute(
-            select(func.count()).select_from(Visit).filter(
-                Visit.tenant_id == current_user.tenant_id if hasattr(Visit, 'tenant_id') and current_user.tenant_id else True,
-                Visit.visit_date == today
+            select(func.count())
+            .select_from(Visit)
+            .filter(
+                Visit.tenant_id == current_user.tenant_id
+                if hasattr(Visit, 'tenant_id') and current_user.tenant_id
+                else True,
+                Visit.visit_date == today,
             )
         ).scalar()
         (
-            db.session.execute(select(Visit).filter(
-                Visit.tenant_id == current_user.tenant_id if hasattr(Visit, 'tenant_id') and current_user.tenant_id else True
-            ).order_by(desc(Visit.created_at)).limit(20))
+            db.session.execute(
+                select(Visit)
+                .filter(
+                    Visit.tenant_id == current_user.tenant_id
+                    if hasattr(Visit, 'tenant_id') and current_user.tenant_id
+                    else True
+                )
+                .order_by(desc(Visit.created_at))
+                .limit(20)
+            )
             .scalars()
             .all()
         )

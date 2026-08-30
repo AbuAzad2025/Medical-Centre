@@ -82,24 +82,30 @@ def get_lab_smart_analytics():
             total_query = total_query.filter(*tenant_filter)
         total_requests = db.session.execute(total_query).scalar()
 
-        completed_query = select(func.count()).select_from(LabRequest).filter(
-            LabRequest.status == OrderState.DONE
+        completed_query = (
+            select(func.count())
+            .select_from(LabRequest)
+            .filter(LabRequest.status == OrderState.DONE)
         )
         if tenant_filter:
             completed_query = completed_query.filter(*tenant_filter)
         completed_requests = db.session.execute(completed_query).scalar()
 
-        pending_query = select(func.count()).select_from(LabRequest).filter(
-            LabRequest.status.in_(
-                [
-                    OrderState.REQUESTED,
-                    OrderState.COLLECTED,
-                    OrderState.RECEIVED,
-                    OrderState.ANALYZING,
-                    OrderState.REVIEWED,
-                    OrderState.APPROVED,
-                    OrderState.IN_PROGRESS,
-                ]
+        pending_query = (
+            select(func.count())
+            .select_from(LabRequest)
+            .filter(
+                LabRequest.status.in_(
+                    [
+                        OrderState.REQUESTED,
+                        OrderState.COLLECTED,
+                        OrderState.RECEIVED,
+                        OrderState.ANALYZING,
+                        OrderState.REVIEWED,
+                        OrderState.APPROVED,
+                        OrderState.IN_PROGRESS,
+                    ]
+                )
             )
         )
         if tenant_filter:
@@ -168,8 +174,10 @@ def get_lab_test_optimization():
             avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
 
-        processed_query = select(func.count()).select_from(LabRequest).filter(
-            LabRequest.status == OrderState.DONE
+        processed_query = (
+            select(func.count())
+            .select_from(LabRequest)
+            .filter(LabRequest.status == OrderState.DONE)
         )
         if tenant_filter:
             processed_query = processed_query.filter(*tenant_filter)
@@ -196,8 +204,10 @@ def get_lab_quality_control():
         if tenant_id is not None and hasattr(LabRequest, 'tenant_id'):
             tenant_filter_req.append(LabRequest.tenant_id == tenant_id)
 
-        completed_query = select(func.count()).select_from(LabRequest).filter(
-            LabRequest.status == OrderState.DONE
+        completed_query = (
+            select(func.count())
+            .select_from(LabRequest)
+            .filter(LabRequest.status == OrderState.DONE)
         )
         if tenant_filter_req:
             completed_query = completed_query.filter(*tenant_filter_req)
@@ -214,8 +224,10 @@ def get_lab_quality_control():
         quality_score = 100.0 - (float(qc_fail) / float(qc_total) * 100.0) if qc_total else 100.0
         standard_deviations = round((qc_fail / qc_total) * 3, 2) if qc_total else 0
 
-        recheck_query = select(func.count()).select_from(LabRequest).filter(
-            LabRequest.status == OrderState.REVIEWED
+        recheck_query = (
+            select(func.count())
+            .select_from(LabRequest)
+            .filter(LabRequest.status == OrderState.REVIEWED)
         )
         if tenant_filter_req:
             recheck_query = recheck_query.filter(*tenant_filter_req)
@@ -270,9 +282,13 @@ def get_lab_result_analysis():
             total_query = total_query.filter(*tenant_filter)
         total_results = db.session.execute(total_query).scalar()
 
-        abnormal_query = select(func.count()).select_from(LabResult).filter(
-            LabResult.is_critical,
-            LabResult.status.in_([LabResultStatus.READY, LabResultStatus.VALIDATED]),
+        abnormal_query = (
+            select(func.count())
+            .select_from(LabResult)
+            .filter(
+                LabResult.is_critical,
+                LabResult.status.in_([LabResultStatus.READY, LabResultStatus.VALIDATED]),
+            )
         )
         if tenant_filter:
             abnormal_query = abnormal_query.filter(*tenant_filter)
@@ -280,16 +296,22 @@ def get_lab_result_analysis():
         abnormal_rate = (abnormal_results / total_results * 100) if total_results else 0
 
         today = date.today()
-        last_7_query = select(func.count()).select_from(LabResult).filter(
-            LabResult.created_at >= (today - timedelta(days=7))
+        last_7_query = (
+            select(func.count())
+            .select_from(LabResult)
+            .filter(LabResult.created_at >= (today - timedelta(days=7)))
         )
         if tenant_filter:
             last_7_query = last_7_query.filter(*tenant_filter)
         last_7 = db.session.execute(last_7_query).scalar()
 
-        prev_7_query = select(func.count()).select_from(LabResult).filter(
-            LabResult.created_at >= (today - timedelta(days=14)),
-            LabResult.created_at < (today - timedelta(days=7)),
+        prev_7_query = (
+            select(func.count())
+            .select_from(LabResult)
+            .filter(
+                LabResult.created_at >= (today - timedelta(days=14)),
+                LabResult.created_at < (today - timedelta(days=7)),
+            )
         )
         if tenant_filter:
             prev_7_query = prev_7_query.filter(*tenant_filter)
@@ -327,8 +349,10 @@ def get_lab_workflow_automation():
             total_query = total_query.filter(*tenant_filter)
         total_requests = db.session.execute(total_query).scalar()
 
-        done_query = select(func.count()).select_from(LabRequest).filter(
-            LabRequest.status == OrderState.DONE
+        done_query = (
+            select(func.count())
+            .select_from(LabRequest)
+            .filter(LabRequest.status == OrderState.DONE)
         )
         if tenant_filter:
             done_query = done_query.filter(*tenant_filter)
@@ -361,23 +385,29 @@ def get_lab_predictive_insights():
         week_start = today - timedelta(days=7)
         month_start = today - timedelta(days=30)
 
-        weekly_query = select(func.count()).select_from(LabRequest).filter(
-            LabRequest.created_at >= week_start
+        weekly_query = (
+            select(func.count()).select_from(LabRequest).filter(LabRequest.created_at >= week_start)
         )
         if tenant_filter:
             weekly_query = weekly_query.filter(*tenant_filter)
         weekly_requests = db.session.execute(weekly_query).scalar()
 
-        monthly_query = select(func.count()).select_from(LabRequest).filter(
-            LabRequest.created_at >= month_start
+        monthly_query = (
+            select(func.count())
+            .select_from(LabRequest)
+            .filter(LabRequest.created_at >= month_start)
         )
         if tenant_filter:
             monthly_query = monthly_query.filter(*tenant_filter)
         monthly_requests = db.session.execute(monthly_query).scalar()
 
-        prev_week_query = select(func.count()).select_from(LabRequest).filter(
-            LabRequest.created_at >= today - timedelta(days=14),
-            LabRequest.created_at < week_start,
+        prev_week_query = (
+            select(func.count())
+            .select_from(LabRequest)
+            .filter(
+                LabRequest.created_at >= today - timedelta(days=14),
+                LabRequest.created_at < week_start,
+            )
         )
         if tenant_filter:
             prev_week_query = prev_week_query.filter(*tenant_filter)

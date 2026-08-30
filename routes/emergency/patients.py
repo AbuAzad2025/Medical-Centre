@@ -45,7 +45,11 @@ def patient_details(emergency_id):
             db.session.execute(
                 select(MedicalRecord)
                 .filter(MedicalRecord.patient_id == emergency.patient_id)
-                .filter(MedicalRecord.tenant_id == tenant_id if hasattr(MedicalRecord, 'tenant_id') and tenant_id else True)
+                .filter(
+                    MedicalRecord.tenant_id == tenant_id
+                    if hasattr(MedicalRecord, 'tenant_id') and tenant_id
+                    else True
+                )
                 .order_by(desc(MedicalRecord.created_at))
                 .limit(10)
             )
@@ -58,7 +62,11 @@ def patient_details(emergency_id):
             db.session.execute(
                 select(Prescription)
                 .filter(Prescription.patient_id == emergency.patient_id)
-                .filter(Prescription.tenant_id == tenant_id if hasattr(Prescription, 'tenant_id') and tenant_id else True)
+                .filter(
+                    Prescription.tenant_id == tenant_id
+                    if hasattr(Prescription, 'tenant_id') and tenant_id
+                    else True
+                )
                 .order_by(desc(Prescription.created_at))
                 .limit(5)
             )
@@ -71,7 +79,11 @@ def patient_details(emergency_id):
             db.session.execute(
                 select(LabRequest)
                 .filter(LabRequest.visit_id == emergency.visit_id)
-                .filter(LabRequest.tenant_id == tenant_id if hasattr(LabRequest, 'tenant_id') and tenant_id else True)
+                .filter(
+                    LabRequest.tenant_id == tenant_id
+                    if hasattr(LabRequest, 'tenant_id') and tenant_id
+                    else True
+                )
             )
             .scalars()
             .all()
@@ -81,7 +93,11 @@ def patient_details(emergency_id):
             db.session.execute(
                 select(RadiologyRequest)
                 .filter(RadiologyRequest.visit_id == emergency.visit_id)
-                .filter(RadiologyRequest.tenant_id == tenant_id if hasattr(RadiologyRequest, 'tenant_id') and tenant_id else True)
+                .filter(
+                    RadiologyRequest.tenant_id == tenant_id
+                    if hasattr(RadiologyRequest, 'tenant_id') and tenant_id
+                    else True
+                )
             )
             .scalars()
             .all()
@@ -115,7 +131,19 @@ def medical_history(patient_id):
 
         tenant_id = getattr(g, 'tenant_id', None)
 
-        patient = db.session.execute(select(Patient).filter_by(id=patient_id).filter(Patient.tenant_id == tenant_id if hasattr(Patient, 'tenant_id') and tenant_id else True)).scalars().first()
+        patient = (
+            db.session.execute(
+                select(Patient)
+                .filter_by(id=patient_id)
+                .filter(
+                    Patient.tenant_id == tenant_id
+                    if hasattr(Patient, 'tenant_id') and tenant_id
+                    else True
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))
@@ -125,7 +153,11 @@ def medical_history(patient_id):
             db.session.execute(
                 select(MedicalRecord)
                 .filter(MedicalRecord.patient_id == patient_id)
-                .filter(MedicalRecord.tenant_id == tenant_id if hasattr(MedicalRecord, 'tenant_id') and tenant_id else True)
+                .filter(
+                    MedicalRecord.tenant_id == tenant_id
+                    if hasattr(MedicalRecord, 'tenant_id') and tenant_id
+                    else True
+                )
                 .order_by(desc(MedicalRecord.created_at))
             )
             .scalars()
@@ -139,7 +171,9 @@ def medical_history(patient_id):
                 .filter(
                     EmergencyCase.patient_id == patient_id,
                     EmergencyCase.status == EmergencyStatus.COMPLETED,
-                    EmergencyCase.tenant_id == tenant_id if hasattr(EmergencyCase, 'tenant_id') and tenant_id else True,
+                    EmergencyCase.tenant_id == tenant_id
+                    if hasattr(EmergencyCase, 'tenant_id') and tenant_id
+                    else True,
                 )
                 .order_by(desc(EmergencyCase.created_at))
                 .limit(10)
@@ -168,7 +202,20 @@ def prescriptions_history(patient_id):
 
     try:
         from flask import g
-        patient = db.session.execute(select(Patient).filter_by(id=patient_id).filter(Patient.tenant_id == g.tenant_id if hasattr(Patient, 'tenant_id') and g.tenant_id else True)).scalars().first()
+
+        patient = (
+            db.session.execute(
+                select(Patient)
+                .filter_by(id=patient_id)
+                .filter(
+                    Patient.tenant_id == g.tenant_id
+                    if hasattr(Patient, 'tenant_id') and g.tenant_id
+                    else True
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))
@@ -177,7 +224,11 @@ def prescriptions_history(patient_id):
             db.session.execute(
                 select(Prescription)
                 .filter(Prescription.patient_id == patient_id)
-                .filter(Prescription.tenant_id == g.tenant_id if hasattr(Prescription, 'tenant_id') and g.tenant_id else True)
+                .filter(
+                    Prescription.tenant_id == g.tenant_id
+                    if hasattr(Prescription, 'tenant_id') and g.tenant_id
+                    else True
+                )
                 .order_by(desc(Prescription.created_at))
             )
             .scalars()
@@ -200,7 +251,19 @@ def lab_results(patient_id):
     """نتائج المختبر للمريض في الطوارئ"""
 
     try:
-        patient = db.session.execute(select(Patient).filter_by(id=patient_id).filter(Patient.tenant_id == g.tenant_id if hasattr(Patient, 'tenant_id') and g.tenant_id else True)).scalars().first()
+        patient = (
+            db.session.execute(
+                select(Patient)
+                .filter_by(id=patient_id)
+                .filter(
+                    Patient.tenant_id == g.tenant_id
+                    if hasattr(Patient, 'tenant_id') and g.tenant_id
+                    else True
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))
@@ -209,7 +272,11 @@ def lab_results(patient_id):
             db.session.execute(
                 select(LabRequest)
                 .filter(LabRequest.patient_id == patient_id)
-                .filter(LabRequest.tenant_id == g.tenant_id if hasattr(LabRequest, 'tenant_id') and g.tenant_id else True)
+                .filter(
+                    LabRequest.tenant_id == g.tenant_id
+                    if hasattr(LabRequest, 'tenant_id') and g.tenant_id
+                    else True
+                )
                 .order_by(desc(LabRequest.created_at))
             )
             .scalars()
@@ -232,7 +299,19 @@ def radiology_results(patient_id):
     """نتائج الأشعة للمريض في الطوارئ"""
 
     try:
-        patient = db.session.execute(select(Patient).filter_by(id=patient_id).filter(Patient.tenant_id == g.tenant_id if hasattr(Patient, 'tenant_id') and g.tenant_id else True)).scalars().first()
+        patient = (
+            db.session.execute(
+                select(Patient)
+                .filter_by(id=patient_id)
+                .filter(
+                    Patient.tenant_id == g.tenant_id
+                    if hasattr(Patient, 'tenant_id') and g.tenant_id
+                    else True
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))
@@ -241,7 +320,11 @@ def radiology_results(patient_id):
             db.session.execute(
                 select(RadiologyRequest)
                 .filter(RadiologyRequest.patient_id == patient_id)
-                .filter(RadiologyRequest.tenant_id == g.tenant_id if hasattr(RadiologyRequest, 'tenant_id') and g.tenant_id else True)
+                .filter(
+                    RadiologyRequest.tenant_id == g.tenant_id
+                    if hasattr(RadiologyRequest, 'tenant_id') and g.tenant_id
+                    else True
+                )
                 .order_by(desc(RadiologyRequest.created_at))
             )
             .scalars()

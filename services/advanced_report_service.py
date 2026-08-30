@@ -74,11 +74,15 @@ class AdvancedReportService:
 
             active_count = 0
             for p in patients:
-                vcnt_query = select(func.count()).select_from(Visit).filter(
-                    and_(
-                        Visit.patient_id == p.id,
-                        Visit.visit_date >= start_date.date(),
-                        Visit.visit_date <= end_date.date(),
+                vcnt_query = (
+                    select(func.count())
+                    .select_from(Visit)
+                    .filter(
+                        and_(
+                            Visit.patient_id == p.id,
+                            Visit.visit_date >= start_date.date(),
+                            Visit.visit_date <= end_date.date(),
+                        )
                     )
                 )
                 if tenant_id is not None and hasattr(Visit, 'tenant_id'):
@@ -274,10 +278,7 @@ class AdvancedReportService:
                 )
                 if tenant_id is not None and hasattr(Payment, 'tenant_id'):
                     daily_query = daily_query.filter(Payment.tenant_id == tenant_id)
-                amount = (
-                    db.session.execute(daily_query).scalar()
-                    or 0
-                )
+                amount = db.session.execute(daily_query).scalar() or 0
                 daily_revenue[date.strftime('%Y-%m-%d')] = amount
 
             # إحصائيات الفواتير - tenant filtered
@@ -389,7 +390,9 @@ class AdvancedReportService:
                     )
                 )
                 if tenant_id is not None and hasattr(Appointment, 'tenant_id'):
-                    appointments_query = appointments_query.filter(Appointment.tenant_id == tenant_id)
+                    appointments_query = appointments_query.filter(
+                        Appointment.tenant_id == tenant_id
+                    )
                 appointments = db.session.execute(appointments_query).scalars().all()
 
                 # الإحصائيات
@@ -486,7 +489,9 @@ class AdvancedReportService:
                     )
                 )
                 if tenant_id is not None and hasattr(Appointment, 'tenant_id'):
-                    appointments_query = appointments_query.filter(Appointment.tenant_id == tenant_id)
+                    appointments_query = appointments_query.filter(
+                        Appointment.tenant_id == tenant_id
+                    )
                 appointments = db.session.execute(appointments_query).scalars().all()
 
                 # الإحصائيات
@@ -589,45 +594,65 @@ class AdvancedReportService:
                 )
                 role_stats[role] = count
 
-            audit_trails_query = select(func.count()).select_from(AuditTrail).filter(
-                and_(AuditTrail.created_at >= start_date, AuditTrail.created_at <= end_date)
+            audit_trails_query = (
+                select(func.count())
+                .select_from(AuditTrail)
+                .filter(
+                    and_(AuditTrail.created_at >= start_date, AuditTrail.created_at <= end_date)
+                )
             )
             if tenant_id is not None and hasattr(AuditTrail, 'tenant_id'):
                 audit_trails_query = audit_trails_query.filter(AuditTrail.tenant_id == tenant_id)
             audit_trails = db.session.execute(audit_trails_query).scalar()
 
-            system_logs_query = select(func.count()).select_from(SystemLog).filter(
-                and_(SystemLog.created_at >= start_date, SystemLog.created_at <= end_date)
+            system_logs_query = (
+                select(func.count())
+                .select_from(SystemLog)
+                .filter(and_(SystemLog.created_at >= start_date, SystemLog.created_at <= end_date))
             )
             if tenant_id is not None and hasattr(SystemLog, 'tenant_id'):
                 system_logs_query = system_logs_query.filter(SystemLog.tenant_id == tenant_id)
             system_logs = db.session.execute(system_logs_query).scalar()
 
-            security_events_query = select(func.count()).select_from(SecurityEvent).filter(
-                and_(
-                    SecurityEvent.created_at >= start_date, SecurityEvent.created_at <= end_date
+            security_events_query = (
+                select(func.count())
+                .select_from(SecurityEvent)
+                .filter(
+                    and_(
+                        SecurityEvent.created_at >= start_date, SecurityEvent.created_at <= end_date
+                    )
                 )
             )
             if tenant_id is not None and hasattr(SecurityEvent, 'tenant_id'):
-                security_events_query = security_events_query.filter(SecurityEvent.tenant_id == tenant_id)
+                security_events_query = security_events_query.filter(
+                    SecurityEvent.tenant_id == tenant_id
+                )
             security_events = db.session.execute(security_events_query).scalar()
 
-            notifications_query = select(func.count()).select_from(SystemLog).filter(
-                and_(SystemLog.created_at >= start_date, SystemLog.created_at <= end_date)
+            notifications_query = (
+                select(func.count())
+                .select_from(SystemLog)
+                .filter(and_(SystemLog.created_at >= start_date, SystemLog.created_at <= end_date))
             )
             if tenant_id is not None and hasattr(SystemLog, 'tenant_id'):
                 notifications_query = notifications_query.filter(SystemLog.tenant_id == tenant_id)
             notifications = db.session.execute(notifications_query).scalar()
 
-            unread_notifications_query = select(func.count()).select_from(SystemLog).filter(
-                and_(
-                    SystemLog.created_at >= start_date,
-                    SystemLog.created_at <= end_date,
-                    SystemLog.log_level.in_(['INFO', 'WARNING']),
+            unread_notifications_query = (
+                select(func.count())
+                .select_from(SystemLog)
+                .filter(
+                    and_(
+                        SystemLog.created_at >= start_date,
+                        SystemLog.created_at <= end_date,
+                        SystemLog.log_level.in_(['INFO', 'WARNING']),
+                    )
                 )
             )
             if tenant_id is not None and hasattr(SystemLog, 'tenant_id'):
-                unread_notifications_query = unread_notifications_query.filter(SystemLog.tenant_id == tenant_id)
+                unread_notifications_query = unread_notifications_query.filter(
+                    SystemLog.tenant_id == tenant_id
+                )
             unread_notifications = db.session.execute(unread_notifications_query).scalar()
 
             return {

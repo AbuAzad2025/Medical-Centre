@@ -105,7 +105,9 @@ def create_task():
                 db.session.execute(
                     select(Visit).filter(
                         Visit.id == visit_id,
-                        Visit.tenant_id == current_user.tenant_id if hasattr(Visit, 'tenant_id') and current_user.tenant_id else True,
+                        Visit.tenant_id == current_user.tenant_id
+                        if hasattr(Visit, 'tenant_id') and current_user.tenant_id
+                        else True,
                     )
                 )
                 .scalars()

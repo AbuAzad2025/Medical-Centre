@@ -26,6 +26,7 @@ from utils.decorators import role_required_json
 def api_ems_intake():
     try:
         from flask import g
+
         tenant_id = getattr(g, 'tenant_id', None)
 
         data = request.get_json(silent=True) or {}

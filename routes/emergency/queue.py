@@ -33,6 +33,7 @@ def patient_queue():
 
     try:
         from flask import g
+
         tenant_id = getattr(g, 'tenant_id', None)
         # جلب الحالات الطارئة مع تفاصيل إضافية
         case(
@@ -129,8 +130,16 @@ def triage(emergency_id):
 
         visit = emergency.visit or (
             db.session.execute(
-                select(Visit).filter_by(id=emergency.visit_id).filter(Visit.tenant_id == tenant_id if hasattr(Visit, 'tenant_id') and tenant_id else True)
-            ).scalars().first()
+                select(Visit)
+                .filter_by(id=emergency.visit_id)
+                .filter(
+                    Visit.tenant_id == tenant_id
+                    if hasattr(Visit, 'tenant_id') and tenant_id
+                    else True
+                )
+            )
+            .scalars()
+            .first()
             if emergency.visit_id
             else None
         )

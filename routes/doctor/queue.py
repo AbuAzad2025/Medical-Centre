@@ -79,7 +79,9 @@ def patient_queue():
                     Visit.doctor_id == current_user.id,
                     Visit.visit_date == today,
                     Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]),
-                    Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
+                    Visit.tenant_id == g.tenant_id
+                    if hasattr(Visit, 'tenant_id') and g.tenant_id
+                    else True,
                 )
             )
             .scalars()

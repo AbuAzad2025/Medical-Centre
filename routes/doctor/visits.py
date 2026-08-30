@@ -196,7 +196,9 @@ def _get_recent_other_visits(patient_id, exclude_id):
                 .filter(
                     Visit.patient_id == patient_id,
                     Visit.id != exclude_id,
-                    Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
+                    Visit.tenant_id == g.tenant_id
+                    if hasattr(Visit, 'tenant_id') and g.tenant_id
+                    else True,
                 )
                 .order_by(Visit.visit_date.desc(), Visit.created_at.desc())
                 .limit(3)

@@ -48,7 +48,9 @@ def _log_fhir_access(
 @handle_route_errors
 def fhir_patients():
     patients = (
-        db.session.execute(tenant_filter(Patient).filter_by(status='ACTIVE').limit(100)).scalars().all()
+        db.session.execute(tenant_filter(Patient).filter_by(status='ACTIVE').limit(100))
+        .scalars()
+        .all()
     )
     _log_fhir_access('SEARCH', 'Patient')
     return jsonify(

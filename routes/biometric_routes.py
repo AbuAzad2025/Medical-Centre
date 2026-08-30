@@ -20,7 +20,18 @@ biometric_bp = Blueprint('biometric', __name__)
 
 @biometric_bp.route('/')
 @login_required
-@role_required('admin', 'manager', 'doctor', 'nurse', 'lab_tech', 'radiology', 'pharmacist', 'reception', 'accountant', 'super_admin')
+@role_required(
+    'admin',
+    'manager',
+    'doctor',
+    'nurse',
+    'lab_tech',
+    'radiology',
+    'pharmacist',
+    'reception',
+    'accountant',
+    'super_admin',
+)
 @handle_route_errors
 def status():
     credentials = (
@@ -33,7 +44,18 @@ def status():
 
 @biometric_bp.route('/register-challenge', methods=['POST'])
 @login_required
-@role_required('admin', 'manager', 'doctor', 'nurse', 'lab_tech', 'radiology', 'pharmacist', 'reception', 'accountant', 'super_admin')
+@role_required(
+    'admin',
+    'manager',
+    'doctor',
+    'nurse',
+    'lab_tech',
+    'radiology',
+    'pharmacist',
+    'reception',
+    'accountant',
+    'super_admin',
+)
 @handle_route_errors
 def register_challenge():
     challenge = secrets.token_urlsafe(32)
@@ -58,7 +80,18 @@ def register_challenge():
 
 @biometric_bp.route('/register-complete', methods=['POST'])
 @login_required
-@role_required('admin', 'manager', 'doctor', 'nurse', 'lab_tech', 'radiology', 'pharmacist', 'reception', 'accountant', 'super_admin')
+@role_required(
+    'admin',
+    'manager',
+    'doctor',
+    'nurse',
+    'lab_tech',
+    'radiology',
+    'pharmacist',
+    'reception',
+    'accountant',
+    'super_admin',
+)
 @handle_route_errors
 def register_complete():
     data = request.get_json() or {}
@@ -93,7 +126,18 @@ def authenticate_challenge():
 
 @biometric_bp.route('/remove/<int:cred_id>', methods=['POST'])
 @login_required
-@role_required('admin', 'manager', 'doctor', 'nurse', 'lab_tech', 'radiology', 'pharmacist', 'reception', 'accountant', 'super_admin')
+@role_required(
+    'admin',
+    'manager',
+    'doctor',
+    'nurse',
+    'lab_tech',
+    'radiology',
+    'pharmacist',
+    'reception',
+    'accountant',
+    'super_admin',
+)
 @handle_route_errors
 def remove_credential(cred_id):
     cred = select(BiometricCredential).filter_by(id=cred_id, user_id=current_user.id)
