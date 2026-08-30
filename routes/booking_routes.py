@@ -529,7 +529,6 @@ def telemedicine_room(booking_id):
 
 
 @booking_bp.route('/payment/<int:booking_id>', methods=['GET', 'POST'])
-@login_required
 @rate_limit(max_requests=10, window_seconds=3600, namespace='booking_public')
 def payment(booking_id):
     """دفع رسوم الحجز"""
