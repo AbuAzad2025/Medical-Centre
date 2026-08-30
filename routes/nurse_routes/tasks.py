@@ -32,6 +32,8 @@ def tasks():
         from models.task_management import Task
 
         vq = select(Visit).filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))
+        if current_user.tenant_id is not None and hasattr(Visit, 'tenant_id'):
+            vq = vq.filter(Visit.tenant_id == current_user.tenant_id)
         if getattr(current_user, 'department_id', None):
             vq = vq.filter(Visit.department_id == current_user.department_id)
         active_visits = db.session.execute(vq.limit(50)).scalars().all()
@@ -102,7 +104,8 @@ def create_task():
             v = (
                 db.session.execute(
                     select(Visit).filter(
-                        Visit.id == visit_id, Visit.tenant_id == current_user.tenant_id
+                        Visit.id == visit_id,
+                        Visit.tenant_id == current_user.tenant_id if hasattr(Visit, 'tenant_id') and current_user.tenant_id else True,
                     )
                 )
                 .scalars()

@@ -50,6 +50,8 @@ def medication_administration():
         )
 
         visits_q = select(Visit)
+        if current_user.tenant_id is not None and hasattr(Visit, 'tenant_id'):
+            visits_q = visits_q.filter(Visit.tenant_id == current_user.tenant_id)
         dept_ids = _accessible_department_ids()
         if dept_ids is not None and dept_ids:
             visits_q = visits_q.filter(Visit.department_id.in_(dept_ids))

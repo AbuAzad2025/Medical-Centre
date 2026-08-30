@@ -8,7 +8,7 @@ import secrets
 from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal
 
-from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, g, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user
 from sqlalchemy import select
 
@@ -21,6 +21,7 @@ from models.patient import Patient
 from models.patient_account import PatientAccount
 from models.user import StaffAbsence, StaffWorkSchedule, User
 from utils.db_safety import safe_commit, safe_rollback
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 booking_bp = Blueprint('booking', __name__)
 
@@ -102,13 +103,19 @@ def register():
             patient = None
             if national_id:
                 patient = (
-                    db.session.execute(select(Patient).filter_by(national_id=national_id))
+                    db.session.execute(select(Patient).filter(
+                        Patient.national_id == national_id,
+                        Patient.tenant_id == g.tenant_id if hasattr(Patient, 'tenant_id') and g.tenant_id else True,
+                    ))
                     .scalars()
                     .first()
                 )
             if not patient and phone:
                 patient = (
-                    db.session.execute(select(Patient).filter_by(phone=phone)).scalars().first()
+                    db.session.execute(select(Patient).filter(
+                        Patient.phone == phone,
+                        Patient.tenant_id == g.tenant_id if hasattr(Patient, 'tenant_id') and g.tenant_id else True,
+                    )).scalars().first()
                 )
             if not patient:
                 patient = Patient(
@@ -475,11 +482,13 @@ def create_booking():
 
 
 @booking_bp.route('/confirmation/<int:booking_id>')
+@login_required
 def confirmation(booking_id):
     """تأكيد الحجز"""
     try:
-        booking = db.session.get(OnlineBooking, booking_id)
-        if not booking:
+        try:
+            booking = get_tenant_record(OnlineBooking, booking_id)
+        except TenantContextError:
             abort(404)
         meeting_link = _extract_meeting_link(booking.notes or '')
         return render_template(
@@ -492,10 +501,12 @@ def confirmation(booking_id):
 
 
 @booking_bp.route('/telemedicine/<int:booking_id>')
+@login_required
 def telemedicine_room(booking_id):
     try:
-        booking = db.session.get(OnlineBooking, booking_id)
-        if not booking:
+        try:
+            booking = get_tenant_record(OnlineBooking, booking_id)
+        except TenantContextError:
             abort(404)
         meeting_link = _extract_meeting_link(booking.notes or '')
         return render_template(
@@ -508,11 +519,13 @@ def telemedicine_room(booking_id):
 
 
 @booking_bp.route('/payment/<int:booking_id>', methods=['GET', 'POST'])
+@login_required
 @rate_limit(max_requests=10, window_seconds=3600, namespace='booking_public')
 def payment(booking_id):
     """دفع رسوم الحجز"""
-    booking = db.session.get(OnlineBooking, booking_id)
-    if not booking:
+    try:
+        booking = get_tenant_record(OnlineBooking, booking_id)
+    except TenantContextError:
         abort(404)
 
     if request.method == 'POST':
@@ -555,6 +568,7 @@ def payment(booking_id):
 
 
 @booking_bp.route('/api/available-doctors')
+# Intentionally public — used for public booking flow without authentication
 def api_available_doctors():
     """API لجلب الأطباء المتاحين مع تصفية حسب القسم ونوع الموعد (اختياري)"""
     try:
@@ -581,6 +595,7 @@ def api_available_doctors():
 
 
 @booking_bp.route('/api/available-times')
+# Intentionally public — used for public booking flow without authentication
 def api_available_times():
     """API لجلب الأوقات المتاحة"""
     try:
@@ -599,7 +614,9 @@ def api_available_times():
         existing_appointments = (
             db.session.execute(
                 select(Appointment).filter(
-                    Appointment.doctor_id == doctor_id, func.date(Appointment.starts_at) == date_obj
+                    Appointment.doctor_id == doctor_id,
+                    func.date(Appointment.starts_at) == date_obj,
+                    Appointment.tenant_id == g.tenant_id if hasattr(Appointment, 'tenant_id') and g.tenant_id else True,
                 )
             )
             .scalars()
@@ -685,7 +702,9 @@ def api_smart_slots():
         existing_appointments = (
             db.session.execute(
                 select(Appointment).filter(
-                    Appointment.doctor_id == doctor_id, func.date(Appointment.starts_at) == date_obj
+                    Appointment.doctor_id == doctor_id,
+                    func.date(Appointment.starts_at) == date_obj,
+                    Appointment.tenant_id == g.tenant_id if hasattr(Appointment, 'tenant_id') and g.tenant_id else True,
                 )
             )
             .scalars()

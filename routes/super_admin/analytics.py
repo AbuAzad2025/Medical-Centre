@@ -144,7 +144,12 @@ def reports():
 @login_required
 @super_admin_required
 def analytics():
-    """التحليلات المتقدمة"""
+    """
+    التحليلات المتقدمة - Cross-tenant queries for super_admin dashboard.
+
+    NOTE: These queries intentionally run across all tenants for the super_admin
+    dashboard. Access is restricted to super_admin role only.
+    """
     try:
         from models.patient import Patient
         from models.user import User
@@ -249,7 +254,9 @@ def get_daily_usage():
     return [100, 95, 88, 92, 98]
 
 
-# ==================== الميزات الذكية للسوبر أدمن ====================
+# ==================== Cross-tenant helper functions for super_admin ====================
+# NOTE: These functions intentionally query across all tenants for super_admin dashboard.
+# Access is restricted to super_admin role only.
 
 
 def get_ai_insights():

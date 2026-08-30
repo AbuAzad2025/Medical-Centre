@@ -3,7 +3,7 @@
 import logging
 
 # Imports
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, g, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
 
@@ -35,7 +35,10 @@ def appointments():
         today + timedelta(days=1)
 
         # Base query
-        query = select(Appointment).filter_by(doctor_id=current_user.id)
+        query = select(Appointment).filter(
+            Appointment.doctor_id == current_user.id,
+            Appointment.tenant_id == g.tenant_id if hasattr(Appointment, 'tenant_id') and g.tenant_id else True,
+        )
         total = query.count()
         appointments = query.offset((page - 1) * per_page).limit(per_page).all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1

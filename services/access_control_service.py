@@ -231,37 +231,37 @@ class AccessControlService:
             except TenantContextError:
                 return []
 
-            # المدير والمدير العام والاستقبال يمكنهم رؤية جميع الزيارات
+            # Manager and reception access all visits within their tenant
             if user.is_admin_user() or user.role in {'reception', 'manager'}:
-                return db.session.execute(select(Visit)).scalars().all()
+                return db.session.execute(select(Visit).filter(Visit.tenant_id == user.tenant_id)).scalars().all()
 
-            # الأطباء يمكنهم عرض جميع الزيارات دون تعديل
+            # Doctors can view all visits (within tenant) without modification
             if user.role == 'doctor':
-                return db.session.execute(select(Visit)).scalars().all()
+                return db.session.execute(select(Visit).filter(Visit.tenant_id == user.tenant_id)).scalars().all()
 
-            # المختبر والأشعة يرون الزيارات الموجهة لهم
+            # Lab sees visits with lab orders (within tenant)
             if user.role == 'lab':
                 return (
-                    db.session.execute(select(Visit).filter(Visit.lab_tests_ordered))
+                    db.session.execute(select(Visit).filter(Visit.lab_tests_ordered, Visit.tenant_id == user.tenant_id))
                     .scalars()
                     .all()
                 )
             if user.role == 'radiology':
                 return (
-                    db.session.execute(select(Visit).filter(Visit.radiology_ordered))
+                    db.session.execute(select(Visit).filter(Visit.radiology_ordered, Visit.tenant_id == user.tenant_id))
                     .scalars()
                     .all()
                 )
 
-            # الطوارئ يرون حالات الطوارئ
+            # Emergency sees emergency cases (within tenant)
             if user.role == 'emergency':
-                return db.session.execute(select(Visit).filter(Visit.is_emergency)).scalars().all()
+                return db.session.execute(select(Visit).filter(Visit.is_emergency, Visit.tenant_id == user.tenant_id)).scalars().all()
 
-            # المحاسب يرى الزيارات ذات الصلة المالية فقط
+            # Accountant sees visits with payments (within tenant)
             if user.role == 'accountant':
                 return (
                     db.session.execute(
-                        select(Visit).join(Payment, Payment.visit_id == Visit.id).distinct()
+                        select(Visit).join(Payment, Payment.visit_id == Visit.id).filter(Visit.tenant_id == user.tenant_id).distinct()
                     )
                     .scalars()
                     .all()
@@ -282,26 +282,25 @@ class AccessControlService:
             except TenantContextError:
                 return []
 
-            # المدير والمدير العام والاستقبال يمكنهم رؤية جميع المرضى
+            # Manager and reception access all patients within their tenant
             if user.is_admin_user() or user.role in {'reception', 'manager'}:
-                return db.session.execute(select(Patient)).scalars().all()
+                return db.session.execute(select(Patient).filter(Patient.tenant_id == user.tenant_id)).scalars().all()
 
-            # الأطباء يمكنهم عرض جميع المرضى دون تعديل
+            # Doctors can view all patients (within tenant)
             if user.role == 'doctor':
-                return db.session.execute(select(Patient)).scalars().all()
+                return db.session.execute(select(Patient).filter(Patient.tenant_id == user.tenant_id)).scalars().all()
 
-            # الممرضين يرون مرضى الأطباء الذين يعملون معهم
+            # Nurses see patients of doctors they work with (within tenant)
             if user.role == 'nurse':
-                # يمكن تطوير هذا لاحقاً حسب العلاقات
-                return db.session.execute(select(Patient)).scalars().all()
+                return db.session.execute(select(Patient).filter(Patient.tenant_id == user.tenant_id)).scalars().all()
 
-            # المختبر والأشعة يرون المرضى المرتبطين بفحوصاتهم
+            # Lab and Radiology see patients linked to their tests (within tenant)
             if user.role == 'lab':
                 return (
                     db.session.execute(
                         select(Patient)
                         .join(Visit, Visit.patient_id == Patient.id)
-                        .filter(Visit.lab_tests_ordered)
+                        .filter(Visit.lab_tests_ordered, Patient.tenant_id == user.tenant_id)
                         .distinct()
                     )
                     .scalars()
@@ -312,18 +311,18 @@ class AccessControlService:
                     db.session.execute(
                         select(Patient)
                         .join(Visit, Visit.patient_id == Patient.id)
-                        .filter(Visit.radiology_ordered)
+                        .filter(Visit.radiology_ordered, Patient.tenant_id == user.tenant_id)
                         .distinct()
                     )
                     .scalars()
                     .all()
                 )
 
-            # المحاسب يرى المرضى الذين لديهم عمليات دفع
+            # Accountant sees patients with payments (within tenant)
             if user.role == 'accountant':
                 return (
                     db.session.execute(
-                        select(Patient).join(Payment, Payment.patient_id == Patient.id).distinct()
+                        select(Patient).join(Payment, Payment.patient_id == Patient.id).filter(Patient.tenant_id == user.tenant_id).distinct()
                     )
                     .scalars()
                     .all()

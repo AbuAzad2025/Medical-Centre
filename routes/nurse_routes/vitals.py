@@ -42,9 +42,10 @@ def vital_signs():
             )
             patient_id = visit.patient_id if visit else None
         vq = select(Visit)
+        if current_user.tenant_id is not None and hasattr(Visit, 'tenant_id'):
+            vq = vq.filter(Visit.tenant_id == current_user.tenant_id)
         dept_ids = _accessible_department_ids()
         if dept_ids is not None and dept_ids:
-            vq = vq.filter(Visit.department_id.in_(dept_ids))
             vq = vq.filter(Visit.department_id.in_(dept_ids))
         active_patient_ids = [
             r.patient_id
@@ -55,18 +56,20 @@ def vital_signs():
         ]
         patients = []
         if active_patient_ids:
+            patients_query = (
+                select(Patient)
+                .filter(Patient.id.in_(active_patient_ids))
+                .filter(Patient.tenant_id == current_user.tenant_id if hasattr(Patient, 'tenant_id') and current_user.tenant_id else True)
+                .order_by(desc(Patient.created_at))
+            )
             patients = (
-                db.session.execute(
-                    select(Patient)
-                    .filter(Patient.id.in_(active_patient_ids))
-                    .order_by(desc(Patient.created_at))
-                )
+                db.session.execute(patients_query)
                 .scalars()
                 .all()
             )
         else:
             patients = (
-                db.session.execute(select(Patient).order_by(desc(Patient.created_at)).limit(20))
+                db.session.execute(select(Patient).filter(Patient.tenant_id == current_user.tenant_id if hasattr(Patient, 'tenant_id') and current_user.tenant_id else True).order_by(desc(Patient.created_at)).limit(20))
                 .scalars()
                 .all()
             )
@@ -88,6 +91,7 @@ def vital_signs():
                 db.session.execute(
                     select(VitalSigns)
                     .filter_by(patient_id=selected_patient.id)
+                    .filter(VitalSigns.tenant_id == current_user.tenant_id if hasattr(VitalSigns, 'tenant_id') and current_user.tenant_id else True)
                     .order_by(desc(VitalSigns.recorded_at))
                     .limit(20)
                 )

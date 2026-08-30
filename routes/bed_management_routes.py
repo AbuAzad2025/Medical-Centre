@@ -109,6 +109,7 @@ def admission_detail(admission_id):
 
 @bed_bp.route('/api/available-beds')
 @login_required
+@role_required('nurse', 'doctor', 'admin', 'manager')
 @handle_route_errors
 def api_available_beds():
     ward_id = request.args.get('ward_id', type=int)
@@ -126,6 +127,7 @@ def api_available_beds():
 
 @bed_bp.route('/api/bed-status')
 @login_required
+@role_required('nurse', 'doctor', 'admin', 'manager')
 @handle_route_errors
 def api_bed_status():
     beds = db.session.execute(select(Bed).filter_by(is_active=True)).scalars().all()

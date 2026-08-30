@@ -123,12 +123,15 @@ def export_system_data():
         ]
 
         # تصدير المرضى
+        # NOTE: This query intentionally runs cross-tenant for super_admin data export.
+        # Super admin has access to all tenant data by design.
         from models.patient import Patient
 
         patients = db.session.execute(select(Patient)).scalars().all()
         export_data['data']['patients'] = [
             {
                 'id': patient.id,
+                'tenant_id': getattr(patient, 'tenant_id', None),
                 'name': patient.name,
                 'national_id': patient.national_id,
                 'phone': patient.phone,
@@ -139,12 +142,15 @@ def export_system_data():
         ]
 
         # تصدير الزيارات
+        # NOTE: This query intentionally runs cross-tenant for super_admin data export.
+        # Super admin has access to all tenant data by design.
         from models.visit import Visit
 
         visits = db.session.execute(select(Visit)).scalars().all()
         export_data['data']['visits'] = [
             {
                 'id': visit.id,
+                'tenant_id': getattr(visit, 'tenant_id', None),
                 'patient_id': visit.patient_id,
                 'doctor_id': visit.doctor_id,
                 'department_id': visit.department_id,

@@ -70,39 +70,53 @@ def _log_lab_workflow(request_id, status, action, notes=None):
 def get_lab_smart_analytics():
     """Ø§Ù„ØªØ­Ù„ÙŠÙ„Ø§Øª Ø§Ù„Ø°ÙƒÙŠØ© Ù„Ù„Ù…Ø®ØªØ¨Ø±"""
     try:
-        total_requests = db.session.execute(select(func.count()).select_from(LabRequest)).scalar()
-        completed_requests = db.session.execute(
-            select(func.count())
-            .select_from(LabRequest)
-            .filter(LabRequest.status == OrderState.DONE)
-        ).scalar()
-        pending_requests = db.session.execute(
-            select(func.count())
-            .select_from(LabRequest)
-            .filter(
-                LabRequest.status.in_(
-                    [
-                        OrderState.REQUESTED,
-                        OrderState.COLLECTED,
-                        OrderState.RECEIVED,
-                        OrderState.ANALYZING,
-                        OrderState.REVIEWED,
-                        OrderState.APPROVED,
-                        OrderState.IN_PROGRESS,
-                    ]
-                )
+        from flask import g
+
+        tenant_id = getattr(g, 'tenant_id', None)
+        tenant_filter = []
+        if tenant_id is not None and hasattr(LabRequest, 'tenant_id'):
+            tenant_filter.append(LabRequest.tenant_id == tenant_id)
+
+        total_query = select(func.count()).select_from(LabRequest)
+        if tenant_filter:
+            total_query = total_query.filter(*tenant_filter)
+        total_requests = db.session.execute(total_query).scalar()
+
+        completed_query = select(func.count()).select_from(LabRequest).filter(
+            LabRequest.status == OrderState.DONE
+        )
+        if tenant_filter:
+            completed_query = completed_query.filter(*tenant_filter)
+        completed_requests = db.session.execute(completed_query).scalar()
+
+        pending_query = select(func.count()).select_from(LabRequest).filter(
+            LabRequest.status.in_(
+                [
+                    OrderState.REQUESTED,
+                    OrderState.COLLECTED,
+                    OrderState.RECEIVED,
+                    OrderState.ANALYZING,
+                    OrderState.REVIEWED,
+                    OrderState.APPROVED,
+                    OrderState.IN_PROGRESS,
+                ]
             )
-        ).scalar()
+        )
+        if tenant_filter:
+            pending_query = pending_query.filter(*tenant_filter)
+        pending_requests = db.session.execute(pending_query).scalar()
         completion_rate = (completed_requests / total_requests * 100) if total_requests > 0 else 0
+
+        avg_query = select(
+            db.func.avg(
+                db.func.extract('epoch', LabRequest.completed_at)
+                - db.func.extract('epoch', LabRequest.created_at)
+            )
+        ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None))
+        if tenant_filter:
+            avg_query = avg_query.filter(*tenant_filter)
         try:
-            avg_processing_seconds = db.session.execute(
-                select(
-                    db.func.avg(
-                        db.func.extract('epoch', LabRequest.completed_at)
-                        - db.func.extract('epoch', LabRequest.created_at)
-                    )
-                ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None))
-            ).scalar()
+            avg_processing_seconds = db.session.execute(avg_query).scalar()
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
             avg_processing_seconds = None
@@ -125,27 +139,41 @@ def get_lab_smart_analytics():
 
 
 def get_lab_test_optimization():
-    """ØªØ­Ø³ÙŠÙ† Ø§Ù„ÙØ­ÙˆØµØ§Øª"""
+    """ØªØ­Ø³ÙŠÙ† Ø§Ù„Ù�Ø­ÙˆØµØ§Øª"""
     try:
-        total_requests = db.session.execute(select(func.count()).select_from(LabRequest)).scalar()
+        from flask import g
+
+        tenant_id = getattr(g, 'tenant_id', None)
+        tenant_filter = []
+        if tenant_id is not None and hasattr(LabRequest, 'tenant_id'):
+            tenant_filter.append(LabRequest.tenant_id == tenant_id)
+
+        total_query = select(func.count()).select_from(LabRequest)
+        if tenant_filter:
+            total_query = total_query.filter(*tenant_filter)
+        total_requests = db.session.execute(total_query).scalar()
+
+        avg_query = select(
+            db.func.avg(
+                db.func.extract('epoch', LabRequest.completed_at)
+                - db.func.extract('epoch', LabRequest.created_at)
+            )
+        ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None))
+        if tenant_filter:
+            avg_query = avg_query.filter(*tenant_filter)
         try:
-            avg_processing_seconds = db.session.execute(
-                select(
-                    db.func.avg(
-                        db.func.extract('epoch', LabRequest.completed_at)
-                        - db.func.extract('epoch', LabRequest.created_at)
-                    )
-                ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None))
-            ).scalar()
+            avg_processing_seconds = db.session.execute(avg_query).scalar()
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
             avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
-        total_processed = db.session.execute(
-            select(func.count())
-            .select_from(LabRequest)
-            .filter(LabRequest.status == OrderState.DONE)
-        ).scalar()
+
+        processed_query = select(func.count()).select_from(LabRequest).filter(
+            LabRequest.status == OrderState.DONE
+        )
+        if tenant_filter:
+            processed_query = processed_query.filter(*tenant_filter)
+        total_processed = db.session.execute(processed_query).scalar()
         suggestions = generate_optimization_suggestions(avg_processing_time)
         return {
             'avg_processing_time': avg_processing_time,
@@ -161,11 +189,20 @@ def get_lab_test_optimization():
 def get_lab_quality_control():
     """Ù…Ø±Ø§Ù‚Ø¨Ø© Ø§Ù„Ø¬ÙˆØ¯Ø©"""
     try:
-        total_completed = db.session.execute(
-            select(func.count())
-            .select_from(LabRequest)
-            .filter(LabRequest.status == OrderState.DONE)
-        ).scalar()
+        from flask import g
+
+        tenant_id = getattr(g, 'tenant_id', None)
+        tenant_filter_req = []
+        if tenant_id is not None and hasattr(LabRequest, 'tenant_id'):
+            tenant_filter_req.append(LabRequest.tenant_id == tenant_id)
+
+        completed_query = select(func.count()).select_from(LabRequest).filter(
+            LabRequest.status == OrderState.DONE
+        )
+        if tenant_filter_req:
+            completed_query = completed_query.filter(*tenant_filter_req)
+        total_completed = db.session.execute(completed_query).scalar()
+
         qc_total = db.session.execute(
             select(func.count()).select_from(LabQualityControlEntry)
         ).scalar()
@@ -176,11 +213,13 @@ def get_lab_quality_control():
         ).scalar()
         quality_score = 100.0 - (float(qc_fail) / float(qc_total) * 100.0) if qc_total else 100.0
         standard_deviations = round((qc_fail / qc_total) * 3, 2) if qc_total else 0
-        recheck_requests = db.session.execute(
-            select(func.count())
-            .select_from(LabRequest)
-            .filter(LabRequest.status == OrderState.REVIEWED)
-        ).scalar()
+
+        recheck_query = select(func.count()).select_from(LabRequest).filter(
+            LabRequest.status == OrderState.REVIEWED
+        )
+        if tenant_filter_req:
+            recheck_query = recheck_query.filter(*tenant_filter_req)
+        recheck_requests = db.session.execute(recheck_query).scalar()
         return {
             'total_completed': total_completed,
             'quality_score': round(quality_score, 2),
@@ -219,30 +258,42 @@ def get_lab_equipment_monitoring():
 def get_lab_result_analysis():
     """ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ù†ØªØ§Ø¦Ø¬"""
     try:
-        total_results = db.session.execute(select(func.count()).select_from(LabResult)).scalar()
-        abnormal_results = db.session.execute(
-            select(func.count())
-            .select_from(LabResult)
-            .filter(
-                LabResult.is_critical,
-                LabResult.status.in_([LabResultStatus.READY, LabResultStatus.VALIDATED]),
-            )
-        ).scalar()
+        from flask import g
+
+        tenant_id = getattr(g, 'tenant_id', None)
+        tenant_filter = []
+        if tenant_id is not None and hasattr(LabResult, 'tenant_id'):
+            tenant_filter.append(LabResult.tenant_id == tenant_id)
+
+        total_query = select(func.count()).select_from(LabResult)
+        if tenant_filter:
+            total_query = total_query.filter(*tenant_filter)
+        total_results = db.session.execute(total_query).scalar()
+
+        abnormal_query = select(func.count()).select_from(LabResult).filter(
+            LabResult.is_critical,
+            LabResult.status.in_([LabResultStatus.READY, LabResultStatus.VALIDATED]),
+        )
+        if tenant_filter:
+            abnormal_query = abnormal_query.filter(*tenant_filter)
+        abnormal_results = db.session.execute(abnormal_query).scalar()
         abnormal_rate = (abnormal_results / total_results * 100) if total_results else 0
+
         today = date.today()
-        last_7 = db.session.execute(
-            select(func.count())
-            .select_from(LabResult)
-            .filter(LabResult.created_at >= (today - timedelta(days=7)))
-        ).scalar()
-        prev_7 = db.session.execute(
-            select(func.count())
-            .select_from(LabResult)
-            .filter(
-                LabResult.created_at >= (today - timedelta(days=14)),
-                LabResult.created_at < (today - timedelta(days=7)),
-            )
-        ).scalar()
+        last_7_query = select(func.count()).select_from(LabResult).filter(
+            LabResult.created_at >= (today - timedelta(days=7))
+        )
+        if tenant_filter:
+            last_7_query = last_7_query.filter(*tenant_filter)
+        last_7 = db.session.execute(last_7_query).scalar()
+
+        prev_7_query = select(func.count()).select_from(LabResult).filter(
+            LabResult.created_at >= (today - timedelta(days=14)),
+            LabResult.created_at < (today - timedelta(days=7)),
+        )
+        if tenant_filter:
+            prev_7_query = prev_7_query.filter(*tenant_filter)
+        prev_7 = db.session.execute(prev_7_query).scalar()
         trend_analysis = (
             'ØªØµØ§Ø¹Ø¯ÙŠ'
             if last_7 > prev_7
@@ -264,12 +315,24 @@ def get_lab_result_analysis():
 def get_lab_workflow_automation():
     """Ø£ØªÙ…ØªØ© Ø³ÙŠØ± Ø§Ù„Ø¹Ù…Ù„"""
     try:
-        total_requests = db.session.execute(select(func.count()).select_from(LabRequest)).scalar()
-        done_requests = db.session.execute(
-            select(func.count())
-            .select_from(LabRequest)
-            .filter(LabRequest.status == OrderState.DONE)
-        ).scalar()
+        from flask import g
+
+        tenant_id = getattr(g, 'tenant_id', None)
+        tenant_filter = []
+        if tenant_id is not None and hasattr(LabRequest, 'tenant_id'):
+            tenant_filter.append(LabRequest.tenant_id == tenant_id)
+
+        total_query = select(func.count()).select_from(LabRequest)
+        if tenant_filter:
+            total_query = total_query.filter(*tenant_filter)
+        total_requests = db.session.execute(total_query).scalar()
+
+        done_query = select(func.count()).select_from(LabRequest).filter(
+            LabRequest.status == OrderState.DONE
+        )
+        if tenant_filter:
+            done_query = done_query.filter(*tenant_filter)
+        done_requests = db.session.execute(done_query).scalar()
         automation_rate = round((done_requests / total_requests) * 100, 2) if total_requests else 0
         automated_tasks = done_requests
         time_saved = round(automation_rate * 1.2, 2)
@@ -287,25 +350,38 @@ def get_lab_workflow_automation():
 
 def get_lab_predictive_insights():
     try:
+        from flask import g
+
+        tenant_id = getattr(g, 'tenant_id', None)
+        tenant_filter = []
+        if tenant_id is not None and hasattr(LabRequest, 'tenant_id'):
+            tenant_filter.append(LabRequest.tenant_id == tenant_id)
+
         today = date.today()
         week_start = today - timedelta(days=7)
         month_start = today - timedelta(days=30)
-        weekly_requests = db.session.execute(
-            select(func.count()).select_from(LabRequest).filter(LabRequest.created_at >= week_start)
-        ).scalar()
-        monthly_requests = db.session.execute(
-            select(func.count())
-            .select_from(LabRequest)
-            .filter(LabRequest.created_at >= month_start)
-        ).scalar()
-        prev_week = db.session.execute(
-            select(func.count())
-            .select_from(LabRequest)
-            .filter(
-                LabRequest.created_at >= today - timedelta(days=14),
-                LabRequest.created_at < week_start,
-            )
-        ).scalar()
+
+        weekly_query = select(func.count()).select_from(LabRequest).filter(
+            LabRequest.created_at >= week_start
+        )
+        if tenant_filter:
+            weekly_query = weekly_query.filter(*tenant_filter)
+        weekly_requests = db.session.execute(weekly_query).scalar()
+
+        monthly_query = select(func.count()).select_from(LabRequest).filter(
+            LabRequest.created_at >= month_start
+        )
+        if tenant_filter:
+            monthly_query = monthly_query.filter(*tenant_filter)
+        monthly_requests = db.session.execute(monthly_query).scalar()
+
+        prev_week_query = select(func.count()).select_from(LabRequest).filter(
+            LabRequest.created_at >= today - timedelta(days=14),
+            LabRequest.created_at < week_start,
+        )
+        if tenant_filter:
+            prev_week_query = prev_week_query.filter(*tenant_filter)
+        prev_week = db.session.execute(prev_week_query).scalar()
         growth_rate = ((weekly_requests - prev_week) / prev_week * 100) if prev_week else 0
         predicted_demand = round((weekly_requests / 7) * 7)
         return {

@@ -15,7 +15,12 @@ class AIValidator:
 
     @staticmethod
     def validate_system_data():
-        """التحقق من صحة بيانات النظام"""
+        """
+        Validate system data integrity.
+
+        NOTE: These queries run cross-tenant intentionally for super_admin dashboard
+        validation. This endpoint is only accessible to super_admin role.
+        """
         errors = []
         warnings = []
 

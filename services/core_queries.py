@@ -11,7 +11,7 @@ from sqlalchemy import desc, func, or_, select
 
 from app.extensions import db
 from app.shared.enums import VisitState
-from utils.tenant_query import get_tenant_record
+from utils.tenant_query import get_tenant_record, tenant_filter
 
 if TYPE_CHECKING:
     from models.appointment import Appointment
@@ -42,7 +42,13 @@ class CoreQueryService:
     def get_patient_by_code(code: str) -> Patient | None:
         from models.patient import Patient
 
-        return db.session.execute(select(Patient).filter_by(code=code)).scalars().first()
+        return (
+            db.session.execute(
+                tenant_filter(Patient).filter_by(code=code)
+            )
+            .scalars()
+            .first()
+        )
 
     @staticmethod
     def search_patients(
@@ -53,7 +59,7 @@ class CoreQueryService:
     ) -> list[Patient]:
         from models.patient import Patient
 
-        q = Patient.query
+        q = tenant_filter(Patient)
         if query:
             q = q.filter(
                 or_(
@@ -70,7 +76,7 @@ class CoreQueryService:
     def count_patients(query: str = '', department_id: int | None = None) -> int:
         from models.patient import Patient
 
-        q = Patient.query
+        q = tenant_filter(Patient)
         if query:
             q = q.filter(
                 or_(
@@ -109,7 +115,7 @@ class CoreQueryService:
     def get_open_visits(department_id: int | None = None) -> list[Visit]:
         from models.visit import Visit
 
-        q = select(Visit)
+        q = tenant_filter(Visit)
         if department_id:
             q = q.filter_by(department_id=department_id)
         return q.order_by(Visit.created_at).all()
@@ -121,7 +127,7 @@ class CoreQueryService:
     ) -> list[Visit]:
         from models.visit import Visit
 
-        q = Visit.query
+        q = tenant_filter(Visit)
         if status_filter:
             q = q.filter(Visit.status.in_(status_filter))
         elif department_id:
@@ -153,7 +159,7 @@ class CoreQueryService:
     def get_doctors(department_id: int | None = None) -> list[User]:
         from models.user import User
 
-        q = select(User)
+        q = tenant_filter(User).filter_by(role='doctor')
         if department_id:
             q = q.filter_by(department_id=department_id)
         return q.order_by(User.full_name).all()
@@ -162,7 +168,7 @@ class CoreQueryService:
     def get_nurses(department_id: int | None = None) -> list[User]:
         from models.user import User
 
-        q = select(User)
+        q = tenant_filter(User).filter_by(role='nurse')
         if department_id:
             q = q.filter_by(department_id=department_id)
         return q.order_by(User.full_name).all()
@@ -171,7 +177,7 @@ class CoreQueryService:
     def get_staff_by_role(role: str, department_id: int | None = None) -> list[User]:
         from models.user import User
 
-        q = select(User)
+        q = tenant_filter(User).filter_by(role=role)
         if department_id:
             q = q.filter_by(department_id=department_id)
         return q.order_by(User.full_name).all()
@@ -187,7 +193,7 @@ class CoreQueryService:
     def get_all_departments(active_only: bool = True) -> list[Department]:
         from models.department import Department
 
-        q = Department.query
+        q = tenant_filter(Department)
         if active_only:
             q = q.filter_by(is_active=True)
         return q.order_by(Department.name).all()
@@ -223,24 +229,32 @@ class CoreQueryService:
     def get_revenue_today() -> float:
         from datetime import date
 
+        from flask import g
+
         from models.payment import Payment
 
         today = date.today()
-        total = db.session.execute(
-            select(func.sum(Payment.amount)).filter(func.date(Payment.payment_date) == today)
-        ).scalar()
+        tenant_id = getattr(g, 'tenant_id', None)
+        q = select(func.sum(Payment.amount)).filter(func.date(Payment.payment_date) == today)
+        if tenant_id is not None and hasattr(Payment, 'tenant_id'):
+            q = q.filter(Payment.tenant_id == tenant_id)
+        total = db.session.execute(q).scalar()
         return float(total or 0)
 
     @staticmethod
     def get_revenue_this_month() -> float:
         from datetime import date
 
+        from flask import g
+
         from models.payment import Payment
 
         first_day = date.today().replace(day=1)
-        total = db.session.execute(
-            select(func.sum(Payment.amount)).filter(Payment.payment_date >= first_day)
-        ).scalar()
+        tenant_id = getattr(g, 'tenant_id', None)
+        q = select(func.sum(Payment.amount)).filter(Payment.payment_date >= first_day)
+        if tenant_id is not None and hasattr(Payment, 'tenant_id'):
+            q = q.filter(Payment.tenant_id == tenant_id)
+        total = db.session.execute(q).scalar()
         return float(total or 0)
 
     # ==================== APPOINTMENT QUERIES ====================
@@ -250,7 +264,7 @@ class CoreQueryService:
     ) -> list[Appointment]:
         from models.appointment import Appointment
 
-        q = select(Appointment)
+        q = tenant_filter(Appointment).filter_by(doctor_id=doctor_id)
         if date_from:
             q = q.filter(Appointment.appointment_date >= date_from)
         if date_to:
@@ -279,7 +293,7 @@ class CoreQueryService:
     def get_lab_requests_for_worklist(status_filter: list[str] | None = None) -> list[LabRequest]:
         from models.lab_request import LabRequest
 
-        q = LabRequest.query
+        q = tenant_filter(LabRequest)
         if status_filter:
             q = q.filter(LabRequest.status.in_(status_filter))
         return q.order_by(LabRequest.created_at).all()
@@ -288,9 +302,9 @@ class CoreQueryService:
     def get_lab_results_ready(patient_id: int | None = None) -> list[LabResult]:
         from models.lab_request import LabResult
 
-        q = select(LabResult)
+        q = tenant_filter(LabResult).join(LabRequest)
         if patient_id:
-            q = q.join(LabRequest).filter(LabRequest.patient_id == patient_id)
+            q = q.filter(LabRequest.patient_id == patient_id)
         return q.order_by(desc(LabResult.completed_at)).all()
 
     # ==================== RADIOLOGY QUERIES ====================
@@ -300,7 +314,7 @@ class CoreQueryService:
     ) -> list[RadiologyRequest]:
         from models.radiology_request import RadiologyRequest
 
-        q = RadiologyRequest.query
+        q = tenant_filter(RadiologyRequest)
         if status_filter:
             q = q.filter(RadiologyRequest.status.in_(status_filter))
         return q.order_by(RadiologyRequest.created_at).all()
@@ -309,9 +323,9 @@ class CoreQueryService:
     def get_radiology_results_ready(patient_id: int | None = None) -> list[RadiologyResult]:
         from models.radiology_result import RadiologyResult
 
-        q = select(RadiologyResult)
+        q = tenant_filter(RadiologyResult).join(RadiologyRequest)
         if patient_id:
-            q = q.join(RadiologyRequest).filter(RadiologyRequest.patient_id == patient_id)
+            q = q.filter(RadiologyRequest.patient_id == patient_id)
         return q.order_by(desc(RadiologyResult.completed_at)).all()
 
     # ==================== MEDICATION QUERIES ====================
@@ -321,7 +335,7 @@ class CoreQueryService:
 
         return (
             db.session.execute(
-                select(Medication).filter_by(is_active=True).order_by(Medication.name)
+                tenant_filter(Medication).filter_by(is_active=True).order_by(Medication.name)
             )
             .scalars()
             .all()
@@ -333,7 +347,7 @@ class CoreQueryService:
 
         return (
             db.session.execute(
-                select(Prescription)
+                tenant_filter(Prescription)
                 .filter_by(patient_id=patient_id)
                 .order_by(desc(Prescription.created_at))
             )
@@ -348,7 +362,7 @@ class CoreQueryService:
 
         return (
             db.session.execute(
-                select(EmergencyCase)
+                tenant_filter(EmergencyCase)
                 .filter(EmergencyCase.status.in_(['TRIAGE', 'IN_PROGRESS', 'OBSERVATION']))
                 .order_by(EmergencyCase.created_at)
             )
@@ -368,28 +382,42 @@ class CoreQueryService:
         """Common stats used by multiple dashboards"""
         from datetime import date
 
+        from flask import g
+
         from models.patient import Patient
         from models.user import User
         from models.visit import Visit
 
         today = date.today()
+        tenant_id = getattr(g, 'tenant_id', None)
+
+        def _count_with_tenant(model):
+            q = select(func.count())
+            if tenant_id is not None and hasattr(model, 'tenant_id'):
+                q = q.filter(model.tenant_id == tenant_id)
+            return db.session.execute(q).scalar()
+
+        def _count_with_tenant_and_date_filter(model, date_filter):
+            q = select(func.count())
+            if tenant_id is not None and hasattr(model, 'tenant_id'):
+                q = q.filter(model.tenant_id == tenant_id)
+            if date_filter is not None:
+                q = q.filter(date_filter)
+            return db.session.execute(q).scalar()
+
         return {
-            'total_patients': db.session.execute(
-                select(func.count()).select_from(Patient)
-            ).scalar(),
-            'new_patients_today': db.session.execute(
-                select(func.count())
-                .select_from(Patient)
-                .filter(func.date(Patient.created_at) == today)
-            ).scalar(),
-            'total_visits': db.session.execute(select(func.count()).select_from(Visit)).scalar(),
-            'visits_today': db.session.execute(
-                select(func.count()).select_from(Visit).filter(func.date(Visit.created_at) == today)
-            ).scalar(),
-            'total_users': db.session.execute(select(func.count()).select_from(User)).scalar(),
-            'active_users': db.session.execute(
-                select(func.count()).select_from(User).filter_by(is_active=True)
-            ).scalar(),
+            'total_patients': _count_with_tenant(Patient),
+            'new_patients_today': _count_with_tenant_and_date_filter(
+                Patient, func.date(Patient.created_at) == today
+            ),
+            'total_visits': _count_with_tenant(Visit),
+            'visits_today': _count_with_tenant_and_date_filter(
+                Visit, func.date(Visit.created_at) == today
+            ),
+            'total_users': _count_with_tenant(User),
+            'active_users': _count_with_tenant_and_date_filter(
+                User, User.is_active.is_(True)
+            ),
             'revenue_today': CoreQueryService.get_revenue_today(),
             'revenue_month': CoreQueryService.get_revenue_this_month(),
         }

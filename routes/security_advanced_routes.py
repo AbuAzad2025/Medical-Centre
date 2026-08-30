@@ -5,13 +5,14 @@ Digital signatures, password policy, session management, encryption
 
 from datetime import UTC, datetime
 
-from flask import Blueprint, jsonify, render_template, request, session
+from flask import Blueprint, abort, jsonify, render_template, request, session
 from flask_login import current_user, login_required
 from sqlalchemy import select
 
 from app.extensions import db
 from models.digital_signature import DigitalSignature, PasswordPolicy, SessionLog
 from utils.decorators import handle_route_errors, role_required
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 security_bp = Blueprint('security', __name__)
 
@@ -22,6 +23,14 @@ security_bp = Blueprint('security', __name__)
 @handle_route_errors
 def signatures():
     user_id = request.args.get('user_id', type=int)
+    if user_id and user_id != current_user.id:
+        if current_user.role not in ['admin', 'manager']:
+            abort(404)
+        try:
+            from models.user import User
+            get_tenant_record(User, user_id)
+        except TenantContextError:
+            abort(404)
     query = DigitalSignature.query
     if user_id:
         query = query.filter_by(user_id=user_id)

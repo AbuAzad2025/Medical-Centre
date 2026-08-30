@@ -6,7 +6,7 @@ import logging
 import os
 from datetime import UTC, datetime
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, send_file, url_for
+from flask import Blueprint, abort, flash, g, redirect, render_template, request, send_file, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func, select
 
@@ -199,7 +199,9 @@ def dashboard():
         db.session.execute(
             select(Appointment)
             .filter(
-                Appointment.patient_id == patient.id, Appointment.starts_at >= datetime.now(UTC)
+                Appointment.patient_id == patient.id,
+                Appointment.starts_at >= datetime.now(UTC),
+                Appointment.tenant_id == g.tenant_id if hasattr(Appointment, 'tenant_id') and g.tenant_id else True,
             )
             .order_by(Appointment.starts_at)
             .limit(5)
@@ -211,7 +213,10 @@ def dashboard():
     recent_visits = (
         db.session.execute(
             select(Visit)
-            .filter_by(patient_id=patient.id)
+            .filter(
+                Visit.patient_id == patient.id,
+                Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
+            )
             .order_by(Visit.created_at.desc())
             .limit(5)
         )
@@ -263,7 +268,10 @@ def appointments():
     items = (
         db.session.execute(
             select(Appointment)
-            .filter_by(patient_id=patient.id)
+            .filter(
+                Appointment.patient_id == patient.id,
+                Appointment.tenant_id == g.tenant_id if hasattr(Appointment, 'tenant_id') and g.tenant_id else True,
+            )
             .order_by(Appointment.starts_at.desc())
             .limit(50)
         )

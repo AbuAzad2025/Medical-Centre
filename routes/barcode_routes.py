@@ -24,6 +24,7 @@ def scan_page():
 
 @barcode_bp.route('/api/scan', methods=['POST'])
 @login_required
+@role_required('nurse', 'reception', 'doctor', 'admin', 'manager')
 @handle_route_errors
 def api_scan():
     data = request.get_json()

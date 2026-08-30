@@ -2,7 +2,7 @@
 HL7 FHIR API Routes — Basic REST API for interoperability
 """
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, abort, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import select
 
@@ -15,6 +15,7 @@ from models.patient import Patient
 from models.visit import Visit
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import handle_route_errors, role_required
+from utils.tenant_query import get_tenant_record, tenant_filter
 
 fhir_bp = Blueprint('fhir', __name__)
 
@@ -47,7 +48,7 @@ def _log_fhir_access(
 @handle_route_errors
 def fhir_patients():
     patients = (
-        db.session.execute(select(Patient).filter_by(status='ACTIVE').limit(100)).scalars().all()
+        db.session.execute(tenant_filter(Patient).filter_by(status='ACTIVE').limit(100)).scalars().all()
     )
     _log_fhir_access('SEARCH', 'Patient')
     return jsonify(
@@ -76,7 +77,9 @@ def fhir_patients():
 @role_required('admin', 'manager', 'doctor')
 @handle_route_errors
 def fhir_patient(patient_id):
-    patient = db.get_or_404(Patient, patient_id)
+    patient = get_tenant_record(Patient, patient_id)
+    if not patient:
+        abort(404)
     _log_fhir_access('READ', 'Patient', str(patient_id))
     return jsonify(
         {
@@ -98,7 +101,7 @@ def fhir_patient(patient_id):
 @handle_route_errors
 def fhir_encounters():
     visits = (
-        db.session.execute(select(Visit).order_by(Visit.created_at.desc()).limit(100))
+        db.session.execute(tenant_filter(Visit).order_by(Visit.created_at.desc()).limit(100))
         .scalars()
         .all()
     )
@@ -133,6 +136,9 @@ def fhir_observations():
     patient_id = request.args.get('patient', type=int)
     results = []
     if patient_id:
+        patient = get_tenant_record(Patient, patient_id)
+        if not patient:
+            abort(404)
         lab_results = (
             db.session.execute(select(LabResult).filter_by(patient_id=patient_id).limit(50))
             .scalars()

@@ -4,7 +4,7 @@ import logging
 from datetime import UTC, date
 
 # Imports
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, g, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func, select
 
@@ -36,6 +36,7 @@ def patient_queue():
         query = select(Visit).filter(
             Visit.doctor_id == current_user.id,
             Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]),
+            Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
         )
 
         total = db.session.execute(select(func.count()).select_from(query.subquery())).scalar() or 0
@@ -78,6 +79,7 @@ def patient_queue():
                     Visit.doctor_id == current_user.id,
                     Visit.visit_date == today,
                     Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]),
+                    Visit.tenant_id == g.tenant_id if hasattr(Visit, 'tenant_id') and g.tenant_id else True,
                 )
             )
             .scalars()

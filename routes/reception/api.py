@@ -325,6 +325,7 @@ def api_queue_wait_metrics():
 
 @reception_bp.route('/api/fhir/patient/<int:patient_id>')
 @login_required
+@role_required_json('reception', 'manager', 'doctor', 'admin', 'super_admin')
 def api_fhir_patient(patient_id):
     """تصدير بيانات المريض بصيغة FHIR Patient (مبسطة)"""
     try:
@@ -379,6 +380,7 @@ def api_fhir_patient(patient_id):
 
 @reception_bp.route('/api/fhir/encounter/<int:visit_id>')
 @login_required
+@role_required_json('reception', 'manager', 'doctor', 'admin', 'super_admin')
 def api_fhir_encounter(visit_id):
     try:
         from models.department import Department
@@ -451,6 +453,7 @@ def api_fhir_encounter(visit_id):
 
 @reception_bp.route('/api/fhir/appointment/<int:appointment_id>')
 @login_required
+@role_required_json('reception', 'manager', 'doctor', 'admin', 'super_admin')
 def api_fhir_appointment(appointment_id):
     try:
         from models.appointment import Appointment
@@ -522,6 +525,7 @@ def api_fhir_appointment(appointment_id):
 
 @reception_bp.route('/api/fhir/practitioner/<int:user_id>')
 @login_required
+@role_required_json('reception', 'manager', 'doctor', 'admin', 'super_admin')
 def api_fhir_practitioner(user_id):
     try:
         from models.department import Department
@@ -580,6 +584,7 @@ def api_fhir_practitioner(user_id):
 
 @reception_bp.route('/api/fhir/organization/<int:department_id>')
 @login_required
+@role_required_json('reception', 'manager', 'doctor', 'admin', 'super_admin')
 def api_fhir_organization(department_id):
     try:
         from models.department import Department

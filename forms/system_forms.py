@@ -198,11 +198,19 @@ class FileUploadForm(FormBase, FileUploadMixin, StatusMixin):
         self.load_dynamic_choices()
 
     def load_dynamic_choices(self):
-        """تحميل الخيارات الديناميكية"""
+        """تحميل الخيارات الديناميكية - tenant filtered"""
+        from flask import g
+
+        from utils.tenant_query import tenant_filter
+
+        tenant_id = g.get('tenant_id', 0)
+
         # تحميل المرضى
         from models.patient import Patient
 
-        patients = db.session.execute(select(Patient).filter_by(status='ACTIVE')).scalars().all()
+        patients = db.session.execute(
+            tenant_filter(Patient).filter(Patient.tenant_id == tenant_id).filter_by(status='ACTIVE')
+        ).scalars().all()
         self.patient_id.choices = [('', 'اختر المريض')] + [
             (p.id, f'{p.full_name} - {p.national_id}') for p in patients
         ]
@@ -212,7 +220,8 @@ class FileUploadForm(FormBase, FileUploadMixin, StatusMixin):
 
         visits = (
             db.session.execute(
-                select(Visit)
+                tenant_filter(Visit)
+                .filter(Visit.tenant_id == tenant_id)
                 .filter_by(status='ACTIVE')
                 .order_by(Visit.created_at.desc())
                 .limit(100)

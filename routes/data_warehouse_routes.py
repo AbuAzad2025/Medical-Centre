@@ -11,13 +11,14 @@ from sqlalchemy import func, select
 from app.extensions import db
 from models import DailyVisitSummary, DataWarehouseSync, MonthlyFinanceSummary, Visit
 from utils.db_safety import safe_commit
-from utils.decorators import handle_route_errors
+from utils.decorators import handle_route_errors, role_required
 
 data_warehouse_bp = Blueprint('data_warehouse', __name__)
 
 
 @data_warehouse_bp.route('/')
 @login_required
+@role_required('admin', 'manager', 'super_admin')
 @handle_route_errors
 def dashboard():
     syncs = (
@@ -50,6 +51,7 @@ def dashboard():
 
 @data_warehouse_bp.route('/sync', methods=['POST'])
 @login_required
+@role_required('admin', 'manager', 'super_admin')
 @handle_route_errors
 def sync():
     sync_name = request.form.get('sync_name', 'daily_visits_summary')

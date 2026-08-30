@@ -438,7 +438,11 @@ class InsurancePolicyForm(FormBase):
     def load_dynamic_choices(self):
         """تحميل الخيارات الديناميكية"""
         # تحميل شركات التأمين
+        from flask import g
+
         from models.insurance import InsuranceCompany
+        from models.patient import Patient
+        from utils.tenant_query import tenant_filter
 
         companies = (
             db.session.execute(select(InsuranceCompany).filter_by(is_active=True)).scalars().all()
@@ -446,9 +450,10 @@ class InsurancePolicyForm(FormBase):
         self.insurance_company_id.choices = [(c.id, c.name) for c in companies]
 
         # تحميل المرضى
-        from models.patient import Patient
-
-        patients = db.session.execute(select(Patient)).scalars().all()
+        tenant_id = g.get('tenant_id', 0)
+        patients = db.session.execute(
+            tenant_filter(Patient).filter(Patient.tenant_id == tenant_id)
+        ).scalars().all()
         self.patient_id.choices = [(p.id, f'{p.full_name} - {p.national_id}') for p in patients]
 
 

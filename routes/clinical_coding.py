@@ -2,7 +2,7 @@
 Clinical Coding Routes — ICD-10, CPT, DRG management
 """
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, abort, jsonify, render_template, request
 from flask_login import login_required
 from sqlalchemy import select
 
@@ -10,6 +10,7 @@ from app.extensions import db
 from models.icd_coding import CodedDiagnosis, CodedProcedure, CPTCode, DRGCode, ICD10Code
 from models.patient import Patient
 from utils.decorators import handle_route_errors, role_required
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 clinical_coding_bp = Blueprint('clinical_coding', __name__)
 
@@ -77,7 +78,10 @@ def drg_list():
 @role_required('doctor', 'nurse', 'admin', 'manager')
 @handle_route_errors
 def patient_diagnoses(patient_id):
-    patient = db.get_or_404(Patient, patient_id)
+    try:
+        patient = get_tenant_record(Patient, patient_id)
+    except TenantContextError:
+        abort(404)
     diagnoses = (
         db.session.execute(
             select(CodedDiagnosis)
@@ -97,7 +101,10 @@ def patient_diagnoses(patient_id):
 @role_required('doctor', 'nurse', 'admin', 'manager')
 @handle_route_errors
 def patient_procedures(patient_id):
-    patient = db.get_or_404(Patient, patient_id)
+    try:
+        patient = get_tenant_record(Patient, patient_id)
+    except TenantContextError:
+        abort(404)
     procedures = (
         db.session.execute(
             select(CodedProcedure)

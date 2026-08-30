@@ -2,7 +2,7 @@
 Clinical Pathways / Care Plans Routes
 """
 
-from flask import Blueprint, render_template
+from flask import Blueprint, abort, render_template
 from flask_login import login_required
 from sqlalchemy import select
 
@@ -14,6 +14,7 @@ from models.clinical_pathway import (
 )
 from models.patient import Patient
 from utils.decorators import handle_route_errors, role_required
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 pathway_bp = Blueprint('pathway', __name__)
 
@@ -53,10 +54,13 @@ def pathway_detail(pathway_id):
 
 @pathway_bp.route('/patient/<int:patient_id>/care-plans')
 @login_required
-@role_required('doctor', 'nurse', 'admin')
+@role_required('doctor', 'nurse', 'admin', 'manager')
 @handle_route_errors
 def patient_care_plans(patient_id):
-    patient = db.get_or_404(Patient, patient_id)
+    try:
+        patient = get_tenant_record(Patient, patient_id)
+    except TenantContextError:
+        abort(404)
     plans = (
         db.session.execute(
             select(PatientCarePlan)

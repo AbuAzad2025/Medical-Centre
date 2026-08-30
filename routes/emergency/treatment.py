@@ -134,11 +134,14 @@ def start_treatment(emergency_id):
 @role_required('emergency', 'manager')
 def emergency_visits():
     try:
+        from flask import g
+        tenant_id = getattr(g, 'tenant_id', None)
+        visits_query = select(Visit).filter(Visit.visit_type == 'EMERGENCY')
+        if tenant_id is not None and hasattr(Visit, 'tenant_id'):
+            visits_query = visits_query.filter(Visit.tenant_id == tenant_id)
         visits = (
             db.session.execute(
-                select(Visit)
-                .filter(Visit.visit_type == 'EMERGENCY')
-                .order_by(desc(Visit.created_at))
+                visits_query.order_by(desc(Visit.created_at))
             )
             .scalars()
             .all()
@@ -155,7 +158,12 @@ def emergency_visits():
 @role_required('emergency', 'doctor', 'manager')
 def emergency_treatment(visit_id):
     try:
-        visit = db.session.execute(select(Visit).filter_by(id=visit_id)).scalars().first()
+        from flask import g
+        tenant_id = getattr(g, 'tenant_id', None)
+        visit_query = select(Visit).filter_by(id=visit_id)
+        if tenant_id is not None and hasattr(Visit, 'tenant_id'):
+            visit_query = visit_query.filter(Visit.tenant_id == tenant_id)
+        visit = db.session.execute(visit_query).scalars().first()
         if not visit:
             if request.method == 'POST':
                 return jsonify({'success': False, 'error': 'الزيارة غير موجودة'}), 404
@@ -201,7 +209,12 @@ def emergency_treatment(visit_id):
 @role_required_json('emergency', 'manager')
 def complete_visit(visit_id):
     try:
-        visit = db.session.execute(select(Visit).filter_by(id=visit_id)).scalars().first()
+        from flask import g
+        tenant_id = getattr(g, 'tenant_id', None)
+        visit_query = select(Visit).filter_by(id=visit_id)
+        if tenant_id is not None and hasattr(Visit, 'tenant_id'):
+            visit_query = visit_query.filter(Visit.tenant_id == tenant_id)
+        visit = db.session.execute(visit_query).scalars().first()
         if not visit:
             return jsonify({'success': False, 'message': 'الزيارة غير موجودة'}), 404
         emergency_case = (

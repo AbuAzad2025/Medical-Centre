@@ -2,23 +2,28 @@
 Nursing Assessment Routes (Braden, Glasgow, Fall Risk, Pain, Norton)
 """
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func, select
 
 from app.extensions import db
 from models import NursingAssessment, Patient
 from utils.db_safety import safe_commit
-from utils.decorators import handle_route_errors
+from utils.decorators import handle_route_errors, role_required
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 nursing_assessment_bp = Blueprint('nursing_assessment', __name__)
 
 
 @nursing_assessment_bp.route('/patient/<int:patient_id>')
 @login_required
+@role_required('nurse', 'doctor', 'admin', 'manager')
 @handle_route_errors
 def patient_assessments(patient_id):
-    patient = db.get_or_404(Patient, patient_id)
+    try:
+        patient = get_tenant_record(Patient, patient_id)
+    except TenantContextError:
+        abort(404)
     assessments = (
         db.session.execute(
             select(NursingAssessment)
@@ -35,9 +40,13 @@ def patient_assessments(patient_id):
 
 @nursing_assessment_bp.route('/new/<int:patient_id>', methods=['GET', 'POST'])
 @login_required
+@role_required('nurse', 'admin', 'manager')
 @handle_route_errors
 def new_assessment(patient_id):
-    patient = db.get_or_404(Patient, patient_id)
+    try:
+        patient = get_tenant_record(Patient, patient_id)
+    except TenantContextError:
+        abort(404)
     assessment_type = request.args.get('type', 'braden')
     visit_id = request.args.get('visit_id', type=int)
 
@@ -145,14 +154,20 @@ def new_assessment(patient_id):
 
 @nursing_assessment_bp.route('/view/<int:assessment_id>')
 @login_required
+@role_required('nurse', 'doctor', 'admin', 'manager')
 @handle_route_errors
 def view_assessment(assessment_id):
     assessment = db.get_or_404(NursingAssessment, assessment_id)
+    try:
+        get_tenant_record(Patient, assessment.patient_id)
+    except TenantContextError:
+        abort(404)
     return render_template('nursing_assessment/view.html', assessment=assessment)
 
 
 @nursing_assessment_bp.route('/dashboard')
 @login_required
+@role_required('admin', 'manager')
 @handle_route_errors
 def dashboard():
     """Dashboard showing recent assessments across all patients"""

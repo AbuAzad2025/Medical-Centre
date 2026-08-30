@@ -145,17 +145,27 @@ class MedicalEntityMixin:
 
     def load_dynamic_choices(self):
         """تحميل الخيارات الديناميكية - يجب تخصيصها في كل نموذج"""
+        from flask import g
+
+        from utils.tenant_query import tenant_filter
+
+        tenant_id = g.get('tenant_id', 0)
+
         # تحميل المرضى
         from models.patient import Patient
 
-        patients = db.session.execute(select(Patient).filter_by(status='ACTIVE')).scalars().all()
+        patients = db.session.execute(
+            tenant_filter(Patient).filter(Patient.tenant_id == tenant_id).filter_by(status='ACTIVE')
+        ).scalars().all()
         self.patient_id.choices = [(p.id, f'{p.full_name} - {p.national_id}') for p in patients]
 
         # تحميل الأطباء
         from models.user import User
 
         doctors = (
-            db.session.execute(select(User).filter(User.role.in_(['doctor', 'admin', 'manager'])))
+            db.session.execute(
+                tenant_filter(User).filter(User.tenant_id == tenant_id).filter(User.role.in_(['doctor', 'admin', 'manager']))
+            )
             .scalars()
             .all()
         )
@@ -166,7 +176,8 @@ class MedicalEntityMixin:
 
         visits = (
             db.session.execute(
-                select(Visit)
+                tenant_filter(Visit)
+                .filter(Visit.tenant_id == tenant_id)
                 .filter(Visit.status.in_(['OPEN', 'IN_PROGRESS', 'COMPLETED']))
                 .order_by(Visit.created_at.desc())
                 .limit(100)

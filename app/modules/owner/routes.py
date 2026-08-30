@@ -42,6 +42,7 @@ from app.extensions import db
 from app.modules.owner import owner_bp
 from app.modules.owner.decorators import owner_required
 from app.shared.enums import ProductProfile, StorageMode, SubscriptionType, TenantStatus
+from app.shared.user_role_policy import actor_may_assign_role, is_assignable_role
 from models.backup import Backup
 from services.webhook_service import (
     EVENT_BUNDLE_CHANGED,
@@ -780,7 +781,15 @@ def owner_edit_user(user_id):
         data = request.form
         user.full_name = data.get('full_name', user.full_name).strip()
         user.email = data.get('email', user.email).strip()
-        user.role = data.get('role', user.role).strip()
+        new_role = data.get('role', '').strip()
+        if new_role and new_role != user.role:
+            if not actor_may_assign_role(current_user.role, new_role):
+                flash('غير مصرح بتعيين هذا الدور', 'error')
+                return redirect(url_for('owner.owner_users'))
+            if not is_assignable_role(new_role):
+                flash('الدور المحدد غير صالح', 'error')
+                return redirect(url_for('owner.owner_users'))
+            user.role = new_role
         user.is_active = data.get('is_active') == '1'
         user.is_admin = data.get('is_admin') == '1'
         new_tenant_id = data.get('tenant_id', type=int)

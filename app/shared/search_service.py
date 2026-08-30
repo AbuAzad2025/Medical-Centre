@@ -40,7 +40,9 @@ class SearchService:
         if hasattr(Patient, 'code'):
             filters.append(Patient.code.ilike(f'%{query}%'))
 
-        q = Patient.query
+        from utils.tenant_query import tenant_filter
+
+        q = tenant_filter(Patient)
         if parsed_date:
             q = q.filter(or_(*filters, Patient.birth_date == parsed_date))
         else:

@@ -539,7 +539,10 @@ def prescriptions():
         per_page = 20
 
         # Base query: prescriptions for this doctor's visits
-        query = select(Prescription).join(Visit).filter(Visit.doctor_id == current_user.id)
+        query = select(Prescription).join(Visit).filter(
+            Visit.doctor_id == current_user.id,
+            Prescription.tenant_id == g.tenant_id if hasattr(Prescription, 'tenant_id') and g.tenant_id else True,
+        )
 
         total = db.session.execute(select(func.count()).select_from(query.subquery())).scalar()
         prescriptions = (

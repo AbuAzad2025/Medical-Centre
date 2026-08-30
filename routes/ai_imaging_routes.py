@@ -12,13 +12,14 @@ from sqlalchemy import select
 from app.extensions import db
 from models import AIImagingAnalysis, DICOMStudy
 from utils.db_safety import safe_commit
-from utils.decorators import handle_route_errors
+from utils.decorators import handle_route_errors, role_required
 
 ai_imaging_bp = Blueprint('ai_imaging', __name__)
 
 
 @ai_imaging_bp.route('/')
 @login_required
+@role_required('doctor', 'radiology', 'admin', 'manager')
 @handle_route_errors
 def index():
     analyses = (
@@ -33,6 +34,7 @@ def index():
 
 @ai_imaging_bp.route('/request', methods=['POST'])
 @login_required
+@role_required('doctor', 'radiology', 'admin', 'manager')
 @handle_route_errors
 def request_analysis():
     study_id = request.form.get('study_id', type=int)
@@ -64,6 +66,7 @@ def request_analysis():
 
 @ai_imaging_bp.route('/<int:ai_id>/review', methods=['POST'])
 @login_required
+@role_required('doctor', 'radiology', 'admin', 'manager')
 @handle_route_errors
 def review(ai_id):
     ai = db.get_or_404(AIImagingAnalysis, ai_id)

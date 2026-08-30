@@ -6,7 +6,7 @@ import logging
 import secrets
 from datetime import UTC, datetime
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, g, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
 
@@ -23,6 +23,7 @@ VIEW_ROLES = ('super_admin', 'admin', 'manager', 'reception', 'doctor')
 
 @telemedicine_bp.route('/')
 @login_required
+@role_required('admin', 'manager', 'super_admin', 'doctor', 'reception')
 def index():
     try:
         status = request.args.get('status', '')
@@ -73,7 +74,9 @@ def new_appointment():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إنشاء الموعد عن بعد بنجاح', 'success')
             return redirect(url_for('telemedicine.index'))
-        patients = db.session.execute(select(Patient).limit(100)).scalars().all()
+        patients = db.session.execute(select(Patient).filter(
+            Patient.tenant_id == g.tenant_id if hasattr(Patient, 'tenant_id') and g.tenant_id else True
+        ).limit(100)).scalars().all()
         doctors = db.session.execute(select(User).filter_by(is_active=True)).scalars().all()
         return render_template('telemedicine/new.html', patients=patients, doctors=doctors)
     except Exception:
@@ -85,6 +88,7 @@ def new_appointment():
 
 @telemedicine_bp.route('/<int:tm_id>')
 @login_required
+@role_required('admin', 'manager', 'super_admin', 'doctor', 'reception')
 def view_appointment(tm_id):
     try:
         tm = db.get_or_404(TelemedicineAppointment, tm_id)

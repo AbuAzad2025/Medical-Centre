@@ -24,8 +24,11 @@ def patient_care():
     """رعاية المرضى"""
 
     try:
+        from flask_login import current_user
         patients = (
-            db.session.execute(select(Patient).order_by(desc(Patient.created_at)).limit(20))
+            db.session.execute(select(Patient).filter(
+                Patient.tenant_id == current_user.tenant_id if hasattr(Patient, 'tenant_id') and current_user.tenant_id else True
+            ).order_by(desc(Patient.created_at)).limit(20))
             .scalars()
             .all()
         )
@@ -44,8 +47,11 @@ def patient_monitoring():
     """مراقبة المرضى"""
 
     try:
+        from flask_login import current_user
         patients = (
-            db.session.execute(select(Patient).order_by(desc(Patient.created_at)).limit(20))
+            db.session.execute(select(Patient).filter(
+                Patient.tenant_id == current_user.tenant_id if hasattr(Patient, 'tenant_id') and current_user.tenant_id else True
+            ).order_by(desc(Patient.created_at)).limit(20))
             .scalars()
             .all()
         )

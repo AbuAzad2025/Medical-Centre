@@ -32,6 +32,8 @@ def patient_queue():
     per_page = 25
 
     try:
+        from flask import g
+        tenant_id = getattr(g, 'tenant_id', None)
         # جلب الحالات الطارئة مع تفاصيل إضافية
         case(
             (EmergencyCase.severity == 'CRITICAL', 4),
@@ -51,6 +53,8 @@ def patient_queue():
                 ]
             )
         )
+        if tenant_id is not None and hasattr(EmergencyCase, 'tenant_id'):
+            query = query.filter(EmergencyCase.tenant_id == tenant_id)
 
         total = db.session.execute(select(func.count()).select_from(query.subquery())).scalar() or 0
         pages = (total + per_page - 1) // per_page
@@ -114,13 +118,19 @@ def triage(emergency_id):
     """تقييم حالة المريض (Triage)"""
 
     try:
+        from flask import g
+
         emergency = emergency_service.get_case(emergency_id)
         if not emergency:
             flash('حالة الطوارئ غير موجودة', 'error')
             return redirect(url_for('emergency.patient_queue'))
 
+        tenant_id = getattr(g, 'tenant_id', None)
+
         visit = emergency.visit or (
-            db.session.execute(select(Visit).filter_by(id=emergency.visit_id)).scalars().first()
+            db.session.execute(
+                select(Visit).filter_by(id=emergency.visit_id).filter(Visit.tenant_id == tenant_id if hasattr(Visit, 'tenant_id') and tenant_id else True)
+            ).scalars().first()
             if emergency.visit_id
             else None
         )

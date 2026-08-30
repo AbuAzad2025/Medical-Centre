@@ -25,6 +25,9 @@ from utils.decorators import role_required_json
 @role_required_json('emergency', 'admin', 'manager')
 def api_ems_intake():
     try:
+        from flask import g
+        tenant_id = getattr(g, 'tenant_id', None)
+
         data = request.get_json(silent=True) or {}
         name = (data.get('patient_name') or '').strip()
         phone = (data.get('phone') or '').strip()
@@ -37,7 +40,10 @@ def api_ems_intake():
         last_name = ' '.join(parts[1:]) if len(parts) > 1 else '-'
         patient = None
         if phone:
-            patient = db.session.execute(select(Patient).filter_by(phone=phone)).scalars().first()
+            patient_query = select(Patient).filter_by(phone=phone)
+            if tenant_id is not None and hasattr(Patient, 'tenant_id'):
+                patient_query = patient_query.filter(Patient.tenant_id == tenant_id)
+            patient = db.session.execute(patient_query).scalars().first()
         if not patient:
             patient = Patient(first_name=first_name, last_name=last_name, phone=phone or None)
             db.session.add(patient)

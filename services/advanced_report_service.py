@@ -27,13 +27,18 @@ class AdvancedReportService:
     def generate_patient_analytics(start_date=None, end_date=None, department_id=None):
         """تحليل بيانات المرضى"""
         try:
+            from flask import g
+
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)
             if not end_date:
                 end_date = datetime.now()
 
-            # إحصائيات المرضى
+            # إحصائيات المرضى - tenant filtered
+            tenant_id = getattr(g, 'tenant_id', None)
             patients_query = select(Patient)
+            if tenant_id is not None and hasattr(Patient, 'tenant_id'):
+                patients_query = patients_query.filter(Patient.tenant_id == tenant_id)
 
             if department_id:
                 patients_query = patients_query.join(Visit).filter(
@@ -69,17 +74,16 @@ class AdvancedReportService:
 
             active_count = 0
             for p in patients:
-                vcnt = db.session.execute(
-                    select(func.count())
-                    .select_from(Visit)
-                    .filter(
-                        and_(
-                            Visit.patient_id == p.id,
-                            Visit.visit_date >= start_date.date(),
-                            Visit.visit_date <= end_date.date(),
-                        )
+                vcnt_query = select(func.count()).select_from(Visit).filter(
+                    and_(
+                        Visit.patient_id == p.id,
+                        Visit.visit_date >= start_date.date(),
+                        Visit.visit_date <= end_date.date(),
                     )
-                ).scalar()
+                )
+                if tenant_id is not None and hasattr(Visit, 'tenant_id'):
+                    vcnt_query = vcnt_query.filter(Visit.tenant_id == tenant_id)
+                vcnt = db.session.execute(vcnt_query).scalar()
                 if vcnt > 0:
                     active_count += 1
             status_stats = {
@@ -107,13 +111,18 @@ class AdvancedReportService:
     def generate_visit_analytics(start_date=None, end_date=None, department_id=None):
         """تحليل بيانات الزيارات"""
         try:
+            from flask import g
+
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)
             if not end_date:
                 end_date = datetime.now()
 
-            # إحصائيات الزيارات
+            # إحصائيات الزيارات - tenant filtered
+            tenant_id = getattr(g, 'tenant_id', None)
             visits_query = select(Visit)
+            if tenant_id is not None and hasattr(Visit, 'tenant_id'):
+                visits_query = visits_query.filter(Visit.tenant_id == tenant_id)
 
             if department_id:
                 visits_query = visits_query.filter(Visit.department_id == department_id)
@@ -199,13 +208,18 @@ class AdvancedReportService:
     def generate_financial_analytics(start_date=None, end_date=None, department_id=None):
         """تحليل البيانات المالية"""
         try:
+            from flask import g
+
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)
             if not end_date:
                 end_date = datetime.now()
 
-            # إحصائيات المدفوعات
+            # إحصائيات المدفوعات - tenant filtered
+            tenant_id = getattr(g, 'tenant_id', None)
             payments_query = select(Payment)
+            if tenant_id is not None and hasattr(Payment, 'tenant_id'):
+                payments_query = payments_query.filter(Payment.tenant_id == tenant_id)
 
             if department_id:
                 payments_query = payments_query.join(Visit).filter(
@@ -248,25 +262,28 @@ class AdvancedReportService:
                 )
                 payment_method_stats[method] = {'count': count, 'amount': float(amount)}
 
-            # حسب اليوم
+            # حسب اليوم - tenant filtered
             daily_revenue = {}
             for i in range((end_date - start_date).days + 1):
                 date = start_date + timedelta(days=i)
+                daily_query = select(func.coalesce(func.sum(Payment.amount), 0)).filter(
+                    and_(
+                        Payment.payment_date >= date,
+                        Payment.payment_date < date + timedelta(days=1),
+                    )
+                )
+                if tenant_id is not None and hasattr(Payment, 'tenant_id'):
+                    daily_query = daily_query.filter(Payment.tenant_id == tenant_id)
                 amount = (
-                    db.session.execute(
-                        select(func.coalesce(func.sum(Payment.amount), 0)).filter(
-                            and_(
-                                Payment.payment_date >= date,
-                                Payment.payment_date < date + timedelta(days=1),
-                            )
-                        )
-                    ).scalar()
+                    db.session.execute(daily_query).scalar()
                     or 0
                 )
                 daily_revenue[date.strftime('%Y-%m-%d')] = amount
 
-            # إحصائيات الفواتير
+            # إحصائيات الفواتير - tenant filtered
             invoices_query = select(Invoice)
+            if tenant_id is not None and hasattr(Invoice, 'tenant_id'):
+                invoices_query = invoices_query.filter(Invoice.tenant_id == tenant_id)
 
             if department_id:
                 invoices_query = invoices_query.join(InvoiceService).filter(
@@ -333,13 +350,18 @@ class AdvancedReportService:
     def generate_doctor_performance_analytics(start_date=None, end_date=None, doctor_id=None):
         """تحليل أداء الأطباء"""
         try:
+            from flask import g
+
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)
             if not end_date:
                 end_date = datetime.now()
 
-            # إحصائيات الأطباء
+            tenant_id = getattr(g, 'tenant_id', None)
+
             doctors_query = select(User)
+            if tenant_id is not None and hasattr(User, 'tenant_id'):
+                doctors_query = doctors_query.filter(User.tenant_id == tenant_id)
 
             if doctor_id:
                 doctors_query = doctors_query.filter(User.id == doctor_id)
@@ -348,35 +370,27 @@ class AdvancedReportService:
             doctor_performance = []
 
             for doctor in doctors:
-                # زيارات الطبيب
-                visits = (
-                    db.session.execute(
-                        select(Visit).filter(
-                            and_(
-                                Visit.doctor_id == doctor.id,
-                                Visit.visit_date >= start_date.date(),
-                                Visit.visit_date <= end_date.date(),
-                            )
-                        )
+                visits_query = select(Visit).filter(
+                    and_(
+                        Visit.doctor_id == doctor.id,
+                        Visit.visit_date >= start_date.date(),
+                        Visit.visit_date <= end_date.date(),
                     )
-                    .scalars()
-                    .all()
                 )
+                if tenant_id is not None and hasattr(Visit, 'tenant_id'):
+                    visits_query = visits_query.filter(Visit.tenant_id == tenant_id)
+                visits = db.session.execute(visits_query).scalars().all()
 
-                # مواعيد الطبيب
-                appointments = (
-                    db.session.execute(
-                        select(Appointment).filter(
-                            and_(
-                                Appointment.doctor_id == doctor.id,
-                                func.date(Appointment.starts_at) >= start_date.date(),
-                                func.date(Appointment.starts_at) <= end_date.date(),
-                            )
-                        )
+                appointments_query = select(Appointment).filter(
+                    and_(
+                        Appointment.doctor_id == doctor.id,
+                        func.date(Appointment.starts_at) >= start_date.date(),
+                        func.date(Appointment.starts_at) <= end_date.date(),
                     )
-                    .scalars()
-                    .all()
                 )
+                if tenant_id is not None and hasattr(Appointment, 'tenant_id'):
+                    appointments_query = appointments_query.filter(Appointment.tenant_id == tenant_id)
+                appointments = db.session.execute(appointments_query).scalars().all()
 
                 # الإحصائيات
                 total_visits = len(visits)
@@ -435,12 +449,15 @@ class AdvancedReportService:
     def generate_department_analytics(start_date=None, end_date=None, department_id=None):
         """تحليل بيانات الأقسام"""
         try:
+            from flask import g
+
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)
             if not end_date:
                 end_date = datetime.now()
 
-            # إحصائيات الأقسام
+            tenant_id = getattr(g, 'tenant_id', None)
+
             departments_query = Department.query
 
             if department_id:
@@ -450,35 +467,27 @@ class AdvancedReportService:
             department_analytics = []
 
             for department in departments:
-                # زيارات القسم
-                visits = (
-                    db.session.execute(
-                        select(Visit).filter(
-                            and_(
-                                Visit.department_id == department.id,
-                                Visit.visit_date >= start_date.date(),
-                                Visit.visit_date <= end_date.date(),
-                            )
-                        )
+                visits_query = select(Visit).filter(
+                    and_(
+                        Visit.department_id == department.id,
+                        Visit.visit_date >= start_date.date(),
+                        Visit.visit_date <= end_date.date(),
                     )
-                    .scalars()
-                    .all()
                 )
+                if tenant_id is not None and hasattr(Visit, 'tenant_id'):
+                    visits_query = visits_query.filter(Visit.tenant_id == tenant_id)
+                visits = db.session.execute(visits_query).scalars().all()
 
-                # مواعيد القسم
-                appointments = (
-                    db.session.execute(
-                        select(Appointment).filter(
-                            and_(
-                                Appointment.department_id == department.id,
-                                func.date(Appointment.starts_at) >= start_date.date(),
-                                func.date(Appointment.starts_at) <= end_date.date(),
-                            )
-                        )
+                appointments_query = select(Appointment).filter(
+                    and_(
+                        Appointment.department_id == department.id,
+                        func.date(Appointment.starts_at) >= start_date.date(),
+                        func.date(Appointment.starts_at) <= end_date.date(),
                     )
-                    .scalars()
-                    .all()
                 )
+                if tenant_id is not None and hasattr(Appointment, 'tenant_id'):
+                    appointments_query = appointments_query.filter(Appointment.tenant_id == tenant_id)
+                appointments = db.session.execute(appointments_query).scalars().all()
 
                 # الإحصائيات
                 total_visits = len(visits)
@@ -532,13 +541,18 @@ class AdvancedReportService:
     def generate_system_usage_analytics(start_date=None, end_date=None):
         """تحليل استخدام النظام"""
         try:
+            from flask import g
+
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)
             if not end_date:
                 end_date = datetime.now()
 
-            # إحصائيات المستخدمين
+            tenant_id = getattr(g, 'tenant_id', None)
+
             users_query = select(User)
+            if tenant_id is not None and hasattr(User, 'tenant_id'):
+                users_query = users_query.filter(User.tenant_id == tenant_id)
 
             total_users = (
                 db.session.execute(
@@ -553,7 +567,6 @@ class AdvancedReportService:
                 or 0
             )
 
-            # حسب الدور
             role_stats = {}
             for role in [
                 'admin',
@@ -576,51 +589,46 @@ class AdvancedReportService:
                 )
                 role_stats[role] = count
 
-            # إحصائيات السجلات
-            audit_trails = db.session.execute(
-                select(func.count())
-                .select_from(AuditTrail)
-                .filter(
-                    and_(AuditTrail.created_at >= start_date, AuditTrail.created_at <= end_date)
+            audit_trails_query = select(func.count()).select_from(AuditTrail).filter(
+                and_(AuditTrail.created_at >= start_date, AuditTrail.created_at <= end_date)
+            )
+            if tenant_id is not None and hasattr(AuditTrail, 'tenant_id'):
+                audit_trails_query = audit_trails_query.filter(AuditTrail.tenant_id == tenant_id)
+            audit_trails = db.session.execute(audit_trails_query).scalar()
+
+            system_logs_query = select(func.count()).select_from(SystemLog).filter(
+                and_(SystemLog.created_at >= start_date, SystemLog.created_at <= end_date)
+            )
+            if tenant_id is not None and hasattr(SystemLog, 'tenant_id'):
+                system_logs_query = system_logs_query.filter(SystemLog.tenant_id == tenant_id)
+            system_logs = db.session.execute(system_logs_query).scalar()
+
+            security_events_query = select(func.count()).select_from(SecurityEvent).filter(
+                and_(
+                    SecurityEvent.created_at >= start_date, SecurityEvent.created_at <= end_date
                 )
-            ).scalar()
+            )
+            if tenant_id is not None and hasattr(SecurityEvent, 'tenant_id'):
+                security_events_query = security_events_query.filter(SecurityEvent.tenant_id == tenant_id)
+            security_events = db.session.execute(security_events_query).scalar()
 
-            system_logs = db.session.execute(
-                select(func.count())
-                .select_from(SystemLog)
-                .filter(and_(SystemLog.created_at >= start_date, SystemLog.created_at <= end_date))
-            ).scalar()
+            notifications_query = select(func.count()).select_from(SystemLog).filter(
+                and_(SystemLog.created_at >= start_date, SystemLog.created_at <= end_date)
+            )
+            if tenant_id is not None and hasattr(SystemLog, 'tenant_id'):
+                notifications_query = notifications_query.filter(SystemLog.tenant_id == tenant_id)
+            notifications = db.session.execute(notifications_query).scalar()
 
-            security_events = db.session.execute(
-                select(func.count())
-                .select_from(SecurityEvent)
-                .filter(
-                    and_(
-                        SecurityEvent.created_at >= start_date, SecurityEvent.created_at <= end_date
-                    )
+            unread_notifications_query = select(func.count()).select_from(SystemLog).filter(
+                and_(
+                    SystemLog.created_at >= start_date,
+                    SystemLog.created_at <= end_date,
+                    SystemLog.log_level.in_(['INFO', 'WARNING']),
                 )
-            ).scalar()
-
-            # إحصائيات الإشعارات
-            # لا يوجد نموذج Notification؛ نستخدم SystemLog كبديل للإشعارات
-            notifications = db.session.execute(
-                select(func.count())
-                .select_from(SystemLog)
-                .filter(and_(SystemLog.created_at >= start_date, SystemLog.created_at <= end_date))
-            ).scalar()
-
-            # نفترض أن unread = الأحداث من المستوى 'info' خلال الفترة
-            unread_notifications = db.session.execute(
-                select(func.count())
-                .select_from(SystemLog)
-                .filter(
-                    and_(
-                        SystemLog.created_at >= start_date,
-                        SystemLog.created_at <= end_date,
-                        SystemLog.log_level.in_(['INFO', 'WARNING']),
-                    )
-                )
-            ).scalar()
+            )
+            if tenant_id is not None and hasattr(SystemLog, 'tenant_id'):
+                unread_notifications_query = unread_notifications_query.filter(SystemLog.tenant_id == tenant_id)
+            unread_notifications = db.session.execute(unread_notifications_query).scalar()
 
             return {
                 'success': True,

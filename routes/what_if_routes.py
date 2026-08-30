@@ -9,13 +9,14 @@ from sqlalchemy import select
 from app.extensions import db
 from models import Department, WhatIfScenario
 from utils.db_safety import safe_commit
-from utils.decorators import handle_route_errors, manager_or_admin_only
+from utils.decorators import handle_route_errors, role_required
 
 what_if_bp = Blueprint('what_if', __name__)
 
 
 @what_if_bp.route('/')
 @login_required
+@role_required('admin', 'manager', 'super_admin')
 @handle_route_errors
 def index():
     scenarios = (
@@ -28,7 +29,7 @@ def index():
 
 @what_if_bp.route('/new', methods=['GET', 'POST'])
 @login_required
-@manager_or_admin_only
+@role_required('admin', 'manager', 'super_admin')
 @handle_route_errors
 def new_scenario():
     if request.method == 'POST':
@@ -57,6 +58,7 @@ def new_scenario():
 
 @what_if_bp.route('/<int:scenario_id>')
 @login_required
+@role_required('admin', 'manager', 'super_admin')
 @handle_route_errors
 def view_scenario(scenario_id):
     scenario = db.get_or_404(WhatIfScenario, scenario_id)

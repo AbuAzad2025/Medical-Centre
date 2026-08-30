@@ -44,19 +44,19 @@
     {% endif %}
 
     {% if stats.pending_labs is defined %}
-    {{ stat_card('فحوصات معلقة', stats.pending_labs, 'fa-flask', '#8b5cf6', '#8b5cf6', '#') }}
+    {{ stat_card('فحوصات معلقة', stats.pending_labs, 'fa-flask', '#0ea5e9', '#0ea5e9', '#') }}
     {% endif %}
 
     {% if stats.active_prescriptions is defined %}
-    {{ stat_card('وصفات نشطة', stats.active_prescriptions, 'fa-prescription', '#ec4899', '#ec4899', '#') }}
+    {{ stat_card('وصفات نشطة', stats.active_prescriptions, 'fa-prescription', '#2563eb', '#2563eb', '#') }}
     {% endif %}
 
     {% if stats.monthly_revenue is defined %}
-    {{ stat_card('إيرادات الشهر', stats.monthly_revenue, 'fa-coins', '#f59e0b', '#f59e0b', '#') }}
+    {{ stat_card('إيرادات الشهر', stats.monthly_revenue, 'fa-coins', '#10b981', '#10b981', '#') }}
     {% endif %}
 
     {% if stats.bed_occupancy is defined %}
-    {{ stat_card('إشغال الأسرة', stats.bed_occupancy, 'fa-bed', '#6366f1', '#6366f1', '#') }}
+    {{ stat_card('إشغال الأسرة', stats.bed_occupancy, 'fa-bed', '#0ea5e9', '#0ea5e9', '#') }}
     {% endif %}
 </div>
 

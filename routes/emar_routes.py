@@ -4,7 +4,7 @@ eMAR — Electronic Medication Administration Record Routes
 
 from datetime import date
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
 
@@ -14,6 +14,7 @@ from models.emar import eMARAdministration
 from models.patient import Patient
 from services.nursing_service import NursingService
 from utils.decorators import handle_route_errors, role_required
+from utils.tenant_query import TenantContextError, get_tenant_record
 
 emar_bp = Blueprint('emar', __name__)
 
@@ -46,10 +47,13 @@ def dashboard():
 
 @emar_bp.route('/patient/<int:patient_id>')
 @login_required
-@role_required('nurse', 'doctor', 'admin')
+@role_required('nurse', 'doctor', 'admin', 'manager')
 @handle_route_errors
 def patient_mar(patient_id):
-    patient = db.get_or_404(Patient, patient_id)
+    try:
+        patient = get_tenant_record(Patient, patient_id)
+    except TenantContextError:
+        abort(404)
     administrations = (
         db.session.execute(
             select(eMARAdministration)
@@ -67,9 +71,14 @@ def patient_mar(patient_id):
 
 @emar_bp.route('/administer/<int:admin_id>', methods=['POST'])
 @login_required
-@role_required('nurse', 'admin')
+@role_required('nurse', 'doctor', 'admin', 'manager')
 @handle_route_errors
 def administer(admin_id):
+    admin_record = db.get_or_404(eMARAdministration, admin_id)
+    try:
+        get_tenant_record(Patient, admin_record.patient_id)
+    except TenantContextError:
+        abort(404)
     result = NursingService.record_emar_administration(
         admin_id,
         current_user.id,
