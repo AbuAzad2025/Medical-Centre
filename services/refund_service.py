@@ -208,6 +208,7 @@ class RefundService:
                         select(Invoice)
                         .filter_by(visit_id=payment.visit_id)
                         .order_by(Invoice.created_at.desc())
+                        .with_for_update()
                     )
                     .scalars()
                     .all()
@@ -220,9 +221,8 @@ class RefundService:
                         Decimal('0.01'), rounding=ROUND_HALF_UP
                     )
                     reversal = min(current_paid, remaining)
-                    inv.paid_amount = (current_paid - reversal).quantize(
-                        Decimal('0.01'), rounding=ROUND_HALF_UP
-                    )
+                    new_paid = current_paid - reversal
+                    inv.paid_amount = float(new_paid)
                     remaining -= reversal
                     paid_dec = Decimal(str(inv.paid_amount or 0)).quantize(
                         Decimal('0.01'), rounding=ROUND_HALF_UP

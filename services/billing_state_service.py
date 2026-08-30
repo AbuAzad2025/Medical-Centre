@@ -118,22 +118,31 @@ class PaymentAllocationService:
         P3-002: This method intentionally does NOT commit; it is the caller's
         responsibility to commit inside the same transaction boundary as the
         payment creation.
+
+        FIX: Uses SELECT FOR UPDATE to prevent race conditions in concurrent payments.
         """
         from models.invoice import Invoice
 
         invoices = (
             db.session.execute(
-                select(Invoice).filter_by(visit_id=visit.id).order_by(Invoice.created_at.asc())
+                select(Invoice)
+                .filter_by(visit_id=visit.id)
+                .order_by(Invoice.created_at.asc())
+                .with_for_update()
             )
             .scalars()
             .all()
         )
         remaining = Decimal(str(payment.amount))
+        allocated = Decimal(0)
         for inv in invoices:
             due = Decimal(str(inv.total_amount or 0)) - Decimal(str(inv.paid_amount or 0))
             if due > 0:
                 alloc = min(remaining, due)
-                inv.paid_amount = float(Decimal(str(inv.paid_amount or 0)) + alloc)
+                new_paid = Decimal(str(inv.paid_amount or 0)) + alloc
+                inv.paid_amount = float(new_paid)
                 remaining -= alloc
+                allocated += alloc
                 if remaining <= 0:
                     break
+        return float(allocated)

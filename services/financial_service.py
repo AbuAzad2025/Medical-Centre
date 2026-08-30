@@ -84,7 +84,10 @@ class FinancialService:
 
             invoices = (
                 db.session.execute(
-                    select(Invoice).filter_by(visit_id=visit.id).order_by(Invoice.created_at.asc())
+                    select(Invoice)
+                    .filter_by(visit_id=visit.id)
+                    .order_by(Invoice.created_at.asc())
+                    .with_for_update()
                 )
                 .scalars()
                 .all()

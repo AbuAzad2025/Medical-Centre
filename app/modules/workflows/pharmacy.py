@@ -23,14 +23,23 @@ class PharmacyStockService:
         batch_number: str | None = None,
         expiry_date: str | None = None,
     ) -> None:
+        from sqlalchemy import select
+
         from app.modules.workflows.stock_models import StockMovement
         from models.medication import Medication
 
-        med = db.session.get(Medication, medication_id)
+        med = (
+            db.session.execute(
+                select(Medication).filter(Medication.id == medication_id).with_for_update()
+            )
+            .scalars()
+            .first()
+        )
         if not med:
             raise ValueError('Medication not found')
 
-        # Prevent negative stock unless it's an adjustment/correction
+        before_quantity = med.stock_quantity
+
         if quantity_change < 0 and movement_type not in (
             StockMovementType.ADJUSTMENT,
             StockMovementType.EXPIRED,
@@ -45,7 +54,7 @@ class PharmacyStockService:
             medication_id=medication_id,
             movement_type=movement_type,
             quantity=quantity_change,
-            before_quantity=med.stock_quantity - quantity_change,
+            before_quantity=before_quantity,
             after_quantity=med.stock_quantity,
             reference_type=reference_type,
             reference_id=reference_id,
