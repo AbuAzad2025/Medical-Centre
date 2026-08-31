@@ -126,10 +126,10 @@ def main() -> None:
 
         # ── Final ────────────────────────────────────────────────────────────
         _banner('PRODUCTION SETUP COMPLETE')
-        n_users = db.session.execute(text("SELECT COUNT(*) FROM users")).scalar()
-        n_tenants = db.session.execute(text("SELECT COUNT(*) FROM tenants")).scalar()
-        n_modules = db.session.execute(text("SELECT COUNT(*) FROM module_definitions")).scalar()
-        n_bundles = db.session.execute(text("SELECT COUNT(*) FROM product_bundles")).scalar()
+        n_users = db.session.execute(text('SELECT COUNT(*) FROM users')).scalar()
+        n_tenants = db.session.execute(text('SELECT COUNT(*) FROM tenants')).scalar()
+        n_modules = db.session.execute(text('SELECT COUNT(*) FROM module_definitions')).scalar()
+        n_bundles = db.session.execute(text('SELECT COUNT(*) FROM product_bundles')).scalar()
 
         print(f'  Users:          {n_users}')
         print(f'  Tenants:       {n_tenants}')

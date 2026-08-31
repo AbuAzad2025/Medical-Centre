@@ -112,11 +112,24 @@ def main() -> None:
             db.session.flush()
 
             settings = tenant.settings or {}
-            settings['modules'] = dict.fromkeys([
-                'reception', 'doctor', 'lab', 'radiology', 'pharmacy',
-                'emergency', 'nursing', 'billing', 'inventory', 'reporting',
-                'appointments', 'portal', 'inpatient',
-            ], True)
+            settings['modules'] = dict.fromkeys(
+                [
+                    'reception',
+                    'doctor',
+                    'lab',
+                    'radiology',
+                    'pharmacy',
+                    'emergency',
+                    'nursing',
+                    'billing',
+                    'inventory',
+                    'reporting',
+                    'appointments',
+                    'portal',
+                    'inpatient',
+                ],
+                True,
+            )
             tenant.settings = settings
             db.session.commit()
             print(f'  Created tenant: medical-center (id={tenant.id})')
@@ -125,16 +138,16 @@ def main() -> None:
         # ── 4. Staff Accounts ─────────────────────────────────────────────────
         _banner('4. Staff Accounts')
         staff = [
-            ('admin',       'super_admin',   'مدير النظام'),
-            ('reception',   'reception',     'موظف الاستقبال'),
-            ('dr_ahmad',    'doctor',         'د. أحمد محمد'),
-            ('dr_sara',     'doctor',         'د. سارة أحمد'),
-            ('nurse_fatima','nurse',          'الممرضة فاطمة'),
-            ('lab_tech',    'lab',            'فني المختبر'),
-            ('rad_tech',    'radiology',      'فني الأشعة'),
-            ('pharmacist',  'pharmacy',       'الصيدلي'),
-            ('accountant',  'accountant',     'المحاسب'),
-            ('manager',     'manager',        'مدير المركز'),
+            ('admin', 'super_admin', 'مدير النظام'),
+            ('reception', 'reception', 'موظف الاستقبال'),
+            ('dr_ahmad', 'doctor', 'د. أحمد محمد'),
+            ('dr_sara', 'doctor', 'د. سارة أحمد'),
+            ('nurse_fatima', 'nurse', 'الممرضة فاطمة'),
+            ('lab_tech', 'lab', 'فني المختبر'),
+            ('rad_tech', 'radiology', 'فني الأشعة'),
+            ('pharmacist', 'pharmacy', 'الصيدلي'),
+            ('accountant', 'accountant', 'المحاسب'),
+            ('manager', 'manager', 'مدير المركز'),
         ]
 
         user_ids = {}
@@ -168,16 +181,16 @@ def main() -> None:
         # ── 5. Departments ────────────────────────────────────────────────────
         _banner('5. Departments')
         depts_data = [
-            ('Emergency',     'الطوارئ',           user_ids.get('dr_ahmad')),
-            ('Internal Med',  'الباطنية',          user_ids.get('dr_sara')),
-            ('Pediatrics',    'الأطفال',           None),
-            ('Laboratory',    'المختبر',           user_ids.get('lab_tech')),
-            ('Radiology',     'الأشعة',            user_ids.get('rad_tech')),
-            ('Pharmacy',      'الصيدلية',           user_ids.get('pharmacist')),
-            ('Surgery',       'الجراحة',           None),
-            ('Cardiology',    'قلب',               None),
-            ('Orthopedics',   'عظام',              None),
-            ('Dermatology',   'جلدية',             None),
+            ('Emergency', 'الطوارئ', user_ids.get('dr_ahmad')),
+            ('Internal Med', 'الباطنية', user_ids.get('dr_sara')),
+            ('Pediatrics', 'الأطفال', None),
+            ('Laboratory', 'المختبر', user_ids.get('lab_tech')),
+            ('Radiology', 'الأشعة', user_ids.get('rad_tech')),
+            ('Pharmacy', 'الصيدلية', user_ids.get('pharmacist')),
+            ('Surgery', 'الجراحة', None),
+            ('Cardiology', 'قلب', None),
+            ('Orthopedics', 'عظام', None),
+            ('Dermatology', 'جلدية', None),
         ]
         dept_map = {}
         for name, name_ar, head_id in depts_data:
@@ -189,6 +202,7 @@ def main() -> None:
                 print(f'  Exists: {name}')
             else:
                 from models.department import Department
+
                 d = Department(
                     tenant_id=tid,
                     name=name,
@@ -205,16 +219,16 @@ def main() -> None:
         # ── 6. Sample Patients ─────────────────────────────────────────────────
         _banner('6. Sample Patients')
         patients_data = [
-            ('أحمد',    'محمد علي',      'M', '0501110001', '1990-03-15'),
-            ('فاطمة',   'عبدالله',       'F', '0501110002', '1985-07-22'),
-            ('محمد',    'أحمد',          'M', '0501110003', '1978-11-30'),
-            ('عائشة',   'محمود',          'F', '0501110004', '1995-04-10'),
-            ('عمر',     'خالد',           'M', '0501110005', '2000-09-05'),
-            ('مريم',    'حسن',            'F', '0501110006', '1988-12-18'),
-            ('يوسف',    'إبراهيم',        'M', '0501110007', '1975-06-25'),
-            ('نور',     'سعيد',           'F', '0501110008', '2010-02-14'),
-            ('خالد',    'سالم',           'M', '0501110009', '1992-01-20'),
-            ('سلمى',    'عمر',            'F', '0501110010', '1988-08-11'),
+            ('أحمد', 'محمد علي', 'M', '0501110001', '1990-03-15'),
+            ('فاطمة', 'عبدالله', 'F', '0501110002', '1985-07-22'),
+            ('محمد', 'أحمد', 'M', '0501110003', '1978-11-30'),
+            ('عائشة', 'محمود', 'F', '0501110004', '1995-04-10'),
+            ('عمر', 'خالد', 'M', '0501110005', '2000-09-05'),
+            ('مريم', 'حسن', 'F', '0501110006', '1988-12-18'),
+            ('يوسف', 'إبراهيم', 'M', '0501110007', '1975-06-25'),
+            ('نور', 'سعيد', 'F', '0501110008', '2010-02-14'),
+            ('خالد', 'سالم', 'M', '0501110009', '1992-01-20'),
+            ('سلمى', 'عمر', 'F', '0501110010', '1988-08-11'),
         ]
         for fn_ar, ln_ar, g, ph, bd in patients_data:
             existing = db.session.execute(
@@ -226,6 +240,7 @@ def main() -> None:
             import datetime
 
             from models.patient import Patient
+
             p = Patient(
                 tenant_id=tid,
                 first_name_ar=fn_ar,
@@ -243,16 +258,16 @@ def main() -> None:
         # ── 7. Medications ────────────────────────────────────────────────────
         _banner('7. Medications')
         meds_data = [
-            ('Paracetamol 500mg',   'Acetaminophen',  15.50, 500),
-            ('Amoxicillin 500mg',   'Amoxicillin',    25.00, 200),
-            ('Ibuprofen 400mg',     'Ibuprofen',       8.75, 300),
-            ('Azithromycin 250mg',  'Azithromycin',   45.00,  80),
-            ('Omeprazole 20mg',     'Omeprazole',     18.00, 150),
-            ('Metformin 850mg',     'Metformin',       6.00, 250),
-            ('Amlodipine 5mg',      'Amlodipine',     20.00, 180),
-            ('Atorvastatin 20mg',   'Atorvastatin',   35.00, 120),
-            ('Ciprofloxacin 500mg', 'Ciprofloxacin',  22.00, 160),
-            ('Omeprazole 40mg',     'Omeprazole',     25.00, 100),
+            ('Paracetamol 500mg', 'Acetaminophen', 15.50, 500),
+            ('Amoxicillin 500mg', 'Amoxicillin', 25.00, 200),
+            ('Ibuprofen 400mg', 'Ibuprofen', 8.75, 300),
+            ('Azithromycin 250mg', 'Azithromycin', 45.00, 80),
+            ('Omeprazole 20mg', 'Omeprazole', 18.00, 150),
+            ('Metformin 850mg', 'Metformin', 6.00, 250),
+            ('Amlodipine 5mg', 'Amlodipine', 20.00, 180),
+            ('Atorvastatin 20mg', 'Atorvastatin', 35.00, 120),
+            ('Ciprofloxacin 500mg', 'Ciprofloxacin', 22.00, 160),
+            ('Omeprazole 40mg', 'Omeprazole', 25.00, 100),
         ]
         for tn, sn, price, stock in meds_data:
             existing = db.session.execute(
@@ -262,26 +277,29 @@ def main() -> None:
                 print(f'  Exists: {tn}')
                 continue
             from models.medication import Medication
-            db.session.add(Medication(
-                tenant_id=tid,
-                trade_name=tn,
-                scientific_name=sn,
-                dosage_form='tablet',
-                strength=tn.split()[-1],
-                price=price,
-                stock_quantity=stock,
-                minimum_stock=30,
-                category='general',
-                is_active=True,
-            ))
+
+            db.session.add(
+                Medication(
+                    tenant_id=tid,
+                    trade_name=tn,
+                    scientific_name=sn,
+                    dosage_form='tablet',
+                    strength=tn.split()[-1],
+                    price=price,
+                    stock_quantity=stock,
+                    minimum_stock=30,
+                    category='general',
+                    is_active=True,
+                )
+            )
             print(f'  Created: {tn}')
         db.session.commit()
 
         # ── 8. Supplier ────────────────────────────────────────────────────────
         _banner('8. Suppliers')
         suppliers = [
-            ('شركة الأدوية المتحدة',     'أبو خالد',    '0481234567', 'supplier@united-pharma.local'),
-            ('شركة الخليج للأدوية',      'أبو أحمد',   '0487654321', 'info@gulf-pharma.local'),
+            ('شركة الأدوية المتحدة', 'أبو خالد', '0481234567', 'supplier@united-pharma.local'),
+            ('شركة الخليج للأدوية', 'أبو أحمد', '0487654321', 'info@gulf-pharma.local'),
         ]
         for name, contact, phone, email in suppliers:
             existing = db.session.execute(
@@ -291,14 +309,17 @@ def main() -> None:
                 print(f'  Exists: {name}')
                 continue
             from models.medication import Supplier
-            db.session.add(Supplier(
-                tenant_id=tid,
-                name=name,
-                contact_person=contact,
-                phone=phone,
-                email=email,
-                is_active=True,
-            ))
+
+            db.session.add(
+                Supplier(
+                    tenant_id=tid,
+                    name=name,
+                    contact_person=contact,
+                    phone=phone,
+                    email=email,
+                    is_active=True,
+                )
+            )
             print(f'  Created: {name}')
         db.session.commit()
 
@@ -309,6 +330,7 @@ def main() -> None:
             create_default_permissions,
             create_default_roles,
         )
+
         create_default_permissions()
         create_default_roles()
         assign_super_admin_permissions()
@@ -317,37 +339,67 @@ def main() -> None:
         from models.permissions import RolePermission as RPModel
 
         role_perm_map = {
-            'admin':     ['admin.access', 'user_read', 'system_settings'],
-            'reception': ['patient_create', 'patient_read', 'patient_update',
-                          'reception.manage', 'medical_records_read', 'queue_settings_manage'],
-            'doctor':    ['medical_records_create', 'medical_records_read',
-                          'medical_records_update', 'patient_read',
-                          'doctor.access', 'finance.view'],
-            'nurse':     ['patient_read', 'medical_records_read', 'medical_records_update'],
-            'lab':       ['reports_view', 'medical_records_read'],
+            'admin': ['admin.access', 'user_read', 'system_settings'],
+            'reception': [
+                'patient_create',
+                'patient_read',
+                'patient_update',
+                'reception.manage',
+                'medical_records_read',
+                'queue_settings_manage',
+            ],
+            'doctor': [
+                'medical_records_create',
+                'medical_records_read',
+                'medical_records_update',
+                'patient_read',
+                'doctor.access',
+                'finance.view',
+            ],
+            'nurse': ['patient_read', 'medical_records_read', 'medical_records_update'],
+            'lab': ['reports_view', 'medical_records_read'],
             'radiology': ['reports_view', 'medical_records_read'],
-            'pharmacy':  ['medical_records_read', 'reports_view', 'pharmacy.manage'],
-            'accountant':['financial_view', 'financial_manage', 'financial_reports',
-                          'financial_export', 'pricing_manage'],
-            'manager':   ['reports_view', 'reports_create', 'financial_reports',
-                          'financial_view', 'pricing_manage', 'patient_read',
-                          'patient_update', 'queue_settings_manage', 'finance.view'],
+            'pharmacy': ['medical_records_read', 'reports_view', 'pharmacy.manage'],
+            'accountant': [
+                'financial_view',
+                'financial_manage',
+                'financial_reports',
+                'financial_export',
+                'pricing_manage',
+            ],
+            'manager': [
+                'reports_view',
+                'reports_create',
+                'financial_reports',
+                'financial_view',
+                'pricing_manage',
+                'patient_read',
+                'patient_update',
+                'queue_settings_manage',
+                'finance.view',
+            ],
         }
 
         for role_name, perm_names in role_perm_map.items():
-            r = db.session.execute(
-                text(f"SELECT id FROM roles WHERE name = '{role_name}'")
-            ).scalars().first()
+            r = (
+                db.session.execute(text(f"SELECT id FROM roles WHERE name = '{role_name}'"))
+                .scalars()
+                .first()
+            )
             if not r:
                 continue
             for pname in perm_names:
-                pm = db.session.execute(
-                    text(f"SELECT id FROM permissions WHERE name = '{pname}'")
-                ).scalars().first()
+                pm = (
+                    db.session.execute(text(f"SELECT id FROM permissions WHERE name = '{pname}'"))
+                    .scalars()
+                    .first()
+                )
                 if not pm:
                     continue
                 exists = db.session.execute(
-                    text(f"SELECT 1 FROM role_permissions WHERE role_id = {r} AND permission_id = {pm}")
+                    text(
+                        f'SELECT 1 FROM role_permissions WHERE role_id = {r} AND permission_id = {pm}'
+                    )
                 ).fetchone()
                 if not exists:
                     db.session.add(RPModel(role_id=r, permission_id=pm))
@@ -360,7 +412,9 @@ def main() -> None:
         n = db.session.execute(text('SELECT COUNT(*) FROM tenants')).scalar()
         counts['tenants'] = n
         for table in ('users', 'departments', 'patients', 'medications', 'suppliers'):
-            n = db.session.execute(text(f'SELECT COUNT(*) FROM {table} WHERE tenant_id = {tid}')).scalar()
+            n = db.session.execute(
+                text(f'SELECT COUNT(*) FROM {table} WHERE tenant_id = {tid}')
+            ).scalar()
             counts[table] = n
 
         print(f'  Tenants:     {counts["tenants"]}')
