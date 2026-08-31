@@ -15,9 +15,8 @@ Passwords are FIXED for convenience in dev only:
     All staff:   DevPass123!
 """
 
-import sys
 import os
-from datetime import datetime
+import sys
 
 # Setup path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -44,8 +43,8 @@ def main() -> None:
     from app.core.tenant.models import Tenant
     from app.extensions import db
     from app.shared.enums import TenantStatus
-    from models.user import User
     from app_factory import create_app
+    from models.user import User
 
     app = create_app('testing')
 
@@ -73,7 +72,7 @@ def main() -> None:
             master.set_password(FIXED_MASTER_PASSWORD)
             master.role = 'platform_owner'
             master.is_active = True
-            print(f'  Updated existing azad account')
+            print('  Updated existing azad account')
         else:
             master = User(
                 username='azad',
@@ -85,11 +84,11 @@ def main() -> None:
             )
             master.set_password(FIXED_MASTER_PASSWORD)
             db.session.add(master)
-            print(f'  Created azad account')
+            print('  Created azad account')
         db.session.commit()
-        print(f'  Username: azad')
+        print('  Username: azad')
         print(f'  Password: {FIXED_MASTER_PASSWORD}')
-        print(f'  Role:     platform_owner')
+        print('  Role:     platform_owner')
 
         # ── 3. Demo Tenant ────────────────────────────────────────────────────
         _banner('3. Demo Tenant: medical-center')
@@ -224,8 +223,9 @@ def main() -> None:
             if existing:
                 print(f'  Exists: {fn_ar} {ln_ar}')
                 continue
-            from models.patient import Patient
             import datetime
+
+            from models.patient import Patient
             p = Patient(
                 tenant_id=tid,
                 first_name_ar=fn_ar,
@@ -314,8 +314,6 @@ def main() -> None:
         assign_super_admin_permissions()
         print('  Default permissions and roles seeded')
 
-        from models.permissions import Permission as PermModel
-        from models.permissions import Role as RoleModel
         from models.permissions import RolePermission as RPModel
 
         role_perm_map = {
@@ -373,8 +371,8 @@ def main() -> None:
         print(f'  Suppliers:   {counts["suppliers"]}')
         print(f'\n  Master login:  azad / {FIXED_MASTER_PASSWORD}')
         print(f'  Staff login:  reception / {FIXED_STAFF_PASSWORD}  (or any staff account)')
-        print(f'\n  App URL: http://127.0.0.1:5001/auth/login')
-        print(f'  DB: medical_system_test\n')
+        print('\n  App URL: http://127.0.0.1:5001/auth/login')
+        print('  DB: medical_system_test\n')
 
 
 if __name__ == '__main__':

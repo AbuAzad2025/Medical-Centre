@@ -19,8 +19,8 @@ The script prints the computed password and a QR-code-style
 reminder. Save it in a password manager immediately after running.
 """
 
-import sys
 import os
+import sys
 from datetime import datetime
 
 # Setup path
@@ -51,8 +51,8 @@ def main() -> None:
 
     from app.core.platform_bootstrap import run_platform_bootstrap
     from app.extensions import db
-    from models.user import User
     from app_factory import create_app
+    from models.user import User
 
     app = create_app('testing')
 
@@ -97,7 +97,7 @@ def main() -> None:
             master.role = 'platform_owner'
             master.is_active = True
             db.session.commit()
-            print(f'  Updated existing azad account')
+            print('  Updated existing azad account')
         else:
             master = User(
                 username='azad',
@@ -110,19 +110,19 @@ def main() -> None:
             master.set_password(master_password)
             db.session.add(master)
             db.session.commit()
-            print(f'  Created azad account')
+            print('  Created azad account')
 
-        print(f'\n  ┌─────────────────────────────────────────────────────────┐')
-        print(f'  │  MASTER CREDENTIALS — SAVE IMMEDIATELY                 │')
-        print(f'  │                                                         │')
-        print(f'  │  Username:  azad                                       │')
+        print('\n  ┌─────────────────────────────────────────────────────────┐')
+        print('  │  MASTER CREDENTIALS — SAVE IMMEDIATELY                 │')
+        print('  │                                                         │')
+        print('  │  Username:  azad                                       │')
         print(f'  │  Password:  {master_password}  │')
-        print(f'  │  Role:      platform_owner                             │')
+        print('  │  Role:      platform_owner                             │')
         print(f'  │  Tenant:    platform (id={master_tenant.id})                      │')
-        print(f'  │                                                         │')
-        print(f'  │  Note: Password changes DAILY at midnight.              │')
-        print(f'  │  Always use: Azad@Medical@<Today>@<MM>@<DD>             │')
-        print(f'  └─────────────────────────────────────────────────────────┘')
+        print('  │                                                         │')
+        print('  │  Note: Password changes DAILY at midnight.              │')
+        print('  │  Always use: Azad@Medical@<Today>@<MM>@<DD>             │')
+        print('  └─────────────────────────────────────────────────────────┘')
 
         # ── Final ────────────────────────────────────────────────────────────
         _banner('PRODUCTION SETUP COMPLETE')
@@ -135,9 +135,9 @@ def main() -> None:
         print(f'  Tenants:       {n_tenants}')
         print(f'  Modules:       {n_modules}')
         print(f'  Bundles:      {n_bundles}')
-        print(f'\n  Next step: Create your first tenant via the UI or API.')
-        print(f'  Login at: http://127.0.0.1:5001/auth/login')
-        print(f'  Use the owner dashboard to add tenants and bundles.\n')
+        print('\n  Next step: Create your first tenant via the UI or API.')
+        print('  Login at: http://127.0.0.1:5001/auth/login')
+        print('  Use the owner dashboard to add tenants and bundles.\n')
 
 
 if __name__ == '__main__':
