@@ -64,7 +64,7 @@ def can_activate_module(
         return (
             False,
             f"Module '{module_name}' is not included in the tenant's bundle. "
-            f"Allowed modules: {', '.join(allowed)}.",
+            f'Allowed modules: {", ".join(allowed)}.',
         )
 
     return True, None

@@ -11,11 +11,11 @@ from flask import abort
 from sqlalchemy import func, select
 
 from app.extensions import db
+from app.shared.user_role_policy import normalize_role
 from models.patient import Patient
 from models.payment import Payment
 from models.user import User
 from models.visit import Visit
-from app.shared.user_role_policy import normalize_role
 from utils.tenant_query import TenantContextError, get_tenant_record
 
 

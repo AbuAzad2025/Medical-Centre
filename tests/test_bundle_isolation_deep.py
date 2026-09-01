@@ -1,13 +1,15 @@
 """Deep bundle isolation audit — tests actual workflow operations in isolated bundles."""
 
-import pytest
-from sqlalchemy import select, func
 from datetime import UTC, datetime
-from app.extensions import db
-from app.core.tenant.models import Tenant, ProductBundle, seed_default_bundles
+
+import pytest
+from sqlalchemy import func, select
+
 from app.core.module.models import TenantModule
+from app.core.tenant.models import ProductBundle, Tenant, seed_default_bundles
+from app.extensions import db
 from app.shared.enums import TenantStatus
-from tests.tenant_context import tenant_test_context, ensure_test_user
+from tests.tenant_context import ensure_test_user, tenant_test_context
 
 
 def _tenant_with_bundle(bundle_slug, app):
@@ -38,12 +40,15 @@ class TestPharmacyOnlyWorkflows:
         with tenant_test_context(app, t):
             u = ensure_test_user(db, t, username='pharm_op', role='pharmacist')
             from services.pharmacy_sale_service import PharmacySaleService
+
             # PharmacySaleService.create_sale requires a prescription_id, not raw items
             # This is already a sign of coupling: POS requires prescription module
             result = PharmacySaleService.create_sale(
                 prescription_id=999999,  # fake ID to test the call path
                 dispensed_by=u.id,
-                items=[{'medication_id': None, 'quantity': 1, 'price': 10.0, 'name': 'Paracetamol'}],
+                items=[
+                    {'medication_id': None, 'quantity': 1, 'price': 10.0, 'name': 'Paracetamol'}
+                ],
                 tenant_id=t.id,
             )
             # It will fail because prescription_id doesn't exist, but we verify it didn't crash
@@ -54,14 +59,17 @@ class TestPharmacyOnlyWorkflows:
         """Pharmacy-only tenant: prescription creation is blocked because doctor module is not active."""
         t = _tenant_with_bundle('standalone_pharmacy', app)
         with tenant_test_context(app, t):
-            from services.prescription_service import PrescriptionService
             from services.feature_gate_service import ModuleNotEnabledError
+            from services.prescription_service import PrescriptionService
+
             p = ensure_test_user(db, t, username='pat_pharm', role='patient')
             with pytest.raises(ModuleNotEnabledError) as exc_info:
                 PrescriptionService.create_prescription(
                     patient_id=p.id,
                     doctor_id=None,
-                    items=[{'medication_id': None, 'quantity': 1, 'dosage': '1', 'duration_days': 1}],
+                    items=[
+                        {'medication_id': None, 'quantity': 1, 'dosage': '1', 'duration_days': 1}
+                    ],
                 )
             assert 'doctor' in str(exc_info.value)
 
@@ -72,12 +80,13 @@ class TestLabOnlyWorkflows:
         t = _tenant_with_bundle('standalone_lab', app)
         with tenant_test_context(app, t):
             u = ensure_test_user(db, t, username='labtech_op', role='lab')
-            p = ensure_test_user(db, t, username='pat_lab', role='patient')
+            ensure_test_user(db, t, username='pat_lab', role='patient')
             from services.lab_service import lab_service
+
             # LabService.create_request signature: visit_id, test_ids, requested_by, ...
             # This proves lab is NOT standalone; it requires a visit (reception/doctor module)
             try:
-                ok, req = lab_service.create_request(
+                _ok, _req = lab_service.create_request(
                     visit_id=999999,
                     test_ids=[],
                     requested_by=u.id,
@@ -85,7 +94,7 @@ class TestLabOnlyWorkflows:
                 )
             except TypeError as exc:
                 pytest.fail(f'Lab service API mismatch: {exc}')
-            except Exception as exc:
+            except Exception:
                 # Any other exception (missing visit, etc.) is acceptable for this test
                 pass  # We just wanted to verify the call path doesn't crash due to missing module
 
@@ -98,6 +107,7 @@ class TestDoctorOnlyWorkflows:
             doc = ensure_test_user(db, t, username='doc_op', role='doctor')
             p = ensure_test_user(db, t, username='pat_doc', role='patient')
             from services.reception_service import ReceptionService
+
             try:
                 visit = ReceptionService.create_visit(
                     patient_id=p.id,
@@ -115,10 +125,12 @@ class TestDoctorOnlyWorkflows:
         with tenant_test_context(app, t):
             doc = ensure_test_user(db, t, username='doc_op2', role='doctor')
             from models.patient import Patient
+
             p = Patient(first_name='ع', last_name='م', tenant_id=t.id)
             db.session.add(p)
             db.session.commit()
             from services.prescription_service import PrescriptionService
+
             ok, result = PrescriptionService.create_prescription(
                 patient_id=p.id,
                 doctor_id=doc.id,
@@ -134,6 +146,7 @@ class TestCrossModuleDataQueries:
         with tenant_test_context(app, t):
             u = ensure_test_user(db, t, username='pharm_q', role='pharmacist')
             from app.shared.dashboard_service import _load_role_data
+
             data = _load_role_data('pharmacist', u)
             # Should not contain lab-related keys
             assert 'lab_pending' not in data.get('lists', {})
@@ -145,6 +158,7 @@ class TestCrossModuleDataQueries:
         with tenant_test_context(app, t):
             u = ensure_test_user(db, t, username='lab_q', role='lab')
             from app.shared.dashboard_service import _load_role_data
+
             data = _load_role_data('lab', u)
             # Should not contain doctor-specific keys
             assert 'waiting_patients' not in data.get('metrics', {})

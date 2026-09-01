@@ -1,14 +1,19 @@
 """Dynamic bundle isolation validation tests."""
 
 import pytest
-from sqlalchemy import select, func
-from app.extensions import db
-from app.core.tenant.models import Tenant, ProductBundle, seed_default_bundles, get_bundle_for_profile
+from sqlalchemy import func, select
+
 from app.core.module.models import TenantModule
-from app.core.module.validators import can_activate_module, get_active_modules_for_tenant
+from app.core.module.validators import can_activate_module
+from app.core.tenant.models import (
+    ProductBundle,
+    Tenant,
+    seed_default_bundles,
+)
+from app.extensions import db
 from app.shared.enums import TenantStatus
-from tests.tenant_context import tenant_test_context, ensure_test_user
 from services.feature_gate_service import FeatureGateService, ModuleNotEnabledError
+from tests.tenant_context import ensure_test_user, tenant_test_context
 
 
 def _seed_bundles_if_empty():
@@ -22,6 +27,7 @@ def _tenant_with_bundle(bundle_slug, app):
     if not bundle:
         pytest.skip(f'Bundle {bundle_slug} not seeded')
     from datetime import UTC, datetime
+
     t = Tenant(
         slug=f'iso-{bundle_slug}-{datetime.now(UTC).timestamp()}',
         name=f'Iso {bundle_slug}',
@@ -61,7 +67,7 @@ class TestCanActivateModuleEnforcesBundleBoundaries:
     def test_module_already_active_short_circuits(self, app):
         t = _tenant_with_bundle('standalone_pharmacy', app)
         with tenant_test_context(app, t):
-            ok, err = can_activate_module(t.id, 'pharmacy')
+            ok, _err = can_activate_module(t.id, 'pharmacy')
             assert ok is True
 
 
@@ -71,10 +77,12 @@ class TestPrescriptionServiceDynamicModule:
         with tenant_test_context(app, t):
             doc = ensure_test_user(db, t, username='doc_iso', role='doctor')
             from models.patient import Patient
+
             p = Patient(first_name='ع', last_name='م', tenant_id=t.id)
             db.session.add(p)
             db.session.commit()
             from services.prescription_service import PrescriptionService
+
             ok, result = PrescriptionService.create_prescription(
                 patient_id=p.id,
                 doctor_id=doc.id,
@@ -88,12 +96,15 @@ class TestPrescriptionServiceDynamicModule:
             doc = ensure_test_user(db, t, username='doc_iso2', role='doctor')
             p = ensure_test_user(db, t, username='pat_iso2', role='patient')
             from services.prescription_service import PrescriptionService
+
             # doctor module is not active in standalone_pharmacy bundle
             with pytest.raises(ModuleNotEnabledError) as exc_info:
                 PrescriptionService.create_prescription(
                     patient_id=p.id,
                     doctor_id=doc.id,
-                    items=[{'medication_id': None, 'quantity': 1, 'dosage': '1', 'duration_days': 1}],
+                    items=[
+                        {'medication_id': None, 'quantity': 1, 'dosage': '1', 'duration_days': 1}
+                    ],
                 )
             assert 'doctor' in str(exc_info.value)
 
@@ -104,6 +115,7 @@ class TestLabServiceDynamicVisit:
         with tenant_test_context(app, t):
             labtech = ensure_test_user(db, t, username='lab_iso', role='lab')
             from services.lab_service import lab_service
+
             ok, result = lab_service.create_request(
                 visit_id=None,
                 test_ids=[],
@@ -118,6 +130,7 @@ class TestLabServiceDynamicVisit:
         with tenant_test_context(app, t):
             labtech = ensure_test_user(db, t, username='lab_iso2', role='lab')
             from services.lab_service import lab_service
+
             ok, result = lab_service.create_request(
                 visit_id=None,
                 test_ids=[1],
@@ -134,10 +147,13 @@ class TestPharmacySaleServiceDirectSale:
         with tenant_test_context(app, t):
             pharm = ensure_test_user(db, t, username='pharm_iso', role='pharmacist')
             from services.pharmacy_sale_service import PharmacySaleService
+
             result = PharmacySaleService.create_direct_sale(
                 patient_id=None,
                 dispensed_by=pharm.id,
-                items=[{'medication_id': None, 'quantity': 1, 'price': 10.0, 'name': 'Paracetamol'}],
+                items=[
+                    {'medication_id': None, 'quantity': 1, 'price': 10.0, 'name': 'Paracetamol'}
+                ],
                 tenant_id=t.id,
             )
             # May fail because medication_id None, but should not crash on missing prescription module
@@ -150,6 +166,7 @@ class TestDashboardServiceDynamicFiltering:
         with tenant_test_context(app, t):
             pharm = ensure_test_user(db, t, username='pharm_dash', role='pharmacist')
             from app.shared.dashboard_service import _load_role_data
+
             data = _load_role_data('pharmacist', pharm)
             assert 'pending_lab' not in data.get('lists', {})
             assert 'pending_radiology' not in data.get('lists', {})
@@ -159,6 +176,7 @@ class TestDashboardServiceDynamicFiltering:
         with tenant_test_context(app, t):
             labtech = ensure_test_user(db, t, username='lab_dash', role='lab')
             from app.shared.dashboard_service import _load_role_data
+
             data = _load_role_data('lab', labtech)
             assert 'waiting_patients' not in data.get('metrics', {})
             assert 'waiting_list' not in data.get('lists', {})

@@ -56,10 +56,9 @@ class LabService:
 
         doctor_or_reception_active = False
         if resolved_tenant_id:
-            doctor_or_reception_active = (
-                FeatureGateService.module_enabled(resolved_tenant_id, 'doctor')
-                or FeatureGateService.module_enabled(resolved_tenant_id, 'reception')
-            )
+            doctor_or_reception_active = FeatureGateService.module_enabled(
+                resolved_tenant_id, 'doctor'
+            ) or FeatureGateService.module_enabled(resolved_tenant_id, 'reception')
 
         if visit_id is not None:
             visit = (

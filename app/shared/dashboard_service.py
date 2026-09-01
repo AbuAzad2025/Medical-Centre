@@ -407,7 +407,9 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
                         .join(Visit)
                         .filter(
                             Visit.doctor_id == user.id,
-                            RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+                            RadiologyRequest.status.in_(
+                                [OrderState.REQUESTED, OrderState.IN_PROGRESS]
+                            ),
                         )
                         .order_by(RadiologyRequest.created_at.desc())
                         .limit(6)

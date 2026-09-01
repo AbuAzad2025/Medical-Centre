@@ -348,7 +348,6 @@ class PharmacySaleService:
             'status': prescription.status,
         }
 
-
     @staticmethod
     def create_direct_sale(
         patient_id: int | None,
