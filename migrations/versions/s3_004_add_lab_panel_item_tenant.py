@@ -22,39 +22,54 @@ def upgrade() -> None:
     # Add tenant_id if not exists
     op.add_column(
         'lab_test_panel_items',
-        sa.Column('tenant_id', sa.Integer(), sa.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True),
+        sa.Column(
+            'tenant_id',
+            sa.Integer(),
+            sa.ForeignKey('tenants.id', ondelete='CASCADE'),
+            nullable=True,
+        ),
     )
     if bind.dialect.name == 'postgresql':
         # Backfill from parent panel
-        op.execute(text("""
+        op.execute(
+            text("""
             UPDATE lab_test_panel_items AS item
             SET tenant_id = panel.tenant_id
             FROM lab_test_panels AS panel
             WHERE item.panel_id = panel.id
             AND item.tenant_id IS NULL
-        """))
+        """)
+        )
         # Also try from test catalog if panel was null
-        op.execute(text("""
+        op.execute(
+            text("""
             UPDATE lab_test_panel_items AS item
             SET tenant_id = cat.tenant_id
             FROM lab_test_catalog AS cat
             WHERE item.test_id = cat.id
             AND item.tenant_id IS NULL
-        """))
+        """)
+        )
         op.create_index('ix_lab_test_panel_items_tenant_id', 'lab_test_panel_items', ['tenant_id'])
         op.execute('ALTER TABLE lab_test_panel_items ENABLE ROW LEVEL SECURITY')
         op.execute('ALTER TABLE lab_test_panel_items FORCE ROW LEVEL SECURITY')
-        op.execute(text("""
+        op.execute(
+            text("""
             CREATE POLICY tenant_isolation_lab_test_panel_items ON lab_test_panel_items
             USING (tenant_id = NULLIF(current_setting('app.tenant_id'::text, true), '')::integer)
             WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id'::text, true), '')::integer)
-        """))
+        """)
+        )
 
 
 def downgrade() -> None:
     bind = op.get_bind()
     if bind.dialect.name == 'postgresql':
-        op.execute(text("DROP POLICY IF EXISTS tenant_isolation_lab_test_panel_items ON lab_test_panel_items"))
+        op.execute(
+            text(
+                'DROP POLICY IF EXISTS tenant_isolation_lab_test_panel_items ON lab_test_panel_items'
+            )
+        )
         op.execute('ALTER TABLE lab_test_panel_items DISABLE ROW LEVEL SECURITY')
         try:
             op.drop_index('ix_lab_test_panel_items_tenant_id', table_name='lab_test_panel_items')
