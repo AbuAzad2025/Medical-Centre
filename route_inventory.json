@@ -1,5 +1,5 @@
 {
-  "total_routes": 734,
+  "total_routes": 739,
   "routes": [
     {
       "endpoint": "main.index",
@@ -5963,6 +5963,46 @@
       "path": "/what-if/new",
       "methods": [
         "GET",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.accounts",
+      "path": "/accountant/accounts",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.journals",
+      "path": "/accountant/journals",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.trial_balance",
+      "path": "/accountant/trial-balance",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.account_ledger",
+      "path": "/accountant/accounts/<int:account_id>",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.close_period",
+      "path": "/accountant/periods/close",
+      "methods": [
         "POST"
       ],
       "classification": "authenticated"

@@ -30,7 +30,8 @@ def upgrade() -> None:
                     'admin','super_admin','manager','doctor','nurse',
                     'reception','accountant','emergency','lab','radiology',
                     'pharmacist','technician','owner','patient','user',
-                    'receptionist','lab_tech','platform_owner'
+                    'receptionist','lab_tech','platform_owner',
+                    'unknown_role',''
                 ))
                 """
             )
@@ -47,7 +48,8 @@ def upgrade() -> None:
                     'admin','super_admin','manager','doctor','nurse',
                     'reception','accountant','emergency','lab','radiology',
                     'pharmacist','technician','owner','patient','user',
-                    'receptionist','lab_tech','platform_owner'
+                    'receptionist','lab_tech','platform_owner',
+                    'unknown_role',''
                 ))
                 """
             )
