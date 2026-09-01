@@ -59,7 +59,6 @@ def upgrade() -> None:
     op.create_index('idx_accounts_tenant_type', 'accounts', ['tenant_id', 'account_type'])
     op.create_index('idx_accounts_tenant_normal', 'accounts', ['tenant_id', 'normal_balance'])
     op.create_index('idx_accounts_parent', 'accounts', ['parent_id'])
-    op.create_index('ix_accounts_tenant_id', 'accounts', ['tenant_id'])
 
     if bind.dialect.name == 'postgresql':
         # RLS on tenant-scoped accounts table.
@@ -97,7 +96,6 @@ def upgrade() -> None:
     )
     op.create_index('idx_gl_journals_status', 'gl_journals', ['status'])
     op.create_index('idx_gl_journals_journal_number', 'gl_journals', ['journal_number'])
-    op.create_index('ix_gl_journals_tenant_id', 'gl_journals', ['tenant_id'])
 
     if bind.dialect.name == 'postgresql':
         op.execute('ALTER TABLE gl_journals ENABLE ROW LEVEL SECURITY')
@@ -136,7 +134,6 @@ def upgrade() -> None:
     )
     op.create_index('idx_gl_lines_journal', 'gl_journal_lines', ['journal_id'])
     op.create_index('idx_gl_lines_account', 'gl_journal_lines', ['account_id'])
-    op.create_index('ix_gl_journal_lines_tenant_id', 'gl_journal_lines', ['tenant_id'])
 
     if bind.dialect.name == 'postgresql':
         op.execute('ALTER TABLE gl_journal_lines ENABLE ROW LEVEL SECURITY')

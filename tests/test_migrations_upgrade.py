@@ -8,10 +8,9 @@ import sys
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
 # Expected heads in the migration graph.
-# All migration chains were unified under s2_011_clean_schema which depends
-# on p7_007_make_prescription_id_nullable (and its predecessors).
+# The migration chain continues from s2_011_clean_schema through s3_* migrations.
 EXPECTED_HEADS = {
-    's2_011_clean_schema',
+    's3_005_user_role_check_constraint',
 }
 
 
