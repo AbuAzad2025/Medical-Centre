@@ -13,6 +13,7 @@ from sqlalchemy import select
 from app.core.module.validators import get_active_modules_for_tenant
 from app.extensions import db
 from app.shared.enums import TenantStatus
+from app.shared.user_role_policy import normalize_role
 
 
 class ModuleNotEnabledError(Exception):
@@ -35,7 +36,12 @@ class FeatureNotEnabledError(Exception):
 
 def _is_admin_user() -> bool:
     try:
-        return current_user.is_authenticated and current_user.role in ('super_admin', 'owner')
+        return current_user.is_authenticated and normalize_role(current_user.role) in (
+            'super_admin',
+            'owner',
+            'admin',
+            'platform_owner',
+        )
     except Exception:
         return False
 

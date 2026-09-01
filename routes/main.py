@@ -10,6 +10,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import select
 
 from app.extensions import db
+from app.shared.user_role_policy import normalize_role
 from services.dashboard_routing import get_package_restricted_context, resolve_dashboard_for_user
 
 main_bp = Blueprint('main', __name__)
@@ -79,7 +80,7 @@ def package_restricted():
 @login_required
 def appointments_redirect():
     """إعادة توجيه المواعيد حسب الدور"""
-    role = current_user.role
+    role = normalize_role(current_user.role)
     if role == 'doctor':
         return redirect(url_for('doctor.appointments'))
     if role == 'reception':

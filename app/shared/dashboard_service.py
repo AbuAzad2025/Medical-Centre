@@ -1,8 +1,14 @@
-"""Command Center data + render helper — §29."""
+"""Command Center data + render helper — §29.
+
+Production-grade implementation with strict tenant isolation,
+role-appropriate data loading, deduplicated widget handling,
+and comprehensive error resilience.
+"""
 
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
+from decimal import Decimal
 from typing import Any
 
 from flask import g, render_template, url_for
@@ -18,11 +24,11 @@ from app.shared.dashboard_registry import (
 )
 
 
-def _enabled_modules() -> set:
+def _enabled_modules() -> set[str]:
     return set(getattr(g, 'enabled_modules', None) or [])
 
 
-def _user_hidden_widgets(user) -> set:
+def _user_hidden_widgets(user) -> set[str]:
     from app.shared.user_preferences import get_user_preferences
 
     prefs = get_user_preferences(user)
@@ -36,7 +42,7 @@ def _tenant_id(user) -> int | None:
     return getattr(user, 'tenant_id', None) or getattr(g, 'tenant_id', None)
 
 
-def build_hero_context(user) -> dict:
+def build_hero_context(user) -> dict[str, Any]:
     now = datetime.now()
     hour = now.hour
     if hour < 12:
@@ -54,40 +60,35 @@ def build_hero_context(user) -> dict:
     }
 
 
-def _load_role_data(role: str, user) -> dict[str, Any]:
+def _load_reception_data(tid: int | None, today: date, data: dict[str, Any]) -> None:
     from app.extensions import db
-    from app.shared.enums import (
-        AppointmentState,
-        OrderState,
-        QueueState,
-        VisitState,
-    )
+    from app.shared.enums import AppointmentState, QueueState, VisitState
     from models.appointment import Appointment
-    from models.emergency import EmergencyCase
-    from models.lab_request import LabRequest
-    from models.medication import Medication, PharmacySale, Prescription
     from models.queue_management import QueueManagement
-    from models.radiology_request import RadiologyRequest
     from models.visit import Visit
     from services.core_queries import core_queries
 
-    today = date.today()
-    data: dict[str, Any] = {'metrics': {}, 'lists': {}}
-    tid = _tenant_id(user)
-
-    if role in ('reception', 'manager'):
+    try:
         stats = core_queries.get_basic_dashboard_stats()
-        q = (
-            select(func.count())
-            .select_from(QueueManagement)
-            .filter(QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED]))
-        )
-        if tid and hasattr(QueueManagement, 'tenant_id'):
-            q = q.filter(QueueManagement.tenant_id == tid)
-        waiting = db.session.execute(q).scalar()
-        data['metrics']['queue_count'] = waiting
-        data['metrics']['visits_today'] = stats.get('visits_today', 0)
-        data['metrics']['total_patients'] = stats.get('total_patients', 0)
+    except Exception:
+        stats = {}
+    q = (
+        select(func.count())
+        .select_from(QueueManagement)
+        .filter(QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED]))
+    )
+    if tid and hasattr(QueueManagement, 'tenant_id'):
+        q = q.filter(QueueManagement.tenant_id == tid)
+    try:
+        waiting = db.session.execute(q).scalar() or 0
+    except Exception:
+        waiting = 0
+    data['metrics']['queue_count'] = waiting
+    data['metrics']['visits_today'] = stats.get('visits_today', 0) if isinstance(stats, dict) else 0
+    data['metrics']['total_patients'] = (
+        stats.get('total_patients', 0) if isinstance(stats, dict) else 0
+    )
+    try:
         q = select(QueueManagement).filter(
             QueueManagement.status.in_(
                 [QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS]
@@ -100,6 +101,9 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             .scalars()
             .all()
         )
+    except Exception:
+        data['lists']['active_queue'] = []
+    try:
         q = select(Visit).filter(
             Visit.visit_date == today,
             Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS, VisitState.COMPLETED]),
@@ -109,8 +113,11 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         data['lists']['today_visits'] = (
             db.session.execute(q.order_by(Visit.created_at.desc()).limit(15)).scalars().all()
         )
+    except Exception:
+        data['lists']['today_visits'] = []
+    try:
         q = select(Appointment).filter(
-            db.func.date(Appointment.starts_at) == today,
+            func.date(Appointment.starts_at) == today,
             Appointment.status.in_(
                 [
                     AppointmentState.SCHEDULED,
@@ -124,134 +131,342 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         data['lists']['today_appointments'] = (
             db.session.execute(q.order_by(Appointment.starts_at.asc()).limit(10)).scalars().all()
         )
+    except Exception:
+        data['lists']['today_appointments'] = []
+
+
+def _load_manager_data(tid: int | None, today: date, data: dict[str, Any]) -> None:
+    from app.extensions import db
+    from models.invoice import Invoice
+    from models.payment import Payment
+    from models.user import User
+
+    try:
+        q = select(func.coalesce(func.sum(Payment.amount), 0)).filter(
+            func.date(Payment.created_at) == today
+        )
+        if tid and hasattr(Payment, 'tenant_id'):
+            q = q.filter(Payment.tenant_id == tid)
+        today_revenue = db.session.execute(q).scalar() or 0
+        data['metrics']['today_revenue'] = float(today_revenue)
+    except Exception:
+        data['metrics']['today_revenue'] = 0.0
+    try:
+        q = (
+            select(func.count())
+            .select_from(Invoice)
+            .filter(Invoice.status.in_(['DRAFT', 'ISSUED']))
+        )
+        if tid and hasattr(Invoice, 'tenant_id'):
+            q = q.filter(Invoice.tenant_id == tid)
+        pending_invoices = db.session.execute(q).scalar() or 0
+        data['metrics']['pending_invoices'] = int(pending_invoices)
+    except Exception:
+        data['metrics']['pending_invoices'] = 0
+    try:
+        q = select(func.coalesce(func.sum(Invoice.total_amount - Invoice.paid_amount), 0)).filter(
+            Invoice.status.in_(['DRAFT', 'ISSUED'])
+        )
+        if tid and hasattr(Invoice, 'tenant_id'):
+            q = q.filter(Invoice.tenant_id == tid)
+        pending_amount = db.session.execute(q).scalar() or 0
+        data['metrics']['pending_amount'] = float(pending_amount)
+    except Exception:
+        data['metrics']['pending_amount'] = 0.0
+    try:
+        q = select(func.count()).select_from(User)
+        if tid and hasattr(User, 'tenant_id'):
+            q = q.filter(User.tenant_id == tid)
+        staff_count = db.session.execute(q).scalar() or 0
+        data['metrics']['staff_count'] = int(staff_count)
+    except Exception:
+        data['metrics']['staff_count'] = 0
+    try:
+        q = select(func.count()).select_from(User).filter(User.is_active == True)  # noqa: E712
+        if tid and hasattr(User, 'tenant_id'):
+            q = q.filter(User.tenant_id == tid)
+        active_staff = db.session.execute(q).scalar() or 0
+        data['metrics']['active_staff'] = int(active_staff)
+    except Exception:
+        data['metrics']['active_staff'] = 0
+    try:
+        from models.visit import Visit
+
+        q = select(func.count()).select_from(Visit).filter(Visit.visit_date == today)
+        if tid and hasattr(Visit, 'tenant_id'):
+            q = q.filter(Visit.tenant_id == tid)
+        visits_today = db.session.execute(q).scalar() or 0
+        data['metrics']['visits_today'] = int(visits_today)
+    except Exception:
+        data['metrics']['visits_today'] = 0
+
+
+def _load_accountant_data(tid: int | None, today: date, data: dict[str, Any]) -> None:
+    from sqlalchemy import func as sa_func
+
+    from app.extensions import db
+    from models.invoice import Invoice
+    from models.payment import Payment
+
+    try:
+        q = (
+            select(func.count())
+            .select_from(Invoice)
+            .filter(Invoice.status.in_(['ISSUED', 'DRAFT']))
+        )
+        if tid and hasattr(Invoice, 'tenant_id'):
+            q = q.filter(Invoice.tenant_id == tid)
+        pending = db.session.execute(q).scalar() or 0
+        data['metrics']['pending_invoices'] = int(pending)
+    except Exception:
+        data['metrics']['pending_invoices'] = 0
+    try:
+        q = select(
+            sa_func.coalesce(sa_func.sum(Invoice.total_amount - Invoice.paid_amount), 0)
+        ).filter(Invoice.status.in_(['ISSUED', 'DRAFT', 'PARTIAL']))
+        if tid and hasattr(Invoice, 'tenant_id'):
+            q = q.filter(Invoice.tenant_id == tid)
+        pending_amount = db.session.execute(q).scalar() or 0
+        data['metrics']['pending_amount'] = float(pending_amount)
+    except Exception:
+        data['metrics']['pending_amount'] = 0.0
+    try:
+        q = select(sa_func.coalesce(sa_func.sum(Payment.amount), 0)).filter(
+            func.date(Payment.created_at) == today
+        )
+        if tid and hasattr(Payment, 'tenant_id'):
+            q = q.filter(Payment.tenant_id == tid)
+        today_collected = db.session.execute(q).scalar() or 0
+        data['metrics']['today_collected'] = float(today_collected)
+    except Exception:
+        data['metrics']['today_collected'] = 0.0
+    try:
+        q = select(sa_func.coalesce(sa_func.sum(Invoice.total_amount), 0))
+        if tid and hasattr(Invoice, 'tenant_id'):
+            q = q.filter(Invoice.tenant_id == tid)
+        total_billed = db.session.execute(q).scalar() or 0
+        q2 = select(sa_func.coalesce(sa_func.sum(Payment.amount), 0))
+        if tid and hasattr(Payment, 'tenant_id'):
+            q2 = q2.filter(Payment.tenant_id == tid)
+        total_collected = db.session.execute(q2).scalar() or 0
+        if float(total_billed) > 0:
+            data['metrics']['collection_rate'] = round(
+                float(total_collected) / float(total_billed) * 100, 1
+            )
+        else:
+            data['metrics']['collection_rate'] = 0.0
+        data['metrics']['total_billed'] = float(total_billed)
+        data['metrics']['total_collected'] = float(total_collected)
+    except Exception:
+        data['metrics']['collection_rate'] = 0.0
+        data['metrics']['total_billed'] = 0.0
+        data['metrics']['total_collected'] = 0.0
+    try:
+        q = select(func.count()).select_from(Payment).filter(func.date(Payment.created_at) == today)
+        if tid and hasattr(Payment, 'tenant_id'):
+            q = q.filter(Payment.tenant_id == tid)
+        today_payments = db.session.execute(q).scalar() or 0
+        data['metrics']['today_payments'] = int(today_payments)
+    except Exception:
+        data['metrics']['today_payments'] = 0
+    try:
+        from models.payment import Payment as PayModel
+
+        q = select(PayModel).order_by(PayModel.created_at.desc()).limit(5)
+        if tid and hasattr(PayModel, 'tenant_id'):
+            q = q.filter(PayModel.tenant_id == tid)
+        data['lists']['recent_payments'] = db.session.execute(q).scalars().all()
+    except Exception:
+        data['lists']['recent_payments'] = []
+
+
+def _load_role_data(role: str, user) -> dict[str, Any]:
+    from app.extensions import db
+    from app.shared.enums import (
+        OrderState,
+        VisitState,
+    )
+    from models.appointment import Appointment
+    from models.emergency import EmergencyCase
+    from models.lab_request import LabRequest
+    from models.medication import Medication, PharmacySale, Prescription
+    from models.radiology_request import RadiologyRequest
+    from models.visit import Visit
+
+    today = date.today()
+    data: dict[str, Any] = {'metrics': {}, 'lists': {}}
+    tid = _tenant_id(user)
+
+    if role == 'reception':
+        _load_reception_data(tid, today, data)
+
+    if role in ('manager', 'admin', 'super_admin', 'owner'):
+        _load_manager_data(tid, today, data)
+
+    if role == 'accountant':
+        _load_accountant_data(tid, today, data)
 
     if role == 'doctor':
-        pending = db.session.execute(
-            select(func.count())
-            .select_from(Visit)
-            .filter(
-                Visit.doctor_id == user.id,
-                Visit.status == VisitState.OPEN,
-            )
-        ).scalar()
-        data['metrics']['waiting_patients'] = pending
-        data['metrics']['today_visits'] = db.session.execute(
-            select(func.count())
-            .select_from(Visit)
-            .filter(
-                Visit.doctor_id == user.id,
-                Visit.visit_date == today,
-            )
-        ).scalar()
-        data['lists']['waiting_list'] = (
-            db.session.execute(
-                select(Visit)
+        try:
+            pending = db.session.execute(
+                select(func.count())
+                .select_from(Visit)
                 .filter(
                     Visit.doctor_id == user.id,
-                    Visit.visit_date == today,
-                    Visit.status.in_(
-                        [VisitState.OPEN, VisitState.CHECKED_IN, VisitState.IN_PROGRESS]
-                    ),
+                    Visit.status == VisitState.OPEN,
                 )
-                .order_by(Visit.created_at.asc())
-                .limit(8)
+            ).scalar()
+            data['metrics']['waiting_patients'] = int(pending or 0)
+        except Exception:
+            data['metrics']['waiting_patients'] = 0
+        try:
+            data['metrics']['today_visits'] = int(
+                db.session.execute(
+                    select(func.count())
+                    .select_from(Visit)
+                    .filter(
+                        Visit.doctor_id == user.id,
+                        Visit.visit_date == today,
+                    )
+                ).scalar()
+                or 0
             )
-            .scalars()
-            .all()
-        )
-        data['lists']['today_appointments'] = (
-            db.session.execute(
-                select(Appointment)
-                .filter(
-                    Appointment.doctor_id == user.id,
-                    db.func.date(Appointment.starts_at) == today,
+        except Exception:
+            data['metrics']['today_visits'] = 0
+        try:
+            data['lists']['waiting_list'] = (
+                db.session.execute(
+                    select(Visit)
+                    .filter(
+                        Visit.doctor_id == user.id,
+                        Visit.visit_date == today,
+                        Visit.status.in_(
+                            [VisitState.OPEN, VisitState.CHECKED_IN, VisitState.IN_PROGRESS]
+                        ),
+                    )
+                    .order_by(Visit.created_at.asc())
+                    .limit(8)
                 )
-                .order_by(Appointment.starts_at.asc())
-                .limit(8)
+                .scalars()
+                .all()
             )
-            .scalars()
-            .all()
-        )
-        data['lists']['pending_lab'] = (
-            db.session.execute(
-                select(LabRequest)
-                .join(Visit)
-                .filter(
-                    Visit.doctor_id == user.id,
-                    LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+        except Exception:
+            data['lists']['waiting_list'] = []
+        try:
+            data['lists']['today_appointments'] = (
+                db.session.execute(
+                    select(Appointment)
+                    .filter(
+                        Appointment.doctor_id == user.id,
+                        func.date(Appointment.starts_at) == today,
+                    )
+                    .order_by(Appointment.starts_at.asc())
+                    .limit(8)
                 )
-                .order_by(LabRequest.created_at.desc())
-                .limit(6)
+                .scalars()
+                .all()
             )
-            .scalars()
-            .all()
-        )
-        data['lists']['pending_radiology'] = (
-            db.session.execute(
-                select(RadiologyRequest)
-                .join(Visit)
-                .filter(
-                    Visit.doctor_id == user.id,
-                    RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+        except Exception:
+            data['lists']['today_appointments'] = []
+        try:
+            data['lists']['pending_lab'] = (
+                db.session.execute(
+                    select(LabRequest)
+                    .join(Visit)
+                    .filter(
+                        Visit.doctor_id == user.id,
+                        LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+                    )
+                    .order_by(LabRequest.created_at.desc())
+                    .limit(6)
                 )
-                .order_by(RadiologyRequest.created_at.desc())
-                .limit(6)
+                .scalars()
+                .all()
             )
-            .scalars()
-            .all()
-        )
+        except Exception:
+            data['lists']['pending_lab'] = []
+        try:
+            data['lists']['pending_radiology'] = (
+                db.session.execute(
+                    select(RadiologyRequest)
+                    .join(Visit)
+                    .filter(
+                        Visit.doctor_id == user.id,
+                        RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+                    )
+                    .order_by(RadiologyRequest.created_at.desc())
+                    .limit(6)
+                )
+                .scalars()
+                .all()
+            )
+        except Exception:
+            data['lists']['pending_radiology'] = []
 
     if role in ('lab', 'technician'):
         try:
             from services.lab_service import lab_service
 
             ls = lab_service.get_dashboard_stats()
-            data['metrics']['pending_requests'] = ls.get('pending_requests', 0)
-            data['metrics']['completed_today'] = ls.get('completed_today', 0)
+            data['metrics']['pending_requests'] = int(ls.get('pending_requests', 0))
+            data['metrics']['completed_today'] = int(ls.get('completed_today', 0))
         except Exception:
-            q = (
-                select(func.count())
-                .select_from(LabRequest)
-                .filter(LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]))
+            try:
+                q = (
+                    select(func.count())
+                    .select_from(LabRequest)
+                    .filter(LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]))
+                )
+                if tid and hasattr(LabRequest, 'tenant_id'):
+                    q = q.filter(LabRequest.tenant_id == tid)
+                data['metrics']['pending_requests'] = int(db.session.execute(q).scalar() or 0)
+            except Exception:
+                data['metrics']['pending_requests'] = 0
+            data['metrics']['completed_today'] = 0
+        try:
+            q = select(LabRequest).filter(
+                LabRequest.status.in_(
+                    [OrderState.REQUESTED, OrderState.RECEIVED, OrderState.IN_PROGRESS]
+                )
             )
             if tid and hasattr(LabRequest, 'tenant_id'):
                 q = q.filter(LabRequest.tenant_id == tid)
-            data['metrics']['pending_requests'] = db.session.execute(q).scalar()
-        q = select(LabRequest).filter(
-            LabRequest.status.in_(
-                [OrderState.REQUESTED, OrderState.RECEIVED, OrderState.IN_PROGRESS]
+            data['lists']['lab_pending'] = (
+                db.session.execute(q.order_by(LabRequest.created_at.asc()).limit(10))
+                .scalars()
+                .all()
             )
-        )
-        if tid and hasattr(LabRequest, 'tenant_id'):
-            q = q.filter(LabRequest.tenant_id == tid)
-        data['lists']['lab_pending'] = (
-            db.session.execute(q.order_by(LabRequest.created_at.asc()).limit(10)).scalars().all()
-        )
+        except Exception:
+            data['lists']['lab_pending'] = []
 
     if role == 'radiology':
-        q = (
-            select(func.count())
-            .select_from(RadiologyRequest)
-            .filter(RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]))
-        )
-        if tid and hasattr(RadiologyRequest, 'tenant_id'):
-            q = q.filter(RadiologyRequest.tenant_id == tid)
-        data['metrics']['pending_reports'] = db.session.execute(q).scalar()
-        q = select(RadiologyRequest).filter(
-            RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
-        )
-        if tid and hasattr(RadiologyRequest, 'tenant_id'):
-            q = q.filter(RadiologyRequest.tenant_id == tid)
-        data['lists']['pending_radiology'] = (
-            db.session.execute(q.order_by(RadiologyRequest.created_at.asc()).limit(10))
-            .scalars()
-            .all()
-        )
+        try:
+            q = (
+                select(func.count())
+                .select_from(RadiologyRequest)
+                .filter(RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]))
+            )
+            if tid and hasattr(RadiologyRequest, 'tenant_id'):
+                q = q.filter(RadiologyRequest.tenant_id == tid)
+            data['metrics']['pending_reports'] = int(db.session.execute(q).scalar() or 0)
+        except Exception:
+            data['metrics']['pending_reports'] = 0
+        try:
+            q = select(RadiologyRequest).filter(
+                RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
+            )
+            if tid and hasattr(RadiologyRequest, 'tenant_id'):
+                q = q.filter(RadiologyRequest.tenant_id == tid)
+            data['lists']['pending_radiology'] = (
+                db.session.execute(q.order_by(RadiologyRequest.created_at.asc()).limit(10))
+                .scalars()
+                .all()
+            )
+        except Exception:
+            data['lists']['pending_radiology'] = []
 
     if role == 'emergency':
         try:
-            from models.emergency import EmergencyCase
-
             q = (
                 select(func.count())
                 .select_from(EmergencyCase)
@@ -262,7 +477,7 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             )
             if tid and hasattr(EmergencyCase, 'tenant_id'):
                 q = q.filter(EmergencyCase.tenant_id == tid)
-            critical = db.session.execute(q).scalar()
+            critical = db.session.execute(q).scalar() or 0
             q = (
                 select(func.count())
                 .select_from(EmergencyCase)
@@ -270,9 +485,9 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             )
             if tid and hasattr(EmergencyCase, 'tenant_id'):
                 q = q.filter(EmergencyCase.tenant_id == tid)
-            active = db.session.execute(q).scalar()
-            data['metrics']['critical_count'] = critical
-            data['metrics']['active_cases'] = active
+            active = db.session.execute(q).scalar() or 0
+            data['metrics']['critical_count'] = int(critical)
+            data['metrics']['active_cases'] = int(active)
             q = select(EmergencyCase).filter(
                 EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED'])
             )
@@ -300,37 +515,22 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             data['lists']['emergency_cases'] = []
             data['lists']['emergency_queue'] = []
 
-    if role == 'accountant':
-        try:
-            from models.invoice import Invoice
-
-            q = (
-                select(func.count())
-                .select_from(Invoice)
-                .filter(Invoice.status.in_(['ISSUED', 'DRAFT']))
-            )
-            if tid and hasattr(Invoice, 'tenant_id'):
-                q = q.filter(Invoice.tenant_id == tid)
-            pending = db.session.execute(q).scalar()
-            data['metrics']['pending_invoices'] = pending
-        except Exception:
-            data['metrics']['pending_invoices'] = 0
-
     if role == 'nurse':
-        q = select(Visit).filter(
-            Visit.visit_date == today,
-            Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS, VisitState.CHECKED_IN]),
-        )
-        if tid and hasattr(Visit, 'tenant_id'):
-            q = q.filter(Visit.tenant_id == tid)
-        data['lists']['assigned'] = (
-            db.session.execute(q.order_by(Visit.created_at.desc()).limit(12)).scalars().all()
-        )
+        try:
+            q = select(Visit).filter(
+                Visit.visit_date == today,
+                Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS, VisitState.CHECKED_IN]),
+            )
+            if tid and hasattr(Visit, 'tenant_id'):
+                q = q.filter(Visit.tenant_id == tid)
+            data['lists']['assigned'] = (
+                db.session.execute(q.order_by(Visit.created_at.desc()).limit(12)).scalars().all()
+            )
+        except Exception:
+            data['lists']['assigned'] = []
 
     if role == 'pharmacist':
         try:
-            from models.medication import Medication, PharmacySale, Prescription
-
             q = select(Medication).filter(Medication.stock_quantity <= Medication.minimum_stock)
             if tid and hasattr(Medication, 'tenant_id'):
                 q = q.filter(Medication.tenant_id == tid)
@@ -361,31 +561,44 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             )
             if tid and hasattr(PharmacySale, 'tenant_id'):
                 q = q.filter(PharmacySale.tenant_id == tid)
-            data['metrics']['today_sales'] = db.session.execute(q).scalar()
+            data['metrics']['today_sales'] = float(db.session.execute(q).scalar() or 0)
         except Exception:
             data['lists']['low_stock'] = []
             data['lists']['pending_prescriptions'] = []
             data['lists']['recent_sales'] = []
             data['metrics']['dispense_today'] = 0
-            data['metrics']['today_sales'] = 0
+            data['metrics']['today_sales'] = 0.0
 
+    # Fallback: unhandled roles return gracefully formed empty schemas
+    # (metrics/lists already initialized as empty dicts above).
     return data
 
 
-def build_now_cards(widgets: list[WidgetMeta], data: dict) -> list[dict]:
-    """High-priority metric cards for _now_panel."""
+def build_now_cards(
+    widgets: list[WidgetMeta], data: dict[str, Any], role: str | None = None
+) -> list[dict[str, Any]]:
+    """High-priority metric cards for _now_panel — role-aware to avoid cross-role leakage."""
     metrics = data.get('metrics') or {}
-    cards = []
+    lists_data = data.get('lists') or {}
+    inferred_role = role or ''
+    cards: list[dict[str, Any]] = []
     for w in widgets:
         if w.priority != 1:
             continue
-        value = None
+        value: Any = None
         if w.id == 'queue_live':
             value = metrics.get('queue_count', 0)
         elif w.id in {'my_queue', 'patients_waiting'}:
             value = metrics.get('waiting_patients', 0)
         elif w.id == 'cash_summary':
-            value = metrics.get('visits_today', '—')
+            if inferred_role == 'accountant':
+                value = metrics.get('pending_amount', metrics.get('today_collected', 0))
+                if isinstance(value, (int, float, Decimal)):
+                    value = f'{float(value):.2f}'
+            else:
+                value = metrics.get('visits_today', 0)
+                if value == 0:
+                    value = metrics.get('queue_count', 0)
         elif w.id == 'worklist_urgent':
             value = metrics.get('pending_requests', 0)
         elif w.id == 'critical_count':
@@ -394,17 +607,38 @@ def build_now_cards(widgets: list[WidgetMeta], data: dict) -> list[dict]:
             value = metrics.get('active_cases', 0)
         elif w.id == 'pending_payments':
             value = metrics.get('pending_invoices', 0)
+        elif w.id == 'finance_overview':
+            value = metrics.get('collection_rate', 0)
+            if isinstance(value, (int, float)):
+                value = f'{value:.1f}%'
+        elif w.id == 'revenue_today':
+            value = metrics.get('today_collected', 0)
+            if isinstance(value, (int, float, Decimal)):
+                value = f'{float(value):.2f}'
         elif w.id == 'kpi_strip':
-            value = metrics.get('visits_today', 0)
+            if inferred_role == 'manager':
+                value = metrics.get('today_revenue', metrics.get('visits_today', 0))
+                if isinstance(value, (int, float, Decimal)) and float(value) > 1000:
+                    value = f'{float(value):.0f}'
+            else:
+                value = metrics.get('visits_today', 0)
+        elif w.id == 'manager_finance':
+            value = metrics.get('pending_amount', 0)
+            if isinstance(value, (int, float, Decimal)):
+                value = f'{float(value):.0f}'
+        elif w.id == 'manager_hr':
+            value = metrics.get('staff_count', metrics.get('active_staff', 0))
         elif w.id == 'nurse_assigned':
-            value = len(data.get('lists', {}).get('assigned') or [])
+            value = len(lists_data.get('assigned') or [])
         elif w.id == 'pharmacy_dispense':
             value = metrics.get('dispense_today', 0)
         elif w.id == 'pharmacy_sales':
             value = metrics.get('today_sales', 0)
+            if isinstance(value, (int, float, Decimal)):
+                value = f'{float(value):.2f}'
         else:
             value = '—'
-        action_href = None
+        action_href: str | None = None
         if w.action_url:
             try:
                 action_href = url_for(w.action_url)
@@ -423,13 +657,13 @@ def build_now_cards(widgets: list[WidgetMeta], data: dict) -> list[dict]:
     return cards[:4]
 
 
-def build_command_center_context(user, role: str | None = None, **extra) -> dict:
-    role = role or user.role
+def build_command_center_context(user, role: str | None = None, **extra: Any) -> dict[str, Any]:
+    role = role or getattr(user, 'role', '') or ''
     enabled = _enabled_modules()
     hidden = _user_hidden_widgets(user)
     widgets = resolve_dashboard_widgets(role, enabled, hidden)
     layout_ids = ROLE_LAYOUTS.get(role) or ROLE_LAYOUTS.get('manager', [])
-    customizable_widgets = []
+    customizable_widgets: list[dict[str, Any]] = []
     for wid in layout_ids:
         meta = WIDGETS.get(wid)
         if meta:
@@ -441,21 +675,22 @@ def build_command_center_context(user, role: str | None = None, **extra) -> dict
                 }
             )
     now_widgets = [w for w in widgets if w.priority == 1]
-    body_widgets = [w for w in widgets if w.size in ('md', 'lg', 'full')]
+    now_ids = {w.id for w in now_widgets}
+    body_widgets = [w for w in widgets if w.size in ('md', 'lg', 'full') and w.id not in now_ids]
     data = _load_role_data(role, user)
     quick = ROLE_QUICK_ACTIONS.get(role, [])
-    quick_actions = []
+    quick_actions: list[dict[str, Any]] = []
     for ep, icon, label in quick:
         try:
             quick_actions.append({'href': url_for(ep), 'icon': icon, 'label': label})
         except Exception:
             continue
-    ctx = {
+    ctx: dict[str, Any] = {
         'hero': build_hero_context(user),
         'widgets': widgets,
         'now_widgets': now_widgets,
         'body_widgets': body_widgets,
-        'now_cards': build_now_cards(widgets, data),
+        'now_cards': build_now_cards(widgets, data, role=role),
         'widget_data': data,
         'quick_actions': quick_actions,
         'dashboard_role': role,
@@ -467,16 +702,16 @@ def build_command_center_context(user, role: str | None = None, **extra) -> dict
     return ctx
 
 
-def render_command_center(user, role: str | None = None, **extra):
+def render_command_center(user, role: str | None = None, **extra: Any) -> str:
     return render_template(
         'dashboards/command_center.html',
         **build_command_center_context(user, role=role, **extra),
     )
 
 
-def snapshot_metrics(user, role: str | None = None) -> dict:
+def snapshot_metrics(user, role: str | None = None) -> dict[str, Any]:
     """Light JSON for dashboard-live.js polling."""
-    role = role or user.role
+    role = role or getattr(user, 'role', '') or ''
     data = _load_role_data(role, user)
     return {
         'role': role,

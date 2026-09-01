@@ -8,6 +8,7 @@ from functools import wraps
 from flask import abort, flash, jsonify, redirect, request, url_for
 from flask_login import current_user
 
+from app.shared.user_role_policy import normalize_role
 from utils.db_safety import safe_commit, safe_rollback
 
 logger = logging.getLogger(__name__)
@@ -73,6 +74,7 @@ def _format_message(key):
 
 
 # Role hierarchy: higher roles inherit access to lower roles' endpoints
+# Aliases (receptionist→reception, lab_tech→lab) are normalized before lookup.
 ROLE_HIERARCHY = {
     'super_admin': [
         'admin',
@@ -86,9 +88,6 @@ ROLE_HIERARCHY = {
         'radiology',
         'pharmacist',
         'technician',
-        'receptionist',
-        'lab_tech',
-        'owner',
     ],
     'admin': [
         'manager',
@@ -101,23 +100,27 @@ ROLE_HIERARCHY = {
         'radiology',
         'pharmacist',
         'technician',
-        'receptionist',
-        'lab_tech',
     ],
     'manager': ['reception', 'accountant'],
     'doctor': ['nurse'],
-    'owner': [],
+    'owner': ['super_admin'],
 }
 
 
 def _role_in_hierarchy(user_role, target_role):
-    """Check if user_role has access equivalent to target_role through hierarchy"""
+    """Check if user_role has access equivalent to target_role through hierarchy.
+    Supports one-level transitive inheritance (e.g. owner→super_admin→admin).
+    """
+    user_role = normalize_role(user_role)
+    target_role = normalize_role(target_role)
+    if user_role is None or target_role is None:
+        return False
     if user_role == target_role:
         return True
     inherited = ROLE_HIERARCHY.get(user_role, [])
     if target_role in inherited:
         return True
-    # Check nested inheritance
+    # Check nested inheritance (e.g. owner -> super_admin -> admin)
     return any(target_role in ROLE_HIERARCHY.get(r, []) for r in inherited)
 
 
@@ -220,7 +223,7 @@ def super_admin_required(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        if current_user.role not in ['super_admin', 'admin', 'owner']:
+        if normalize_role(current_user.role) not in ('super_admin', 'admin', 'owner'):
             flash(_format_message('no_permission'), 'error')
             return redirect(url_for('main.index'))
         return f(*args, **kwargs)
@@ -236,7 +239,7 @@ def privileged_user_manager_required(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        if current_user.role not in ('super_admin', 'owner'):
+        if normalize_role(current_user.role) not in ('super_admin', 'owner'):
             logger.warning(
                 'Privileged user-management denied for user %s (role=%s)',
                 current_user.id,
@@ -298,7 +301,7 @@ def can_approve_force_payment(f):
 def can_create_visits(f):
     """
     ديكوريتر للتحقق من صلاحية إنشاء زيارات
-    حصرياً للاستقبال
+    الاستقبال وما فوقها في التسلسل الهرمي (مدير، مدير نظام، مالك...)
     """
 
     @wraps(f)
@@ -306,7 +309,7 @@ def can_create_visits(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        if current_user.role != 'reception':
+        if not _role_in_hierarchy(current_user.role, 'reception'):
             logger.warning(
                 f'Visit creation denied for user {current_user.id} ({current_user.role})'
             )
@@ -392,7 +395,8 @@ def can_archive_visits(f):
             return redirect(url_for('auth.login'))
 
         allowed_roles = ['reception', 'manager']
-        if current_user.role not in allowed_roles:
+        # Use hierarchy so super_admin/admin inherit reception/manager rights
+        if not any(_role_in_hierarchy(current_user.role, r) for r in allowed_roles):
             logger.warning(
                 f'Visit archiving denied for user {current_user.id} ({current_user.role})'
             )

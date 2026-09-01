@@ -30,11 +30,18 @@ PRIVILEGED_ROLE_MANAGERS: frozenset[str] = frozenset({'super_admin', 'owner'})
 ELEVATED_ROLES: frozenset[str] = frozenset({'super_admin', 'owner', 'admin'})
 
 
+_ROLE_ALIASES = {
+    'receptionist': 'reception',
+    'lab_tech': 'lab',
+    'platform_owner': 'owner',
+}
+
+
 def normalize_role(role: str | None) -> str | None:
     if role is None:
         return None
     value = str(role).strip().lower()
-    return value or None
+    return _ROLE_ALIASES.get(value, value) or None
 
 
 def is_assignable_role(role: str | None) -> bool:

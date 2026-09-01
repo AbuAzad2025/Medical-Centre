@@ -39,6 +39,42 @@ _ROLE_MOBILE_NAV = {
         ('reception.queue_management', 'fa-list-ol', 'الطابور'),
         ('reception.appointments', 'fa-calendar', 'مواعيد'),
     ],
+    'admin': [
+        ('manager.dashboard', 'fa-home', 'الرئيسية'),
+        ('manager.analytics', 'fa-chart-line', 'المراقبة'),
+        ('reception.queue_management', 'fa-list-ol', 'الطابور'),
+        ('reception.appointments', 'fa-calendar', 'مواعيد'),
+    ],
+    'super_admin': [
+        ('manager.dashboard', 'fa-home', 'الرئيسية'),
+        ('manager.analytics', 'fa-chart-line', 'المراقبة'),
+        ('reception.queue_management', 'fa-list-ol', 'الطابور'),
+        ('reception.appointments', 'fa-calendar', 'مواعيد'),
+    ],
+    'nurse': [
+        ('nurse.dashboard', 'fa-home', 'الرئيسية'),
+        ('nurse.vitals', 'fa-heartbeat', 'العلامات'),
+        ('nurse.tasks', 'fa-tasks', 'المهام'),
+    ],
+    'radiology': [
+        ('radiology.dashboard', 'fa-home', 'الرئيسية'),
+        ('radiology.worklist', 'fa-x-ray', 'العمل'),
+        ('radiology.requests', 'fa-file-medical', 'الطلبات'),
+    ],
+    'technician': [
+        ('lab.dashboard', 'fa-home', 'الرئيسية'),
+        ('lab.worklist', 'fa-vial', 'العمل'),
+        ('lab.reports', 'fa-file-medical', 'التقارير'),
+    ],
+    'owner': [
+        ('owner.dashboard', 'fa-crown', 'لوحة المالك'),
+        ('super_admin.dashboard', 'fa-cogs', 'الإدارة'),
+    ],
+    'patient': [
+        ('portal.dashboard', 'fa-home', 'الرئيسية'),
+        ('portal.appointments', 'fa-calendar', 'مواعيد'),
+        ('portal.visits', 'fa-list', 'الزيارات'),
+    ],
 }
 
 

@@ -15,13 +15,14 @@ from flask_login import current_user
 
 from app.core.saas.resolver import EntitlementResolver
 from app.extensions import db
+from app.shared.user_role_policy import normalize_role
 
-_BYPASS_ROLES = frozenset({'super_admin', 'owner', 'platform_owner'})
+_BYPASS_ROLES = frozenset({'super_admin', 'owner', 'admin', 'platform_owner'})
 
 
 def _is_admin_user() -> bool:
     try:
-        return current_user.is_authenticated and current_user.role in _BYPASS_ROLES
+        return current_user.is_authenticated and normalize_role(current_user.role) in _BYPASS_ROLES
     except Exception:
         return False
 

@@ -1,4 +1,9 @@
-"""Command Center widget registry — §29.3."""
+"""Command Center widget registry — §29.3.
+
+Production registry with strict role-module gating, tenant-aware filtering,
+and deduplicated layout resolution. Every widget declares its required
+roles, modules, size, and priority explicitly.
+"""
 
 from __future__ import annotations
 
@@ -37,7 +42,7 @@ WIDGETS: dict[str, WidgetMeta] = {
     'visits_today': WidgetMeta(
         id='visits_today',
         title_ar='زيارات اليوم',
-        roles=('reception', 'manager'),
+        roles=('reception',),
         modules=('reception',),
         size='lg',
         priority=2,
@@ -59,7 +64,7 @@ WIDGETS: dict[str, WidgetMeta] = {
     'cash_summary': WidgetMeta(
         id='cash_summary',
         title_ar='ملخص الصندوق',
-        roles=('reception', 'accountant'),
+        roles=('reception',),
         modules=('billing',),
         size='sm',
         priority=1,
@@ -156,6 +161,32 @@ WIDGETS: dict[str, WidgetMeta] = {
         priority=1,
         template='dashboards/widgets/_pending_payments.html',
         icon='fa-file-invoice-dollar',
+        action_url='accountant.journals',
+        action_label='الدفتر',
+    ),
+    'finance_overview': WidgetMeta(
+        id='finance_overview',
+        title_ar='نظرة مالية',
+        roles=('accountant',),
+        modules=('billing',),
+        size='md',
+        priority=1,
+        template='dashboards/widgets/_finance_overview.html',
+        icon='fa-chart-pie',
+        action_url='accountant.trial_balance',
+        action_label='الميزانية',
+    ),
+    'revenue_today': WidgetMeta(
+        id='revenue_today',
+        title_ar='إيراد اليوم',
+        roles=('accountant',),
+        modules=('billing',),
+        size='sm',
+        priority=1,
+        template='dashboards/widgets/_revenue_today.html',
+        icon='fa-coins',
+        action_url='accountant.accounts',
+        action_label='الدليل',
     ),
     'kpi_strip': WidgetMeta(
         id='kpi_strip',
@@ -166,8 +197,32 @@ WIDGETS: dict[str, WidgetMeta] = {
         priority=1,
         template='dashboards/widgets/_kpi_strip.html',
         icon='fa-chart-bar',
-        action_url='manager.monitoring',
+        action_url='manager.dashboard',
         action_label='المراقبة',
+    ),
+    'manager_finance': WidgetMeta(
+        id='manager_finance',
+        title_ar='المالية',
+        roles=('manager',),
+        modules=('billing',),
+        size='md',
+        priority=2,
+        template='dashboards/widgets/_manager_finance.html',
+        icon='fa-file-invoice-dollar',
+        action_url='accountant.trial_balance',
+        action_label='المالية',
+    ),
+    'manager_hr': WidgetMeta(
+        id='manager_hr',
+        title_ar='الموارد البشرية',
+        roles=('manager',),
+        modules=(),
+        size='md',
+        priority=2,
+        template='dashboards/widgets/_manager_hr.html',
+        icon='fa-users',
+        action_url='manager.staff',
+        action_label='الطاقم',
     ),
     'nurse_assigned': WidgetMeta(
         id='nurse_assigned',
@@ -259,21 +314,30 @@ ROLE_DASHBOARD_TITLES: dict[str, str] = {
     'pharmacist': 'لوحة تحكم الصيدلية',
     'emergency': 'لوحة تحكم الطوارئ',
     'accountant': 'لوحة تحكم الفوترة',
-    'manager': 'لوحة القيادة',
-    'nurse': 'لوحة القيادة',
+    'manager': 'لوحة القيادة الإدارية',
+    'nurse': 'لوحة القيادة التمريضية',
+    'super_admin': 'لوحة تحكم المدير الأعلى',
+    'admin': 'لوحة تحكم المدير النظام',
+    'owner': 'لوحة تحكم المالك',
+    'patient': 'لوحة تحكم المريض',
+    'technician': 'لوحة تحكم الفني',
 }
 
 ROLE_LAYOUTS: dict[str, list[str]] = {
     'reception': ['queue_live', 'cash_summary', 'visits_today', 'appointments_pending'],
-    'doctor': ['my_queue', 'appointments_pending', 'lab_pending', 'radiology_pending'],
+    'doctor': ['my_queue', 'patients_waiting', 'appointments_pending', 'lab_pending', 'radiology_pending'],
     'lab': ['lab_recent', 'lab_pending'],
     'radiology': ['radiology_pending'],
     'nurse': ['nurse_assigned'],
-    'accountant': ['pending_payments', 'cash_summary'],
-    'manager': ['kpi_strip', 'queue_live', 'visits_today'],
+    'accountant': ['pending_payments', 'finance_overview', 'revenue_today'],
+    'manager': ['kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'],
     'emergency': ['critical_count', 'triage_board', 'emergency_waitlist'],
-    'pharmacist': ['pharmacy_low_stock', 'pharmacy_prescriptions', 'pharmacy_sales'],
+    'pharmacist': ['pharmacy_dispense', 'pharmacy_low_stock', 'pharmacy_prescriptions', 'pharmacy_sales'],
     'technician': ['worklist_urgent', 'lab_pending'],
+    'admin': ['kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'],
+    'super_admin': ['kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'],
+    'owner': ['kpi_strip', 'manager_finance', 'manager_hr'],
+    'patient': [],
 }
 
 ROLE_QUICK_ACTIONS: dict[str, list[tuple[str, str, str]]] = {
@@ -306,21 +370,82 @@ ROLE_QUICK_ACTIONS: dict[str, list[tuple[str, str, str]]] = {
         ('inbox.dashboard', 'fa-inbox', 'صندوق العمل'),
     ],
     'accountant': [
+        ('accountant.trial_balance', 'fa-balance-scale', 'الميزانية'),
+        ('accountant.accounts', 'fa-book', 'الدليل'),
+        ('accountant.journals', 'fa-file-alt', 'الدفتر'),
         ('finance.invoices', 'fa-file-invoice-dollar', 'الفواتير'),
-        ('finance.payments', 'fa-money-bill-wave', 'المدفوعات'),
         ('inbox.dashboard', 'fa-inbox', 'صندوق العمل'),
     ],
     'manager': [
-        ('manager.analytics', 'fa-chart-line', 'المراقبة'),
+        ('manager.dashboard', 'fa-chart-line', 'لوحة الإدارة'),
+        ('accountant.trial_balance', 'fa-balance-scale', 'المالية'),
+        ('manager.staff', 'fa-users', 'الطاقم'),
         ('manager.reports_center', 'fa-chart-bar', 'التقارير'),
+        ('inbox.dashboard', 'fa-inbox', 'صندوق العمل'),
+    ],
+    'admin': [
+        ('manager.dashboard', 'fa-chart-line', 'لوحة الإدارة'),
+        ('accountant.trial_balance', 'fa-balance-scale', 'المالية'),
+        ('manager.staff', 'fa-users', 'الطاقم'),
+        ('manager.reports_center', 'fa-chart-bar', 'التقارير'),
+        ('inbox.dashboard', 'fa-inbox', 'صندوق العمل'),
+    ],
+    'super_admin': [
+        ('manager.dashboard', 'fa-chart-line', 'لوحة الإدارة'),
+        ('accountant.trial_balance', 'fa-balance-scale', 'المالية'),
+        ('manager.staff', 'fa-users', 'الطاقم'),
+        ('manager.reports_center', 'fa-chart-bar', 'التقارير'),
+        ('inbox.dashboard', 'fa-inbox', 'صندوق العمل'),
+    ],
+    'nurse': [
+        ('nurse.dashboard', 'fa-home', 'الرئيسية'),
+        ('nurse.vitals', 'fa-heartbeat', 'العلامات الحيوية'),
+        ('nurse.tasks', 'fa-tasks', 'المهام'),
+    ],
+    'radiology': [
+        ('radiology.dashboard', 'fa-home', 'الرئيسية'),
+        ('radiology.worklist', 'fa-x-ray', 'قائمة العمل'),
+        ('radiology.requests', 'fa-file-medical', 'الطلبات'),
+    ],
+    'technician': [
+        ('lab.dashboard', 'fa-home', 'الرئيسية'),
+        ('lab.worklist', 'fa-vial', 'قائمة العمل'),
+        ('lab.reports', 'fa-file-medical', 'التقارير'),
+    ],
+    'owner': [
+        ('owner.dashboard', 'fa-crown', 'لوحة المالك'),
+        ('super_admin.dashboard', 'fa-cogs', 'إعدادات المركز'),
+    ],
+    'patient': [
+        ('portal.dashboard', 'fa-home', 'الرئيسية'),
+        ('portal.appointments', 'fa-calendar', 'مواعيد'),
+        ('portal.visits', 'fa-list', 'الزيارات'),
     ],
 }
 
 
+_DASHBOARD_ROLE_HIERARCHY: dict[str, set[str]] = {
+    'super_admin': {'admin', 'manager', 'doctor', 'nurse', 'reception', 'accountant', 'emergency', 'lab', 'radiology', 'pharmacist', 'technician'},
+    'admin': {'manager', 'doctor', 'nurse', 'reception', 'accountant', 'emergency', 'lab', 'radiology', 'pharmacist', 'technician'},
+    'owner': {'super_admin', 'admin', 'manager', 'doctor', 'nurse', 'reception', 'accountant', 'emergency', 'lab', 'radiology', 'pharmacist', 'technician'},
+    'manager': {'reception', 'accountant'},
+    'doctor': {'nurse'},
+}
+
+
+def _role_inherits_from(role: str, target_roles: tuple[str, ...]) -> bool:
+    if role in target_roles:
+        return True
+    inherited = _DASHBOARD_ROLE_HIERARCHY.get(role, set())
+    return bool(inherited & set(target_roles))
+
+
 def resolve_dashboard_widgets(
-    role: str, enabled_modules: set, hidden: set | None = None
+    role: str, enabled_modules: set[str], hidden: set[str] | None = None
 ) -> list[WidgetMeta]:
-    """Widgets for role filtered by tenant modules and user hidden list."""
+    """Widgets for role filtered by tenant modules and user hidden list.
+    Hierarchy-aware: admin/super_admin/owner inherit lower-role widgets.
+    """
     hidden = hidden or set()
     layout = ROLE_LAYOUTS.get(role) or ROLE_LAYOUTS.get('manager', [])
     out: list[WidgetMeta] = []
@@ -330,11 +455,10 @@ def resolve_dashboard_widgets(
         meta = WIDGETS.get(wid)
         if not meta:
             continue
-        if role not in meta.roles and role != 'manager':
+        if role not in meta.roles and not _role_inherits_from(role, meta.roles):
             continue
         if meta.modules and not all(m in enabled_modules for m in meta.modules):
-            # Staff role dashboards: layout is authoritative (role already gates access).
-            if role == 'manager' or wid not in layout:
+            if role in ('manager', 'admin', 'super_admin', 'owner') or wid not in layout:
                 continue
         out.append(meta)
     return out

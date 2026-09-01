@@ -15,6 +15,7 @@ from models.patient import Patient
 from models.payment import Payment
 from models.user import User
 from models.visit import Visit
+from app.shared.user_role_policy import normalize_role
 from utils.tenant_query import TenantContextError, get_tenant_record
 
 
@@ -133,7 +134,7 @@ class AccessControlService:
                 return False
 
             # المدير والمدير العام والاستقبال يمكنهم الوصول لجميع الزيارات
-            if user.is_admin_user() or user.role == 'reception':
+            if user.is_admin_user() or normalize_role(user.role) == 'reception':
                 return True
 
             # الأطباء يمكنهم الوصول لزياراتهم فقط
@@ -172,7 +173,7 @@ class AccessControlService:
                 return user.is_admin_user()
 
             # الاستقبال يمكنه تعديل الزيارات خلال 30 دقيقة
-            if user.role == 'reception':
+            if normalize_role(user.role) == 'reception':
                 if visit.created_at:
                     created = visit.created_at
                     # created_at is stored naive (UTC); normalise to avoid a

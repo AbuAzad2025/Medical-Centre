@@ -30,7 +30,7 @@ _ROLE_MODULE_FALLBACK: dict[str, set[str] | None] = {
     'nurse': {'nursing'},
     'accountant': {'billing'},
     'patient': {'portal'},
-    'owner': set(),
+    'owner': None,
 }
 
 
