@@ -127,7 +127,7 @@ class PrescriptionService:
     # ==================== PRESCRIPTION CREATION ====================
 
     @staticmethod
-    @require_module('pharmacy')
+    @require_module('doctor')
     def create_prescription(
         patient_id: int,
         doctor_id: int | None = None,
@@ -307,7 +307,7 @@ class PrescriptionService:
         ]
 
     @staticmethod
-    @require_module('pharmacy')
+    @require_module('doctor')
     def get_active_prescriptions(patient_id: int) -> list:
         from models.medication import Prescription
 
@@ -320,7 +320,7 @@ class PrescriptionService:
         return db.session.execute(q.order_by(Prescription.created_at.desc())).scalars().all()
 
     @staticmethod
-    @require_module('pharmacy')
+    @require_module('doctor')
     def get_prescriptions_by_doctor(doctor_id: int, limit: int = 50) -> list:
         from models.medication import Prescription
 

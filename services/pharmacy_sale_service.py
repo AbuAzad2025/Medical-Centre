@@ -349,6 +349,93 @@ class PharmacySaleService:
         }
 
 
+    @staticmethod
+    def create_direct_sale(
+        patient_id: int | None,
+        dispensed_by: int,
+        items: list[dict],
+        tenant_id: int | None = None,
+    ) -> dict:
+        """Create a direct POS sale without a prescription (standalone pharmacy / OTC).
+
+        Dynamic bundle isolation: used when the ``doctor`` module is not active
+        and therefore no prescription records exist.
+        """
+        from uuid import uuid4
+
+        from models.medication import Medication, PharmacySale, PharmacySaleItem
+
+        tenant_id = tenant_id or getattr(g, 'tenant_id', None)
+        sale = PharmacySale(
+            tenant_id=tenant_id,
+            patient_id=patient_id,
+            sale_number=f'POS-{datetime.now(UTC).strftime("%Y%m%d%H%M%S")}-{uuid4().hex[:6]}',
+            total_amount=0,
+            status='completed',
+        )
+        db.session.add(sale)
+        db.session.flush()
+
+        medication_ids = [item.get('medication_id') for item in items if item.get('medication_id')]
+        if medication_ids:
+            medications = (
+                db.session.execute(
+                    select(Medication)
+                    .filter(Medication.id.in_(medication_ids), Medication.tenant_id == tenant_id)
+                    .with_for_update()
+                )
+                .scalars()
+                .all()
+            )
+            med_map = {m.id: m for m in medications}
+        else:
+            med_map = {}
+
+        total = 0
+        for item in items:
+            med_id = item.get('medication_id')
+            if not med_id:
+                safe_commit(db.session, error_message='medication_id required')
+                return {'error': 'medication_id required'}
+            med = med_map.get(med_id)
+            if not med:
+                safe_commit(db.session, error_message=f'Medication {med_id} not found')
+                return {'error': f'Medication {med_id} not found'}
+            qty = int(item.get('quantity', 1))
+            unit_price = item.get('unit_price', 0)
+            line_total = qty * unit_price
+
+            from app.modules.workflows.pharmacy import PharmacyStockService
+
+            try:
+                PharmacyStockService.adjust_stock(
+                    medication_id=med_id,
+                    quantity_change=-qty,
+                    movement_type='sale',
+                    reference_type='PharmacySale',
+                    reference_id=sale.id,
+                    performed_by=dispensed_by,
+                )
+            except Exception as exc:
+                safe_commit(db.session, error_message='stock adjustment failed')
+                return {'error': f'Stock adjustment failed: {exc}'}
+
+            sale_item = PharmacySaleItem(
+                sale_id=sale.id,
+                medication_id=med_id,
+                quantity=qty,
+                unit_price=unit_price,
+                total_price=line_total,
+            )
+            db.session.add(sale_item)
+            total += line_total
+
+        sale.total_amount = total
+        if not safe_commit(db.session, error_message='sale commit failed'):
+            return {'error': 'sale commit failed'}
+        return {'sale_id': sale.id, 'total_amount': total, 'status': 'completed'}
+
+
 def _averaged_cost(medication_id: int, quantity: int) -> float:
     """Compute the COGS for ``quantity`` units using average purchase cost.
 

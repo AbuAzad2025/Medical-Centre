@@ -210,8 +210,9 @@ class TestCreatePrescription:
         assert ok is False
         assert 'Prescriber' in msg
 
-    def test_standalone_walkin_allows_missing_prescriber(self, rxfx, monkeypatch):
-        from services.feature_gate_service import FeatureGateService
+    def test_standalone_walkin_blocked_without_doctor_module(self, rxfx, monkeypatch):
+        """Dynamic bundle isolation: prescription creation requires doctor module."""
+        from services.feature_gate_service import FeatureGateService, ModuleNotEnabledError
 
         def _enabled(tenant_id, module, **kw):
             return module != 'doctor'
@@ -219,13 +220,13 @@ class TestCreatePrescription:
         monkeypatch.setattr(FeatureGateService, 'module_enabled', staticmethod(_enabled))
         p = rxfx.patient()
         m = rxfx.med()
-        ok, pres = RX.create_prescription(
-            p.id,
-            None,
-            items=[{'medication_id': m.id, 'quantity': 2, 'dosage': '1', 'duration_days': 1}],
-        )
-        assert ok is True
-        assert pres.doctor_id is None
+        with pytest.raises(ModuleNotEnabledError) as exc_info:
+            RX.create_prescription(
+                p.id,
+                None,
+                items=[{'medication_id': m.id, 'quantity': 2, 'dosage': '1', 'duration_days': 1}],
+            )
+        assert 'doctor' in str(exc_info.value)
 
 
 class TestControlledDispense:

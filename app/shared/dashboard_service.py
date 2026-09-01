@@ -280,6 +280,17 @@ def _load_accountant_data(tid: int | None, today: date, data: dict[str, Any]) ->
         data['lists']['recent_payments'] = []
 
 
+def _module_active(tid: int | None, module: str) -> bool:
+    if not tid:
+        return True
+    try:
+        from app.core.module.validators import get_active_modules_for_tenant
+
+        return module in get_active_modules_for_tenant(tid)
+    except Exception:
+        return True
+
+
 def _load_role_data(role: str, user) -> dict[str, Any]:
     from app.extensions import db
     from app.shared.enums import (
@@ -368,39 +379,45 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             )
         except Exception:
             data['lists']['today_appointments'] = []
-        try:
-            data['lists']['pending_lab'] = (
-                db.session.execute(
-                    select(LabRequest)
-                    .join(Visit)
-                    .filter(
-                        Visit.doctor_id == user.id,
-                        LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+        if _module_active(tid, 'lab'):
+            try:
+                data['lists']['pending_lab'] = (
+                    db.session.execute(
+                        select(LabRequest)
+                        .join(Visit)
+                        .filter(
+                            Visit.doctor_id == user.id,
+                            LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+                        )
+                        .order_by(LabRequest.created_at.desc())
+                        .limit(6)
                     )
-                    .order_by(LabRequest.created_at.desc())
-                    .limit(6)
+                    .scalars()
+                    .all()
                 )
-                .scalars()
-                .all()
-            )
-        except Exception:
+            except Exception:
+                data['lists']['pending_lab'] = []
+        else:
             data['lists']['pending_lab'] = []
-        try:
-            data['lists']['pending_radiology'] = (
-                db.session.execute(
-                    select(RadiologyRequest)
-                    .join(Visit)
-                    .filter(
-                        Visit.doctor_id == user.id,
-                        RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+        if _module_active(tid, 'radiology'):
+            try:
+                data['lists']['pending_radiology'] = (
+                    db.session.execute(
+                        select(RadiologyRequest)
+                        .join(Visit)
+                        .filter(
+                            Visit.doctor_id == user.id,
+                            RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS]),
+                        )
+                        .order_by(RadiologyRequest.created_at.desc())
+                        .limit(6)
                     )
-                    .order_by(RadiologyRequest.created_at.desc())
-                    .limit(6)
+                    .scalars()
+                    .all()
                 )
-                .scalars()
-                .all()
-            )
-        except Exception:
+            except Exception:
+                data['lists']['pending_radiology'] = []
+        else:
             data['lists']['pending_radiology'] = []
 
     if role in ('lab', 'technician'):
@@ -439,7 +456,7 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         except Exception:
             data['lists']['lab_pending'] = []
 
-    if role == 'radiology':
+    if role == 'radiology' and _module_active(tid, 'radiology'):
         try:
             q = (
                 select(func.count())
@@ -465,7 +482,7 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         except Exception:
             data['lists']['pending_radiology'] = []
 
-    if role == 'emergency':
+    if role == 'emergency' and _module_active(tid, 'emergency'):
         try:
             q = (
                 select(func.count())
@@ -515,7 +532,7 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             data['lists']['emergency_cases'] = []
             data['lists']['emergency_queue'] = []
 
-    if role == 'nurse':
+    if role == 'nurse' and _module_active(tid, 'nursing'):
         try:
             q = select(Visit).filter(
                 Visit.visit_date == today,
@@ -529,7 +546,7 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         except Exception:
             data['lists']['assigned'] = []
 
-    if role == 'pharmacist':
+    if role == 'pharmacist' and _module_active(tid, 'pharmacy'):
         try:
             q = select(Medication).filter(Medication.stock_quantity <= Medication.minimum_stock)
             if tid and hasattr(Medication, 'tenant_id'):
@@ -539,14 +556,17 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
                 .scalars()
                 .all()
             )
-            q = select(Prescription).filter(Prescription.status == 'active')
-            if tid and hasattr(Prescription, 'tenant_id'):
-                q = q.filter(Prescription.tenant_id == tid)
-            data['lists']['pending_prescriptions'] = (
-                db.session.execute(q.order_by(Prescription.created_at.desc()).limit(10))
-                .scalars()
-                .all()
-            )
+            if _module_active(tid, 'doctor'):
+                q = select(Prescription).filter(Prescription.status == 'active')
+                if tid and hasattr(Prescription, 'tenant_id'):
+                    q = q.filter(Prescription.tenant_id == tid)
+                data['lists']['pending_prescriptions'] = (
+                    db.session.execute(q.order_by(Prescription.created_at.desc()).limit(10))
+                    .scalars()
+                    .all()
+                )
+            else:
+                data['lists']['pending_prescriptions'] = []
             q = select(PharmacySale).filter(func.date(PharmacySale.created_at) == today)
             if tid and hasattr(PharmacySale, 'tenant_id'):
                 q = q.filter(PharmacySale.tenant_id == tid)

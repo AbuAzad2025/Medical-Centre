@@ -25,7 +25,7 @@ class LabService:
     @staticmethod
     @require_module('lab')
     def create_request(
-        visit_id: int,
+        visit_id: int | None,
         test_ids: list[int],
         *,
         requested_by: int | None = None,
@@ -37,6 +37,10 @@ class LabService:
         P2-001: This is the canonical path for a clinician to order lab tests.
         Free-text notes are still preserved in the linked Treatment record (see
         P2-000 deprecation contract); this method creates the structured order.
+
+        Dynamic bundle isolation: ``visit_id`` is optional for standalone-lab
+        bundles (no ``doctor`` / ``reception`` module). When those modules are
+        active a visit is required; otherwise a walk-in request is accepted.
         """
         from models.lab_request import LabRequest, LabResult
         from models.lab_test_catalog import LabTestCatalog
@@ -45,44 +49,50 @@ class LabService:
         if not test_ids:
             return False, {'error': 'No test IDs provided'}
 
-        visit = (
-            db.session.execute(
-                select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id)
-            )
-            .scalars()
-            .first()
-        )
-        if not visit:
-            return False, {'error': 'Visit not found'}
+        resolved_tenant_id = tenant_id or getattr(g, 'tenant_id', None)
 
-        tenant_id = tenant_id or visit.tenant_id
-
+        # Dynamic cross-module check
         from services.feature_gate_service import FeatureGateService
 
-        if requested_by is None and FeatureGateService.module_enabled(tenant_id, 'doctor'):
+        doctor_or_reception_active = False
+        if resolved_tenant_id:
+            doctor_or_reception_active = (
+                FeatureGateService.module_enabled(resolved_tenant_id, 'doctor')
+                or FeatureGateService.module_enabled(resolved_tenant_id, 'reception')
+            )
+
+        if visit_id is not None:
+            visit = (
+                db.session.execute(
+                    select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id)
+                )
+                .scalars()
+                .first()
+            )
+            if not visit:
+                return False, {'error': 'Visit not found'}
+            resolved_tenant_id = resolved_tenant_id or visit.tenant_id
+        elif doctor_or_reception_active:
+            # visit_id is mandatory when doctor/reception module is enabled
+            return False, {
+                'error': 'visit_id is required when the doctor or reception module is enabled'
+            }
+        else:
+            # Standalone lab walk-in: no visit required
+            visit = None
+
+        if requested_by is None and FeatureGateService.module_enabled(resolved_tenant_id, 'doctor'):
             return False, {
                 'error': 'Prescriber (requested_by) is required when the doctor module is enabled'
             }
 
-        from app.core.module.models import TenantModule
-
-        if (
-            not db.session.execute(
-                select(TenantModule).filter_by(
-                    tenant_id=tenant_id, module_name='lab', is_active=True
-                )
-            )
-            .scalars()
-            .first()
-        ):
-            raise PermissionError('Lab module is not enabled for this tenant')
         now = datetime.now(UTC)
-        request_number = f'LR-{visit_id}-{int(now.timestamp())}'
+        request_number = f'LR-{visit_id or 0}-{int(now.timestamp())}'
 
         lab_request = LabRequest(
-            tenant_id=tenant_id,
-            visit_id=visit.id,
-            patient_id=visit.patient_id,
+            tenant_id=resolved_tenant_id,
+            visit_id=visit.id if visit else None,
+            patient_id=visit.patient_id if visit else None,
             requested_by=requested_by,
             request_number=request_number,
             status='REQUESTED',

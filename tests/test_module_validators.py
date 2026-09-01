@@ -31,7 +31,8 @@ def _meta(
 
 @pytest.fixture
 def patched(monkeypatch):
-    """Centralized registry + active-set stub for validator isolation."""
+    """Centralized registry + active-set stub for validator isolation.
+    Bypasses bundle boundary checks so tests focus on module activation logic."""
     registry = {
         'reception': _meta('reception', category='administrative'),
         'doctor': _meta('doctor', standalone_allowed=True),
@@ -45,6 +46,7 @@ def patched(monkeypatch):
 
     monkeypatch.setattr(V, 'MODULE_REGISTRY', registry)
     monkeypatch.setattr(R, 'get_clinical_modules', lambda: clinical)
+    monkeypatch.setattr(V, '_get_bundle_for_tenant', lambda _tenant_id: None)
 
     def _set_active(active):
         monkeypatch.setattr(V, 'get_active_modules_for_tenant', lambda _tenant_id: set(active))

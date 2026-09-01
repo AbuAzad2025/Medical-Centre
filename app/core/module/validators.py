@@ -23,11 +23,26 @@ def get_active_modules_for_tenant(tenant_id: int) -> set:
     return {r.module_name for r in rows}
 
 
+def _get_bundle_for_tenant(tenant_id: int) -> list[str] | None:
+    """Return allowed module names from the tenant's ProductBundle, or None if unrestricted."""
+    from app.core.tenant.models import Tenant, get_bundle_for_profile
+
+    tenant = db.session.get(Tenant, tenant_id)
+    if not tenant or not tenant.product_profile_code:
+        return None  # No bundle restriction
+    bundle = get_bundle_for_profile(tenant.product_profile_code)
+    if bundle:
+        return bundle.get_modules()
+    return None
+
+
 def can_activate_module(
     tenant_id: int, module_name: str, profile_code: str | None = None
 ) -> tuple[bool, str | None]:
     """
     Check whether a module can be activated for a tenant.
+    Enforces bundle boundaries: if the tenant has a product_profile_code,
+    only modules listed in that bundle are allowed.
     Returns (ok, error_message).
     """
     active = get_active_modules_for_tenant(tenant_id)
@@ -43,8 +58,14 @@ def can_activate_module(
         if req not in active:
             return False, f"Module '{module_name}' requires '{req}' to be active first."
 
-    # No required_any_of, no standalone_allowed check, no reception rule
-    # Any module can be activated freely as long as hard deps are met
+    # Dynamic bundle boundary enforcement
+    allowed = _get_bundle_for_tenant(tenant_id)
+    if allowed is not None and module_name not in allowed:
+        return (
+            False,
+            f"Module '{module_name}' is not included in the tenant's bundle. "
+            f"Allowed modules: {', '.join(allowed)}.",
+        )
 
     return True, None
 
