@@ -49,7 +49,6 @@ def upgrade() -> None:
     op.create_index(
         'idx_periods_tenant_dates', 'financial_periods', ['tenant_id', 'start_date', 'end_date']
     )
-    op.create_index('ix_financial_periods_tenant_id', 'financial_periods', ['tenant_id'])
 
     if bind.dialect.name == 'postgresql':
         op.execute('ALTER TABLE financial_periods ENABLE ROW LEVEL SECURITY')
@@ -62,5 +61,4 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index('idx_periods_tenant_closed', table_name='financial_periods')
     op.drop_index('idx_periods_tenant_dates', table_name='financial_periods')
-    op.drop_index('ix_financial_periods_tenant_id', table_name='financial_periods')
     op.drop_table('financial_periods')
