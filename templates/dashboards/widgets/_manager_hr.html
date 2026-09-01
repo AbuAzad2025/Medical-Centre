@@ -1,0 +1,24 @@
+<div class="cc-widget cc-widget--md" data-widget-id="manager_hr">
+  <div class="cc-widget__head d-flex justify-content-between align-items-center">
+    <span><i class="fas fa-users me-1 text-info"></i> الموارد البشرية</span>
+    <a href="{{ url_for('manager.staff') }}" class="btn btn-sm btn-outline-info">الطاقم</a>
+  </div>
+  <div class="cc-widget__body p-3">
+    <div class="row g-3 text-center">
+      <div class="col-6">
+        <div class="text-muted small">إجمالي الطاقم</div>
+        <div class="fs-4 fw-bold text-primary">{{ widget_data.metrics.staff_count or 0 }}</div>
+      </div>
+      <div class="col-6">
+        <div class="text-muted small">النشط</div>
+        <div class="fs-4 fw-bold text-success">{{ widget_data.metrics.active_staff or 0 }}</div>
+      </div>
+    </div>
+    <div class="progress mt-3" style="height: 6px;">
+      {% set active = widget_data.metrics.active_staff or 0 %}
+      {% set total = widget_data.metrics.staff_count or 1 %}
+      <div class="progress-bar bg-info" role="progressbar" style="width: {{ (active / total * 100) if total else 0 }}%"></div>
+    </div>
+    <div class="text-center small text-muted mt-1">{{ active }} / {{ total }} نشط</div>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+<div class="cc-widget cc-widget--md" data-widget-id="finance_overview">
+  <div class="cc-widget__head d-flex justify-content-between align-items-center">
+    <span><i class="fas fa-chart-pie me-1 text-primary"></i> نظرة مالية</span>
+    <a href="{{ url_for('accountant.trial_balance') }}" class="btn btn-sm btn-outline-primary">الميزانية</a>
+  </div>
+  <div class="cc-widget__body p-3">
+    <div class="d-flex justify-content-between mb-2">
+      <span class="text-muted">المبلغ المعلق</span>
+      <strong class="font-monospace" data-metric-value>{{ "%.2f"|format(widget_data.metrics.pending_amount or 0) }}</strong>
+    </div>
+    <div class="d-flex justify-content-between mb-2">
+      <span class="text-muted">معدل التحصيل</span>
+      <strong class="{% if (widget_data.metrics.collection_rate or 0) >= 80 %}text-success{% elif (widget_data.metrics.collection_rate or 0) >= 50 %}text-warning{% else %}text-danger{% endif %}">{{ "%.1f"|format(widget_data.metrics.collection_rate or 0) }}%</strong>
+    </div>
+    <div class="progress" style="height: 6px;">
+      <div class="progress-bar {% if (widget_data.metrics.collection_rate or 0) >= 80 %}bg-success{% elif (widget_data.metrics.collection_rate or 0) >= 50 %}bg-warning{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ widget_data.metrics.collection_rate or 0 }}%"></div>
+    </div>
+    <div class="d-flex justify-content-between mt-2 small text-muted">
+      <span>المفوتر: {{ "%.0f"|format(widget_data.metrics.total_billed or 0) }}</span>
+      <span>المحصل: {{ "%.0f"|format(widget_data.metrics.total_collected or 0) }}</span>
+    </div>
+  </div>
+</div>

@@ -89,7 +89,7 @@
                                 <td>{{ info.count }}</td>
                                 <td>{{ "%.2f"|format(info.amount) }}</td>
                             </tr>
-                            {% endfor %}
+                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                         </tbody>
                     </table>
                     <h6 class="mt-3">حسب الحالة</h6>
@@ -102,7 +102,7 @@
                                 <td>{{ info.count }}</td>
                                 <td>{{ "%.2f"|format(info.amount) }}</td>
                             </tr>
-                            {% endfor %}
+                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -130,7 +130,7 @@
                                 <td>{{ item.approved_by or '—' }}</td>
                                 <td>{{ item.approved_at or '—' }}</td>
                             </tr>
-                            {% endfor %}
+                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -160,7 +160,7 @@
                                 <td>{{ "%.2f"|format(info.total_amount) }}</td>
                                 <td>{{ "%.2f"|format(info.patient_share) }}</td>
                             </tr>
-                            {% endfor %}
+                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -180,7 +180,7 @@
                                 <td>{{ issue.count }}</td>
                                 <td>{{ issue.message }}</td>
                             </tr>
-                            {% endfor %}
+                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                         </tbody>
                     </table>
                 </div>

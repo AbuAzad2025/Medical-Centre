@@ -40,10 +40,11 @@ def upgrade():
 
 
 def downgrade():
-    # Set orphaned rows to visit_id=0 before restoring NOT NULL
-    op.execute('UPDATE prescriptions SET visit_id = 0 WHERE visit_id IS NULL')
-    op.execute('UPDATE lab_requests SET visit_id = 0 WHERE visit_id IS NULL')
-    op.execute('UPDATE radiology_requests SET visit_id = 0 WHERE visit_id IS NULL')
+    # Remove standalone walk-in rows (NULL visit_id) before restoring NOT NULL;
+    # sentinel 0 violates FK visits.id, so delete instead.
+    op.execute('DELETE FROM prescriptions WHERE visit_id IS NULL')
+    op.execute('DELETE FROM lab_requests WHERE visit_id IS NULL')
+    op.execute('DELETE FROM radiology_requests WHERE visit_id IS NULL')
     op.alter_column('prescriptions', 'visit_id', existing_type=sa.Integer(), nullable=False)
     op.alter_column('lab_requests', 'visit_id', existing_type=sa.Integer(), nullable=False)
     op.alter_column('radiology_requests', 'visit_id', existing_type=sa.Integer(), nullable=False)

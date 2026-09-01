@@ -785,6 +785,43 @@ class PrintDocType(StrEnum):
 
 
 # =============================================================================
+# General Ledger (GL) & Chart of Accounts
+# =============================================================================
+
+
+class AccountType(StrEnum):
+    """Chart of Accounts categories (matching IAS/IFRS normal balances)."""
+
+    ASSET = 'ASSET'
+    LIABILITY = 'LIABILITY'
+    EQUITY = 'EQUITY'
+    REVENUE = 'REVENUE'
+    EXPENSE = 'EXPENSE'
+
+
+class AccountNormalBalance(StrEnum):
+    DEBIT = 'DEBIT'
+    CREDIT = 'CREDIT'
+
+
+class JournalStatus(StrEnum):
+    POSTED = 'POSTED'
+    VOID = 'VOID'
+
+
+class JournalSourceType(StrEnum):
+    """Reference entity a journal entry is derived from."""
+
+    VISIT = 'visit'
+    INVOICE = 'invoice'
+    PAYMENT = 'payment'
+    PHARMACY_SALE = 'pharmacy_sale'
+    EXPENSE = 'expense'
+    REFUND = 'refund'
+    PROCUREMENT = 'procurement'
+
+
+# =============================================================================
 # Helper: export all enum values as a JSON-serializable dict
 # =============================================================================
 

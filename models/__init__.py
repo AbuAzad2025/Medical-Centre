@@ -45,6 +45,7 @@ from .fhir_mapping import (
 )
 from .file_management import FileUpload
 from .follow_up import FollowUpRequest
+from .gl import Account, FinancialPeriod, GLJournal, GLJournalLine
 from .icd_coding import CodedDiagnosis, CodedProcedure, CPTCode, DRGCode, ICD10Code
 from .insurance import InsuranceClaim, InsuranceCompany
 from .invoice import Invoice, InvoiceService
@@ -133,6 +134,7 @@ from .workflow import PatientWorkflow, WorkflowStep, WorkflowTransfer
 __all__ = [
     'AIImagingAnalysis',
     'AIRecommendation',
+    'Account',
     'Admission',
     'AllergyIntolerance',
     'Appointment',
@@ -181,7 +183,10 @@ __all__ = [
     'FHIRObservation',
     'FHIRPatient',
     'FileUpload',
+    'FinancialPeriod',
     'FollowUpRequest',
+    'GLJournal',
+    'GLJournalLine',
     'ICD10Code',
     'Immunization',
     'InsuranceClaim',

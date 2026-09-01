@@ -1,0 +1,20 @@
+<div class="cc-widget cc-widget--md" data-widget-id="manager_finance">
+  <div class="cc-widget__head d-flex justify-content-between align-items-center">
+    <span><i class="fas fa-file-invoice-dollar me-1 text-primary"></i> المالية</span>
+    <span class="badge bg-primary">{{ widget_data.metrics.pending_invoices or 0 }} فواتير معلقة</span>
+  </div>
+  <div class="cc-widget__body p-3">
+    <div class="d-flex justify-content-between mb-2">
+      <span class="text-muted">إيراد اليوم</span>
+      <strong class="font-monospace text-success">{{ "%.0f"|format(widget_data.metrics.today_revenue or 0) }}</strong>
+    </div>
+    <div class="d-flex justify-content-between mb-2">
+      <span class="text-muted">المبلغ المعلق</span>
+      <strong class="font-monospace text-warning">{{ "%.0f"|format(widget_data.metrics.pending_amount or 0) }}</strong>
+    </div>
+    <div class="d-flex justify-content-between">
+      <span class="text-muted">زيارات اليوم</span>
+      <strong>{{ widget_data.metrics.visits_today or 0 }}</strong>
+    </div>
+  </div>
+</div>

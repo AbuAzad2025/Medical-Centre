@@ -12,9 +12,11 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-body">
-                    <div class="mb-2"><strong>الفترة:</strong> {{ summary.period }}</div>
-                    <div class="mb-2"><strong>المدفوعات:</strong> {{ summary.total_payments }}</div>
-                    <div class="mb-2"><strong>الزيارات المكتملة:</strong> {{ summary.visits|length if summary.visits is defined else 0 }}</div>
+                    <div class="mb-2"><strong>الفترة:</strong> {{ summary.period or summary.date }}</div>
+                    <div class="mb-2"><strong>المدفوعات:</strong> {{ summary.total_payments or summary.payments_total }}</div>
+                    <div class="mb-2"><strong>عدد المدفوعات:</strong> {{ summary.payments_count or 0 }}</div>
+                    <div class="mb-2"><strong>الزيارات المكتملة:</strong> {{ summary.visits|length if summary.visits is defined else summary.completed_visits or 0 }}</div>
+                    <div class="mb-2"><strong>الفواتير الجديدة:</strong> {{ summary.new_invoices or 0 }}</div>
                 </div>
             </div>
         </div>

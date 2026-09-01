@@ -11,6 +11,7 @@ from enum import Enum
 from sqlalchemy import select
 
 from app.extensions import db
+from utils.db_safety import safe_commit
 
 logger = logging.getLogger(__name__)
 
@@ -320,7 +321,7 @@ class DataRetentionService:
                 )
             )
 
-            db.session.commit()
+            safe_commit(db.session)
             logger.info('Patient %s anonymized by user %s', patient_id, approved_by)
             return True
         except Exception:
@@ -356,7 +357,7 @@ class DataRetentionService:
         deleted_ids = [r.id for r in records]
         for r in records:
             db.session.delete(r)
-        db.session.commit()
+        safe_commit(db.session)
         logger.info('Deleted %s expired session logs for tenant %s', len(deleted_ids), tenant_id)
         return len(deleted_ids), deleted_ids
 

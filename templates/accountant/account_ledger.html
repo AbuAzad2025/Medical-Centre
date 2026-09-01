@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
+
+{% block title %}الدفتر التفصيلي{% endblock %}
+
+{% block content %}
+<div class="container-fluid" dir="rtl">
+    {{ page_header('الدفتر التفصيلي', actions=[
+        {'label': 'رجوع', 'url': url_for('accountant.accounts'), 'style': 'secondary'}
+    ]) }}
+    <div class="card shadow-sm mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <strong class="fs-5">{{ account.code }} — {{ account.name }}</strong>
+                {% if account.name_ar %}<span class="badge bg-secondary ms-2">{{ account.name_ar }}</span>{% endif %}
+            </div>
+            <span class="badge {% if account.normal_balance == 'DEBIT' %}bg-info{% else %}bg-warning text-dark{% endif %} fs-6">{{ account.normal_balance }}</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-sm-4"><strong>النوع:</strong> <span class="badge bg-light text-dark border">{{ account.account_type }}</span></div>
+                <div class="col-sm-4"><strong>الرصيد الطبيعي:</strong> {{ account.normal_balance }}</div>
+                <div class="col-sm-4"><strong>الرصيد التراكمي:</strong> <span class="fw-bold fs-4 {% if running_balance >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "%.2f"|format(running_balance) }}</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('accountant.account_ledger', account_id=account.id) }}" class="row g-3 align-items-end">
+                <div class="col-sm-4 col-md-3">
+                    <label class="form-label small text-muted mb-1" for="led_from_date">من تاريخ</label>
+                    <input type="date" name="from_date" id="led_from_date" value="{{ start_date }}" class="form-control">
+                </div>
+                <div class="col-sm-4 col-md-3">
+                    <label class="form-label small text-muted mb-1" for="led_to_date">إلى تاريخ</label>
+                    <input type="date" name="to_date" id="led_to_date" value="{{ end_date }}" class="form-control">
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-search me-1"></i>عرض</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% if lines %}
+    <div class="card shadow">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <strong>حركات الحساب</strong>
+            <span class="badge bg-primary">{{ lines|length }} حركة</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="min-width:110px;">التاريخ</th>
+                            <th>رقم القيد</th>
+                            <th>البيان</th>
+                            <th class="text-end">المدين</th>
+                            <th class="text-end">الدائن</th>
+                            <th class="text-end">الرصيد التراكمي</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line in lines %}
+                        <tr>
+                            <td class="font-monospace small">{{ line.date.strftime('%Y-%m-%d') if line.date else '-' }}</td>
+                            <td><code class="small">{{ line.journal_number }}</code></td>
+                            <td class="small">{{ line.description or '-' }}</td>
+                            <td class="text-end font-monospace">{% if line.debit %}{{ "%.2f"|format(line.debit) }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                            <td class="text-end font-monospace">{% if line.credit %}{{ "%.2f"|format(line.credit) }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                            <td class="text-end fw-bold font-monospace {% if line.running_balance >= 0 %}text-dark{% else %}text-danger{% endif %}">
+                                {% if line.running_balance >= 0 %}
+                                {{ "%.2f"|format(line.running_balance) }}
+                                {% else %}
+                                ({{ "%.2f"|format(-line.running_balance) }})
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-dark">
+                        <tr>
+                            <th colspan="5" class="text-end">الرصيد الختامي</th>
+                            <th class="text-end font-monospace fs-6">{{ "%.2f"|format(running_balance) }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="mt-2 text-muted small">الفترة: {{ start_date }} إلى {{ end_date }} — الحساب: {{ account.code }}</div>
+    {% else %}
+    <div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>لا توجد حركات للفترة المحددة.</div>
+    {% endif %}
+</div>
+{% endblock %}

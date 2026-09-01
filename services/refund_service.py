@@ -255,6 +255,14 @@ class RefundService:
             request.executed_by = executed_by
             request.executed_at = datetime.now(UTC)
 
+            # Post the reversing GL journal for the executed refund.
+            try:
+                from services.gl_service import GLService
+
+                GLService.post_refund(payment, request)
+            except Exception:
+                logging.exception('GL posting failed for refund')
+
             db.session.flush()
             return True, request
         except Exception as e:

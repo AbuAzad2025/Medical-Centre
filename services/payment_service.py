@@ -139,6 +139,8 @@ class PaymentService:
                     if visit:
                         PaymentAllocationService.allocate(payment, visit)
 
+                _post_payment_gl(payment, status)
+
                 payment.replayed = False
                 return True, payment
             except IntegrityError as e:
@@ -203,6 +205,8 @@ class PaymentService:
                 if visit:
                     PaymentAllocationService.allocate(payment, visit)
 
+            _post_payment_gl(payment, status)
+
             payment.replayed = False
             return True, payment
         except Exception as e:
@@ -213,3 +217,22 @@ class PaymentService:
 
 # Singleton
 payment_service = PaymentService()
+
+
+def _post_payment_gl(payment, status: str) -> None:
+    """Post the GL journal for a newly-created confirmed payment.
+
+    Revenue recognition happens once at payment time; idempotency is enforced
+    inside GLService.post_payment by the (source_type, source_id) journal guard,
+    so this is safe to call for replayed/non-idempotent payments alike.
+    Uses a savepoint so GL failure does not rollback the payment itself.
+    """
+    if str(status or '').upper() != 'CONFIRMED':
+        return
+    try:
+        from services.gl_service import GLService
+
+        with db.session.begin_nested():
+            GLService.post_payment(payment)
+    except Exception:
+        logging.exception('GL posting failed for payment %s', getattr(payment, 'id', None))

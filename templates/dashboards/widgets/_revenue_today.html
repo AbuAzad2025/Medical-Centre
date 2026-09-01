@@ -1,0 +1,8 @@
+<div class="cc-widget cc-widget--sm" data-widget-id="revenue_today">
+  <div class="cc-widget__head"><span><i class="fas fa-coins me-1 text-success"></i> إيراد اليوم</span></div>
+  <div class="cc-widget__body p-3 text-center">
+    <div class="fs-3 fw-bold text-success font-monospace" data-metric-value>{{ "%.2f"|format(widget_data.metrics.today_collected or 0) }}</div>
+    <div class="text-muted small">{{ widget_data.metrics.today_payments or 0 }} مدفوعات اليوم</div>
+    <a href="{{ url_for('accountant.journals') }}" class="btn btn-sm btn-outline-success mt-2">الدفتر اليومي</a>
+  </div>
+</div>

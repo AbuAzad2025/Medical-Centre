@@ -161,6 +161,7 @@ class PharmacySaleService:
             med_map = {}
 
         total = 0
+        total_cost = 0
         for item in items:
             med_id = item.get('medication_id')
             if not med_id:
@@ -202,6 +203,7 @@ class PharmacySaleService:
             )
             db.session.add(sale_item)
             total += line_total
+            total_cost += _averaged_cost(med_id, qty)
 
         sale.total_amount = total
         prescription.status = PrescriptionState.DISPENSED
@@ -216,6 +218,18 @@ class PharmacySaleService:
             notes='Dispensed via POS sale',
         )
         db.session.add(dispense_log)
+
+        # Post the GL journal (revenue + COGS) once the sale has an id.
+        try:
+            from decimal import Decimal
+
+            from services.gl_service import GLService
+
+            GLService.post_pharmacy_sale(sale, Decimal(str(total_cost)))
+        except Exception:
+            import logging
+
+            logging.exception('GL posting failed for pharmacy sale')
 
         safe_commit(db.session, error_message='final commit fail', reraise=True)
         return {'sale_id': sale.id, 'total_amount': total}
@@ -333,3 +347,33 @@ class PharmacySaleService:
             'prescription_number': prescription.prescription_number,
             'status': prescription.status,
         }
+
+
+def _averaged_cost(medication_id: int, quantity: int) -> float:
+    """Compute the COGS for ``quantity`` units using average purchase cost.
+
+    Falls back to the medication selling price if no purchase records exist.
+    """
+    from decimal import Decimal
+
+    from models.medication import Medication, MedicationPurchase
+
+    purchases = (
+        db.session.execute(select(MedicationPurchase).filter_by(medication_id=medication_id))
+        .scalars()
+        .all()
+    )
+    if not purchases:
+        med = db.session.get(Medication, medication_id)
+        unit = Decimal(str(getattr(med, 'price', 0) or 0)) if med else Decimal(0)
+    else:
+        total_qty = sum(int(p.quantity or 0) for p in purchases)
+        total_cost = sum(
+            (Decimal(str(p.purchase_price or 0)) * int(p.quantity or 0)) for p in purchases
+        )
+        if total_qty <= 0:
+            med = db.session.get(Medication, medication_id)
+            unit = Decimal(str(getattr(med, 'price', 0) or 0)) if med else Decimal(0)
+        else:
+            unit = total_cost / Decimal(total_qty)
+    return float(unit * Decimal(int(quantity)))

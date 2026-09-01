@@ -22,12 +22,20 @@ class FinancialService:
     """Centralized financial business logic"""
 
     @staticmethod
-    def get_dashboard_stats(start_date: date | None = None, end_date: date | None = None) -> dict:
+    def get_dashboard_stats(
+        start_date: date | None = None, end_date: date | None = None, tenant_id: int | None = None
+    ) -> dict:
+        from flask import g
+
         from models.invoice import Invoice
         from models.payment import Payment
 
+        if tenant_id is None:
+            tenant_id = getattr(g, 'tenant_id', None) or getattr(
+                getattr(g, 'current_tenant', None), 'id', None
+            )
         try:
-            q = Invoice.query
+            q = Invoice.query.filter(Invoice.tenant_id == tenant_id) if tenant_id else Invoice.query
             if start_date:
                 q = q.filter(Invoice.created_at >= start_date)
             if end_date:
@@ -36,7 +44,9 @@ class FinancialService:
                 func.coalesce(func.sum(Invoice.total_amount), 0)
             ).scalar()
 
-            pq = Payment.query
+            pq = (
+                Payment.query.filter(Payment.tenant_id == tenant_id) if tenant_id else Payment.query
+            )
             if start_date:
                 pq = pq.filter(Payment.payment_date >= start_date)
             if end_date:
@@ -45,7 +55,9 @@ class FinancialService:
 
             from models.expense import Expense
 
-            eq = Expense.query
+            eq = (
+                Expense.query.filter(Expense.tenant_id == tenant_id) if tenant_id else Expense.query
+            )
             if start_date:
                 eq = eq.filter(Expense.expense_date >= start_date)
             if end_date:
@@ -122,9 +134,17 @@ class FinancialService:
             return {'ok': False, 'error': str(e)}
 
     @staticmethod
-    def get_revenue_by_period(period: str = 'monthly', limit: int = 12) -> list:
+    def get_revenue_by_period(
+        period: str = 'monthly', limit: int = 12, tenant_id: int | None = None
+    ) -> list:
+        from flask import g
+
         from models.invoice import Invoice
 
+        if tenant_id is None:
+            tenant_id = getattr(g, 'tenant_id', None) or getattr(
+                getattr(g, 'current_tenant', None), 'id', None
+            )
         try:
             if period == 'daily':
                 group_expr = func.date(Invoice.created_at)
@@ -132,16 +152,16 @@ class FinancialService:
                 group_expr = func.year(Invoice.created_at)
             else:
                 group_expr = func.date_format(Invoice.created_at, '%Y-%m')
+            base = select(
+                group_expr.label('period'),
+                func.coalesce(func.sum(Invoice.total_amount), 0).label('amount'),
+                func.count(Invoice.id).label('count'),
+            )
+            if tenant_id:
+                base = base.where(Invoice.tenant_id == tenant_id)
             results = (
                 db.session.execute(
-                    select(
-                        group_expr.label('period'),
-                        func.coalesce(func.sum(Invoice.total_amount), 0).label('amount'),
-                        func.count(Invoice.id).label('count'),
-                    )
-                    .group_by(group_expr)
-                    .order_by(group_expr.desc())
-                    .limit(limit)
+                    base.group_by(group_expr).order_by(group_expr.desc()).limit(limit)
                 )
                 .scalars()
                 .all()
@@ -233,26 +253,36 @@ class FinancialService:
             return False
 
     @staticmethod
-    def get_pending_invoices(limit: int = 50) -> list:
+    def get_pending_invoices(limit: int = 50, tenant_id: int | None = None) -> list:
+        from flask import g
+
         from models.invoice import Invoice
 
-        return (
-            db.session.execute(
-                select(Invoice)
-                .filter(Invoice.status.in_(['PENDING', 'PARTIAL']))
-                .order_by(Invoice.created_at.asc())
-                .limit(limit)
+        if tenant_id is None:
+            tenant_id = getattr(g, 'tenant_id', None) or getattr(
+                getattr(g, 'current_tenant', None), 'id', None
             )
-            .scalars()
-            .all()
-        )
+        q = select(Invoice).filter(Invoice.status.in_(['PENDING', 'PARTIAL']))
+        if tenant_id:
+            q = q.filter(Invoice.tenant_id == tenant_id)
+        return db.session.execute(q.order_by(Invoice.created_at.asc()).limit(limit)).scalars().all()
 
     @staticmethod
-    def get_expenses(category: str | None = None, limit: int = 100) -> dict:
+    def get_expenses(
+        category: str | None = None, limit: int = 100, tenant_id: int | None = None
+    ) -> dict:
+        from flask import g
+
         from models.expense import Expense
 
+        if tenant_id is None:
+            tenant_id = getattr(g, 'tenant_id', None) or getattr(
+                getattr(g, 'current_tenant', None), 'id', None
+            )
         try:
             query = select(Expense)
+            if tenant_id:
+                query = query.filter(Expense.tenant_id == tenant_id)
             if category:
                 query = query.filter(Expense.category == category)
             query = query.limit(max(1, min(limit, 500)))
@@ -303,6 +333,13 @@ class FinancialService:
                 status='RECORDED',
             )
             db.session.add(expense)
+            try:
+                db.session.flush()
+                from services.gl_service import GLService
+
+                GLService.post_expense(expense)
+            except Exception:
+                logging.exception('GL posting failed for expense')
             if not safe_commit(db.session, error_message='Failed to record expense'):
                 return {
                     'success': False,

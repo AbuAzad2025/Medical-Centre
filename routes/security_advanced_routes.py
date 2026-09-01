@@ -11,6 +11,7 @@ from sqlalchemy import select
 
 from app.extensions import db
 from models.digital_signature import DigitalSignature, PasswordPolicy, SessionLog
+from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import handle_route_errors, role_required
 from utils.tenant_query import TenantContextError, get_tenant_record
 
@@ -77,10 +78,10 @@ def terminate_other_sessions():
                 s.terminated_by = 'USER'
                 s.logout_at = datetime.now(UTC)
                 terminated += 1
-        db.session.commit()
+        safe_commit(db.session)
         return jsonify({'success': True, 'terminated': terminated})
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session)
         return jsonify({'success': False, 'message': str(e)}), 500
 
 

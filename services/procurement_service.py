@@ -110,6 +110,14 @@ class ProcurementService:
                     med.stock_quantity = (med.stock_quantity or 0) + received_qty
             mp.remaining_quantity = 0
 
+            # Post the GL inventory journal on receipt.
+            try:
+                from services.gl_service import GLService
+
+                GLService.post_procurement(mp)
+            except Exception:
+                logger.exception('GL posting failed for purchase receipt')
+
         safe_commit(db.session, error_message='Failed to receive purchase', reraise=True)
 
         return {

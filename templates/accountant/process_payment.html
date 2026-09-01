@@ -29,7 +29,7 @@
               <div class="col-md-6 mb-3">
                 <label class="form-label">العملة</label>
                 <select class="form-select" name="payment_currency" id="paymentCurrencySelect" required title="العملة">
-                  {% for code, info in currencies.items() %}<option value="{{ code }}" {{ 'selected' if code == base_currency else '' }}>{{ info.flag }} {{ code }} — {{ info.name }}</option>{% endfor %}
+                  {% for code, info in currencies.items() %}<option value="{{ code }}" {{ 'selected' if code == base_currency else '' }}>{{ info.flag }} {{ code }} — {{ info.name }}</option>{% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                 </select>
                 <div id="exchangeRateInfo" class="small text-muted mt-1 d-none"></div>
               </div>
@@ -55,7 +55,7 @@
                   <option value="">بدون</option>
                   {% for ic in insurance_companies or [] %}
                   <option value="{{ ic.id }}">{{ ic.name_ar or ic.name }}</option>
-                  {% endfor %}
+                  {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                 </select>
               </div>
               <div class="col-md-6 mb-3">

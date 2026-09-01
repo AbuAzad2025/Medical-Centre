@@ -53,7 +53,7 @@
                                         <a class="btn btn-sm btn-outline-primary" href="{{ url_for('accountant.financial') }}?patient_id={{ p.id }}">كشف الحساب</a>
                                     </td>
                                 </tr>
-                                {% endfor %}
+                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -135,7 +135,7 @@
                                                     <td class="text-end">{{ "%.2f"|format(v.remaining_amount or 0) }}</td>
                                                     <td>{{ payment_status_badge(v) }}</td>
                                                 </tr>
-                                                {% endfor %}
+                                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                                             </tbody>
                                         </table>
                                     </div>
@@ -164,7 +164,7 @@
                                                     <td>{{ pmt.method_display }}</td>
                                                     <td class="text-end">{{ "%.2f"|format(pmt.amount or 0) }}</td>
                                                 </tr>
-                                                {% endfor %}
+                                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                                             </tbody>
                                         </table>
                                     </div>

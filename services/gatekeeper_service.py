@@ -214,6 +214,14 @@ class GatekeeperService:
             visit.receipt_number = receipt_number
             visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + amount_decimal
 
+            # Post the GL journal for this cash receipt.
+            try:
+                from services.gl_service import GLService
+
+                GLService.post_payment(payment)
+            except Exception:
+                logger.exception('GL posting failed for system receipt')
+
             # إذا كان المبلغ المدفوع يساوي المطلوب، إزالة القفل المالي
             if Decimal(str(visit.paid_amount or 0)) >= Decimal(str(visit.total_amount or 0)):
                 visit.financial_locked = False

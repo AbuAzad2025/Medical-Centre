@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
+
+{% block title %}الميزانية المرجعية{% endblock %}
+
+{% block content %}
+<div class="container-fluid" dir="rtl">
+    {{ page_header('الميزانية المرجعية', actions=[
+        {'label': 'رجوع', 'url': url_for('accountant.dashboard'), 'style': 'secondary'}
+    ]) }}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('accountant.trial_balance') }}" class="row g-3 align-items-end">
+                <div class="col-sm-4 col-md-3">
+                    <label class="form-label small text-muted mb-1" for="from_date">من تاريخ</label>
+                    <input type="date" name="from_date" id="from_date" value="{{ start_date }}" class="form-control">
+                </div>
+                <div class="col-sm-4 col-md-3">
+                    <label class="form-label small text-muted mb-1" for="to_date">إلى تاريخ</label>
+                    <input type="date" name="to_date" id="to_date" value="{{ end_date }}" class="form-control">
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-search me-1"></i>عرض</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% if accounts %}
+    <div class="card shadow">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <strong>الميزانية المرجعية</strong>
+            {% if equal %}
+            <span class="badge bg-success fs-6">المدين يساوي الدائن ✓</span>
+            {% else %}
+            <span class="badge bg-danger fs-6">عدم تطابق المدين والدائن ✗</span>
+            {% endif %}
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>الكود</th>
+                            <th>الاسم</th>
+                            <th>الاسم العربي</th>
+                            <th>النوع</th>
+                            <th>الرصيد الطبيعي</th>
+                            <th class="text-end">المدين</th>
+                            <th class="text-end">الدائن</th>
+                            <th class="text-end">الرصيد النهائي</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in accounts %}
+                        <tr>
+                            <td><code>{{ row.code }}</code></td>
+                            <td>{{ row.name }}</td>
+                            <td>{{ row.name_ar or '-' }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ row.type }}</span></td>
+                            <td>{% if row.normal_balance == 'DEBIT' %}<span class="badge bg-info">مدين</span>{% else %}<span class="badge bg-warning text-dark">دائن</span>{% endif %}</td>
+                            <td class="text-end font-monospace">{{ "%.2f"|format(row.total_debit) }}</td>
+                            <td class="text-end font-monospace">{{ "%.2f"|format(row.total_credit) }}</td>
+                            <td class="text-end fw-bold font-monospace">
+                                {% if row.balance >= 0 %}
+                                {{ "%.2f"|format(row.balance) }}
+                                {% else %}
+                                <span class="text-danger">({{ "%.2f"|format(-row.balance) }})</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-dark">
+                        <tr>
+                            <th colspan="5" class="text-end">الإجمالي</th>
+                            <th class="text-end font-monospace">{{ "%.2f"|format(total_debit) }}</th>
+                            <th class="text-end font-monospace">{{ "%.2f"|format(total_credit) }}</th>
+                            <th class="text-end">
+                                {% if equal %}<span class="text-success">✓ متوازن</span>{% else %}<span class="text-danger">✗ غير متوازن</span>{% endif %}
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="mt-2 text-muted small">الفترة: {{ start_date }} إلى {{ end_date }}</div>
+    {% else %}
+    <div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>لا توجد بيانات للفترة المحددة.</div>
+    {% endif %}
+</div>
+{% endblock %}

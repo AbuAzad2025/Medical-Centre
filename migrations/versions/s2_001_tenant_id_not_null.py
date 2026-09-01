@@ -60,14 +60,14 @@ def _get_tenant_scoped_tables() -> list[str]:
 
 
 def _backfill_nulls(table: str, conn) -> int:
-    """Backfill any NULL tenant_id rows to 0, returning the count.
+    """Remove orphan rows with NULL tenant_id, returning the count.
 
-    Backfilling to 0 (a sentinel that doesn't match any real tenant) is a
-    safety measure so the migration doesn't fail on unexpected NULL rows.
-    In a properly isolated system this path should never be reached.
+    Previously backfilled to sentinel 0 which violated FK tenants.id.
+    Now deletes orphan rows and warns — a properly isolated system
+    should have zero such rows.
     """
     result = conn.execute(
-        text(f"UPDATE {table} SET tenant_id = 0 WHERE tenant_id IS NULL")
+        text(f"DELETE FROM {table} WHERE tenant_id IS NULL")
     )
     return result.rowcount
 
@@ -78,11 +78,11 @@ def upgrade() -> None:
     total_backfilled = 0
 
     for table in tables:
-        # Safety: backfill any NULL tenant_id before adding NOT NULL
+        # Safety: remove any NULL tenant_id orphans before adding NOT NULL
         n = _backfill_nulls(table, conn)
         if n:
             print(
-                f"WARNING: Backfilled {n} NULL tenant_id rows in '{table}'"
+                f"WARNING: Deleted {n} orphan NULL tenant_id rows in '{table}'"
                 f" — review data integrity"
             )
             total_backfilled += n
@@ -96,12 +96,11 @@ def upgrade() -> None:
 
     if total_backfilled:
         print(
-            f"WARNING: Total NULL tenant_id backfills: {total_backfilled}"
+            f"WARNING: Total orphan NULL tenant_id deletions: {total_backfilled}"
             f" — review data integrity immediately"
         )
         print(
-            "Rows with tenant_id=0 are orphaned (no tenant FK)."
-            " Investigate how they were created."
+            "Deleted orphan rows had no tenant FK — investigate how they were created."
         )
 
     print(f"Applied NOT NULL to tenant_id on {len(tables)} tenant-scoped tables")

@@ -156,7 +156,7 @@
                                 <td>{{ alert.threshold }}</td>
                                 <td>{{ alert.message }}</td>
                             </tr>
-                            {% endfor %}
+                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -180,7 +180,7 @@
                                 <td>{{ reason }}</td>
                                 <td>{{ count }}</td>
                             </tr>
-                            {% endfor %}
+                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                         </tbody>
                     </table>
                 </div>

@@ -68,7 +68,7 @@
                                                 <td>{{ "%.2f"|format(d.remaining_amount) }}</td>
                                                 <td>{{ d.payment_method }}</td>
                                             </tr>
-                                            {% endfor %}
+                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
@@ -89,7 +89,7 @@
                                                 <td>{{ "%.2f"|format(d.remaining_amount) }}</td>
                                                 <td>{{ d.payment_method }}</td>
                                             </tr>
-                                            {% endfor %}
+                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
@@ -110,7 +110,7 @@
                                                 <td>{{ "%.2f"|format(d.remaining_amount) }}</td>
                                                 <td>{{ d.payment_method }}</td>
                                             </tr>
-                                            {% endfor %}
+                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
@@ -131,7 +131,7 @@
                                                 <td>{{ "%.2f"|format(d.remaining_amount) }}</td>
                                                 <td>{{ d.payment_method }}</td>
                                             </tr>
-                                            {% endfor %}
+                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">لا توجد بيانات</td></tr>{% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
