@@ -58,6 +58,9 @@ jobs:
       - name: Bandit SAST -- high severity only (strict)
         run: bandit -r app/ services/ routes/ -lll
 
+      - name: CJK guard — no Chinese/Japanese/Korean in code/templates (strict)
+        run: python scripts/ci/check_no_cjk.py
+
   # ── Frontend JavaScript Unit Tests (Vitest) ──────────────────────────────
   frontend-javascript-tests:
     name: JavaScript unit tests (Vitest)

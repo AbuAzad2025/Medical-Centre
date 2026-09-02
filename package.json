@@ -15,7 +15,9 @@
     "build": "node scripts/build-assets.mjs",
     "test:js": "vitest run",
     "test:js:watch": "vitest",
-    "test:js:coverage": "vitest run --coverage"
+    "test:js:coverage": "vitest run --coverage",
+    "lint:cjk": "python scripts/ci/check_no_cjk.py",
+    "lint:cjk:staged": "python scripts/ci/check_no_cjk.py --staged"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",
