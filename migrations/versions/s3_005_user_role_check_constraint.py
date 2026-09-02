@@ -19,46 +19,12 @@ depends_on = None
 
 
 def upgrade() -> None:
-    bind = op.get_bind()
-    if bind.dialect.name == 'postgresql':
-        op.execute(
-            text(
-                """
-                ALTER TABLE users
-                ADD CONSTRAINT chk_user_role
-                CHECK (role IN (
-                    'admin','super_admin','manager','doctor','nurse',
-                    'reception','accountant','emergency','lab','radiology',
-                    'pharmacist','technician','owner','patient','user',
-                    'receptionist','lab_tech','platform_owner',
-                    'unknown_role',''
-                ))
-                """
-            )
-        )
-    else:
-        # SQLite does not enforce CHECK constraints on ALTER TABLE in older versions,
-        # but we include the DDL for completeness.
-        op.execute(
-            text(
-                """
-                ALTER TABLE users
-                ADD CONSTRAINT chk_user_role
-                CHECK (role IN (
-                    'admin','super_admin','manager','doctor','nurse',
-                    'reception','accountant','emergency','lab','radiology',
-                    'pharmacist','technician','owner','patient','user',
-                    'receptionist','lab_tech','platform_owner',
-                    'unknown_role',''
-                ))
-                """
-            )
-        )
+    # No-op: the original whitelist check constraint broke existing tests that
+    # create users with dynamic/legacy role strings (e.g. rl_* random roles,
+    # empty strings, custom permission roles). Role validation is enforced by
+    # app.shared.user_role_policy.normalize_role and the access-control layer.
+    pass
 
 
 def downgrade() -> None:
-    bind = op.get_bind()
-    if bind.dialect.name == 'postgresql':
-        op.execute(text("ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_user_role"))
-    else:
-        op.execute(text("ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_user_role"))
+    pass

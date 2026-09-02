@@ -20,9 +20,11 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.shared.enums import AccountNormalBalance, AccountType, JournalSourceType, JournalStatus
+from app.shared.tenant_filter import _is_saas_mode
 from models.gl import FinancialPeriod
 from utils.db_safety import safe_commit
 
@@ -227,10 +229,30 @@ class GLService:
         """Ensure the Chart of Accounts exists for the tenant. Flushes if created."""
         from models.gl import Account
 
+        # In SaaS/RLS mode the GUC may be lost after a savepoint commit; re-assert
+        # it explicitly so the SELECT can see the tenant's existing accounts. This
+        # prevents duplicate-key violations when post_* helpers run after a prior
+        # commit in the same test transaction.
+        if tenant_id is not None and _is_saas_mode():
+            db.session.execute(
+                db.text("SELECT set_config('app.tenant_id', :tid, true)"),
+                {'tid': str(tenant_id)},
+            )
+
         count = db.session.execute(select(Account).filter_by(tenant_id=tenant_id)).scalars().all()
         if not count:
-            GLService.seed_coa(tenant_id)
-            db.session.flush()
+            try:
+                GLService.seed_coa(tenant_id)
+                db.session.flush()
+            except IntegrityError:
+                db.session.rollback()
+                # Another writer (or a previously committed savepoint) created the
+                # accounts; refresh the count and continue.
+                count = db.session.execute(
+                    select(Account).filter_by(tenant_id=tenant_id)
+                ).scalars().all()
+                if not count:
+                    raise
 
     @staticmethod
     def payment_account_for_method(method: str) -> str:
