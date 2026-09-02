@@ -3,19 +3,15 @@
 Validates the 5 pillars from the architecture audit.
 """
 
-import pytest
 from sqlalchemy import select
 
-from app.core.module.registry import MODULE_REGISTRY
-from app.core.tenant.models import ProductBundle, Tenant
 from app.core.module.models import TenantModule
+from app.core.module.validators import can_activate_module
+from app.core.tenant.models import ProductBundle, Tenant
 from app.extensions import db
 from app.shared.dashboard_registry import resolve_dashboard_widgets
-from services.dashboard_routing import resolve_dashboard_for_user, ROLE_TO_MODULE_MAP
-from app.core.module.validators import get_active_modules_for_tenant, can_activate_module
+from services.dashboard_routing import resolve_dashboard_for_user
 from tests.tenant_context import ensure_test_user, tenant_test_context
-from tests.conftest import ensure_default_test_tenant
-
 
 # Helpers
 
@@ -110,7 +106,6 @@ class TestPostLoginRouting:
         t = _tenant_with_bundle('standalone_pharmacy', app)
         with tenant_test_context(app, t):
             u = ensure_test_user(db, t, username=f'lab_in_pharm_{t.id}', role='lab')
-            from tests.tenant_context import login_test_client
 
             # need to login via client - use test_tenant fixture's login helper may not work for isolated tenant
             # Instead directly test the guard: resolve should be package_restricted
@@ -165,7 +160,7 @@ class TestTenantIsolation:
         t1 = _tenant_with_bundle('standalone_pharmacy', app)
         t2 = _tenant_with_bundle('standalone_lab', app)
         with tenant_test_context(app, t1):
-            u1 = ensure_test_user(db, t1, username=f'user_t1_{t1.id}', role='pharmacist')
+            ensure_test_user(db, t1, username=f'user_t1_{t1.id}', role='pharmacist')
             from models.patient import Patient
 
             p1 = Patient(tenant_id=t1.id, first_name='T1', last_name='Patient', phone='0500000001')
@@ -176,7 +171,6 @@ class TestTenantIsolation:
         with tenant_test_context(app, t2):
             # Try to fetch t1's patient via direct ID
             from utils.tenant_query import get_tenant_record
-            from utils.tenant_query import TenantContextError
 
             # Should raise TenantContextError or return None due to tenant filter
             try:
@@ -256,17 +250,16 @@ class TestPlatformOwnerPrivacyGuard:
             db.session.add(p)
             db.session.commit()
             # Login as platform owner and try to access patient endpoint
-            c = app.test_client()
+            app.test_client()
             # Login as platform owner (bypass tenant)
-            from tests.tenant_context import login_test_client
 
             # Need to login with tenant context of platform? Use direct login helper
             # For privacy guard test, we simulate a request with platform_owner role
             # The guard should be enforced via decorator or before_request
             # We'll directly test the guard function
             from app.shared.medical_privacy import (
-                is_medical_endpoint,
                 enforce_medical_privacy_guard,
+                is_medical_endpoint,
             )
 
             # Mock a request to /doctor/patient-details/...
@@ -275,7 +268,6 @@ class TestPlatformOwnerPrivacyGuard:
             # Enforce should raise 403 for platform_owner on medical endpoint
             with app.test_request_context('/doctor/patient-details/1'):
                 from flask import g
-                from flask_login import current_user
 
                 # Simulate platform_owner user
                 g.tenant_id = None
@@ -283,7 +275,7 @@ class TestPlatformOwnerPrivacyGuard:
                 # We test the function directly
                 try:
                     enforce_medical_privacy_guard(owner)
-                    assert False, 'Should have raised 403'
+                    raise AssertionError('Should have raised 403')
                 except Exception as e:
                     assert '403' in str(e) or 'Forbidden' in str(e) or 'Medical Privacy' in str(e)
 
@@ -296,7 +288,7 @@ class TestPlatformOwnerPrivacyGuard:
         assert is_medical_endpoint('/api/billing/stripe/webhook') is False
 
     def test_super_admin_blocked_from_medical(self, app):
-        from app.shared.medical_privacy import is_medical_endpoint, enforce_medical_privacy_guard
+        from app.shared.medical_privacy import enforce_medical_privacy_guard
         from models.user import User
 
         sa = User(
@@ -310,6 +302,6 @@ class TestPlatformOwnerPrivacyGuard:
         with app.test_request_context('/lab/requests'):
             try:
                 enforce_medical_privacy_guard(sa)
-                assert False, 'super_admin should be blocked from medical'
+                raise AssertionError('super_admin should be blocked from medical')
             except Exception as e:
                 assert '403' in str(e) or 'Forbidden' in str(e)

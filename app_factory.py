@@ -971,7 +971,7 @@ def create_app(config_name: str | None = None) -> Flask:
     # Medical Privacy Guard — platform owners must never access tenant clinical data
     @app.before_request
     def _enforce_medical_privacy_guard():
-        from flask import g, request
+        from flask import request
         from flask_login import current_user
 
         if not current_user.is_authenticated:

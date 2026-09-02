@@ -103,7 +103,7 @@ def enforce_medical_privacy_guard(user) -> None:
     # super_admin who is tenant-scoped (has tenant_id matching a real tenant)
     # and is acting within that tenant is NOT blocked for that tenant's data
     # But global platform owners (tenant_id is platform tenant or None) are blocked
-    from flask import request, g
+    from flask import g, request
 
     # If request is not available (e.g., in tests with direct call), use g
     path = ''

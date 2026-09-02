@@ -98,10 +98,8 @@ def resolve_dashboard_for_user(user, tenant_id: int | None = None) -> str:
         try:
             tid = tenant_id or getattr(g, 'tenant_id', None)
             if tid:
-                from app.core.tenant.models import Tenant
-                from sqlalchemy import select as _select
+                from app.core.tenant.models import Tenant, get_bundle_for_profile
                 from app.extensions import db as _db
-                from app.core.tenant.models import get_bundle_for_profile
 
                 t = _db.session.get(Tenant, int(tid)) if str(tid).isdigit() else None
                 if t and t.product_profile_code:

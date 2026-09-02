@@ -4,9 +4,9 @@ Validates that scripts/ops/bootstrap_platform.py correctly seeds
 a production-clean database without mock/demo data.
 """
 
-import pytest
 from sqlalchemy import func, select
 
+from app.core.module.models import ModuleDefinition
 from app.core.module.registry import MODULE_REGISTRY
 from app.core.platform_bootstrap import (
     ensure_module_definitions,
@@ -14,12 +14,9 @@ from app.core.platform_bootstrap import (
     ensure_saas_packages,
     run_platform_bootstrap,
 )
-from app.extensions import db
 from app.core.tenant.models import ProductBundle
-from app.core.module.models import ModuleDefinition, TenantModule
+from app.extensions import db
 from models.user import User
-from models.patient import Patient
-from models.visit import Visit
 
 
 def _count(table):
@@ -34,7 +31,7 @@ def test_bootstrap_seeds_15_core_modules_and_is_idempotent(app, monkeypatch):
     monkeypatch.delenv('SKIP_PLATFORM_BOOTSTRAP', raising=False)
     with app.app_context():
         # Ensure idempotent: second run adds 0
-        first = run_platform_bootstrap(quiet=True)
+        run_platform_bootstrap(quiet=True)
         second = run_platform_bootstrap(quiet=True)
         assert second['module_definitions_added'] == 0
 
@@ -87,7 +84,7 @@ def test_bootstrap_seeds_23_product_bundles(app, monkeypatch):
         # seed_packages_from_product_bundles is idempotent
         from app.core.saas.models import Package
 
-        pkg_count = db.session.execute(select(func.count()).select_from(Package)).scalar() or 0
+        db.session.execute(select(func.count()).select_from(Package)).scalar() or 0
         # In SaaS model, packages mirror bundles, but count may be 0 if stripe not configured
         # At minimum, ensure product_bundles is 23
         assert bundle_count == 23
@@ -98,8 +95,8 @@ def test_bootstrap_creates_platform_master_account(app, monkeypatch):
     with app.app_context():
         run_platform_bootstrap(quiet=True)
         # Seed master account via production_baseline
-        from seeds.production_baseline import seed_master_account
         from seeds import tenant_bypass
+        from seeds.production_baseline import seed_master_account
 
         user = seed_master_account()
         assert user is not None
