@@ -248,9 +248,11 @@ class GLService:
                 db.session.rollback()
                 # Another writer (or a previously committed savepoint) created the
                 # accounts; refresh the count and continue.
-                count = db.session.execute(
-                    select(Account).filter_by(tenant_id=tenant_id)
-                ).scalars().all()
+                count = (
+                    db.session.execute(select(Account).filter_by(tenant_id=tenant_id))
+                    .scalars()
+                    .all()
+                )
                 if not count:
                     raise
 

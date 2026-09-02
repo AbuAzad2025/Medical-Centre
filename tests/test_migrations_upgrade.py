@@ -10,7 +10,7 @@ from migrations.migration_utils import column_exists, fk_exists, index_exists, t
 # Expected heads in the migration graph.
 # The migration chain continues from s2_011_clean_schema through s3_* migrations.
 EXPECTED_HEADS = {
-    's3_006_add_vital_signs_blood_sugar',
+    's3_007_add_missing_system_configs',
 }
 
 
