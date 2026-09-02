@@ -40,15 +40,15 @@ def upgrade() -> None:
         op.execute(f'ALTER TABLE {table} ENABLE ROW LEVEL SECURITY')
         op.execute(f'ALTER TABLE {table} FORCE ROW LEVEL SECURITY')
         op.execute(
-            f"CREATE POLICY {new} ON {table} "
+            f'CREATE POLICY {new} ON {table} '
             f"USING (tenant_id = NULLIF(current_setting('app.tenant_id'::text, true), '')::integer) "
             f"WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id'::text, true), '')::integer)"
         )
     # Clean sentinel FK-violating rows (tenant_id=0 has no tenants.id)
-    op.execute("DELETE FROM gl_journal_lines WHERE tenant_id = 0")
-    op.execute("DELETE FROM gl_journals WHERE tenant_id = 0")
-    op.execute("DELETE FROM financial_periods WHERE tenant_id = 0")
-    op.execute("DELETE FROM accounts WHERE tenant_id = 0")
+    op.execute('DELETE FROM gl_journal_lines WHERE tenant_id = 0')
+    op.execute('DELETE FROM gl_journals WHERE tenant_id = 0')
+    op.execute('DELETE FROM financial_periods WHERE tenant_id = 0')
+    op.execute('DELETE FROM accounts WHERE tenant_id = 0')
 
 
 def downgrade() -> None:

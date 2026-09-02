@@ -8,8 +8,8 @@ does not. Fresh DBs built from s2_011 -> s3_* therefore lack them, which
 breaks verify-boot and branding_context at startup.
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 revision = 's3_007_add_missing_system_configs'
 down_revision = 's3_006_add_vital_signs_blood_sugar'
@@ -37,8 +37,14 @@ def upgrade() -> None:
             sa.Column('created_by', sa.Integer(), nullable=True),
             sa.Column('updated_by', sa.Integer(), nullable=True),
             sa.Column('tenant_id', sa.Integer(), nullable=True),
-            sa.CheckConstraint("category IN ('general', 'security', 'notification', 'backup', 'system', 'database', 'email', 'sms')", name='chk_category'),
-            sa.CheckConstraint("config_type IN ('string', 'integer', 'boolean', 'json', 'file', 'password')", name='chk_config_type'),
+            sa.CheckConstraint(
+                "category IN ('general', 'security', 'notification', 'backup', 'system', 'database', 'email', 'sms')",
+                name='chk_category',
+            ),
+            sa.CheckConstraint(
+                "config_type IN ('string', 'integer', 'boolean', 'json', 'file', 'password')",
+                name='chk_config_type',
+            ),
             sa.ForeignKeyConstraint(['created_by'], ['users.id'], ondelete='SET NULL'),
             sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
             sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ondelete='SET NULL'),
@@ -49,9 +55,15 @@ def upgrade() -> None:
             batch_op.create_index('idx_config_category', ['category'], unique=False)
             batch_op.create_index('idx_config_key', ['config_key'], unique=False)
             batch_op.create_index('idx_config_system', ['is_system'], unique=False)
-            batch_op.create_index(batch_op.f('ix_system_configs_created_by'), ['created_by'], unique=False)
-            batch_op.create_index(batch_op.f('ix_system_configs_tenant_id'), ['tenant_id'], unique=False)
-            batch_op.create_index(batch_op.f('ix_system_configs_updated_by'), ['updated_by'], unique=False)
+            batch_op.create_index(
+                batch_op.f('ix_system_configs_created_by'), ['created_by'], unique=False
+            )
+            batch_op.create_index(
+                batch_op.f('ix_system_configs_tenant_id'), ['tenant_id'], unique=False
+            )
+            batch_op.create_index(
+                batch_op.f('ix_system_configs_updated_by'), ['updated_by'], unique=False
+            )
 
     if not insp.has_table('system_themes'):
         op.create_table(
@@ -72,7 +84,9 @@ def upgrade() -> None:
             sa.PrimaryKeyConstraint('id'),
         )
         with op.batch_alter_table('system_themes', schema=None) as batch_op:
-            batch_op.create_index(batch_op.f('ix_system_themes_tenant_id'), ['tenant_id'], unique=False)
+            batch_op.create_index(
+                batch_op.f('ix_system_themes_tenant_id'), ['tenant_id'], unique=False
+            )
 
 
 def downgrade() -> None:

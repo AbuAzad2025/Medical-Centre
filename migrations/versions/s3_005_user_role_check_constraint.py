@@ -1,16 +1,14 @@
-"""Add CheckConstraint on User.role to enforce role whitelist.
+"""No-op placeholder for User.role whitelist constraint.
 
 Revision ID: s3_005_user_role_check_constraint
 Revises: s3_004_add_lab_panel_item_tenant
 
-Adds a database-level check constraint on users.role to validate
-against a unified whitelist that includes canonical roles and legacy
-aliases (receptionist, lab_tech, platform_owner) for backward
-compatibility.
+Originally intended to add a CHECK constraint on users.role, but the
+whitelist broke existing tests that use dynamic roles (rl_*). Role
+validation is now enforced in the application layer via
+app.shared.user_role_policy.normalize_role. This revision is kept as
+a no-op to preserve the linear history (s3_004 -> s3_005 -> s3_006).
 """
-
-from alembic import op
-from sqlalchemy import text
 
 revision = 's3_005_user_role_check_constraint'
 down_revision = 's3_004_add_lab_panel_item_tenant'

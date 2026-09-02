@@ -8,8 +8,8 @@ blood_sugar, but the baseline migration did not include it. Tests
 previously added it dynamically; this migration makes it permanent.
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 revision = 's3_006_add_vital_signs_blood_sugar'
 down_revision = 's3_005_user_role_check_constraint'
