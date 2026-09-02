@@ -27,7 +27,10 @@ def pay_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def pay_accountant(app, test_tenant):
-    u = db.session.execute(select(User).filter_by(username='pay_accountant')).scalars().first()
+    # Tenant-scoped query must include tenant_id in SaaS mode (fail-closed)
+    u = db.session.execute(
+        select(User).filter_by(username='pay_accountant', tenant_id=test_tenant.id)
+    ).scalars().first()
     if not u:
         u = User(
             username='pay_accountant',
