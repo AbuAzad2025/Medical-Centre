@@ -968,6 +968,54 @@ def create_app(config_name: str | None = None) -> Flask:
 
         ghost_mode_middleware()
 
+    # Medical Privacy Guard — platform owners must never access tenant clinical data
+    @app.before_request
+    def _enforce_medical_privacy_guard():
+        from flask import g, request
+        from flask_login import current_user
+
+        if not current_user.is_authenticated:
+            return
+        role = getattr(current_user, 'role', None)
+        if role not in ('platform_owner', 'super_admin', 'owner'):
+            return
+        # Allow owner role to access owner dashboard, but not clinical
+        # For strict guard, platform_owner and global super_admin are blocked from medical
+        try:
+            from app.shared.medical_privacy import is_medical_endpoint
+
+            path = request.path or ''
+            # Platform owners are global; tenant super_admins with a real tenant should be allowed
+            # Check if user is global: if tenant is platform tenant or None
+            is_global = False
+            if role == 'platform_owner':
+                is_global = True
+            elif role in ('super_admin', 'owner'):
+                # Check if tenant is platform tenant
+                tid = getattr(current_user, 'tenant_id', None)
+                if tid is None:
+                    is_global = True
+                else:
+                    try:
+                        from app.core.tenant.models import Tenant
+
+                        t = db.session.get(Tenant, tid)
+                        if t and t.slug == 'platform':
+                            is_global = True
+                    except Exception:
+                        is_global = True
+            if is_global and is_medical_endpoint(path):
+                from flask import abort
+
+                abort(403, description='403 Forbidden - Access Denied (Medical Privacy Guard)')
+        except Exception as e:
+            # Only re-raise if it's the abort
+            from werkzeug.exceptions import HTTPException
+
+            if isinstance(e, HTTPException):
+                raise
+            pass
+
     # Ghost Mode test/debug route - registered before requests
     from flask import jsonify
     from flask_login import current_user

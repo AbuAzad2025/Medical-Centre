@@ -505,7 +505,6 @@ def resolve_dashboard_widgets(
         if role not in meta.roles and not _role_inherits_from(role, meta.roles):
             continue
         if meta.modules and not all(m in enabled_modules for m in meta.modules):
-            if role in ('manager', 'admin', 'super_admin', 'owner') or wid not in layout:
-                continue
+            continue
         out.append(meta)
     return out

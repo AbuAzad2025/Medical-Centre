@@ -93,6 +93,34 @@ def resolve_dashboard_for_user(user, tenant_id: int | None = None) -> str:
     if user_role == 'patient':
         return 'portal.dashboard'
 
+    # Tenant admin / manager: route to bundle's primary dashboard (strict bundle isolation)
+    if user_role in ('admin', 'manager'):
+        try:
+            tid = tenant_id or getattr(g, 'tenant_id', None)
+            if tid:
+                from app.core.tenant.models import Tenant
+                from sqlalchemy import select as _select
+                from app.extensions import db as _db
+                from app.core.tenant.models import get_bundle_for_profile
+
+                t = _db.session.get(Tenant, int(tid)) if str(tid).isdigit() else None
+                if t and t.product_profile_code:
+                    bundle = get_bundle_for_profile(t.product_profile_code)
+                    if bundle:
+                        mods = bundle.get_modules()
+                        # Map bundle's first clinical module to dashboard
+                        for mod in mods:
+                            ep = MODULE_TO_DASHBOARD_ENDPOINT.get(mod)
+                            if ep:
+                                return ep
+                        # Fallback to first module's dashboard
+                        if mods:
+                            ep = MODULE_TO_DASHBOARD_ENDPOINT.get(mods[0])
+                            if ep:
+                                return ep
+        except Exception:
+            pass
+
     # Get required module for this role
     required_module = ROLE_TO_MODULE_MAP.get(user_role)
     if not required_module:
