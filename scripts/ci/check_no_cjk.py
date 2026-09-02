@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 """
-CJK Guard — fail if Chinese/Japanese/Korean characters are found in code/templates.
+CJK Guard — fail if Chinese/Japanese/Korean characters are found.
 
 Why: AI assistants sometimes emit CJK glyphs due to encoding or translation
 errors. Arabic/English are the only allowed natural languages in this codebase.
 This check is STRICT and blocks CI.
 
+Scope: Scans EVERY line in templates (*.html), Python files (*.py) including
+comments and docstrings, and JS/TS/CSS/JSON/YAML/SQL. No file is skipped
+because it is a comment — every line is checked.
+
+Output: Clean UTF-8, no garbled � and no \\uXXXX escapes. Violations are
+shown as the exact line with the CJK character visible, plus its codepoint.
+
 Usage:
-  python scripts/ci/check_no_cjk.py
+  python scripts/ci/check_no_cjk.py            # full local scan (1427 files)
   python scripts/ci/check_no_cjk.py --staged   # only staged files (pre-commit)
+  npm run lint:cjk                              # same via package.json
 
 Exit code 1 if any CJK character is found outside the allowlist.
 """
@@ -16,11 +24,28 @@ Exit code 1 if any CJK character is found outside the allowlist.
 from __future__ import annotations
 
 import argparse
+import io
 import pathlib
 import re
 import subprocess
+import sys
+
+# Ensure stdout/stderr handle UTF-8 (Arabic + CJK) without garbled � or \uXXXX
+# On Windows the default is cp1252/cp1256 which cannot display CJK; reconfigure to utf-8.
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='strict')
+    sys.stderr.reconfigure(encoding='utf-8', errors='strict')
+except Exception:
+    # Fallback for older Python or redirected streams
+    try:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='strict')
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='strict')
+    except Exception:
+        pass
 
 # CJK ranges: Unified Ideographs, Extension A, Compatibility, Hiragana, Katakana, Hangul
+# This covers all Chinese/Japanese/Korean characters that must not appear.
+# Arabic (0600-06FF) and English (0000-007F) are intentionally NOT matched.
 CJK_PATTERN = re.compile(
     r'[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]'
 )
@@ -128,17 +153,31 @@ def collect_files(staged_only: bool) -> list[pathlib.Path]:
 
 
 def scan_file(path: pathlib.Path) -> list[tuple[int, str, str]]:
-    """Return list of (lineno, char, line_snippet) for each CJK hit."""
+    """Return list of (lineno, char, line_snippet) for each CJK hit.
+
+    Checks EVERY line, including comments (#, <!-- -->, //) and docstrings,
+    because CJK errors can appear anywhere.
+    Handles encoding strictly without garbled � — tries utf-8, utf-8-sig,
+    then skips binary files silently.
+    """
+    text: str | None = None
+    # Try utf-8 first (primary), then utf-8-sig (BOM), then skip
+    for enc in ('utf-8', 'utf-8-sig'):
+        try:
+            text = path.read_text(encoding=enc, errors='strict')
+            break
+        except UnicodeDecodeError:
+            continue
+        except Exception:
+            return []
+    if text is None:
+        # Binary or undecodable with utf-8 — skip without garbled output
+        return []
     hits: list[tuple[int, str, str]] = []
-    try:
-        text = path.read_text(encoding='utf-8', errors='strict')
-    except Exception:
-        # Binary or undecodable — skip
-        return hits
     for lineno, line in enumerate(text.splitlines(), start=1):
         for m in CJK_PATTERN.finditer(line):
             ch = m.group(0)
-            # Snippet: 30 chars before/after, escaped
+            # Snippet: 30 chars before/after, shown as-is (no \\uXXXX)
             start = max(0, m.start() - 30)
             end = min(len(line), m.end() + 30)
             snippet = line[start:end].strip()
@@ -165,13 +204,10 @@ def main() -> int:
         hits = scan_file(path)
         if hits:
             total_hits += len(hits)
-            safe_path = path.as_posix().encode('ascii', 'backslashreplace').decode()
-            print(f'\nCJK violation in {safe_path}:')
+            print(f'\nCJK violation in {path.as_posix()}:')
             for lineno, ch, snippet in hits[:5]:  # cap per file to avoid spam
-                # Show Unicode codepoint for clarity (avoid printing raw CJK on cp1252)
                 cp = f'U+{ord(ch):04X}'
-                safe_snippet = snippet.encode('ascii', 'backslashreplace').decode()
-                print(f'  L{lineno}: {cp} -> ...{safe_snippet}...')
+                print(f"  L{lineno}: {cp} '{ch}' -> {snippet}")
             if len(hits) > 5:
                 print(f'  ... and {len(hits) - 5} more hits in this file')
 
