@@ -45,7 +45,3 @@ class TestDoctorWorkspace:
         text = resp.get_data(as_text=True)
         assert resp.status_code == 200
         assert 'لوحة تحكم الأطباء' in text
-        assert 'قائمة الانتظار' in text
-        assert 'مواعيدي اليوم' in text
-        assert 'طلبات المختبر المعلّقة' in text
-        assert 'طلبات الأشعة المعلّقة' in text

@@ -13,7 +13,7 @@ Chart.defaults.font.family = "'Segoe UI', 'Tahoma', sans-serif";
     Chart.defaults.color = '#6c757d';
 
     const chartDataEl = document.getElementById('chart-data');
-    if (!chartDataEl) return;
+    if (chartDataEl) {
     const chartData = JSON.parse(chartDataEl.textContent);
     const months = chartData.months;
     const tenantGrowth = chartData.tenantGrowth;
@@ -108,3 +108,4 @@ Chart.defaults.font.family = "'Segoe UI', 'Tahoma', sans-serif";
     sparkline('sparkMRR', mrrTrend, '#198754');
     sparkline('sparkChurn', chartData.churnSpark, '#dc3545');
     sparkline('sparkUsers', chartData.userSpark, '#0dcaf0');
+    }

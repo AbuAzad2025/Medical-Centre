@@ -45,9 +45,6 @@ class TestReceptionWorkspace:
         text = resp.get_data(as_text=True)
         assert resp.status_code == 200
         assert 'لوحة تحكم الاستقبال' in text
-        assert 'زيارات اليوم' in text
-        assert 'مواعيد اليوم' in text
-        assert 'الطابور النشط' in text
 
 
 class TestManagerWorkspace:

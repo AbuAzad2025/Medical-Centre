@@ -10,7 +10,7 @@ var __M = window.__M || [];
 __M0__
 
 const el = document.getElementById('acc-chart-data');
-if (!el) return;
+if (el) {
 const d = JSON.parse(el.textContent);
   function spark(id, data, color) {
     new Chart(document.getElementById(id).getContext('2d'), {
@@ -30,3 +30,4 @@ const d = JSON.parse(el.textContent);
     options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
   });
   document.querySelectorAll('.progress-dynamic').forEach(function(el){ el.style.width = (parseFloat(el.dataset.width) || 0) + '%'; });
+}

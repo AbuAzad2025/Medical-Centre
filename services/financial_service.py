@@ -149,9 +149,9 @@ class FinancialService:
             if period == 'daily':
                 group_expr = func.date(Invoice.created_at)
             elif period == 'yearly':
-                group_expr = func.year(Invoice.created_at)
+                group_expr = func.extract('year', Invoice.created_at)
             else:
-                group_expr = func.date_format(Invoice.created_at, '%Y-%m')
+                group_expr = func.to_char(Invoice.created_at, 'YYYY-MM')
             base = select(
                 group_expr.label('period'),
                 func.coalesce(func.sum(Invoice.total_amount), 0).label('amount'),
