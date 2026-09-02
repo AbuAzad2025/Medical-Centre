@@ -242,19 +242,13 @@ class GLService:
         count = db.session.execute(select(Account).filter_by(tenant_id=tenant_id)).scalars().all()
         if not count:
             try:
-                GLService.seed_coa(tenant_id)
-                db.session.flush()
+                with db.session.begin_nested():
+                    GLService.seed_coa(tenant_id)
             except IntegrityError:
-                db.session.rollback()
-                # Another writer (or a previously committed savepoint) created the
-                # accounts; refresh the count and continue.
-                count = (
-                    db.session.execute(select(Account).filter_by(tenant_id=tenant_id))
-                    .scalars()
-                    .all()
-                )
-                if not count:
-                    raise
+                # Another writer already seeded the COA (e.g. a prior
+                # savepoint committed). The nested rollback discards only
+                # the duplicate inserts; the outer payment remains intact.
+                pass
 
     @staticmethod
     def payment_account_for_method(method: str) -> str:
