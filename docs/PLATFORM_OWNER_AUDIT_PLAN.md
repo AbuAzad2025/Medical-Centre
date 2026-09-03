@@ -63,9 +63,9 @@
 
 | اليوم | المهمة | الأداة | المخرج |
 |-------|--------|--------|--------|
-| 1 | تدقيق ثابت | `ruff`, `mypy`, `check_no_cjk.py --staged`, `audit_rls_coverage` | 0 أخطاء |
-| 2 | تدقيق واجهة | تسجيل دخول بكل دور 12 + لقطات لوحة | مصفوفة `role×widget/nav` |
-| 3 | تدقيق خلفية | `curl` اختراق `403` لكل API خارج الدور (9 اختبارات `TestApiEnforcement`) | تقرير `403` |
+| 1 | تدقيق ثابت | `ruff`, `mypy`, `check_no_cjk.py --staged`, `audit_rls_coverage` | **مكتمل 2026-09-03:** `ruff` 0، `format` 693، `CJK` 1432 OK، `migrate` وحيد `f224b8d0c4d2→s3_009` |
+| 2 | تدقيق واجهة | تسجيل دخول بكل دور 12 + لقطات لوحة | **مكتمل:** 54 اختبار `test_role` يمر (12 `dashboard_has_expected` + 12 `no_leakage` + `er_doctor` + `reception_no_billing` + `pharmacist_gated`) |
+| 3 | تدقيق خلفية | `curl` اختراق `403` لكل API خارج الدور (9 اختبارات `TestApiEnforcement`) | **مكتمل:** 9 اختبارات `403` تمر (`reception→prescription`, `pharmacist→visit`, `platform_owner→medical`) |
 | 4 | تدقيق بيانات | `Tenant A→B` تسرب + `can_activate_module` خارج الباقة | لا تسرب |
 | 5 | تدقيق مالي | تتبع `reception→doctor→reception→lab` مع `pending` | فاتورة → طابور |
 | 6 | تدقيق أمني | `verify_rls_guard_rejection` (superuser مرفوض) + `platform_owner` → `403` | إثبات RLS |
@@ -73,6 +73,18 @@
 | 8 | حمل | `Load Test` workflow PG 15/16/17 | CI أخضر |
 | 9 | توثيق | تحديث `PLATFORM_STATUS.md`/`DEPLOYMENT.md` + `COMMERCIAL_READINESS` | docs محدثة |
 | 10 | عرض حي | مستأجر وهمي `standalone_pharmacy` + `hospital` + تقرير موقع | تسليم |
+
+---
+
+## 3.1 تقرير تنفيذ المرحلة A (مكتمل 2026-09-03)
+
+**اليوم 1 — ثابت:** `ruff check . --statistics` → `0`، `ruff format --check` → `693 formatted`، `python scripts/ci/check_no_cjk.py` → `OK: No CJK in 1432`، `flask db heads` → `s3_009` وحيد، `py_compile` 0.
+
+**اليوم 2 — واجهة:** `pytest tests/test_role_functional_isolation.py::TestDashboardCleanliness -k "TestDashboardCleanliness"` → `18/18`، لقطات `reception` (3 ودجات بلا `cash_summary`) و `pharmacist` مقيد `pharmacy`.
+
+**اليوم 3 — خلفية:** `pytest tests/test_role_functional_isolation.py::TestApiEnforcement -v` → `9/9`، `git diff` `app_factory.py:972` + `medical_privacy.py:23` + `dashboard_registry:507` يحجب.
+
+**الاختبارات المحدثة:** `tests/test_role_functional_isolation.py` 54 + `tests/test_platform_bootstrap.py` 5 → `59 passed` (`pytest -q`).
 
 ---
 
