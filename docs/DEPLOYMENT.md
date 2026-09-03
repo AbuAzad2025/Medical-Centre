@@ -1,6 +1,6 @@
 # دليل النشر — Deployment
 
-> مرجع النشر ومتغيرات البيئة. آخر تحقق من الكود: **2 سبتمبر 2026** — الإصدار 3.1 — رأس `f224b8d0c4d2`.
+> مرجع النشر ومتغيرات البيئة. آخر تحقق من الكود: **3 سبتمبر 2026** — الإصدار 3.1 — رأس `s3_009_pending_financial_settlement`.
 
 ---
 
@@ -95,7 +95,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 ## 5. الهجرات (Migrations)
 
-- رأس التهجيرات الحالي: **`f224b8d0c4d2`** (`s3_007_add_missing_system_configs` → `clean_old_rules`, 59 revision).
+- رأس التهجيرات الحالي: **`s3_009_pending_financial_settlement`** (60 revision).
 - التشغيل: `flask db upgrade` (تلقائي داخل حاوية `app`).
 - **إنتاج Multi-tenant:** لا تشغّل `flask module-seed` — يفعّل كل الوحدات لكل المستأجرين (خطر).
 - `migrations/manual_scripts/` يدوي — لا يدخل في `upgrade`.

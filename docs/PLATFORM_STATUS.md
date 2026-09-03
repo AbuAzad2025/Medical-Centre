@@ -1,7 +1,7 @@
 # حالة المنصة — مصدر الحقيقة التقنية
 
-**آخر تحقق من الكود:** 2 سبتمبر 2026  
-**الإصدار:** 3.1 — رأس تهجيرات `f224b8d0c4d2`
+**آخر تحقق من الكود:** 3 سبتمبر 2026  
+**الإصدار:** 3.1 — رأس تهجيرات `s3_009_pending_financial_settlement`
 
 > هذا الملف يُحدَّث عند تغيير البنية أو CI. لا تعتمد على خطط أو تقارير قديمة محذوفة.
 
@@ -31,8 +31,8 @@ docker compose up -d --build
 | Backend | Flask 3.1, SQLAlchemy 2.0, PostgreSQL **16** |
 | Cache / Queue | Redis 7, Celery worker |
 | Multi-tenant | `ENABLE_SAAS_MODE`, ORM filter + RLS |
-| رأس التهجيرات | `f224b8d0c4d2` (`s3_007_add_missing_system_configs` → `clean_old_rules`) |
-| تهجيرات (revisions) | 59 (59 ملف في `migrations/versions/`) |
+| رأس التهجيرات | `s3_009_pending_financial_settlement` (60 ملف في `migrations/versions/`) |
+| تهجيرات (revisions) | 60 |
 | جداول ORM | 188 (`__tablename__` عبر 86 ملف `models/`) |
 | جداول RLS | 181 بسياسات + 10 دون سياسة (فهرس `s2_008`) |
 | Blueprints | 55 مسجّلة في `app_factory.py` |
