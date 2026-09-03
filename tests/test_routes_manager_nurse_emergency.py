@@ -55,6 +55,7 @@ def ctx(app, db, test_tenant):
     def _user(**kw):
         role = kw.get('role', 'doctor')
         u = User(
+            tenant_id=tenant_id,
             username=kw.get('username', f'{role}_{uuid.uuid4().hex[:6]}'),
             email=kw.get('email', f'{uuid.uuid4().hex[:8]}@test.local'),
             full_name=kw.get('full_name', 'مستخدم'),
