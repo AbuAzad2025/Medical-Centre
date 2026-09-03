@@ -529,12 +529,26 @@ def prescription(visit_id):
 @login_required
 @role_required('doctor', 'admin', 'manager')
 def print_prescription(prescription_id):
-    """طباعة الوصفة الطبية"""
+    """طباعة الوصفة الطبية
+    Solo doctors print their own prescriptions without requiring the pharmacy
+    module; ownership is enforced so doctors cannot print each other's work.
+    """
 
     try:
-        prescription = prescription_service.get_prescription(prescription_id)
+        from utils.tenant_query import TenantContextError, get_tenant_record
+
+        try:
+            prescription = get_tenant_record(Prescription, prescription_id)
+        except TenantContextError:
+            prescription = None
         if not prescription:
             flash('الوصفة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
+        if (
+            current_user.role == 'doctor'
+            and getattr(prescription, 'doctor_id', None) != current_user.id
+        ):
+            flash('يمكنك طباعة روشيتا مريضك فقط', 'error')
             return redirect(url_for('doctor.patient_queue'))
 
         qr_data_uri = generate_qr_data_uri(
@@ -613,3 +627,88 @@ def prescriptions():
         logging.exception('Error loading prescriptions: %s')
         flash('حدث خطأ في تحميل الوصفات', 'error')
         return redirect(url_for('doctor.dashboard'))
+
+
+@doctor_bp.route('/print-invoice/<int:invoice_id>')
+@login_required
+@role_required('doctor', 'admin', 'manager')
+def print_invoice(invoice_id):
+    """طباعة الفاتورة للطبيب المنفرد (مريضه فقط، تتطلب billing)."""
+    from utils.tenant_query import TenantContextError, get_tenant_record
+
+    if 'billing' not in getattr(g, 'enabled_modules', set()):
+        flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
+        return redirect(url_for('main.dashboard'))
+    try:
+        from models.invoice import Invoice
+        from models.visit import Visit
+
+        try:
+            invoice = get_tenant_record(Invoice, invoice_id)
+        except TenantContextError:
+            invoice = None
+        if not invoice:
+            flash('الفاتورة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
+        if current_user.role == 'doctor':
+            visit = None
+            try:
+                if invoice.visit_id:
+                    visit = get_tenant_record(Visit, invoice.visit_id)
+            except TenantContextError:
+                visit = None
+            if not visit or visit.doctor_id != current_user.id:
+                flash('يمكنك طباعة فاتورة مريضك فقط', 'error')
+                return redirect(url_for('doctor.patient_queue'))
+        qr_data_uri = generate_qr_data_uri(
+            f'INV|{invoice.id}|{invoice.visit_id}|{invoice.total_amount}'
+        )
+        return render_template('print/invoice.html', invoice=invoice, qr_data_uri=qr_data_uri)
+    except Exception:
+        logging.exception('Error printing invoice (doctor): %s')
+        flash('حدث خطأ في طباعة الفاتورة', 'error')
+        return redirect(url_for('doctor.patient_queue'))
+
+
+@doctor_bp.route('/print-receipt/<int:visit_id>')
+@login_required
+@role_required('doctor', 'admin', 'manager')
+def print_receipt(visit_id):
+    """طباعة الإيصال للطبيب المنفرد (مريضه فقط، تتطلب billing)."""
+    from utils.tenant_query import TenantContextError, get_tenant_record
+
+    if 'billing' not in getattr(g, 'enabled_modules', set()):
+        flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
+        return redirect(url_for('main.dashboard'))
+    try:
+        from models.visit import Visit
+
+        try:
+            visit = get_tenant_record(Visit, visit_id)
+        except TenantContextError:
+            visit = None
+        if not visit:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
+        if current_user.role == 'doctor' and visit.doctor_id != current_user.id:
+            flash('يمكنك طباعة إيصال مريضك فقط', 'error')
+            return redirect(url_for('doctor.patient_queue'))
+        qr_data_uri = generate_qr_data_uri(
+            f'RCPT|{visit.id}|{visit.patient_id}|{visit.total_amount}'
+        )
+        return render_template(
+            'print/receipt.html',
+            visit=visit,
+            qr_data_uri=qr_data_uri,
+            queue_ticket=None,
+            printed_at=datetime.now(UTC),
+            service_cost=None,
+            doctor_fee=None,
+            follow_up_discount=None,
+            last_payment=None,
+            survey_url=None,
+        )
+    except Exception:
+        logging.exception('Error printing receipt (doctor): %s')
+        flash('حدث خطأ في طباعة الإيصال', 'error')
+        return redirect(url_for('doctor.patient_queue'))

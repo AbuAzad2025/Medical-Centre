@@ -443,9 +443,9 @@ class TenantModuleSetting(db.Model):
 # ═══════════════════════════════════════════════════════════════
 _PRODUCT_PROFILE_SEED: dict[str, dict] = {
     'private_doctor_clinic': {
-        'modules': ['doctor', 'appointments'],
+        'modules': ['doctor', 'billing', 'appointments'],
         'dashboard_route': '/doctor/dashboard',
-        'description_ar': 'طبيب منفرد بعيادة خاصة',
+        'description_ar': 'طبيب منفرد بعيادة خاصة مع فوترة ذاتية',
         'bundle_slug': 'private_doctor_clinic',
         'max_users': 3,
         'max_patients': 500,
@@ -798,11 +798,11 @@ def seed_default_bundles() -> None:
         'private_doctor_clinic': {
             'name': 'Private Doctor Clinic',
             'name_ar': 'عيادة طبيب خاص',
-            'description_ar': 'طبيب منفرد بمواعيد فقط',
+            'description_ar': 'طبيب منفرد بمواعيد وفوترة ذاتية',
             'monthly_price': 299.00,
             'yearly_price': 2999.00,
             'setup_fee': 0.00,
-            'modules': ['doctor', 'appointments'],
+            'modules': ['doctor', 'billing', 'appointments'],
             'max_users': 3,
             'max_patients': 500,
             'storage_gb': 5,
@@ -1171,6 +1171,16 @@ def seed_default_bundles() -> None:
     for slug, defn in bundle_defs.items():
         existing = db.session.execute(select(ProductBundle).filter_by(slug=slug)).scalars().first()
         if existing:
+            if slug == 'private_doctor_clinic':
+                try:
+                    current = existing.get_modules()
+                except Exception:
+                    current = []
+                if 'billing' not in current:
+                    current.append('billing')
+                    order = ['doctor', 'billing', 'appointments']
+                    current = sorted(current, key=lambda m: order.index(m) if m in order else 99)
+                    existing.modules = json.dumps(current)
             continue
         b = ProductBundle(
             slug=slug,

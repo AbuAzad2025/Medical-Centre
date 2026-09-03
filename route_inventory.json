@@ -1,5 +1,5 @@
 {
-  "total_routes": 739,
+  "total_routes": 741,
   "routes": [
     {
       "endpoint": "main.index",
@@ -1132,6 +1132,22 @@
     {
       "endpoint": "doctor.print_prescription",
       "path": "/doctor/print-prescription/<int:prescription_id>",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "doctor.print_invoice",
+      "path": "/doctor/print-invoice/<int:invoice_id>",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "doctor.print_receipt",
+      "path": "/doctor/print-receipt/<int:visit_id>",
       "methods": [
         "GET"
       ],

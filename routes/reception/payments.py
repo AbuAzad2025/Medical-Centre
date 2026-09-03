@@ -258,7 +258,10 @@ def print_invoice(invoice_id):
 
     from models.invoice import Invoice
 
-    invoice = db.session.get(Invoice, invoice_id)
+    try:
+        invoice = get_tenant_record(Invoice, invoice_id)
+    except TenantContextError:
+        invoice = None
     if not invoice:
         flash('الفاتورة غير موجودة', 'error')
         return redirect(url_for('reception.queue_management'))
@@ -274,12 +277,21 @@ def print_invoice(invoice_id):
 def print_prescription(prescription_id):
     """طباعة الروشتة الطبية"""
 
-    from models.medical_record import Prescription
+    from models.medication import Prescription
 
-    prescription = db.session.get(Prescription, prescription_id)
+    try:
+        prescription = get_tenant_record(Prescription, prescription_id)
+    except TenantContextError:
+        prescription = None
     if not prescription:
         flash('الوصفة غير موجودة', 'error')
         return redirect(url_for('reception.queue_management'))
+    if (
+        current_user.role == 'doctor'
+        and getattr(prescription, 'doctor_id', None) != current_user.id
+    ):
+        flash('يمكنك طباعة روشيتا مريضك فقط', 'error')
+        return redirect(url_for('main.dashboard'))
     qr_data_uri = generate_qr_data_uri(
         f'RX|{prescription.id}|{prescription.patient_id}|{prescription.created_at.isoformat() if prescription.created_at else ""}'
     )
