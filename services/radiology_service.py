@@ -28,32 +28,76 @@ class RadiologyService:
     @staticmethod
     @require_module('radiology')
     def create_request(
-        visit_id: int,
+        visit_id: int | None = None,
         *,
         requested_by: int | None = None,
         modality: str | None = None,
         body_part: str | None = None,
         notes: str | None = None,
         tenant_id: int | None = None,
+        patient_id: int | None = None,
     ) -> tuple[bool, dict]:
         """Create a structured RadiologyRequest from a clinician order.
 
         P2-003: Canonical path for ordering radiology studies. Free-text notes
         are still preserved in the linked Visit record (P2-000 contract).
+
+        Dynamic bundle isolation: ``visit_id`` is optional for standalone-
+        radiology bundles (no ``doctor`` / ``reception`` module). When those
+        modules are active a visit is required; otherwise a walk-in request
+        with an explicit ``patient_id`` is accepted.
         """
         from models.radiology_request import RadiologyRequest
         from models.visit import Visit
 
         tid = tenant_id or getattr(g, 'tenant_id', None)
-        visit = (
-            db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == tid))
-            .scalars()
-            .first()
-        )
-        if not visit:
-            return False, {'error': 'Visit not found'}
 
-        tenant_id = tenant_id or visit.tenant_id
+        from services.feature_gate_service import FeatureGateService
+
+        doctor_or_reception_active = False
+        if tid:
+            doctor_or_reception_active = FeatureGateService.module_enabled(
+                tid, 'doctor'
+            ) or FeatureGateService.module_enabled(tid, 'reception')
+
+        visit = None
+        if visit_id is not None:
+            visit = (
+                db.session.execute(
+                    select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == tid)
+                )
+                .scalars()
+                .first()
+            )
+            if not visit:
+                return False, {'error': 'Visit not found'}
+            tenant_id = tenant_id or visit.tenant_id
+        elif doctor_or_reception_active:
+            return False, {
+                'error': 'visit_id is required when the doctor or reception module is enabled'
+            }
+
+        resolved_patient_id = None
+        if visit is not None:
+            resolved_patient_id = visit.patient_id
+        elif patient_id is not None:
+            from models.patient import Patient
+
+            patient = (
+                db.session.execute(
+                    select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == tid)
+                )
+                .scalars()
+                .first()
+            )
+            if not patient:
+                return False, {'error': 'Patient not found'}
+            resolved_patient_id = patient.id
+            tenant_id = tenant_id or patient.tenant_id
+        else:
+            return False, {'error': 'patient_id is required for standalone radiology walk-in'}
+
+        tenant_id = tenant_id or tid
 
         from services.feature_gate_service import FeatureGateService
 
@@ -75,12 +119,12 @@ class RadiologyService:
         ):
             raise PermissionError('Radiology module is not enabled for this tenant')
         now = datetime.now(UTC)
-        request_number = f'RAD-{visit_id}-{int(now.timestamp())}'
+        request_number = f'RAD-{visit.id if visit else 0}-{int(now.timestamp())}'
 
         rad_request = RadiologyRequest(
             tenant_id=tenant_id,
-            visit_id=visit.id,
-            patient_id=visit.patient_id,
+            visit_id=visit.id if visit else None,
+            patient_id=resolved_patient_id,
             requested_by=requested_by,
             request_number=request_number,
             status='REQUESTED',
