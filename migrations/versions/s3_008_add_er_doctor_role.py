@@ -20,7 +20,7 @@ def upgrade() -> None:
     op.execute(
         """
         ALTER TABLE users ADD CONSTRAINT chk_user_role
-        CHECK (role ~ '^(admin|super_admin|manager|doctor|er_doctor|nurse|reception|accountant|emergency|lab|radiology|pharmacist|technician|owner|patient|user|receptionist|lab_tech|platform_owner|rl_.*|unknown_role)$')
+        CHECK (role ~ '^(admin|super_admin|manager|doctor|er_doctor|nurse|reception|accountant|emergency|lab|radiology|pharmacist|technician|owner|patient|user|receptionist|lab_tech|platform_owner|rl_.*|unknown_role|)$' OR role = '')
         """
     )
 

@@ -28,7 +28,7 @@ class User(TenantMixin, UserMixin, db.Model):
         db.UniqueConstraint('tenant_id', 'email', name='uq_user_tenant_email'),
         CheckConstraint('length(username) >= 3', name='chk_user_username_len'),
         CheckConstraint(
-            "(role ~ '^(admin|super_admin|manager|doctor|er_doctor|nurse|reception|accountant|emergency|lab|radiology|pharmacist|technician|owner|patient|user|receptionist|lab_tech|platform_owner|rl_.*)$')",
+            "(role ~ '^(admin|super_admin|manager|doctor|er_doctor|nurse|reception|accountant|emergency|lab|radiology|pharmacist|technician|owner|patient|user|receptionist|lab_tech|platform_owner|rl_.*|unknown_role|)$' OR role = '')",
             name='chk_user_role',
         ),
         Index('idx_user_role', 'role'),
