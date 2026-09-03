@@ -451,9 +451,9 @@ _PRODUCT_PROFILE_SEED: dict[str, dict] = {
         'max_patients': 500,
     },
     'doctor_clinic_reception': {
-        'modules': ['reception', 'doctor', 'appointments'],
+        'modules': ['reception', 'doctor', 'billing', 'appointments'],
         'dashboard_route': '/reception/dashboard',
-        'description_ar': 'طبيب باستقبال ومواعيد',
+        'description_ar': 'طبيب باستقبال ومواعيد وفوترة',
         'bundle_slug': 'doctor_clinic_reception',
         'max_users': 5,
         'max_patients': 1000,
@@ -811,11 +811,11 @@ def seed_default_bundles() -> None:
         'doctor_clinic_reception': {
             'name': 'Doctor Clinic with Reception',
             'name_ar': 'عيادة طبيب باستقبال',
-            'description_ar': 'استقبال + طبيب + مواعيد',
+            'description_ar': 'استقبال + طبيب + فوترة + مواعيد',
             'monthly_price': 499.00,
             'yearly_price': 4999.00,
             'setup_fee': 200.00,
-            'modules': ['reception', 'doctor', 'appointments'],
+            'modules': ['reception', 'doctor', 'billing', 'appointments'],
             'max_users': 5,
             'max_patients': 1000,
             'storage_gb': 10,
@@ -1168,17 +1168,21 @@ def seed_default_bundles() -> None:
         },
     }
 
+    _BILLING_PATCH_ORDERS = {
+        'private_doctor_clinic': ['doctor', 'billing', 'appointments'],
+        'doctor_clinic_reception': ['reception', 'doctor', 'billing', 'appointments'],
+    }
     for slug, defn in bundle_defs.items():
         existing = db.session.execute(select(ProductBundle).filter_by(slug=slug)).scalars().first()
         if existing:
-            if slug == 'private_doctor_clinic':
+            if slug in _BILLING_PATCH_ORDERS:
                 try:
                     current = existing.get_modules()
                 except Exception:
                     current = []
                 if 'billing' not in current:
                     current.append('billing')
-                    order = ['doctor', 'billing', 'appointments']
+                    order = _BILLING_PATCH_ORDERS[slug]
                     current = sorted(current, key=lambda m: order.index(m) if m in order else 99)
                     existing.modules = json.dumps(current)
             continue
