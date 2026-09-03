@@ -107,9 +107,13 @@ def radiology_request(visit_id):
                 from models.department import Department
                 from services.queue_management_service import QueueManagementService
 
-                reception_dept = db.session.execute(
-                    select(Department).filter(Department.get_type() == 'reception')
-                ).scalars().first()
+                reception_dept = (
+                    db.session.execute(
+                        select(Department).filter(Department.get_type() == 'reception')
+                    )
+                    .scalars()
+                    .first()
+                )
                 if reception_dept:
                     visit.department_id = reception_dept.id
                     visit.doctor_id = None

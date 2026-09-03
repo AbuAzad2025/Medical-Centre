@@ -360,7 +360,11 @@ class TestTransferVisit:
             doc = qfx.user(role='doctor')
             ok, msg = svc.transfer_visit(v.id, d_radio.id, transferred_by=doc.id, source='doctor')
             assert ok is False
-            assert 'Direct peer-to-peer' in str(msg.get('error', msg)) if isinstance(msg, dict) else 'direct_peer' in str(msg).lower() or 'reception' in str(msg).lower()
+            assert (
+                'Direct peer-to-peer' in str(msg.get('error', msg))
+                if isinstance(msg, dict)
+                else 'direct_peer' in str(msg).lower() or 'reception' in str(msg).lower()
+            )
         finally:
             pass
 
