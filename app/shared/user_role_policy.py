@@ -34,6 +34,7 @@ ELEVATED_ROLES: frozenset[str] = frozenset({'super_admin', 'owner', 'admin'})
 _ROLE_ALIASES = {
     'receptionist': 'reception',
     'lab_tech': 'lab',
+    'technician': 'lab',
     'platform_owner': 'owner',
 }
 

@@ -79,7 +79,6 @@ ROLE_HIERARCHY = {
     'super_admin': ['admin', 'manager'],
     'admin': ['manager'],
     'manager': ['reception', 'accountant'],
-    'doctor': ['nurse'],
     'owner': ['super_admin'],
     'er_doctor': ['emergency'],
 }

@@ -447,7 +447,6 @@ _DASHBOARD_ROLE_HIERARCHY: dict[str, set[str]] = {
     'admin': {'manager'},
     'owner': {'super_admin', 'admin', 'manager'},
     'manager': {'reception', 'accountant'},
-    'doctor': {'nurse'},
     'er_doctor': {'emergency'},
 }
 
