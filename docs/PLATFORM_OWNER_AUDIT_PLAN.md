@@ -66,7 +66,7 @@
 | 1 | تدقيق ثابت | `ruff`, `mypy`, `check_no_cjk.py --staged`, `audit_rls_coverage` | **مكتمل 2026-09-03:** `ruff` 0، `format` 693، `CJK` 1432 OK، `migrate` وحيد `f224b8d0c4d2→s3_009` |
 | 2 | تدقيق واجهة | تسجيل دخول بكل دور 12 + لقطات لوحة | **مكتمل:** 54 اختبار `test_role` يمر (12 `dashboard_has_expected` + 12 `no_leakage` + `er_doctor` + `reception_no_billing` + `pharmacist_gated`) |
 | 3 | تدقيق خلفية | `curl` اختراق `403` لكل API خارج الدور (9 اختبارات `TestApiEnforcement`) | **مكتمل:** 9 اختبارات `403` تمر (`reception→prescription`, `pharmacist→visit`, `platform_owner→medical`) |
-| 4 | تدقيق بيانات | `Tenant A→B` تسرب + `can_activate_module` خارج الباقة | لا تسرب |
+| 4 | تدقيق بيانات | `Tenant A→B` تسرب + `can_activate_module` خارج الباقة | **مكتمل 2026-09-03:** 19 اختبار يمر (4 `Tenant/Bundle` + 15 `route_isolation`) — `TenantIsolationError` + `can_activate_module` يرفض |
 | 5 | تدقيق مالي | تتبع `reception→doctor→reception→lab` مع `pending` | فاتورة → طابور |
 | 6 | تدقيق أمني | `verify_rls_guard_rejection` (superuser مرفوض) + `platform_owner` → `403` | إثبات RLS |
 | 7 | أداء | `locust` 100 مستخدم متزامن, `EXPLAIN ANALYZE` | <2s فاتورة |
@@ -85,6 +85,18 @@
 **اليوم 3 — خلفية:** `pytest tests/test_role_functional_isolation.py::TestApiEnforcement -v` → `9/9`، `git diff` `app_factory.py:972` + `medical_privacy.py:23` + `dashboard_registry:507` يحجب.
 
 **الاختبارات المحدثة:** `tests/test_role_functional_isolation.py` 54 + `tests/test_platform_bootstrap.py` 5 → `59 passed` (`pytest -q`).
+
+### 3.2 تقرير تنفيذ المرحلة B (مكتمل 2026-09-03)
+
+**اليوم 4 — بيانات:** `pytest tests/test_multi_layer_isolation.py::TestTenantIsolation tests/test_multi_layer_isolation.py::TestBundleIsolation tests/test_tenant_route_isolation.py -v` → `19/19`:
+
+- `test_cross_tenant_data_leakage_blocked` → `TenantIsolationError` عند `Tenant A.id=1` يحاول `get_tenant_record(Patient, A.id)` من `Tenant B` (`tenant_filter.py:92` `loaded_as_persistent` + `do_orm_execute:410`).
+- `test_tenant_id_filter_enforced` → `Patient` به `tenant_id` (`_model_has_tenant_column` true `tenant_filter.py:197`).
+- `test_can_activate_module_rejects_outside_bundle` → `standalone_pharmacy` يرفض `lab` (`can_activate_module` `validators.py:57` `not included in tenant's bundle`).
+- `test_ui_nav_hides_unsubscribed` → `reception` مع `pharmacy` فقط يظهر `cash_summary` فقط، `doctor` مخفي (`dashboard_registry.py:507`).
+- `test_tenant_route_isolation` 15 اختبار: `medication_list_excludes_other_tenant`, `lab_catalog_edit_requires_same_tenant`, `pos_sell_rejects_other_tenant` جميعها `tenant_id == user.tenant_id` (`access_control_service.py:227`).
+
+**الأدلة:** `Tenant A (pharmacy)` أنشأ `Patient` → `Tenant B (lab)` حاول `get_tenant_record` → `TenantContextError`/`TenantIsolationError` → لا تسرب. `ProductBundle 23` (`seed_default_bundles`) + `TenantModule` مقيد.
 
 ---
 
