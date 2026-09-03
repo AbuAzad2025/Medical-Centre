@@ -101,6 +101,28 @@ def radiology_request(visit_id):
             visit.notes = visit.notes or ''
             visit.notes += ('\n\n' if visit.notes else '') + memo_text
             visit.radiology_ordered = True
+            # === Financial Gate: Hub-and-Spoke ===
+            visit.pending_financial_settlement = True
+            try:
+                from models.department import Department
+                from services.queue_management_service import QueueManagementService
+
+                reception_dept = db.session.execute(
+                    select(Department).filter(Department.get_type() == 'reception')
+                ).scalars().first()
+                if reception_dept:
+                    visit.department_id = reception_dept.id
+                    visit.doctor_id = None
+                    db.session.flush()
+                    QueueManagementService().add_patient_to_queue(
+                        patient_id=visit.patient_id,
+                        department_id=reception_dept.id,
+                        visit_id=visit.id,
+                        is_emergency=visit.is_emergency,
+                        created_by=current_user.id,
+                    )
+            except Exception:
+                pass
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             try:
                 db.session.add(

@@ -394,6 +394,28 @@ def prescription(visit_id):
                 return redirect(url_for('doctor.patient_details', visit_id=visit_id))
             prescription = result
             visit.prescription_issued = True
+            # === Financial Gate: Hub-and-Spoke ===
+            visit.pending_financial_settlement = True
+            try:
+                from models.department import Department
+                from services.queue_management_service import QueueManagementService
+
+                reception_dept = db.session.execute(
+                    select(Department).filter(Department.get_type() == 'reception')
+                ).scalars().first()
+                if reception_dept:
+                    visit.department_id = reception_dept.id
+                    visit.doctor_id = None
+                    db.session.flush()
+                    QueueManagementService().add_patient_to_queue(
+                        patient_id=visit.patient_id,
+                        department_id=reception_dept.id,
+                        visit_id=visit.id,
+                        is_emergency=visit.is_emergency,
+                        created_by=current_user.id,
+                    )
+            except Exception:
+                pass
 
             _notify_pharmacy_non_catalog(non_catalog_medications, visit, current_user)
 

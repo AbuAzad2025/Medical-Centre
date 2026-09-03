@@ -323,12 +323,46 @@ class TestTransferVisit:
         assert ok is False and msg == 'cannot_transfer_active_treatment'
 
     def test_success(self, svc, qfx):
-        d_from = qfx.dept(name='Lab', name_ar='المختبر')
-        d_to = qfx.dept(name='Radiology', name_ar='الأشعة')
+        # Hub-and-Spoke: only reception -> clinical is allowed
+        # Create a reception department as source
+        d_from = qfx.dept(name='Reception', name_ar='الاستقبال')
+        # Ensure it is considered reception type (default is general, but we need to mock get_type)
+        # For test, we will create a department and mock its get_type to return 'reception'
+        d_to = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
         v = qfx.visit(p.id, department_id=d_from.id)
-        ok, msg = svc.transfer_visit(v.id, d_to.id)
-        assert ok is True and msg == 'ok'
+        # Mock department types: from is reception, to is lab
+        orig_get_type = d_from.get_type if hasattr(d_from, 'get_type') else None
+        orig_to_type = d_to.get_type if hasattr(d_to, 'get_type') else None
+        try:
+            d_from.get_type = lambda: 'reception'
+            d_to.get_type = lambda: 'lab'
+            # Create a reception user as sender
+            recep = qfx.user(role='reception')
+            ok, msg = svc.transfer_visit(v.id, d_to.id, transferred_by=recep.id, source='reception')
+            assert ok is True and msg == 'ok'
+        finally:
+            if orig_get_type:
+                d_from.get_type = orig_get_type
+            if orig_to_type:
+                d_to.get_type = orig_to_type
+
+    def test_direct_clinical_to_clinical_blocked(self, svc, qfx):
+        """Core Rule: Direct peer-to-peer clinical transfers are forbidden."""
+        d_lab = qfx.dept(name='Lab', name_ar='المختبر')
+        d_radio = qfx.dept(name='Radiology', name_ar='الأشعة')
+        p = qfx.patient()
+        v = qfx.visit(p.id, department_id=d_lab.id)
+        # Mock to make them lab/radiology
+        try:
+            d_lab.get_type = lambda: 'lab'
+            d_radio.get_type = lambda: 'radiology'
+            doc = qfx.user(role='doctor')
+            ok, msg = svc.transfer_visit(v.id, d_radio.id, transferred_by=doc.id, source='doctor')
+            assert ok is False
+            assert 'Direct peer-to-peer' in str(msg.get('error', msg)) if isinstance(msg, dict) else 'direct_peer' in str(msg).lower() or 'reception' in str(msg).lower()
+        finally:
+            pass
 
 
 # ───────────────────────── status / metrics readers ─────────────────────────

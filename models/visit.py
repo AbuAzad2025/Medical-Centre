@@ -76,6 +76,9 @@ class Visit(TenantMixin, db.Model):
 
     triage_level = db.Column(db.String(10), nullable=True, index=True)
 
+    # Hub-and-Spoke Financial Gate: visit must return to reception for settlement before next clinical dispatch
+    pending_financial_settlement = db.Column(db.Boolean, default=False, nullable=False, index=True)
+
     # حقول الضرائب
     tax_percent = db.Column(db.Numeric(5, 2), default=0.0)  # نسبة الضريبة
     tax_amount = db.Column(db.Numeric(12, 2), default=0.0)  # قيمة الضريبة
@@ -160,6 +163,7 @@ class Visit(TenantMixin, db.Model):
         Index('idx_visit_type_created', 'visit_type', 'created_at'),
         Index('idx_visit_payment_status_created', 'payment_status', 'created_at'),
         Index('idx_visit_payment_method', 'payment_method'),
+        Index('idx_visit_pending_settlement', 'pending_financial_settlement'),
     )
 
     patient = db.relationship('Patient', back_populates='visits', lazy='selectin')

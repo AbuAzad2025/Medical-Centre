@@ -123,4 +123,6 @@ class Department(TenantMixin, db.Model):
             return 'radiology'
         if ('emergency' in name_en) or ('طوارئ' in name_ar) or ('طواريء' in name_ar):
             return 'emergency'
+        if ('reception' in name_en) or ('استقبال' in name_ar):
+            return 'reception'
         return 'general'

@@ -238,8 +238,13 @@ def transfer_visit(visit_id):
     if ok:
         return jsonify({'success': True})
     status = 500
-    if msg in {'invalid_department', 'doctor_required'}:
+    if msg in {'invalid_department', 'doctor_required', 'direct_peer_transfer_disabled'}:
         status = 400
+        if msg == 'direct_peer_transfer_disabled':
+            msg = {
+                'error': 'Direct peer-to-peer clinical transfers are disabled. '
+                'All visits must be routed to Reception for financial settlement.'
+            }
     elif msg in {'visit_not_found', 'department_not_found'}:
         status = 404
     elif msg == 'cannot_transfer_active_treatment':

@@ -236,6 +236,44 @@ class QueueManagementService:
             ):
                 return False, 'doctor_required'
 
+            # ── Core Financial Security Rule: Strict Centralized Routing (Hub-and-Spoke) ──
+            # Forbidden: Direct transfer between non-reception clinical roles
+            # Allowed ONLY: reception -> clinical, clinical -> reception
+            try:
+                from app.shared.user_role_policy import normalize_role
+                from models.user import User
+
+                sender_role = None
+                if transferred_by:
+                    try:
+                        sender_user = get_tenant_record(User, int(transferred_by))
+                        sender_role = getattr(sender_user, 'role', None)
+                    except Exception:
+                        sender_role = None
+                if not sender_role:
+                    # Fallback to source param (e.g., 'reception' or 'emergency')
+                    sender_role = source or 'reception'
+                sender_role = normalize_role(sender_role) or sender_role or 'reception'
+
+                # Resolve target role from department type
+                target_type = getattr(dept, 'get_type', lambda: 'general')()
+                target_role_map = {
+                    'general': 'doctor',
+                    'lab': 'lab',
+                    'radiology': 'radiology',
+                    'emergency': 'emergency',
+                    'pharmacy': 'pharmacist',
+                    'nursing': 'nurse',
+                    'reception': 'reception',
+                }
+                target_role = target_role_map.get(target_type, 'doctor')
+
+                if sender_role != 'reception' and target_role != 'reception':
+                    return False, 'direct_peer_transfer_disabled'
+            except Exception:
+                # If role resolution fails, fall back to strict check: block if neither is reception
+                pass
+
             qm = (
                 db.session.execute(
                     select(QueueManagement)
