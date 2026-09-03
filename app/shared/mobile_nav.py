@@ -15,7 +15,7 @@ _ROLE_MOBILE_NAV = {
         ('doctor.dashboard', 'fa-home', 'الرئيسية'),
         ('doctor.patient_queue', 'fa-list-ol', 'الطابور'),
         ('doctor.prescriptions', 'fa-prescription', 'الوصفات'),
-        ('reception.patients', 'fa-users', 'المرضى'),
+        ('doctor.patients', 'fa-users', 'المرضى'),
     ],
     'pharmacist': [
         ('medication.dashboard', 'fa-home', 'الرئيسية'),
@@ -36,20 +36,32 @@ _ROLE_MOBILE_NAV = {
     'manager': [
         ('manager.dashboard', 'fa-home', 'الرئيسية'),
         ('manager.analytics', 'fa-chart-line', 'المراقبة'),
-        ('reception.queue_management', 'fa-list-ol', 'الطابور'),
-        ('reception.appointments', 'fa-calendar', 'مواعيد'),
+        ('manager.staff', 'fa-users', 'الطاقم'),
+        ('manager.reports_center', 'fa-chart-bar', 'التقارير'),
     ],
     'admin': [
         ('manager.dashboard', 'fa-home', 'الرئيسية'),
         ('manager.analytics', 'fa-chart-line', 'المراقبة'),
-        ('reception.queue_management', 'fa-list-ol', 'الطابور'),
-        ('reception.appointments', 'fa-calendar', 'مواعيد'),
+        ('manager.staff', 'fa-users', 'الطاقم'),
+        ('manager.reports_center', 'fa-chart-bar', 'التقارير'),
     ],
     'super_admin': [
-        ('manager.dashboard', 'fa-home', 'الرئيسية'),
+        ('super_admin.dashboard', 'fa-home', 'الرئيسية'),
         ('manager.analytics', 'fa-chart-line', 'المراقبة'),
-        ('reception.queue_management', 'fa-list-ol', 'الطابور'),
-        ('reception.appointments', 'fa-calendar', 'مواعيد'),
+        ('manager.staff', 'fa-users', 'الطاقم'),
+        ('super_admin.users', 'fa-users-cog', 'المستخدمون'),
+    ],
+    'accountant': [
+        ('accountant.dashboard', 'fa-home', 'الرئيسية'),
+        ('accountant.journals', 'fa-file-alt', 'الدفتر'),
+        ('accountant.trial_balance', 'fa-balance-scale', 'الميزانية'),
+        ('finance.invoices', 'fa-file-invoice-dollar', 'الفواتير'),
+    ],
+    'er_doctor': [
+        ('emergency.dashboard', 'fa-home', 'الرئيسية'),
+        ('emergency.queue', 'fa-ambulance', 'الحالات'),
+        ('emergency.triage', 'fa-heart-pulse', 'الفرز'),
+        ('doctor.patient_queue', 'fa-list-ol', 'الطابور'),
     ],
     'nurse': [
         ('nurse.dashboard', 'fa-home', 'الرئيسية'),
@@ -81,7 +93,12 @@ _ROLE_MOBILE_NAV = {
 def resolve_mobile_nav_items(user) -> list[dict]:
     if not user or not getattr(user, 'is_authenticated', False):
         return []
-    role = getattr(user, 'role', None) or ''
+    from app.shared.user_role_policy import normalize_role
+
+    role = normalize_role(getattr(user, 'role', None) or '')
+    # Map er_doctor to emergency for nav purposes if not explicitly defined
+    if role == 'er_doctor' and 'er_doctor' not in _ROLE_MOBILE_NAV:
+        role = 'emergency'
     items = []
     for ep, icon, label in _ROLE_MOBILE_NAV.get(role, [('main.dashboard', 'fa-home', 'الرئيسية')]):
         try:

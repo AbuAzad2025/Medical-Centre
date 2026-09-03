@@ -17,16 +17,17 @@ _MODULE_ALIASES = {
 
 # Fallback when ModulePermission rows are missing (standalone / legacy DB)
 _ROLE_MODULE_FALLBACK: dict[str, set[str] | None] = {
-    'super_admin': None,
-    'admin': None,
+    'super_admin': {'reporting', 'billing', 'appointments', 'inventory'},
+    'admin': {'reporting', 'billing', 'appointments', 'inventory'},
     'manager': {'reporting', 'billing', 'appointments', 'inventory', 'reception'},
-    'reception': {'reception', 'appointments', 'billing'},
+    'reception': {'reception', 'appointments'},
     'doctor': {'doctor'},
     'lab': {'lab'},
     'radiology': {'radiology', 'ai_imaging'},
     'pharmacist': {'pharmacy', 'inventory'},
     'pharmacy': {'pharmacy', 'inventory'},
     'emergency': {'emergency'},
+    'er_doctor': {'emergency', 'doctor'},
     'nurse': {'nursing'},
     'accountant': {'billing'},
     'patient': {'portal'},
@@ -72,9 +73,19 @@ def _enabled_modules_for_nav() -> set[str]:
 
 
 def _user_allowed_modules(user, enabled: set[str]) -> set[str]:
-    role = getattr(user, 'role', None) or ''
+    from app.shared.user_role_policy import normalize_role
+
+    raw_role = getattr(user, 'role', None) or ''
+    role = normalize_role(raw_role) or raw_role
     if role in ('super_admin', 'admin'):
+        # Strict: admin/super_admin see only tenant admin modules, not all clinical
+        fallback = _ROLE_MODULE_FALLBACK.get(role)
+        if fallback is not None:
+            return {m for m in fallback if m in enabled}
         return {m for m in enabled if m != 'owner'}
+    if role == 'platform_owner':
+        # Platform owner has no tenant modules nav (platform only)
+        return set()
 
     tenant = getattr(g, 'current_tenant', None)
     tenant_id = tenant.id if tenant else getattr(user, 'tenant_id', None)

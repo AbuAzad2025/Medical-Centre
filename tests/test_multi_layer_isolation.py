@@ -142,10 +142,11 @@ class TestBundleIsolation:
                 .first()
             )
             enabled = set(bundle.get_modules())
-            # Reception widgets: only billing-dependent cash_summary should remain for pharmacy bundle
+            # Reception widgets should be hidden for pharmacy-only (reception not in bundle, billing not shown to reception after strict fix)
             widgets = resolve_dashboard_widgets('reception', enabled, set())
-            assert any(w.id == 'cash_summary' for w in widgets)
+            assert not any(w.id == 'cash_summary' for w in widgets)
             assert not any(w.id == 'queue_live' for w in widgets)
+            assert len(widgets) == 0
             # Doctor widgets should be fully hidden (doctor not in pharmacy bundle)
             widgets2 = resolve_dashboard_widgets('doctor', enabled, set())
             assert len(widgets2) == 0
@@ -197,9 +198,12 @@ class TestRoleIsolation:
     def test_role_hierarchy(self, app):
         from utils.decorators import ROLE_HIERARCHY
 
-        # super_admin should inherit doctor etc
-        assert 'doctor' in ROLE_HIERARCHY['super_admin']
+        # Strict hierarchy: super_admin only inherits admin/manager, not clinical
+        assert 'admin' in ROLE_HIERARCHY['super_admin']
+        assert 'manager' in ROLE_HIERARCHY['super_admin']
         assert 'reception' in ROLE_HIERARCHY['manager']
+        assert 'doctor' not in ROLE_HIERARCHY['super_admin']
+        assert 'lab' not in ROLE_HIERARCHY['super_admin']
 
     def test_reception_cannot_access_clinical(self, app, client, test_tenant):
         # Login as reception and try to access doctor endpoint

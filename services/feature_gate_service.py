@@ -104,7 +104,7 @@ def require_module(module: str):
     Decorator for service methods that require a module to be enabled.
     Raises ModuleNotEnabledError if the module is not enabled for the current tenant.
     Skips check when ENABLE_SAAS_MODE is False (standalone mode).
-    Admin and super_admin users bypass all module checks.
+    Admin and super_admin users bypass only non-clinical module checks (reporting/billing).
     """
 
     def decorator(f):
@@ -112,7 +112,7 @@ def require_module(module: str):
         def wrapper(*args, **kwargs):
             if not current_app.config.get('ENABLE_SAAS_MODE', False):
                 return f(*args, **kwargs)
-            if _is_admin_user():
+            if _is_admin_user() and module in ('reporting', 'billing', 'appointments', 'inventory'):
                 return f(*args, **kwargs)
             tenant = getattr(g, 'current_tenant', None)
             if not tenant:
@@ -140,7 +140,7 @@ def require_module_route(module: str):
         def wrapper(*args, **kwargs):
             if not current_app.config.get('ENABLE_SAAS_MODE', False):
                 return f(*args, **kwargs)
-            if _is_admin_user():
+            if _is_admin_user() and module in ('reporting', 'billing', 'appointments', 'inventory'):
                 return f(*args, **kwargs)
             tenant = getattr(g, 'current_tenant', None)
             if not tenant:
@@ -159,11 +159,11 @@ def require_module_route(module: str):
 def guard_module(module_name: str):
     """Blueprint before_request guard: 403 if module not enabled for tenant.
     Skips check when ENABLE_SAAS_MODE is False (standalone mode).
-    Admin and super_admin bypass all module guards.
+    Admin and super_admin bypass only non-clinical guards.
     """
     if not current_app.config.get('ENABLE_SAAS_MODE', False):
         return
-    if _is_admin_user():
+    if _is_admin_user() and module_name in ('reporting', 'billing', 'appointments', 'inventory'):
         return
     tenant = getattr(g, 'current_tenant', None)
     if not tenant:
@@ -180,7 +180,7 @@ def require_feature(feature: str):
         def wrapper(*args, **kwargs):
             if not current_app.config.get('ENABLE_SAAS_MODE', False):
                 return f(*args, **kwargs)
-            if _is_admin_user():
+            if _is_admin_user() and feature in ('reporting', 'billing'):
                 return f(*args, **kwargs)
             tenant = getattr(g, 'current_tenant', None)
             if not tenant:

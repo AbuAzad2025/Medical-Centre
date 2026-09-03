@@ -238,7 +238,7 @@ WIDGETS: dict[str, WidgetMeta] = {
         id='pharmacy_dispense',
         title_ar='صرف اليوم',
         roles=('pharmacist',),
-        modules=(),
+        modules=('pharmacy',),
         size='md',
         priority=1,
         template='dashboards/widgets/_pharmacy_dispense.html',
@@ -250,7 +250,7 @@ WIDGETS: dict[str, WidgetMeta] = {
         id='pharmacy_low_stock',
         title_ar='أدوية منخفضة المخزون',
         roles=('pharmacist',),
-        modules=(),
+        modules=('pharmacy',),
         size='md',
         priority=2,
         template='dashboards/widgets/_pharmacy_low_stock.html',
@@ -262,7 +262,7 @@ WIDGETS: dict[str, WidgetMeta] = {
         id='pharmacy_prescriptions',
         title_ar='روشتات في الانتظار',
         roles=('pharmacist',),
-        modules=(),
+        modules=('pharmacy',),
         size='md',
         priority=2,
         template='dashboards/widgets/_pharmacy_prescriptions.html',
@@ -272,7 +272,7 @@ WIDGETS: dict[str, WidgetMeta] = {
         id='pharmacy_sales',
         title_ar='مبيعات اليوم',
         roles=('pharmacist',),
-        modules=(),
+        modules=('pharmacy',),
         size='md',
         priority=2,
         template='dashboards/widgets/_pharmacy_sales.html',
@@ -313,6 +313,7 @@ ROLE_DASHBOARD_TITLES: dict[str, str] = {
     'radiology': 'قسم الأشعة',
     'pharmacist': 'لوحة تحكم الصيدلية',
     'emergency': 'لوحة تحكم الطوارئ',
+    'er_doctor': 'لوحة تحكم طوارئ الأطباء',
     'accountant': 'لوحة تحكم الفوترة',
     'manager': 'لوحة القيادة الإدارية',
     'nurse': 'لوحة القيادة التمريضية',
@@ -324,7 +325,7 @@ ROLE_DASHBOARD_TITLES: dict[str, str] = {
 }
 
 ROLE_LAYOUTS: dict[str, list[str]] = {
-    'reception': ['queue_live', 'cash_summary', 'visits_today', 'appointments_pending'],
+    'reception': ['queue_live', 'visits_today', 'appointments_pending'],
     'doctor': [
         'my_queue',
         'patients_waiting',
@@ -338,6 +339,7 @@ ROLE_LAYOUTS: dict[str, list[str]] = {
     'accountant': ['pending_payments', 'finance_overview', 'revenue_today'],
     'manager': ['kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'],
     'emergency': ['critical_count', 'triage_board', 'emergency_waitlist'],
+    'er_doctor': ['critical_count', 'triage_board', 'emergency_waitlist'],
     'pharmacist': [
         'pharmacy_dispense',
         'pharmacy_low_stock',
@@ -374,6 +376,11 @@ ROLE_QUICK_ACTIONS: dict[str, list[tuple[str, str, str]]] = {
     'emergency': [
         ('emergency.queue', 'fa-ambulance', 'الحالات'),
         ('emergency.triage', 'fa-heart-pulse', 'الفرز'),
+    ],
+    'er_doctor': [
+        ('emergency.queue', 'fa-ambulance', 'الحالات'),
+        ('emergency.triage', 'fa-heart-pulse', 'الفرز'),
+        ('inbox.dashboard', 'fa-inbox', 'صندوق العمل'),
     ],
     'pharmacist': [
         ('medication.pos', 'fa-cash-register', 'نقطة البيع'),
@@ -436,47 +443,12 @@ ROLE_QUICK_ACTIONS: dict[str, list[tuple[str, str, str]]] = {
 
 
 _DASHBOARD_ROLE_HIERARCHY: dict[str, set[str]] = {
-    'super_admin': {
-        'admin',
-        'manager',
-        'doctor',
-        'nurse',
-        'reception',
-        'accountant',
-        'emergency',
-        'lab',
-        'radiology',
-        'pharmacist',
-        'technician',
-    },
-    'admin': {
-        'manager',
-        'doctor',
-        'nurse',
-        'reception',
-        'accountant',
-        'emergency',
-        'lab',
-        'radiology',
-        'pharmacist',
-        'technician',
-    },
-    'owner': {
-        'super_admin',
-        'admin',
-        'manager',
-        'doctor',
-        'nurse',
-        'reception',
-        'accountant',
-        'emergency',
-        'lab',
-        'radiology',
-        'pharmacist',
-        'technician',
-    },
+    'super_admin': {'admin', 'manager'},
+    'admin': {'manager'},
+    'owner': {'super_admin', 'admin', 'manager'},
     'manager': {'reception', 'accountant'},
     'doctor': {'nurse'},
+    'er_doctor': {'emergency'},
 }
 
 
@@ -493,6 +465,9 @@ def resolve_dashboard_widgets(
     """Widgets for role filtered by tenant modules and user hidden list.
     Hierarchy-aware: admin/super_admin/owner inherit lower-role widgets.
     """
+    from app.shared.user_role_policy import normalize_role
+
+    role = normalize_role(role) or role
     hidden = hidden or set()
     layout = ROLE_LAYOUTS.get(role) or ROLE_LAYOUTS.get('manager', [])
     out: list[WidgetMeta] = []

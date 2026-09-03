@@ -332,6 +332,7 @@ def payments():
 
 @reception_bp.route('/cash-register', methods=['GET', 'POST'])
 @login_required
+@role_required('reception', 'manager')
 def cash_register():
     """سجل الصندوق اليومي"""
     if 'billing' not in getattr(g, 'enabled_modules', set()):

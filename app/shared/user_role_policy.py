@@ -10,6 +10,7 @@ ASSIGNABLE_ROLES: frozenset[str] = frozenset(
         'admin',
         'manager',
         'doctor',
+        'er_doctor',
         'nurse',
         'reception',
         'accountant',

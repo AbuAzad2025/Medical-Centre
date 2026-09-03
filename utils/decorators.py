@@ -76,34 +76,12 @@ def _format_message(key):
 # Role hierarchy: higher roles inherit access to lower roles' endpoints
 # Aliases (receptionist→reception, lab_tech→lab) are normalized before lookup.
 ROLE_HIERARCHY = {
-    'super_admin': [
-        'admin',
-        'manager',
-        'doctor',
-        'nurse',
-        'reception',
-        'accountant',
-        'emergency',
-        'lab',
-        'radiology',
-        'pharmacist',
-        'technician',
-    ],
-    'admin': [
-        'manager',
-        'doctor',
-        'nurse',
-        'reception',
-        'accountant',
-        'emergency',
-        'lab',
-        'radiology',
-        'pharmacist',
-        'technician',
-    ],
+    'super_admin': ['admin', 'manager'],
+    'admin': ['manager'],
     'manager': ['reception', 'accountant'],
     'doctor': ['nurse'],
     'owner': ['super_admin'],
+    'er_doctor': ['emergency'],
 }
 
 

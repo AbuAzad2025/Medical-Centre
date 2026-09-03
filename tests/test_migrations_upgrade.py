@@ -10,7 +10,7 @@ from migrations.migration_utils import column_exists, fk_exists, index_exists, t
 # Expected heads in the migration graph.
 # The migration chain continues from s2_011_clean_schema through s3_* migrations.
 EXPECTED_HEADS = {
-    'f224b8d0c4d2',
+    's3_008_add_er_doctor_role',
 }
 
 
