@@ -21,7 +21,6 @@
 | السكربت | المهمة |
 |---------|--------|
 | `fix_db_imports_unified.py` / `fix_db_imports_smart.py` / `fix_missing_db_import*.py` / `remove_duplicate_db_imports.py` | توحيد/إصلاح استيرادات `db` |
-| `fix_test_passwords.py` / `fix_all_weak_passwords.py` / `fix_all_test_passwords.py` / `fix_remaining_test_passwords.py` / `fix_conftest_passwords.py` | تقوية كلمات مرور الاختبارات |
 | `fix_bare_excepts.py` / `audit_bare_except.py` | إصلاح/فحص `except:` الخام |
 | `fix_sa2_queries.py` / `audit_sqlalchemy_1x_queries.py` | ترقية استعلامات SQLAlchemy 1.x → 2.x |
 | `fix_future_imports.py` | إضافة `from __future__ import annotations` |
