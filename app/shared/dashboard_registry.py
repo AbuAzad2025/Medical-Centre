@@ -52,14 +52,14 @@ WIDGETS: dict[str, WidgetMeta] = {
     'appointments_pending': WidgetMeta(
         id='appointments_pending',
         title_ar='مواعيد اليوم',
-        roles=('reception', 'doctor', 'manager'),
+        roles=('reception', 'doctor', 'manager', 'patient'),
         modules=('appointments',),
         size='md',
         priority=2,
         template='dashboards/widgets/_appointments_today.html',
         icon='fa-calendar',
-        action_url='reception.appointments',
-        action_label='المواعيد',
+        action_url='portal.appointments',
+        action_label='مواعيدي',
     ),
     'cash_summary': WidgetMeta(
         id='cash_summary',
@@ -322,6 +322,7 @@ ROLE_DASHBOARD_TITLES: dict[str, str] = {
     'owner': 'لوحة تحكم المالك',
     'patient': 'لوحة تحكم المريض',
     'technician': 'لوحة تحكم الفني',
+    'tenant_admin': 'لوحة تحكم مدير الإيجار',
 }
 
 ROLE_LAYOUTS: dict[str, list[str]] = {
@@ -350,7 +351,8 @@ ROLE_LAYOUTS: dict[str, list[str]] = {
     'admin': ['kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'],
     'super_admin': ['kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'],
     'owner': ['kpi_strip', 'manager_finance', 'manager_hr'],
-    'patient': [],
+    'tenant_admin': ['kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'],
+    'patient': ['appointments_pending', 'visits_today'],
 }
 
 ROLE_QUICK_ACTIONS: dict[str, list[tuple[str, str, str]]] = {
@@ -434,10 +436,20 @@ ROLE_QUICK_ACTIONS: dict[str, list[tuple[str, str, str]]] = {
         ('owner.dashboard', 'fa-crown', 'لوحة المالك'),
         ('super_admin.dashboard', 'fa-cogs', 'إعدادات المركز'),
     ],
+    'tenant_admin': [
+        ('manager.dashboard', 'fa-chart-line', 'لوحة الإدارة'),
+        ('accountant.trial_balance', 'fa-balance-scale', 'المالية'),
+        ('manager.staff', 'fa-users', 'الطاقم'),
+        ('manager.reports_center', 'fa-chart-bar', 'التقارير'),
+        ('inbox.dashboard', 'fa-inbox', 'صندوق العمل'),
+    ],
     'patient': [
         ('portal.dashboard', 'fa-home', 'الرئيسية'),
         ('portal.appointments', 'fa-calendar', 'مواعيد'),
         ('portal.visits', 'fa-list', 'الزيارات'),
+        ('portal.lab_results', 'fa-flask', 'النتائج'),
+        ('portal.prescriptions', 'fa-prescription', 'الروشتات'),
+        ('portal.bills', 'fa-file-invoice-dollar', 'الفواتير'),
     ],
 }
 

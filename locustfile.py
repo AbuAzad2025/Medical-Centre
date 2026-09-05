@@ -1,19 +1,19 @@
 """
-Load-test suite Ã¢â‚¬â€ Locust (professional rewrite).
+Load-test suite — Locust (professional rewrite).
 
 Design
-Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-Ã¢â‚¬Â¢ Role-based virtual users mirroring real usage mix:
-    ReceptionUser  50%  Ã¢â‚¬â€œ patients search, queue views, visit lists
-    DoctorUser     30%  Ã¢â‚¬â€œ dashboard, patient queue, own visits
-    PharmacistUser 10%  Ã¢â‚¬â€œ medication dashboard / inventory
-    ManagerUser    10%  Ã¢â‚¬â€œ manager + financial dashboards
-Ã¢â‚¬Â¢ Login happens ONCE per simulated user in on_start (realistic sessions);
+──────
+• Role-based virtual users mirroring real usage mix:
+    ReceptionUser  50%  – patients search, queue views, visit lists
+    DoctorUser     30%  – dashboard, patient queue, own visits
+    PharmacistUser 10%  – medication dashboard / inventory
+    ManagerUser    10%  – manager + financial dashboards
+• Login happens ONCE per simulated user in on_start (realistic sessions);
   a failed login stops that user instead of spamming the endpoint.
-Ã¢â‚¬Â¢ Read-dominated profile (~90% GET) Ã¢â‚¬â€ safe to run against a seeded env.
+• Read-dominated profile (~90% GET) — safe to run against a seeded env.
 
 Run (smoke profile)
-Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+───────────────────
     locust -f locustfile.py --headless \
         -H http://127.0.0.1:8080 -u 25 -r 5 --run-time 90s \
         --csv artifacts/load --only-summary --exit-code-on-error 2%
@@ -60,7 +60,7 @@ class _RoleUser(HttpUser):
         token = _extract_csrf(page.text) if page.status_code == 200 else None
 
         # The backend treats a request as AJAX only when Content-Type is
-        # application/json (auth_routes.py:96) â€” send JSON like the real UI.
+        # application/json (auth_routes.py:96) send JSON like the real UI.
         headers = {'X-Requested-With': 'XMLHttpRequest'}
         if token:
             headers['X-CSRFToken'] = token
@@ -102,7 +102,7 @@ class ReceptionUser(_RoleUser):
 
     @task(8)
     def patients_search(self):
-        q = random.choice(['a', 'm', 'Ã˜Â³', '05'])
+        q = random.choice(['a', 'm', 'س', '05'])
         self.client.get(
             f'/reception/patients?search={q}',
             name='/reception/patients?search',

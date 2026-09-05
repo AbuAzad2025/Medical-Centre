@@ -24,6 +24,7 @@ ROLE_TO_MODULE_MAP = {
     'platform_owner': 'owner',
     'patient': 'portal',
     'technician': 'lab',
+    'tenant_admin': 'billing',
 }
 
 MODULE_TO_DASHBOARD_ENDPOINT = {
@@ -94,7 +95,7 @@ def resolve_dashboard_for_user(user, tenant_id: int | None = None) -> str:
         return 'portal.dashboard'
 
     # Tenant admin / manager: route to bundle's primary dashboard (strict bundle isolation)
-    if user_role in ('admin', 'manager'):
+    if user_role in ('admin', 'manager', 'tenant_admin'):
         try:
             tid = tenant_id or getattr(g, 'tenant_id', None)
             if tid:
@@ -116,6 +117,9 @@ def resolve_dashboard_for_user(user, tenant_id: int | None = None) -> str:
                             ep = MODULE_TO_DASHBOARD_ENDPOINT.get(mods[0])
                             if ep:
                                 return ep
+                        # For custom bundle (billing + reporting): go to finance dashboard
+                        if 'billing' in mods:
+                            return 'accountant.dashboard'
         except Exception:
             pass
 
