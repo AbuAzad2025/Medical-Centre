@@ -82,7 +82,8 @@ EXPECTED = {
         'integration',
     ],
     'billing_only': ['billing', 'appointments'],
-    'custom': [],
+    # Embedded Core Layer auto-provisioned (see _PRODUCT_PROFILE_SEED).
+    'custom': ['billing', 'reporting'],
 }
 
 

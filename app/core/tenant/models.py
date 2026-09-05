@@ -1172,6 +1172,9 @@ def seed_default_bundles() -> None:
         'private_doctor_clinic': ['doctor', 'billing', 'appointments'],
         'doctor_clinic_reception': ['reception', 'doctor', 'billing', 'appointments'],
     }
+    # Embedded Core backfill: legacy `custom` rows seeded with [] get the
+    # default core modules so existing deployments self-heal on re-seed.
+    _CUSTOM_CORE_MODULES = ['billing', 'reporting']
     for slug, defn in bundle_defs.items():
         existing = db.session.execute(select(ProductBundle).filter_by(slug=slug)).scalars().first()
         if existing:
@@ -1185,6 +1188,13 @@ def seed_default_bundles() -> None:
                     order = _BILLING_PATCH_ORDERS[slug]
                     current = sorted(current, key=lambda m: order.index(m) if m in order else 99)
                     existing.modules = json.dumps(current)
+            if slug == 'custom':
+                try:
+                    current = existing.get_modules()
+                except Exception:
+                    current = []
+                if not current:
+                    existing.set_modules(list(_CUSTOM_CORE_MODULES))
             continue
         b = ProductBundle(
             slug=slug,
