@@ -44,7 +44,10 @@ def logged_in_owner_shell_client(client, owner_user_for_shell):
     )
     if resp.status_code != 200:
         with contextlib.suppress(Exception):
-            print(f'LOGIN FAILED shell {resp.status_code}: {resp.get_data(as_text=True)[:800]}')
+            txt = resp.get_data(as_text=True)
+            print(f'LOGIN FAILED shell {resp.status_code}: {txt[:2000]}')
+            if 'الاشتراك' in txt:
+                print('SUBSCRIPTION ERROR')
     assert resp.status_code == 200
     yield client
     client.get('/auth/logout')

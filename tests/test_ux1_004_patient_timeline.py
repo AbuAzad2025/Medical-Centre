@@ -79,7 +79,10 @@ def timeline_auth_client(app, client, doctor_user, test_tenant):
     )
     if resp.status_code != 200:
         with contextlib.suppress(Exception):
-            print(f'LOGIN FAILED timeline {resp.status_code}: {resp.get_data(as_text=True)[:800]}')
+            txt = resp.get_data(as_text=True)
+            print(f'LOGIN FAILED timeline {resp.status_code}: {txt[:2000]}')
+            if 'الاشتراك' in txt:
+                print('SUBSCRIPTION ERROR')
     assert resp.status_code == 200
     return client
 

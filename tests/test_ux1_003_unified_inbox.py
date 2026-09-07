@@ -56,7 +56,14 @@ def inbox_auth_client(app, client, staff_user, test_tenant):
     if resp.status_code != 200:
         # Debug: print response for CI failure investigation
         with contextlib.suppress(Exception):
-            print(f'LOGIN FAILED {resp.status_code}: {resp.get_data(as_text=True)[:500]}')
+            txt = resp.get_data(as_text=True)
+            # Extract body text
+            print(f'LOGIN FAILED {resp.status_code}: {txt[:2000]}')
+            # Also try to find error message
+            if 'الاشتراك' in txt:
+                print('SUBSCRIPTION ERROR')
+            if 'حاول' in txt:
+                print('RATE LIMIT or LOCKOUT')
     assert resp.status_code == 200
     return client
 
