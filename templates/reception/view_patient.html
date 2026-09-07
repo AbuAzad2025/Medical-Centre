@@ -206,7 +206,7 @@
                                         <tr>
                                             <td class="small">{{ p.problem_description }}</td>
                                             <td><small class="badge bg-secondary">{{ p.problem_type }}</small></td>
-                                            <td><span class="badge bg-{% if p.status=='ACTIVE' %}success{% else %}secondary{% endif %}">{{ p.status }}</span></td>
+                                            <td><span class="badge bg-{% if p.status=='ACTIVE' %}success{% else %}secondary{% endif %}">{{ p.status|enum_label }}</span></td>
                                             <td>
                                                 <form method="POST" action="{{ url_for('reception.toggle_problem_status', patient_id=patient.id, problem_id=p.id) }}" class="d-inline">
                                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
