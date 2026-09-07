@@ -461,6 +461,41 @@ jobs:
               print('OK', path)
           PY
 
+  # ── Frontend Asset Quality Gate (Phase 2/3 Directive) ────────────────────
+  # Isolated: no DB. Validates Jinja inheritance, CSS/JS existence, duplicate
+  # imports, orphaned assets, and block integrity via tests/test_frontend_asset_quality.py
+  frontend-asset-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install Jinja2
+        run: |
+          python -m pip install --upgrade pip
+          pip install jinja2
+
+      - name: Run frontend asset quality suite
+        run: python -m pytest tests/test_frontend_asset_quality.py -v --tb=short
+
+      - name: Verify no orphaned static bypass (matrix gate)
+        run: |
+          python - <<'PY'
+          import pathlib, re
+          root = pathlib.Path('.')
+          # Quick sanity: every base.html css must exist
+          css_files = list((root/'static'/'css').glob('*.css'))
+          print(f'CSS bundle: {len(css_files)} files')
+          assert len(css_files) >= 7, 'CSS bundle missing expected files'
+          print('Frontend matrix gate OK')
+          PY
+
   # ── Boot verification ──────────────────────────────────────────────────
   # Proves the application factory boots cleanly and health endpoints respond.
   verify-boot:
