@@ -1,5 +1,5 @@
 {
-  "total_routes": 741,
+  "total_routes": 755,
   "routes": [
     {
       "endpoint": "main.index",
@@ -36,6 +36,22 @@
     {
       "endpoint": "accountant.index",
       "path": "/accountant/",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.accounts",
+      "path": "/accountant/accounts",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.account_ledger",
+      "path": "/accountant/accounts/<int:account_id>",
       "methods": [
         "GET"
       ],
@@ -122,6 +138,14 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "accountant.journals",
+      "path": "/accountant/journals",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "accountant.open_invoices",
       "path": "/accountant/open-invoices",
       "methods": [
@@ -146,6 +170,14 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "accountant.close_period",
+      "path": "/accountant/periods/close",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "accountant.receipt",
       "path": "/accountant/receipt/<int:payment_id>",
       "methods": [
@@ -156,6 +188,14 @@
     {
       "endpoint": "accountant.reports",
       "path": "/accountant/reports",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.trial_balance",
+      "path": "/accountant/trial-balance",
       "methods": [
         "GET"
       ],
@@ -220,6 +260,54 @@
     {
       "endpoint": "saas_billing.change_plan",
       "path": "/api/billing/subscription/change-plan",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "insurance.list_claims",
+      "path": "/api/claims",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "insurance.create_claim",
+      "path": "/api/claims",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "insurance.adjudicate_claim",
+      "path": "/api/claims/<int:claim_id>/adjudicate",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "insurance.payout_claim",
+      "path": "/api/claims/<int:claim_id>/payout",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "insurance.settle_claim",
+      "path": "/api/claims/<int:claim_id>/settle",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "insurance.submit_claim",
+      "path": "/api/claims/<int:claim_id>/submit",
       "methods": [
         "POST"
       ],
@@ -853,6 +941,22 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "dicom.api_worklist",
+      "path": "/dicom/api/worklist",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "dicom.api_worklist_patient",
+      "path": "/dicom/api/worklist/patient/<int:patient_id>",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "dicom.studies",
       "path": "/dicom/studies",
       "methods": [
@@ -1122,6 +1226,14 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "doctor.print_invoice",
+      "path": "/doctor/print-invoice/<int:invoice_id>",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "doctor.print_medical_report",
       "path": "/doctor/print-medical-report/<int:visit_id>",
       "methods": [
@@ -1132,14 +1244,6 @@
     {
       "endpoint": "doctor.print_prescription",
       "path": "/doctor/print-prescription/<int:prescription_id>",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "doctor.print_invoice",
-      "path": "/doctor/print-invoice/<int:invoice_id>",
       "methods": [
         "GET"
       ],
@@ -1636,6 +1740,54 @@
     {
       "endpoint": "main.health",
       "path": "/health",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "hl7.hl7_control",
+      "path": "/hl7/control/<action>",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "hl7.hl7_ingest",
+      "path": "/hl7/ingest",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "hl7.hl7_status",
+      "path": "/hl7/status",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "ihe.atna_audit",
+      "path": "/ihe/atna/audit",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "ihe.pdq_query",
+      "path": "/ihe/pdq/query",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "ihe.pix_query",
+      "path": "/ihe/pix/query",
       "methods": [
         "GET"
       ],
@@ -5979,46 +6131,6 @@
       "path": "/what-if/new",
       "methods": [
         "GET",
-        "POST"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "accountant.accounts",
-      "path": "/accountant/accounts",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "accountant.journals",
-      "path": "/accountant/journals",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "accountant.trial_balance",
-      "path": "/accountant/trial-balance",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "accountant.account_ledger",
-      "path": "/accountant/accounts/<int:account_id>",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "accountant.close_period",
-      "path": "/accountant/periods/close",
-      "methods": [
         "POST"
       ],
       "classification": "authenticated"
