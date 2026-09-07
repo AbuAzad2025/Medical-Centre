@@ -11,7 +11,9 @@ from models.user import User
 @pytest.fixture(scope='function')
 def doctor_user(app, test_tenant):
     u = (
-        db.session.execute(select(User).filter_by(username='doctor_timeline_test', tenant_id=test_tenant.id))
+        db.session.execute(
+            select(User).filter_by(username='doctor_timeline_test', tenant_id=test_tenant.id)
+        )
         .scalars()
         .first()
     )

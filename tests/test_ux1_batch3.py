@@ -11,7 +11,13 @@ from services.work_inbox_service import WorkInboxService
 
 @pytest.fixture(scope='function')
 def reception_inbox_user(app, test_tenant):
-    u = db.session.execute(select(User).filter_by(username='batch3_inbox_user', tenant_id=test_tenant.id)).scalars().first()
+    u = (
+        db.session.execute(
+            select(User).filter_by(username='batch3_inbox_user', tenant_id=test_tenant.id)
+        )
+        .scalars()
+        .first()
+    )
     if not u:
         u = User(
             username='batch3_inbox_user',
@@ -29,7 +35,13 @@ def reception_inbox_user(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def batch3_accountant(app, test_tenant):
-    u = db.session.execute(select(User).filter_by(username='batch3_accountant', tenant_id=test_tenant.id)).scalars().first()
+    u = (
+        db.session.execute(
+            select(User).filter_by(username='batch3_accountant', tenant_id=test_tenant.id)
+        )
+        .scalars()
+        .first()
+    )
     if not u:
         u = User(
             username='batch3_accountant',
