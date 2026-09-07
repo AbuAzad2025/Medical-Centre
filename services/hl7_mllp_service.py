@@ -14,8 +14,8 @@ import logging
 import os
 import socket
 import threading
+from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -95,11 +95,10 @@ class HL7MLLPService:
                 # handler may return custom ack text
                 ack_text = result or "OK"
                 return _build_ack(msh, "AA", ack_text)
-            else:
-                logger.warning("HL7 no handler for %s", msg_type)
-                return _build_ack(msh, "AR", f"Unsupported message type {msg_type}")
+            logger.warning("HL7 no handler for %s", msg_type)
+            return _build_ack(msh, "AR", f"Unsupported message type {msg_type}")
         except Exception as exc:  # noqa: BLE001
-            logger.exception("HL7 handler failed for %s: %s", msg_type, exc)
+            logger.exception("HL7 handler failed for %s", msg_type)
             return _build_ack(msh, "AE", str(exc)[:80])
 
     # ---------------- TCP MLLP framing ----------------
@@ -123,10 +122,8 @@ class HL7MLLPService:
         except Exception as exc:  # noqa: BLE001
             logger.debug("HL7 client %s error: %s", addr, exc)
         finally:
-            try:
+            with __import__("contextlib").suppress(Exception):
                 conn.close()
-            except Exception:
-                pass
 
     def _listen_loop(self):
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -139,7 +136,7 @@ class HL7MLLPService:
             try:
                 conn, addr = srv.accept()
                 threading.Thread(target=self._serve_client, args=(conn, addr), daemon=True).start()
-            except socket.timeout:
+            except TimeoutError:
                 continue
             except Exception as exc:  # noqa: BLE001
                 logger.warning("HL7 accept failed: %s", exc)
@@ -164,8 +161,6 @@ hl7_mllp_service = HL7MLLPService()
 
 def _default_adt_handler(segs: dict, raw: str) -> str | None:
     try:
-        from app.extensions import db
-        from models.patient import Patient
 
         pid_seg = segs.get("PID", [[]])[0] if segs.get("PID") else []
         # PID-3 patient identifier, PID-5 name
@@ -186,4 +181,4 @@ def _default_oru_handler(segs: dict, raw: str) -> str | None:
 
 hl7_mllp_service.register_handler("ADT", _default_adt_handler)
 hl7_mllp_service.register_handler("ORU", _default_oru_handler)
-hl7_mllp_service.register_handler("ORM", lambda s, r: "ORM logged")
+hl7_mllp_service.register_handler("ORM", lambda _s, _r: "ORM logged")

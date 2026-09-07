@@ -2,7 +2,7 @@
 DICOM / PACS Routes
 """
 
-from flask import Blueprint, abort, g, jsonify, render_template, request
+from flask import Blueprint, abort, jsonify, render_template, request
 from flask_login import login_required
 from sqlalchemy import select
 

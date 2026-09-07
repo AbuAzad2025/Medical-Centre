@@ -1009,6 +1009,7 @@ def create_app(config_name: str | None = None) -> Flask:
                     from flask import jsonify
 
                     return jsonify(success=False, error='Payload too large', max_size=max_bytes), 413
+        return None
 
     # Request tracing inject X-Request-ID into g and response headers
     @app.before_request

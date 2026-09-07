@@ -28,9 +28,8 @@ class IHEPixPdqService:
         For single-tenant deployment, the patient has one identifier; for SaaS,
         we return tenant-scoped cross-reference.
         """
-        from models.patient import Patient
-
         from app.extensions import db
+        from models.patient import Patient
 
         # Try national_id, then id
         q = select(Patient)
@@ -46,12 +45,8 @@ class IHEPixPdqService:
         except ValueError:
             pass
         if not candidates:
-            # national_id lookup (encrypted — exact match via hash)
+            # national_id lookup (encrypted — decrypt comparison)
             try:
-                from app.shared.encrypted_type import EncryptedString
-
-                h = EncryptedString.hash_for_lookup(str(patient_id))
-                # Fallback scan (small result set) — decrypt comparison
                 rows = db.session.execute(q.limit(200)).scalars().all()
                 for p in rows:
                     if p.national_id == patient_id:
@@ -83,9 +78,8 @@ class IHEPixPdqService:
         limit: int = 20,
     ) -> dict[str, Any]:
         """PDQ Query — demographics search with pagination."""
-        from models.patient import Patient
-
         from app.extensions import db
+        from models.patient import Patient
 
         q = select(Patient)
         if tenant_id:

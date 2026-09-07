@@ -2,7 +2,7 @@
 HL7v2 MLLP routes — status + test ingest (HTTP wrapper for MLLP).
 """
 
-from flask import Blueprint, g, jsonify, request
+from flask import Blueprint, jsonify, request
 from flask_login import login_required
 
 from services.hl7_mllp_service import hl7_mllp_service

@@ -4,7 +4,6 @@ from flask import Blueprint, jsonify
 from flask_login import current_user, login_required
 
 from app.shared.dashboard_service import snapshot_metrics
-from utils.api_security import limit_payload_size
 from utils.decorators import role_required
 
 api_dashboard_bp = Blueprint('api_dashboard', __name__)

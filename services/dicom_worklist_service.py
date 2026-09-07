@@ -50,10 +50,9 @@ class DICOMWorklistService:
         scheduled_date: str | None = None,
         limit: int = 100,
     ) -> list[dict[str, Any]]:
+        from app.extensions import db
         from models.patient import Patient
         from models.radiology_request import RadiologyRequest
-
-        from app.extensions import db
 
         q = select(RadiologyRequest).filter(RadiologyRequest.status.in_(["REQUESTED", "IN_PROGRESS"]))
         if modality:
@@ -80,10 +79,9 @@ class DICOMWorklistService:
 
     @staticmethod
     def get_worklist_for_patient(patient_id: int) -> list[dict[str, Any]]:
+        from app.extensions import db
         from models.patient import Patient
         from models.radiology_request import RadiologyRequest
-
-        from app.extensions import db
 
         q = select(RadiologyRequest).filter(
             RadiologyRequest.patient_id == patient_id,
