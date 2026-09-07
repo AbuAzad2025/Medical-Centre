@@ -37,7 +37,22 @@ class EncryptedString(TypeDecorator):
         return dialect.type_descriptor(Text())
 
     def _get_service(self):
-        if not os.environ.get('FIELD_ENCRYPTION_KEY'):
+        key = os.environ.get('FIELD_ENCRYPTION_KEY', '').strip()
+        if not key:
+            # Fail-closed in production/staging; allow plaintext only in testing/dev
+            try:
+                from flask import current_app
+
+                if current_app and not current_app.config.get('TESTING', False):
+                    env = (current_app.config.get('APP_ENV') or os.environ.get('APP_ENV') or '').lower()
+                    if env in ('production', 'staging'):
+                        raise RuntimeError(
+                            'FIELD_ENCRYPTION_KEY missing — refusing to store PHI as plaintext'
+                        )
+            except RuntimeError:
+                raise
+            except Exception:
+                pass
             return None
         try:
             from services.field_encryption_service import FieldEncryptionService
@@ -51,8 +66,7 @@ class EncryptedString(TypeDecorator):
             return value
         svc = self._get_service()
         if svc is None:
-            return value
-        if isinstance(value, str) and ('%' in value or '_' in value):
+            # Only allow plaintext in testing/dev; in production this already raised above
             return value
         return svc.encrypt(value)
 

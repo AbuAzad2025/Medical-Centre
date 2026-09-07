@@ -105,22 +105,42 @@ def _log_action(action, entity_type, entity_id=None, details=None):
 
 
 def _compute_platform_revenue():
-    """MRR/ARR snapshot for owner billing dashboard."""
-    all_tenants = db.session.execute(select(Tenant)).scalars().all()
+    """MRR/ARR snapshot for owner billing dashboard — source of truth is SubscriptionLine."""
+    from app.core.saas.models import SubscriptionLine, SubscriptionLineStatus
+    from datetime import datetime
+
+    now = datetime.now(UTC)
+    # Active lines: status active and within effective window
+    active_lines = (
+        db.session.execute(
+            select(SubscriptionLine).filter(
+                SubscriptionLine.status == SubscriptionLineStatus.ACTIVE,
+                SubscriptionLine.effective_from <= now,
+                (SubscriptionLine.effective_to.is_(None)) | (SubscriptionLine.effective_to > now),
+            )
+        )
+        .scalars()
+        .all()
+    )
+    tenant_count = db.session.execute(select(func.count()).select_from(Tenant)).scalar() or 0
+    # Deduplicate active tenants
+    active_tenant_ids = set()
     mrr = 0.0
-    for t in all_tenants:
-        if t.is_active_and_paid() and t.plan:
-            price = float(t.plan.base_price or 0)
-            if t.subscription_type == SubscriptionType.YEARLY:
-                price = price / 12.0
-            elif t.subscription_type == SubscriptionType.PERPETUAL:
-                price = 0
-            mrr += price
+    for line in active_lines:
+        tenant = db.session.get(Tenant, line.tenant_id)
+        if not tenant or not tenant.is_active_and_paid():
+            continue
+        active_tenant_ids.add(line.tenant_id)
+        price = float(line.unit_price or 0) * int(line.quantity or 1)
+        # Yearly -> monthly proration
+        if line.billing_type == 'yearly':
+            price = price / 12.0
+        mrr += price
     return {
-        'tenant_count': len(all_tenants),
-        'active_paid': sum(1 for t in all_tenants if t.is_active_and_paid()),
-        'mrr': mrr,
-        'arr': mrr * 12,
+        'tenant_count': tenant_count,
+        'active_paid': len(active_tenant_ids),
+        'mrr': round(mrr, 2),
+        'arr': round(mrr * 12, 2),
         'currency': 'SAR',
     }
 
@@ -142,19 +162,13 @@ def owner_dashboard():
     suspended_count = sum(1 for t in all_tenants if t.status == TenantStatus.SUSPENDED)
     trial_count = sum(1 for t in all_tenants if t.status == TenantStatus.PENDING)
 
-    # MRR/ARR
-    mrr = 0.0
-    for t in all_tenants:
-        if t.is_active_and_paid() and t.plan:
-            price = float(t.plan.base_price or 0)
-            if t.subscription_type == SubscriptionType.YEARLY:
-                price = price / 12.0
-            elif t.subscription_type == SubscriptionType.PERPETUAL:
-                price = 0
-            mrr += price
-    arr = mrr * 12
-
-    churn_rate = round((expired_count / max(tenant_count, 1)) * 100, 1)
+    # MRR/ARR — from SubscriptionLine (single source of truth)
+    _rev = _compute_platform_revenue()
+    mrr = _rev['mrr']
+    arr = _rev['arr']
+    # Churn: cancelled + suspended + expired / total
+    cancelled_count = sum(1 for t in all_tenants if t.status == TenantStatus.CANCELLED)
+    churn_rate = round(((expired_count + cancelled_count + suspended_count) / max(tenant_count, 1)) * 100, 1)
     total_users_all = sum(len(t.users) for t in all_tenants)
     avg_users_per_tenant = total_users_all / max(tenant_count, 1)
 

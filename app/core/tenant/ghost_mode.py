@@ -41,11 +41,15 @@ HEADER_USER_ID = 'X-Impersonate-User-Id'
 HEADER_TIMESTAMP = 'X-Impersonate-Timestamp'
 HEADER_SIGNATURE = 'X-Impersonate-Signature'
 
-# Roles permitted to use Ghost Mode.
-PLATFORM_OWNER_ROLES = frozenset({'platform_owner', 'super_admin', 'owner'})
+# Roles permitted to use Ghost Mode — strictly platform_owner only (fail-closed).
+# super_admin/owner are tenant-scoped and must use PlatformAssumptionService, not stateless HMAC.
+PLATFORM_OWNER_ROLES = frozenset({'platform_owner'})
 
 # Signed requests older than this are rejected (replay protection).
 REPLAY_WINDOW_SECONDS = 300
+# In-memory nonce store for anti-replay (fallback if Redis unavailable)
+# {signature: expiry_timestamp}
+_USED_NONCES: dict[str, float] = {}
 
 
 def _get_secret() -> str | None:
@@ -67,6 +71,32 @@ def sign_impersonation(tenant_id, user_id, secret: str, timestamp: str | None = 
     return signature, timestamp
 
 
+def _is_nonce_replayed(signature: str) -> bool:
+    """Check and record nonce via Redis if available, else in-memory."""
+    now = time.time()
+    # Prune expired
+    for k, exp in list(_USED_NONCES.items()):
+        if exp < now:
+            _USED_NONCES.pop(k, None)
+    if signature in _USED_NONCES:
+        return True
+    # Try Redis
+    try:
+        from app.core.rate_limiter import _get_redis
+
+        r = _get_redis()
+        if r is not None:
+            key = f"ghost:nonce:{signature}"
+            # NX = only set if not exists, EX = replay window
+            was_set = r.set(key, "1", ex=REPLAY_WINDOW_SECONDS, nx=True)
+            return not was_set  # if not set, it existed -> replay
+    except Exception:
+        pass
+    # Fallback in-memory
+    _USED_NONCES[signature] = now + REPLAY_WINDOW_SECONDS
+    return False
+
+
 def verify_ghost_signature(tenant_id, user_id, timestamp, signature) -> bool:
     """Validate an impersonation signature (key, shape, and replay window)."""
     secret = _get_secret()
@@ -76,7 +106,14 @@ def verify_ghost_signature(tenant_id, user_id, timestamp, signature) -> bool:
         ts = int(timestamp)
     except (TypeError, ValueError):
         return False
-    if abs(int(time.time()) - ts) > REPLAY_WINDOW_SECONDS:
+    now = int(time.time())
+    # Strict window: not future, not older than window (no abs)
+    if ts > now + 30:  # allow 30s clock skew future
+        return False
+    if now - ts > REPLAY_WINDOW_SECONDS:
+        return False
+    # Anti-replay: reject reused signature within window
+    if _is_nonce_replayed(signature):
         return False
     payload = _canonical_payload(str(tenant_id), str(user_id), str(timestamp))
     expected = hmac.new(secret.encode('utf-8'), payload, hashlib.sha256).hexdigest()
@@ -175,15 +212,17 @@ def ghost_mode_middleware() -> None:
 
 
 def _write_audit_trail(actor, target_tenant, target_user) -> None:
-    """Best-effort audit log of an impersonated request."""
+    """Best-effort audit log of an impersonated request — records REAL actor."""
     try:
         from app.extensions import db
         from models.audit_trail import AuditTrail
+        from utils.db_safety import safe_commit
 
         details = json.dumps(
             {
                 'real_actor_id': actor.id,
                 'real_actor_username': actor.username,
+                'real_actor_role': getattr(actor, 'role', None),
                 'impersonated_user_id': target_user.id,
                 'impersonated_username': target_user.username,
                 'impersonated_tenant_id': target_tenant.id,
@@ -193,9 +232,10 @@ def _write_audit_trail(actor, target_tenant, target_user) -> None:
             },
             ensure_ascii=False,
         )
+        # Record REAL actor as user_id/tenant_id for SIEM attribution
         entry = AuditTrail(
-            tenant_id=target_tenant.id,
-            user_id=target_user.id,
+            tenant_id=getattr(actor, 'tenant_id', None) or target_tenant.id,
+            user_id=actor.id,
             entity_type='user',
             entity_id=target_user.id,
             action='IMPERSONATE',
@@ -208,6 +248,9 @@ def _write_audit_trail(actor, target_tenant, target_user) -> None:
             new_values=details,
         )
         db.session.add(entry)
-        db.session.commit()
+        safe_commit(db.session, error_message='Ghost audit failed')
     except Exception:  # never break a request because of audit logging
-        current_app.logger.exception('Ghost Mode: audit trail write failed: %s')
+        try:
+            current_app.logger.exception('Ghost Mode: audit trail write failed')
+        except Exception:
+            pass

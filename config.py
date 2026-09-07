@@ -169,8 +169,17 @@ class Config:
     DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY') or 'ILS'
 
     # Secret used to verify HMAC-SHA256 signatures for Ghost Mode (Master
-    # Impersonation). Must be set in production; a dev fallback is allowed.
-    PLATFORM_OWNER_SECRET = os.environ.get('PLATFORM_OWNER_SECRET') or 'dev-ghost-secret'
+    # Impersonation). MUST be set in production/staging — fail-closed.
+    _ghost_secret_env = os.environ.get('PLATFORM_OWNER_SECRET')
+    if not _ghost_secret_env:
+        _env = (os.environ.get('APP_ENV') or os.environ.get('FLASK_ENV') or '').lower()
+        if _env in ('production', 'staging'):
+            raise RuntimeError(
+                'PLATFORM_OWNER_SECRET is required in production/staging. '
+                'Set a 32+ char random secret; refusing to start with dev fallback.'
+            )
+        _ghost_secret_env = 'dev-ghost-secret'
+    PLATFORM_OWNER_SECRET = _ghost_secret_env
 
     # ========== SaaS Multi-Tenancy Configuration ==========
     # Deployment mode:

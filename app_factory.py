@@ -361,7 +361,34 @@ def create_app(config_name: str | None = None) -> Flask:
                 _raise_on_modify,
             )
 
-            TRACKED_MODELS.update({Patient, OnlineBooking, PatientConsent})
+            # Expand PHI tracking to all clinical models (Visit, Prescription, Lab/Radiology, etc.)
+            try:
+                from models.lab_request import LabResult
+                from models.medical_record import MedicalRecord
+                from models.medication import Prescription
+                from models.nurse import VitalSigns
+                from models.visit import Visit
+
+                _extra = {
+                    Patient,
+                    OnlineBooking,
+                    PatientConsent,
+                    Visit,
+                    Prescription,
+                    LabResult,
+                    MedicalRecord,
+                    VitalSigns,
+                }
+                try:
+                    from models.radiology_result import RadiologyResult
+
+                    _extra.add(RadiologyResult)
+                except Exception:
+                    pass
+                TRACKED_MODELS.update(_extra)
+            except Exception as _e:
+                app.logger.warning(f'PHI extended models skipped: {_e}')
+                TRACKED_MODELS.update({Patient, OnlineBooking, PatientConsent})
             # Session-level listeners: PHI audit logging (two-phase for autoincrement PK resolution)
             event.listen(db.session, 'before_flush', _phi_audit_before_flush)
             event.listen(db.session, 'after_flush', _phi_audit_after_flush)

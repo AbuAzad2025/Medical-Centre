@@ -57,7 +57,15 @@ class TenantProvisioningService:
         performed_by_user_id: int | None = None,
         **tenant_kwargs,
     ) -> Tenant:
-        """Create a new tenant with an active base subscription line."""
+        """Create a new tenant with an active base subscription line — atomic."""
+        # Validate billing_type strictly
+        if billing_type not in ('monthly', 'yearly'):
+            raise ProvisioningError(f"Invalid billing_type '{billing_type}'; must be monthly or yearly")
+        # Validate slug format (same as saas_registration)
+        import re as _re
+
+        if not _re.match(r'^[a-z0-9][a-z0-9-]{2,79}$', slug):
+            raise ProvisioningError(f"Invalid slug '{slug}'; must be 3-80 lower alphanumeric/hyphen")
         if db.session.execute(select(Tenant).filter_by(slug=slug)).scalars().first():
             raise ProvisioningError(f"Tenant slug '{slug}' already exists.")
 
@@ -70,30 +78,42 @@ class TenantProvisioningService:
             else TenantStatus.ACTIVE
         )
 
-        tenant = Tenant(
-            slug=slug,
-            name=name,
-            contact_email=contact_email,
-            status=tenant_status,
-            product_profile_code=product_profile_code or tenant_kwargs.get('product_profile_code'),
-            **{k: v for k, v in tenant_kwargs.items() if k != 'product_profile_code'},
-        )
-        db.session.add(tenant)
-        db.session.flush()
+        # Atomic creation: single transaction for tenant + line + grants
+        try:
+            tenant = Tenant(
+                slug=slug,
+                name=name,
+                contact_email=contact_email,
+                status=tenant_status,
+                product_profile_code=product_profile_code or tenant_kwargs.get('product_profile_code'),
+                **{k: v for k, v in tenant_kwargs.items() if k != 'product_profile_code'},
+            )
+            db.session.add(tenant)
+            db.session.flush()
 
-        from flask import has_request_context
+            from flask import has_request_context
 
-        if has_request_context():
-            from app.core.tenant.middleware import bind_g_tenant
+            if has_request_context():
+                from app.core.tenant.middleware import bind_g_tenant
 
-            bind_g_tenant(tenant)
+                bind_g_tenant(tenant)
 
-        line = cls._create_base_line(tenant.id, package_version, billing_type)
-        db.session.add(line)
-        db.session.flush()
+            line = cls._create_base_line(tenant.id, package_version, billing_type)
+            db.session.add(line)
+            db.session.flush()
 
-        cls._create_line_grants(line, package_version)
-        safe_commit(db.session, error_message='database commit failed', reraise=True)
+            cls._create_line_grants(line, package_version)
+            db.session.flush()
+            # Single atomic commit for core provisioning
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+        except Exception as _e:
+            # Handle concurrent slug race via DB unique constraint
+            from sqlalchemy.exc import IntegrityError
+
+            if isinstance(_e, IntegrityError) and 'slug' in str(_e).lower():
+                db.session.rollback()
+                raise ProvisioningError(f"Tenant slug '{slug}' already exists (race)") from _e
+            raise
 
         EntitlementProjectionService.calculate(tenant.id)
         cls._ensure_modules_for_package(tenant.id, package_version)

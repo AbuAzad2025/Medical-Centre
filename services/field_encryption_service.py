@@ -87,13 +87,13 @@ class FieldEncryptionService:
         if data.startswith(self.LEGACY_PREFIX) or data.startswith(self.GCM_PREFIX):
             return data.decode('utf-8', errors='replace')
         try:
-            nonce = hashlib.sha256(b'lookup' + self._gcm_key + data).digest()[:12]
+            nonce = os.urandom(12)
             aesgcm = AESGCM(self._gcm_key)
             ct = aesgcm.encrypt(nonce, data, None)
             payload = base64.urlsafe_b64encode(nonce + ct).decode('utf-8')
             return (self.GCM_PREFIX + payload.encode()).decode('utf-8')
         except Exception:
-            logger.exception('Field encryption failed: %s')
+            logger.exception('Field encryption failed')
             raise
 
     def decrypt(self, ciphertext: str | bytes | None) -> str | None:

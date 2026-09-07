@@ -342,7 +342,7 @@ def tenant_filter_query(query):
     session = getattr(query, 'session', None)
     tid = _current_tenant_id(session=session)
     if tid is None:
-        if _is_saas_mode() and not _is_tenant_bypass():
+        if not _is_tenant_bypass():
             for desc in query.column_descriptions:
                 entity = desc.get('entity')
                 if entity is None or not isinstance(entity, type):
@@ -356,7 +356,7 @@ def tenant_filter_query(query):
                         continue
                     raise TenantIsolationError(
                         f'Fail-closed: query on tenant-scoped model '
-                        f'{entity.__name__} without tenant context in SaaS mode'
+                        f'{entity.__name__} without tenant context'
                     )
         return query
 
@@ -443,7 +443,7 @@ def tenant_filter_select(orm_execute_state):
         return
 
     if tid is None:
-        if _is_saas_mode():
+        if not _is_tenant_bypass():
             for entity in _entities_from_statement(statement):
                 if _skip_table(entity):
                     continue
@@ -454,7 +454,7 @@ def tenant_filter_select(orm_execute_state):
                         continue
                     raise TenantIsolationError(
                         f'Fail-closed: query on tenant-scoped model '
-                        f'{entity.__name__} without tenant context in SaaS mode'
+                        f'{entity.__name__} without tenant context'
                     )
         return
 
@@ -492,18 +492,20 @@ def reassert_set_local(orm_execute_state):
     prior commit, where ``before_flush`` does not fire (no flush occurs
     for a plain SELECT).
     """
-    # Outside SaaS mode there is no RLS/GUC machinery to maintain — and
-    # executing a nested statement here (inside another statement's
-    # do_orm_execute) corrupts the outer cursor (ResourceClosedError /
-    # PGRES_TUPLES_OK seen under gunicorn). Only run in SaaS mode.
-    if not _is_saas_mode():
-        return
-
     # Skip raw text clauses to avoid recursive dispatch —
     # our own session.execute(db.text("SET LOCAL …")) triggers
     # do_orm_execute, which would re-enter this handler.
     if isinstance(orm_execute_state.statement, TextClause):
         return
+    # Skip re-assertion for statements touching only global/platform tables
+    # (no tenant_id filtering needed) — avoids polluting RLS state for
+    # platform queries like system_configs/branding_settings.
+    try:
+        _ents = _entities_from_statement(orm_execute_state.statement)
+        if _ents and all(_skip_table(e) or not _model_has_tenant_column(e) for e in _ents):
+            return
+    except Exception:
+        pass
 
     tid = _current_tenant_id(session=orm_execute_state.session)
     # SET LOCAL is PostgreSQL-specific; skip on SQLite etc.
