@@ -341,9 +341,40 @@ class RadiologyService:
             logging.exception('Error claiming radiology request: %s')
             return False
 
-    # ==================== CANCEL & AMEND ====================
-
+    # ==================== STATE MACHINE ====================
+    _RAD_TRANSITIONS: dict[str, set[str]] = {
+        'REQUESTED': {'IN_PROGRESS', 'CANCELLED'},
+        'IN_PROGRESS': {'DONE', 'CANCELLED'},
+        'DONE': set(),
+        'CANCELLED': set(),
+    }
     _RAD_TERMINAL_STATUSES = {'DONE', 'CANCELLED'}
+
+    @staticmethod
+    def can_transition_rad(from_status: str, to_status: str) -> bool:
+        return to_status in RadiologyService._RAD_TRANSITIONS.get((from_status or '').upper(), set())
+
+    @staticmethod
+    @require_module('radiology')
+    def transition_request(request_id: int, to_status: str, actor_id: int | None = None) -> tuple[bool, dict]:
+        from models.radiology_request import RadiologyRequest
+        req = db.session.execute(
+            select(RadiologyRequest).filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id)
+        ).scalars().first()
+        if not req:
+            return False, {'error': 'Radiology request not found'}
+        to_status = (to_status or '').upper()
+        if not RadiologyService.can_transition_rad(req.status, to_status):
+            return False, {'error': f'Invalid transition {req.status} -> {to_status}'}
+        now = datetime.now(UTC)
+        req.status = to_status
+        req.updated_at = now
+        RadiologyService.log_action('update', f'transition {req.id} -> {to_status}', user_id=actor_id)
+        if not safe_commit(db.session, error_message='Error transitioning radiology request'):
+            return False, {'error': 'Error transitioning radiology request'}
+        return True, {'request_id': req.id, 'status': req.status}
+
+    # ==================== CANCEL & AMEND ====================
 
     @staticmethod
     @require_module('radiology')

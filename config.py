@@ -139,7 +139,8 @@ class Config:
         # Allow subclasses (TestingConfig) to set their own fallback
         pass
 
-    # إعدادات PostgreSQL
+    # إعدادات PostgreSQL — مع مهلة بيان لمنع الاستعلامات العالقة (DoS)
+    _stmt_timeout_ms = int(os.environ.get('DB_STATEMENT_TIMEOUT_MS', '30000'))  # 30s افتراضي
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_size': 10,
         'pool_pre_ping': True,
@@ -147,6 +148,10 @@ class Config:
         'pool_timeout': 20,
         'max_overflow': 20,
         'echo': False,
+        'connect_args': {
+            'options': f'-c statement_timeout={_stmt_timeout_ms}',
+            'connect_timeout': 10,
+        },
     }
 
     # إعدادات Flask

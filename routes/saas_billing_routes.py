@@ -6,6 +6,7 @@ from flask_login import current_user, login_required
 from app.extensions import csrf
 from services.stripe_billing_service import StripeBillingError, StripeBillingService
 from services.stripe_subscription_service import StripeSubscriptionService, StripeWebhookError
+from utils.api_security import limit_payload_size
 
 saas_billing_bp = Blueprint('saas_billing', __name__)
 
@@ -19,6 +20,7 @@ def _tenant_id_from_context() -> int:
 
 @saas_billing_bp.route('/api/billing/stripe/webhook', methods=['POST'])
 @csrf.exempt
+@limit_payload_size(1 * 1024 * 1024)
 def stripe_webhook():
     """Ingest Stripe subscription lifecycle events."""
     signature = request.headers.get('Stripe-Signature', '')
@@ -33,6 +35,7 @@ def stripe_webhook():
 
 @saas_billing_bp.route('/api/billing/checkout', methods=['POST'])
 @login_required
+@limit_payload_size(64 * 1024)
 def create_checkout():
     """Start a Stripe Checkout session for subscription purchase."""
     data = request.get_json(silent=True) or {}
@@ -56,6 +59,7 @@ def create_checkout():
 
 @saas_billing_bp.route('/api/billing/portal', methods=['POST'])
 @login_required
+@limit_payload_size(64 * 1024)
 def billing_portal():
     """Open Stripe customer portal for card updates."""
     data = request.get_json(silent=True) or {}
@@ -75,6 +79,7 @@ def billing_portal():
 
 @saas_billing_bp.route('/api/billing/subscription/cancel', methods=['POST'])
 @login_required
+@limit_payload_size(64 * 1024)
 def cancel_subscription():
     """Cancel the tenant's Stripe subscription."""
     data = request.get_json(silent=True) or {}
@@ -93,6 +98,7 @@ def cancel_subscription():
 
 @saas_billing_bp.route('/api/billing/subscription/change-plan', methods=['POST'])
 @login_required
+@limit_payload_size(64 * 1024)
 def change_plan():
     """Upgrade or downgrade the active subscription package."""
     data = request.get_json(silent=True) or {}

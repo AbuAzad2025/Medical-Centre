@@ -427,10 +427,72 @@ def create_app(config_name: str | None = None) -> Flask:
         # RotatingFileHandler already set up above skip duplicate
         app.logger.setLevel(logging.INFO)
 
-    # Health
+    # Health — layered probes: /__health (liveness, always 200) and /health (readiness with DB/Redis/Stripe/SMS)
     @app.get('/__health')
     def __health():
         return jsonify(status='ok')
+
+    @app.get('/health')
+    def health():
+        from flask import jsonify as _jsonify
+
+        checks: dict = {'status': 'ok', 'checks': {}}
+        overall_ok = True
+
+        # DB probe
+        try:
+            from sqlalchemy import text as _text
+
+            db.session.execute(_text('SELECT 1'))
+            checks['checks']['database'] = 'ok'
+        except Exception as e:
+            checks['checks']['database'] = f'fail: {e.__class__.__name__}'
+            overall_ok = False
+
+        # Redis probe (best-effort)
+        try:
+            import os as _os
+
+            redis_url = _os.environ.get('REDIS_URL') or _os.environ.get('CELERY_BROKER_URL')
+            if redis_url:
+                import redis as _redis
+
+                _r = _redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
+                _r.ping()
+                checks['checks']['redis'] = 'ok'
+            else:
+                checks['checks']['redis'] = 'skipped (no REDIS_URL)'
+        except Exception as e:
+            checks['checks']['redis'] = f'fail: {e.__class__.__name__}'
+            # Redis failure degrades but does not hard-fail liveness; mark degraded
+            checks['checks']['redis_degraded'] = True
+
+        # Stripe probe (best-effort, no secret leak)
+        try:
+            import os as _os
+
+            if _os.environ.get('STRIPE_SECRET_KEY'):
+                checks['checks']['stripe'] = 'configured'
+            else:
+                checks['checks']['stripe'] = 'skipped (no key)'
+        except Exception:
+            checks['checks']['stripe'] = 'unknown'
+
+        # SMS gateway probe
+        try:
+            import os as _os
+
+            if _os.environ.get('PLATFORM_CAP_SMS_LIVE') in ('1', 'true', 'yes', 'on'):
+                checks['checks']['sms'] = 'enabled'
+            else:
+                checks['checks']['sms'] = 'disabled'
+        except Exception:
+            checks['checks']['sms'] = 'unknown'
+
+        if not overall_ok:
+            checks['status'] = 'degraded'
+            return _jsonify(checks), 503
+        return _jsonify(checks)
 
     @app.get('/favicon.ico')
     def favicon():
@@ -905,6 +967,48 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(saas_bp)
     app.register_blueprint(saas_billing_bp)
     app.register_blueprint(monitoring_bp)
+    # IHE PIX/PDQ + HL7v2 MLLP + Insurance Claims (Phase 5)
+    try:
+        from routes.hl7_routes import hl7_bp as _hl7_bp
+        from routes.ihe_routes import ihe_bp as _ihe_bp
+        from routes.insurance_routes import insurance_bp as _insurance_bp
+
+        app.register_blueprint(_hl7_bp, url_prefix='/hl7')
+        app.register_blueprint(_ihe_bp, url_prefix='/ihe')
+        app.register_blueprint(_insurance_bp)
+    except Exception as e:  # noqa: BLE001
+        app.logger.warning(f'IHE/HL7/Insurance blueprint registration skipped: {e}')
+
+    # Global API payload guard — تعميم حد الحمولة على كل POST/PUT/PATCH تحت /api/*
+    @app.before_request
+    def _enforce_api_payload_limits():
+        path = request.path or ''
+        if request.method in ('POST', 'PUT', 'PATCH') and path.startswith('/api/'):
+            # أحجام افتراضية حسب نوع الواجهة (يمكن تجاوزها بـ decorator خاص)
+            # Webhook Stripe قد يصل 1MB، باقي الواجهات 512KB، رفع DICOM مستثنى عبر /api/fhir
+            default_limits = {
+                '/api/billing/stripe/webhook': 1 * 1024 * 1024,
+                '/api/fhir': 2 * 1024 * 1024,
+            }
+            max_bytes = None
+            for prefix, limit in default_limits.items():
+                if path.startswith(prefix):
+                    max_bytes = limit
+                    break
+            if max_bytes is None:
+                max_bytes = 512 * 1024  # 512KB افتراضي لكل /api/*
+            clen = request.content_length
+            if clen is not None and clen > max_bytes:
+                from flask import jsonify
+
+                return jsonify(success=False, error='Payload too large', max_size=max_bytes), 413
+            if clen is None:
+                # chunked transfer — فحص الطول الفعلي
+                body = request.get_data(cache=True, as_text=False, parse_form_data=False)
+                if len(body) > max_bytes:
+                    from flask import jsonify
+
+                    return jsonify(success=False, error='Payload too large', max_size=max_bytes), 413
 
     # Request tracing inject X-Request-ID into g and response headers
     @app.before_request
@@ -1055,6 +1159,16 @@ def create_app(config_name: str | None = None) -> Flask:
         except Exception:
             pass
         return response
+
+    # Optional HL7 MLLP + DICOM MWL background listeners (Phase 5)
+    if not app.testing and os.environ.get('HL7_MLLP_ENABLED', 'false').lower() in ('1', 'true', 'yes', 'on'):
+        try:
+            from services.hl7_mllp_service import hl7_mllp_service
+
+            hl7_mllp_service.start()
+            app.logger.info('HL7 MLLP listener started')
+        except Exception as exc:  # noqa: BLE001
+            app.logger.warning('HL7 MLLP start skipped: %s', exc)
 
     # Platform catalog bootstrap (bundles SaaS packages module definitions)
     if not app.testing and not app.config.get('SKIP_PLATFORM_BOOTSTRAP'):

@@ -21,16 +21,22 @@ class SecurityHeadersMiddleware:
 
         @app.after_request
         def _add_headers(response):
-            # Content Security Policy with nonce.
+            # Content Security Policy with nonce for scripts.
             # All third-party libraries are self-hosted in static/vendor/,
             # so no external script/style/connect sources are required.
+            # NOTE: style-src keeps 'unsafe-inline' (and NO nonce) because
+            # 250+ templates rely on inline style="..." attributes and
+            # <style> blocks; browsers ignore 'unsafe-inline' whenever a
+            # nonce is present, so noncing style-src would keep them
+            # blocked. Scripts stay strictly nonce-gated. This mirrors the
+            # production posture in nginx/medical-platform.conf.
             nonce = getattr(g, 'csp_nonce', '')
             # Fonts are fully self-hosted (static/vendor/fonts) — no external
             # style/font origins are whitelisted.
             csp = (
                 "default-src 'self'; "
                 f"script-src 'self' 'nonce-{nonce}'; "
-                f"style-src 'self' 'nonce-{nonce}'; "
+                "style-src 'self' 'unsafe-inline'; "
                 "img-src 'self' data: blob:; "
                 "font-src 'self' data:; "
                 "connect-src 'self'; "

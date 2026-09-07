@@ -114,6 +114,12 @@ def add_medication():
                 description=(request.form.get('description') or '').strip() or None,
                 standard_instructions=(request.form.get('standard_instructions') or '').strip()
                 or None,
+                side_effects=(request.form.get('side_effects') or '').strip() or None,
+                contraindications=(request.form.get('contraindications') or '').strip() or None,
+                drug_interactions=(request.form.get('drug_interactions') or '').strip() or None,
+                pregnancy_category=(request.form.get('pregnancy_category') or '').strip() or None,
+                is_controlled=(request.form.get('is_controlled') == '1'),
+                schedule=(request.form.get('schedule') or '').strip() or None,
                 is_active=(request.form.get('is_active') == 'on'),
             )
 
@@ -188,6 +194,18 @@ def edit_medication(medication_id):
                 request.form.get('standard_instructions') or ''
             ).strip() or None
             medication.description = (request.form.get('description') or '').strip() or None
+            medication.side_effects = (request.form.get('side_effects') or '').strip() or None
+            medication.contraindications = (
+                request.form.get('contraindications') or ''
+            ).strip() or None
+            medication.drug_interactions = (
+                request.form.get('drug_interactions') or ''
+            ).strip() or None
+            medication.pregnancy_category = (
+                request.form.get('pregnancy_category') or ''
+            ).strip() or None
+            medication.is_controlled = request.form.get('is_controlled') == '1'
+            medication.schedule = (request.form.get('schedule') or '').strip() or None
 
             safe_commit(db.session, error_message='database commit failed', reraise=True)
 
@@ -199,4 +217,8 @@ def edit_medication(medication_id):
             logging.exception('Error editing medication: %s')
             flash('تعذر تحديث الدواء، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
 
-    return render_template('medication/edit.html', medication=medication)
+    from datetime import date as _date
+
+    return render_template(
+        'medication/edit.html', medication=medication, today_str=_date.today().isoformat()
+    )

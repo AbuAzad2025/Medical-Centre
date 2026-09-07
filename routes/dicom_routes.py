@@ -2,13 +2,15 @@
 DICOM / PACS Routes
 """
 
-from flask import Blueprint, abort, jsonify, render_template, request
+from flask import Blueprint, abort, g, jsonify, render_template, request
 from flask_login import login_required
 from sqlalchemy import select
 
 from app.extensions import db
 from models.dicom_pacs import DICOMSeries, DICOMStudy
 from models.patient import Patient
+from services.dicom_worklist_service import dicom_worklist_service
+from utils.api_security import limit_payload_size
 from utils.decorators import handle_route_errors, role_required
 from utils.tenant_query import get_tenant_record
 
@@ -53,6 +55,34 @@ def viewer(study_id):
     study = db.get_or_404(DICOMStudy, study_id)
     series = db.session.execute(select(DICOMSeries).filter_by(study_id=study_id)).scalars().all()
     return render_template('dicom/viewer.html', study=study, series=series)
+
+
+@dicom_bp.route('/api/worklist')
+@login_required
+@role_required('radiology', 'doctor', 'admin', 'manager', 'super_admin')
+@handle_route_errors
+@limit_payload_size(64 * 1024)
+def api_worklist():
+    """DICOM Modality Worklist — JSON MWL for modalities (also serves HL7/DICOM MWL SCP fallback)."""
+    modality = request.args.get('modality')
+    station_ae = request.args.get('station_ae')
+    scheduled_date = request.args.get('scheduled_date')
+    items = dicom_worklist_service.get_worklist(
+        modality=modality, station_ae=station_ae, scheduled_date=scheduled_date, limit=100
+    )
+    return jsonify({"worklist": items, "count": len(items)})
+
+
+@dicom_bp.route('/api/worklist/patient/<int:patient_id>')
+@login_required
+@role_required('radiology', 'doctor', 'admin', 'manager', 'super_admin')
+@handle_route_errors
+def api_worklist_patient(patient_id):
+    patient = get_tenant_record(Patient, patient_id)
+    if not patient:
+        abort(404)
+    items = dicom_worklist_service.get_worklist_for_patient(patient_id)
+    return jsonify({"worklist": items, "count": len(items)})
 
 
 @dicom_bp.route('/api/studies/patient/<int:patient_id>')

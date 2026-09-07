@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 
 from app.shared.user_preferences import get_user_preferences, save_user_preferences
+from utils.api_security import limit_payload_size
 from utils.decorators import role_required
 
 api_user_bp = Blueprint('api_user', __name__)
@@ -23,6 +24,7 @@ api_user_bp = Blueprint('api_user', __name__)
     'accountant',
     'super_admin',
 )
+@limit_payload_size(256 * 1024)
 def user_preferences():
     if request.method == 'GET':
         return jsonify({'preferences': get_user_preferences(current_user)})

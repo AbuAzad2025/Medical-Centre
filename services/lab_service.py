@@ -702,9 +702,51 @@ class LabService:
         except Exception:
             logging.exception('Error logging lab action: %s')
 
-    # ==================== CANCEL & AMEND ====================
-
+    # ==================== STATE MACHINE ====================
+    _LAB_TRANSITIONS: dict[str, set[str]] = {
+        'REQUESTED': {'COLLECTED', 'CANCELLED'},
+        'COLLECTED': {'RECEIVED', 'CANCELLED'},
+        'RECEIVED': {'ANALYZING', 'CANCELLED'},
+        'ANALYZING': {'REVIEWED', 'CANCELLED'},
+        'REVIEWED': {'APPROVED', 'CANCELLED'},
+        'APPROVED': {'IN_PROGRESS', 'DONE', 'CANCELLED'},
+        'IN_PROGRESS': {'DONE', 'CANCELLED'},
+        'DONE': set(),
+        'CANCELLED': set(),
+    }
     _LAB_TERMINAL_STATUSES = {'DONE', 'CANCELLED'}
+
+    @staticmethod
+    def can_transition_lab(from_status: str, to_status: str) -> bool:
+        return to_status in LabService._LAB_TRANSITIONS.get((from_status or '').upper(), set())
+
+    @staticmethod
+    @require_module('lab')
+    def transition_request(request_id: int, to_status: str, actor_id: int | None = None) -> tuple[bool, dict]:
+        from models.lab_request import LabRequest
+        req = db.session.execute(
+            select(LabRequest).filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id)
+        ).scalars().first()
+        if not req:
+            return False, {'error': 'Lab request not found'}
+        to_status = (to_status or '').upper()
+        if not LabService.can_transition_lab(req.status, to_status):
+            return False, {'error': f'Invalid transition {req.status} -> {to_status}'}
+        now = datetime.now(UTC)
+        req.status = to_status
+        req.updated_at = now
+        if to_status == 'COLLECTED':
+            req.collection_time = now
+        elif to_status == 'RECEIVED':
+            req.received_time = now
+        elif to_status == 'DONE':
+            req.completed_at = now
+        LabService.log_action('update', f'transition {req.id} -> {to_status}', user_id=actor_id)
+        if not safe_commit(db.session, error_message='Error transitioning lab request'):
+            return False, {'error': 'Error transitioning lab request'}
+        return True, {'lab_request_id': req.id, 'status': req.status}
+
+    # ==================== CANCEL & AMEND ====================
 
     @staticmethod
     @require_module('lab')

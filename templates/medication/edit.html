@@ -17,8 +17,31 @@
       <div class="col-md-4"><label class="form-label">حد المخزون الأدنى</label><input name="minimum_stock" type="number" class="form-control" value="{{ medication.minimum_stock }}"></div>
       <div class="col-md-4"><label class="form-label">السعر</label><input name="price" type="number" step="0.01" class="form-control" value="{{ medication.price }}"></div>
       <div class="col-md-6"><label class="form-label">رقم التشغيلة</label><input name="batch_number" class="form-control" value="{{ medication.batch_number }}"></div>
-      <div class="col-md-6"><label class="form-label">تاريخ الانتهاء</label><input name="expiry_date" type="date" class="form-control" value="{{ medication.expiry_date.isoformat() if medication.expiry_date else '' }}"></div>
+      <div class="col-md-6"><label class="form-label">تاريخ الانتهاء</label><input name="expiry_date" type="date" class="form-control" value="{{ medication.expiry_date.isoformat() if medication.expiry_date else '' }}" min="{{ today_str if today_str is defined else '' }}"></div>
+      <div class="col-md-4"><label class="form-label">فئة الحمل</label>
+        <select name="pregnancy_category" class="form-select">
+          <option value="" {% if not medication.pregnancy_category %}selected{% endif %}>— غير محدد —</option>
+          {% for cat in ['A','B','C','D','X'] %}
+          <option value="{{ cat }}" {% if medication.pregnancy_category == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4"><label class="form-label">مادة خاضعة للرقابة</label>
+        <div class="form-check mt-2"><input type="checkbox" class="form-check-input" name="is_controlled" value="1" {% if medication.is_controlled %}checked{% endif %} id="is_controlled"><label class="form-check-label" for="is_controlled">خاضع للرقابة</label></div>
+      </div>
+      <div class="col-md-4"><label class="form-label">جدول الرقابة</label>
+        <select name="schedule" class="form-select">
+          <option value="" {% if not medication.schedule %}selected{% endif %}>—</option>
+          {% for s in ['II','III','IV','V'] %}<option value="{{ s }}" {% if medication.schedule == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4"><label class="form-label">السعر</label><input name="price" type="number" step="0.01" min="0" required class="form-control" value="{{ medication.price }}"></div>
+      <div class="col-md-4"><label class="form-label">المخزون</label><input name="stock_quantity" type="number" min="0" required class="form-control" value="{{ medication.stock_quantity }}"></div>
+      <div class="col-md-4"><label class="form-label">حد المخزون الأدنى</label><input name="minimum_stock" type="number" min="0" class="form-control" value="{{ medication.minimum_stock }}"></div>
       <div class="col-12"><label class="form-label">تعليمات قياسية</label><textarea name="standard_instructions" class="form-control" rows="2">{{ medication.standard_instructions or '' }}</textarea></div>
+      <div class="col-12"><label class="form-label">الآثار الجانبية</label><textarea name="side_effects" class="form-control" rows="2" placeholder="مثال: غثيان، دوار ...">{{ medication.side_effects or '' }}</textarea></div>
+      <div class="col-12"><label class="form-label">موانع الاستعمال</label><textarea name="contraindications" class="form-control" rows="2" placeholder="مثال: فرط حساسية، حمل ...">{{ medication.contraindications or '' }}</textarea></div>
+      <div class="col-12"><label class="form-label">التداخلات الدوائية</label><textarea name="drug_interactions" class="form-control" rows="2" placeholder="مثال: وارفارين، مثبطات ...">{{ medication.drug_interactions or '' }}</textarea></div>
       <div class="col-12"><label class="form-label">الوصف</label><textarea name="description" class="form-control" rows="3">{{ medication.description or '' }}</textarea></div>
     </div>
     <button class="btn btn-primary mt-3" type="submit">حفظ</button>

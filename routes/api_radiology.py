@@ -3,6 +3,7 @@
 from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 
+from utils.api_security import limit_payload_size
 from utils.decorators import role_required_json
 
 api_radiology_bp = Blueprint('api_radiology', __name__)
@@ -21,6 +22,7 @@ _API_ROLES = (
 @api_radiology_bp.route('/requests/<int:request_id>/cancel', methods=['POST'])
 @login_required
 @role_required_json(*_API_ROLES)
+@limit_payload_size(64 * 1024)
 def cancel_radiology_request(request_id: int):
     from services.radiology_service import RadiologyService
 
@@ -34,6 +36,7 @@ def cancel_radiology_request(request_id: int):
 @api_radiology_bp.route('/results/<int:result_id>/amend', methods=['POST'])
 @login_required
 @role_required_json(*_API_ROLES)
+@limit_payload_size(64 * 1024)
 def amend_radiology_result(result_id: int):
     from services.radiology_service import RadiologyService
 

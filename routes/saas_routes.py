@@ -8,6 +8,7 @@ from sqlalchemy import select
 from app.core.rate_limiter import RateLimiter, rate_limit
 from app.extensions import db
 from services.saas_registration_service import SaasRegistrationError, SaasRegistrationService
+from utils.api_security import limit_payload_size
 
 saas_bp = Blueprint('saas', __name__)
 
@@ -68,6 +69,7 @@ def _registration_kwargs(data, *, from_form: bool = False):
 
 @saas_bp.route('/saas/signup', methods=['GET', 'POST'])
 @rate_limit(max_requests=20, window_seconds=300)
+@limit_payload_size(512 * 1024)
 def signup_organization():
     """Public self-service signup for new healthcare organizations."""
     packages = _available_package_versions()
@@ -100,6 +102,7 @@ def signup_organization():
 
 @saas_bp.route('/api/saas/register', methods=['POST'])
 @rate_limit(max_requests=5, window_seconds=300, namespace='saas_api_register')
+@limit_payload_size(512 * 1024)
 def register_organization():
     """Self-service tenant provisioning for new healthcare organizations."""
     data = request.get_json(silent=True) or {}

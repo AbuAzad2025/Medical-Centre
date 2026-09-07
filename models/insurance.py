@@ -132,3 +132,62 @@ class InsuranceClaim(TenantMixin, db.Model):
         self.status = InsuranceClaimStatus.SETTLED
         self.approved_amount = settled_amount
         self.insurance_share_amount = settled_amount
+
+
+class InsuranceClaimLine(TenantMixin, db.Model):
+    """Line item for an insurance claim (per service/procedure)."""
+
+    __tablename__ = 'insurance_claim_lines'
+    __tenant_migration__ = True
+
+    id = db.Column(db.Integer, primary_key=True)
+    claim_id = db.Column(db.Integer, db.ForeignKey('insurance_claims.id', ondelete='CASCADE'), nullable=False, index=True)
+    service_name = db.Column(db.String(200), nullable=False)
+    service_code = db.Column(db.String(50), nullable=True)
+    quantity = db.Column(db.Integer, default=1, nullable=False)
+    unit_price = db.Column(db.Numeric(12, 2), default=0, nullable=False)
+    total_price = db.Column(db.Numeric(12, 2), default=0, nullable=False)
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
+
+    claim = db.relationship('InsuranceClaim', backref=db.backref('lines', cascade='all, delete-orphan', lazy='selectin'))
+
+
+class InsurancePayout(TenantMixin, db.Model):
+    """Insurer payment against a claim (ERA 835)."""
+
+    __tablename__ = 'insurance_payouts'
+    __tenant_migration__ = True
+
+    id = db.Column(db.Integer, primary_key=True)
+    claim_id = db.Column(db.Integer, db.ForeignKey('insurance_claims.id', ondelete='CASCADE'), nullable=False, index=True)
+    payout_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
+    amount = db.Column(db.Numeric(12, 2), default=0, nullable=False)
+    payout_date = db.Column(db.Date, nullable=True)
+    method = db.Column(db.String(20), default='WIRE')
+    reference = db.Column(db.String(100), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
+
+    claim = db.relationship('InsuranceClaim', backref=db.backref('payouts', cascade='all, delete-orphan', lazy='selectin'))
+
+
+class EOB(TenantMixin, db.Model):
+    """Explanation of Benefits — insurer adjudication response."""
+
+    __tablename__ = 'eobs'
+    __tenant_migration__ = True
+
+    id = db.Column(db.Integer, primary_key=True)
+    claim_id = db.Column(db.Integer, db.ForeignKey('insurance_claims.id', ondelete='CASCADE'), nullable=False, index=True)
+    eob_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
+    adjudication_status = db.Column(db.String(20), default='PENDING')
+    adjudication_date = db.Column(db.DateTime, nullable=True)
+    total_billed = db.Column(db.Numeric(12, 2), default=0)
+    total_allowed = db.Column(db.Numeric(12, 2), default=0)
+    patient_responsibility = db.Column(db.Numeric(12, 2), default=0)
+    denial_reason = db.Column(db.Text, nullable=True)
+    raw_payload = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
+
+    claim = db.relationship('InsuranceClaim', backref=db.backref('eobs', cascade='all, delete-orphan', lazy='selectin'))

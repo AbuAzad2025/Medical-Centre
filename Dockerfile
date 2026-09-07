@@ -27,9 +27,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Expose port
 EXPOSE 8080
 
-# Health check
+# Health check — stdlib only (no requests dependency)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8080/__health')" || exit 1
+    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/__health', timeout=3).status==200 else 1)" || exit 1
 
 # Run with production Gunicorn config (override via gunicorn.conf.py env vars)
 CMD ["gunicorn", "-c", "gunicorn.conf.py", "wsgi:app"]

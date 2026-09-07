@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import Index
 
+from app.shared.encrypted_type import EncryptedString
 from app.shared.mixins import TenantMixin
 from app_factory import db
 
@@ -21,8 +22,8 @@ class MedicalRecord(TenantMixin, db.Model):
         db.Integer, db.ForeignKey('visits.id', ondelete='CASCADE'), nullable=True, index=True
     )
     title = db.Column(db.String(120), nullable=False)
-    details = db.Column(db.Text, nullable=True)
-    diagnosis = db.Column(db.Text, nullable=True)
+    details = db.Column(EncryptedString(2000), nullable=True)
+    diagnosis = db.Column(EncryptedString(2000), nullable=True)
     created_by = db.Column(
         db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True
     )

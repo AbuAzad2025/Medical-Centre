@@ -3,6 +3,7 @@
 from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 
+from utils.api_security import limit_payload_size
 from utils.decorators import role_required_json
 
 api_lab_bp = Blueprint('api_lab', __name__)
@@ -13,6 +14,7 @@ _API_ROLES = ('reception', 'super_admin', 'admin', 'doctor', 'nurse', 'lab', 'em
 @api_lab_bp.route('/requests/<int:request_id>/cancel', methods=['POST'])
 @login_required
 @role_required_json(*_API_ROLES)
+@limit_payload_size(64 * 1024)
 def cancel_lab_request(request_id: int):
     from services.lab_service import LabService
 
@@ -24,6 +26,7 @@ def cancel_lab_request(request_id: int):
 @api_lab_bp.route('/results/<int:result_id>/amend', methods=['POST'])
 @login_required
 @role_required_json(*_API_ROLES)
+@limit_payload_size(64 * 1024)
 def amend_lab_result(result_id: int):
     from services.lab_service import LabService
 
