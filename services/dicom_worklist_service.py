@@ -24,21 +24,27 @@ def _mwl_item_from_request(req, patient) -> dict[str, Any]:
     """Map RadiologyRequest + Patient to DICOM MWL entry."""
     # Scheduled Procedure Step
     return {
-        "StudyInstanceUID": f"1.2.826.0.1.3680043.10.{req.id}.{int(datetime.now(UTC).timestamp())}",
-        "Modality": (req.modality or "OT").upper(),
-        "ScheduledStationAETitle": os.environ.get("DICOM_MWL_AE_TITLE", "MEDICAL_MWL"),
-        "ScheduledProcedureStepStartDate": req.created_at.strftime("%Y%m%d") if req.created_at else datetime.now(UTC).strftime("%Y%m%d"),
-        "ScheduledProcedureStepStartTime": req.created_at.strftime("%H%M%S") if req.created_at else datetime.now(UTC).strftime("%H%M%S"),
-        "ScheduledProcedureStepDescription": req.body_part or req.notes or "Radiology",
-        "RequestedProcedureDescription": req.notes or "",
-        "PatientName": patient.full_name if patient else f"Patient#{req.patient_id}",
-        "PatientID": str(req.patient_id),
-        "PatientBirthDate": patient.birth_date.strftime("%Y%m%d") if patient and patient.birth_date else "",
-        "PatientSex": (patient.gender or "O")[0].upper() if patient else "O",
-        "AccessionNumber": req.request_number or str(req.id),
-        "RequestingPhysician": "",
-        "ReferringPhysicianName": "",
-        "StudyID": str(req.id),
+        'StudyInstanceUID': f'1.2.826.0.1.3680043.10.{req.id}.{int(datetime.now(UTC).timestamp())}',
+        'Modality': (req.modality or 'OT').upper(),
+        'ScheduledStationAETitle': os.environ.get('DICOM_MWL_AE_TITLE', 'MEDICAL_MWL'),
+        'ScheduledProcedureStepStartDate': req.created_at.strftime('%Y%m%d')
+        if req.created_at
+        else datetime.now(UTC).strftime('%Y%m%d'),
+        'ScheduledProcedureStepStartTime': req.created_at.strftime('%H%M%S')
+        if req.created_at
+        else datetime.now(UTC).strftime('%H%M%S'),
+        'ScheduledProcedureStepDescription': req.body_part or req.notes or 'Radiology',
+        'RequestedProcedureDescription': req.notes or '',
+        'PatientName': patient.full_name if patient else f'Patient#{req.patient_id}',
+        'PatientID': str(req.patient_id),
+        'PatientBirthDate': patient.birth_date.strftime('%Y%m%d')
+        if patient and patient.birth_date
+        else '',
+        'PatientSex': (patient.gender or 'O')[0].upper() if patient else 'O',
+        'AccessionNumber': req.request_number or str(req.id),
+        'RequestingPhysician': '',
+        'ReferringPhysicianName': '',
+        'StudyID': str(req.id),
     }
 
 
@@ -54,7 +60,9 @@ class DICOMWorklistService:
         from models.patient import Patient
         from models.radiology_request import RadiologyRequest
 
-        q = select(RadiologyRequest).filter(RadiologyRequest.status.in_(["REQUESTED", "IN_PROGRESS"]))
+        q = select(RadiologyRequest).filter(
+            RadiologyRequest.status.in_(['REQUESTED', 'IN_PROGRESS'])
+        )
         if modality:
             q = q.filter(RadiologyRequest.modality == modality.upper())
         q = q.order_by(RadiologyRequest.created_at.desc()).limit(limit)
@@ -69,9 +77,9 @@ class DICOMWorklistService:
         for r in reqs:
             pat = patients.get(r.patient_id)
             item = _mwl_item_from_request(r, pat)
-            if scheduled_date and item["ScheduledProcedureStepStartDate"] != scheduled_date:
+            if scheduled_date and item['ScheduledProcedureStepStartDate'] != scheduled_date:
                 continue
-            if station_ae and item["ScheduledStationAETitle"] != station_ae:
+            if station_ae and item['ScheduledStationAETitle'] != station_ae:
                 # Still include if station filter not matching — modalities often query with own AE
                 pass
             items.append(item)
@@ -85,7 +93,7 @@ class DICOMWorklistService:
 
         q = select(RadiologyRequest).filter(
             RadiologyRequest.patient_id == patient_id,
-            RadiologyRequest.status.in_(["REQUESTED", "IN_PROGRESS"]),
+            RadiologyRequest.status.in_(['REQUESTED', 'IN_PROGRESS']),
         )
         reqs = db.session.execute(q).scalars().all()
         patient = db.session.get(Patient, patient_id)
@@ -94,13 +102,13 @@ class DICOMWorklistService:
 
 # Optional pynetdicom MWL SCP — only if library installed and enabled
 def _start_pynetdicom_mwl_scp():
-    if os.environ.get("DICOM_MWL_ENABLED", "false").lower() not in ("1", "true", "yes", "on"):
+    if os.environ.get('DICOM_MWL_ENABLED', 'false').lower() not in ('1', 'true', 'yes', 'on'):
         return None
     try:
         from pynetdicom import AE
         from pynetdicom.sop_class import ModalityWorklistInformationFind
 
-        ae = AE(ae_title=os.environ.get("DICOM_MWL_AE_TITLE", "MEDICAL_MWL"))
+        ae = AE(ae_title=os.environ.get('DICOM_MWL_AE_TITLE', 'MEDICAL_MWL'))
         ae.add_supported_context(ModalityWorklistInformationFind)
 
         def _handle_find(event):
@@ -119,14 +127,20 @@ def _start_pynetdicom_mwl_scp():
                 return
             yield (0x0000, None)
 
-        ae.start_server(("0.0.0.0", int(os.environ.get("DICOM_MWL_PORT", "11112"))), block=False, evt_handlers=[( __import__("pynetdicom.events", fromlist=["EVT_C_FIND"]), _handle_find)])
-        logger.info("DICOM MWL SCP started")
+        ae.start_server(
+            ('0.0.0.0', int(os.environ.get('DICOM_MWL_PORT', '11112'))),
+            block=False,
+            evt_handlers=[(__import__('pynetdicom.events', fromlist=['EVT_C_FIND']), _handle_find)],
+        )
+        logger.info('DICOM MWL SCP started')
         return ae
     except ImportError:
-        logger.info("pynetdicom not installed — DICOM MWL SCP disabled, HTTP worklist remains available")
+        logger.info(
+            'pynetdicom not installed — DICOM MWL SCP disabled, HTTP worklist remains available'
+        )
         return None
     except Exception as exc:  # noqa: BLE001
-        logger.warning("DICOM MWL SCP failed to start: %s", exc)
+        logger.warning('DICOM MWL SCP failed to start: %s', exc)
         return None
 
 

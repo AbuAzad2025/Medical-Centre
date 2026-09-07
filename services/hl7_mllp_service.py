@@ -19,39 +19,50 @@ from datetime import UTC, datetime
 
 logger = logging.getLogger(__name__)
 
-MLLP_START = b"\x0b"
-MLLP_END = b"\x1c\x0d"
-DEFAULT_MLLP_PORT = int(os.environ.get("HL7_MLLP_PORT", "2575"))
-DEFAULT_MLLP_HOST = os.environ.get("HL7_MLLP_HOST", "0.0.0.0")
+MLLP_START = b'\x0b'
+MLLP_END = b'\x1c\x0d'
+DEFAULT_MLLP_PORT = int(os.environ.get('HL7_MLLP_PORT', '2575'))
+DEFAULT_MLLP_HOST = os.environ.get('HL7_MLLP_HOST', '0.0.0.0')
 
 
 def _parse_er7(raw: str) -> dict:
     """Parse ER7 into segments dict {seg_name: [[fields]]} — minimal, no external dep."""
     segments: dict[str, list[list[str]]] = {}
-    for line in raw.strip().split("\r"):
+    for line in raw.strip().split('\r'):
         line = line.strip()
         if not line:
             continue
         # HL7 uses | field sep, ^ component, ~ repetition, \ escape, & subcomponent
         seg_name = line[:3]
-        fields = line.split("|")
+        fields = line.split('|')
         segments.setdefault(seg_name, []).append(fields)
     return segments
 
 
-def _build_ack(msh_fields: list[str], ack_code: str = "AA", text: str = "") -> str:
+def _build_ack(msh_fields: list[str], ack_code: str = 'AA', text: str = '') -> str:
     """Build minimal ACK message (MSH + MSA)."""
-    now = datetime.now(UTC).strftime("%Y%m%d%H%M%S")
+    now = datetime.now(UTC).strftime('%Y%m%d%H%M%S')
     msh = [
-        "MSH", "^~\\&", msh_fields[4] if len(msh_fields) > 4 else "RECEIVING",
-        msh_fields[2] if len(msh_fields) > 2 else "SENDING",
-        "", "", now, "", "ACK", msh_fields[8] if len(msh_fields) > 8 else "P",
-        "2.5", "", "", "AL", "NE",
+        'MSH',
+        '^~\\&',
+        msh_fields[4] if len(msh_fields) > 4 else 'RECEIVING',
+        msh_fields[2] if len(msh_fields) > 2 else 'SENDING',
+        '',
+        '',
+        now,
+        '',
+        'ACK',
+        msh_fields[8] if len(msh_fields) > 8 else 'P',
+        '2.5',
+        '',
+        '',
+        'AL',
+        'NE',
     ]
     # Use MSH-10 (message control ID) from inbound as MSA-2
-    ctrl_id = msh_fields[9] if len(msh_fields) > 9 else "1"
-    msa = ["MSA", ack_code, ctrl_id, text]
-    return "\r".join(["|".join(msh), "|".join(msa)]) + "\r"
+    ctrl_id = msh_fields[9] if len(msh_fields) > 9 else '1'
+    msa = ['MSA', ack_code, ctrl_id, text]
+    return '\r'.join(['|'.join(msh), '|'.join(msa)]) + '\r'
 
 
 class HL7MLLPService:
@@ -71,39 +82,39 @@ class HL7MLLPService:
     def handle_raw(self, raw: str) -> str:
         """Process one HL7 message and return ACK string (without MLLP framing)."""
         segs = _parse_er7(raw)
-        msh_list = segs.get("MSH", [])
+        msh_list = segs.get('MSH', [])
         if not msh_list:
-            return _build_ack(["MSH"], "AR", "Missing MSH")
+            return _build_ack(['MSH'], 'AR', 'Missing MSH')
         msh = msh_list[0]
-        msg_type = ""
+        msg_type = ''
         if len(msh) > 8:
             msg_type = msh[8].strip().upper()  # e.g. ADT^A01
         elif len(msh) > 7:
             msg_type = msh[7].strip().upper()
         # Normalize: ADT_A01 -> ADT^A01
-        msg_type = msg_type.replace("_", "^")
+        msg_type = msg_type.replace('_', '^')
 
         handler = self._handlers.get(msg_type)
         # Fallback to wildcard on event type prefix
-        if not handler and "^" in msg_type:
-            prefix = msg_type.split("^")[0]
+        if not handler and '^' in msg_type:
+            prefix = msg_type.split('^')[0]
             handler = self._handlers.get(prefix)
 
         try:
             if handler:
                 result = handler(segs, raw)
                 # handler may return custom ack text
-                ack_text = result or "OK"
-                return _build_ack(msh, "AA", ack_text)
-            logger.warning("HL7 no handler for %s", msg_type)
-            return _build_ack(msh, "AR", f"Unsupported message type {msg_type}")
+                ack_text = result or 'OK'
+                return _build_ack(msh, 'AA', ack_text)
+            logger.warning('HL7 no handler for %s', msg_type)
+            return _build_ack(msh, 'AR', f'Unsupported message type {msg_type}')
         except Exception as exc:  # noqa: BLE001
-            logger.exception("HL7 handler failed for %s", msg_type)
-            return _build_ack(msh, "AE", str(exc)[:80])
+            logger.exception('HL7 handler failed for %s', msg_type)
+            return _build_ack(msh, 'AE', str(exc)[:80])
 
     # ---------------- TCP MLLP framing ----------------
     def _serve_client(self, conn: socket.socket, addr):
-        buf = b""
+        buf = b''
         conn.settimeout(30)
         try:
             while not self._stop.is_set():
@@ -115,14 +126,14 @@ class HL7MLLPService:
                 while MLLP_START in buf and MLLP_END in buf:
                     start = buf.index(MLLP_START)
                     end = buf.index(MLLP_END, start)
-                    frame = buf[start + 1 : end].decode("utf-8", errors="replace")
+                    frame = buf[start + 1 : end].decode('utf-8', errors='replace')
                     buf = buf[end + 2 :]
                     ack = self.handle_raw(frame)
-                    conn.sendall(MLLP_START + ack.encode("utf-8") + MLLP_END)
+                    conn.sendall(MLLP_START + ack.encode('utf-8') + MLLP_END)
         except Exception as exc:  # noqa: BLE001
-            logger.debug("HL7 client %s error: %s", addr, exc)
+            logger.debug('HL7 client %s error: %s', addr, exc)
         finally:
-            with __import__("contextlib").suppress(Exception):
+            with __import__('contextlib').suppress(Exception):
                 conn.close()
 
     def _listen_loop(self):
@@ -131,7 +142,7 @@ class HL7MLLPService:
         srv.bind((self.host, self.port))
         srv.listen(5)
         srv.settimeout(1.0)
-        logger.info("HL7 MLLP listening on %s:%s", self.host, self.port)
+        logger.info('HL7 MLLP listening on %s:%s', self.host, self.port)
         while not self._stop.is_set():
             try:
                 conn, addr = srv.accept()
@@ -139,14 +150,14 @@ class HL7MLLPService:
             except TimeoutError:
                 continue
             except Exception as exc:  # noqa: BLE001
-                logger.warning("HL7 accept failed: %s", exc)
+                logger.warning('HL7 accept failed: %s', exc)
         srv.close()
 
     def start(self):
         if self._thread and self._thread.is_alive():
             return
         self._stop.clear()
-        self._thread = threading.Thread(target=self._listen_loop, daemon=True, name="hl7-mllp")
+        self._thread = threading.Thread(target=self._listen_loop, daemon=True, name='hl7-mllp')
         self._thread.start()
 
     def stop(self):
@@ -161,24 +172,23 @@ hl7_mllp_service = HL7MLLPService()
 
 def _default_adt_handler(segs: dict, raw: str) -> str | None:
     try:
-
-        pid_seg = segs.get("PID", [[]])[0] if segs.get("PID") else []
+        pid_seg = segs.get('PID', [[]])[0] if segs.get('PID') else []
         # PID-3 patient identifier, PID-5 name
-        pid3 = pid_seg[3] if len(pid_seg) > 3 else ""
-        pid5 = pid_seg[5] if len(pid_seg) > 5 else ""
-        logger.info("HL7 ADT patient pid3=%s name=%s", pid3[:20], pid5[:40])
+        pid3 = pid_seg[3] if len(pid_seg) > 3 else ''
+        pid5 = pid_seg[5] if len(pid_seg) > 5 else ''
+        logger.info('HL7 ADT patient pid3=%s name=%s', pid3[:20], pid5[:40])
         # No auto-create to avoid tenant ambiguity; log for operator review
-        return "ADT logged"
+        return 'ADT logged'
     except Exception as exc:  # noqa: BLE001
-        logger.warning("ADT handler skipped: %s", exc)
+        logger.warning('ADT handler skipped: %s', exc)
         return None
 
 
 def _default_oru_handler(segs: dict, raw: str) -> str | None:
-    logger.info("HL7 ORU received %s chars", len(raw))
-    return "ORU logged"
+    logger.info('HL7 ORU received %s chars', len(raw))
+    return 'ORU logged'
 
 
-hl7_mllp_service.register_handler("ADT", _default_adt_handler)
-hl7_mllp_service.register_handler("ORU", _default_oru_handler)
-hl7_mllp_service.register_handler("ORM", lambda _s, _r: "ORM logged")
+hl7_mllp_service.register_handler('ADT', _default_adt_handler)
+hl7_mllp_service.register_handler('ORU', _default_oru_handler)
+hl7_mllp_service.register_handler('ORM', lambda _s, _r: 'ORM logged')

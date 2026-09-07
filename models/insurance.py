@@ -141,7 +141,12 @@ class InsuranceClaimLine(TenantMixin, db.Model):
     __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    claim_id = db.Column(db.Integer, db.ForeignKey('insurance_claims.id', ondelete='CASCADE'), nullable=False, index=True)
+    claim_id = db.Column(
+        db.Integer,
+        db.ForeignKey('insurance_claims.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
     service_name = db.Column(db.String(200), nullable=False)
     service_code = db.Column(db.String(50), nullable=True)
     quantity = db.Column(db.Integer, default=1, nullable=False)
@@ -150,7 +155,9 @@ class InsuranceClaimLine(TenantMixin, db.Model):
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
 
-    claim = db.relationship('InsuranceClaim', backref=db.backref('lines', cascade='all, delete-orphan', lazy='selectin'))
+    claim = db.relationship(
+        'InsuranceClaim', backref=db.backref('lines', cascade='all, delete-orphan', lazy='selectin')
+    )
 
 
 class InsurancePayout(TenantMixin, db.Model):
@@ -160,7 +167,12 @@ class InsurancePayout(TenantMixin, db.Model):
     __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    claim_id = db.Column(db.Integer, db.ForeignKey('insurance_claims.id', ondelete='CASCADE'), nullable=False, index=True)
+    claim_id = db.Column(
+        db.Integer,
+        db.ForeignKey('insurance_claims.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
     payout_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
     amount = db.Column(db.Numeric(12, 2), default=0, nullable=False)
     payout_date = db.Column(db.Date, nullable=True)
@@ -169,7 +181,10 @@ class InsurancePayout(TenantMixin, db.Model):
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
 
-    claim = db.relationship('InsuranceClaim', backref=db.backref('payouts', cascade='all, delete-orphan', lazy='selectin'))
+    claim = db.relationship(
+        'InsuranceClaim',
+        backref=db.backref('payouts', cascade='all, delete-orphan', lazy='selectin'),
+    )
 
 
 class EOB(TenantMixin, db.Model):
@@ -179,7 +194,12 @@ class EOB(TenantMixin, db.Model):
     __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    claim_id = db.Column(db.Integer, db.ForeignKey('insurance_claims.id', ondelete='CASCADE'), nullable=False, index=True)
+    claim_id = db.Column(
+        db.Integer,
+        db.ForeignKey('insurance_claims.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
     eob_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
     adjudication_status = db.Column(db.String(20), default='PENDING')
     adjudication_date = db.Column(db.DateTime, nullable=True)
@@ -190,4 +210,6 @@ class EOB(TenantMixin, db.Model):
     raw_payload = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
 
-    claim = db.relationship('InsuranceClaim', backref=db.backref('eobs', cascade='all, delete-orphan', lazy='selectin'))
+    claim = db.relationship(
+        'InsuranceClaim', backref=db.backref('eobs', cascade='all, delete-orphan', lazy='selectin')
+    )

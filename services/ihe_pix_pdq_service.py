@@ -22,7 +22,9 @@ class IHEPixPdqService:
     """PIX/PDQ operations scoped by tenant_id (assigning authority)."""
 
     @staticmethod
-    def pix_query(patient_id: str, domain: str | None = None, tenant_id: int | None = None) -> dict[str, Any]:
+    def pix_query(
+        patient_id: str, domain: str | None = None, tenant_id: int | None = None
+    ) -> dict[str, Any]:
         """
         PIX Query — return all identifiers for the patient across domains.
         For single-tenant deployment, the patient has one identifier; for SaaS,
@@ -56,17 +58,22 @@ class IHEPixPdqService:
                 pass
 
         if not candidates:
-            return {"found": False, "identifiers": []}
+            return {'found': False, 'identifiers': []}
 
         pat = candidates[0]
         identifiers = [
-            {"domain": f"TENANT-{pat.tenant_id}", "id": str(pat.id), "type": "MR"},
+            {'domain': f'TENANT-{pat.tenant_id}', 'id': str(pat.id), 'type': 'MR'},
         ]
         if pat.national_id:
-            identifiers.append({"domain": "NATIONAL_ID", "id": pat.national_id, "type": "NI"})
+            identifiers.append({'domain': 'NATIONAL_ID', 'id': pat.national_id, 'type': 'NI'})
         if domain:
-            identifiers = [i for i in identifiers if i["domain"] == domain]
-        return {"found": True, "patient_id": pat.id, "identifiers": identifiers, "domain": domain or "ALL"}
+            identifiers = [i for i in identifiers if i['domain'] == domain]
+        return {
+            'found': True,
+            'patient_id': pat.id,
+            'identifiers': identifiers,
+            'domain': domain or 'ALL',
+        }
 
     @staticmethod
     def pdq_query(
@@ -90,18 +97,18 @@ class IHEPixPdqService:
         matched: list[Patient] = []
         for p in rows:
             ok = True
-            if family_name and family_name.strip().lower() not in (p.last_name or "").lower():
+            if family_name and family_name.strip().lower() not in (p.last_name or '').lower():
                 # Also check first_name_ar/last_name_ar
-                if family_name.strip().lower() not in (p.last_name_ar or "").lower():
+                if family_name.strip().lower() not in (p.last_name_ar or '').lower():
                     ok = False
-            if given_name and given_name.strip().lower() not in (p.first_name or "").lower():
-                if given_name.strip().lower() not in (p.first_name_ar or "").lower():
+            if given_name and given_name.strip().lower() not in (p.first_name or '').lower():
+                if given_name.strip().lower() not in (p.first_name_ar or '').lower():
                     ok = False
             if birth_date:
-                bd = p.birth_date.isoformat() if p.birth_date else ""
+                bd = p.birth_date.isoformat() if p.birth_date else ''
                 if birth_date.strip() not in bd:
                     ok = False
-            if phone and phone.strip() not in (p.phone or ""):
+            if phone and phone.strip() not in (p.phone or ''):
                 ok = False
             if ok:
                 matched.append(p)
@@ -109,24 +116,27 @@ class IHEPixPdqService:
                 break
 
         return {
-            "total": len(matched),
-            "patients": [
+            'total': len(matched),
+            'patients': [
                 {
-                    "id": p.id,
-                    "full_name": p.full_name,
-                    "first_name": p.first_name,
-                    "last_name": p.last_name,
-                    "birth_date": p.birth_date.isoformat() if p.birth_date else None,
-                    "gender": p.gender,
-                    "phone": p.phone,
-                    "national_id": "***" + (p.national_id[-4:] if p.national_id and len(p.national_id) >= 4 else ""),
+                    'id': p.id,
+                    'full_name': p.full_name,
+                    'first_name': p.first_name,
+                    'last_name': p.last_name,
+                    'birth_date': p.birth_date.isoformat() if p.birth_date else None,
+                    'gender': p.gender,
+                    'phone': p.phone,
+                    'national_id': '***'
+                    + (p.national_id[-4:] if p.national_id and len(p.national_id) >= 4 else ''),
                 }
                 for p in matched
             ],
         }
 
     @staticmethod
-    def atna_audit(event_type: str, user_id: int | None, patient_id: int | None, outcome: str = "0"):
+    def atna_audit(
+        event_type: str, user_id: int | None, patient_id: int | None, outcome: str = '0'
+    ):
         """ATNA audit record — writes to SecurityEvent / AuditTrail."""
         try:
             from datetime import UTC, datetime
@@ -135,20 +145,20 @@ class IHEPixPdqService:
             from models.audit_trail import SecurityEvent
 
             evt = SecurityEvent(
-                event_type=event_type[:50] if event_type else "IHE",
-                severity="low",
-                description=f"ATNA {event_type} patient={patient_id} outcome={outcome}",
+                event_type=event_type[:50] if event_type else 'IHE',
+                severity='low',
+                description=f'ATNA {event_type} patient={patient_id} outcome={outcome}',
                 user_id=user_id,
-                ip_address="127.0.0.1",
+                ip_address='127.0.0.1',
                 is_resolved=False,
                 created_at=datetime.now(UTC),
             )
             db.session.add(evt)
             from utils.db_safety import safe_commit
 
-            safe_commit(db.session, error_message="ATNA audit failed")
+            safe_commit(db.session, error_message='ATNA audit failed')
         except Exception as exc:  # noqa: BLE001
-            logger.debug("ATNA audit skipped: %s", exc)
+            logger.debug('ATNA audit skipped: %s', exc)
 
 
 ihe_service = IHEPixPdqService()

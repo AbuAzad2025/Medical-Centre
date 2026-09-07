@@ -722,11 +722,20 @@ class LabService:
 
     @staticmethod
     @require_module('lab')
-    def transition_request(request_id: int, to_status: str, actor_id: int | None = None) -> tuple[bool, dict]:
+    def transition_request(
+        request_id: int, to_status: str, actor_id: int | None = None
+    ) -> tuple[bool, dict]:
         from models.lab_request import LabRequest
-        req = db.session.execute(
-            select(LabRequest).filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id)
-        ).scalars().first()
+
+        req = (
+            db.session.execute(
+                select(LabRequest).filter(
+                    LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not req:
             return False, {'error': 'Lab request not found'}
         to_status = (to_status or '').upper()

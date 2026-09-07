@@ -22,7 +22,7 @@ def _tid():
 @limit_payload_size(64 * 1024)
 def list_claims():
     claims = InsuranceClaimService.list_claims(_tid())
-    return jsonify({"claims": claims})
+    return jsonify({'claims': claims})
 
 
 @insurance_bp.route('/api/claims', methods=['POST'])
@@ -57,7 +57,11 @@ def submit_claim(claim_id):
 def adjudicate_claim(claim_id):
     data = request.get_json(silent=True) or {}
     ok, payload = InsuranceClaimService.adjudicate_claim(
-        claim_id, approved_amount=data.get('approved_amount'), status=data.get('status'), notes=data.get('notes'), tenant_id=_tid()
+        claim_id,
+        approved_amount=data.get('approved_amount'),
+        status=data.get('status'),
+        notes=data.get('notes'),
+        tenant_id=_tid(),
     )
     return jsonify(payload), (200 if ok else 400)
 
@@ -68,7 +72,9 @@ def adjudicate_claim(claim_id):
 @limit_payload_size(64 * 1024)
 def settle_claim(claim_id):
     data = request.get_json(silent=True) or {}
-    ok, payload = InsuranceClaimService.settle_claim(claim_id, settled_amount=data.get('settled_amount'), tenant_id=_tid())
+    ok, payload = InsuranceClaimService.settle_claim(
+        claim_id, settled_amount=data.get('settled_amount'), tenant_id=_tid()
+    )
     return jsonify(payload), (200 if ok else 400)
 
 
@@ -79,6 +85,10 @@ def settle_claim(claim_id):
 def payout_claim(claim_id):
     data = request.get_json(silent=True) or {}
     ok, payload = InsuranceClaimService.record_payout(
-        claim_id, amount=data.get('amount', 0), method=data.get('method', 'WIRE'), reference=data.get('reference'), tenant_id=_tid()
+        claim_id,
+        amount=data.get('amount', 0),
+        method=data.get('method', 'WIRE'),
+        reference=data.get('reference'),
+        tenant_id=_tid(),
     )
     return jsonify(payload), (200 if ok else 400)

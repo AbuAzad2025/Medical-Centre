@@ -1008,7 +1008,9 @@ def create_app(config_name: str | None = None) -> Flask:
                 if len(body) > max_bytes:
                     from flask import jsonify
 
-                    return jsonify(success=False, error='Payload too large', max_size=max_bytes), 413
+                    return jsonify(
+                        success=False, error='Payload too large', max_size=max_bytes
+                    ), 413
         return None
 
     # Request tracing inject X-Request-ID into g and response headers
@@ -1162,7 +1164,12 @@ def create_app(config_name: str | None = None) -> Flask:
         return response
 
     # Optional HL7 MLLP + DICOM MWL background listeners (Phase 5)
-    if not app.testing and os.environ.get('HL7_MLLP_ENABLED', 'false').lower() in ('1', 'true', 'yes', 'on'):
+    if not app.testing and os.environ.get('HL7_MLLP_ENABLED', 'false').lower() in (
+        '1',
+        'true',
+        'yes',
+        'on',
+    ):
         try:
             from services.hl7_mllp_service import hl7_mllp_service
 

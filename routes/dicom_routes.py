@@ -70,7 +70,7 @@ def api_worklist():
     items = dicom_worklist_service.get_worklist(
         modality=modality, station_ae=station_ae, scheduled_date=scheduled_date, limit=100
     )
-    return jsonify({"worklist": items, "count": len(items)})
+    return jsonify({'worklist': items, 'count': len(items)})
 
 
 @dicom_bp.route('/api/worklist/patient/<int:patient_id>')
@@ -82,7 +82,7 @@ def api_worklist_patient(patient_id):
     if not patient:
         abort(404)
     items = dicom_worklist_service.get_worklist_for_patient(patient_id)
-    return jsonify({"worklist": items, "count": len(items)})
+    return jsonify({'worklist': items, 'count': len(items)})
 
 
 @dicom_bp.route('/api/studies/patient/<int:patient_id>')

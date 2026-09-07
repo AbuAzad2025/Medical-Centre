@@ -21,12 +21,14 @@ def _tenant_id():
 @role_required('doctor', 'nurse', 'admin', 'manager', 'super_admin', 'reception')
 @limit_payload_size(64 * 1024)
 def pix_query():
-    pid = request.args.get('patient_id') or request.args.get('id') or ""
+    pid = request.args.get('patient_id') or request.args.get('id') or ''
     domain = request.args.get('domain')
     if not pid:
         return jsonify(success=False, error='patient_id required'), 400
     result = ihe_service.pix_query(pid, domain=domain, tenant_id=_tenant_id())
-    ihe_service.atna_audit("PIX Query", getattr(g, 'user_id', None), None, "0" if result.get("found") else "4")
+    ihe_service.atna_audit(
+        'PIX Query', getattr(g, 'user_id', None), None, '0' if result.get('found') else '4'
+    )
     return jsonify(result)
 
 
