@@ -41,6 +41,11 @@ def logged_in_owner_shell_client(client, owner_user_for_shell):
         data={'username': owner_user_for_shell.username, 'password': 'owner123'},
         follow_redirects=True,
     )
+    if resp.status_code != 200:
+        try:
+            print(f"LOGIN FAILED shell {resp.status_code}: {resp.get_data(as_text=True)[:800]}")
+        except Exception:
+            pass
     assert resp.status_code == 200
     yield client
     client.get('/auth/logout')

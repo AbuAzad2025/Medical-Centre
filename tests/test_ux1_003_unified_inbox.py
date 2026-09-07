@@ -51,6 +51,12 @@ def inbox_auth_client(app, client, staff_user, test_tenant):
         },
         follow_redirects=True,
     )
+    if resp.status_code != 200:
+        # Debug: print response for CI failure investigation
+        try:
+            print(f"LOGIN FAILED {resp.status_code}: {resp.get_data(as_text=True)[:500]}")
+        except Exception:
+            pass
     assert resp.status_code == 200
     return client
 

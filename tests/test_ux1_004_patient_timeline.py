@@ -75,6 +75,11 @@ def timeline_auth_client(app, client, doctor_user, test_tenant):
         },
         follow_redirects=True,
     )
+    if resp.status_code != 200:
+        try:
+            print(f"LOGIN FAILED timeline {resp.status_code}: {resp.get_data(as_text=True)[:800]}")
+        except Exception:
+            pass
     assert resp.status_code == 200
     return client
 
