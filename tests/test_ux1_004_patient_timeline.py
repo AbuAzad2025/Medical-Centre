@@ -1,5 +1,7 @@
 """Tests for UX1-004: Patient 360 Timeline."""
 
+import contextlib
+
 import pytest
 from sqlalchemy import delete, select
 
@@ -76,10 +78,8 @@ def timeline_auth_client(app, client, doctor_user, test_tenant):
         follow_redirects=True,
     )
     if resp.status_code != 200:
-        try:
-            print(f"LOGIN FAILED timeline {resp.status_code}: {resp.get_data(as_text=True)[:800]}")
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            print(f'LOGIN FAILED timeline {resp.status_code}: {resp.get_data(as_text=True)[:800]}')
     assert resp.status_code == 200
     return client
 

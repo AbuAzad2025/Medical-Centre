@@ -1,5 +1,7 @@
 """Tests for UX1-003: Unified Work Inbox."""
 
+import contextlib
+
 import pytest
 from sqlalchemy import delete, select
 
@@ -53,10 +55,8 @@ def inbox_auth_client(app, client, staff_user, test_tenant):
     )
     if resp.status_code != 200:
         # Debug: print response for CI failure investigation
-        try:
-            print(f"LOGIN FAILED {resp.status_code}: {resp.get_data(as_text=True)[:500]}")
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            print(f'LOGIN FAILED {resp.status_code}: {resp.get_data(as_text=True)[:500]}')
     assert resp.status_code == 200
     return client
 

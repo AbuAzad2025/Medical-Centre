@@ -44,9 +44,11 @@ def sm_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def sm_doctor(app, test_tenant):
-    u = db.session.execute(
-        select(User).filter_by(username='sm_doctor', tenant_id=test_tenant.id)
-    ).scalars().first()
+    u = (
+        db.session.execute(select(User).filter_by(username='sm_doctor', tenant_id=test_tenant.id))
+        .scalars()
+        .first()
+    )
     if not u:
         u = User(
             username='sm_doctor',

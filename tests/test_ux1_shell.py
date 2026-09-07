@@ -1,5 +1,6 @@
 """Tests for UX1-001: Clinical Clean design system and app shell."""
 
+import contextlib
 import uuid
 
 import pytest
@@ -42,10 +43,8 @@ def logged_in_owner_shell_client(client, owner_user_for_shell):
         follow_redirects=True,
     )
     if resp.status_code != 200:
-        try:
-            print(f"LOGIN FAILED shell {resp.status_code}: {resp.get_data(as_text=True)[:800]}")
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            print(f'LOGIN FAILED shell {resp.status_code}: {resp.get_data(as_text=True)[:800]}')
     assert resp.status_code == 200
     yield client
     client.get('/auth/logout')
