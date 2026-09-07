@@ -467,6 +467,15 @@ jobs:
   frontend-asset-quality:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      SECRET_KEY: ci-test-secret-key
+      APP_ENV: testing
+      FLASK_ENV: testing
+      RLS_BYPASS_ALLOWED: "1"
+      SUPPRESS_LOGGING: "1"
+      SUPPRESS_BACKGROUND_WORKER: "1"
+      SKIP_PLATFORM_BOOTSTRAP: "1"
+      ENABLE_SAAS_MODE: "true"
     steps:
       - uses: actions/checkout@v5
 
@@ -482,7 +491,7 @@ jobs:
           pip install -r requirements.txt jinja2
 
       - name: Run frontend asset quality suite
-        run: python -m pytest tests/test_frontend_asset_quality.py -v --tb=short -p no:warnings
+        run: python -m pytest tests/test_frontend_asset_quality.py --noconftest -v --tb=short -p no:warnings
 
       - name: Verify no orphaned static bypass (matrix gate)
         run: |
