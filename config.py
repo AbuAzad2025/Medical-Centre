@@ -332,6 +332,9 @@ class ProductionConfig(Config):
     WTF_CSRF_ENABLED = True
     LOG_LEVEL = 'INFO'
     LOG_TO_STDOUT = False
+    # Hardening: enforce Redis session in production for horizontal scaling
+    SESSION_TYPE = 'redis'
+    SESSION_REDIS_URL = os.environ.get('SESSION_REDIS_URL') or os.environ.get('REDIS_URL')
 
 
 class LocalConfig(Config):

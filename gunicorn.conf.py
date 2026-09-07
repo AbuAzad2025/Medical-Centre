@@ -5,8 +5,8 @@ Gunicorn Configuration for Medical System Production Deployment
 import multiprocessing
 import os
 
-# Server socket
-bind = os.environ.get('GUNICORN_BIND', '0.0.0.0:8000')
+# Server socket — aligns with Dockerfile EXPOSE 8080 and compose healthcheck
+bind = os.environ.get('GUNICORN_BIND', f'0.0.0.0:{os.environ.get("PORT", "8080")}')
 backlog = int(os.environ.get('GUNICORN_BACKLOG', '2048'))
 
 # Worker processes
@@ -65,3 +65,11 @@ def pre_fork(server, worker):
 
 def post_fork(server, worker):
     server.log.info('Worker %d spawned', worker.pid)
+    # Dispose inherited DB pool after fork (critical for gunicorn >=22 with preload_app)
+    try:
+        from app.extensions import db
+
+        db.engine.dispose()
+        server.log.info('post_fork: disposed inherited SQLAlchemy pool')
+    except Exception as e:  # pragma: no cover - defensive
+        server.log.warning(f'post_fork: engine dispose failed: {e}')

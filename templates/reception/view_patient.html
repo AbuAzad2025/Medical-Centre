@@ -163,6 +163,96 @@
                     </div>
                 </div>
             </div>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-allergies me-1"></i> الحساسيات</span>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addAllergyModal"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead><tr><th>المادة</th><th>الخطورة</th><th>الوصف</th><th>تاريخ</th></tr></thead>
+                                    <tbody>
+                                        {% for a in allergies %}
+                                        <tr>
+                                            <td>{{ a.allergen }}</td>
+                                            <td><span class="badge bg-{% if a.severity=='HIGH' %}danger{% elif a.severity=='MODERATE' %}warning{% else %}info{% endif %}">{{ a.severity or '-' }}</span></td>
+                                            <td class="small">{{ a.description or '-' }}</td>
+                                            <td class="small">{{ a.created_at.strftime('%Y-%m-%d') if a.created_at else '-' }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="4" class="text-center text-muted py-2">لا توجد حساسيات</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-clipboard-list me-1"></i> قائمة المشاكل</span>
+                            <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#addProblemModal"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead><tr><th>الوصف</th><th>النوع</th><th>الحالة</th><th>إجراء</th></tr></thead>
+                                    <tbody>
+                                        {% for p in problems %}
+                                        <tr>
+                                            <td class="small">{{ p.problem_description }}</td>
+                                            <td><small class="badge bg-secondary">{{ p.problem_type }}</small></td>
+                                            <td><span class="badge bg-{% if p.status=='ACTIVE' %}success{% else %}secondary{% endif %}">{{ p.status }}</span></td>
+                                            <td>
+                                                <form method="POST" action="{{ url_for('reception.toggle_problem_status', patient_id=patient.id, problem_id=p.id) }}" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button class="btn btn-xs btn-outline-primary btn-sm" type="submit">{{ 'حل' if p.status=='ACTIVE' else 'إعادة فتح' }}</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="4" class="text-center text-muted py-2">لا توجد مشاكل</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header bg-success text-white">العلامات الحيوية الأخيرة</div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead><tr><th>التاريخ</th><th>ضغط</th><th>نبض</th><th>حرارة</th><th>أكسجين</th></tr></thead>
+                                    <tbody>
+                                        {% for v in vitals %}
+                                        <tr>
+                                            <td class="small">{{ v.recorded_at.strftime('%m-%d %H:%M') if v.recorded_at else '-' }}</td>
+                                            <td>{{ v.get_blood_pressure_display() }}</td>
+                                            <td>{{ v.heart_rate or '-' }}</td>
+                                            <td>{{ v.temperature or '-' }}</td>
+                                            <td>{{ v.oxygen_saturation or '-' }}%</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="5" class="text-center text-muted py-2">لا توجد قراءات</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="p-2 text-center">
+                                <a href="{{ url_for('nurse.record_vital_signs') }}?patient_id={{ patient.id }}" class="btn btn-sm btn-outline-success"><i class="fas fa-heartbeat me-1"></i> تسجيل علامات</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card shadow">
                 <div class="card-header">آخر المواعيد</div>
                 <div class="card-body">
@@ -197,4 +287,57 @@
         </div>
     </div>
 </div>
+
+<!-- Allergy Modal -->
+<div class="modal fade" id="addAllergyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">إضافة حساسية</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="mb-3"><label class="form-label">المادة المسببة *</label><input id="allergy_allergen" class="form-control" placeholder="مثال: بنسلين"></div>
+        <div class="mb-3"><label class="form-label">الخطورة</label>
+          <select id="allergy_severity" class="form-select"><option value="LOW">خفيفة</option><option value="MODERATE">متوسطة</option><option value="HIGH" selected>شديدة</option><option value="LIFE_THREATENING">مهددة للحياة</option></select>
+        </div>
+        <div class="mb-3"><label class="form-label">الوصف</label><textarea id="allergy_description" class="form-control" rows="2"></textarea></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-danger" onclick="submitAllergy()">حفظ</button></div>
+    </div>
+  </div>
+</div>
+<!-- Problem Modal -->
+<div class="modal fade" id="addProblemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">إضافة مشكلة / تشخيص</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="mb-3"><label class="form-label">الوصف *</label><textarea id="problem_desc" class="form-control" rows="2"></textarea></div>
+        <div class="row"><div class="col-6"><label class="form-label">النوع</label><select id="problem_type" class="form-select"><option value="DIAGNOSIS">تشخيص</option><option value="SYMPTOM">عرض</option><option value="COMPLAINT">شكوى</option></select></div><div class="col-6"><label class="form-label">الخطورة</label><select id="problem_severity" class="form-select"><option value="MILD">خفيفة</option><option value="MODERATE" selected>متوسطة</option><option value="SEVERE">شديدة</option></select></div></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-warning" onclick="submitProblem()">حفظ</button></div>
+    </div>
+  </div>
+</div>
+
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
+function submitAllergy(){
+  const allergen=document.getElementById('allergy_allergen').value.trim();
+  const severity=document.getElementById('allergy_severity').value;
+  const description=document.getElementById('allergy_description').value.trim();
+  if(!allergen){ alert('يرجى إدخال المادة'); return; }
+  fetch('{{ url_for('reception.add_patient_allergy', patient_id=patient.id) }}', {
+    method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token() }}'},
+    body: JSON.stringify({allergen, severity, description})
+  }).then(r=>r.json()).then(d=>{ if(d.success) location.reload(); else alert(d.error||'خطأ'); });
+}
+function submitProblem(){
+  const problem_description=document.getElementById('problem_desc').value.trim();
+  const problem_type=document.getElementById('problem_type').value;
+  const severity=document.getElementById('problem_severity').value;
+  if(!problem_description){ alert('يرجى إدخال الوصف'); return; }
+  fetch('{{ url_for('reception.add_patient_problem', patient_id=patient.id) }}', {
+    method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token() }}'},
+    body: JSON.stringify({problem_description, problem_type, severity})
+  }).then(r=>r.json()).then(d=>{ if(d.success) location.reload(); else alert(d.error||'خطأ'); });
+}
+</script>
 {% endblock %}

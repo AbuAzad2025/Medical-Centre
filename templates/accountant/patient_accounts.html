@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
+{% block title %}حسابات المرضى{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  {{ page_header('حسابات المرضى', subtitle='الأرصدة والحسابات المرتبطة', actions=[{'label': 'العودة', 'url': url_for('accountant.dashboard'), 'style': 'secondary'}]) }}
+  <div class="card shadow">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light"><tr><th>#</th><th>المريض</th><th>المستخدم</th><th>تاريخ الإنشاء</th><th>التفضيلات</th></tr></thead>
+          <tbody>
+            {% for a in accounts %}
+            <tr>
+              <td>{{ a.id }}</td>
+              <td>{{ a.patient.full_name if a.patient else a.patient_id }}</td>
+              <td>{{ a.user.username if a.user else a.user_id }}</td>
+              <td>{{ a.created_at.strftime('%Y-%m-%d') if a.created_at else '-' }}</td>
+              <td class="small text-muted">{{ a.portal_preferences or '-' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-4">لا توجد حسابات</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="alert alert-info small">رصيد المريض التفصيلي يُدار عبر الفواتير والمدفوعات. هذا السجل يربط حساب البوابة بالمريض.</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

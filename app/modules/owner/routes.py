@@ -106,8 +106,9 @@ def _log_action(action, entity_type, entity_id=None, details=None):
 
 def _compute_platform_revenue():
     """MRR/ARR snapshot for owner billing dashboard — source of truth is SubscriptionLine."""
-    from app.core.saas.models import SubscriptionLine, SubscriptionLineStatus
     from datetime import datetime
+
+    from app.core.saas.models import SubscriptionLine, SubscriptionLineStatus
 
     now = datetime.now(UTC)
     # Active lines: status active and within effective window
@@ -168,7 +169,9 @@ def owner_dashboard():
     arr = _rev['arr']
     # Churn: cancelled + suspended + expired / total
     cancelled_count = sum(1 for t in all_tenants if t.status == TenantStatus.CANCELLED)
-    churn_rate = round(((expired_count + cancelled_count + suspended_count) / max(tenant_count, 1)) * 100, 1)
+    churn_rate = round(
+        ((expired_count + cancelled_count + suspended_count) / max(tenant_count, 1)) * 100, 1
+    )
     total_users_all = sum(len(t.users) for t in all_tenants)
     avg_users_per_tenant = total_users_all / max(tenant_count, 1)
 

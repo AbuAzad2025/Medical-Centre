@@ -367,6 +367,7 @@ def view_patient(patient_id):
 
     # جلب طلبات المختبر والأشعة
     from models.lab_request import LabRequest
+    from models.nurse import VitalSigns
     from models.radiology_request import RadiologyRequest
 
     lab_requests = (
@@ -389,6 +390,35 @@ def view_patient(patient_id):
         .scalars()
         .all()
     )
+    # حساسية ومشاكل وعلامات حيوية
+    allergies = (
+        db.session.execute(
+            select(PatientAllergy)
+            .filter_by(patient_id=patient_id)
+            .order_by(PatientAllergy.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
+    problems = (
+        db.session.execute(
+            select(PatientProblem)
+            .filter_by(patient_id=patient_id)
+            .order_by(PatientProblem.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
+    vitals = (
+        db.session.execute(
+            select(VitalSigns)
+            .filter_by(patient_id=patient_id)
+            .order_by(VitalSigns.recorded_at.desc())
+            .limit(10)
+        )
+        .scalars()
+        .all()
+    )
 
     template = 'reception/view_patient.html'
 
@@ -399,6 +429,9 @@ def view_patient(patient_id):
         appointments=appointments,
         lab_requests=lab_requests,
         radiology_requests=radiology_requests,
+        allergies=allergies,
+        problems=problems,
+        vitals=vitals,
     )
 
 

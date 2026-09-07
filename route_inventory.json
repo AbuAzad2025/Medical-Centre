@@ -1,5 +1,5 @@
 {
-  "total_routes": 755,
+  "total_routes": 760,
   "routes": [
     {
       "endpoint": "main.index",
@@ -154,6 +154,14 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "accountant.patient_accounts",
+      "path": "/accountant/patient-accounts",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "accountant.payment_documentation",
       "path": "/accountant/payment-documentation/<int:payment_id>",
       "methods": [
@@ -182,6 +190,38 @@
       "path": "/accountant/receipt/<int:payment_id>",
       "methods": [
         "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.refund_requests",
+      "path": "/accountant/refunds",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.refund_approve",
+      "path": "/accountant/refunds/<int:refund_id>/approve",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.refund_execute",
+      "path": "/accountant/refunds/<int:refund_id>/execute",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "accountant.refund_reject",
+      "path": "/accountant/refunds/<int:refund_id>/reject",
+      "methods": [
+        "POST"
       ],
       "classification": "authenticated"
     },

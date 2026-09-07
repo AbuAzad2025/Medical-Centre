@@ -16,7 +16,10 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       - REDIS_URL=redis://redis:6379/0
+      - SESSION_TYPE=redis
+      - SESSION_REDIS_URL=redis://redis:6379/1
       - FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}
+      - PLATFORM_OWNER_SECRET=${PLATFORM_OWNER_SECRET}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
@@ -33,9 +36,14 @@ services:
       - PLATFORM_CAP_WEBAUTHN=true
       - PLATFORM_CAP_FHIR=true
       - PLATFORM_CAP_SSO=true
+      - BACKUP_AUTOMATION_ENABLED=true
+      - CELERY_ENABLED=true
+      - DB_STATEMENT_TIMEOUT_MS=30000
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -45,7 +53,7 @@ services:
           cpus: '1'
           memory: 1G
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/__health', timeout=3).status==200 else 1)\""]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -152,26 +160,51 @@ services:
         max-file: "5"
 
   metrics-exporter:
-    image: prometheus/node-exporter:latest
+    build: .
     restart: unless-stopped
     ports:
       - "127.0.0.1:9180:9180"
-    command:
-      - '--collector.systemd'
-      - '--collector.processes'
-      - '--collector.cpu'
-      - '--collector.meminfo'
-      - '--collector.filesystem'
-    deploy:
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 100M
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - PORT=9180
+      - SCRAPE_INTERVAL=60
+    depends_on:
+      db:
+        condition: service_healthy
+    command: python scripts/ops/prometheus_exporter.py
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:9180/metrics', timeout=3).status==200 else 1)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     logging:
       driver: "json-file"
       options:
         max-size: "5m"
         max-file: "3"
+
+  beat:
+    image: medical-platform:latest
+    command: celery -A celery_app.celery beat --loglevel=info
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+      - APP_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_ENABLED=true
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 
 volumes:
   pgdata:

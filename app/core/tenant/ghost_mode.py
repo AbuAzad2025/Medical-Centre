@@ -25,6 +25,7 @@ effectively bypasses Row-Level Security scoping for that request. Every
 impersonated request is written to the ``AuditTrail`` table.
 """
 
+import contextlib
 import hashlib
 import hmac
 import json
@@ -86,9 +87,9 @@ def _is_nonce_replayed(signature: str) -> bool:
 
         r = _get_redis()
         if r is not None:
-            key = f"ghost:nonce:{signature}"
+            key = f'ghost:nonce:{signature}'
             # NX = only set if not exists, EX = replay window
-            was_set = r.set(key, "1", ex=REPLAY_WINDOW_SECONDS, nx=True)
+            was_set = r.set(key, '1', ex=REPLAY_WINDOW_SECONDS, nx=True)
             return not was_set  # if not set, it existed -> replay
     except Exception:
         pass
@@ -250,7 +251,5 @@ def _write_audit_trail(actor, target_tenant, target_user) -> None:
         db.session.add(entry)
         safe_commit(db.session, error_message='Ghost audit failed')
     except Exception:  # never break a request because of audit logging
-        try:
+        with contextlib.suppress(Exception):
             current_app.logger.exception('Ghost Mode: audit trail write failed')
-        except Exception:
-            pass

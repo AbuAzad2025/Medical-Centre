@@ -44,7 +44,9 @@ class EncryptedString(TypeDecorator):
                 from flask import current_app
 
                 if current_app and not current_app.config.get('TESTING', False):
-                    env = (current_app.config.get('APP_ENV') or os.environ.get('APP_ENV') or '').lower()
+                    env = (
+                        current_app.config.get('APP_ENV') or os.environ.get('APP_ENV') or ''
+                    ).lower()
                     if env in ('production', 'staging'):
                         raise RuntimeError(
                             'FIELD_ENCRYPTION_KEY missing — refusing to store PHI as plaintext'

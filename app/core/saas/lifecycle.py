@@ -60,12 +60,16 @@ class TenantProvisioningService:
         """Create a new tenant with an active base subscription line — atomic."""
         # Validate billing_type strictly
         if billing_type not in ('monthly', 'yearly'):
-            raise ProvisioningError(f"Invalid billing_type '{billing_type}'; must be monthly or yearly")
+            raise ProvisioningError(
+                f"Invalid billing_type '{billing_type}'; must be monthly or yearly"
+            )
         # Validate slug format (same as saas_registration)
         import re as _re
 
         if not _re.match(r'^[a-z0-9][a-z0-9-]{2,79}$', slug):
-            raise ProvisioningError(f"Invalid slug '{slug}'; must be 3-80 lower alphanumeric/hyphen")
+            raise ProvisioningError(
+                f"Invalid slug '{slug}'; must be 3-80 lower alphanumeric/hyphen"
+            )
         if db.session.execute(select(Tenant).filter_by(slug=slug)).scalars().first():
             raise ProvisioningError(f"Tenant slug '{slug}' already exists.")
 
@@ -85,7 +89,8 @@ class TenantProvisioningService:
                 name=name,
                 contact_email=contact_email,
                 status=tenant_status,
-                product_profile_code=product_profile_code or tenant_kwargs.get('product_profile_code'),
+                product_profile_code=product_profile_code
+                or tenant_kwargs.get('product_profile_code'),
                 **{k: v for k, v in tenant_kwargs.items() if k != 'product_profile_code'},
             )
             db.session.add(tenant)
