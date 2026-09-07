@@ -479,10 +479,10 @@ jobs:
       - name: Install test deps
         run: |
           python -m pip install --upgrade pip
-          pip install jinja2 pytest
+          pip install -r requirements.txt jinja2
 
       - name: Run frontend asset quality suite
-        run: python -m pytest tests/test_frontend_asset_quality.py -v --tb=short
+        run: python -m pytest tests/test_frontend_asset_quality.py -v --tb=short -p no:warnings
 
       - name: Verify no orphaned static bypass (matrix gate)
         run: |
