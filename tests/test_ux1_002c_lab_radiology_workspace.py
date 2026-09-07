@@ -9,7 +9,7 @@ from models.user import User
 
 @pytest.fixture(scope='function')
 def lab_user(app, test_tenant):
-    u = db.session.execute(select(User).filter_by(username='lab_test_ux1')).scalars().first()
+    u = db.session.execute(select(User).filter_by(username='lab_test_ux1', tenant_id=test_tenant.id)).scalars().first()
     if not u:
         u = User(
             username='lab_test_ux1',
@@ -33,7 +33,7 @@ def lab_user(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def radiology_user(app, test_tenant):
-    u = db.session.execute(select(User).filter_by(username='radiology_test_ux1')).scalars().first()
+    u = db.session.execute(select(User).filter_by(username='radiology_test_ux1', tenant_id=test_tenant.id)).scalars().first()
     if not u:
         u = User(
             username='radiology_test_ux1',

@@ -9,7 +9,7 @@ from models.user import User
 
 @pytest.fixture(scope='function')
 def reception_user(app, test_tenant):
-    u = db.session.execute(select(User).filter_by(username='reception_test_ux1')).scalars().first()
+    u = db.session.execute(select(User).filter_by(username='reception_test_ux1', tenant_id=test_tenant.id)).scalars().first()
     if not u:
         u = User(
             username='reception_test_ux1',
