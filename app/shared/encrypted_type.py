@@ -59,7 +59,7 @@ class EncryptedString(TypeDecorator):
         try:
             from services.field_encryption_service import FieldEncryptionService
 
-            return FieldEncryptionService()
+            return FieldEncryptionService.get_service()
         except Exception:
             return None
 

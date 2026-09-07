@@ -233,9 +233,9 @@ def _write_audit_trail(actor, target_tenant, target_user) -> None:
             },
             ensure_ascii=False,
         )
-        # Record REAL actor as user_id/tenant_id for SIEM attribution
+        # Record REAL actor as user_id, but keep tenant_id as target for tenant-scoped visibility
         entry = AuditTrail(
-            tenant_id=getattr(actor, 'tenant_id', None) or target_tenant.id,
+            tenant_id=target_tenant.id,
             user_id=actor.id,
             entity_type='user',
             entity_id=target_user.id,

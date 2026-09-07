@@ -246,7 +246,7 @@
                                 </table>
                             </div>
                             <div class="p-2 text-center">
-                                <a href="{{ url_for('nurse.record_vital_signs') }}?patient_id={{ patient.id }}" class="btn btn-sm btn-outline-success"><i class="fas fa-heartbeat me-1"></i> تسجيل علامات</a>
+                                <a href="{{ url_for('nurse.record_vital_signs', patient_id=patient.id) }}" class="btn btn-sm btn-outline-success"><i class="fas fa-heartbeat me-1"></i> تسجيل علامات</a>
                             </div>
                         </div>
                     </div>

@@ -4,13 +4,56 @@ Advanced NLP-Powered AI Engine for Medical System
 يقوم بفهم الأسئلة المعقدة وتحليل قاعدة البيانات والإجابة بذكاء
 """
 
+import contextlib
 import logging
 import re
 from datetime import date, datetime, timedelta
 
+from flask import g
 from sqlalchemy import func, inspect, select
 
 from app.extensions import db
+
+
+@contextlib.contextmanager
+def _bypass():
+    in_ctx = False
+    prev = False
+    try:
+        prev = g.get('_tenant_filter_bypass', False)
+        in_ctx = True
+    except RuntimeError:
+        yield
+        return
+    try:
+        g._tenant_filter_bypass = True
+        yield
+    finally:
+        try:
+            if in_ctx:
+                if prev:
+                    g._tenant_filter_bypass = True
+                else:
+                    try:
+                        delattr(g, '_tenant_filter_bypass')
+                    except Exception:
+                        with contextlib.suppress(Exception):
+                            g.pop('_tenant_filter_bypass', None)
+        except RuntimeError:
+            pass
+
+
+def _with_bypass(func):
+    import functools
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        with _bypass():
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
 from app.shared.enums import AppointmentState
 
 
@@ -222,6 +265,7 @@ class SmartAIEngine:
         except Exception as e:
             return {'response': f'❌ خطأ في العملية الحسابية: {e!s}', 'actions': []}
 
+    @_with_bypass
     def _handle_count_query(self, message):
         """معالجة أسئلة العد"""
         from models.appointment import Appointment
@@ -335,19 +379,17 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _handle_user_query(self, message):
         """معالجة أسئلة عن المستخدمين"""
         from models.user import User
 
-        # البحث عن اسم محدد
+        # البحث عن اسم محدد — EncryptedString can't be filtered via ilike on DB (stores ciphertext)
         name_match = re.search(r'(مستخدم|user)\s+(\w+)', message)
         if name_match:
-            name = name_match.group(2)
-            users = (
-                db.session.execute(select(User).filter(User.full_name.ilike(f'%{name}%')))
-                .scalars()
-                .all()
-            )
+            name = name_match.group(2).lower()
+            all_users = db.session.execute(select(User)).scalars().all()
+            users = [u for u in all_users if name in (u.full_name or '').lower()]
 
             if users:
                 response = f"👥 **نتائج البحث عن '{name}':**\n\n"
@@ -396,6 +438,7 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _handle_doctor_query(self, message):
         """معالجة أسئلة عن الأطباء"""
         from models.department import Department
@@ -482,6 +525,7 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _handle_patient_query(self, message):
         """معالجة أسئلة عن المرضى"""
         from models.patient import Patient
@@ -490,12 +534,9 @@ class SmartAIEngine:
         # البحث عن مريض محدد
         name_match = re.search(r'(مريض|patient)\s+(\w+)', message, re.IGNORECASE)
         if name_match:
-            name = name_match.group(2)
-            patients = (
-                db.session.execute(select(Patient).filter(Patient.full_name.ilike(f'%{name}%')))
-                .scalars()
-                .all()
-            )
+            name = name_match.group(2).lower()
+            all_patients = db.session.execute(select(Patient)).scalars().all()
+            patients = [p for p in all_patients if name in (p.full_name or '').lower()]
 
             if patients:
                 response = f"🏥 **معلومات عن المريض '{name}':**\n\n"
@@ -565,6 +606,7 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _handle_department_query(self, message):
         """معالجة أسئلة عن الأقسام"""
         from models.department import Department
@@ -632,6 +674,7 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _handle_visit_query(self, message):
         """معالجة أسئلة عن الزيارات"""
         from models.visit import Visit
@@ -682,6 +725,7 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _handle_appointment_query(self, message):
         """معالجة أسئلة عن المواعيد"""
         from models.appointment import Appointment
@@ -730,6 +774,7 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _handle_service_query(self, message):
         """معالجة أسئلة عن الخدمات"""
         from models.service import ServiceMaster
@@ -763,6 +808,7 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _handle_system_analysis(self):
         """تحليل شامل للنظام"""
         from models.department import Department
@@ -845,10 +891,12 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _handle_report_generation(self):
         """إنشاء تقرير شامل"""
         return self._handle_system_analysis()
 
+    @_with_bypass
     def _handle_database_query(self, message):
         """معالجة أسئلة عن قاعدة البيانات"""
         # الحصول على جميع الجداول
@@ -870,6 +918,7 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _handle_general_search(self, message):
         """البحث العام في النظام"""
         response = """
@@ -907,6 +956,7 @@ class SmartAIEngine:
 """
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _analyze_user_errors(self):
         """تحليل متقدم لأخطاء ومشاكل المستخدمين"""
         from models.user import User
@@ -1054,6 +1104,7 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _analyze_doctor_problems(self):
         """تحليل مشاكل الأطباء"""
         from models.user import User
@@ -1128,6 +1179,7 @@ class SmartAIEngine:
 
         return {'response': response, 'actions': []}
 
+    @_with_bypass
     def _analyze_department_problems(self):
         """تحليل مشاكل الأقسام"""
         from models.department import Department

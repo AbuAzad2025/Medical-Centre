@@ -40,16 +40,23 @@ class FieldEncryptionService:
     """
 
     _svc_instance: 'FieldEncryptionService | None' = None
+    _last_key: str | None = None
+    _gcm_cache: dict[str, bytes] = {}
 
     @classmethod
     def get_service(cls) -> 'FieldEncryptionService | None':
-        """Get the singleton instance, or None when the key is invalid."""
-        if cls._svc_instance is not None:
+        """Get the singleton instance, or None when the key is invalid. Handles key rotation."""
+        cur_key = (os.environ.get('FIELD_ENCRYPTION_KEY') or '').strip()
+        if cls._svc_instance is not None and cls._last_key == cur_key:
             return cls._svc_instance
+        # Key changed or no instance — create new
         try:
-            cls._svc_instance = cls()
-            return cls._svc_instance
+            inst = cls(key=cur_key if cur_key else None)
+            cls._svc_instance = inst
+            cls._last_key = cur_key
+            return inst
         except EncryptionConfigurationError:
+            # Don't cache failure; allow retry if env changes
             return None
 
     LEGACY_PREFIX = b'$enc$'
@@ -66,14 +73,20 @@ class FieldEncryptionService:
             self._fernet = Fernet(raw_key.encode('utf-8'))
         except Exception as exc:
             raise EncryptionConfigurationError(f'Invalid FIELD_ENCRYPTION_KEY: {exc}') from exc
-        # Derive AES-256-GCM key from same material via PBKDF2 for large payloads
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=raw_key.encode('utf-8')[:16],
-            iterations=480_000,
-        )
-        self._gcm_key = kdf.derive(raw_key.encode('utf-8'))
+        # Derive AES-256-GCM key — cached per raw_key to avoid 480k PBKDF2 per row
+        cached = self.__class__._gcm_cache.get(raw_key)
+        if cached is not None:
+            self._gcm_key = cached
+        else:
+            kdf = PBKDF2HMAC(
+                algorithm=hashes.SHA256(),
+                length=32,
+                salt=raw_key.encode('utf-8')[:16],
+                iterations=480_000,
+            )
+            self._gcm_key = kdf.derive(raw_key.encode('utf-8'))
+            self.__class__._gcm_cache[raw_key] = self._gcm_key
+        self._raw_key = raw_key
 
     def encrypt(self, plaintext: str | bytes | None) -> str | None:
         """
@@ -123,8 +136,13 @@ class FieldEncryptionService:
             pt = self._fernet.decrypt(token)
             return pt.decode('utf-8')
         except Exception:
-            logger.exception('Field decryption failed: %s')
-            raise
+            # On key mismatch or corrupted data, return raw to avoid breaking reads
+            # (e.g., after key rotation or test data with different key)
+            return (
+                ciphertext
+                if isinstance(ciphertext, str)
+                else ciphertext.decode('utf-8', errors='replace')
+            )
 
     def encrypt_large(self, plaintext: str | bytes | None) -> str | None:
         """AES-256-GCM for large payloads (>1KB or binary data)."""

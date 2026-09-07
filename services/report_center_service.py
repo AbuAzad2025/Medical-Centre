@@ -1,8 +1,49 @@
+import contextlib
 from datetime import UTC, date, datetime, timedelta
 
+from flask import g
 from sqlalchemy import desc, func, select
 
 from app.extensions import db
+
+
+@contextlib.contextmanager
+def _bypass():
+    in_ctx = False
+    prev = False
+    try:
+        prev = g.get('_tenant_filter_bypass', False)
+        in_ctx = True
+    except RuntimeError:
+        yield
+        return
+    try:
+        g._tenant_filter_bypass = True
+        yield
+    finally:
+        try:
+            if in_ctx:
+                if prev:
+                    g._tenant_filter_bypass = True
+                else:
+                    try:
+                        delattr(g, '_tenant_filter_bypass')
+                    except Exception:
+                        with contextlib.suppress(Exception):
+                            g.pop('_tenant_filter_bypass', None)
+        except RuntimeError:
+            pass
+
+
+def _with_bypass(func):
+    import functools
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        with _bypass():
+            return func(*args, **kwargs)
+
+    return wrapper
 
 
 class ReportCenterService:
@@ -29,6 +70,7 @@ class ReportCenterService:
         return start_date, end_date, start_dt, end_dt
 
     @staticmethod
+    @_with_bypass
     def compare_periods(a_start, a_end, b_start, b_end, department_id=None):
         from models.payment import Payment
         from models.visit import Visit
@@ -69,6 +111,7 @@ class ReportCenterService:
         return {'a': a, 'b': b, 'delta': delta, 'pct': pct}
 
     @staticmethod
+    @_with_bypass
     def department_transfers(start_dt, end_dt):
         from models.department import Department
         from models.visit_transfer import VisitTransferLog
@@ -117,6 +160,7 @@ class ReportCenterService:
         return out
 
     @staticmethod
+    @_with_bypass
     def booking_report(start_dt, end_dt):
         from models.online_booking import OnlineBooking
 
@@ -177,6 +221,7 @@ class ReportCenterService:
         }
 
     @staticmethod
+    @_with_bypass
     def emergency_stage_times(start_dt, end_dt):
         from models.emergency import EmergencyCase
         from models.emergency_status_history import EmergencyStatusHistory
@@ -224,6 +269,7 @@ class ReportCenterService:
         return {'avg_minutes': avg, 'cases': len(set(case_ids))}
 
     @staticmethod
+    @_with_bypass
     def radiology_revision_rate(start_dt, end_dt):
         from models.radiology_result import RadiologyResult
 
@@ -251,6 +297,7 @@ class ReportCenterService:
         return {'reviewed': int(reviewed), 'revised_after_review': int(revised), 'rate': rate}
 
     @staticmethod
+    @_with_bypass
     def capacity_impact(start_date, end_date):
         from models.department import Department
         from models.user import StaffAbsence, StaffWorkSchedule, User

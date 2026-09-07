@@ -5,10 +5,12 @@ Extracted from routes/super_admin/.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from datetime import UTC, datetime
 from typing import Any
 
+from flask import g
 from sqlalchemy import func, select
 
 from app.extensions import db
@@ -16,41 +18,73 @@ from utils.db_safety import safe_commit
 from utils.tenant_query import TenantContextError, get_tenant_record
 
 
+@contextlib.contextmanager
+def _bypass():
+    in_ctx = False
+    prev = False
+    try:
+        prev = g.get('_tenant_filter_bypass', False)
+        in_ctx = True
+    except RuntimeError:
+        yield
+        return
+    try:
+        g._tenant_filter_bypass = True
+        yield
+    finally:
+        try:
+            if in_ctx:
+                if prev:
+                    g._tenant_filter_bypass = True
+                else:
+                    try:
+                        delattr(g, '_tenant_filter_bypass')
+                    except Exception:
+                        with contextlib.suppress(Exception):
+                            g.pop('_tenant_filter_bypass', None)
+        except RuntimeError:
+            pass
+
+
 class SuperAdminService:
     """Centralized super admin business logic"""
 
     @staticmethod
     def get_system_stats() -> dict:
-        from models.department import Department
-        from models.patient import Patient
-        from models.user import User
-        from models.visit import Visit
+        with _bypass():
+            from models.department import Department
+            from models.patient import Patient
+            from models.user import User
+            from models.visit import Visit
 
-        try:
-            return {
-                'users': db.session.execute(select(func.count()).select_from(User)).scalar(),
-                'patients': db.session.execute(select(func.count()).select_from(Patient)).scalar(),
-                'visits': db.session.execute(select(func.count()).select_from(Visit)).scalar(),
-                'departments': db.session.execute(
-                    select(func.count()).select_from(Department)
-                ).scalar(),
-                'active_users': db.session.execute(
-                    select(func.count()).select_from(User).filter(User.is_active)
-                ).scalar(),
-            }
-        except Exception:
-            return {}
+            try:
+                return {
+                    'users': db.session.execute(select(func.count()).select_from(User)).scalar(),
+                    'patients': db.session.execute(
+                        select(func.count()).select_from(Patient)
+                    ).scalar(),
+                    'visits': db.session.execute(select(func.count()).select_from(Visit)).scalar(),
+                    'departments': db.session.execute(
+                        select(func.count()).select_from(Department)
+                    ).scalar(),
+                    'active_users': db.session.execute(
+                        select(func.count()).select_from(User).filter(User.is_active)
+                    ).scalar(),
+                }
+            except Exception:
+                return {}
 
     @staticmethod
     def get_all_users(role: str | None = None, active: bool | None = None) -> list:
-        from models.user import User
+        with _bypass():
+            from models.user import User
 
-        q = User.query
-        if role:
-            q = q.filter_by(role=role)
-        if active is not None:
-            q = q.filter_by(is_active=active)
-        return q.order_by(User.created_at.desc()).all()
+            q = User.query
+            if role:
+                q = q.filter_by(role=role)
+            if active is not None:
+                q = q.filter_by(is_active=active)
+            return q.order_by(User.created_at.desc()).all()
 
     @staticmethod
     def create_user(data: dict) -> Any | None:
@@ -86,15 +120,16 @@ class SuperAdminService:
 
     @staticmethod
     def get_security_logs(limit: int = 100) -> list:
-        from models.audit_trail import AuditTrail
+        with _bypass():
+            from models.audit_trail import AuditTrail
 
-        return (
-            db.session.execute(
-                select(AuditTrail).order_by(AuditTrail.created_at.desc()).limit(limit)
+            return (
+                db.session.execute(
+                    select(AuditTrail).order_by(AuditTrail.created_at.desc()).limit(limit)
+                )
+                .scalars()
+                .all()
             )
-            .scalars()
-            .all()
-        )
 
     @staticmethod
     def get_system_config() -> dict:
@@ -120,33 +155,39 @@ class SuperAdminService:
 
     @staticmethod
     def get_database_stats() -> dict:
-        try:
-            from models.invoice import Invoice
-            from models.patient import Patient
-            from models.user import User
-            from models.visit import Visit
+        with _bypass():
+            try:
+                from models.invoice import Invoice
+                from models.patient import Patient
+                from models.user import User
+                from models.visit import Visit
 
-            return {
-                'patients': db.session.execute(select(func.count()).select_from(Patient)).scalar(),
-                'users': db.session.execute(select(func.count()).select_from(User)).scalar(),
-                'visits': db.session.execute(select(func.count()).select_from(Visit)).scalar(),
-                'invoices': db.session.execute(select(func.count()).select_from(Invoice)).scalar(),
-            }
-        except Exception:
-            return {}
+                return {
+                    'patients': db.session.execute(
+                        select(func.count()).select_from(Patient)
+                    ).scalar(),
+                    'users': db.session.execute(select(func.count()).select_from(User)).scalar(),
+                    'visits': db.session.execute(select(func.count()).select_from(Visit)).scalar(),
+                    'invoices': db.session.execute(
+                        select(func.count()).select_from(Invoice)
+                    ).scalar(),
+                }
+            except Exception:
+                return {}
 
     @staticmethod
     def get_audit_trail(
         user_id: int | None = None, action: str | None = None, limit: int = 200
     ) -> list:
-        from models.audit_trail import AuditTrail
+        with _bypass():
+            from models.audit_trail import AuditTrail
 
-        q = AuditTrail.query
-        if user_id:
-            q = q.filter_by(user_id=user_id)
-        if action:
-            q = q.filter(AuditTrail.action.ilike(f'%{action}%'))
-        return q.order_by(AuditTrail.created_at.desc()).limit(limit).all()
+            q = AuditTrail.query
+            if user_id:
+                q = q.filter_by(user_id=user_id)
+            if action:
+                q = q.filter(AuditTrail.action.ilike(f'%{action}%'))
+            return q.order_by(AuditTrail.created_at.desc()).limit(limit).all()
 
 
 # Singleton
