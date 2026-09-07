@@ -342,7 +342,7 @@ def tenant_filter_query(query):
     session = getattr(query, 'session', None)
     tid = _current_tenant_id(session=session)
     if tid is None:
-        if not _is_tenant_bypass():
+        if _is_saas_mode() and not _is_tenant_bypass():
             for desc in query.column_descriptions:
                 entity = desc.get('entity')
                 if entity is None or not isinstance(entity, type):
@@ -356,7 +356,7 @@ def tenant_filter_query(query):
                         continue
                     raise TenantIsolationError(
                         f'Fail-closed: query on tenant-scoped model '
-                        f'{entity.__name__} without tenant context'
+                        f'{entity.__name__} without tenant context in SaaS mode'
                     )
         return query
 
@@ -443,7 +443,7 @@ def tenant_filter_select(orm_execute_state):
         return
 
     if tid is None:
-        if not _is_tenant_bypass():
+        if _is_saas_mode() and not _is_tenant_bypass():
             for entity in _entities_from_statement(statement):
                 if _skip_table(entity):
                     continue
@@ -454,7 +454,7 @@ def tenant_filter_select(orm_execute_state):
                         continue
                     raise TenantIsolationError(
                         f'Fail-closed: query on tenant-scoped model '
-                        f'{entity.__name__} without tenant context'
+                        f'{entity.__name__} without tenant context in SaaS mode'
                     )
         return
 
