@@ -63,24 +63,37 @@ def patients():
     query = Patient.query
 
     if search:
-        search_norm_phone = _normalize_phone(search)
-        search_norm_nid = _normalize_national_id(search)
-        conditions = [
-            Patient.first_name.ilike(f'%{search}%'),
-            Patient.last_name.ilike(f'%{search}%'),
-            Patient.phone.ilike(f'%{search}%'),
-            Patient.national_id.ilike(f'%{search}%'),
-        ]
-        if search_norm_phone:
-            conditions.append(Patient.phone == search_norm_phone)
-        if search_norm_nid:
-            conditions.append(Patient.national_id == search_norm_nid)
-        if search.isdigit():
-            try:
-                conditions.append(Patient.id == int(search))
-            except Exception as e:
-                logging.warning(f'Error in {__name__}: {e}')
-        query = query.filter(db.or_(*conditions))
+        from services.field_encryption_service import FieldEncryptionService
+
+        if FieldEncryptionService.is_active():
+            # Under encryption the stored value is ciphertext, so `ILIKE`
+            # can never match and this filter silently returned nothing.
+            # Search the blind indexes instead; see Patient.search for why
+            # matching is on the normalised whole field.
+            ids = [p.id for p in Patient.search(search, limit=per_page)]
+            query = query.filter(Patient.id.in_(ids)) if ids else query.filter(db.false())
+        else:
+            # No key configured: the columns really do hold plaintext.
+            search_norm_phone = _normalize_phone(search)
+            search_norm_nid = _normalize_national_id(search)
+            conditions = [
+                Patient.first_name.ilike(f'%{search}%'),
+                Patient.last_name.ilike(f'%{search}%'),
+                Patient.first_name_ar.ilike(f'%{search}%'),
+                Patient.last_name_ar.ilike(f'%{search}%'),
+                Patient.phone.ilike(f'%{search}%'),
+                Patient.national_id.ilike(f'%{search}%'),
+            ]
+            if search_norm_phone:
+                conditions.append(Patient.phone == search_norm_phone)
+            if search_norm_nid:
+                conditions.append(Patient.national_id == search_norm_nid)
+            if search.isdigit():
+                try:
+                    conditions.append(Patient.id == int(search))
+                except Exception as e:
+                    logging.warning(f'Error in {__name__}: {e}')
+            query = query.filter(db.or_(*conditions))
 
     if department_id:
         query = (
@@ -231,11 +244,7 @@ def add_patient():
 
             # منع التكرار: رقم الهوية
             if national_id:
-                existing_by_id = (
-                    db.session.execute(select(Patient).filter_by(national_id=national_id))
-                    .scalars()
-                    .first()
-                )
+                existing_by_id = Patient.find_by_national_id(national_id)
                 if existing_by_id:
                     message = f'المريض موجود مسبقاً برقم الهوية {national_id}'
                     if _wants_json():
@@ -247,11 +256,7 @@ def add_patient():
 
             # منع التكرار: رقم الهاتف (تحذير قوي)
             if phone:
-                existing_by_phone = (
-                    db.session.execute(select(Patient).filter(Patient.phone == phone))
-                    .scalars()
-                    .first()
-                )
+                existing_by_phone = Patient.find_by_phone(phone)
                 if existing_by_phone:
                     message = f'يوجد مريض بنفس رقم الهاتف ({phone})'
                     if _wants_json():
@@ -549,11 +554,7 @@ def edit_patient(patient_id):
                 raise ValueError(message)
 
             if national_id and national_id != (patient.national_id or None):
-                existing_by_id = (
-                    db.session.execute(select(Patient).filter_by(national_id=national_id))
-                    .scalars()
-                    .first()
-                )
+                existing_by_id = Patient.find_by_national_id(national_id)
                 if existing_by_id and existing_by_id.id != patient.id:
                     message = f'المريض موجود مسبقاً برقم الهوية {national_id}'
                     if _wants_json():
@@ -564,13 +565,7 @@ def edit_patient(patient_id):
                     raise ValueError(message)
 
             if phone and phone != (patient.phone or None):
-                existing_by_phone = (
-                    db.session.execute(
-                        select(Patient).filter(Patient.phone == phone, Patient.id != patient.id)
-                    )
-                    .scalars()
-                    .first()
-                )
+                existing_by_phone = Patient.find_by_phone(phone)
                 if existing_by_phone:
                     message = f'يوجد مريض بنفس رقم الهاتف ({phone})'
                     if _wants_json():

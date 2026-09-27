@@ -74,13 +74,9 @@ def checkin_online_booking():
         phone = (booking.phone or '').strip() or None
 
         if national_id:
-            patient = (
-                db.session.execute(select(Patient).filter_by(national_id=national_id))
-                .scalars()
-                .first()
-            )
+            patient = Patient.find_by_national_id(national_id)
         if not patient and phone:
-            patient = db.session.execute(select(Patient).filter_by(phone=phone)).scalars().first()
+            patient = Patient.find_by_phone(phone)
 
         if not patient:
             patient = Patient(

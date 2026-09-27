@@ -4,11 +4,15 @@
 
 from datetime import UTC, date, datetime
 
-from sqlalchemy import Index, func, select
+from sqlalchemy import Index, event, func, or_, select
 from sqlalchemy.orm import validates
 
 from app.extensions import db
-from app.shared.encrypted_type import EncryptedString
+from app.shared.encrypted_type import (
+    EncryptedSearchableString,
+    EncryptedString,
+    blind_index_value,
+)
 from app.shared.mixins import TenantMixin
 
 
@@ -17,11 +21,35 @@ class Patient(TenantMixin, db.Model):
     __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    national_id = db.Column(EncryptedString(32), unique=True, nullable=True, index=True)
-    first_name = db.Column(EncryptedString(200), nullable=False, index=True)
-    last_name = db.Column(EncryptedString(200), nullable=False, index=True)
-    first_name_ar = db.Column(EncryptedString(200), nullable=True)
-    last_name_ar = db.Column(EncryptedString(200), nullable=True)
+
+    # Identity columns are stored with non-deterministic AES-GCM (maximum
+    # confidentiality) and matched through a keyed blind index. The previous
+    # `unique=True` on the ciphertext was a false guarantee: because every write
+    # produced different ciphertext it never fired, so unlimited patients could
+    # share one national id. Uniqueness now lives on the hash, via a partial
+    # unique index on (tenant_id, national_id_hash) created by migration
+    # s3_014_searchable_phi_blind_index.
+    national_id = db.Column(EncryptedString(32), nullable=True, index=True)
+    national_id_hash = db.Column(db.String(64), nullable=True, index=True)
+
+    # Name and address must be searchable and sortable, so they use
+    # deterministic AES-SIV. Equality is then observable to a key holder, which
+    # is the accepted trade-off for a searchable PHI store; rows stay
+    # tenant-scoped by RLS and identity never depends on this property.
+    first_name = db.Column(EncryptedSearchableString(200), nullable=False, index=True)
+    last_name = db.Column(EncryptedSearchableString(200), nullable=False, index=True)
+    first_name_ar = db.Column(EncryptedSearchableString(200), nullable=True)
+    last_name_ar = db.Column(EncryptedSearchableString(200), nullable=True)
+
+    # Deterministic encryption (above) restores equality, ordering and index
+    # selectivity, but it cannot restore `LIKE '%term%'`: a plaintext substring
+    # has no relationship to the ciphertext, so SQL substring search over an
+    # encrypted column can never match. These blind indexes are what make name
+    # search actually work, and they leak nothing about the value.
+    first_name_hash = db.Column(db.String(64), nullable=True, index=True)
+    last_name_hash = db.Column(db.String(64), nullable=True, index=True)
+    first_name_ar_hash = db.Column(db.String(64), nullable=True, index=True)
+    last_name_ar_hash = db.Column(db.String(64), nullable=True, index=True)
 
     @property
     def full_name(self):
@@ -41,9 +69,10 @@ class Patient(TenantMixin, db.Model):
         return 'آخر'
 
     phone = db.Column(EncryptedString(20), nullable=True, index=True)
+    phone_hash = db.Column(db.String(64), nullable=True, index=True)
     birth_date = db.Column(db.Date, nullable=True, index=True)
     gender = db.Column(db.String(10), nullable=True)  # M/F/Other
-    address = db.Column(EncryptedString(200), nullable=True)
+    address = db.Column(EncryptedSearchableString(200), nullable=True)
     notes = db.Column(db.Text, nullable=True)
     admin_notes = db.Column(db.Text, nullable=True)
     insurance_company_id = db.Column(
@@ -75,6 +104,98 @@ class Patient(TenantMixin, db.Model):
         Index('idx_patient_name_birthdate', 'first_name', 'last_name', 'birth_date'),
         Index('idx_patient_insurance_created', 'insurance_company_id', 'created_at'),
     )
+
+    # ------------------------------------------------------------------
+    # Blind-index maintenance
+    #
+    # Derived columns are filled by mapper events rather than by callers, so
+    # that every existing write path (reception forms, kiosk, imports, services,
+    # tests) keeps the digest in sync without being touched. A digest that drifts
+    # from its plaintext would silently break duplicate detection, which is
+    # worse than the original bug because it fails open.
+    # ------------------------------------------------------------------
+    _BLIND_INDEX_FIELDS = (
+        ('national_id', 'national_id_hash'),
+        ('phone', 'phone_hash'),
+        ('first_name', 'first_name_hash'),
+        ('last_name', 'last_name_hash'),
+        # Arabic name columns are the ones reception actually searches, so they
+        # get digests too -- otherwise Patient.search could not find a patient
+        # by the name shown on their ID card.
+        ('first_name_ar', 'first_name_ar_hash'),
+        ('last_name_ar', 'last_name_ar_hash'),
+    )
+
+    @classmethod
+    def _sync_blind_indexes(cls, target) -> None:
+        for source, digest in cls._BLIND_INDEX_FIELDS:
+            setattr(target, digest, blind_index_value(getattr(target, source)))
+
+    @classmethod
+    def find_by_national_id(cls, national_id, *, tenant_id=None):
+        """Exact lookup by national id through the blind index.
+
+        Never compares the encrypted column: with random-nonce encryption that
+        can never match.
+        """
+        digest = blind_index_value(national_id)
+        if not digest:
+            return None
+        stmt = select(cls).where(cls.national_id_hash == digest)
+        if tenant_id is not None:
+            stmt = stmt.where(cls.tenant_id == tenant_id)
+        return db.session.execute(stmt.limit(1)).scalars().first()
+
+    @classmethod
+    def find_by_phone(cls, phone, *, tenant_id=None):
+        """Exact lookup by phone through the blind index."""
+        digest = blind_index_value(phone)
+        if not digest:
+            return None
+        stmt = select(cls).where(cls.phone_hash == digest)
+        if tenant_id is not None:
+            stmt = stmt.where(cls.tenant_id == tenant_id)
+        return db.session.execute(stmt.limit(1)).scalars().first()
+
+    @classmethod
+    def search(cls, term, *, tenant_id=None, limit=50):
+        """Search patients by name or identity through the blind indexes.
+
+        Works on encrypted columns, which `ILIKE` cannot do. Matching is on the
+        normalised whole field, so "Sara", "sara" and "Sara " all find the same
+        patient, and the Arabic columns are searched alongside the Latin ones. A
+        term containing a space is matched as "first last".
+
+        Partial (substring) matching is intentionally not offered: it would
+        require a trigram blind-index side table, which is a separate piece of
+        work with its own storage and false-positive trade-offs. Callers that
+        need fuzzy matching should treat this as the exact-match fast path.
+        """
+        text = (term or '').strip()
+        if not text:
+            return []
+        parts = [p for p in text.split() if p]
+        first_cols = (cls.first_name_hash, cls.first_name_ar_hash)
+        last_cols = (cls.last_name_hash, cls.last_name_ar_hash)
+        stmt = None
+        if len(parts) >= 2:
+            first_digest = blind_index_value(parts[0])
+            last_digest = blind_index_value(parts[-1])
+            if first_digest and last_digest:
+                stmt = select(cls).where(
+                    or_(*(c == first_digest for c in first_cols)),
+                    or_(*(c == last_digest for c in last_cols)),
+                )
+        else:
+            digest = blind_index_value(parts[0])
+            if digest:
+                stmt = select(cls).where(or_(*(c == digest for c in first_cols + last_cols)))
+        if stmt is None:
+            return []
+        if tenant_id is not None:
+            stmt = stmt.where(cls.tenant_id == tenant_id)
+        stmt = stmt.order_by(cls.id).limit(limit)
+        return list(db.session.execute(stmt).scalars().all())
 
     visits = db.relationship(
         'Visit',
@@ -207,6 +328,19 @@ class Patient(TenantMixin, db.Model):
                 raise ValueError(f'رقم الهاتف قصير جداً: {value}')
             return cleaned
         return value
+
+
+@event.listens_for(Patient, 'before_insert', propagate=True)
+@event.listens_for(Patient, 'before_update', propagate=True)
+def _patient_sync_blind_index(mapper, connection, target) -> None:
+    """Keep national_id_hash / phone_hash aligned with their plaintext columns.
+
+    Runs on every INSERT and UPDATE regardless of which code path issued it.
+    A stale digest would make duplicate detection fail open, so the digests are
+    always recomputed from the current plaintext rather than patched
+    conditionally.
+    """
+    Patient._sync_blind_indexes(target)
 
 
 class PatientAllergy(TenantMixin, db.Model):

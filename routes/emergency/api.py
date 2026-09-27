@@ -6,7 +6,6 @@ from datetime import datetime
 # Imports
 from flask import jsonify, request
 from flask_login import login_required
-from sqlalchemy import select
 
 from app.extensions import db
 from models.emergency import EmergencyCase
@@ -41,10 +40,7 @@ def api_ems_intake():
         last_name = ' '.join(parts[1:]) if len(parts) > 1 else '-'
         patient = None
         if phone:
-            patient_query = select(Patient).filter_by(phone=phone)
-            if tenant_id is not None and hasattr(Patient, 'tenant_id'):
-                patient_query = patient_query.filter(Patient.tenant_id == tenant_id)
-            patient = db.session.execute(patient_query).scalars().first()
+            patient = Patient.find_by_phone(phone, tenant_id=tenant_id)
         if not patient:
             patient = Patient(first_name=first_name, last_name=last_name, phone=phone or None)
             db.session.add(patient)

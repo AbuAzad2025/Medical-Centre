@@ -22,7 +22,8 @@ def perform_kiosk_checkin(national_id: str) -> dict:
     if len(nid) < 5:
         return {'success': False, 'message': 'أدخل رقم هوية صالحاً'}
 
-    patient = db.session.execute(select(Patient).filter_by(national_id=nid)).scalars().first()
+    # Blind index: comparing the encrypted column directly can never match.
+    patient = Patient.find_by_national_id(nid)
     if not patient:
         return {'success': False, 'message': 'لم يتم العثور على المريض'}
 
