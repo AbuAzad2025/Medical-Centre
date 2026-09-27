@@ -132,30 +132,41 @@ class Patient(TenantMixin, db.Model):
             setattr(target, digest, blind_index_value(getattr(target, source)))
 
     @classmethod
-    def find_by_national_id(cls, national_id, *, tenant_id=None):
-        """Exact lookup by national id through the blind index.
+    def _identity_lookup(cls, column, digest_column, value, *, tenant_id=None):
+        """Resolve *value* to a patient, encrypted or not.
 
-        Never compares the encrypted column: with random-nonce encryption that
-        can never match.
+        Under encryption the ciphertext cannot be compared, so the lookup goes
+        through the blind index. Without a key the column genuinely holds
+        plaintext, and the digest is NULL, so a blind-index-only lookup would
+        silently match nothing -- which would quietly turn duplicate detection
+        off in development and CI. That fallback is why the unencrypted path
+        still rejects duplicates.
         """
-        digest = blind_index_value(national_id)
-        if not digest:
+        from services.field_encryption_service import FieldEncryptionService
+
+        digest = blind_index_value(value)
+        if digest:
+            stmt = select(cls).where(digest_column == digest)
+        elif not FieldEncryptionService.is_active():
+            stmt = select(cls).where(column == value)
+        else:
+            # Encrypted, but nothing indexable to search on.
             return None
-        stmt = select(cls).where(cls.national_id_hash == digest)
         if tenant_id is not None:
             stmt = stmt.where(cls.tenant_id == tenant_id)
         return db.session.execute(stmt.limit(1)).scalars().first()
 
     @classmethod
+    def find_by_national_id(cls, national_id, *, tenant_id=None):
+        """Exact lookup by national id, through the blind index when encrypted."""
+        return cls._identity_lookup(
+            cls.national_id, cls.national_id_hash, national_id, tenant_id=tenant_id
+        )
+
+    @classmethod
     def find_by_phone(cls, phone, *, tenant_id=None):
-        """Exact lookup by phone through the blind index."""
-        digest = blind_index_value(phone)
-        if not digest:
-            return None
-        stmt = select(cls).where(cls.phone_hash == digest)
-        if tenant_id is not None:
-            stmt = stmt.where(cls.tenant_id == tenant_id)
-        return db.session.execute(stmt.limit(1)).scalars().first()
+        """Exact lookup by phone, through the blind index when encrypted."""
+        return cls._identity_lookup(cls.phone, cls.phone_hash, phone, tenant_id=tenant_id)
 
     @classmethod
     def search(cls, term, *, tenant_id=None, limit=50):
@@ -170,10 +181,31 @@ class Patient(TenantMixin, db.Model):
         require a trigram blind-index side table, which is a separate piece of
         work with its own storage and false-positive trade-offs. Callers that
         need fuzzy matching should treat this as the exact-match fast path.
+
+        Without a configured key the columns hold plaintext, so this falls back
+        to a substring `ILIKE` and stays as forgiving as it was before the
+        blind index existed.
         """
+        from services.field_encryption_service import FieldEncryptionService
+
         text = (term or '').strip()
         if not text:
             return []
+        if not FieldEncryptionService.is_active():
+            like = f'%{text}%'
+            stmt = select(cls).where(
+                or_(
+                    cls.first_name.ilike(like),
+                    cls.last_name.ilike(like),
+                    cls.first_name_ar.ilike(like),
+                    cls.last_name_ar.ilike(like),
+                    cls.phone.ilike(like),
+                    cls.national_id.ilike(like),
+                )
+            )
+            if tenant_id is not None:
+                stmt = stmt.where(cls.tenant_id == tenant_id)
+            return list(db.session.execute(stmt.order_by(cls.id).limit(limit)).scalars().all())
         parts = [p for p in text.split() if p]
         first_cols = (cls.first_name_hash, cls.first_name_ar_hash)
         last_cols = (cls.last_name_hash, cls.last_name_ar_hash)

@@ -323,6 +323,71 @@ class TestPatientBlindIndex:
         assert n == 0
 
 
+# Order matters: rollback_db reconfigures the session, so it must be set up
+# before test_tenant loads the Tenant, otherwise the instance is detached.
+@pytest.mark.usefixtures('app', 'db', 'rollback_db', 'test_tenant')
+class TestUnencryptedFallback:
+    """Without a key the columns hold plaintext.
+
+    The blind index is then NULL, so a digest-only lookup would match nothing
+    and would silently switch duplicate detection off in development and CI --
+    which is exactly how this regression reached a green local run first.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _encryption_off(self, monkeypatch):
+        from services.field_encryption_service import FieldEncryptionService
+
+        monkeypatch.delenv('FIELD_ENCRYPTION_KEY', raising=False)
+        FieldEncryptionService._svc_instance = None
+        FieldEncryptionService._last_key = None
+        FieldEncryptionService._gcm_cache.clear()
+        FieldEncryptionService._derived_cache.clear()
+        yield
+        FieldEncryptionService._svc_instance = None
+        FieldEncryptionService._last_key = None
+        FieldEncryptionService._gcm_cache.clear()
+        FieldEncryptionService._derived_cache.clear()
+
+    @staticmethod
+    def _make(db, tenant_id, **kw):
+        from models.patient import Patient
+
+        kw.setdefault('first_name', 'Sara')
+        kw.setdefault('last_name', 'Ahmed')
+        kw.setdefault('gender', 'female')
+        p = Patient(tenant_id=tenant_id, **kw)
+        db.session.add(p)
+        db.session.commit()
+        return p
+
+    def test_duplicate_national_id_is_still_detected(self, app, db, test_tenant, rollback_db):
+        from models.patient import Patient
+
+        tid = test_tenant.id
+        self._make(db, tid, national_id='ID-PLAIN')
+        assert Patient.find_by_national_id('ID-PLAIN', tenant_id=tid) is not None
+        assert Patient.find_by_national_id('ID-OTHER', tenant_id=tid) is None
+
+    def test_duplicate_phone_is_still_detected(self, app, db, test_tenant, rollback_db):
+        from models.patient import Patient
+
+        tid = test_tenant.id
+        self._make(db, tid, phone='0591112233')
+        assert Patient.find_by_phone('0591112233', tenant_id=tid) is not None
+        assert Patient.find_by_phone('0599999999', tenant_id=tid) is None
+
+    def test_search_still_matches_substrings(self, app, db, test_tenant, rollback_db):
+        """The unencrypted path keeps the forgiving substring behaviour."""
+        from models.patient import Patient
+
+        tid = test_tenant.id
+        self._make(db, tid, first_name='Sara', last_name='Ahmed', national_id='ID-PLAIN')
+        assert len(Patient.search('Sar', tenant_id=tid)) == 1
+        assert len(Patient.search('Sara', tenant_id=tid)) == 1
+        assert Patient.search('nobody', tenant_id=tid) == []
+
+
 class TestSearchableType:
     def test_binds_and_reads_back(self):
         from app.shared.encrypted_type import EncryptedSearchableString

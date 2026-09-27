@@ -63,37 +63,11 @@ def patients():
     query = Patient.query
 
     if search:
-        from services.field_encryption_service import FieldEncryptionService
-
-        if FieldEncryptionService.is_active():
-            # Under encryption the stored value is ciphertext, so `ILIKE`
-            # can never match and this filter silently returned nothing.
-            # Search the blind indexes instead; see Patient.search for why
-            # matching is on the normalised whole field.
-            ids = [p.id for p in Patient.search(search, limit=per_page)]
-            query = query.filter(Patient.id.in_(ids)) if ids else query.filter(db.false())
-        else:
-            # No key configured: the columns really do hold plaintext.
-            search_norm_phone = _normalize_phone(search)
-            search_norm_nid = _normalize_national_id(search)
-            conditions = [
-                Patient.first_name.ilike(f'%{search}%'),
-                Patient.last_name.ilike(f'%{search}%'),
-                Patient.first_name_ar.ilike(f'%{search}%'),
-                Patient.last_name_ar.ilike(f'%{search}%'),
-                Patient.phone.ilike(f'%{search}%'),
-                Patient.national_id.ilike(f'%{search}%'),
-            ]
-            if search_norm_phone:
-                conditions.append(Patient.phone == search_norm_phone)
-            if search_norm_nid:
-                conditions.append(Patient.national_id == search_norm_nid)
-            if search.isdigit():
-                try:
-                    conditions.append(Patient.id == int(search))
-                except Exception as e:
-                    logging.warning(f'Error in {__name__}: {e}')
-            query = query.filter(db.or_(*conditions))
+        # Patient.search routes through the blind indexes when PHI is encrypted
+        # (ILIKE can never match ciphertext) and falls back to a substring
+        # ILIKE when no key is configured. Do not compare the columns here.
+        ids = [p.id for p in Patient.search(search, limit=per_page)]
+        query = query.filter(Patient.id.in_(ids)) if ids else query.filter(db.false())
 
     if department_id:
         query = (
