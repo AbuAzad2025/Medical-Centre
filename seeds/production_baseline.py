@@ -5,7 +5,6 @@ the master ``platform_owner`` account. Idempotent — safe to run repeatedly.
 """
 
 from contextlib import contextmanager
-from datetime import datetime
 
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
@@ -20,6 +19,8 @@ from . import tenant_bypass
 
 # 14 application modules (everything except the internal 'owner' entry).
 APPLICATION_MODULES = [name for name in MODULE_REGISTRY if name != 'owner']
+
+from utils.seed_manifest import resolve_admin_password  # noqa: E402
 
 MASTER_USERNAME = 'azad'
 
@@ -138,22 +139,6 @@ def _resolve_platform_tenant():
     return tenant
 
 
-def _compute_master_password() -> str:
-    """Compute the dynamic master password based on current date.
-
-    Format: Azad@Medical@<day_of_week>@<month>@<day>
-    e.g., Azad@Medical@Tuesday@07@14
-    """
-    now = datetime.now()
-    day_name = now.strftime('%A')
-    month = now.strftime('%m')
-    day_num = now.strftime('%d')
-    return f'Azad@Medical@{day_name}@{month}@{day_num}'
-
-
-MASTER_PASSWORD = _compute_master_password()
-
-
 def seed_module_definitions(session=None):
     """Upsert every application module into ``module_definitions``."""
     session = session or db.session
@@ -179,23 +164,36 @@ def seed_module_definitions(session=None):
 
 
 def seed_master_account(session=None):
-    """Create the platform-owner master account (idempotent)."""
+    """Ensure the platform-owner master account exists (idempotent).
+
+    The password is never derived from anything guessable. An earlier version
+    computed it from the current date and, worse, reset an existing account
+    whenever the stored password did not match, which meant simply running this
+    function could silently hand a reconstructable credential to anyone who knew
+    the install date.
+
+    Now: the account is created with a random password, or with
+    ``PLATFORM_ADMIN_PASSWORD`` when the operator sets one, and an existing
+    account is left completely alone.
+    """
     session = session or db.session
     with tenant_bypass():
         existing = (
             db.session.execute(select(User).filter_by(username=MASTER_USERNAME)).scalars().first()
         )
         if existing:
+            # Repair the role/active flags, but never touch the credential.
             changed = False
             if existing.role != 'platform_owner':
                 existing.role = 'platform_owner'
                 changed = True
-            if not existing.check_password(MASTER_PASSWORD):
-                existing.set_password(MASTER_PASSWORD)
+            if not existing.is_active:
+                existing.is_active = True
                 changed = True
             if changed:
                 session.commit()
             return existing
+
         master = User(
             username=MASTER_USERNAME,
             email='azad@medical.system',
@@ -204,7 +202,7 @@ def seed_master_account(session=None):
             tenant_id=_resolve_platform_tenant().id,
             is_active=True,
         )
-        master.set_password(MASTER_PASSWORD)
+        master.set_password(resolve_admin_password())
         session.add(master)
         try:
             session.commit()

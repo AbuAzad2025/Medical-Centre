@@ -650,13 +650,13 @@ class PricingService:
     def seed_departments():
         """Seed the department catalogue, delegating to the canonical list.
 
-        The list itself lives in :mod:`app.core.reference_data` so the bootstrap
+        The list itself lives in :mod:`utils.seed_manifest` so the bootstrap
         and this service cannot drift apart. The call is still per-request rather
         than per-boot because the caller may be operating for a specific tenant;
         the tenant's own context therefore applies, and ``tenant_id`` is set
         explicitly, which the previous inline version omitted.
         """
-        from app.core.reference_data import DEFAULT_DEPARTMENTS
+        from utils.seed_manifest import DEFAULT_DEPARTMENTS
 
         try:
             created = 0

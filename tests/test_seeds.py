@@ -19,16 +19,6 @@ from models.visit import Visit
 from seeds import local_dev_story as dev
 from seeds import production_baseline as pb
 
-
-def _compute_expected_master_password() -> str:
-    """Compute the expected master password based on current date."""
-    now = datetime.now()
-    day_name = now.strftime('%A')
-    month = now.strftime('%m')
-    day_num = now.strftime('%d')
-    return f'Azad@Medical@{day_name}@{month}@{day_num}'
-
-
 APPLICATION_MODULE_COUNT = len([n for n in MODULE_REGISTRY if n != 'owner'])
 
 
@@ -37,7 +27,7 @@ def _rls_bypass():
     """Allow cross-tenant assertions regardless of the test's tenant context.
 
     Since migration ``s2_001`` made ``tenant_id`` NOT NULL, we must NOT
-    nullify ``g.tenant_id`` here — ``auto_assign_tenant`` needs it to give
+    nullify ``g.tenant_id`` here â€” ``auto_assign_tenant`` needs it to give
     newly created rows a valid tenant_id.  The bypass flag is sufficient to
     prevent tenant filtering on queries.
     """
@@ -91,11 +81,22 @@ def test_seed_master_account(app, rollback_db):
     assert master.role == 'platform_owner'
     assert master.tenant_id is not None
     assert master.is_active is True
-    # Password is dynamically computed based on current date
-    expected_password = _compute_expected_master_password()
-    assert master.check_password(expected_password) is True
+    # The credential must not be reconstructable. This assertion used to pin the
+    # account to Azad@Medical@<weekday>@<MM>@<DD>, which meant anyone who knew
+    # the install date could log in as the platform owner. It is now random, so
+    # the test asserts the opposite: the old value must NOT work, and re-running
+    # must not overwrite a password an operator has since chosen.
+    legacy = f'Azad@Medical@{datetime.now().strftime("%A")}@{datetime.now().strftime("%m")}@{datetime.now().strftime("%d")}'
+    assert master.check_password(legacy) is False, 'date-derived master password is live again'
+    assert master.password_hash, 'master account has no password hash'
+
+    master.set_password('an-operator-chosen-password')
+    db.session.commit()
     again = pb.seed_master_account()
     assert again.id == master.id
+    assert again.check_password('an-operator-chosen-password') is True, (
+        'seed_master_account overwrote an existing password'
+    )
     assert (
         db.session.execute(
             select(func.count()).select_from(User).filter_by(username='azad')

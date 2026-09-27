@@ -10,9 +10,15 @@ Creates:
 Usage:
     python -m scripts.first_run.dev_first_run
 
-Passwords are FIXED for convenience in dev only:
-    azad:        DevAzad123!
-    All staff:   DevPass123!
+Passwords:
+    The platform owner (azad) gets a random password, printed once when the
+    account is created, or whatever PLATFORM_ADMIN_PASSWORD is set to. It is no
+    longer a fixed literal in this file: a credential checked into the
+    repository is a credential, and this script is one copy-paste away from
+    being pointed at a real database.
+
+    Staff accounts still share DevPass123! in dev, overridable with
+    DEV_STAFF_PASSWORD.
 """
 
 import os
@@ -27,8 +33,23 @@ os.environ['SECRET_KEY'] = 'dev-secret-key-do-not-use-in-production'
 os.environ['APP_ENV'] = 'testing'
 os.environ['DATABASE_URL'] = 'postgresql://postgres:123@localhost:5432/medical_system_test'
 
-FIXED_MASTER_PASSWORD = 'DevAzad123!'
-FIXED_STAFF_PASSWORD = 'DevPass123!'
+# Dev-only convenience passwords. These are documented as throwaway and this
+# script hard-codes a localhost testing database, but a fixed credential in the
+# repository is still a fixed credential: if it is ever pointed at a real
+# database, the platform owner account becomes publicly known. The master account
+# therefore uses the shared random generator, same as production.
+DEV_STAFF_PASSWORD = os.environ.get('DEV_STAFF_PASSWORD') or 'DevPass123!'
+FIXED_STAFF_PASSWORD = DEV_STAFF_PASSWORD
+
+
+def _master_password() -> str:
+    """Random unless the operator explicitly chose one.
+
+    Never a literal in this file, and never derived from the date.
+    """
+    from utils.seed_manifest import resolve_admin_password
+
+    return resolve_admin_password()
 
 
 def _banner(title: str) -> None:
@@ -69,10 +90,11 @@ def main() -> None:
 
         if existing:
             master = db.session.get(User, existing[0])
-            master.set_password(FIXED_MASTER_PASSWORD)
+            # The credential is never overwritten: resetting a working password
+            # on every run locks people out and hides the real one.
             master.role = 'platform_owner'
             master.is_active = True
-            print('  Updated existing azad account')
+            print('  Existing azad account left with its current password')
         else:
             master = User(
                 username='azad',
@@ -82,12 +104,12 @@ def main() -> None:
                 tenant_id=master_tenant.id,
                 is_active=True,
             )
-            master.set_password(FIXED_MASTER_PASSWORD)
+            master.set_password(_master_password())
             db.session.add(master)
             print('  Created azad account')
         db.session.commit()
         print('  Username: azad')
-        print(f'  Password: {FIXED_MASTER_PASSWORD}')
+        print('  Password: printed once above at creation, or set PLATFORM_ADMIN_PASSWORD')
         print('  Role:     platform_owner')
 
         # ── 3. Demo Tenant ────────────────────────────────────────────────────
@@ -423,7 +445,7 @@ def main() -> None:
         print(f'  Patients:    {counts["patients"]}')
         print(f'  Medications: {counts["medications"]}')
         print(f'  Suppliers:   {counts["suppliers"]}')
-        print(f'\n  Master login:  azad / {FIXED_MASTER_PASSWORD}')
+        print('\n  Master login:  azad (password shown when the account is created)')
         print(f'  Staff login:  reception / {FIXED_STAFF_PASSWORD}  (or any staff account)')
         print('\n  App URL: http://127.0.0.1:5001/auth/login')
         print('  DB: medical_system_test\n')

@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import logging
 import os
-import secrets
 from pathlib import Path
 from typing import Any
 
@@ -33,25 +32,19 @@ from sqlalchemy import select
 
 from app.extensions import db
 from utils.db_safety import safe_commit
+from utils.seed_manifest import (
+    PLATFORM_ADMIN_EMAIL,
+    PLATFORM_ADMIN_ROLE,
+    PLATFORM_ADMIN_USERNAME,
+    RUNTIME_DIRECTORIES,
+    resolve_admin_password,
+)
 
 logger = logging.getLogger(__name__)
 
 #: Directories the app writes to at runtime. All of these are listed in
 #: .gitignore, which is exactly why they are absent on a fresh clone and why
 #: provisioning them belongs here rather than in the repository.
-RUNTIME_DIRECTORIES = (
-    'instance',
-    'logs',
-    'backups',
-    'flask_session',
-    'static/uploads',
-    'static/reports',
-)
-
-#: Role that grants platform-wide access. Matches utils.decorators and
-#: services.access_control_service, which is the single naming convention.
-PLATFORM_ADMIN_ROLE = 'super_admin'
-PLATFORM_ADMIN_USERNAME = os.environ.get('PLATFORM_ADMIN_USERNAME', 'superadmin')
 
 
 def _table_count(table: str) -> int:
@@ -108,21 +101,14 @@ def ensure_saas_packages() -> int:
     return max(after - before, 0) if before >= 0 else len(created)
 
 
-_DEVELOPER_DEFAULTS = [
-    {'key': 'developer_company', 'value': 'شركة آزاد للأنظمة الذكية', 'type': 'string'},
-    {'key': 'developer_name', 'value': 'المهندس أحمد غنام', 'type': 'string'},
-    {'key': 'developer_logo_url', 'value': '', 'type': 'string'},
-    {'key': 'developer_mobile', 'value': '+ --------', 'type': 'string'},
-    {'key': 'developer_location', 'value': 'رام الله - فلسطين', 'type': 'string'},
-]
-
-
 def ensure_developer_config() -> int:
     """Seed developer info into system_configs if absent (idempotent, platform bootstrap)."""
     from models.system_config import SystemConfig
 
     added = 0
-    for d in _DEVELOPER_DEFAULTS:
+    from utils.seed_manifest import DEVELOPER_CONFIG
+
+    for d in DEVELOPER_CONFIG:
         if (
             not db.session.execute(select(SystemConfig).filter_by(config_key=d['key']))
             .scalars()
@@ -319,10 +305,10 @@ def ensure_platform_admin() -> dict[str, Any]:
                 state['already_present'] = True
                 return state
 
-            password = os.environ.get('PLATFORM_ADMIN_PASSWORD') or secrets.token_urlsafe(18)
+            password = resolve_admin_password()
             admin = User(
                 username=PLATFORM_ADMIN_USERNAME,
-                email=os.environ.get('PLATFORM_ADMIN_EMAIL', 'admin@localhost'),
+                email=PLATFORM_ADMIN_EMAIL,
                 full_name='Platform Administrator',
                 role=PLATFORM_ADMIN_ROLE,
                 is_active=True,
@@ -375,10 +361,10 @@ def ensure_departments() -> dict[str, Any]:
         # own queries return nothing afterwards.
         from flask import g
 
-        from app.core.reference_data import DEFAULT_DEPARTMENTS
         from app.core.tenant.middleware import bind_g_tenant
         from app.core.tenant.models import Tenant
         from models.department import Department
+        from utils.seed_manifest import DEFAULT_DEPARTMENTS
 
         had_binding = 'tenant_id' in g
         previous_g_id = g.get('tenant_id')
@@ -439,7 +425,7 @@ def check_reference_data_readiness() -> dict[str, Any]:
     A deployment that booted cleanly but has no departments is not ready, and
     nothing would say so. This turns that into an explicit, logged verdict.
     """
-    from app.core.reference_data import DEFAULT_DEPARTMENTS, ESSENTIAL_DEPARTMENTS
+    from utils.seed_manifest import DEFAULT_DEPARTMENTS, ESSENTIAL_DEPARTMENTS
 
     outcome: dict[str, Any] = {'ok': True, 'missing_essential': []}
     try:
@@ -478,36 +464,19 @@ def run_platform_bootstrap(*, quiet: bool = False) -> dict[str, Any]:
         return {'skipped': True}
 
     log = _log().debug if quiet else _log().info
-
-    # The three original counters are part of the published contract of this
-    # function and are asserted by tests and by the CLI command, so they keep
-    # their names and meanings. The new checks are added alongside them.
     summary: dict[str, Any] = {'skipped': False}
-    for key, step in (
-        ('module_definitions_added', ensure_module_definitions),
-        ('product_bundles', ensure_product_bundles),
-        ('saas_packages_added', ensure_saas_packages),
-    ):
-        try:
-            summary[key] = step()
-        except Exception as exc:  # noqa: BLE001
-            summary[key] = 0
-            summary[f'{key}_error'] = str(exc)
-            _log().exception('Bootstrap step %r failed: %s', key, exc)
 
-    for key, step in (
-        ('schema', check_schema_health),
-        ('storage', ensure_storage_directories),
-        ('developer_config', ensure_developer_config),
-        ('departments', ensure_departments),
-        ('reference_data', check_reference_data_readiness),
-        ('admin', ensure_platform_admin),
-    ):
+    # One loop over the manifest, so adding a dataset is a data change. The
+    # three original counters keep their historical summary keys because they
+    # are part of this function's published contract.
+    from utils.seed_manifest import build_registry
+
+    for dataset in build_registry():
         try:
-            summary[key] = step()
+            summary[dataset.summary_key] = dataset.provider()
         except Exception as exc:  # noqa: BLE001
-            summary[key] = {'error': str(exc)}
-            _log().exception('Bootstrap step %r failed: %s', key, exc)
+            summary[f'{dataset.summary_key}_error'] = str(exc)
+            _log().exception('Bootstrap step %r failed: %s', dataset.key, exc)
 
     log('Platform bootstrap: %s', summary)
     return summary
