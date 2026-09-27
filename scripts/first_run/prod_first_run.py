@@ -4,19 +4,25 @@ First-run setup script for PRODUCTION.
 
 Creates ONLY:
 - Platform catalog (modules, bundles, SaaS packages, developer config)
-- Master account azad (platform_owner)
+- Storage directories
+- The platform superadmin account
 
 No demo data. No sample tenants. Clean production start.
 
 Usage:
     python -m scripts.first_run.prod_first_run
 
-Password is DYNAMIC — computed from today's date:
-    Format: Azad@Medical@<DayName>@<MM>@<DD>
-    Example: Azad@Medical@Monday@08@31
+Password handling:
+    The master account is created by the shared bootstrap engine
+    (app.core.platform_bootstrap.ensure_platform_admin). It reads
+    PLATFORM_ADMIN_PASSWORD if you set it, otherwise it generates a random
+    password and logs it exactly once, at creation. An account that already
+    exists is never reset.
 
-The script prints the computed password and a QR-code-style
-reminder. Save it in a password manager immediately after running.
+    An earlier version derived the password from the current date
+    (Azad@Medical@<DayName>@<MM>@<DD>) and rewrote it on every run. That made
+    the platform owner credential reconstructable by anyone who knew the
+    install date, so it was removed rather than kept as an option.
 """
 
 import os
@@ -33,14 +39,6 @@ os.environ['APP_ENV'] = 'testing'
 os.environ['DATABASE_URL'] = 'postgresql://postgres:123@localhost:5432/medical_system_test'
 
 
-def _compute_master_password() -> str:
-    now = datetime.now()
-    day_name = now.strftime('%A')
-    month = now.strftime('%m')
-    day_num = now.strftime('%d')
-    return f'Azad@Medical@{day_name}@{month}@{day_num}'
-
-
 def _banner(title: str) -> None:
     sep = '=' * 60
     print(f'\n{sep}\n  {title}\n{sep}')
@@ -52,7 +50,6 @@ def main() -> None:
     from app.core.platform_bootstrap import run_platform_bootstrap
     from app.extensions import db
     from app_factory import create_app
-    from models.user import User
 
     app = create_app('testing')
 
@@ -69,9 +66,6 @@ def main() -> None:
     print(f'  DATABASE:    {db_url}')
     print(f'  Timestamp:  {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
 
-    master_password = _compute_master_password()
-    print(f'\n  Computed master password: {master_password}')
-
     with app.app_context():
         # ── 1. Platform Bootstrap ──────────────────────────────────────────────
         _banner('1. Platform Bootstrap')
@@ -87,42 +81,20 @@ def main() -> None:
         master_tenant = _resolve_platform_tenant()
         print(f'  Tenant: {master_tenant.slug} (id={master_tenant.id})')
 
-        existing = db.session.execute(
-            text("SELECT id FROM users WHERE username = 'azad'")
-        ).fetchone()
+        # Delegated to the single bootstrap engine, which generates a random
+        # password, logs it once on creation, and never touches an account that
+        # already exists. The previous implementation derived the password from
+        # today's date and rewrote it on every run, so the platform owner
+        # credential could be reconstructed by anyone who knew the install date.
+        from app.core.platform_bootstrap import PLATFORM_ADMIN_USERNAME, ensure_platform_admin
 
-        if existing:
-            master = db.session.get(User, existing[0])
-            master.set_password(master_password)
-            master.role = 'platform_owner'
-            master.is_active = True
-            db.session.commit()
-            print('  Updated existing azad account')
+        admin_state = ensure_platform_admin()
+        if admin_state.get('error'):
+            print(f'  ! Admin provisioning failed: {admin_state["error"]}')
+        elif admin_state.get('already_present'):
+            print(f'  Account {PLATFORM_ADMIN_USERNAME!r} already exists; password unchanged.')
         else:
-            master = User(
-                username='azad',
-                email='azad@medical.system',
-                full_name='Platform Owner (Azad)',
-                role='platform_owner',
-                tenant_id=master_tenant.id,
-                is_active=True,
-            )
-            master.set_password(master_password)
-            db.session.add(master)
-            db.session.commit()
-            print('  Created azad account')
-
-        print('\n  ┌─────────────────────────────────────────────────────────┐')
-        print('  │  MASTER CREDENTIALS — SAVE IMMEDIATELY                 │')
-        print('  │                                                         │')
-        print('  │  Username:  azad                                       │')
-        print(f'  │  Password:  {master_password}  │')
-        print('  │  Role:      platform_owner                             │')
-        print(f'  │  Tenant:    platform (id={master_tenant.id})                      │')
-        print('  │                                                         │')
-        print('  │  Note: Password changes DAILY at midnight.              │')
-        print('  │  Always use: Azad@Medical@<Today>@<MM>@<DD>             │')
-        print('  └─────────────────────────────────────────────────────────┘')
+            print(f'  Created {PLATFORM_ADMIN_USERNAME!r}; its password is in the log above.')
 
         # ── Final ────────────────────────────────────────────────────────────
         _banner('PRODUCTION SETUP COMPLETE')
