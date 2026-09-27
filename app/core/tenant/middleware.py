@@ -100,20 +100,29 @@ def _single_install_default_tenant() -> Tenant | None:
     if cfg.get('ENABLE_SAAS_MODE', False):
         return None
 
-    slug = cfg.get('TENANT_DEFAULT_SLUG') or 'default'
-    tenant = _get_tenant_by_slug(slug)
-    if tenant:
-        return tenant
+    # Best-effort by design. This runs on every non-SaaS request, including the
+    # unauthenticated health probes, so it must never be the thing that breaks
+    # the app: before the first migration there is no `tenants` table at all, and
+    # an unmigrated database still has to answer /__health. Mirrors the
+    # fail-closed-but-not-fatal handling used elsewhere in this module.
+    try:
+        slug = cfg.get('TENANT_DEFAULT_SLUG') or 'default'
+        tenant = _get_tenant_by_slug(slug)
+        if tenant:
+            return tenant
 
-    # TENANT_DEFAULT_SLUG did not resolve. Fall back to the first active tenant
-    # that is not the SaaS control-plane tenant.
-    #
-    # Only `tenants` is queried here on purpose: it carries no RLS policy, so it
-    # is readable before any tenant is bound. Selecting on `users` instead would
-    # deadlock — RLS hides every user row until a tenant is already set, so the
-    # lookup could never inform the binding it depends on.
-    platform_slug = (cfg.get('PLATFORM_TENANT_SLUG') or 'platform').strip().lower()
-    return _first_non_platform_tenant(platform_slug)
+        # TENANT_DEFAULT_SLUG did not resolve. Fall back to the first active
+        # tenant that is not the SaaS control-plane tenant.
+        #
+        # Only `tenants` is queried here on purpose: it carries no RLS policy,
+        # so it is readable before any tenant is bound. Selecting on `users`
+        # instead would deadlock — RLS hides every user row until a tenant is
+        # already set, so the lookup could never inform the binding it needs.
+        platform_slug = (cfg.get('PLATFORM_TENANT_SLUG') or 'platform').strip().lower()
+        return _first_non_platform_tenant(platform_slug)
+    except Exception:
+        db.session.rollback()
+        return None
 
 
 def _first_non_platform_tenant(platform_slug: str) -> Tenant | None:
