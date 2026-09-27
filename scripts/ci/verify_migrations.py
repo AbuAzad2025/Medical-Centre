@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Create a fresh DB, run all Alembic migrations, verify success."""
 
 from __future__ import annotations
@@ -92,4 +92,3 @@ def main() -> int:
 
 if __name__ == '__main__':
     raise SystemExit(main())
-

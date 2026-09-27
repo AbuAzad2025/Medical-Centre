@@ -1,4 +1,4 @@
-﻿"""Migration chain smoke tests."""
+"""Migration chain smoke tests."""
 
 from __future__ import annotations
 
@@ -56,4 +56,3 @@ def test_alembic_heads_expected(app):
     # Verify no unexpected heads (allow some flexibility for future additions)
     unexpected = head_revisions - EXPECTED_HEADS
     assert not unexpected, f'Unexpected heads found: {unexpected}. Expected: {EXPECTED_HEADS}'
-
