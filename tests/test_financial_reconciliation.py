@@ -220,6 +220,32 @@ class TestFinancialServiceReconcileVisitPayments:
 class TestInsuranceClaim:
     """Tests for insurance claim generation, adjudication, and tenant isolation."""
 
+    @pytest.fixture(autouse=True)
+    def _bind_tenant(self, test_tenant):
+        """Keep a tenant bound for every test in this class.
+
+        FinancialService is fail-closed: a Visit query with no tenant context
+        raises instead of silently reading across tenants. bind_g_tenant sets
+        app.tenant_id with set_config(..., is_local=true), which PostgreSQL drops
+        at the end of each transaction, and these tests commit while building
+        their fixtures. So the session-level variable is set too, and cleared
+        afterwards, which makes the class independent of test ordering in a CI
+        shard.
+        """
+        from sqlalchemy import text
+
+        from app.core.tenant.middleware import bind_g_tenant
+        from app.extensions import db
+
+        bind_g_tenant(test_tenant)
+        db.session.execute(
+            text("SELECT set_config('app.tenant_id', :tid, false)"),
+            {'tid': str(test_tenant.id)},
+        )
+        yield
+        db.session.execute(text("SELECT set_config('app.tenant_id', '', false)"))
+        db.session.info.pop('_tenant_id', None)
+
     def _create_issued_invoice(self, app, test_tenant, recon_visit):
         """Helper: create an ISSUED invoice and return it."""
         from models.invoice import Invoice
