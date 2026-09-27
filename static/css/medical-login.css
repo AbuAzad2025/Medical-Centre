@@ -309,8 +309,8 @@ html, body {
 
 .input-wrap .field-icon {
   position: absolute;
-  top: 50%;
   inset-inline-end: 0.9rem;
+  top: 50%;
   z-index: 2;
   font-size: 0.9rem;
   color: var(--md-text-muted);
@@ -360,8 +360,8 @@ html, body {
 
 .toggle-password-btn {
   position: absolute;
-  top: 50%;
   inset-inline-start: 0.65rem;
+  top: 50%;
   display: flex;
   gap: 0.25rem;
   align-items: center;

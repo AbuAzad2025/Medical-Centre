@@ -48,8 +48,8 @@
 
 .owner-sidebar {
   position: fixed;
-  top: 0;
   inset-inline-end: 0;
+  top: 0;
   bottom: 0;
   z-index: 1040;
   width: var(--owner-sidebar-width);
@@ -811,6 +811,7 @@
 .gap-4 { gap: 1.5rem !important; }
 .justify-content-end { justify-content: flex-end !important; }
 .align-items-center { align-items: center !important; }
+
 /* Logical properties — direction-agnostic (Bootstrap RTL flips these natively) */
 .text-end { text-align: end !important; }
 .text-start { text-align: start !important; }

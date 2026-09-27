@@ -142,8 +142,8 @@
 
 .flash-messages {
   position: fixed;
-  top: 100px;
   inset-inline-end: 2rem;
+  top: 100px;
   z-index: 1050;
   max-width: 400px;
 }
