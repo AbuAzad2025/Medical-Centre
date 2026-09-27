@@ -1520,7 +1520,13 @@ class TestReceptionPayments:
         resp = client.post(
             '/reception/pos/charge', data={'amount': '100'}, headers={'Accept': 'application/json'}
         )
-        assert resp.status_code in (403, 200, 500)
+        # 403  -> billing module not enabled for the tenant
+        # 200  -> charge went through
+        # 400  -> invalid amount
+        # 502/503 -> the POS terminal is unconfigured or unreachable. These are
+        # dependency failures, not server faults, so they must not be reported
+        # as 500 (see app/shared/pos_charge.py::_POS_STATUS_BY_CODE).
+        assert resp.status_code in (403, 200, 400, 502, 503)
 
     def test_print_receipt(self, app, client, db, rollback_db, test_tenant):
         _reception(client, db, test_tenant)

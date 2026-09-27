@@ -18,6 +18,9 @@ class PosTerminalService:
         if not PosTerminalService.is_enabled():
             return {
                 'success': False,
+                # Stable machine-readable discriminator so callers can map this
+                # to 503 (feature unavailable) instead of a generic 500.
+                'code': 'pos_not_enabled',
                 'message': 'خدمة الدفع الإلكتروني غير مفعلة حالياً (not enabled)',
             }
         try:
@@ -41,9 +44,22 @@ class PosTerminalService:
                     'currency': parsed.get('currency', currency),
                     'message': parsed.get('message'),
                 }
-        except error.HTTPError:
-            return {'success': False, 'message': 'تعذر تنفيذ عملية الدفع عبر الجهاز حالياً'}
+        except error.HTTPError as exc:
+            return {
+                'success': False,
+                'code': 'pos_terminal_error',
+                'status': exc.code,
+                'message': 'تعذر تنفيذ عملية الدفع عبر الجهاز حالياً',
+            }
         except error.URLError:
-            return {'success': False, 'message': 'تعذر الاتصال بجهاز الدفع حالياً (conn)'}
+            return {
+                'success': False,
+                'code': 'pos_terminal_unreachable',
+                'message': 'تعذر الاتصال بجهاز الدفع حالياً (conn)',
+            }
         except Exception:
-            return {'success': False, 'message': 'تعذر تنفيذ عملية الدفع حالياً'}
+            return {
+                'success': False,
+                'code': 'pos_terminal_error',
+                'message': 'تعذر تنفيذ عملية الدفع حالياً',
+            }

@@ -306,6 +306,15 @@ def create_app(config_name: str | None = None) -> Flask:
     app.jinja_env.globals['resolve_visit_payment_status_badge'] = resolve_visit_payment_status_badge
     app.jinja_env.globals['_'] = lambda s: s
 
+    # Flask-WTF exposes the CSRF helper as `csrf_token`. A number of templates
+    # call `{{ csrf() }}` instead, which raised
+    # jinja2.exceptions.UndefinedError: 'csrf' is undefined -> HTTP 500.
+    # Register `csrf` as an alias so both spellings resolve to the real helper.
+    # (tests/test_routes_owner.py used to stub this global, which hid the bug.)
+    from flask_wtf.csrf import generate_csrf
+
+    app.jinja_env.globals.setdefault('csrf', generate_csrf)
+
     from app.shared.branding_context import get_branding_row
     from app.shared.print_context import resolve_print_context
 

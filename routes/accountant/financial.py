@@ -400,7 +400,7 @@ def refund_requests():
     if status:
         q = q.filter(RefundRequest.status == status)
     refunds = (
-        db.session.execute(q.order_by(RefundRequest.created_at.desc()).limit(100)).scalars().all()
+        db.session.execute(q.order_by(RefundRequest.requested_at.desc()).limit(100)).scalars().all()
     )
     return render_template('accountant/refund_requests.html', refunds=refunds, status=status)
 

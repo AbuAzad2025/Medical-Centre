@@ -72,7 +72,11 @@ EXCLUDED_DIRS = {
 # Files that are exempt even if they contain CJK (e.g., intentional examples)
 # Keep this list minimal and documented. Use relative POSIX paths.
 ALLOWLIST_FILES = {
-    # Example: "docs/CHINESE_EXAMPLE.md",
+    # Upstream vendor bundles ship their own localisation tables, which contain
+    # fullwidth-ASCII and Cyrillic ranges that this check would otherwise flag.
+    # These are third-party files — do not edit them to satisfy the gate.
+    'static/vendor/select2/js/select2.min.js',
+    'static/vendor/tom-select/js/tom-select.complete.min.js',
 }
 
 # Extensions that are scanned. Everything else is ignored to keep the check fast

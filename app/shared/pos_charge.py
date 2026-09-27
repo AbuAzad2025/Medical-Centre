@@ -7,6 +7,26 @@ import logging
 from app.shared.user_messages import localize_pos_message, user_message
 from services.pos_terminal_service import PosTerminalService
 
+# Business/precondition failures are not server errors. Mapping them to 500 made
+# a correctly-configured deployment look broken and buried real incidents in
+# error dashboards, so each terminal outcome now gets its own status.
+_POS_STATUS_BY_CODE = {
+    'pos_not_enabled': 503,  # feature not configured for this tenant
+    'pos_terminal_unreachable': 503,  # device offline / DNS / refused
+    'pos_terminal_error': 502,  # upstream terminal returned an error
+    'pos_declined': 402,  # issuer declined the charge
+}
+
+
+def _status_for(result: dict) -> int:
+    code = result.get('code')
+    if code in _POS_STATUS_BY_CODE:
+        return _POS_STATUS_BY_CODE[code]
+    # Terminal answered but declined: treat as a payment failure (402), not 500.
+    if result.get('transaction_id') is None and result.get('approval_code') is None:
+        return 402
+    return 502
+
 
 def execute_pos_charge(amount_raw) -> tuple[dict, int]:
     try:
@@ -17,7 +37,7 @@ def execute_pos_charge(amount_raw) -> tuple[dict, int]:
         if not result.get('success'):
             result = dict(result)
             result['message'] = localize_pos_message(result.get('message'))
-            return result, 500
+            return result, _status_for(result)
         return result, 200
     except (TypeError, ValueError):
         return {'success': False, 'message': user_message('pos_amount_invalid')}, 400
