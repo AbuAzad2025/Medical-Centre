@@ -57,6 +57,17 @@ def drop_unique_constraint_if_exists(table: str, constraint_name: str) -> None:
 
 
 def enable_tenant_rls(tables: list[str]) -> None:
+    """Enable + FORCE tenant RLS with a pooled-connection-safe policy.
+
+    The expression MUST keep the NULLIF wrapper. Without it, a backend that
+    still carries ``app.tenant_id = ''`` from a previous request raises
+    ``invalid input syntax for type integer: ""`` on the next statement, which
+    surfaces to the user as an intermittent HTTP 500. See s1_012_rls_nullif
+    and s3_012_rls_nullif_reassert.
+
+    WITH CHECK is mandatory: without it a policy restricts reads but still
+    allows a row to be written under another tenant's id.
+    """
     for table in tables:
         if not table_exists(table):
             continue
@@ -65,10 +76,11 @@ def enable_tenant_rls(tables: list[str]) -> None:
         policy_name = f'tenant_isolation_{table}'
         op.execute(f'ALTER TABLE {table} ENABLE ROW LEVEL SECURITY')
         op.execute(f'ALTER TABLE {table} FORCE ROW LEVEL SECURITY')
-        op.execute(f"DROP POLICY IF EXISTS {policy_name} ON {table}")
+        op.execute(f'DROP POLICY IF EXISTS {policy_name} ON {table}')
         op.execute(
             f"CREATE POLICY {policy_name} ON {table} "
-            f"USING (tenant_id = current_setting('app.tenant_id', true)::int)"
+            f"USING (tenant_id = NULLIF(current_setting('app.tenant_id'::text, true), '')::integer) "
+            f"WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id'::text, true), '')::integer)"
         )
 
 
