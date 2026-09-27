@@ -7,9 +7,11 @@ import logging
 from app.shared.user_messages import localize_pos_message, user_message
 from services.pos_terminal_service import PosTerminalService
 
-# Business/precondition failures are not server errors. Mapping them to 500 made
-# a correctly-configured deployment look broken and buried real incidents in
-# error dashboards, so each terminal outcome now gets its own status.
+# Business/precondition failures are not server errors. Mapping every one of
+# them to 500 made a correctly configured deployment with no card terminal look
+# broken and buried real incidents in error dashboards. PosTerminalService now
+# reports a stable `code`, and only that code is mapped; an unrecognised result
+# keeps the historical 500.
 _POS_STATUS_BY_CODE = {
     'pos_not_enabled': 503,  # feature not configured for this tenant
     'pos_terminal_unreachable': 503,  # device offline / DNS / refused
@@ -19,13 +21,15 @@ _POS_STATUS_BY_CODE = {
 
 
 def _status_for(result: dict) -> int:
-    code = result.get('code')
-    if code in _POS_STATUS_BY_CODE:
-        return _POS_STATUS_BY_CODE[code]
-    # Terminal answered but declined: treat as a payment failure (402), not 500.
-    if result.get('transaction_id') is None and result.get('approval_code') is None:
-        return 402
-    return 502
+    """Map a POS failure onto an HTTP status.
+
+    Only an explicit ``code`` from PosTerminalService is trusted. Anything
+    unrecognised — including a stubbed or legacy service that returns only
+    ``success``/``message`` — keeps the previous 500 rather than being guessed
+    at, so this helper never changes the contract for a response it cannot
+    actually classify.
+    """
+    return _POS_STATUS_BY_CODE.get(result.get('code'), 500)
 
 
 def execute_pos_charge(amount_raw) -> tuple[dict, int]:
