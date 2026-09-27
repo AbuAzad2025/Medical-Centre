@@ -648,37 +648,39 @@ class PricingService:
 
     @staticmethod
     def seed_departments():
+        """Seed the department catalogue, delegating to the canonical list.
+
+        The list itself lives in :mod:`app.core.reference_data` so the bootstrap
+        and this service cannot drift apart. The call is still per-request rather
+        than per-boot because the caller may be operating for a specific tenant;
+        the tenant's own context therefore applies, and ``tenant_id`` is set
+        explicitly, which the previous inline version omitted.
+        """
+        from app.core.reference_data import DEFAULT_DEPARTMENTS
+
         try:
             created = 0
-            items = [
-                {'name': 'Radiology', 'name_ar': 'الأشعة'},
-                {'name': 'Lab', 'name_ar': 'المختبر'},
-                {'name': 'General Clinic', 'name_ar': 'العيادة العامة'},
-                {'name': 'Emergency', 'name_ar': 'الطوارئ'},
-                {'name': 'Internal Medicine', 'name_ar': 'الباطنية'},
-                {'name': 'Gynecology', 'name_ar': 'النسائية'},
-                {'name': 'Pediatrics', 'name_ar': 'الأطفال'},
-                {'name': 'General Surgery', 'name_ar': 'الجراحة العامة'},
-                {'name': 'Orthopedics', 'name_ar': 'العظام'},
-                {'name': 'Cardiology', 'name_ar': 'القلبية'},
-                {'name': 'ENT', 'name_ar': 'أنف وأذن وحنجرة'},
-                {'name': 'Ophthalmology', 'name_ar': 'العيون'},
-                {'name': 'Dermatology', 'name_ar': 'الجلدية'},
-                {'name': 'Urology', 'name_ar': 'المسالك البولية'},
-                {'name': 'Neurology', 'name_ar': 'الأعصاب'},
-            ]
             result = {}
-            for item in items:
-                dept = (
-                    db.session.execute(select(Department).filter_by(name=item['name']))
-                    .scalars()
-                    .first()
-                )
-                if not dept:
-                    dept = Department(name=item['name'], name_ar=item['name_ar'], is_active=True)
+            for name, name_ar in DEFAULT_DEPARTMENTS:
+                dept = db.session.execute(select(Department).filter_by(name=name)).scalars().first()
+                if dept is None:
+                    from flask import g
+
+                    tenant_id = g.get('tenant_id') if g else None
+                    if tenant_id is None:
+                        return {
+                            'success': False,
+                            'message': 'لا يوجد سياق مستأجر لتهيئة الأقسام',
+                        }
+                    dept = Department(
+                        name=name,
+                        name_ar=name_ar,
+                        is_active=True,
+                        tenant_id=tenant_id,
+                    )
                     db.session.add(dept)
                     created += 1
-                result[item['name']] = dept
+                result[name] = dept
             if not safe_commit(db.session, error_message='فشل عملية قاعدة البيانات'):
                 return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {
@@ -687,7 +689,7 @@ class PricingService:
                 'departments': {k: v.id for k, v in result.items()},
             }
         except Exception:
-            logging.exception('Error seeding departments: %s')
+            logging.exception('Error seeding departments')
             return {'success': False, 'message': 'تعذر تهيئة الأقسام حالياً'}
 
     @staticmethod
