@@ -1,7 +1,7 @@
 # حالة المنصة — مصدر الحقيقة التقنية
 
 **آخر تحقق من الكود:** 27 سبتمبر 2026 — تم التحقق من كل رقم في هذا الملف على قاعدة بيانات PostgreSQL حيّة (قاعدة مخصّصة، دور `NOSUPERUSER NOBYPASSRLS`، أي أن RLS مفروض فعليًا).
-**الإصدار:** 3.2 — رأس التهجيرات `s3_014_searchable_phi_blind_index`
+**الإصدار:** 3.3 — رأس التهجيرات `s3_015_patient_search_ngrams`
 
 > هذا الملف يُحدَّث عند تغيير البنية أو CI. لا تعتمد على خطط أو تقارير قديمة محذوفة.
 
@@ -36,12 +36,12 @@ docker compose up -d --build
 | Backend | Flask 3.1, SQLAlchemy 2.0, PostgreSQL **16** (متحقَّق أيضًا على 14) |
 | Cache / Queue | Redis 7, Celery worker |
 | Multi-tenant | `ENABLE_SAAS_MODE`, ORM filter + RLS |
-| رأس التهجيرات | `s3_014_searchable_phi_blind_index` (66 ملف في `migrations/versions/`) |
+| رأس التهجيرات | `s3_015_patient_search_ngrams` (67 ملف في `migrations/versions/`) |
 | تهجيرات (revisions) | 65 |
 | جداول ORM | 224 (`db.metadata` بعد استيراد كل النماذج) |
 | جداول في قاعدة البيانات | 226 (224 ORM + `alembic_version` + `shift_handovers`) |
 | انحراف المخطط | **0** جدول/عمود مفقود بين ORM وقاعدة البيانات (`s3_013`) |
-| قابلية البحث في PHI | **مُصلَح** (`s3_014`): أسماء/عنوان بـ AES-SIV حتمي، وهوية/هاتف بـ blind index HMAC، وفهرس فريد `(tenant_id, national_id_hash)` |
+| قابلية البحث في PHI | **مُصلَح** (`s3_014` + `s3_015`): أسماء/عنوان بـ AES-SIV حتمي، وهوية/هاتف بـ blind index HMAC، وفهرس فريد `(tenant_id, national_id_hash)`، وجدول `patient_search_ngrams` للبحث الجزئي (3 أحرف فأكثر) |
 | جداول RLS | 207 مُفعَّلة و**مُجبَرة** (FORCE) · 215 سياسة إجمالًا |
 | سياسات `tenant_isolation_*` | 206، وكلها الـ 206 تحمل حارس `NULLIF` (`s3_012`) |
 | Blueprints | 61 مسجّلة في `app_factory.py` |

@@ -4,7 +4,7 @@
 
 from datetime import UTC, date, datetime
 
-from sqlalchemy import Index, event, func, or_, select
+from sqlalchemy import Index, distinct, event, func, or_, select, text
 from sqlalchemy.orm import validates
 
 from app.extensions import db
@@ -12,6 +12,7 @@ from app.shared.encrypted_type import (
     EncryptedSearchableString,
     EncryptedString,
     blind_index_value,
+    normalize_for_index,
 )
 from app.shared.mixins import TenantMixin
 
@@ -131,6 +132,97 @@ class Patient(TenantMixin, db.Model):
         for source, digest in cls._BLIND_INDEX_FIELDS:
             setattr(target, digest, blind_index_value(getattr(target, source)))
 
+    #: Columns that get trigram rows, mapped to the source label stored with them.
+    _NGRAM_FIELDS = (
+        ('first_name', 'first_name'),
+        ('last_name', 'last_name'),
+        ('first_name_ar', 'first_name_ar'),
+        ('last_name_ar', 'last_name_ar'),
+    )
+
+    @classmethod
+    def _sync_search_ngrams(cls, connection, target) -> None:
+        """Rebuild this patient's trigram rows from the current name columns.
+
+        Deliberately done with plain SQL on the flush ``connection`` rather than
+        by mutating an ORM collection: collection changes made inside a
+        ``before_*`` mapper event are not applied reliably, and an ORM
+        relationship here would also add a SELECT to every patient load.
+
+        Each source column is replaced wholesale. Deleting first is what makes a
+        rename drop the trigrams of the old name -- a stale trigram would keep
+        matching a name the patient no longer has.
+        """
+        from app.shared import search_index
+
+        if not search_index.is_available():
+            return
+        for column, source in cls._NGRAM_FIELDS:
+            digests = search_index.digests_for(normalize_for_index(getattr(target, column, None)))
+            connection.execute(
+                text(
+                    'DELETE FROM patient_search_ngrams WHERE patient_id = :pid AND source = :source'
+                ),
+                {'pid': target.id, 'source': source},
+            )
+            if digests:
+                connection.execute(
+                    text(
+                        'INSERT INTO patient_search_ngrams '
+                        '(patient_id, source, digest, tenant_id) '
+                        'VALUES (:pid, :source, :digest, :tid)'
+                    ),
+                    [
+                        {'pid': target.id, 'source': source, 'digest': d, 'tid': target.tenant_id}
+                        for d in digests
+                    ],
+                )
+
+    @classmethod
+    def _search_by_ngrams(cls, term, *, tenant_id=None, limit=50):
+        """Substring search through the blind trigram index.
+
+        Two phases on purpose. The digest query only narrows the field down to
+        rows that plausibly contain the term; because the trigrams of a term are
+        not necessarily contiguous in the stored value, the candidates are then
+        decrypted and re-checked for a real substring match. Skipping that
+        second phase would return false positives, which for a patient lookup is
+        worse than returning nothing.
+        """
+        from app.shared import search_index
+
+        normalised = normalize_for_index(term)
+        if not search_index.is_indexable(normalised):
+            return []
+        digests = search_index.term_digests(normalised)
+        if not digests:
+            return []
+
+        ngram = PatientSearchNgram
+        matched_patient_ids = (
+            select(ngram.patient_id)
+            .where(ngram.digest.in_(digests))
+            .group_by(ngram.patient_id)
+            .having(func.count(distinct(ngram.digest)) == len(digests))
+        )
+        stmt = select(cls).where(cls.id.in_(matched_patient_ids))
+        if tenant_id is not None:
+            stmt = stmt.where(cls.tenant_id == tenant_id)
+        candidates = db.session.execute(
+            stmt.order_by(cls.id).limit(search_index.DEFAULT_CANDIDATE_LIMIT)
+        ).scalars()
+
+        matches = []
+        for patient in candidates:
+            for column, _source in cls._NGRAM_FIELDS:
+                value = getattr(patient, column, None)
+                if value and normalised in normalize_for_index(value):
+                    matches.append(patient)
+                    break
+            if len(matches) >= limit:
+                break
+        return matches[:limit]
+
     @classmethod
     def _identity_lookup(cls, column, digest_column, value, *, tenant_id=None):
         """Resolve *value* to a patient, encrypted or not.
@@ -170,22 +262,24 @@ class Patient(TenantMixin, db.Model):
 
     @classmethod
     def search(cls, term, *, tenant_id=None, limit=50):
-        """Search patients by name or identity through the blind indexes.
+        """Search patients by name or identity, encrypted or not.
 
-        Works on encrypted columns, which `ILIKE` cannot do. Matching is on the
-        normalised whole field, so "Sara", "sara" and "Sara " all find the same
-        patient, and the Arabic columns are searched alongside the Latin ones. A
-        term containing a space is matched as "first last".
+        Three strategies, in order of precision:
 
-        Partial (substring) matching is intentionally not offered: it would
-        require a trigram blind-index side table, which is a separate piece of
-        work with its own storage and false-positive trade-offs. Callers that
-        need fuzzy matching should treat this as the exact-match fast path.
+        1. Unencrypted database -> a substring ``ILIKE``, exactly as before any
+           of this existed.
+        2. Exact match on a whole normalised field, through the blind index.
+           Handles multi-word terms as "first last" and folds case, Arabic-Indic
+           digits, Unicode form and separators.
+        3. Substring match, through the blind trigram index
+           (:meth:`_search_by_ngrams`). This is what actually replaces the
+           ``ILIKE '%term%'`` queries that silently returned nothing on an
+           encrypted column.
 
-        Without a configured key the columns hold plaintext, so this falls back
-        to a substring `ILIKE` and stays as forgiving as it was before the
-        blind index existed.
+        Results are de-duplicated, so a patient matching by more than one
+        strategy is still listed once.
         """
+        from app.shared import search_index
         from services.field_encryption_service import FieldEncryptionService
 
         text = (term or '').strip()
@@ -206,7 +300,19 @@ class Patient(TenantMixin, db.Model):
             if tenant_id is not None:
                 stmt = stmt.where(cls.tenant_id == tenant_id)
             return list(db.session.execute(stmt.order_by(cls.id).limit(limit)).scalars().all())
-        parts = [p for p in text.split() if p]
+
+        found: dict[int, object] = {}
+        for patient in cls._search_exact(text, tenant_id=tenant_id, limit=limit):
+            found[patient.id] = patient
+        if search_index.is_indexable(normalize_for_index(text)):
+            for patient in cls._search_by_ngrams(text, tenant_id=tenant_id, limit=limit):
+                found.setdefault(patient.id, patient)
+        return sorted(found.values(), key=lambda p: p.id)[:limit]
+
+    @classmethod
+    def _search_exact(cls, term, *, tenant_id=None, limit=50):
+        """Whole-field match on the normalised name columns, via blind index."""
+        parts = [p for p in term.split() if p]
         first_cols = (cls.first_name_hash, cls.first_name_ar_hash)
         last_cols = (cls.last_name_hash, cls.last_name_ar_hash)
         stmt = None
@@ -373,6 +479,54 @@ def _patient_sync_blind_index(mapper, connection, target) -> None:
     conditionally.
     """
     Patient._sync_blind_indexes(target)
+
+
+@event.listens_for(Patient, 'after_insert', propagate=True)
+@event.listens_for(Patient, 'after_update', propagate=True)
+def _patient_sync_search_ngrams(mapper, connection, target) -> None:
+    """Rebuild the blind trigram rows after the patient row itself is written.
+
+    ``after_*`` rather than ``before_*``: the rows need ``patients.id``, and a
+    relationship cannot be mutated during the flush execution stage. Keeping
+    this out of ``before_flush`` also means a patient whose columns did not
+    change does not rewrite its index.
+    """
+    Patient._sync_search_ngrams(connection, target)
+
+
+class PatientSearchNgram(TenantMixin, db.Model):
+    """One row per distinct trigram of a patient name, as a keyed digest.
+
+    This is the index that makes substring search possible over encrypted
+    columns. See :mod:`app.shared.search_index` for the design and the
+    security trade-off. The plaintext trigram is never stored â€” only its HMAC â€”
+    so the table is safe to query directly and safe to index.
+    """
+
+    __tablename__ = 'patient_search_ngrams'
+
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    #: Which column the trigram came from, so the exact re-check knows where to
+    #: look and a rename only rewrites one column's rows.
+    source = db.Column(db.String(32), nullable=False)
+    digest = db.Column(db.String(64), nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            'tenant_id',
+            'patient_id',
+            'source',
+            'digest',
+            name='uq_patient_ngram',
+        ),
+        db.Index('ix_patient_ngram_lookup', 'tenant_id', 'digest'),
+    )
+
+    def __repr__(self) -> str:  # pragma: no cover - debugging aid
+        return f'<PatientSearchNgram patient={self.patient_id} source={self.source}>'
 
 
 class PatientAllergy(TenantMixin, db.Model):

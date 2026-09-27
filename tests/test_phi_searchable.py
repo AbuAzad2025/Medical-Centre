@@ -326,6 +326,152 @@ class TestPatientBlindIndex:
 # Order matters: rollback_db reconfigures the session, so it must be set up
 # before test_tenant loads the Tenant, otherwise the instance is detached.
 @pytest.mark.usefixtures('app', 'db', 'rollback_db', 'test_tenant')
+class TestSubstringSearch:
+    """Substring search over encrypted columns, via the blind trigram index.
+
+    This is what replaces the ``ILIKE '%term%'`` queries that silently returned
+    nothing once the columns were encrypted.
+    """
+
+    def test_partial_name_is_found(self, db, test_tenant):
+        from models.patient import Patient
+
+        p = self._make(db, test_tenant, first_name='Sara', last_name='Ahmed', national_id='ID-S1')
+        tid = self._tid(test_tenant)
+        # Real substrings of "sara"/"ahmed", each at least NGRAM characters.
+        for term in ('sar', 'ara', 'Sara', 'hme', 'med', 'Ahmed'):
+            assert [x.id for x in Patient.search(term, tenant_id=tid)] == [p.id], term
+
+    def test_partial_arabic_name_is_found(self, db, test_tenant):
+        from models.patient import Patient
+
+        p = self._make(
+            db,
+            test_tenant,
+            first_name='Sara',
+            last_name='Ahmed',
+            first_name_ar='سارة',
+            last_name_ar='أحمد',
+            national_id='ID-S2',
+        )
+        tid = self._tid(test_tenant)
+        for term in ('ارة', 'أحم', 'سارة'):
+            assert [x.id for x in Patient.search(term, tenant_id=tid)] == [p.id], term
+
+    def test_no_false_positive_when_trigrams_are_not_contiguous(self, db, test_tenant):
+        """Both trigrams of "abcd" exist in "abcbcd" but it is not a substring.
+
+        Only the decrypt-and-re-check phase catches this, so it is the assertion
+        that proves the index is not just a trigram bucket.
+        """
+        from models.patient import Patient
+
+        trap = self._make(db, test_tenant, first_name='abcbcd', last_name='x', national_id='ID-S3')
+        tid = self._tid(test_tenant)
+        assert [x.id for x in Patient.search('abcd', tenant_id=tid)] == []
+        assert trap.id not in [x.id for x in Patient.search('abcd', tenant_id=tid)]
+
+    def test_missing_term_returns_nothing(self, db, test_tenant):
+        from models.patient import Patient
+
+        self._make(db, test_tenant, first_name='Sara', last_name='Ahmed', national_id='ID-S4')
+        tid = self._tid(test_tenant)
+        assert Patient.search('Zzzzz', tenant_id=tid) == []
+
+    def test_term_shorter_than_a_trigram_finds_nothing(self, db, test_tenant):
+        """Documented limitation, pinned so it cannot regress silently.
+
+        A two-character term has no trigram to index, so substring search cannot
+        see it. Reporting that honestly is better than pretending to search.
+        """
+        from app.shared import search_index
+        from models.patient import Patient
+
+        self._make(db, test_tenant, first_name='Sara', last_name='Ahmed', national_id='ID-S5')
+        tid = self._tid(test_tenant)
+        assert search_index.is_indexable('Sa') is False
+        assert search_index.is_indexable('Sar') is True
+        assert Patient.search('Sa', tenant_id=tid) == []
+
+    def test_rename_drops_the_old_trigrams(self, db, test_tenant):
+        from models.patient import Patient
+
+        p = self._make(db, test_tenant, first_name='Sara', last_name='Ahmed', national_id='ID-S6')
+        tid = self._tid(test_tenant)
+        assert [x.id for x in Patient.search('Sara', tenant_id=tid)] == [p.id]
+        p.first_name = 'Zainab'
+        db.session.commit()
+        assert Patient.search('Sara', tenant_id=tid) == []
+        assert [x.id for x in Patient.search('Zainab', tenant_id=tid)] == [p.id]
+
+    def test_ngram_rows_are_scoped_to_the_tenant(self, db, test_tenant):
+        from app.core.tenant.middleware import bind_g_tenant
+        from app.core.tenant.models import Tenant
+        from models.patient import Patient, PatientSearchNgram
+
+        tid = self._tid(test_tenant)
+        self._make(db, test_tenant, first_name='Sara', last_name='Ahmed', national_id='ID-S7')
+        # Read while this tenant is still bound: RLS hides the other tenant's
+        # rows by design, so the count has to be taken before switching.
+        mine = (
+            db.session.execute(
+                db.select(PatientSearchNgram).where(PatientSearchNgram.tenant_id == tid)
+            )
+            .scalars()
+            .all()
+        )
+        assert mine, 'expected trigram rows for the first tenant'
+        assert all(r.tenant_id == tid for r in mine)
+
+        other = Tenant(
+            name='Ngram Other',
+            slug=f'ngram-{uuid.uuid4().hex[:8]}',
+            status='active',
+            contact_email='ngram@example.test',
+        )
+        db.session.add(other)
+        db.session.commit()
+        bind_g_tenant(other)
+        try:
+            # Same name, different tenant: must not be reachable from the first.
+            assert Patient.search('Sara', tenant_id=other.id) == []
+        finally:
+            bind_g_tenant(test_tenant)
+
+    def test_ngram_table_is_hidden_without_a_tenant(self, db, test_tenant):
+        from sqlalchemy import text
+
+        self._make(db, test_tenant, first_name='Sara', last_name='Ahmed', national_id='ID-S8')
+        with db.engine.connect() as conn:
+            conn.execute(text("select set_config('app.tenant_id', '', false)"))
+            n = conn.execute(text('select count(*) from patient_search_ngrams')).scalar()
+            conn.rollback()
+        assert n == 0
+
+    def test_ngram_digest_is_separate_from_the_blind_index(self):
+        """A leaked n-gram digest must not confirm a value via the blind index."""
+        from app.shared.encrypted_type import blind_index_value
+        from app.shared.search_index import ngram_digest
+
+        assert ngram_digest('sara') != blind_index_value('sara')
+        assert ngram_digest('sara') == ngram_digest('sara')
+
+    @staticmethod
+    def _make(db, tenant, **kw):
+        from models.patient import Patient
+
+        kw.setdefault('gender', 'female')
+        p = Patient(tenant_id=tenant.id, **kw)
+        db.session.add(p)
+        db.session.commit()
+        return p
+
+    @staticmethod
+    def _tid(tenant):
+        return tenant.id
+
+
+@pytest.mark.usefixtures('app', 'db', 'rollback_db', 'test_tenant')
 class TestUnencryptedFallback:
     """Without a key the columns hold plaintext.
 

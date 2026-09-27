@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Create a fresh DB, run all Alembic migrations, verify success."""
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ TARGET_URL = os.environ['MIGRATE_DATABASE_URL']
 # (merging the five historical branch heads) followed by p6_* migrations
 # (FK indexes, api_keys, api_keys RLS, file_uploads S3 columns).
 # Exactly one head must exist.
-EXPECTED_HEADS = {'s3_014_searchable_phi_blind_index'}
+EXPECTED_HEADS = {'s3_015_patient_search_ngrams'}
 
 
 def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
@@ -92,3 +92,4 @@ def main() -> int:
 
 if __name__ == '__main__':
     raise SystemExit(main())
+
