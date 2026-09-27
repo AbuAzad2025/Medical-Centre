@@ -4,6 +4,7 @@ Seeds the canonical module registry into ``module_definitions`` and creates
 the master ``platform_owner`` account. Idempotent — safe to run repeatedly.
 """
 
+from contextlib import contextmanager
 from datetime import datetime
 
 from sqlalchemy import select, text
@@ -46,6 +47,62 @@ def _bind_seed_tenant(tenant) -> None:
         text("SELECT set_config('app.tenant_id', :tid, false)"),
         {'tid': str(tenant.id)},
     )
+
+
+@contextmanager
+def platform_tenant_scope():
+    """Bind the platform tenant for the duration of a seed operation, then restore.
+
+    Writing a row into an RLS-protected table requires the session GUC to equal
+    that row's ``tenant_id``, so seeding must bind a tenant. It must NOT leave
+    that binding behind: ``g.tenant_id`` / ``session.info['_tenant_id']`` drive
+    the ORM tenant filter for the rest of the process, and a caller that already
+    had a tenant bound (a test fixture, a request, a tenant-provisioning flow)
+    would silently have it replaced by the platform tenant. That regression
+    made every other tenant's rows invisible and broke duplicate-patient
+    detection.
+
+    Usage::
+
+        with platform_tenant_scope() as tenant:
+            ...  # writes here are attributed to the platform tenant
+        # previous tenant context is fully restored here
+    """
+    from flask import g
+
+    had_g = 'tenant_id' in g
+    prev_g_id = g.get('tenant_id')
+    prev_current = g.get('current_tenant')
+    prev_slug = g.get('tenant_slug')
+    prev_info = db.session.info.get('_tenant_id')
+
+    tenant = _resolve_platform_tenant()
+    _bind_seed_tenant(tenant)
+    try:
+        yield tenant
+    finally:
+        if had_g:
+            g.tenant_id = prev_g_id
+        else:
+            g.pop('tenant_id', None)
+        g.current_tenant = prev_current
+        g.tenant_slug = prev_slug
+        if prev_info is None:
+            db.session.info.pop('_tenant_id', None)
+        else:
+            db.session.info['_tenant_id'] = prev_info
+        # Re-assert the restored tenant (or clear it) so the next statement
+        # evaluates the policies against the right tenant.
+        try:
+            if prev_info is None:
+                db.session.execute(text('RESET app.tenant_id'))
+            else:
+                db.session.execute(
+                    text("SELECT set_config('app.tenant_id', :tid, false)"),
+                    {'tid': str(prev_info)},
+                )
+        except Exception:
+            db.session.rollback()
 
 
 def _resolve_platform_tenant():

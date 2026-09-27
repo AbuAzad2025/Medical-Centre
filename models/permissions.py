@@ -3,6 +3,7 @@
 Advanced Permissions System
 """
 
+from contextlib import contextmanager
 from datetime import UTC, datetime
 
 from sqlalchemy import select
@@ -183,28 +184,18 @@ def add_user_relationships():
         User.security_events = db.relationship('SecurityEvent', back_populates='user')
 
 
-def _seed_tenant_id() -> int | None:
-    """Tenant that owns the platform-wide role/permission definitions.
+@contextmanager
+def _seed_scope():
+    """Attribute the seed writes to the platform tenant, then restore context.
 
-    ``roles`` / ``permissions`` / ``role_permissions`` all carry an enforced
-    ``tenant_isolation_*`` RLS policy, so a row with ``tenant_id = NULL`` is
-    rejected by the WITH CHECK clause and the whole first-run seed aborts on any
-    correctly provisioned (non-BYPASSRLS) database. Historically this only
-    worked because local/dev setups connected as a superuser.
-
-    The definitions are therefore owned by the platform tenant. This reuses
-    ``seeds.production_baseline._resolve_platform_tenant`` so the platform
-    tenant is created and bound on demand — the seed no longer depends on
-    running *after* the platform bootstrap, which was the actual ordering bug.
+    See ``seeds.production_baseline.platform_tenant_scope`` for why the binding
+    must be scoped: leaving it behind would repoint the ORM tenant filter at the
+    platform tenant for the rest of the process.
     """
-    try:
-        from seeds.production_baseline import _resolve_platform_tenant
+    from seeds.production_baseline import platform_tenant_scope
 
-        tenant = _resolve_platform_tenant()
-        return tenant.id if tenant is not None else None
-    except Exception:
-        db.session.rollback()
-        return None
+    with platform_tenant_scope() as tenant:
+        yield tenant.id if tenant is not None else None
 
 
 # دالة إنشاء الصلاحيات الافتراضية
@@ -472,20 +463,24 @@ def create_default_permissions():
         ),
     ]
 
-    seed_tid = _seed_tenant_id()
-    for name, description, category, level in permissions:
-        permission = db.session.execute(select(Permission).filter_by(name=name)).scalars().first()
-        if not permission:
-            permission = Permission(
-                name=name,
-                description=description,
-                category=category,
-                level=level,
-                tenant_id=seed_tid,
+    with _seed_scope() as seed_tid:
+        for name, description, category, level in permissions:
+            permission = (
+                db.session.execute(select(Permission).filter_by(name=name)).scalars().first()
             )
-            db.session.add(permission)
-
-    safe_commit(db.session, error_message='database commit failed', reraise=True)
+            if not permission:
+                permission = Permission(
+                    name=name,
+                    description=description,
+                    category=category,
+                    level=level,
+                    tenant_id=seed_tid,
+                )
+                db.session.add(permission)
+        # Commit INSIDE the scope: the rows must be flushed while
+        # app.tenant_id still equals the platform tenant, or the WITH CHECK
+        # clause rejects them.
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
 
 
 # دالة إنشاء الأدوار الافتراضية
@@ -509,21 +504,20 @@ def create_default_roles():
         ('owner', 'مالك', 'مالك المركز', True),
     ]
 
-    seed_tid = _seed_tenant_id()
-    for name, name_ar, description, is_system in roles:
-        role = db.session.execute(select(Role).filter_by(name=name)).scalars().first()
-        if not role:
-            role = Role(
-                name=name,
-                name_ar=name_ar,
-                display_name=name_ar,
-                description=description,
-                is_system_role=is_system,
-                tenant_id=seed_tid,
-            )
-            db.session.add(role)
-
-    safe_commit(db.session, error_message='database commit failed', reraise=True)
+    with _seed_scope() as seed_tid:
+        for name, name_ar, description, is_system in roles:
+            role = db.session.execute(select(Role).filter_by(name=name)).scalars().first()
+            if not role:
+                role = Role(
+                    name=name,
+                    name_ar=name_ar,
+                    display_name=name_ar,
+                    description=description,
+                    is_system_role=is_system,
+                    tenant_id=seed_tid,
+                )
+                db.session.add(role)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
 
 
 # دالة تعيين صلاحيات السوبر أدمن
@@ -538,25 +532,24 @@ def assign_super_admin_permissions():
     # الحصول على جميع الصلاحيات
     all_permissions = db.session.execute(select(Permission)).scalars().all()
 
-    seed_tid = _seed_tenant_id()
-    for permission in all_permissions:
-        # التحقق من وجود الصلاحية للدور
-        role_permission = (
-            db.session.execute(
-                select(RolePermission).filter_by(
-                    role_id=super_admin_role.id, permission_id=permission.id
+    with _seed_scope() as seed_tid:
+        for permission in all_permissions:
+            # التحقق من وجود الصلاحية للدور
+            role_permission = (
+                db.session.execute(
+                    select(RolePermission).filter_by(
+                        role_id=super_admin_role.id, permission_id=permission.id
+                    )
                 )
+                .scalars()
+                .first()
             )
-            .scalars()
-            .first()
-        )
 
-        if not role_permission:
-            role_permission = RolePermission(
-                role_id=super_admin_role.id,
-                permission_id=permission.id,
-                tenant_id=seed_tid,
-            )
-            db.session.add(role_permission)
-
-    safe_commit(db.session, error_message='database commit failed', reraise=True)
+            if not role_permission:
+                role_permission = RolePermission(
+                    role_id=super_admin_role.id,
+                    permission_id=permission.id,
+                    tenant_id=seed_tid,
+                )
+                db.session.add(role_permission)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
