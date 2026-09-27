@@ -6,7 +6,8 @@ the master ``platform_owner`` account. Idempotent — safe to run repeatedly.
 
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, text
+from sqlalchemy.exc import IntegrityError
 
 from app.core.module.models import ModuleDefinition
 from app.core.module.registry import MODULE_REGISTRY
@@ -25,12 +26,35 @@ PLATFORM_TENANT_SLUG = 'platform'
 PLATFORM_TENANT_NAME = 'Platform'
 
 
+def _bind_seed_tenant(tenant) -> None:
+    """Bind *tenant* as the active context for the current transaction.
+
+    Seeding runs outside a request, so nothing has set ``g.tenant_id``. The ORM
+    tenant filter re-asserts ``app.tenant_id`` before every statement from
+    ``g``/``session.info``; with both empty it asserts the empty string, and the
+    ``users``/``permissions``/``roles`` RLS policies then reject the very rows
+    this seeder is inserting. Binding makes the insert admissible and keeps the
+    fail-closed guarantee intact (rows still cannot cross tenants).
+    """
+    from flask import g
+
+    g.tenant_id = tenant.id
+    g.current_tenant = tenant
+    g.tenant_slug = tenant.slug
+    db.session.info['_tenant_id'] = tenant.id
+    db.session.execute(
+        text("SELECT set_config('app.tenant_id', :tid, false)"),
+        {'tid': str(tenant.id)},
+    )
+
+
 def _resolve_platform_tenant():
     """Return the tenant that owns the master platform account.
 
     Prefers the currently-bound tenant context, then the first existing tenant,
     and finally creates a dedicated ``platform`` tenant on a fresh database —
     so the master account always satisfies the NOT NULL ``tenant_id`` contract.
+    The resolved tenant is bound into the session (see ``_bind_seed_tenant``).
     """
     from flask import g
 
@@ -38,9 +62,11 @@ def _resolve_platform_tenant():
     if tid is not None:
         tenant = db.session.execute(select(Tenant).filter_by(id=tid)).scalars().first()
         if tenant is not None:
+            _bind_seed_tenant(tenant)
             return tenant
     tenant = db.session.execute(select(Tenant).order_by(Tenant.id)).scalars().first()
     if tenant is not None:
+        _bind_seed_tenant(tenant)
         return tenant
     tenant = Tenant(
         slug=PLATFORM_TENANT_SLUG,
@@ -51,6 +77,7 @@ def _resolve_platform_tenant():
     )
     db.session.add(tenant)
     db.session.flush()
+    _bind_seed_tenant(tenant)
     return tenant
 
 
@@ -122,7 +149,23 @@ def seed_master_account(session=None):
         )
         master.set_password(MASTER_PASSWORD)
         session.add(master)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError:
+            # ``users`` enforces UNIQUE (tenant_id, username). The pre-check
+            # above runs through the tenant-filtered ORM, so it can miss a row
+            # that already exists for this tenant when the platform bootstrap
+            # and this seeder run in the same process. Re-read and converge
+            # instead of aborting the whole first-run.
+            session.rollback()
+            existing = (
+                db.session.execute(select(User).filter_by(username=MASTER_USERNAME))
+                .scalars()
+                .first()
+            )
+            if existing is None:
+                raise
+            return existing
         return master
 
 

@@ -34,9 +34,7 @@ PLATFORM_TENANT_TABLES = frozenset(
         'user_permissions',
         'module_permissions',
         'department_permissions',
-        'system_configs',
-        'branding_settings',
-        'platform_audit_logs',  # has tenant_id column but is cross-tenant audit trail
+        'platform_audit_logs',  # has tenant_id but is cross-tenant audit trail
     }
 )
 

@@ -84,6 +84,49 @@ def _auto_create_default_tenant() -> Tenant | None:
     return tenant
 
 
+def _single_install_default_tenant() -> Tenant | None:
+    """Return the implicit tenant for a single-install (non-SaaS) deployment.
+
+    In ``single_install`` mode the platform hosts exactly one organisation, so
+    there is no slug to resolve from the URL. Without this, ``/auth/*`` is
+    tenant-exempt, so no tenant is ever bound, the RLS policy evaluates with an
+    empty ``app.tenant_id``, and *every* user lookup returns zero rows — making
+    login impossible on a correctly provisioned (non-BYPASSRLS) database.
+
+    Deliberately does nothing in SaaS mode, where an unresolvable tenant must
+    stay a 403 rather than silently defaulting to one organisation's data.
+    """
+    cfg = current_app.config
+    if cfg.get('ENABLE_SAAS_MODE', False):
+        return None
+
+    slug = cfg.get('TENANT_DEFAULT_SLUG') or 'default'
+    tenant = _get_tenant_by_slug(slug)
+    if tenant:
+        return tenant
+
+    # TENANT_DEFAULT_SLUG did not resolve. Fall back to the first active tenant
+    # that is not the SaaS control-plane tenant.
+    #
+    # Only `tenants` is queried here on purpose: it carries no RLS policy, so it
+    # is readable before any tenant is bound. Selecting on `users` instead would
+    # deadlock — RLS hides every user row until a tenant is already set, so the
+    # lookup could never inform the binding it depends on.
+    platform_slug = (cfg.get('PLATFORM_TENANT_SLUG') or 'platform').strip().lower()
+    return _first_non_platform_tenant(platform_slug)
+
+
+def _first_non_platform_tenant(platform_slug: str) -> Tenant | None:
+    tenants = db.session.execute(select(Tenant).order_by(Tenant.id)).scalars().all()
+    for t in tenants:
+        if (t.slug or '').strip().lower() == platform_slug:
+            continue
+        if (t.status or '').strip().lower() != 'active':
+            continue
+        return t
+    return tenants[0] if tenants else None
+
+
 def resolve_tenant() -> Tenant | None:
     """Resolve current tenant from request context.
 
@@ -299,6 +342,13 @@ def set_tenant_context():
 
     if tenant is None:
         tenant = _tenant_from_authenticated_user()
+
+    if tenant is None and not saas:
+        # Single-install: one implicit tenant for the whole deployment. This must
+        # also run for tenant-exempt paths (/auth/*) or login can never see a user.
+        tenant = _single_install_default_tenant()
+        if tenant:
+            bind_g_tenant(tenant)
 
     # Module guard paths - let module guards handle access control instead of aborting here
     MODULE_GUARD_PREFIXES = (

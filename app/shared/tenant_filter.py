@@ -42,11 +42,47 @@ class TenantIsolationError(PermissionError):
 # edits to this file needed for new tenant-scoped or global tables.
 # ---------------------------------------------------------------------------
 
-# Tables that DO have a tenant_id column but are global / cross-tenant
-# by design and must NOT be tenant-filtered.
+# Tables that DO have a tenant_id column but are genuinely cross-tenant and
+# must NOT be tenant-filtered.
 #
-# NOTE: Keep ``scripts/ci/audit_rls_coverage.py`` in sync — its
-# ``PLATFORM_TENANT_TABLES`` must mirror this set exactly.
+# SCOPE THIS SET DELIBERATELY. Membership has two consequences — no tenant
+# filter on reads, and no tenant_id auto-assign on writes — so a table listed
+# here must also be exempt from the database RLS policy. If a table is listed
+# here while its ``tenant_isolation_*`` policy is enabled+FORCED, the two layers
+# contradict each other and every insert from ORM code lands with
+# ``tenant_id = NULL``, which the WITH CHECK clause rejects. That is not
+# theoretical: seeding the default nursing protocols into ``system_configs``
+# raised InsufficientPrivilege and took ``/nurse/dashboard`` down with it.
+#
+# Two tables are platform-wide because they are infrastructure for the platform
+# itself: ``tenants`` (the registry, which has no RLS policy at all) and
+# ``platform_audit_logs`` (the audit trail of platform-owner actions, which is
+# cross-tenant by definition).
+#
+# ``system_configs`` and ``branding_settings`` were REMOVED from this set. They
+# are read with no explicit tenant filter in ~15 call sites and rely entirely on
+# the database policy for scoping, while being written by ORM code — so with the
+# "no auto-assign" behaviour the row landed with ``tenant_id = NULL`` and the
+# WITH CHECK clause rejected it. Seeding the default nursing protocols into
+# ``system_configs`` raised InsufficientPrivilege and took ``/nurse/dashboard``
+# down with it.
+#
+# The six RBAC definition tables (roles, permissions, role_permissions,
+# user_permissions, module_permissions, department_permissions) STAY here:
+# their rows are platform-wide *definitions* owned by the platform tenant (see
+# ``models.permissions._seed_tenant_id``), and every tenant must be able to
+# resolve them. Scoping them per tenant silently empties every tenant's
+# permission set, which turns ``has_permission()``/``can()`` into a permanent
+# False and locks staff out of gated screens.
+#
+# KNOWN GAP (needs a deliberate decision, not a drive-by fix): because these six
+# are unfiltered at the ORM layer while their RLS policy requires a tenant, any
+# *runtime* write that does not set ``tenant_id`` explicitly is rejected by the
+# database. Seeding is covered (``_seed_tenant_id``); the super-admin
+# permissions CRUD routes should be audited to set the platform tenant too.
+#
+# NOTE: Keep ``scripts/ci/audit_rls_coverage.py`` and
+# ``routes/monitoring_routes.py`` in sync — their copies must match this set.
 _GLOBAL_TENANT_TABLES = frozenset(
     {
         'tenants',
@@ -56,8 +92,6 @@ _GLOBAL_TENANT_TABLES = frozenset(
         'user_permissions',
         'module_permissions',
         'department_permissions',
-        'system_configs',
-        'branding_settings',
         'platform_audit_logs',  # has tenant_id column but is cross-tenant audit trail
     }
 )

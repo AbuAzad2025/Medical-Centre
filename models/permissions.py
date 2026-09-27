@@ -183,6 +183,30 @@ def add_user_relationships():
         User.security_events = db.relationship('SecurityEvent', back_populates='user')
 
 
+def _seed_tenant_id() -> int | None:
+    """Tenant that owns the platform-wide role/permission definitions.
+
+    ``roles`` / ``permissions`` / ``role_permissions`` all carry an enforced
+    ``tenant_isolation_*`` RLS policy, so a row with ``tenant_id = NULL`` is
+    rejected by the WITH CHECK clause and the whole first-run seed aborts on any
+    correctly provisioned (non-BYPASSRLS) database. Historically this only
+    worked because local/dev setups connected as a superuser.
+
+    The definitions are therefore owned by the platform tenant. This reuses
+    ``seeds.production_baseline._resolve_platform_tenant`` so the platform
+    tenant is created and bound on demand — the seed no longer depends on
+    running *after* the platform bootstrap, which was the actual ordering bug.
+    """
+    try:
+        from seeds.production_baseline import _resolve_platform_tenant
+
+        tenant = _resolve_platform_tenant()
+        return tenant.id if tenant is not None else None
+    except Exception:
+        db.session.rollback()
+        return None
+
+
 # دالة إنشاء الصلاحيات الافتراضية
 def create_default_permissions():
     """إنشاء الصلاحيات الافتراضية"""
@@ -448,11 +472,16 @@ def create_default_permissions():
         ),
     ]
 
+    seed_tid = _seed_tenant_id()
     for name, description, category, level in permissions:
         permission = db.session.execute(select(Permission).filter_by(name=name)).scalars().first()
         if not permission:
             permission = Permission(
-                name=name, description=description, category=category, level=level
+                name=name,
+                description=description,
+                category=category,
+                level=level,
+                tenant_id=seed_tid,
             )
             db.session.add(permission)
 
@@ -480,6 +509,7 @@ def create_default_roles():
         ('owner', 'مالك', 'مالك المركز', True),
     ]
 
+    seed_tid = _seed_tenant_id()
     for name, name_ar, description, is_system in roles:
         role = db.session.execute(select(Role).filter_by(name=name)).scalars().first()
         if not role:
@@ -489,6 +519,7 @@ def create_default_roles():
                 display_name=name_ar,
                 description=description,
                 is_system_role=is_system,
+                tenant_id=seed_tid,
             )
             db.session.add(role)
 
@@ -507,6 +538,7 @@ def assign_super_admin_permissions():
     # الحصول على جميع الصلاحيات
     all_permissions = db.session.execute(select(Permission)).scalars().all()
 
+    seed_tid = _seed_tenant_id()
     for permission in all_permissions:
         # التحقق من وجود الصلاحية للدور
         role_permission = (
@@ -521,7 +553,9 @@ def assign_super_admin_permissions():
 
         if not role_permission:
             role_permission = RolePermission(
-                role_id=super_admin_role.id, permission_id=permission.id
+                role_id=super_admin_role.id,
+                permission_id=permission.id,
+                tenant_id=seed_tid,
             )
             db.session.add(role_permission)
 
