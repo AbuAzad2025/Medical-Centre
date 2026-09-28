@@ -6,7 +6,7 @@ from datetime import UTC, date, datetime
 from typing import Any
 
 from flask import g
-from sqlalchemy import case, or_, select
+from sqlalchemy import case, select
 
 from app.extensions import db
 from app.shared.enums import EmergencyStatus
@@ -88,12 +88,13 @@ class EmergencyService:
         query = EmergencyCase.query
         if search:
             query = query.join(Patient).filter(
-                or_(
-                    EmergencyCase.chief_complaint.ilike(f'%{search}%'),
-                    Patient.first_name.ilike(f'%{search}%'),
-                    Patient.last_name.ilike(f'%{search}%'),
-                    EmergencyCase.diagnosis.ilike(f'%{search}%'),
-                )
+                # first_name / last_name / diagnosis / chief_complaint are all
+                # encrypted, so an ilike on them can never match: the same
+                # plaintext encrypts differently on every write. A clinician
+                # searching by partial name or phone got an empty result.
+                # search_ids routes the patient half through the blind index and
+                # the trigram table.
+                Patient.id.in_(Patient.search_ids(search, limit=1000))
             )
         if priority:
             mapped = _normalize_priority(priority)

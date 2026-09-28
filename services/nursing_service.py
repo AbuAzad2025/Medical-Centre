@@ -4,7 +4,7 @@ import logging
 from datetime import UTC, date, datetime
 from typing import Any
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 
 from app.extensions import db
 from services.feature_gate_service import require_module
@@ -24,11 +24,9 @@ class NursingService:
                 from models.patient import Patient
 
                 query = query.join(Patient).filter(
-                    or_(
-                        Patient.first_name.ilike(f'%{search}%'),
-                        Patient.last_name.ilike(f'%{search}%'),
-                        Patient.phone.ilike(f'%{search}%'),
-                    )
+                    # Encrypted columns cannot be ilike'd; search_ids routes the
+                    # query through the blind index and the trigram table.
+                    Patient.id.in_(Patient.search_ids(search, limit=1000))
                 )
             return db.session.execute(query.order_by(Visit.created_at.desc())).scalars().all()
         except Exception:

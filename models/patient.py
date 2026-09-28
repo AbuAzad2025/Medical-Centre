@@ -315,6 +315,20 @@ class Patient(TenantMixin, db.Model):
         return sorted(found.values(), key=lambda p: p.id)[:limit]
 
     @classmethod
+    def search_ids(cls, term, *, tenant_id=None, limit=50):
+        """Patient ids matching *term*, for use in ``Patient.id.in_(...)``.
+
+        Every call site that used to issue ``or_(Patient.first_name.ilike(...),
+        Patient.phone.ilike(...))`` needs the same treatment, and most of them
+        have joins, filters or ordering around the search that must be
+        preserved. Exposing the id subquery keeps that surrounding logic
+        untouched and replaces only the condition that could never match.
+        """
+        return select(cls.id).where(
+            cls.id.in_([p.id for p in cls.search(term, tenant_id=tenant_id, limit=limit)])
+        )
+
+    @classmethod
     def _search_exact(cls, term, *, tenant_id=None, limit=50):
         """Whole-field match on the normalised name columns, via blind index."""
         parts = [p for p in term.split() if p]

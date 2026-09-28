@@ -166,20 +166,14 @@ def patients():
 
     try:
         q = (request.args.get('q') or '').strip()
-        from sqlalchemy import func, or_
+        from sqlalchemy import func
 
         base_query = select(Patient)
         if q:
             like = f'%{q}%'
             base_query = base_query.filter(
-                or_(
-                    Patient.first_name.ilike(like),
-                    Patient.last_name.ilike(like),
-                    Patient.phone.ilike(like),
-                    Patient.national_id.ilike(like),
-                    Patient.first_name_ar.ilike(like),
-                    Patient.last_name_ar.ilike(like),
-                )
+                # Encrypted columns: ilike cannot match ciphertext.
+                Patient.id.in_(Patient.search_ids(like.strip('%'), limit=1000))
             )
 
         # إحصائيات الزيارات: العدد وآخر زيارة
@@ -276,14 +270,7 @@ def api_patient_search():
     q = request.args.get('q', '').strip()
     query = select(Patient)
     if q:
-        query = query.filter(
-            db.or_(
-                Patient.first_name.ilike(f'%{q}%'),
-                Patient.last_name.ilike(f'%{q}%'),
-                Patient.national_id.ilike(f'%{q}%'),
-                Patient.phone.ilike(f'%{q}%'),
-            )
-        )
+        query = query.filter(Patient.id.in_(Patient.search_ids(q, limit=1000)))
     patients = (
         db.session.execute(query.order_by(Patient.created_at.desc()).limit(10)).scalars().all()
     )

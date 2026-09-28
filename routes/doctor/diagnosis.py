@@ -315,26 +315,30 @@ def get_data_based_recommendations(diagnosis_text: str):
         from models.medication import Medication, Prescription, PrescriptionItem
 
         since = datetime.now() - timedelta(days=120)
-        rows = (
-            db.session.execute(
-                select(Medication.trade_name, func.count(PrescriptionItem.id).label('cnt'))
-                .join(PrescriptionItem.prescription)
-                .join(PrescriptionItem.medication)
-                .filter(
-                    Prescription.diagnosis.ilike(f'%{diagnosis_text}%'),
-                    Prescription.created_at >= since,
-                    Prescription.doctor_id == current_user.id,
-                )
-                .group_by(Medication.trade_name)
-                .order_by(func.count(PrescriptionItem.id).desc())
-                .limit(5)
+        # `Prescription.diagnosis` is encrypted, so `ilike` on it can never
+        # match: the same plaintext produces a different ciphertext on every
+        # write. The candidate prescriptions are therefore loaded by date and
+        # doctor, and the diagnosis text is matched in Python after decryption.
+        candidates = db.session.execute(
+            select(Prescription, Medication.trade_name, func.count(PrescriptionItem.id))
+            .join(PrescriptionItem.prescription)
+            .join(PrescriptionItem.medication)
+            .filter(
+                Prescription.created_at >= since,
+                Prescription.doctor_id == current_user.id,
             )
-            .scalars()
-            .all()
-        )
+            .group_by(Prescription.id, Medication.trade_name)
+        ).all()
+        wanted = diagnosis_text.casefold()
+        rows = [
+            (row[1], row[2])
+            for row in candidates
+            if row[0].diagnosis and wanted in row[0].diagnosis.casefold()
+        ]
+        rows.sort(key=lambda r: r[1], reverse=True)
         out = []
-        for r in rows:
-            out.append({'medication': r.trade_name, 'count': int(r.cnt)})
+        for trade_name, count in rows[:5]:
+            out.append({'medication': trade_name, 'count': int(count)})
         return out
     except Exception:
         return []

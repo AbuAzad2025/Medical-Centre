@@ -1,6 +1,6 @@
 {
   "_comment": "Pre-existing string comparisons against encrypted columns. Each one is a query that can never match. The gate fails only on violations not listed here; delete an entry when its search is converted to Patient.search or a blind-index lookup, and the next run reports the baseline as stale until it matches again.",
-  "count": 39,
+  "count": 22,
   "sites": [
     "app\\modules\\owner\\routes.py::ENCRYPTED_LIKE::User.email.ilike(like),",
     "app\\modules\\owner\\routes.py::ENCRYPTED_LIKE::User.full_name.ilike(like),",
@@ -14,17 +14,6 @@
     "routes\\accountant\\patient.py::ENCRYPTED_LIKE::Patient.last_name.ilike(f'%{q}%'),",
     "routes\\accountant\\patient.py::ENCRYPTED_LIKE::Patient.national_id.ilike(f'%{q}%'),",
     "routes\\accountant\\patient.py::ENCRYPTED_LIKE::Patient.phone.ilike(f'%{q}%'),",
-    "routes\\doctor\\diagnosis.py::ENCRYPTED_LIKE::Prescription.diagnosis.ilike(f'%{diagnosis_text}%'),",
-    "routes\\doctor\\patients.py::ENCRYPTED_LIKE::Patient.first_name.ilike(f'%{q}%'),",
-    "routes\\doctor\\patients.py::ENCRYPTED_LIKE::Patient.first_name.ilike(like),",
-    "routes\\doctor\\patients.py::ENCRYPTED_LIKE::Patient.first_name_ar.ilike(like),",
-    "routes\\doctor\\patients.py::ENCRYPTED_LIKE::Patient.last_name.ilike(f'%{q}%'),",
-    "routes\\doctor\\patients.py::ENCRYPTED_LIKE::Patient.last_name.ilike(like),",
-    "routes\\doctor\\patients.py::ENCRYPTED_LIKE::Patient.last_name_ar.ilike(like),",
-    "routes\\doctor\\patients.py::ENCRYPTED_LIKE::Patient.national_id.ilike(f'%{q}%'),",
-    "routes\\doctor\\patients.py::ENCRYPTED_LIKE::Patient.national_id.ilike(like),",
-    "routes\\doctor\\patients.py::ENCRYPTED_LIKE::Patient.phone.ilike(f'%{q}%'),",
-    "routes\\doctor\\patients.py::ENCRYPTED_LIKE::Patient.phone.ilike(like),",
     "routes\\reception\\appointments.py::ENCRYPTED_LIKE::Patient.first_name.ilike(f'%{search}%'),",
     "routes\\reception\\appointments.py::ENCRYPTED_LIKE::Patient.last_name.ilike(f'%{search}%'),",
     "routes\\reception\\appointments.py::ENCRYPTED_LIKE::Patient.national_id.ilike(f'%{search}%'),",
@@ -34,12 +23,6 @@
     "routes\\reception\\visits.py::ENCRYPTED_LIKE::Patient.national_id.ilike(f'%{search}%'),",
     "routes\\reception\\visits.py::ENCRYPTED_LIKE::Patient.phone.ilike(f'%{search}%'),",
     "services\\core_queries.py::ENCRYPTED_LIKE::Patient.phone.ilike(f'%{query}%'),",
-    "services\\emergency_service.py::ENCRYPTED_LIKE::EmergencyCase.diagnosis.ilike(f'%{search}%'),",
-    "services\\emergency_service.py::ENCRYPTED_LIKE::Patient.first_name.ilike(f'%{search}%'),",
-    "services\\emergency_service.py::ENCRYPTED_LIKE::Patient.last_name.ilike(f'%{search}%'),",
-    "services\\nursing_service.py::ENCRYPTED_LIKE::Patient.first_name.ilike(f'%{search}%'),",
-    "services\\nursing_service.py::ENCRYPTED_LIKE::Patient.last_name.ilike(f'%{search}%'),",
-    "services\\nursing_service.py::ENCRYPTED_LIKE::Patient.phone.ilike(f'%{search}%'),",
     "services\\queue_management_service.py::ENCRYPTED_LIKE::Patient.full_name.ilike(f'%{search}%'),"
   ]
 }
