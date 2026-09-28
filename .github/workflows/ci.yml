@@ -61,6 +61,15 @@ jobs:
       - name: CJK guard — no Chinese/Japanese/Korean in code/templates (strict)
         run: python scripts/ci/check_no_cjk.py
 
+      # Blocking: exits 1 if a template reads a context variable its view never
+      # passes, a form attribute the form class does not declare, or a template
+      # Jinja cannot parse. This is the gate that would have caught the blank
+      # "total transactions" tile in the owner dashboard, which rendered as an
+      # empty string because Jinja turns an undefined name into "" rather than
+      # an error.
+      - name: Template alignment audit (strict)
+        run: python scripts/audit/template_alignment.py
+
   # ── Frontend JavaScript Unit Tests (Vitest) ──────────────────────────────
   frontend-javascript-tests:
     name: JavaScript unit tests (Vitest)

@@ -322,6 +322,20 @@ def create_app(config_name: str | None = None) -> Flask:
     def get_print_context(doc_type='report'):
         return resolve_print_context(doc_type, get_branding_row())
 
+    @app.template_global('moment')
+    def moment(value=None):
+        """Current (or given) time, shaped like the moment.js object the
+        templates call.
+
+        doctor/visit_summary.html and emergency/emergency_treatment.html both
+        render ``moment().format('YYYY-MM-DD')``. Nothing registered this, so
+        those two pages raised UndefinedError and returned 500. The name is kept
+        because it is the moment.js convention already baked into the markup.
+        """
+        from datetime import UTC, datetime
+
+        return datetime.now(UTC) if value is None else value
+
     @app.after_request
     def _compress_json_response(response):
         try:

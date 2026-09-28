@@ -127,7 +127,7 @@
                             <div class="p-3 border rounded bg-light">
                                 <div class="d-flex justify-content-between">
                                     <div class="fw-bold">ديون 60+ يوم</div>
-                                    <div class="fw-bold text-danger">{{ debt_alerts.overdue_60_count }}</div>
+                                    <div class="fw-bold text-danger">{{ debt_alerts.overdue_60_count | default(0) }}</div>
                                 </div>
                                 <div class="table-responsive mt-2">
                                     <table class="table table-sm mb-0">
@@ -135,7 +135,7 @@
                                             <tr><th>زيارة</th><th>المريض</th><th class="text-end">المتبقي</th></tr>
                                         </thead>
                                         <tbody>
-                                            {% for d in (debt_alerts.top_overdue or []) %}
+                                            {% for d in (debt_alerts.top_overdue | default([])) %}
                                             <tr>
                                                 <td>#{{ d.visit_id }}</td>
                                                 <td>{{ d.patient_name or d.patient_id }}</td>
@@ -153,7 +153,7 @@
                             <div class="p-3 border rounded bg-light">
                                 <div class="d-flex justify-content-between">
                                     <div class="fw-bold">ديون كبيرة (>= 500)</div>
-                                    <div class="fw-bold text-warning">{{ debt_alerts.large_debts_count }}</div>
+                                    <div class="fw-bold text-warning">{{ debt_alerts.large_debts_count | default(0) }}</div>
                                 </div>
                                 <div class="table-responsive mt-2">
                                     <table class="table table-sm mb-0">
@@ -161,7 +161,7 @@
                                             <tr><th>زيارة</th><th>المريض</th><th class="text-end">المتبقي</th></tr>
                                         </thead>
                                         <tbody>
-                                            {% for d in (debt_alerts.top_large or []) %}
+                                            {% for d in (debt_alerts.top_large | default([])) %}
                                             <tr>
                                                 <td>#{{ d.visit_id }}</td>
                                                 <td>{{ d.patient_name or d.patient_id }}</td>
@@ -200,7 +200,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for transaction in recent_transactions %}
+                                {% for transaction in recent_transactions | default([]) %}
                                 <tr>
                                     <td class="ps-4 fw-bold">#{{ transaction.id }}</td>
                                     <td>{{ transaction.type }}</td>

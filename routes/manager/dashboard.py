@@ -22,4 +22,7 @@ def dashboard() -> ResponseReturnValue:
     except Exception as e:
         logging.exception('Error in manager dashboard: %s')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
-        return render_template('manager/dashboard.html', error=str(e))
+        # stats=None: this is the error path and the template reads
+        # stats.smart_analytics. Passing it explicitly stops the error page from
+        # raising UndefinedError on top of the error it is meant to report.
+        return render_template('manager/dashboard.html', error=str(e), stats=None)

@@ -52,7 +52,7 @@
                 <i class="fas fa-home me-2"></i> نظرة عامة
             </button>
         </li>
-        {% if stats.smart_analytics %}
+        {% if stats and stats.smart_analytics %}
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab" aria-controls="analytics" aria-selected="false">
                 <i class="fas fa-chart-bar me-2"></i> التحليلات الذكية
@@ -368,7 +368,7 @@
         </div>
 
         <!-- Advanced Management Section -->
-        {% if stats.smart_analytics %}
+        {% if stats and stats.smart_analytics %}
         <div class="tab-pane fade" id="analytics" role="tabpanel" aria-labelledby="analytics-tab">
             <div class="row mb-4">
                 <div class="col-12">

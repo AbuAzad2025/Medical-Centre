@@ -103,6 +103,24 @@ FORM_BASES = {'FlaskForm', 'Form', 'ModelForm', 'SecureForm'}
 FIELD_CALL = re.compile(r'Field$|Field\(')
 DICT_KEY = re.compile(r"['\"](\w+)['\"]\s*:")
 
+#: Context variables a view may legitimately not pass, because every template
+#: that reads them guards the access explicitly. Each entry names the guard, so
+#: removing the guard forces a decision here rather than silently changing
+#: behaviour. This is an allowlist, not a suppression list: nothing may be added
+#: without saying why the template is safe without it.
+ALLOWLIST: dict[str, str] = {
+    'pagination': (
+        'Read as `{% if pagination is defined and pagination %}`. `is defined` is '
+        'exactly the guard StrictUndefined provides, so the template is correct '
+        'when the page is rendered without pagination.'
+    ),
+    'report': (
+        'Read as `{% if report %}` and then only inside that branch, so the '
+        'absent case renders nothing rather than failing.'
+    ),
+    'user_role': ('Read as `{% if user_role in [...] %}`; the comparison is the guard.'),
+}
+
 
 def _walk_py(subdirs: tuple[str, ...] = ()):
     """Yield .py files under each entry, which may be a directory or a file.
@@ -177,20 +195,42 @@ def collect_injected() -> set[str]:
                 for d in n.decorator_list
             ):
                 injected |= set(DICT_KEY.findall(ast.unparse(n)))
-    # Jinja globals assigned via app.jinja_env.globals, anywhere in the tree.
+    # Jinja globals, in every registration form the app uses.
     for f in _walk_py(('app', 'app_factory.py', 'utils')):
         text = f.read_text(encoding='utf-8', errors='ignore')
         injected |= set(re.findall(r"jinja_env\.globals\[['\"]([\w.]+)['\"]\]", text))
+        injected |= set(re.findall(r'add_template_global\(\s*([\w.]+)', text))
+        injected |= set(re.findall(r"@app\.template_global\(\s*['\"]([\w.]+)['\"]", text))
+        injected |= set(re.findall(r"@app\.template_global\(\s*name\s*=\s*['\"]?(\w+)", text))
+        # app.jinja_env.globals.update({...}) and .update(name=...)
+        for block in re.findall(r'globals\.update\(\s*\{(.+?)\}\s*\)', text, re.S):
+            injected |= set(DICT_KEY.findall(block))
     return injected
 
 
 def collect_macros_and_imports() -> set[str]:
-    """Names a template can legitimately acquire via macro or import."""
+    """Names a template can legitimately acquire via macro or import.
+
+    Both import forms matter and both were previously missed:
+
+        {% import 'macros/forms.html' as forms %}   -- alias is `forms`
+        {% from 'partials/x.html' import page_header %}
+
+    The first form was not matched because the imported path is a quoted
+    string, not an identifier, so 7 templates using a forms macro module were
+    reported as reading an undeclared context variable.
+    """
     names: set[str] = set()
     for f in TPL.rglob('*.html'):
         text = f.read_text(encoding='utf-8', errors='ignore')
         names |= set(re.findall(r'\{%-?\s*macro\s+(\w+)', text))
-        names |= set(re.findall(r'\{%-?\s*import\s+\w+\s+as\s+(\w+)', text))
+        names |= set(re.findall(r'\{%-?\s*import\s+[^%]*?\bas\s+(\w+)', text))
+        names |= set(re.findall(r'\{%-?\s*import\s+(\w+)', text))
+        for group in re.findall(r'\{%-?\s*from\s+[^%]*?\s+import\s+(.+?)\s*-?%\}', text, re.S):
+            for part in group.replace('(', ' ').replace(')', ' ').split(','):
+                token = part.strip().split(' as ')[-1].strip()
+                if token.isidentifier():
+                    names.add(token)
     return names
 
 
@@ -267,6 +307,11 @@ GUARD_PATTERNS = (
     r'\b__N__\s+if\b',
     r'\bif\s+__N__\b',
     r'\{%-?\s*set\s+__N__\b',
+    # `| default(...)` is an explicit declaration that the name is optional, and
+    # it is the form StrictUndefined requires. Treating it as a guard is what
+    # lets a template say "this may be absent" instead of relying on the view.
+    r'\|\s*default\(',
+    r'\|default\(',
 )
 
 
@@ -382,7 +427,7 @@ def main(argv: list[str] | None = None) -> int:
         absent = sorted(
             n
             for n in needed - given - resolvable - local
-            if not n.startswith('_') and not n.isupper()
+            if not n.startswith('_') and not n.isupper() and n not in ALLOWLIST
         )
         if not absent:
             continue
