@@ -3544,6 +3544,8 @@ def owner_integrations():
 @owner_required
 def owner_cards_vault():
     """Payment cards vault management."""
+    from sqlalchemy import func
+
     from models.payment import PaymentCard
 
     cards = (
@@ -3551,7 +3553,15 @@ def owner_cards_vault():
         .scalars()
         .all()
     )
-    return render_template('owner/cards_vault.html', cards=cards)
+    # The template's "total transactions" tile reads this. It was never passed,
+    # so the KPI rendered as an empty heading on the owner's financial dashboard
+    # -- Jinja renders an undefined name as an empty string, not an error, which
+    # is why nothing ever failed. The count is over the whole table, not the
+    # 100 most recent rows the vault lists.
+    total_cards = db.session.execute(select(func.count()).select_from(PaymentCard)).scalar()
+    return render_template(
+        'owner/cards_vault.html', cards=cards, total_transactions=int(total_cards or 0)
+    )
 
 
 @owner_bp.route('/system-stats')
