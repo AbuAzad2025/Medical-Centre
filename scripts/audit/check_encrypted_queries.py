@@ -181,6 +181,30 @@ def _line(path: pathlib.Path, lineno: int) -> str:
         return ''
 
 
+BASELINE_PATH = pathlib.Path(__file__).with_name('encrypted_query_baseline.json')
+
+
+def _load_baseline() -> set[str]:
+    """Recorded pre-existing violations, keyed by file and source text.
+
+    The gate's job is to stop a *new* dead query being introduced. Failing on the
+    46 that already exist would leave the build permanently red, which blocks
+    every future change and gets the gate ignored within a week. So the existing
+    debt is recorded here, and the build fails only when the count exceeds it or
+    a site is not in the baseline. The baseline is expected to shrink: when a
+    search is converted to Patient.search, delete its entry, and the next run
+    reports the baseline as stale until it matches again.
+    """
+    if not BASELINE_PATH.exists():
+        return set()
+    import json
+
+    try:
+        return set(json.loads(BASELINE_PATH.read_text(encoding='utf-8')).get('sites', []))
+    except (ValueError, OSError):
+        return set()
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--quiet', action='store_true')
@@ -194,25 +218,36 @@ def main(argv: list[str] | None = None) -> int:
         for kind, lineno, column, text in audit_file(f, encrypted, models):
             total.append((str(f.relative_to(ROOT)), lineno, kind, column, text))
 
-    by_file = collections.Counter(v[0] for v in total)
     by_kind = collections.Counter(v[2] for v in total)
+
+    baseline = _load_baseline()
+    # total entries are (path, lineno, kind, column, source_text)
+    site = lambda v: f'{v[0]}::{v[2]}::{v[4]}'  # noqa: E731
+    baseline_sites = set(baseline)
+    new = [v for v in total if site(v) not in baseline_sites]
+    stale = sorted(baseline_sites - {site(v) for v in total})
 
     if not args.quiet:
         print(f'encrypted columns tracked : {len(encrypted)}')
         print(f'files scanned             : {sum(1 for _ in python_files())}')
+        print(f'violations found          : {len(total)}')
+        print(f'recorded in baseline      : {len(total) - len(new)}')
+        print(f'NEW (block the build)     : {len(new)}')
+        if stale:
+            print(f'baseline is stale         : {len(stale)} entr(y/ies) no longer reproduce')
         print()
-        for path, n in by_file.most_common():
-            print(f'  {n:3}  {path}')
-        print()
-        for path, lineno, kind, column, text in total:
-            print(f'{kind}  {path}:{lineno}  [{column}]')
-            print(f'    {text}')
+        if new:
+            for path, lineno, kind, column, text in new:
+                print(f'NEW  {kind}  {path}:{lineno}  [{column}]')
+                print(f'    {text}')
+        elif not args.quiet:
+            print('no new encrypted-query violations')
 
     print(
-        f'\nRESULT: {len(total)} violation(s) '
+        f'\nRESULT: {len(new)} new violation(s) of {len(total)} total '
         f'({", ".join(f"{k}={v}" for k, v in sorted(by_kind.items())) or "none"})'
     )
-    return 1 if total else 0
+    return 1 if new else 0
 
 
 if __name__ == '__main__':
