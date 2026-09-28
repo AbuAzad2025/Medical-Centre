@@ -711,14 +711,24 @@ def forgot_password() -> ResponseReturnValue:
             flash(msg, 'error')
             return render_template('auth/forgot_password.html')
 
-        # Find user by username or email
+        # Find user by username or email. `username` is plaintext and can be
+        # matched in SQL; `email` is encrypted, so `User.email == identifier`
+        # can never match and this lookup silently returned nothing. Comparing
+        # the decrypted values keeps the two-branch behaviour the form promises.
         user = (
-            db.session.execute(
-                select(User).filter((User.username == identifier) | (User.email == identifier))
-            )
-            .scalars()
-            .first()
+            db.session.execute(select(User).filter(User.username == identifier)).scalars().first()
         )
+        if user is None and identifier:
+            wanted = identifier.strip().casefold()
+            if wanted:
+                user = next(
+                    (
+                        u
+                        for u in db.session.execute(select(User)).scalars().all()
+                        if u.email and u.email.strip().casefold() == wanted
+                    ),
+                    None,
+                )
 
         # Always return success to prevent user enumeration
         success_msg = 'إذا كان الحساب موجوداً، سيتم إرسال رابط إعادة تعيين كلمة المرور'

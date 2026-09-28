@@ -23,6 +23,28 @@ from models.user import StaffAbsence, StaffWorkSchedule, User
 from utils.db_safety import safe_commit, safe_rollback
 from utils.tenant_query import TenantContextError, get_tenant_record
 
+
+def _user_email_exists(email: str) -> bool:
+    """Whether any user already uses *email*.
+
+    ``User.email`` is encrypted, so ``filter_by(email=...)`` can never match: the
+    ciphertext of the same address differs on every write. The comparison is done
+    in Python over the candidate set instead, which is correct and bounded
+    because it only ever runs during signup or booking validation.
+    """
+    from models.user import User
+
+    if not email:
+        return False
+    wanted = email.strip().casefold()
+    if not wanted:
+        return False
+    return any(
+        u.email and u.email.strip().casefold() == wanted
+        for u in db.session.execute(select(User)).scalars().all()
+    )
+
+
 booking_bp = Blueprint('booking', __name__)
 
 
@@ -86,7 +108,7 @@ def register():
 
                 email = f'patient_{phone}_{uuid.uuid4().hex[:6]}@booking.local'
 
-            if db.session.execute(select(User).filter_by(email=email)).scalars().first():
+            if _user_email_exists(email):
                 raise ValueError('البريد الإلكتروني مستخدم مسبقاً')
 
             base_username = f'patient_{phone}'.replace('+', '').replace(' ', '')

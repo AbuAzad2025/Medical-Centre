@@ -72,6 +72,15 @@ jobs:
       - name: Template alignment audit (strict)
         run: python scripts/audit/template_alignment.py
 
+      # Blocking: exits 1 if any code string-matches a column declared
+      # EncryptedString/EncryptedSearchableString. Such a comparison can never
+      # match, because the same plaintext produces a different ciphertext on
+      # every write, so it returns nothing and the caller reads that as "no such
+      # record". This is what made patient search, identity linking and booking
+      # lookup dead code while still returning HTTP 200.
+      - name: Encrypted query audit (strict)
+        run: python scripts/audit/check_encrypted_queries.py
+
   # ── Frontend JavaScript Unit Tests (Vitest) ──────────────────────────────
   frontend-javascript-tests:
     name: JavaScript unit tests (Vitest)
