@@ -35,7 +35,9 @@ jobs:
       - name: Install analysis tools
         run: |
           python -m pip install --upgrade pip
-          pip install ruff==0.16.4 mypy pip-audit bandit types-requests
+          # jinja2 is required by scripts/audit/template_alignment.py, which
+          # parses every template with Jinja's own parser rather than a regex.
+          pip install ruff==0.16.4 mypy pip-audit bandit types-requests jinja2
 
       - name: Auto-fix import sorting (EOL normalization)
         run: ruff check . --select I001 --fix
