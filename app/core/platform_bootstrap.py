@@ -453,6 +453,32 @@ def check_reference_data_readiness() -> dict[str, Any]:
     return outcome
 
 
+def load_terminology() -> dict[str, Any]:
+    """Load operator-supplied CPT/LOINC releases, or report that none exist.
+
+    This deliberately does not seed codes. A terminology code is what gets
+    billed and what lands on a lab report, so a plausible but wrong one is
+    believed and reimbursed; the codes have to come from the official release.
+    See :mod:`utils.terminology` for the format rules and provenance handling.
+    """
+    from utils.db_safety import safe_commit
+    from utils.terminology import load_configured_terminology
+
+    try:
+        result = load_configured_terminology()
+        if not result.get('loaded'):
+            _log().info('Clinical terminology not loaded: %s', result.get('reason'))
+        else:
+            # The loader leaves the transaction open; committing is the caller's
+            # job so a caller-managed rollback still works.
+            safe_commit(db.session, error_message='terminology import commit failed', reraise=True)
+            _log().info('Clinical terminology imported: %s', result.get('files'))
+        return result
+    except Exception as exc:  # noqa: BLE001
+        _log().exception('Terminology import failed: %s', exc)
+        return {'loaded': False, 'error': str(exc)}
+
+
 def run_platform_bootstrap(*, quiet: bool = False) -> dict[str, Any]:
     """Run full platform bootstrap. Safe to call on every boot.
 

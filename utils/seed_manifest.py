@@ -230,6 +230,18 @@ def build_registry() -> tuple[Dataset, ...]:
             description='Report a system missing essential clinical data as not-ready.',
         ),
         Dataset(
+            key='terminology',
+            provider=engine.load_terminology,
+            scope='platform',
+            summary_key='terminology',
+            description=(
+                'Load operator-supplied CPT/LOINC releases. Never invents codes; '
+                'reports "not loaded" when no source is configured.'
+            ),
+            required=False,
+            tags=('operator-supplied', 'never-fabricated'),
+        ),
+        Dataset(
             key='platform_admin',
             provider=engine.ensure_platform_admin,
             scope='platform',
