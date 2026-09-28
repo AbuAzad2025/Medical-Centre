@@ -101,32 +101,13 @@ def register():
             last_name = ' '.join(parts[1:]) if len(parts) > 1 else '-'
 
             patient = None
+            tenant_id = getattr(g, 'tenant_id', None) if g else None
             if national_id:
-                patient = (
-                    db.session.execute(
-                        select(Patient).filter(
-                            Patient.national_id == national_id,
-                            Patient.tenant_id == g.tenant_id
-                            if hasattr(Patient, 'tenant_id') and g.tenant_id
-                            else True,
-                        )
-                    )
-                    .scalars()
-                    .first()
-                )
+                # Blind index: comparing the encrypted column can never match,
+                # so this lookup silently returned nothing for every booking.
+                patient = Patient.find_by_national_id(national_id, tenant_id=tenant_id)
             if not patient and phone:
-                patient = (
-                    db.session.execute(
-                        select(Patient).filter(
-                            Patient.phone == phone,
-                            Patient.tenant_id == g.tenant_id
-                            if hasattr(Patient, 'tenant_id') and g.tenant_id
-                            else True,
-                        )
-                    )
-                    .scalars()
-                    .first()
-                )
+                patient = Patient.find_by_phone(phone, tenant_id=tenant_id)
             if not patient:
                 patient = Patient(
                     first_name=first_name, last_name=last_name, national_id=national_id, phone=phone

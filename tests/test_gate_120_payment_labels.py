@@ -107,11 +107,7 @@ class TestReceptionVisitsPageLabels:
             _db.session.add(u)
             _db.session.commit()
 
-        p = (
-            db.session.execute(select(Patient).filter_by(national_id='G120TEST01'))
-            .scalars()
-            .first()
-        )
+        p = Patient.find_by_national_id('G120TEST01')
         if not p:
             p = Patient(
                 tenant_id=test_tenant.id,

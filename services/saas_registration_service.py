@@ -272,11 +272,17 @@ class SaasRegistrationService:
                 .first()
             ):
                 raise SaasRegistrationError('username_taken')
-            if (
-                db.session.execute(select(User).filter_by(email=email, tenant_id=tenant.id))
+            # `email` is encrypted, so it cannot be matched in SQL: the
+            # ciphertext of the same address differs on every write. Compare
+            # in Python over the tenant's users instead of pretending a
+            # filter_by(email=...) works.
+            _existing = any(
+                u.email and u.email.strip().casefold() == email.casefold()
+                for u in db.session.execute(select(User).filter(User.tenant_id == tenant.id))
                 .scalars()
-                .first()
-            ):
+                .all()
+            )
+            if _existing:
                 raise SaasRegistrationError('email_taken')
 
         cls._with_tenant_bypass(_check_user_uniqueness_within_tenant)

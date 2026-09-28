@@ -133,11 +133,16 @@ class Patient(TenantMixin, db.Model):
             setattr(target, digest, blind_index_value(getattr(target, source)))
 
     #: Columns that get trigram rows, mapped to the source label stored with them.
+    #: phone and national_id are included because reception searches by a partial
+    #: number too ("050222" for "0502222222"), and an exact blind-index match
+    #: cannot answer that.
     _NGRAM_FIELDS = (
         ('first_name', 'first_name'),
         ('last_name', 'last_name'),
         ('first_name_ar', 'first_name_ar'),
         ('last_name_ar', 'last_name_ar'),
+        ('phone', 'phone'),
+        ('national_id', 'national_id'),
     )
 
     @classmethod

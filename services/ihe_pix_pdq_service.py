@@ -51,7 +51,7 @@ class IHEPixPdqService:
             try:
                 rows = db.session.execute(q.limit(200)).scalars().all()
                 for p in rows:
-                    if p.national_id == patient_id:
+                    if p.national_id and p.national_id.strip() == patient_id:
                         candidates.append(p)
                         break
             except Exception:

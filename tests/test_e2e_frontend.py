@@ -96,7 +96,7 @@ def e2e_seed(app, test_tenant, db):
 
     with tenant_test_context(app, test_tenant):
         db.session.rollback()
-        p = db.session.execute(select(Patient).filter_by(national_id='E2ESEED01')).scalars().first()
+        p = Patient.find_by_national_id('E2ESEED01', tenant_id=test_tenant.id)
         if not p:
             p = Patient(
                 tenant_id=test_tenant.id,

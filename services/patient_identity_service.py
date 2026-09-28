@@ -65,11 +65,10 @@ def verify_and_link_patient(user, *, national_id=None, phone=None):
 
     patient = None
     if national_id:
-        patient = (
-            db.session.execute(select(Patient).filter_by(national_id=national_id)).scalars().first()
-        )
-    if not patient and phone:
-        patient = db.session.execute(select(Patient).filter_by(phone=phone)).scalars().first()
+        patient = Patient.find_by_national_id(national_id)
+        if not patient and phone:
+            patient = Patient.find_by_phone(phone)
+
     if not patient:
         return None, 'لم يتم العثور على ملف مريض مطابق. تواصل مع الاستقبال'
 

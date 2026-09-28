@@ -48,6 +48,23 @@ def _svc():
     return FieldEncryptionService.get_service()
 
 
+def _skip_if_rls_bypassed(db) -> None:
+    """Skip a test that asserts RLS when the connected role bypasses it.
+
+    A superuser or a role with BYPASSRLS sees every row regardless of
+    app.tenant_id, so an assertion that a tenant-less connection sees nothing
+    cannot hold there. The dedicated RLS job runs as a restricted role, which is
+    where these assertions are actually meaningful.
+    """
+    from sqlalchemy import text
+
+    bypass = db.session.execute(
+        text('select rolbypassrls or rolsuper from pg_roles where rolname = current_user')
+    ).scalar()
+    if bypass:
+        pytest.skip('connected role bypasses RLS, so isolation cannot be asserted here')
+
+
 class TestPrimitives:
     def test_gcm_is_not_deterministic(self):
         svc = _svc()
@@ -313,6 +330,7 @@ class TestPatientBlindIndex:
         """RLS must still hide everything when no tenant is bound."""
         from sqlalchemy import text
 
+        _skip_if_rls_bypassed(db)
         self._make(db, test_tenant, national_id='ID-RLS')
         with db.engine.connect() as conn:
             conn.execute(text("select set_config('app.tenant_id', '', false)"))
@@ -438,9 +456,10 @@ class TestSubstringSearch:
         finally:
             bind_g_tenant(test_tenant)
 
-    def test_ngram_table_is_hidden_without_a_tenant(self, db, test_tenant):
+    def test_ngram_table_is_hidden_without_a_tenant(self, db, rollback_db, test_tenant):
         from sqlalchemy import text
 
+        _skip_if_rls_bypassed(db)
         self._make(db, test_tenant, first_name='Sara', last_name='Ahmed', national_id='ID-S8')
         with db.engine.connect() as conn:
             conn.execute(text("select set_config('app.tenant_id', '', false)"))

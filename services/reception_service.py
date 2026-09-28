@@ -9,7 +9,7 @@ import logging
 from datetime import UTC, date, datetime
 from typing import Any
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 
 from app.extensions import db
 from app.shared.enums import VisitState
@@ -84,23 +84,11 @@ class ReceptionService:
     def search_patients(query: str) -> list:
         from models.patient import Patient
 
-        return (
-            db.session.execute(
-                select(Patient)
-                .filter(
-                    or_(
-                        Patient.first_name.ilike(f'%{query}%'),
-                        Patient.last_name.ilike(f'%{query}%'),
-                        Patient.phone.ilike(f'%{query}%'),
-                        Patient.national_id.ilike(f'%{query}%'),
-                    )
-                )
-                .order_by(Patient.first_name)
-                .limit(20)
-            )
-            .scalars()
-            .all()
-        )
+        # ilike() on these columns can never match once they are encrypted: the
+        # ciphertext of the same plaintext differs on every write. The blind
+        # index is what makes the search work, so this goes through
+        # Patient.search instead of issuing the doomed LIKE.
+        return Patient.search(query, limit=20)
 
     @staticmethod
     def create_visit(

@@ -966,14 +966,10 @@ class SmartAIEngine:
         total_users = db.session.execute(select(func.count()).select_from(User)).scalar()
         inactive_users = db.session.execute(select(User).filter_by(is_active=False)).scalars().all()
         users_without_email = (
-            db.session.execute(select(User).filter(User.email.is_(None) | (User.email == '')))
-            .scalars()
-            .all()
+            db.session.execute(select(User).filter(User.email.is_(None))).scalars().all()
         )
         users_without_phone = (
-            db.session.execute(select(User).filter(User.phone.is_(None) | (User.phone == '')))
-            .scalars()
-            .all()
+            db.session.execute(select(User).filter(User.phone.is_(None))).scalars().all()
         )
 
         # المستخدمين الذين لم يسجلوا دخول أبداً

@@ -47,7 +47,7 @@ def sample_patient(app, test_tenant, monkeypatch):
         'app.shared.tenant_filter._check_bundle_limits_on_create',
         lambda _instance, _tenant_id: None,
     )
-    p = db.session.execute(select(Patient).filter_by(national_id='TIMELINE-001')).scalars().first()
+    p = Patient.find_by_national_id('TIMELINE-001')
     if not p:
         p = Patient(
             first_name='Timeline',

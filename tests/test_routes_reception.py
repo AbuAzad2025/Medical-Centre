@@ -471,7 +471,7 @@ class TestAddPatient:
             },
         )
         assert resp.status_code in (302, 200)
-        p = ctx.db.session.query(Patient).filter_by(phone=phone).order_by(Patient.id.desc()).first()
+        p = Patient.find_by_phone(phone)
         assert p is not None or resp.status_code == 302
 
     def test_add_patient_missing_name(self, login_as, client, ctx):
