@@ -48,12 +48,11 @@ def visits():
 
     if search:
         query = query.join(Patient).filter(
-            db.or_(
-                Patient.first_name.ilike(f'%{search}%'),
-                Patient.last_name.ilike(f'%{search}%'),
-                Patient.phone.ilike(f'%{search}%'),
-                Patient.national_id.ilike(f'%{search}%'),
-            )
+            # These columns hold AES-GCM ciphertext, so an ilike on them can
+            # never match: the same plaintext encrypts differently on every
+            # write. Reception saw an empty list for every search. The blind
+            # index plus the trigram table answer it.
+            Patient.id.in_(Patient.search_ids(search, limit=1000))
         )
 
     if department_id:
@@ -162,12 +161,11 @@ def export_visits():
     )
     if search:
         query = query.join(Patient).filter(
-            db.or_(
-                Patient.first_name.ilike(f'%{search}%'),
-                Patient.last_name.ilike(f'%{search}%'),
-                Patient.phone.ilike(f'%{search}%'),
-                Patient.national_id.ilike(f'%{search}%'),
-            )
+            # These columns hold AES-GCM ciphertext, so an ilike on them can
+            # never match: the same plaintext encrypts differently on every
+            # write. Reception saw an empty list for every search. The blind
+            # index plus the trigram table answer it.
+            Patient.id.in_(Patient.search_ids(search, limit=1000))
         )
     if department_id:
         query = query.filter(Visit.department_id == department_id)

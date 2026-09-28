@@ -446,6 +446,18 @@ class QueueManagementService:
         is_emergency=None,
         force_entry=None,
     ):
+        # An empty or missing department scope means "no departments are
+        # visible to this caller", which is an empty queue board. It is not an
+        # error. Previously it reached `.in_(None)`, raised ArgumentError, and
+        # the bare `except Exception` below turned that into a silent `None`,
+        # so the UI reported "failed to load the queue" with no cause.
+        if not department_ids:
+            return {
+                'tickets': [],
+                'waiting_count': 0,
+                'called_count': 0,
+                'in_progress_count': 0,
+            }
         try:
             from models.patient import Patient
             from models.queue_management import QueueManagement
@@ -455,7 +467,7 @@ class QueueManagementService:
             q = (
                 select(QueueManagement)
                 .outerjoin(Visit, QueueManagement.visit_id == Visit.id)
-                .filter(QueueManagement.department_id.in_(department_ids))
+                .filter(QueueManagement.department_id.in_(list(department_ids)))
             )
             if doctor_id:
                 q = q.filter(Visit.doctor_id == doctor_id)
@@ -477,7 +489,9 @@ class QueueManagementService:
             if search:
                 q = q.join(Patient, Patient.id == QueueManagement.patient_id).filter(
                     db.or_(
-                        Patient.full_name.ilike(f'%{search}%'),
+                        # full_name is ciphertext, so this could never match;
+                        # the queue number is plain and is kept as-is.
+                        Patient.id.in_(Patient.search_ids(search, limit=1000)),
                         QueueManagement.queue_number.ilike(f'%{search}%'),
                     )
                 )
@@ -548,7 +562,9 @@ class QueueManagementService:
                 'in_progress_count': in_progress,
             }
         except Exception:
-            self.logger.exception('Error getting all queue status: %s')
+            # logger.exception already appends the traceback; passing a bare
+            # '%s' with no argument printed a literal '%s' and hid the cause.
+            self.logger.exception('Error getting all queue status')
             return None
 
     def call_next_patient(self, department_id, doctor_id=None, called_by=None):
