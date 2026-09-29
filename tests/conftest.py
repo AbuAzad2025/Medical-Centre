@@ -120,6 +120,24 @@ def _migrate_test_schema(app) -> None:
             _db.session.execute(sa_text(f'DROP TYPE IF EXISTS "{enum_name}" CASCADE'))
         _db.session.commit()
         alembic_upgrade(directory='migrations')
+
+        # The RBAC catalogue has to be seeded *after* the schema exists.
+        # create_app used to do it inline, but this fixture migrates the test
+        # schema after create_app has already returned, so on every test run the
+        # factory found no permissions table, skipped the block, and left
+        # role_permissions empty. Every route behind
+        # AccessControlService.require_permission then answered 403, and
+        # TestReceptionQueue failed for reasons that had nothing to do with
+        # queue settings.
+        from app.bootstrap.rbac_seed import seed_rbac_and_catalogs
+
+        seeded = seed_rbac_and_catalogs(_db)
+        if not seeded.get('granted'):
+            raise RuntimeError(
+                f'RBAC seeding did not run on the test schema: {seeded}. Every '
+                'permission-gated route would answer 403 and the isolation tests '
+                'would be asserting against an empty catalogue.'
+            )
     finally:
         if previous is None:
             os.environ.pop('SKIP_PLATFORM_BOOTSTRAP', None)
