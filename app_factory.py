@@ -66,6 +66,19 @@ socketio = SocketIO(async_mode='threading')
 sess = Session()
 
 
+def _platform_tenant_scope():
+    """Bind the platform tenant for the first-run seeding in :func:`create_app`.
+
+    Seeding writes rows into RLS-protected tables, which is only admissible when
+    the session GUC matches the row's tenant_id. Without a binding, the tenant
+    filter asserts the empty string, the policies reject the insert, and the
+    failure used to be swallowed.
+    """
+    from seeds.production_baseline import platform_tenant_scope
+
+    return platform_tenant_scope()
+
+
 def create_app(config_name: str | None = None) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
 
@@ -1508,7 +1521,11 @@ def create_app(config_name: str | None = None) -> Flask:
             db.session.remove()
             # Do NOT dispose engine here it destroys the connection pool
 
-    with app.app_context():
+    # The seeding below writes into RLS-protected tables, which is only
+    # admissible when the session GUC matches the row's tenant_id. Without this
+    # binding the tenant filter asserts the empty string, the policies reject
+    # the insert, and the whole block used to be swallowed.
+    with app.app_context(), _platform_tenant_scope():
         try:
             insp = _sa_inspect(db.engine)
             if insp.has_table('permissions') and insp.has_table('roles'):
@@ -1628,7 +1645,16 @@ def create_app(config_name: str | None = None) -> Flask:
 
             pass
         except Exception:
-            pass
+            # This used to be a bare `except Exception: pass`. It swallowed
+            # TenantIsolationError and left the database with 48 permissions,
+            # 15 roles and *zero* role_permissions, so every route behind
+            # AccessControlService.require_permission denied every user on
+            # every install, and no platform superadmin existed. A first-run
+            # failure has to be visible rather than a silent deny-all.
+            app.logger.exception(
+                'Role/permission bootstrap failed; permission-gated routes will '
+                'deny every user until this is resolved'
+            )
 
     # CLI commands for module/tenant management
     @app.cli.command('module-seed')
