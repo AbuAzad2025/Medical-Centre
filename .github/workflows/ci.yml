@@ -63,6 +63,15 @@ jobs:
       - name: CJK guard — no Chinese/Japanese/Korean in code/templates (strict)
         run: python scripts/ci/check_no_cjk.py
 
+      # Ratchet, not a one-shot purge. An inline style wins over any stylesheet,
+      # so a value written as style="..." in a template can never be changed
+      # centrally and drifts from the design tokens. A hard zero would fail the
+      # build today and block every other change until the whole frontend is
+      # rewritten, which is how gates end up disabled. The ceiling only moves
+      # down, and only via --set with the new measured count.
+      - name: Inline-style ratchet — no new inline styles or handlers
+        run: python scripts/audit/check_inline_styles.py
+
       # Blocking: exits 1 if a template reads a context variable its view never
       # passes, a form attribute the form class does not declare, or a template
       # Jinja cannot parse. This is the gate that would have caught the blank

@@ -1,0 +1,4 @@
+{
+  "max": 419,
+  "note": "Inline styles and inline event handlers are banned. Move the rule into a\nstylesheet and let the design tokens in static/css own the value, or read\nthe value from a data- attribute when it is genuinely dynamic."
+}
