@@ -546,7 +546,7 @@ def create_app(config_name: str | None = None) -> Flask:
 
     @app.get('/favicon.ico')
     def favicon():
-        return redirect(url_for('static', filename='img/azad_logo.png'), code=302)
+        return redirect(url_for('static', filename='img/medical_logo.png'), code=302)
 
     # Global error handlers for custom exceptions (MUST precede generic handlers)
     from app.shared.tenant_filter import TenantIsolationError

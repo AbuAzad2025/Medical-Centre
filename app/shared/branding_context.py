@@ -38,7 +38,7 @@ class UIContext:
 
 
 def _default_logo_url() -> str:
-    return url_for('static', filename='img/azad_logo.png')
+    return url_for('static', filename='img/medical_logo.png')
 
 
 def _media_url(path: str | None) -> str | None:

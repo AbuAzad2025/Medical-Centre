@@ -47,6 +47,21 @@ def app():
         _db.create_all()
         # Ensure new columns exist on existing tables (adds column if missing)
         try:
+            # PHI blind index: db.create_all() builds tables from the model
+            # metadata, and the tenant-scoped unique constraint on the national
+            # id blind index is expressed only as raw DDL inside the s3_014
+            # migration. Without it the test schema accepts two patients in the
+            # same tenant holding the same national id, and
+            # test_database_rejects_duplicate_national_id cannot pass on a fresh
+            # database. It is a partial index: patients with no national id, and
+            # therefore no hash, must stay insertable.
+            _db.session.execute(
+                text(
+                    'CREATE UNIQUE INDEX IF NOT EXISTS uq_patients_tenant_national_id_hash '
+                    'ON patients (tenant_id, national_id_hash) '
+                    'WHERE national_id_hash IS NOT NULL'
+                )
+            )
             # P0 file-storage migration backfill (S3/MinIO columns on file_uploads).
             # db.create_all() never alters pre-existing tables; the persistent CI
             # test DB predates these columns, so backfill them like the Phase 3.2
