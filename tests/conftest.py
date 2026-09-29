@@ -33,6 +33,8 @@ os.environ['RLS_BYPASS_ALLOWED'] = '1'
 os.environ['ENABLE_SAAS_MODE'] = 'true'
 os.environ.pop('FIELD_ENCRYPTION_KEY', None)
 
+from sqlalchemy import text as sa_text
+
 from app.core.tenant.models import Tenant
 from app.extensions import db as _db
 from app.shared.tenant_filter import TenantIsolationError
@@ -40,10 +42,122 @@ from app_factory import create_app
 from models.user import User
 
 
+def _migrate_test_schema(app) -> None:
+    """Build the test schema from the Alembic chain, not from model metadata.
+
+    ``db.create_all()`` can only emit what the models declare. Everything the
+    migrations express as raw DDL is therefore absent from a create_all-built
+    test database, and in a system holding medical records the two most
+    important pieces were both missing:
+
+      * RLS policies. The migrations ENABLE *and* FORCE row level security on
+        208 tables and create 216 policies. create_all() creates none of them,
+        so every "RLS isolation" test was asserting against a database with no
+        isolation at all. The tests that verify a row is hidden from a
+        tenant-less connection failed once the database was rebuilt honestly.
+      * Constraints declared only in migrations, such as
+        uq_patients_tenant_national_id_hash.
+
+    Migrating is also the only way the test schema can keep matching production.
+    Building it from metadata means the tests pass against a schema that no
+    deployment ever runs.
+
+    The platform bootstrap is suppressed for the migration on purpose: it
+    self-heals the schema on startup, and running it first makes the very first
+    migration collide with the tables it just created (DuplicateTable on
+    cpt_codes). The schema is Alembic's job; the bootstrap only seeds data.
+    """
+    import os
+
+    from flask_migrate import upgrade as alembic_upgrade
+
+    engine = _db.engine
+    name = engine.url.database
+    if not name or 'test' not in name.lower():
+        raise RuntimeError(
+            f'refusing to migrate {name!r}: the test schema is only ever built on a '
+            "database whose name contains 'test'. Point TEST_DATABASE_URL at the test "
+            'database; migrating the development database from here would rewrite it.'
+        )
+
+    previous = os.environ.get('SKIP_PLATFORM_BOOTSTRAP')
+    os.environ['SKIP_PLATFORM_BOOTSTRAP'] = '1'
+    try:
+        # Start from an empty schema every session. A test database that was
+        # ever built by create_all() has tables but no alembic stamp, and the
+        # first migration then fails with DuplicateTable. Rebuilding from empty
+        # also makes the test schema reproducible instead of "whatever the last
+        # run happened to leave behind", which is the property that matters
+        # when the result decides whether a record was readable by the wrong
+        # tenant.
+        #
+        # Drop the tables rather than the schema: the application role owns the
+        # tables it created but not the public schema itself, so DROP SCHEMA
+        # raises InsufficientPrivilege on PostgreSQL 15+.
+        # alembic_version lives in the public schema too, so this also clears a
+        # stale stamp.
+        stale = [
+            row[0]
+            for row in _db.session.execute(
+                sa_text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
+            ).all()
+        ]
+        for table in stale:
+            _db.session.execute(sa_text(f'DROP TABLE IF EXISTS "{table}" CASCADE'))
+        # Enums are schema objects in their own right, so DROP TABLE ... CASCADE
+        # leaves them behind and the first CREATE TYPE then fails.
+        enum_types = [
+            row[0]
+            for row in _db.session.execute(
+                sa_text(
+                    'SELECT t.typname FROM pg_type t '
+                    'JOIN pg_namespace n ON n.oid = t.typnamespace '
+                    "WHERE n.nspname = 'public' AND t.typtype = 'e'"
+                )
+            ).all()
+        ]
+        for enum_name in enum_types:
+            _db.session.execute(sa_text(f'DROP TYPE IF EXISTS "{enum_name}" CASCADE'))
+        _db.session.commit()
+        alembic_upgrade(directory='migrations')
+    finally:
+        if previous is None:
+            os.environ.pop('SKIP_PLATFORM_BOOTSTRAP', None)
+        else:
+            os.environ['SKIP_PLATFORM_BOOTSTRAP'] = previous
+
+    rls = _db.session.execute(
+        sa_text(
+            'SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace '
+            "WHERE n.nspname = 'public' AND c.relrowsecurity"
+        )
+    ).scalar()
+    forced = _db.session.execute(
+        sa_text(
+            'SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace '
+            "WHERE n.nspname = 'public' AND c.relforcerowsecurity"
+        )
+    ).scalar()
+    policies = _db.session.execute(
+        sa_text("SELECT count(*) FROM pg_policies WHERE schemaname = 'public'")
+    ).scalar()
+    if not rls or not forced or not policies:
+        raise RuntimeError(
+            f'test schema has RLS enabled={rls} forced={forced} policies={policies}; '
+            'refusing to run a medical test suite against a database without row '
+            'level security. Run: flask db upgrade'
+        )
+    print(
+        f'\n[conftest] test schema migrated: {rls} tables RLS-enabled, '
+        f'{forced} forced, {policies} policies on {name}'
+    )
+
+
 @pytest.fixture(scope='session')
 def app():
     app = create_app('testing')
     with app.app_context():
+        _migrate_test_schema(app)
         _db.create_all()
         # Ensure new columns exist on existing tables (adds column if missing)
         try:
