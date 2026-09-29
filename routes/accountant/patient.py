@@ -66,18 +66,23 @@ def financial():
         patients = []
         if q:
             pq = select(Patient)
-            if q.isdigit():
-                pq = pq.filter(Patient.id == int(q))
-            else:
-                pq = pq.filter(
-                    db.or_(
-                        Patient.first_name.ilike(f'%{q}%'),
-                        Patient.last_name.ilike(f'%{q}%'),
-                        Patient.phone.ilike(f'%{q}%'),
-                        Patient.national_id.ilike(f'%{q}%'),
-                    )
-                )
-            patients = pq.order_by(Patient.created_at.desc()).limit(50).all()
+            # The searched columns hold ciphertext, so an ilike on them can never
+            # match: the same plaintext encrypts differently on every write. The
+            # blind index plus the trigram table answer it.
+            conditions = [Patient.id.in_(Patient.search_ids(q, limit=50))]
+            # A bare numeric query is a patient id only when such a patient
+            # exists. Routing every all-digit query to the id branch meant a
+            # user typing a partial phone number ("123456") got an id lookup
+            # that matched nothing, so the search field looked broken.
+            if q.isdigit() and db.session.get(Patient, int(q)) is not None:
+                conditions.append(Patient.id == int(q))
+            pq = pq.filter(db.or_(*conditions))
+            # `Select` has no .all(); that is a Query method. Calling it raised
+            # AttributeError, the except below swallowed it, and the screen
+            # rendered a 229 byte error page for every search a user typed.
+            patients = (
+                db.session.execute(pq.order_by(Patient.created_at.desc()).limit(50)).scalars().all()
+            )
 
         statement = None
         selected_patient = None

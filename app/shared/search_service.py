@@ -29,16 +29,11 @@ class SearchService:
                 except ValueError:
                     continue
 
-        filters = [
-            Patient.first_name.ilike(f'%{query}%'),
-            Patient.last_name.ilike(f'%{query}%'),
-            Patient.first_name_ar.ilike(f'%{query}%'),
-            Patient.last_name_ar.ilike(f'%{query}%'),
-            Patient.national_id.ilike(f'%{query}%'),
-            Patient.phone.ilike(f'%{query}%'),
-        ]
-        if hasattr(Patient, 'code'):
-            filters.append(Patient.code.ilike(f'%{query}%'))
+        # These six columns hold ciphertext, so an ilike on them can never
+        # match: the same plaintext encrypts differently on every write. The
+        # blind index plus the trigram table answer it. Patient has no `code`
+        # column, so that guarded branch is gone with them.
+        filters = [Patient.id.in_(Patient.search_ids(query, limit=limit))]
 
         from utils.tenant_query import tenant_filter
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import desc, func, or_, select
+from sqlalchemy import desc, func, select
 
 from app.extensions import db
 from app.shared.enums import VisitState
@@ -55,15 +55,11 @@ class CoreQueryService:
 
         q = tenant_filter(Patient)
         if query:
-            q = q.filter(
-                or_(
-                    Patient.name.ilike(f'%{query}%'),
-                    Patient.code.ilike(f'%{query}%'),
-                    Patient.phone.ilike(f'%{query}%'),
-                )
-            )
-        if department_id:
-            q = q.filter_by(department_id=department_id)
+            # Patient has no `name`, `code` or `department_id` column. The
+            # previous ilike on them raised AttributeError for any non-empty
+            # query, so this function could only ever return an empty list or
+            # blow up. Search now goes through the blind index.
+            q = q.filter(Patient.id.in_(Patient.search_ids(query, limit=limit + offset)))
         return q.order_by(desc(Patient.created_at)).offset(offset).limit(limit).all()
 
     @staticmethod
@@ -72,15 +68,9 @@ class CoreQueryService:
 
         q = tenant_filter(Patient)
         if query:
-            q = q.filter(
-                or_(
-                    Patient.name.ilike(f'%{query}%'),
-                    Patient.code.ilike(f'%{query}%'),
-                    Patient.phone.ilike(f'%{query}%'),
-                )
-            )
-        if department_id:
-            q = q.filter_by(department_id=department_id)
+            # See search_patients: `name`, `code` and `department_id` are not
+            # columns on Patient.
+            q = q.filter(Patient.id.in_(Patient.search_ids(query, limit=1000)))
         return q.count()
 
     # ==================== VISIT QUERIES ====================

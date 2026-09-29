@@ -67,19 +67,54 @@ def python_files(subdirs: tuple[str, ...] = ('app', 'routes', 'services', 'utils
 
 
 def collect_encrypted_columns() -> dict[str, str]:
-    """column name -> the type it was declared with, read from the models."""
+    """column name -> declared type, read from the models.
+
+    Kept for reporting only. Detection uses :func:`encrypted_columns_by_model`
+    so that a plain column is not flagged because some *other* model happens
+    to declare a column with the same name.
+    """
     found: dict[str, str] = {}
-    pattern = (
+    for _model, column, declared in _iter_encrypted_declarations():
+        found.setdefault(column, declared)
+    return found
+
+
+def encrypted_columns_by_model() -> dict[str, dict[str, str]]:
+    """model name -> {column: declared type} for that model alone.
+
+    The earlier version built one global column-name set from every model, so
+    `User.email.ilike(...)` was reported as a dead ciphertext search purely
+    because OnlineBooking declares an encrypted column called `email`. User.
+    email is a plain indexed column and its ilike works. Matching per model
+    removes that false positive without weakening the real check.
+    """
+    by_model: dict[str, dict[str, str]] = {}
+    for model, column, declared in _iter_encrypted_declarations():
+        by_model.setdefault(model, {})[column] = declared
+    return by_model
+
+
+def _iter_encrypted_declarations():
+    """Yield (model, column, declared type) for every encrypted column."""
+    import re as _re
+
+    pattern = _re.compile(
         r'(\w+)\s*=\s*(?:db\.)?Column\(\s*(?:db\.)?'
         r'(EncryptedString|EncryptedSearchableString)\b'
     )
-    for f in (ROOT / 'models').glob('*.py'):
+    class_re = _re.compile(r'^class\s+(\w+)')
+    for f in sorted((ROOT / 'models').glob('*.py')):
         text = f.read_text(encoding='utf-8', errors='ignore')
-        import re
-
-        for m in re.finditer(pattern, text):
-            found[m.group(1)] = m.group(2)
-    return found
+        current = None
+        for line in text.splitlines():
+            cm = class_re.match(line)
+            if cm:
+                current = cm.group(1)
+                continue
+            if current is None:
+                continue
+            for m in pattern.finditer(line):
+                yield current, m.group(1), m.group(2)
 
 
 def _is_model_attr(node: ast.AST, model_names: set[str]) -> tuple[str, str] | None:
@@ -110,7 +145,12 @@ def _iter_calls(node: ast.AST):
             yield child
 
 
-def audit_file(path: pathlib.Path, encrypted: dict[str, str], models: set[str]):
+def audit_file(
+    path: pathlib.Path,
+    encrypted_by_model: dict[str, dict[str, str]],
+    encrypted_names: frozenset[str],
+    models: set[str],
+):
     try:
         tree = ast.parse(path.read_text(encoding='utf-8', errors='ignore'))
     except (SyntaxError, OSError) as exc:
@@ -131,7 +171,7 @@ def audit_file(path: pathlib.Path, encrypted: dict[str, str], models: set[str]):
                 if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Attribute)
                 else _is_model_attr(func, models)
             )
-            if target and target[1] in encrypted:
+            if target and target[1] in encrypted_by_model.get(target[0], {}):
                 violations.append(
                     ('ENCRYPTED_LIKE', call.lineno, target[1], _line(path, call.lineno))
                 )
@@ -139,7 +179,7 @@ def audit_file(path: pathlib.Path, encrypted: dict[str, str], models: set[str]):
         # filter_by(col=...) / filter(Model.col == ...)
         if name in ('filter_by', 'filter', 'get', 'get_or_404'):
             for kw in call.keywords:
-                if kw.arg and kw.arg in encrypted:
+                if kw.arg and kw.arg in encrypted_names:
                     if isinstance(kw.value, ast.Call) and (
                         getattr(kw.value.func, 'attr', '') in ALLOWED_CALLS
                     ):
@@ -154,7 +194,7 @@ def audit_file(path: pathlib.Path, encrypted: dict[str, str], models: set[str]):
                     if op not in ('Eq', 'NotEq'):
                         continue
                     target = _is_model_attr(arg.left, models)
-                    if target and target[1] in encrypted:
+                    if target and target[1] in encrypted_by_model.get(target[0], {}):
                         violations.append(
                             ('ENCRYPTED_COMPARE', call.lineno, target[1], _line(path, call.lineno))
                         )
@@ -165,7 +205,7 @@ def audit_file(path: pathlib.Path, encrypted: dict[str, str], models: set[str]):
             if type(node.ops[0]).__name__ not in ('Eq', 'NotEq'):
                 continue
             target = _is_model_attr(node.left, models)
-            if target and target[1] in encrypted:
+            if target and target[1] in encrypted_by_model.get(target[0], {}):
                 violations.append(
                     ('ENCRYPTED_COMPARE', node.lineno, target[1], _line(path, node.lineno))
                 )
@@ -181,73 +221,41 @@ def _line(path: pathlib.Path, lineno: int) -> str:
         return ''
 
 
-BASELINE_PATH = pathlib.Path(__file__).with_name('encrypted_query_baseline.json')
-
-
-def _load_baseline() -> set[str]:
-    """Recorded pre-existing violations, keyed by file and source text.
-
-    The gate's job is to stop a *new* dead query being introduced. Failing on the
-    46 that already exist would leave the build permanently red, which blocks
-    every future change and gets the gate ignored within a week. So the existing
-    debt is recorded here, and the build fails only when the count exceeds it or
-    a site is not in the baseline. The baseline is expected to shrink: when a
-    search is converted to Patient.search, delete its entry, and the next run
-    reports the baseline as stale until it matches again.
-    """
-    if not BASELINE_PATH.exists():
-        return set()
-    import json
-
-    try:
-        return set(json.loads(BASELINE_PATH.read_text(encoding='utf-8')).get('sites', []))
-    except (ValueError, OSError):
-        return set()
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--quiet', action='store_true')
     args = parser.parse_args(argv if argv is not None else sys.argv[1:])
 
-    encrypted = collect_encrypted_columns()
+    encrypted = encrypted_columns_by_model()
+    names = frozenset(encrypted)
     models = _model_names()
     total: list[tuple[str, int, str, str, str]] = []
 
     for f in python_files():
-        for kind, lineno, column, text in audit_file(f, encrypted, models):
+        for kind, lineno, column, text in audit_file(f, encrypted, names, models):
             total.append((str(f.relative_to(ROOT)), lineno, kind, column, text))
 
     by_kind = collections.Counter(v[2] for v in total)
 
-    baseline = _load_baseline()
-    # total entries are (path, lineno, kind, column, source_text)
-    site = lambda v: f'{v[0]}::{v[2]}::{v[4]}'  # noqa: E731
-    baseline_sites = set(baseline)
-    new = [v for v in total if site(v) not in baseline_sites]
-    stale = sorted(baseline_sites - {site(v) for v in total})
-
+    # There is no baseline. It existed to keep the build green while 46 dead
+    # searches were still in the tree; all of them are now converted and the
+    # file is deleted. Any violation from here on is a regression.
     if not args.quiet:
         print(f'encrypted columns tracked : {len(encrypted)}')
         print(f'files scanned             : {sum(1 for _ in python_files())}')
         print(f'violations found          : {len(total)}')
-        print(f'recorded in baseline      : {len(total) - len(new)}')
-        print(f'NEW (block the build)     : {len(new)}')
-        if stale:
-            print(f'baseline is stale         : {len(stale)} entr(y/ies) no longer reproduce')
         print()
-        if new:
-            for path, lineno, kind, column, text in new:
-                print(f'NEW  {kind}  {path}:{lineno}  [{column}]')
-                print(f'    {text}')
-        elif not args.quiet:
-            print('no new encrypted-query violations')
+        for path, lineno, kind, column, text in total:
+            print(f'{kind}  {path}:{lineno}  [{column}]')
+            print(f'    {text}')
+        if not total:
+            print('no encrypted-query violations: every search goes through the blind index')
 
     print(
-        f'\nRESULT: {len(new)} new violation(s) of {len(total)} total '
+        f'\nRESULT: {len(total)} violation(s) of {len(total)} total '
         f'({", ".join(f"{k}={v}" for k, v in sorted(by_kind.items())) or "none"})'
     )
-    return 1 if new else 0
+    return 1 if total else 0
 
 
 if __name__ == '__main__':

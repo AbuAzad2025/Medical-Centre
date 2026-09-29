@@ -752,23 +752,36 @@ def owner_users():
     tenant_filter = request.args.get('tenant_id', type=int)
 
     query = User.query
-    if search:
-        like = f'%{search}%'
-        query = query.filter(
-            db.or_(
-                User.username.ilike(like),
-                User.full_name.ilike(like),
-                User.email.ilike(like),
-            )
-        )
     if role_filter:
         query = query.filter(User.role == role_filter)
     if tenant_filter:
         query = query.filter(User.tenant_id == tenant_filter)
 
-    pagination = query.order_by(User.created_at.desc()).paginate(
-        page=page, per_page=per_page, error_out=False
-    )
+    query = query.order_by(User.created_at.desc())
+
+    if search:
+        # The three fields are alternatives, not a conjunction: matching the
+        # username in SQL and then the full_name in Python would hide every
+        # user who was found by name, because the SQL half had already
+        # discarded them. User.full_name is EncryptedString, so an ilike on it
+        # can never match; matching it needs the decrypted value.
+        #
+        # pagination comes from paginate() rather than a hand-built
+        # flask_sqlalchemy.pagination.Pagination, which is abstract and raises
+        # NotImplementedError the moment the template walks its links.
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        needle = search.casefold()
+        matched = [
+            u
+            for u in query.all()
+            if any(
+                needle in (value or '').casefold() for value in (u.username, u.email, u.full_name)
+            )
+        ]
+        pagination.items = matched[(page - 1) * per_page : (page - 1) * per_page + per_page]
+        pagination.total = len(matched)
+    else:
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     users = pagination.items
     tenants = db.session.execute(select(Tenant).order_by(Tenant.name)).scalars().all()
     roles = sorted(
