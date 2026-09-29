@@ -495,14 +495,24 @@ def run_platform_bootstrap(*, quiet: bool = False) -> dict[str, Any]:
     # One loop over the manifest, so adding a dataset is a data change. The
     # three original counters keep their historical summary keys because they
     # are part of this function's published contract.
+    # Every dataset here writes tenant-scoped rows: system_configs carries a
+    # WITH CHECK policy, so a row that lands with tenant_id = NULL is rejected
+    # by the database. auto_assign_tenant fills it from the bound context and
+    # raises when there is none, which is why seeding previously failed with
+    # "Tenant-scoped record SystemConfig created without tenant context" and
+    # left role_permissions empty on every install. Binding the platform tenant
+    # once around the whole manifest is the fix; individual providers must not
+    # each have to remember it.
+    from seeds.production_baseline import platform_tenant_scope
     from utils.seed_manifest import build_registry
 
-    for dataset in build_registry():
-        try:
-            summary[dataset.summary_key] = dataset.provider()
-        except Exception as exc:  # noqa: BLE001
-            summary[f'{dataset.summary_key}_error'] = str(exc)
-            _log().exception('Bootstrap step %r failed: %s', dataset.key, exc)
+    with platform_tenant_scope():
+        for dataset in build_registry():
+            try:
+                summary[dataset.summary_key] = dataset.provider()
+            except Exception as exc:  # noqa: BLE001
+                summary[f'{dataset.summary_key}_error'] = str(exc)
+                _log().exception('Bootstrap step %r failed: %s', dataset.key, exc)
 
     log('Platform bootstrap: %s', summary)
     return summary

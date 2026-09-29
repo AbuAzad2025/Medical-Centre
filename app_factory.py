@@ -1543,11 +1543,22 @@ def create_app(config_name: str | None = None) -> Flask:
                 assign_super_admin_permissions()
 
                 def _assign(role_name: str, perm_names: list[str]):
+                    from flask import g
+
                     role_obj = (
                         db.session.execute(select(Role).filter_by(name=role_name)).scalars().first()
                     )
                     if not role_obj:
                         return
+                    # role_permissions is one of the six RBAC definition tables:
+                    # deliberately unfiltered at the ORM layer so every tenant
+                    # resolves the same catalogue, but its RLS policy still
+                    # requires the row to name the platform tenant. Being exempt
+                    # from auto-assign, the grant must set tenant_id itself, or
+                    # the WITH CHECK clause rejects it with InsufficientPrivilege
+                    # and role_permissions stays empty, which denies every
+                    # permission-gated route on every install.
+                    grant_tenant_id = getattr(g, 'tenant_id', None)
                     for pname in perm_names:
                         p = (
                             db.session.execute(select(Permission).filter_by(name=pname))
@@ -1565,7 +1576,13 @@ def create_app(config_name: str | None = None) -> Flask:
                             .scalars()
                             .first()
                         ):
-                            db.session.add(RolePermission(role_id=role_obj.id, permission_id=p.id))
+                            db.session.add(
+                                RolePermission(
+                                    role_id=role_obj.id,
+                                    permission_id=p.id,
+                                    tenant_id=grant_tenant_id,
+                                )
+                            )
                     safe_commit(db.session, error_message='database commit failed', reraise=True)
 
                 _assign(
