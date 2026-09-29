@@ -51,6 +51,8 @@ def seed_rbac_and_catalogs(db, *, inspector=None) -> dict[str, Any]:
 
     from flask import g
 
+    _assign_counts: dict[str, int] = {}
+
     def _assign(role_name: str, perm_names: list[str]) -> int:
         role_obj = db.session.execute(select(Role).filter_by(name=role_name)).scalars().first()
         if not role_obj:
@@ -83,6 +85,7 @@ def seed_rbac_and_catalogs(db, *, inspector=None) -> dict[str, Any]:
                 )
             )
             added += 1
+        _assign_counts[role_name] = _assign_counts.get(role_name, 0) + added
         return added
 
     _assign(
@@ -160,5 +163,7 @@ def seed_rbac_and_catalogs(db, *, inspector=None) -> dict[str, Any]:
         ['medical_records_read', 'reports_view', 'pharmacy.manage'],
     )
 
+    db.session.commit()
     result['granted'] = True
+    result['grants'] = sum(_assign_counts.values())
     return result

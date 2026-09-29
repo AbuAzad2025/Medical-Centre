@@ -130,14 +130,26 @@ def _migrate_test_schema(app) -> None:
         # TestReceptionQueue failed for reasons that had nothing to do with
         # queue settings.
         from app.bootstrap.rbac_seed import seed_rbac_and_catalogs
+        from seeds.production_baseline import platform_tenant_scope
 
-        seeded = seed_rbac_and_catalogs(_db)
-        if not seeded.get('granted'):
+        # The grant has to be made inside a bound tenant scope. role_permissions
+        # is one of the six RBAC definition tables: unfiltered at the ORM layer
+        # but its RLS policy requires the row to name a tenant, and it is exempt
+        # from auto_assign_tenant. Seeding without the binding wrote nothing at
+        # all, which is why every permission-gated route answered 403.
+        with platform_tenant_scope():
+            seeded = seed_rbac_and_catalogs(_db)
+            # Do not trust the return value: the seeder reported success while
+            # the table stayed empty. Assert on the rows.
+            grants = _db.session.execute(sa_text('SELECT count(*) FROM role_permissions')).scalar()
+        if not seeded.get('granted') or not grants:
             raise RuntimeError(
-                f'RBAC seeding did not run on the test schema: {seeded}. Every '
+                f'RBAC seeding produced no grants on the test schema '
+                f'(reported={seeded}, role_permissions rows={grants}). Every '
                 'permission-gated route would answer 403 and the isolation tests '
                 'would be asserting against an empty catalogue.'
             )
+        print(f'\n[conftest] RBAC seeded: {grants} role grants on {name}')
     finally:
         if previous is None:
             os.environ.pop('SKIP_PLATFORM_BOOTSTRAP', None)
