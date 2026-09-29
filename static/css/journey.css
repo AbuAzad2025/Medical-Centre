@@ -1,0 +1,127 @@
+/* Patient journey workflow tracker.
+   Extracted from templates/partials/_patient_journey.html, where the same
+   declarations were repeated inline on every element and the six step colours
+   were hardcoded hex values inside a Jinja data structure.
+
+   The step palette lives here now, so a theme can restyle the journey without
+   a template edit, and a step colour can no longer drift between the circle
+   and its label. */
+
+.journey-tracker {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+}
+
+.journey-tracker__title {
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.journey-tracker__title-icon {
+  color: var(--color-primary);
+  margin-inline-end: 0.5rem;
+}
+
+.journey-steps {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  overflow-x: auto;
+}
+
+.journey-step {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.step-indicator {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  min-width: 64px;
+}
+
+.step-circle {
+  align-items: center;
+  border-radius: 50%;
+  display: flex;
+  font-size: 0.9rem;
+  height: 40px;
+  justify-content: center;
+  transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+  width: 40px;
+}
+
+.step-circle--done {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.step-circle--active {
+  background: var(--step-color);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--step-color) 20%, transparent);
+  color: #fff;
+}
+
+.step-circle--todo {
+  background: var(--color-surface-alt, var(--color-bg-subtle));
+  color: var(--color-text-muted);
+}
+
+.step-label {
+  font-size: 0.65rem;
+  line-height: 1.25;
+  margin-top: 0.25rem;
+  max-width: 64px;
+  text-align: center;
+}
+
+.step-label--reached {
+  color: var(--step-color);
+  font-weight: 700;
+}
+
+.step-label--todo {
+  color: var(--color-text-muted);
+}
+
+.step-connector {
+  border-radius: 1px;
+  height: 2px;
+  margin-inline: 0.25rem;
+  transition: background 0.3s ease;
+  width: 2rem;
+}
+
+.step-connector--done {
+  background: var(--color-success);
+}
+
+.step-connector--todo {
+  background: var(--color-border);
+}
+
+.journey-meta {
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+}
+
+/* The step palette. Previously six hex values in a Jinja list. */
+.journey-step--1 { --step-color: var(--journey-stage, #0ea5e9); }
+.journey-step--2 { --step-color: var(--journey-triage, #f59e0b); }
+.journey-step--3 { --step-color: var(--journey-clinical, #10b981); }
+.journey-step--4 { --step-color: var(--journey-labs, #0ea5e9); }
+.journey-step--5 { --step-color: var(--journey-pharmacy, #10b981); }
+.journey-step--6 { --step-color: var(--journey-discharge, #2563eb); }

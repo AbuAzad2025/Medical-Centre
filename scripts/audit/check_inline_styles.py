@@ -50,12 +50,26 @@ def templates() -> list[pathlib.Path]:
     ]
 
 
+# Email clients strip <link> and ignore external stylesheets, so a transactional
+# email has to carry its CSS inline or it renders unstyled in Outlook and Gmail.
+# Those templates are excluded on purpose: "no inline styles" does not apply to
+# them, and enforcing it there would break password resets and every other
+# notification the system sends.
+EMAIL_PREFIX = 'templates/emails/'
+
+
+def is_email_template(path: pathlib.Path) -> bool:
+    return path.relative_to(ROOT).as_posix().startswith(EMAIL_PREFIX)
+
+
 def audit() -> dict:
     style_attrs: list[tuple[str, int]] = []
     style_blocks: list[tuple[str, int]] = []
     event_attrs: list[tuple[str, int]] = []
 
     for path in templates():
+        if is_email_template(path):
+            continue
         rel = str(path.relative_to(ROOT))
         try:
             lines = path.read_text(encoding='utf-8', errors='ignore').splitlines()
