@@ -22,6 +22,44 @@ PII_PATTERNS = [
 ]
 
 
+# --- Stylesheet order -------------------------------------------------------
+# The <link> list used to be hand-written in five shells, so adding or
+# reordering a stylesheet meant five edits and a silent inconsistency was
+# possible. Order is load-bearing for the cascade, so it is declared once here
+# and rendered by the stylesheets() Jinja global. Adding a file is a one-line
+# change and every shell picks it up.
+STYLESHEET_VENDOR = (
+    'vendor/fonts/fonts.css',
+    'vendor/fontawesome/css/all.min.css',
+    'vendor/bootstrap/css/bootstrap.rtl.min.css',
+)
+
+STYLESHEET_SHARED = (
+    'css/design-tokens.css',
+    'css/clinical.css',
+    'css/core.css',
+    'css/components.css',
+    'css/layout.css',
+    'css/mobile.css',
+)
+
+# Per-shell additions, appended after the shared set.
+STYLESHEET_SHELL_EXTRAS = {
+    'base': (
+        'css/journey.css',
+        'css/touch.css',
+        'css/motion.css',
+    ),
+    'platform': ('css/platform.css',),
+    'portal': (
+        'css/portal.css',
+        'css/touch.css',
+    ),
+    'kiosk': ('css/touch.css', 'css/kiosk.css'),
+    'pwa': (),
+}
+
+
 class PiiRedactingFormatter(logging.Formatter):
     """Formatter that redacts PII from log messages."""
 

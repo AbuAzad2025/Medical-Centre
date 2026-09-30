@@ -82,6 +82,13 @@ def _platform_tenant_scope():
 def create_app(config_name: str | None = None) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
 
+    # The stylesheet <link> list used to be hand-written into five shells. It is
+    # declared once in config.py and rendered by this global, so adding a file
+    # is a one-line change and the cascade order cannot drift between shells.
+    from app.shared.stylesheets import register as register_stylesheets
+
+    register_stylesheets(app)
+
     class CustomJSONProvider(DefaultJSONProvider):
         def default(self, o):
             if isinstance(o, Decimal):

@@ -40,14 +40,14 @@
   flex-shrink: 0;
 }
 
-.step-indicator {
+.journey-indicator {
   align-items: center;
   display: flex;
   flex-direction: column;
   min-width: 64px;
 }
 
-.step-circle {
+.journey-circle {
   align-items: center;
   border-radius: 50%;
   display: flex;
@@ -58,23 +58,23 @@
   width: 40px;
 }
 
-.step-circle--done {
+.journey-circle--done {
   background: var(--color-success);
   color: #fff;
 }
 
-.step-circle--active {
+.journey-circle--active {
   background: var(--step-color);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--step-color) 20%, transparent);
   color: #fff;
 }
 
-.step-circle--todo {
+.journey-circle--todo {
   background: var(--color-surface-alt, var(--color-bg-subtle));
   color: var(--color-text-muted);
 }
 
-.step-label {
+.journey-label {
   font-size: 0.65rem;
   line-height: 1.25;
   margin-top: 0.25rem;
@@ -82,16 +82,16 @@
   text-align: center;
 }
 
-.step-label--reached {
+.journey-label--reached {
   color: var(--step-color);
   font-weight: 700;
 }
 
-.step-label--todo {
+.journey-label--todo {
   color: var(--color-text-muted);
 }
 
-.step-connector {
+.journey-connector {
   border-radius: 1px;
   height: 2px;
   margin-inline: 0.25rem;
@@ -99,11 +99,11 @@
   width: 2rem;
 }
 
-.step-connector--done {
+.journey-connector--done {
   background: var(--color-success);
 }
 
-.step-connector--todo {
+.journey-connector--todo {
   background: var(--color-border);
 }
 
