@@ -122,9 +122,7 @@ def platform_tenant_row():
     Returns ``None`` on a database with no tenants at all; it never creates one.
     """
     session = db.session
-    tenant = session.execute(
-        select(Tenant).filter_by(slug=PLATFORM_TENANT_SLUG)
-    ).scalars().first()
+    tenant = session.execute(select(Tenant).filter_by(slug=PLATFORM_TENANT_SLUG)).scalars().first()
     if tenant is not None:
         return tenant
     return session.execute(select(Tenant).order_by(Tenant.id)).scalars().first()
