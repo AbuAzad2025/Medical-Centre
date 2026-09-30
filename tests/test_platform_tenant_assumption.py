@@ -25,6 +25,7 @@ from app.core.tenant.assumption_service import (
 from app.core.tenant.models import Tenant
 from app.extensions import db
 from models.user import User
+from tests.tenant_context import tenant_test_context
 
 # ─────────────────────────────────────────────
 # Helpers
@@ -70,44 +71,44 @@ def _create_tenant(slug: str | None = None) -> Tenant:
 def _create_user(username: str, role: str, tenant_id: int | None = None) -> User:
     """Create a user, handling platform users (tenant_id=None) correctly.
 
-    The auto_assign_tenant hook prevents creating users with tenant_id=NULL
-    when no tenant context is set.  We work around this by creating the user
-    with a temporary tenant reference, then nullifying tenant_id via SQL.
+    A platform user is not a tenant-less row. ``users.tenant_id`` is NOT NULL
+    and the RLS policy admits a write only when the row names the tenant
+    currently bound, so a super_admin is a user *of the platform tenant*, and
+    the write happens inside ``platform_tenant_scope()``.
+
+    The middleware does not care: ``enforce_tenant_access`` identifies a
+    platform user by role (``PLATFORM_ROLES``), never by a NULL tenant_id, so
+    the same-tenant shortcut at line 130 cannot be taken by accident either —
+    these tests always target a freshly created tenant, never the platform one.
     """
     if tenant_id is not None:
-        u = User(
-            username=username,
-            email=f'{username}@test.local',
-            full_name=f'User {username}',
-            role=role,
-            is_active=True,
-            tenant_id=tenant_id,
-        )
-        u.set_password('test123')
-        db.session.add(u)
-        db.session.commit()
+        # A tenant-scoped user is admissible only inside its own tenant's
+        # scope: the policy compares the row's tenant_id against the bound
+        # GUC, and the ORM bypass does not reach the database.
+        with tenant_test_context(current_app, tenant_id):
+            u = User(
+                username=username,
+                email=f'{username}@test.local',
+                full_name=f'User {username}',
+                role=role,
+                is_active=True,
+                tenant_id=tenant_id,
+            )
+            u.set_password('test123')
+            db.session.add(u)
+            db.session.commit()
         return u
 
-    # Platform user (tenant_id=None) — PostgreSQL enforces NOT NULL on
-    # users.tenant_id, so we keep a persistent dummy tenant instead of
-    # nullifying.  The assumption middleware checks role + assumption
-    # record, not the raw tenant_id value, so a dummy tenant works fine.
-    dummy = Tenant(
-        slug=_unique_slug('dummy'),
-        name='Dummy',
-        contact_email='dummy@test.local',
-        status='active',
-        product_profile_code='standalone_clinic',
-    )
-    db.session.add(dummy)
-    db.session.flush()
+    from tests.tenant_context import bind_platform_tenant
+
+    platform = bind_platform_tenant(current_app)
     u = User(
         username=username,
         email=f'{username}@test.local',
         full_name=f'User {username}',
         role=role,
         is_active=True,
-        tenant_id=dummy.id,
+        tenant_id=platform.id,
     )
     u.set_password('test123')
     db.session.add(u)
@@ -172,8 +173,35 @@ def _login(client, user, tenant_slug: str | None = None):
     ):
         prev = _g.get('_tenant_filter_bypass', False)
         _g._tenant_filter_bypass = True
+
+        def _fetch():
+            _db.session.expire_all()
+            return _db.session.get(UserModel, user_id)
+
         try:
-            u = _db.session.get(UserModel, user_id)
+            # The ORM bypass above suppresses the query filter, not the
+            # database policy, so the row is only visible while its own tenant
+            # is bound. Try the ambient context, then the tenant named by the
+            # session, then the platform tenant (which is where a super_admin
+            # or owner lives).
+            u = _fetch()
+            if u is None and tenant_slug:
+                from app.core.tenant.models import Tenant as _Tenant
+                from tests.tenant_context import bind_tenant_on_g
+
+                named = (
+                    _db.session.execute(select(_Tenant).filter_by(slug=tenant_slug))
+                    .scalars()
+                    .first()
+                )
+                if named is not None:
+                    bind_tenant_on_g(named, db_session=_db.session)
+                    u = _fetch()
+            if u is None:
+                from tests.tenant_context import bind_platform_tenant
+
+                bind_platform_tenant(current_app)
+                u = _fetch()
         finally:
             if prev:
                 _g._tenant_filter_bypass = True
@@ -497,7 +525,11 @@ class TestAssumptionOwnerAPI:
     def _login_owner(self, client, app):
         """Create and login an owner user for API tests."""
         with app.app_context():
-            user = _create_user('owner_api', 'owner', tenant_id=None)
+            # Every platform user now lives in the platform tenant, so the
+            # username/email pair must be unique per call: (tenant_id, email)
+            # is a unique constraint, and a per-user dummy tenant no longer
+            # makes them distinct.
+            user = _create_user(_unique_slug('owner_api'), 'owner', tenant_id=None)
             _login(client, user, None)
         return user.id
 

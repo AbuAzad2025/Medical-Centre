@@ -539,39 +539,34 @@ def test_tenant(app):
     ]:
         t.settings['modules'][module_name] = True
 
-    # Create TenantModule rows so module guards recognize enabled modules
-    from app.core.module.models import TenantModule
+    # Create TenantModule rows so module guards recognize enabled modules.
+    # The helper binds the tenant and skips the rows that already exist.
+    from tests.tenant_context import activate_tenant_modules
 
-    for module_name in [
-        'reception',
-        'doctor',
-        'lab',
-        'radiology',
-        'pharmacy',
-        'emergency',
-        'nursing',
-        'billing',
-        'inventory',
-        'reporting',
-        'appointments',
-        'owner',
-        'portal',
-        'ai_imaging',
-        'accounting',
-        'admin',
-        'manager',
-        'dicom',
-    ]:
-        exists = (
-            _db.session.execute(
-                select(TenantModule).filter_by(tenant_id=t.id, module_name=module_name)
-            )
-            .scalars()
-            .first()
-        )
-        if not exists:
-            _db.session.add(TenantModule(tenant_id=t.id, module_name=module_name, is_active=True))
-    _db.session.commit()
+    activate_tenant_modules(
+        app,
+        t,
+        [
+            'reception',
+            'doctor',
+            'lab',
+            'radiology',
+            'pharmacy',
+            'emergency',
+            'nursing',
+            'billing',
+            'inventory',
+            'reporting',
+            'appointments',
+            'owner',
+            'portal',
+            'ai_imaging',
+            'accounting',
+            'admin',
+            'manager',
+            'dicom',
+        ],
+    )
     return t
 
 

@@ -106,6 +106,30 @@ def platform_tenant_scope():
             db.session.rollback()
 
 
+def platform_tenant_row():
+    """Return the platform tenant row, resolved deterministically.
+
+    The ``platform`` slug if it exists, else the lowest-id tenant — which is
+    what ``_resolve_platform_tenant`` lands on for a database that predates the
+    slug, and on a fresh install where ``platform`` is the first tenant created.
+
+    Deliberately unlike ``_resolve_platform_tenant``, which prefers whatever
+    tenant happens to be bound. A caller that needs "the platform tenant" (the
+    user loader resolving a super_admin, a test binding a platform fixture) must
+    not get an arbitrary tenant that happens to be in context, so the bound
+    tenant is not consulted here.
+
+    Returns ``None`` on a database with no tenants at all; it never creates one.
+    """
+    session = db.session
+    tenant = session.execute(
+        select(Tenant).filter_by(slug=PLATFORM_TENANT_SLUG)
+    ).scalars().first()
+    if tenant is not None:
+        return tenant
+    return session.execute(select(Tenant).order_by(Tenant.id)).scalars().first()
+
+
 def _resolve_platform_tenant():
     """Return the tenant that owns the master platform account.
 

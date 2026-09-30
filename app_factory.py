@@ -476,6 +476,41 @@ def create_app(config_name: str | None = None) -> Flask:
         g._tenant_filter_bypass = True
         try:
             user = db.session.get(User, uid)
+            if user is None:
+                # A platform user belongs to the platform tenant, and the ORM
+                # bypass above does not reach the database: the users policy
+                # admits only a row that names the bound tenant, so a
+                # super_admin is invisible on a request scoped elsewhere (or on
+                # an exempt path, where no tenant is bound at all).
+                #
+                # Bind the platform tenant for the lookup — through
+                # bind_g_tenant, not a bare set_config, because
+                # reassert_set_local re-asserts (or RESETs) the GUC from
+                # g.tenant_id before every ORM statement and would undo a raw
+                # set_config before the SELECT ran. Then put the request's own
+                # binding back: visibility is not authorisation, and
+                # enforce_tenant_access is what decides whether this user may
+                # act on this tenant.
+                from seeds.production_baseline import platform_tenant_row
+
+                platform = platform_tenant_row()
+                if platform is not None:
+                    prev = (
+                        g.get('tenant_id'),
+                        g.get('current_tenant'),
+                        g.get('tenant_slug'),
+                        db.session.info.get('_tenant_id'),
+                    )
+                    bind_g_tenant(platform)
+                    try:
+                        db.session.expire_all()
+                        user = db.session.get(User, uid)
+                    finally:
+                        g.tenant_id, g.current_tenant, g.tenant_slug = prev[0], prev[1], prev[2]
+                        if prev[3] is None:
+                            db.session.info.pop('_tenant_id', None)
+                        else:
+                            db.session.info['_tenant_id'] = prev[3]
         finally:
             if prev_bypass:
                 g._tenant_filter_bypass = True

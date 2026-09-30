@@ -6,7 +6,7 @@ from contextlib import contextmanager, suppress
 from datetime import UTC
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
@@ -102,6 +102,13 @@ def ensure_default_test_tenant(app: Flask):
                         db.session.commit()
 
             bind_tenant_on_g(tenant, db_session=db.session)
+            # The writes below are interleaved with commits, and a SET LOCAL
+            # binding dies with the transaction that carried the previous one.
+            # Without a connection-level pin, the TenantModule inserts are
+            # evaluated against an empty tenant GUC and the policy rejects
+            # them — a failure that then depends on which test ran before this
+            # one, because the pooled connection keeps whatever GUC it had.
+            _pin_tenant_guc(tenant.id)
 
             # Ensure tenant has active payment status for module access
             from app.shared.enums import TenantStatus
@@ -253,6 +260,47 @@ def ensure_test_user(
             g.pop('_tenant_filter_bypass', None)
 
 
+def _pin_tenant_guc(tenant_id: int) -> None:
+    """Set ``app.tenant_id`` for the whole connection, not just one transaction.
+
+    ``bind_tenant_on_g`` uses ``SET LOCAL``, which PostgreSQL discards at the
+    next COMMIT. That is right for a request, where the binding is re-asserted
+    per statement, but a helper that writes, commits, and then writes again
+    would have its second write evaluated against an empty tenant GUC — and
+    every RLS policy rejects the row. Session-level here, and deliberately
+    narrow: only helpers that commit mid-way call it.
+    """
+    with suppress(Exception):
+        db.session.execute(
+            text('SELECT set_config(:k, :v, false)'),
+            {'k': 'app.tenant_id', 'v': str(tenant_id)},
+        )
+
+
+def bind_platform_tenant(app: Flask):
+    """Bind the platform tenant itself and return it.
+
+    Uses ``seeds.production_baseline.platform_tenant_row`` (the ``platform``
+    slug, else the lowest id) rather than ``platform_tenant_scope``, which
+    resolves "whatever tenant is currently bound" first and would hand back an
+    arbitrary tenant inside a test that already has one bound.
+    """
+    from flask import g
+
+    from seeds.production_baseline import platform_tenant_row
+
+    g._tenant_filter_bypass = True
+    try:
+        tenant = platform_tenant_row()
+        if tenant is None:
+            raise RuntimeError('no tenant row exists; the platform tenant cannot be bound')
+        bind_tenant_on_g(tenant, db_session=db.session)
+        _pin_tenant_guc(tenant.id)
+        return tenant
+    finally:
+        g.pop('_tenant_filter_bypass', None)
+
+
 @contextmanager
 def tenant_test_context(app: Flask, tenant=None, *, bypass: bool = False):
     """Establish tenant context for DB operations in SaaS mode tests."""
@@ -276,10 +324,27 @@ def activate_tenant_modules(app: Flask, tenant, module_names) -> None:
     row is not enough: written from an unbound context the insert is rejected
     with InsufficientPrivilege. Every "build a tenant with a bundle" helper in
     the suite needs this, and each one had grown its own copy of the loop.
+
+    Idempotent, and the existence check runs *inside* the scope on purpose:
+    outside it the policy hides the existing rows, every name looks missing, and
+    the insert then trips the unique constraint.
     """
     from app.core.module.models import TenantModule
 
     with tenant_test_context(app, tenant):
-        for name in module_names:
+        pending = [
+            name
+            for name in module_names
+            if (
+                db.session.execute(
+                    select(TenantModule).filter_by(tenant_id=tenant.id, module_name=name)
+                )
+                .scalars()
+                .first()
+                is None
+            )
+        ]
+        for name in pending:
             db.session.add(TenantModule(tenant_id=tenant.id, module_name=name, is_active=True))
-        db.session.commit()
+        if pending:
+            db.session.commit()
