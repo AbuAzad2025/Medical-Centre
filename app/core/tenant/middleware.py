@@ -336,8 +336,28 @@ def set_tenant_context():
 
     is_exempt = any(request.path.startswith(p) for p in exempt_paths) or request.path == '/'
 
-    bind_tenant_from_session()
-    tenant = g.get('current_tenant')
+    # MC-005: an explicit tenant in the URL outranks the session. The session
+    # binding used to run first and short-circuit this, with two consequences:
+    # /t/<slug>/... was served with whatever tenant the session was minted for
+    # (so a platform user could never act inside a tenant, and a URL naming
+    # tenant B could be answered from tenant A's rows), and a slug that named no
+    # tenant was never validated at all. A path that names a tenant is a
+    # deliberate choice; the session is the fallback for everything else.
+    tenant = None
+    if request.environ.get('tenant.slug'):
+        try:
+            tenant = resolve_tenant()
+        except TenantResolutionError as exc:
+            if saas:
+                from flask import abort
+
+                abort(403, description=str(exc))
+        if tenant is not None:
+            bind_g_tenant(tenant)
+
+    if tenant is None:
+        bind_tenant_from_session()
+        tenant = g.get('current_tenant')
 
     if tenant is None and not is_exempt:
         try:

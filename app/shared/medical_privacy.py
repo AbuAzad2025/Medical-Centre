@@ -89,20 +89,49 @@ def is_medical_endpoint(path: str) -> bool:
     return False
 
 
-def enforce_medical_privacy_guard(user) -> None:
-    """Raise 403 if user is platform_owner/super_admin trying to access medical data.
+def _has_active_assumption(user, tenant_id) -> bool:
+    """True when *user* holds a live, audited assumption for *tenant_id*.
 
-    Call this from medical routes or as a before_request. Raises an exception
-    that the caller should translate to abort(403).
+    This is the "explicit clinical context" of MC-005: a time-bound, reasoned,
+    revocable record created through the owner API, not a role check. Everything
+    that can make it true is checked here — the user id, the tenant in scope, the
+    active flag, the expiry and the revocation — because the guard below is the
+    last thing between an administrative role and a patient's record.
+    """
+    if user is None or tenant_id is None:
+        return False
+    uid = getattr(user, 'id', None)
+    if uid is None:
+        return False
+    try:
+        from app.core.tenant.assumption_service import PlatformAssumptionService
+
+        return bool(PlatformAssumptionService.has_valid_assumption(int(uid), int(tenant_id)))
+    except Exception:
+        # Fail closed: an unreachable or erroring assumption service is not a
+        # clinical context.
+        return False
+
+
+def enforce_medical_privacy_guard(user) -> None:
+    """Zero-trust guard for clinical PHI: an administrative role gets in only
+    through an explicit, audited tenant assumption.
+
+    ``platform_owner``, ``super_admin`` and ``owner`` are refused on every
+    medical endpoint *unless* they hold a live assumption for the tenant in
+    scope. The previous rule refused them unconditionally, which contradicted
+    its own comment two lines up ("super_admin who is tenant-scoped ... and is
+    acting within that tenant is NOT blocked for that tenant's data") and made
+    the whole MC-005 assumption mechanism unreachable: the assumption could be
+    created, audited and valid, and the request still answered 403.
+
+    Roles outside that set are not this guard's business — they are authorised by
+    the permission system and the tenant boundary.
     """
     role = getattr(user, 'role', None) or getattr(user, 'username', '')
     if role not in ('platform_owner', 'super_admin', 'owner'):
         return
 
-    # platform_owner and super_admin in platform context must be blocked
-    # super_admin who is tenant-scoped (has tenant_id matching a real tenant)
-    # and is acting within that tenant is NOT blocked for that tenant's data
-    # But global platform owners (tenant_id is platform tenant or None) are blocked
     from flask import g, request
 
     # If request is not available (e.g., in tests with direct call), use g
@@ -116,5 +145,10 @@ def enforce_medical_privacy_guard(user) -> None:
     if not path:
         abort(403, description='403 Forbidden - Access Denied (Medical Privacy Guard)')
 
-    if is_medical_endpoint(path):
-        abort(403, description='403 Forbidden - Access Denied (Medical Privacy Guard)')
+    if not is_medical_endpoint(path):
+        return
+
+    if _has_active_assumption(user, g.get('tenant_id')):
+        return
+
+    abort(403, description='403 Forbidden - Access Denied (Medical Privacy Guard)')

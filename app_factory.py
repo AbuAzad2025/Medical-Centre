@@ -477,40 +477,66 @@ def create_app(config_name: str | None = None) -> Flask:
         try:
             user = db.session.get(User, uid)
             if user is None:
-                # A platform user belongs to the platform tenant, and the ORM
-                # bypass above does not reach the database: the users policy
-                # admits only a row that names the bound tenant, so a
-                # super_admin is invisible on a request scoped elsewhere (or on
-                # an exempt path, where no tenant is bound at all).
+                # The user row is only visible while its own tenant is bound:
+                # the ORM bypass above does not reach the database and the users
+                # policy admits a row that names the bound tenant. A request
+                # scoped to another tenant (a /t/<slug>/ URL, or an exempt path
+                # with no tenant at all) therefore cannot see it.
                 #
-                # Bind the platform tenant for the lookup — through
-                # bind_g_tenant, not a bare set_config, because
-                # reassert_set_local re-asserts (or RESETs) the GUC from
-                # g.tenant_id before every ORM statement and would undo a raw
-                # set_config before the SELECT ran. Then put the request's own
-                # binding back: visibility is not authorisation, and
-                # enforce_tenant_access is what decides whether this user may
-                # act on this tenant.
+                # Resolve it in the tenant the session was minted for, then in
+                # the platform tenant for a platform user, and put the request's
+                # own binding back afterwards. This is visibility, not
+                # authorisation: enforce_tenant_access still decides whether
+                # this user may act on this tenant, and the medical privacy
+                # guard still decides whether they may see clinical rows.
+                from flask import session as _flask_session
+
                 from seeds.production_baseline import platform_tenant_row
 
-                platform = platform_tenant_row()
-                if platform is not None:
-                    prev = (
-                        g.get('tenant_id'),
-                        g.get('current_tenant'),
-                        g.get('tenant_slug'),
-                        db.session.info.get('_tenant_id'),
-                    )
-                    bind_g_tenant(platform)
-                    try:
-                        db.session.expire_all()
+                candidates = []
+                session_tid = _flask_session.get('tenant_id')
+                if session_tid:
+                    candidates.append(db.session.get(Tenant, int(session_tid)))
+                candidates.append(platform_tenant_row())
+
+                prev = (
+                    g.get('tenant_id'),
+                    g.get('current_tenant'),
+                    g.get('tenant_slug'),
+                    db.session.info.get('_tenant_id'),
+                )
+                resolved_out_of_scope = False
+                try:
+                    for candidate in candidates:
+                        if candidate is None:
+                            continue
+                        bind_g_tenant(candidate)
+                        # No expire_all() here on purpose: it would expire the
+                        # identity-mapped User for the rest of the request, and
+                        # the next attribute access re-reads it under the
+                        # request's own tenant — where a platform row is
+                        # invisible — raising ObjectDeletedError mid-render.
+                        # With the candidate bound, any refresh succeeds.
                         user = db.session.get(User, uid)
-                    finally:
-                        g.tenant_id, g.current_tenant, g.tenant_slug = prev[0], prev[1], prev[2]
-                        if prev[3] is None:
-                            db.session.info.pop('_tenant_id', None)
-                        else:
-                            db.session.info['_tenant_id'] = prev[3]
+                        if user is not None:
+                            resolved_out_of_scope = True
+                            break
+                finally:
+                    g.tenant_id, g.current_tenant, g.tenant_slug = prev[0], prev[1], prev[2]
+                    if prev[3] is None:
+                        db.session.info.pop('_tenant_id', None)
+                    else:
+                        db.session.info['_tenant_id'] = prev[3]
+                if resolved_out_of_scope:
+                    # Detach it. The row lives in a different tenant than the
+                    # one this request is scoped to, so any commit during the
+                    # request expires it — the layout renders an entitlement
+                    # banner that snapshots usage, which commits — and the next
+                    # attribute access re-reads it under this request's tenant,
+                    # where it is invisible: ObjectDeletedError mid-render, on a
+                    # row that was never deleted. Loaded column values survive
+                    # detachment, and no refresh is wanted here.
+                    db.session.expunge(user)
         finally:
             if prev_bypass:
                 g._tenant_filter_bypass = True
@@ -1162,53 +1188,23 @@ def create_app(config_name: str | None = None) -> Flask:
 
         ghost_mode_middleware()
 
-    # Medical Privacy Guard — platform owners must never access tenant clinical data
+    # Medical Privacy Guard — zero trust (MC-005): an administrative role
+    # reaches clinical PHI only through an explicit, audited tenant assumption.
+    #
+    # The decision lives in app/shared/medical_privacy.py. A second copy used to
+    # live here and knew only "global vs tenant-scoped": it denied every
+    # super_admin/owner whose tenant was the platform tenant, valid assumption
+    # or not, which is why the MC-005 mechanism was unreachable. Two copies of a
+    # PHI guard is how they drift, so this now delegates.
     @app.before_request
     def _enforce_medical_privacy_guard():
-        from flask import request
         from flask_login import current_user
 
         if not current_user.is_authenticated:
             return
-        role = getattr(current_user, 'role', None)
-        if role not in ('platform_owner', 'super_admin', 'owner'):
-            return
-        # Allow owner role to access owner dashboard, but not clinical
-        # For strict guard, platform_owner and global super_admin are blocked from medical
-        try:
-            from app.shared.medical_privacy import is_medical_endpoint
+        from app.shared.medical_privacy import enforce_medical_privacy_guard
 
-            path = request.path or ''
-            # Platform owners are global; tenant super_admins with a real tenant should be allowed
-            # Check if user is global: if tenant is platform tenant or None
-            is_global = False
-            if role == 'platform_owner':
-                is_global = True
-            elif role in ('super_admin', 'owner'):
-                # Check if tenant is platform tenant
-                tid = getattr(current_user, 'tenant_id', None)
-                if tid is None:
-                    is_global = True
-                else:
-                    try:
-                        from app.core.tenant.models import Tenant
-
-                        t = db.session.get(Tenant, tid)
-                        if t and t.slug == 'platform':
-                            is_global = True
-                    except Exception:
-                        is_global = True
-            if is_global and is_medical_endpoint(path):
-                from flask import abort
-
-                abort(403, description='403 Forbidden - Access Denied (Medical Privacy Guard)')
-        except Exception as e:
-            # Only re-raise if it's the abort
-            from werkzeug.exceptions import HTTPException
-
-            if isinstance(e, HTTPException):
-                raise
-            pass
+        enforce_medical_privacy_guard(current_user)
 
     # Ghost Mode test/debug route - registered before requests
     from flask import jsonify

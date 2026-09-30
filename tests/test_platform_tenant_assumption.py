@@ -215,13 +215,18 @@ def _login(client, user, tenant_slug: str | None = None):
         _login_user_id = _flask_sess['_user_id']
         _login_fresh = _flask_sess['_fresh']
         _login_id = _flask_sess['_id']
+        # Read the tenant off the row while it is visible, before the request
+        # re-scopes the session. routes/auth_routes.py:335 stores exactly this
+        # on a real login, and load_user falls back to it to find the user on a
+        # request that is scoped to a different tenant.
+        _resolved_tenant_id = getattr(u, 'tenant_id', None)
 
     with client.session_transaction() as sess:
         sess['_user_id'] = _login_user_id
         sess['_fresh'] = _login_fresh
         sess['_id'] = _login_id
-        if user_tenant_id is not None:
-            sess['tenant_id'] = int(user_tenant_id)
+        if _resolved_tenant_id is not None:
+            sess['tenant_id'] = int(_resolved_tenant_id)
         if tenant_slug:
             sess['tenant_slug'] = tenant_slug
 
