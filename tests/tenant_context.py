@@ -235,6 +235,14 @@ def ensure_test_user(
     prev_bypass = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
+        # Bind first. `users` carries a WITH CHECK policy, and the ORM bypass
+        # does not reach the database: a row naming a tenant other than the
+        # bound one is rejected with InsufficientPrivilege. Callers inside
+        # `tenant_test_context` already have this, and re-binding is a no-op;
+        # callers outside it were silently depending on whichever tenant the
+        # pooled connection happened to carry.
+        bind_tenant_on_g(tenant, db_session=db.session)
+        _pin_tenant_guc(getattr(tenant, 'id', tenant))
         user = (
             db.session.execute(select(User).filter_by(username=username, tenant_id=tenant.id))
             .scalars()

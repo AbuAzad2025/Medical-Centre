@@ -136,12 +136,7 @@ def _login(client, user, tenant_slug: str | None = None):
 
     _shared_store.clear()
 
-    if isinstance(user, int):
-        user_id = user
-        user_tenant_id = None
-    else:
-        user_id = user.id
-        user_tenant_id = getattr(user, 'tenant_id', None)
+    user_id = user if isinstance(user, int) else user.id
 
     from flask import g as _g
     from flask_login import login_user
