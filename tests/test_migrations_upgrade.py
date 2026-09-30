@@ -9,8 +9,9 @@ from migrations.migration_utils import column_exists, fk_exists, index_exists, t
 
 # Expected heads in the migration graph.
 # The migration chain continues from s2_011_clean_schema through s3_* migrations.
+# Bump alongside scripts/ci/verify_migrations.py when a revision is appended.
 EXPECTED_HEADS = {
-    's3_016_backfill_phone_national_id_ngrams',
+    's3_017_rbac_catalogue_readable',
 }
 
 

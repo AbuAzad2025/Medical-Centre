@@ -5,11 +5,11 @@ from datetime import UTC, datetime
 import pytest
 from sqlalchemy import func, select
 
-from app.core.module.models import TenantModule
 from app.core.module.validators import can_activate_module
 from app.core.tenant.models import ProductBundle, Tenant, seed_default_bundles
 from app.extensions import db
 from app.shared.enums import TenantStatus
+from tests.tenant_context import activate_tenant_modules
 
 EXPECTED = {
     'small_clinic': ['reception', 'doctor', 'billing', 'appointments'],
@@ -123,9 +123,7 @@ def test_bundle_activation_sample(app, slug):
         )
         db.session.add(t)
         db.session.commit()
-        for m in mods:
-            db.session.add(TenantModule(tenant_id=t.id, module_name=m, is_active=True))
-        db.session.commit()
+        activate_tenant_modules(app, t, mods)
         for m in mods:
             ok, _ = can_activate_module(t.id, m)
             assert ok is True, f'{m} should be allowed in {slug}'

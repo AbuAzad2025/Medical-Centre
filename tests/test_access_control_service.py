@@ -246,17 +246,30 @@ class TestDepartmentScopingDeep:
         return d
 
     def _setup(self, fx, with_global=False):
+        from flask import g
+
         from models.advanced_permissions import DepartmentPermission
         from models.permissions import Role
 
+        # roles / department_permissions are two of the six RBAC definition
+        # tables: exempt from auto_assign_tenant, so a row built without
+        # tenant_id lands with NULL and the RLS WITH CHECK clause rejects the
+        # write ("new row violates row-level security policy for table
+        # roles"). Name the tenant explicitly, the way the seeder does.
+        tenant_id = g.get('tenant_id')
         rolename = 'rl_' + uuid.uuid4().hex[:8]
-        role = Role(name=rolename, is_active=True)
+        role = Role(name=rolename, is_active=True, tenant_id=tenant_id)
         fx.db.session.add(role)
         fx.db.session.flush()
         d1, d2 = self._dept(fx, '1'), self._dept(fx, '2')
         if with_global:
             fx.db.session.add(
-                DepartmentPermission(role_id=role.id, department_id=None, can_access=True)
+                DepartmentPermission(
+                    role_id=role.id,
+                    department_id=None,
+                    can_access=True,
+                    tenant_id=tenant_id,
+                )
             )
         else:
             fx.db.session.add(
@@ -269,6 +282,7 @@ class TestDepartmentScopingDeep:
                     can_manage_appointments=True,
                     can_manage_staff=True,
                     can_manage_department_settings=True,
+                    tenant_id=tenant_id,
                 )
             )
         fx.db.session.commit()

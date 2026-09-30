@@ -3,7 +3,6 @@
 import pytest
 from sqlalchemy import func, select
 
-from app.core.module.models import TenantModule
 from app.core.module.validators import can_activate_module
 from app.core.tenant.models import (
     ProductBundle,
@@ -13,7 +12,7 @@ from app.core.tenant.models import (
 from app.extensions import db
 from app.shared.enums import TenantStatus
 from services.feature_gate_service import FeatureGateService, ModuleNotEnabledError
-from tests.tenant_context import ensure_test_user, tenant_test_context
+from tests.tenant_context import activate_tenant_modules, ensure_test_user, tenant_test_context
 
 
 def _seed_bundles_if_empty():
@@ -37,9 +36,7 @@ def _tenant_with_bundle(bundle_slug, app):
     )
     db.session.add(t)
     db.session.commit()
-    for mod in bundle.get_modules():
-        db.session.add(TenantModule(tenant_id=t.id, module_name=mod, is_active=True))
-    db.session.commit()
+    activate_tenant_modules(app, t, bundle.get_modules())
     return t
 
 

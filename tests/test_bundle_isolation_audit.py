@@ -3,7 +3,6 @@
 import pytest
 from sqlalchemy import func, select
 
-from app.core.module.models import TenantModule
 from app.core.module.validators import get_active_modules_for_tenant
 from app.core.tenant.models import ProductBundle, Tenant, seed_default_bundles
 from app.extensions import db
@@ -11,7 +10,7 @@ from app.shared.dashboard_registry import resolve_dashboard_widgets
 from app.shared.dashboard_service import _load_role_data
 from app.shared.enums import TenantStatus
 from services.dashboard_routing import resolve_dashboard_for_user
-from tests.tenant_context import ensure_test_user, tenant_test_context
+from tests.tenant_context import activate_tenant_modules, ensure_test_user, tenant_test_context
 
 
 def _seed_bundles_if_empty():
@@ -35,10 +34,8 @@ def _tenant_with_bundle(bundle_slug, app):
     )
     db.session.add(t)
     db.session.commit()
-    # activate only this bundle's modules
-    for mod in bundle.get_modules():
-        db.session.add(TenantModule(tenant_id=t.id, module_name=mod, is_active=True))
-    db.session.commit()
+    # activate only this bundle's modules, inside the new tenant's own scope
+    activate_tenant_modules(app, t, bundle.get_modules())
     return t
 
 

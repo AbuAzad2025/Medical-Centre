@@ -35,10 +35,14 @@ def _tenant_with_bundle(bundle_slug, app):
     )
     db.session.add(t)
     db.session.flush()
-    # Activate only bundle modules
-    for mod in bundle.get_modules():
-        db.session.add(TenantModule(tenant_id=t.id, module_name=mod, is_active=True))
-    db.session.commit()
+    # Activate only bundle modules. tenant_modules carries a WITH CHECK policy,
+    # so the rows have to be written inside the new tenant's scope: naming
+    # tenant_id=t.id is not enough while app.tenant_id still points at another
+    # tenant, and the write is rejected with InsufficientPrivilege.
+    with tenant_test_context(app, t):
+        for mod in bundle.get_modules():
+            db.session.add(TenantModule(tenant_id=t.id, module_name=mod, is_active=True))
+        db.session.commit()
     return t
 
 

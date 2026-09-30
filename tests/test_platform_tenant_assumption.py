@@ -14,9 +14,10 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from flask import g
+from flask import current_app, g
 from sqlalchemy import select
 
+from app.core.module.models import TenantModule
 from app.core.tenant.assumption_service import (
     PlatformAssumptionError,
     PlatformAssumptionService,
@@ -49,22 +50,20 @@ def _create_tenant(slug: str | None = None) -> Tenant:
         )
         db.session.add(t)
         db.session.flush()
-        # Ensure the reception module is enabled so guard_module doesn't 403
-        from app.core.module.models import TenantModule
-
-        existing = (
-            db.session.execute(
-                select(TenantModule).filter_by(tenant_id=t.id, module_name='reception')
-            )
-            .scalars()
-            .first()
-        )
-        if not existing:
-            tm = TenantModule(tenant_id=t.id, module_name='reception', is_active=True)
-            db.session.add(tm)
         db.session.commit()
     finally:
         g._tenant_filter_bypass = prev
+    # tenant_modules carries a WITH CHECK policy, so the row is only admissible
+    # inside the new tenant's own scope.
+    from tests.tenant_context import activate_tenant_modules
+
+    existing = (
+        db.session.execute(select(TenantModule).filter_by(tenant_id=t.id, module_name='reception'))
+        .scalars()
+        .first()
+    )
+    if not existing:
+        activate_tenant_modules(current_app, t, ['reception'])
     return t
 
 

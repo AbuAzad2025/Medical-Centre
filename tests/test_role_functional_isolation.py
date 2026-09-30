@@ -399,8 +399,11 @@ class TestApiEnforcement:
         from seeds.production_baseline import seed_master_account
         from tests.tenant_context import login_test_client
 
-        with app.app_context():
-            owner = seed_master_account()
+        # No nested app context: the conftest ``app`` fixture already holds one,
+        # and popping a nested context tears the scoped session down on exit.
+        # The User would come back detached and login_test_client could not
+        # read its attributes (DetachedInstanceError).
+        owner = seed_master_account()
         # Need a tenant for login context
         from tests.conftest import ensure_default_test_tenant
 

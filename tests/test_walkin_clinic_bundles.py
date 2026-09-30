@@ -4,11 +4,11 @@ from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 
-from app.core.module.models import TenantModule
 from app.core.module.validators import can_activate_module
 from app.core.tenant.models import ProductBundle, Tenant, seed_default_bundles
 from app.extensions import db
 from app.shared.enums import TenantStatus
+from tests.tenant_context import activate_tenant_modules
 
 
 def _seed_bundles_if_empty():
@@ -40,9 +40,7 @@ def test_standalone_clinic_activation(app):
         )
         db.session.add(t)
         db.session.commit()
-        for mod in ('reception', 'doctor', 'billing', 'pharmacy'):
-            db.session.add(TenantModule(tenant_id=t.id, module_name=mod, is_active=True))
-        db.session.commit()
+        activate_tenant_modules(app, t, ('reception', 'doctor', 'billing', 'pharmacy'))
         ok, msg = can_activate_module(t.id, 'reception')
         assert ok is True, f'reception should be allowed in walkin_clinic: {msg}'
         ok, msg = can_activate_module(t.id, 'doctor')

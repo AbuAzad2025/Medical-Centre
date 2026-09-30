@@ -1532,22 +1532,35 @@ def create_app(config_name: str | None = None) -> Flask:
     # admissible when the session GUC matches the row's tenant_id. Without this
     # binding the tenant filter asserts the empty string, the policies reject
     # the insert, and the whole block used to be swallowed.
-    with app.app_context(), _platform_tenant_scope():
-        try:
-            from app.bootstrap.rbac_seed import seed_rbac_and_catalogs
+    #
+    # It is also skipped when the schema that holds the catalogue does not exist
+    # yet. Entering the platform scope resolves a tenant from `tenants`, so on a
+    # database with no tables at all — `flask db upgrade` against an empty one,
+    # which is exactly what scripts/ci/verify_migrations.py does — the scope
+    # raised UndefinedTable and took create_app down before a single migration
+    # had run. Seeding is a no-op in that state regardless: the seeder checks
+    # for the same two tables and returns 'skipped'. The schema is Alembic's
+    # job; the catalogue is seeded on the first boot that has one.
+    with app.app_context():
+        _rbac_schema = _sa_inspect(db.engine)
+        has_rbac_schema = _rbac_schema.has_table('roles') and _rbac_schema.has_table('permissions')
+    if has_rbac_schema:
+        with app.app_context(), _platform_tenant_scope():
+            try:
+                from app.bootstrap.rbac_seed import seed_rbac_and_catalogs
 
-            seed_rbac_and_catalogs(db)
-        except Exception:
-            # This used to be a bare `except Exception: pass`. It swallowed
-            # TenantIsolationError and left the database with 48 permissions,
-            # 15 roles and *zero* role_permissions, so every route behind
-            # AccessControlService.require_permission denied every user on
-            # every install, and no platform superadmin existed. A first-run
-            # failure has to be visible rather than a silent deny-all.
-            app.logger.exception(
-                'Role/permission bootstrap failed; permission-gated routes will '
-                'deny every user until this is resolved'
-            )
+                seed_rbac_and_catalogs(db)
+            except Exception:
+                # This used to be a bare `except Exception: pass`. It swallowed
+                # TenantIsolationError and left the database with 48 permissions,
+                # 15 roles and *zero* role_permissions, so every route behind
+                # AccessControlService.require_permission denied every user on
+                # every install, and no platform superadmin existed. A first-run
+                # failure has to be visible rather than a silent deny-all.
+                app.logger.exception(
+                    'Role/permission bootstrap failed; permission-gated routes will '
+                    'deny every user until this is resolved'
+                )
 
     # CLI commands for module/tenant management
     @app.cli.command('module-seed')

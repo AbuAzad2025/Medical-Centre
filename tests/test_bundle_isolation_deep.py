@@ -5,11 +5,10 @@ from datetime import UTC, datetime
 import pytest
 from sqlalchemy import func, select
 
-from app.core.module.models import TenantModule
 from app.core.tenant.models import ProductBundle, Tenant, seed_default_bundles
 from app.extensions import db
 from app.shared.enums import TenantStatus
-from tests.tenant_context import ensure_test_user, tenant_test_context
+from tests.tenant_context import activate_tenant_modules, ensure_test_user, tenant_test_context
 
 
 def _tenant_with_bundle(bundle_slug, app):
@@ -27,9 +26,7 @@ def _tenant_with_bundle(bundle_slug, app):
     )
     db.session.add(t)
     db.session.commit()
-    for mod in bundle.get_modules():
-        db.session.add(TenantModule(tenant_id=t.id, module_name=mod, is_active=True))
-    db.session.commit()
+    activate_tenant_modules(app, t, bundle.get_modules())
     return t
 
 

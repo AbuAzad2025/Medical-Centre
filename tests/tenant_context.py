@@ -191,6 +191,14 @@ def login_test_client(client, user, tenant, password: str = 'ValidPass123!'):
 
     _shared_store.clear()
     slug = getattr(tenant, 'slug', None) or ''
+    # Read everything off the user BEFORE the request. The request runs a full
+    # before_request/teardown cycle, and its teardown clears app.tenant_id on
+    # the shared connection. An expired attribute re-read after that point
+    # goes through RLS with an empty tenant GUC, sees no row, and raises
+    # ObjectDeletedError on an object that is still perfectly present.
+    tid = getattr(user, 'tenant_id', None) or getattr(tenant, 'id', None)
+    version = int(getattr(user, 'session_version', 0) or 0)
+    user_id = f'{user.id}:{version}'
     resp = client.post(
         '/auth/login',
         data={
@@ -199,9 +207,6 @@ def login_test_client(client, user, tenant, password: str = 'ValidPass123!'):
             'tenant_slug': slug,
         },
     )
-    tid = getattr(user, 'tenant_id', None) or getattr(tenant, 'id', None)
-    version = int(getattr(user, 'session_version', 0) or 0)
-    user_id = f'{user.id}:{version}'
     with client.session_transaction() as sess:
         sess['_user_id'] = user_id
         if tid is not None:
@@ -261,3 +266,20 @@ def tenant_test_context(app: Flask, tenant=None, *, bypass: bool = False):
         elif tenant is not None:
             bind_tenant_on_g(tenant, db_session=db.session)
         yield g
+
+
+def activate_tenant_modules(app: Flask, tenant, module_names) -> None:
+    """Activate *module_names* for *tenant*, inside that tenant's own scope.
+
+    ``tenant_modules`` carries a WITH CHECK policy, so a row is only admissible
+    while ``app.tenant_id`` names the same tenant. Naming ``tenant_id`` on the
+    row is not enough: written from an unbound context the insert is rejected
+    with InsufficientPrivilege. Every "build a tenant with a bundle" helper in
+    the suite needs this, and each one had grown its own copy of the loop.
+    """
+    from app.core.module.models import TenantModule
+
+    with tenant_test_context(app, tenant):
+        for name in module_names:
+            db.session.add(TenantModule(tenant_id=tenant.id, module_name=name, is_active=True))
+        db.session.commit()

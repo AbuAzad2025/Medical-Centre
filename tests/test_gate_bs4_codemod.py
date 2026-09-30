@@ -53,6 +53,23 @@ PORTAL_BASE = REPO_ROOT / 'templates' / 'portal' / 'base.html'
 CLINICAL_CSS = REPO_ROOT / 'static' / 'css' / 'clinical.css'
 
 
+def _render_stylesheet_links(shell: str) -> str:
+    """Render the <link> list a shell emits, for the given shell name.
+
+    A throwaway Flask app is enough: ``stylesheets()`` only needs ``url_for``,
+    and building the real app here would drag the database into a test that is
+    about asset wiring.
+    """
+    from flask import Flask
+
+    from app.shared.stylesheets import register, stylesheets
+
+    app = Flask(__name__)
+    register(app)
+    with app.test_request_context():
+        return str(stylesheets(shell))
+
+
 class TestBs4TemplateAudit:
     def test_no_forbidden_bs4_patterns_in_templates(self):
         violations = scan_templates()
@@ -84,17 +101,31 @@ class TestReceptionQueueBs5Modals:
 
 
 class TestClinicalThemeLinked:
+    """The shells must link BS5 RTL + clinical.css through the declared order.
+
+    The <link> lists used to be hand-written into each shell and are now
+    rendered by the ``stylesheets()`` Jinja global from the single order in
+    config.py, so asserting the literal path in the template text no longer
+    proves anything: the shell could carry the helper call and still link
+    nothing. Assert both halves instead — the shell asks for its declared
+    order, and that order actually resolves to the expected files.
+    """
+
     def test_main_base_links_bs5_and_clinical_css(self):
         html = BASE_HTML.read_text(encoding='utf-8')
+        assert "stylesheets('base')" in html
+        links = _render_stylesheet_links('base')
         # Bootstrap 5.3.2 is self-hosted in static/vendor (P1 hardening —
         # no third-party CDN dependency).
-        assert 'vendor/bootstrap/css/bootstrap.rtl.min.css' in html
-        assert 'clinical.css' in html
+        assert 'vendor/bootstrap/css/bootstrap.rtl.min.css' in links
+        assert 'css/clinical.css' in links
 
     def test_portal_base_links_bs5_and_clinical_css(self):
         html = PORTAL_BASE.read_text(encoding='utf-8')
-        assert 'vendor/bootstrap/css/bootstrap.rtl.min.css' in html
-        assert 'clinical.css' in html
+        assert "stylesheets('portal')" in html
+        links = _render_stylesheet_links('portal')
+        assert 'vendor/bootstrap/css/bootstrap.rtl.min.css' in links
+        assert 'css/clinical.css' in links
 
     def test_clinical_css_has_compat_bridge(self):
         css = CLINICAL_CSS.read_text(encoding='utf-8')

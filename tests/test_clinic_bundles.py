@@ -116,7 +116,6 @@ class TestClinicBundleActivation:
             )
             if not t_seed:
                 continue
-            from app.core.module.models import TenantModule
             from app.core.tenant.models import Tenant
             from app.shared.enums import TenantStatus
 
@@ -129,14 +128,17 @@ class TestClinicBundleActivation:
             )
             db.session.add(t)
             db.session.commit()
-            for mod in t_seed.get_modules():
-                db.session.add(TenantModule(tenant_id=t.id, module_name=mod, is_active=True))
-            db.session.commit()
-            from tests.tenant_context import tenant_test_context
+            from tests.tenant_context import activate_tenant_modules, tenant_test_context
+
+            activate_tenant_modules(app, t, t_seed.get_modules())
 
             with tenant_test_context(app, t):
                 for mod in t_seed.get_modules():
                     ok, _ = can_activate_module(t.id, mod)
                     assert ok is True, f'{slug} should allow {mod}'
-            db.session.delete(t)
-            db.session.commit()
+            # The tenant is deliberately left behind. Deleting it cascades into
+            # phi_audit_logs, which is append-only by design: s2_003_phi_audit_log
+            # REVOKEs UPDATE and DELETE from the application role, so the
+            # cascade fails with "permission denied for table phi_audit_logs"
+            # no matter which tenant is bound. The schema is rebuilt per test
+            # session, so the row costs nothing.

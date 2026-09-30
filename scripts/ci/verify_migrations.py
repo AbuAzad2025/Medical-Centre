@@ -14,8 +14,10 @@ TARGET_URL = os.environ['MIGRATE_DATABASE_URL']
 # The migration chain was unified under merge revision 8b9457bfc4d7
 # (merging the five historical branch heads) followed by p6_* migrations
 # (FK indexes, api_keys, api_keys RLS, file_uploads S3 columns).
-# Exactly one head must exist.
-EXPECTED_HEADS = {'s3_016_backfill_phone_national_id_ngrams'}
+# Exactly one head must exist. Bump this set whenever a revision is appended:
+# s3_017_rbac_catalogue_readable splits the RBAC catalogue policies by command
+# so every tenant can read the platform catalogue while writes stay scoped.
+EXPECTED_HEADS = {'s3_017_rbac_catalogue_readable'}
 
 
 def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
