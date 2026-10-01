@@ -179,6 +179,14 @@ def bind_tenant_on_g(tenant, *, db_session=None) -> None:
     g.tenant_id = tenant_id
     g.current_tenant = bound
     g.tenant_slug = bound.slug
+    # session.info['_tenant_id'] too, and this is not cosmetic. It is the FIRST
+    # source _current_tenant_id() consults (app/shared/tenant_filter.py:186), and
+    # reassert_set_local re-asserts the GUC from it before every ORM statement —
+    # so a stale value here silently overwrites the binding made one line above
+    # and the next write is rejected as a cross-tenant row. Production's binder
+    # sets it for the same reason (app/core/tenant/middleware.py:289).
+    if db_session is not None:
+        db_session.info['_tenant_id'] = tenant_id
     if db_session is not None:
         with suppress(Exception):
             db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_id}'"))
@@ -321,6 +329,13 @@ def tenant_test_context(app: Flask, tenant=None, *, bypass: bool = False):
             g._tenant_filter_bypass = True
         elif tenant is not None:
             bind_tenant_on_g(tenant, db_session=db.session)
+            # Pin the GUC for the connection, not just the transaction. A
+            # request-scoped helper (the layout's entitlement banner snapshots
+            # usage) commits mid-request, and SET LOCAL dies with that commit;
+            # the next ORM statement is then re-asserted from a cleared
+            # context, RESETs the GUC, and every tenant-scoped refresh fails
+            # with ObjectDeletedError on a row that is present.
+            _pin_tenant_guc(getattr(tenant, 'id', tenant))
         yield g
 
 
@@ -356,3 +371,20 @@ def activate_tenant_modules(app: Flask, tenant, module_names) -> None:
             db.session.add(TenantModule(tenant_id=tenant.id, module_name=name, is_active=True))
         if pending:
             db.session.commit()
+
+
+def create_scoped(app: Flask, tenant, obj):
+    """Add *obj* and commit, inside *tenant*'s RLS scope, and return it.
+
+    The shape that every fixture building a tenant-scoped row had grown by hand.
+    ``users``, ``medications``, ``visits`` and the rest carry a WITH CHECK
+    policy, so a row naming a tenant other than the bound one is rejected with
+    InsufficientPrivilege — and whether it was accepted used to depend on which
+    test ran before it, because the pooled connection keeps whatever tenant GUC
+    it last carried.
+    """
+    with tenant_test_context(app, tenant):
+        _pin_tenant_guc(getattr(tenant, 'id', tenant))
+        db.session.add(obj)
+        db.session.commit()
+    return obj

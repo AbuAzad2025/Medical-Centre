@@ -17,7 +17,7 @@ from app.shared.enums import ProductProfile
 from app_factory import db as _db
 from models.lab_test_catalog import LabTestCatalog, LabTestPanel
 from models.medication import Medication, MedicationPurchase, PharmacySale, Supplier
-from models.user import User
+from tests.tenant_context import activate_tenant_modules, create_scoped, ensure_test_user
 
 
 @pytest.fixture(scope='function')
@@ -39,23 +39,11 @@ def tenant_a(app):
             _db.session.add(t)
             _db.session.commit()
         # Ensure pharmacy/medication modules are active (idempotent across test runs)
-        from app.core.module.models import TenantModule
-
-        for mn in ('pharmacy', 'medication', 'lab'):
-            try:
-                existing = (
-                    db.session.execute(
-                        select(TenantModule).filter_by(tenant_id=t.id, module_name=mn)
-                    )
-                    .scalars()
-                    .first()
-                )
-                if not existing:
-                    _db.session.add(TenantModule(tenant_id=t.id, module_name=mn, is_active=True))
-                    _db.session.flush()
-            except Exception:
-                _db.session.rollback()
-        _db.session.commit()
+        # activate_tenant_modules binds the tenant, and does not swallow the
+        # write. The loop it replaces caught every exception and rolled back, so
+        # an RLS-rejected insert left the module inactive and the route under
+        # test answered 403 from the module guard instead of failing here.
+        activate_tenant_modules(app, t, ('pharmacy', 'medication', 'lab'))
     finally:
         if prev:
             g._tenant_filter_bypass = True
@@ -82,23 +70,11 @@ def tenant_b(app):
             )
             _db.session.add(t)
             _db.session.commit()
-        from app.core.module.models import TenantModule
-
-        for mn in ('pharmacy', 'medication', 'lab'):
-            try:
-                existing = (
-                    db.session.execute(
-                        select(TenantModule).filter_by(tenant_id=t.id, module_name=mn)
-                    )
-                    .scalars()
-                    .first()
-                )
-                if not existing:
-                    _db.session.add(TenantModule(tenant_id=t.id, module_name=mn, is_active=True))
-                    _db.session.flush()
-            except Exception:
-                _db.session.rollback()
-        _db.session.commit()
+        # activate_tenant_modules binds the tenant, and does not swallow the
+        # write. The loop it replaces caught every exception and rolled back, so
+        # an RLS-rejected insert left the module inactive and the route under
+        # test answered 403 from the module guard instead of failing here.
+        activate_tenant_modules(app, t, ('pharmacy', 'medication', 'lab'))
     finally:
         if prev:
             g._tenant_filter_bypass = True
@@ -110,37 +86,19 @@ def tenant_b(app):
 @pytest.fixture(scope='function')
 def manager_a(app, tenant_a):
     """Create a unique manager user per test to avoid duplicate-key errors."""
-    from flask import g
 
     uid_suffix = uuid.uuid4().hex[:8]
     username = f'manager_a_{uid_suffix}'
     email = f'ma_{uid_suffix}@example.com'
-    prev = g.get('_tenant_filter_bypass', False)
-    g._tenant_filter_bypass = True
-    try:
-        u = (
-            db.session.execute(select(User).filter_by(username=username, tenant_id=tenant_a.id))
-            .scalars()
-            .first()
-        )
-        if not u:
-            u = User(
-                username=username,
-                email=email,
-                full_name='Manager A',
-                role='manager',
-                is_active=True,
-                tenant_id=tenant_a.id,
-            )
-            u.set_password('test123')
-            _db.session.add(u)
-            _db.session.commit()
-    finally:
-        if prev:
-            g._tenant_filter_bypass = True
-        else:
-            g.pop('_tenant_filter_bypass', None)
-    return u
+    return ensure_test_user(
+        db,
+        tenant_a,
+        username=username,
+        role='manager',
+        email=email,
+        password='test123',
+        full_name='Manager A',
+    )
 
 
 @pytest.fixture(scope='function')
@@ -177,9 +135,7 @@ def medication_b(app, tenant_b):
         minimum_stock=10,
         is_active=True,
     )
-    _db.session.add(m)
-    _db.session.commit()
-    return m
+    return create_scoped(app, tenant_b, m)
 
 
 @pytest.fixture(scope='function')
@@ -189,9 +145,7 @@ def supplier_b(app, tenant_b):
         name='TenantB Supplier',
         is_active=True,
     )
-    _db.session.add(s)
-    _db.session.commit()
-    return s
+    return create_scoped(app, tenant_b, s)
 
 
 @pytest.fixture(scope='function')
@@ -205,9 +159,7 @@ def purchase_b(app, tenant_b, medication_b, supplier_b):
         remaining_quantity=10,
         purchase_price=5.0,
     )
-    _db.session.add(p)
-    _db.session.commit()
-    return p
+    return create_scoped(app, tenant_b, p)
 
 
 @pytest.fixture(scope='function')
@@ -217,9 +169,7 @@ def sale_b(app, tenant_b):
         total_amount=100.0,
         status='completed',
     )
-    _db.session.add(s)
-    _db.session.commit()
-    return s
+    return create_scoped(app, tenant_b, s)
 
 
 @pytest.fixture(scope='function')
@@ -233,9 +183,7 @@ def lab_test_b(app, tenant_b):
         category='chemistry',
         is_active=True,
     )
-    _db.session.add(t)
-    _db.session.commit()
-    return t
+    return create_scoped(app, tenant_b, t)
 
 
 @pytest.fixture(scope='function')
@@ -246,9 +194,7 @@ def lab_panel_b(app, tenant_b):
         name_en='TenantB Panel',
         is_active=True,
     )
-    _db.session.add(p)
-    _db.session.commit()
-    return p
+    return create_scoped(app, tenant_b, p)
 
 
 @pytest.mark.no_tenant_context
