@@ -28,8 +28,12 @@ def access_tenant(app):
     db.session.commit()
     with tenant_test_context(app, t):
         yield t
-        db.session.delete(t)
-        db.session.commit()
+        # No teardown delete. Deleting the tenant cascades into
+        # phi_audit_logs, which is append-only by design -- s2_003_phi_audit_log
+        # REVOKEs UPDATE and DELETE from the application role -- so the cascade
+        # fails with "permission denied for table phi_audit_logs" and the
+        # fixture errors instead of cleaning up. The test schema is rebuilt
+        # from scratch every session, so the row costs nothing.
 
 
 @pytest.fixture(scope='function')
@@ -46,7 +50,6 @@ def access_user(app, access_tenant):
     db.session.add(u)
     db.session.commit()
     yield u
-    db.session.delete(u)
     db.session.commit()
 
 

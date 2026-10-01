@@ -55,6 +55,8 @@ def _sync_tenant_sequence(tenant_id: int) -> None:
 
 def seed_dev_tenant(session=None):
     session = session or db.session
+    # No tenant to bind yet — this one only writes `tenants`, which carries no
+    # RLS policy. The callers below bind the tenant they are given.
     with tenant_bypass():
         # Keyed by slug (not a hard-coded id) so it never clobbers an
         # existing tenant — in a fresh production DB it simply gets the next
@@ -77,7 +79,7 @@ def seed_dev_tenant(session=None):
 
 def activate_modules(tenant, session=None):
     session = session or db.session
-    with tenant_bypass():
+    with tenant_bypass(tenant):
         import datetime
 
         now = datetime.datetime.now(datetime.UTC)
@@ -100,7 +102,7 @@ def activate_modules(tenant, session=None):
 
 def seed_staff(tenant, session=None):
     session = session or db.session
-    with tenant_bypass():
+    with tenant_bypass(tenant):
         created = {}
         for _key, username, full_name, role in STAFF:
             user = db.session.execute(
@@ -125,7 +127,7 @@ def seed_staff(tenant, session=None):
 
 def seed_clinical_flow(tenant, staff, session=None):
     session = session or db.session
-    with tenant_bypass():
+    with tenant_bypass(tenant):
         # Idempotent: reuse existing patient/visit if present. The patient's
         # phone column is an EncryptedString, so a raw WHERE on the plaintext
         # value would miss already-seeded rows whenever FIELD_ENCRYPTION_KEY is

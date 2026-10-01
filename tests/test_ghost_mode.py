@@ -57,6 +57,16 @@ def master_and_target(app, rollback_db, ghost_env):
     tenant = dev.seed_dev_tenant()
     staff = dev.seed_staff(tenant)
     target = staff['doctor']  # a normal tenant-scoped user
+    master = pb.seed_master_account()
+
+    # Snapshot the identities while the rows are still loaded. The GUC is
+    # cleared below, so afterwards an attribute read on these instances is a
+    # refresh with no tenant bound, and RLS hides the row: ObjectDeletedError on
+    # a user that exists. Taking the id now avoids depending on that.
+    def _identity(u):
+        return f'{u.id}:{int(getattr(u, "session_version", 0) or 0)}'
+
+    identities = {'master': _identity(master), 'target': _identity(target)}
     # Seeders bind g.tenant_id to the seeded tenant; clear it so the test
     # request re-resolves tenant context from the logged-in user instead of
     # inheriting the leaked dev-tenant id.
@@ -67,14 +77,29 @@ def master_and_target(app, rollback_db, ghost_env):
         from app.extensions import db
 
         db.session.info.pop('_tenant_id', None)
+        # The connection GUC too. Clearing g and session.info is not enough:
+        # the policies read app.tenant_id, the seeder's bind left it on the dev
+        # tenant, and every later read of a user row was then evaluated against
+        # the wrong tenant — ObjectDeletedError on a row that is present.
+        from sqlalchemy import text
+
+        db.session.execute(text('RESET app.tenant_id'))
     except Exception:
         pass
-    return {'master': pb.seed_master_account(), 'tenant': tenant, 'target': target}
+    return {
+        'master': master,
+        'master_identity': identities['master'],
+        'tenant': tenant,
+        'target': target,
+        'target_identity': identities['target'],
+    }
 
 
-def _login(client, app, user):
+def _login(client, app, user=None, identity=None):
+    if identity is None:
+        identity = f'{user.id}:{int(getattr(user, "session_version", 0) or 0)}'
     with client.session_transaction() as sess:
-        sess['_user_id'] = f'{user.id}:{int(getattr(user, "session_version", 0) or 0)}'
+        sess['_user_id'] = identity
         sess['_fresh'] = True
 
 
@@ -126,7 +151,7 @@ def test_ghost_impersonation_rebinds_context(app, rollback_db, client, master_an
     master = master_and_target['master']
     tenant = master_and_target['tenant']
     target = master_and_target['target']
-    _login(client, app, master)
+    _login(client, app, identity=master_and_target['master_identity'])
 
     resp = client.get('/_ghost_whoami', headers=_signed_headers(tenant.id, target.id))
     assert resp.status_code == 200
@@ -151,7 +176,7 @@ def test_ghost_rejects_bad_signature(app, rollback_db, client, master_and_target
     master = master_and_target['master']
     tenant = master_and_target['tenant']
     target = master_and_target['target']
-    _login(client, app, master)
+    _login(client, app, identity=master_and_target['master_identity'])
 
     headers = _signed_headers(tenant.id, target.id)
     headers[HEADER_SIGNATURE] = 'invalid'
@@ -165,7 +190,7 @@ def test_ghost_rejects_bad_signature(app, rollback_db, client, master_and_target
 def test_ghost_ignored_for_non_owner(app, rollback_db, client, master_and_target):
     target = master_and_target['target']  # normal doctor, NOT a platform owner
     tenant = master_and_target['tenant']
-    _login(client, app, target)
+    _login(client, app, identity=master_and_target['target_identity'])
 
     # Even with a perfectly valid signature, a non-owner must NOT impersonate.
     resp = client.get('/_ghost_whoami', headers=_signed_headers(tenant.id, target.id))
@@ -176,7 +201,7 @@ def test_ghost_ignored_for_non_owner(app, rollback_db, client, master_and_target
 
 def test_ghost_no_headers_is_noop(app, rollback_db, client, master_and_target):
     master = master_and_target['master']
-    _login(client, app, master)
+    _login(client, app, identity=master_and_target['master_identity'])
     resp = client.get('/_ghost_whoami')  # no impersonation headers
     assert resp.status_code == 200
     data = resp.get_json()

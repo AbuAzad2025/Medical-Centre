@@ -41,8 +41,12 @@ def saas_tenant(app):
     _db.session.commit()
     with tenant_test_context(app, t):
         yield t
-        _db.session.delete(t)
-        _db.session.commit()
+        # No teardown delete. Deleting the tenant cascades into
+        # phi_audit_logs, which is append-only by design -- s2_003_phi_audit_log
+        # REVOKEs UPDATE and DELETE from the application role -- so the cascade
+        # fails with "permission denied for table phi_audit_logs" and the
+        # fixture errors instead of cleaning up. The test schema is rebuilt
+        # from scratch every session, so the row costs nothing.
 
 
 @pytest.fixture(scope='function')
@@ -59,7 +63,6 @@ def saas_user(app, saas_tenant):
     _db.session.add(u)
     _db.session.commit()
     yield u
-    _db.session.delete(u)
     _db.session.commit()
 
 

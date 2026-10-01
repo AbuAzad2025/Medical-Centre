@@ -544,6 +544,14 @@ def create_app(config_name: str | None = None) -> Flask:
                 g.pop('_tenant_filter_bypass', None)
         if not user:
             return None
+        # Materialise the columns the request reads, here, while the row is
+        # known to be visible. An expired instance refreshes on its next
+        # attribute access, and that access can land after a commit inside the
+        # request has discarded the SET LOCAL tenant binding — the refresh then
+        # runs with no tenant bound, RLS hides the row, and Flask-Login's
+        # `is_authenticated` raises ObjectDeletedError on a user that exists.
+        with contextlib.suppress(Exception):
+            _ = (user.id, user.role, user.tenant_id, user.is_active, user.session_version)
         if user.tenant_id and not g.get('tenant_id'):
             tenant = db.session.get(Tenant, user.tenant_id)
             if tenant:

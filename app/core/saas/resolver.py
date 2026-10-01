@@ -222,7 +222,24 @@ class EntitlementResolver:
             .first()
         )
         if not latest:
-            latest = ResourceUsage.record_snapshot(tenant_id)
+            # No snapshot yet — do NOT create one from here. This method is
+            # called by the template context processor (storage_limit_warning),
+            # i.e. while the response body is being rendered, and
+            # record_snapshot commits. A commit mid-render expires every ORM
+            # instance in the session — current_user among them — and discards
+            # the SET LOCAL tenant binding, so the next refresh of an expired
+            # instance is evaluated with no tenant and fails with
+            # ObjectDeletedError on a row that is present. The after_request
+            # hook in app_factory already records the snapshot (at most hourly);
+            # until it has run, report "nothing recorded" and treat it as within
+            # limits, which is what a missing measurement means.
+            return {
+                'users_ok': True,
+                'patients_ok': True,
+                'storage_ok': True,
+                'api_ok': True,
+                'storage_warning': False,
+            }
 
         limits = cls.get_effective_limits(tenant_id)
         users_cap = limits.get('max_users')

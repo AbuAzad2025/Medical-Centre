@@ -59,7 +59,7 @@ class OnlineBookingConversionService:
 
         tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
 
-        patient = Patient.find_by_phone(booking.phone, tenant_id=tenant_id).scalars().first()
+        patient = Patient.find_by_phone(booking.phone, tenant_id=tenant_id)
         is_new_patient = patient is None
         if not patient:
             patient = Patient(
@@ -95,7 +95,7 @@ class OnlineBookingConversionService:
         tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
         from models.patient import Patient
 
-        patient = Patient.find_by_phone(booking.phone, tenant_id=tenant_id).scalars().first()
+        patient = Patient.find_by_phone(booking.phone, tenant_id=tenant_id)
         if not patient:
             patient = Patient(
                 tenant_id=tenant_id,
@@ -150,7 +150,7 @@ class OnlineBookingConversionService:
 
         tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
 
-        patient = Patient.find_by_phone(booking.phone, tenant_id=tenant_id).scalars().first()
+        patient = Patient.find_by_phone(booking.phone, tenant_id=tenant_id)
         if not patient:
             patient = Patient(
                 tenant_id=tenant_id,
@@ -201,7 +201,7 @@ class OnlineBookingConversionService:
 
         tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
 
-        patient = Patient.find_by_phone(booking.phone, tenant_id=tenant_id).scalars().first()
+        patient = Patient.find_by_phone(booking.phone, tenant_id=tenant_id)
         if not patient:
             patient = Patient(
                 tenant_id=tenant_id,

@@ -1,5 +1,7 @@
 """POST coverage — submit real form data to all CRUD endpoints."""
 
+import re
+
 import pytest
 
 
@@ -19,8 +21,6 @@ def _csrf(client):
     """Get CSRF token from any page."""
     resp = client.get('/reception/patients')
     if b'csrf-token' in resp.data:
-        import re
-
         m = re.search(rb'name="csrf-token" content="([^"]+)"', resp.data)
         if m:
             return m.group(1).decode()

@@ -30,6 +30,7 @@ from services.booking_conversion_service import (
 from services.booking_conversion_service import (
     OnlineBookingConversionService as OBCS,
 )
+from tests.tenant_context import bind_tenant_on_g
 
 
 @pytest.fixture(autouse=True)
@@ -99,6 +100,9 @@ class TestConvertToVisit:
         b = fx.booking()
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
+            # g alone is not enough: it steers the ORM filter, while the
+            # policy compares the row against the *connection* GUC. Bind both.
+            bind_tenant_on_g(fx.tenant, db_session=db.session)
             res = OBCS.convert_to_visit(b)
         assert res['is_new_patient'] is True
         v = db.session.get(Visit, res['visit_id'])
@@ -109,6 +113,9 @@ class TestConvertToVisit:
         b = fx.booking()
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
+            # g alone is not enough: it steers the ORM filter, while the
+            # policy compares the row against the *connection* GUC. Bind both.
+            bind_tenant_on_g(fx.tenant, db_session=db.session)
             p = Patient(tenant_id=fx.tenant.id, first_name='x', last_name='y', phone=b.phone)
             fx.db.session.add(p)
             fx.db.session.commit()
@@ -122,6 +129,9 @@ class TestConvertToAppointment:
         b = fx.booking()
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
+            # g alone is not enough: it steers the ORM filter, while the
+            # policy compares the row against the *connection* GUC. Bind both.
+            bind_tenant_on_g(fx.tenant, db_session=db.session)
             res = OBCS.convert_to_appointment(b)
         ap = db.session.get(Appointment, res['appointment_id'])
         assert ap.starts_at is not None
@@ -134,6 +144,9 @@ class TestConvertBasedOnProfile:
         b = fx.booking()
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
+            # g alone is not enough: it steers the ORM filter, while the
+            # policy compares the row against the *connection* GUC. Bind both.
+            bind_tenant_on_g(fx.tenant, db_session=db.session)
             res = OBCS.convert_based_on_profile(b, profile_code=None)
         assert 'visit_id' in res
 
@@ -141,6 +154,9 @@ class TestConvertBasedOnProfile:
         b = fx.booking()
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
+            # g alone is not enough: it steers the ORM filter, while the
+            # policy compares the row against the *connection* GUC. Bind both.
+            bind_tenant_on_g(fx.tenant, db_session=db.session)
             res = OBCS.convert_based_on_profile(b, profile_code='private_doctor_clinic')
         assert 'appointment_id' in res
 
@@ -152,6 +168,9 @@ class TestConvertBasedOnProfile:
         )
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
+            # g alone is not enough: it steers the ORM filter, while the
+            # policy compares the row against the *connection* GUC. Bind both.
+            bind_tenant_on_g(fx.tenant, db_session=db.session)
             res = OBCS.convert_based_on_profile(b, profile_code='standalone_lab')
         lr = db.session.get(LabRequest, res['lab_request_id'])
         assert lr.visit_id is not None
@@ -161,6 +180,9 @@ class TestConvertBasedOnProfile:
         b = fx.booking()
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
+            # g alone is not enough: it steers the ORM filter, while the
+            # policy compares the row against the *connection* GUC. Bind both.
+            bind_tenant_on_g(fx.tenant, db_session=db.session)
             res = OBCS.convert_based_on_profile(b, profile_code='standalone_radiology')
         rr = db.session.get(RadiologyRequest, res['radiology_request_id'])
         assert rr.visit_id is not None
@@ -185,6 +207,9 @@ class TestAppointmentCheckin:
         fx.db.session.commit()
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
+            # g alone is not enough: it steers the ORM filter, while the
+            # policy compares the row against the *connection* GUC. Bind both.
+            bind_tenant_on_g(fx.tenant, db_session=db.session)
             res = AppointmentCheckinService.checkin(ap)
         assert res['status'] == VisitState.CHECKED_IN
         assert db.session.get(Visit, res['visit_id']).status == VisitState.CHECKED_IN.value
@@ -195,5 +220,8 @@ class TestAppointmentCheckin:
         fx.db.session.commit()
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
+            # g alone is not enough: it steers the ORM filter, while the
+            # policy compares the row against the *connection* GUC. Bind both.
+            bind_tenant_on_g(fx.tenant, db_session=db.session)
             res = AppointmentCheckinService.create_walkin(p.id)
         assert res['status'] == VisitState.OPEN

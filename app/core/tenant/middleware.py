@@ -5,11 +5,16 @@ Provides TenantPathWSGIMiddleware to rewrite /t/<slug>/... → /...
 and set_tenant_context() as the Flask before_request handler.
 """
 
+import logging
+
 from flask import current_app, g, request
 from sqlalchemy import func, select
+from werkzeug.exceptions import HTTPException
 
 from app.core.tenant.models import Tenant
 from app.extensions import db
+
+logger = logging.getLogger(__name__)
 
 
 class TenantPathWSGIMiddleware:
@@ -555,14 +560,29 @@ def set_tenant_context():
         # super_admin/owner cross-tenant access is still gated by
         # enforce_tenant_access() via the explicit assumption mechanism.
         if actor_role != 'platform_owner':
+            from app.core.tenant.assumption_service import PlatformAssumptionService
+
             try:
-                from app.core.tenant.assumption_service import PlatformAssumptionService
-
                 PlatformAssumptionService.enforce_tenant_access()
+            except HTTPException:
+                # A real denial. enforce_tenant_access aborts with 403; let that
+                # 403 through instead of re-issuing a generic one.
+                raise
             except Exception:
-                from flask import abort
-
-                abort(403, description='Cross-tenant access denied')
+                # NOT a denial. This used to be a bare `except Exception`, so a
+                # database or ORM failure while reading the current user — an
+                # ObjectDeletedError from an expired instance, most often — was
+                # reported to the caller as "Cross-tenant access denied". That is
+                # a lie with two costs: the real fault never surfaces, and a
+                # failure that is not a policy decision gets logged as one.
+                # Re-raise it so the error handler and the logs see what
+                # actually happened.
+                logger.exception(
+                    'tenant access enforcement failed for role=%s tenant=%s',
+                    actor_role,
+                    getattr(tenant, 'id', None),
+                )
+                raise
 
     from app.shared.enums import TenantStatus
 
