@@ -17,7 +17,13 @@ from app.shared.enums import ProductProfile
 from app_factory import db as _db
 from models.lab_test_catalog import LabTestCatalog, LabTestPanel
 from models.medication import Medication, MedicationPurchase, PharmacySale, Supplier
-from tests.tenant_context import activate_tenant_modules, create_scoped, ensure_test_user
+from tests.tenant_context import (
+    activate_tenant_modules,
+    create_scoped,
+    ensure_test_user,
+    refresh_scoped,
+    tenant_test_context,
+)
 
 
 @pytest.fixture(scope='function')
@@ -223,7 +229,7 @@ class TestMedicationCatalogIsolation:
         assert resp.status_code == 200
         assert b'TenantB Med' not in resp.data
 
-    def test_medication_edit_requires_same_tenant(self, client_a, medication_b):
+    def test_medication_edit_requires_same_tenant(self, app, client_a, medication_b, tenant_b):
         resp = client_a.post(
             f'/medication/edit/{medication_b.id}',
             data={
@@ -236,7 +242,10 @@ class TestMedicationCatalogIsolation:
             follow_redirects=True,
         )
         assert resp.status_code == 200
-        _db.session.refresh(medication_b)
+        # Re-read tenant B's row inside tenant B. After the request the bound
+        # tenant is A, so a bare refresh is evaluated against A, returns no row,
+        # and reports a row that is present as missing.
+        refresh_scoped(app, tenant_b, medication_b)
         assert medication_b.trade_name == 'TenantB Med'
 
 
@@ -247,28 +256,36 @@ class TestSupplierIsolation:
         assert resp.status_code == 200
         assert b'TenantB Supplier' not in resp.data
 
-    def test_supplier_edit_requires_same_tenant(self, client_a, supplier_b):
+    def test_supplier_edit_requires_same_tenant(self, app, client_a, supplier_b, tenant_b):
         resp = client_a.post(
             f'/medication/suppliers/{supplier_b.id}/edit',
             data={'name': 'Hacked Supplier'},
             follow_redirects=True,
         )
         assert resp.status_code == 200
-        _db.session.refresh(supplier_b)
+        refresh_scoped(app, tenant_b, supplier_b)
         assert supplier_b.name == 'TenantB Supplier'
 
-    def test_supplier_delete_requires_same_tenant(self, client_a, supplier_b):
+    def test_supplier_delete_requires_same_tenant(self, app, client_a, supplier_b, tenant_b):
         resp = client_a.post(
             f'/medication/suppliers/{supplier_b.id}/delete',
             follow_redirects=True,
         )
         assert resp.status_code == 200
-        assert db.session.get(Supplier, supplier_b.id) is not None
+        # Look for the row where it lives: a bare get after the request is
+        # evaluated against tenant A and would report a present row as gone.
+        with tenant_test_context(app, tenant_b):
+            assert db.session.get(Supplier, supplier_b.id) is not None
 
-    def test_purchase_list_excludes_other_tenant(self, client_a, purchase_b):
+    def test_purchase_list_excludes_other_tenant(self, app, client_a, purchase_b, tenant_b):
+        # Capture the marker where the row is visible. After the request the
+        # bound tenant is A, so touching purchase_b.batch_number there is a
+        # refresh that matches no row and reports the row as deleted.
+        with tenant_test_context(app, tenant_b):
+            marker = purchase_b.batch_number.encode()
         resp = client_a.get('/medication/purchases')
         assert resp.status_code == 200
-        assert purchase_b.batch_number.encode() not in resp.data
+        assert marker not in resp.data
 
 
 @pytest.mark.no_tenant_context
@@ -284,7 +301,7 @@ class TestPosIsolation:
         data = json.loads(resp.data)
         assert not any('TenantB' in str(item.get('trade_name', '')) for item in data)
 
-    def test_pos_sell_rejects_other_tenant_medication(self, client_a, medication_b):
+    def test_pos_sell_rejects_other_tenant_medication(self, app, client_a, medication_b, tenant_b):
         resp = client_a.post(
             '/medication/pos/sell',
             json={
@@ -294,19 +311,22 @@ class TestPosIsolation:
             content_type='application/json',
         )
         assert resp.status_code in (400, 403, 404)
-        _db.session.refresh(medication_b)
+        refresh_scoped(app, tenant_b, medication_b)
         assert medication_b.stock_quantity == 100
 
-    def test_sales_history_excludes_other_tenant(self, client_a, sale_b):
+    def test_sales_history_excludes_other_tenant(self, app, client_a, sale_b, tenant_b):
+        # Same reason as the purchase test: read the id where the row lives.
+        with tenant_test_context(app, tenant_b):
+            marker = f'#{sale_b.id:06d}'.encode()
         resp = client_a.get('/medication/sales-history')
         assert resp.status_code == 200
         # Sale number is rendered as a zero-padded invoice number
-        assert f'#{sale_b.id:06d}'.encode() not in resp.data
+        assert marker not in resp.data
 
 
 @pytest.mark.no_tenant_context
 class TestLabCatalogIsolation:
-    def test_lab_catalog_edit_requires_same_tenant(self, client_a, lab_test_b):
+    def test_lab_catalog_edit_requires_same_tenant(self, app, client_a, lab_test_b, tenant_b):
         original_code = lab_test_b.code
         resp = client_a.post(
             f'/lab/test-catalog/{lab_test_b.id}/edit',
@@ -319,22 +339,23 @@ class TestLabCatalogIsolation:
             follow_redirects=True,
         )
         assert resp.status_code == 200
-        _db.session.refresh(lab_test_b)
+        refresh_scoped(app, tenant_b, lab_test_b)
         assert lab_test_b.code == original_code
 
-    def test_lab_catalog_delete_requires_same_tenant(self, client_a, lab_test_b):
+    def test_lab_catalog_delete_requires_same_tenant(self, app, client_a, lab_test_b, tenant_b):
         resp = client_a.post(
             f'/lab/test-catalog/{lab_test_b.id}/delete',
             follow_redirects=True,
         )
         assert resp.status_code == 200
-        assert db.session.get(LabTestCatalog, lab_test_b.id) is not None
+        with tenant_test_context(app, tenant_b):
+            assert db.session.get(LabTestCatalog, lab_test_b.id) is not None
 
     def test_lab_api_item_excludes_other_tenant(self, client_a, lab_test_b):
         resp = client_a.get(f'/lab/api/test-catalog/{lab_test_b.id}')
         assert resp.status_code == 404
 
-    def test_lab_panel_edit_requires_same_tenant(self, client_a, lab_panel_b):
+    def test_lab_panel_edit_requires_same_tenant(self, app, client_a, lab_panel_b, tenant_b):
         resp = client_a.post(
             f'/lab/test-panels/{lab_panel_b.id}/edit',
             data={
@@ -345,13 +366,14 @@ class TestLabCatalogIsolation:
             follow_redirects=True,
         )
         assert resp.status_code == 200
-        _db.session.refresh(lab_panel_b)
+        refresh_scoped(app, tenant_b, lab_panel_b)
         assert lab_panel_b.name_ar == 'باقة TenantB'
 
-    def test_lab_panel_delete_requires_same_tenant(self, client_a, lab_panel_b):
+    def test_lab_panel_delete_requires_same_tenant(self, app, client_a, lab_panel_b, tenant_b):
         resp = client_a.post(
             f'/lab/test-panels/{lab_panel_b.id}/delete',
             follow_redirects=True,
         )
         assert resp.status_code == 200
-        assert db.session.get(LabTestPanel, lab_panel_b.id) is not None
+        with tenant_test_context(app, tenant_b):
+            assert db.session.get(LabTestPanel, lab_panel_b.id) is not None
