@@ -119,6 +119,25 @@ def client_a(app, client, manager_a, tenant_a):
         sess['tenant_id'] = int(tenant_a.id)
         sess['tenant_slug'] = tenant_a.slug
         sess['_fresh'] = True
+    # Two pieces of per-request state have to be dropped before the test makes
+    # its own request. Under test the request reuses this app context, so:
+    #
+    #   * g._login_user — set by login_user() inside /auth/login — would make the
+    #     request authenticate with the login view's stale instance (expired,
+    #     attached to no session) instead of reading the session cookie, and every
+    #     attribute read raised ObjectDeletedError on a user that exists;
+    #   * g.tenant_id — bind_tenant_from_session() returns early when it is
+    #     already set, so a leftover id from a fixture left the request bound to
+    #     the wrong tenant while the connection GUC said another: the module
+    #     guard then saw no active modules and answered 403.
+    #
+    # In production both die with the app context.
+    from flask import g
+
+    from tests.tenant_context import clear_tenant_g
+
+    clear_tenant_g()
+    g.pop('_login_user', None)
     return client
 
 

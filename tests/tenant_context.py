@@ -229,6 +229,18 @@ def login_test_client(client, user, tenant, password: str = 'ValidPass123!'):
         if slug:
             sess['tenant_slug'] = slug
         sess['_fresh'] = True
+
+    # The login request authenticated the *test's* user object. Under test the
+    # next request reuses the conftest's app context, so Flask-Login's
+    # ``g._login_user`` cache survives into it, and the request then
+    # authenticates with that instance instead of loading the user from the
+    # session cookie. The instance is expired (the fixture committed) and
+    # attached to no session, so the first attribute read raises
+    # ObjectDeletedError on a user that exists. Dropping the cache puts the
+    # request back on the production path: the loader reads the session.
+    from flask import g
+
+    g.pop('_login_user', None)
     return resp
 
 

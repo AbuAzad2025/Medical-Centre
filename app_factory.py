@@ -475,7 +475,14 @@ def create_app(config_name: str | None = None) -> Flask:
         # tenant-binding before_request has already set g.tenant_id.
         g._tenant_filter_bypass = True
         try:
-            user = db.session.get(User, uid)
+            # Only attempt the plain lookup when a tenant is bound. With no
+            # tenant in scope the users policy cannot match the row, and
+            # SQLAlchemy reads "refresh returned nothing" as "the row is gone":
+            # the identity-mapped instance is marked dead and every later
+            # attribute access raises ObjectDeletedError on a user that exists.
+            # That is how an exempt path (login, /auth/*, /owner/*) poisoned the
+            # instance the next request then inherited.
+            user = db.session.get(User, uid) if g.get('tenant_id') is not None else None
             if user is None:
                 # The user row is only visible while its own tenant is bound:
                 # the ORM bypass above does not reach the database and the users
@@ -505,7 +512,14 @@ def create_app(config_name: str | None = None) -> Flask:
                     g.get('tenant_slug'),
                     db.session.info.get('_tenant_id'),
                 )
-                resolved_out_of_scope = False
+                # Drop any identity-mapped copy before querying. An expired
+                # instance whose refresh matches no row is marked *dead* by
+                # SQLAlchemy, and it stays dead: the next request that binds the
+                # right tenant inherits an object whose every attribute access
+                # raises ObjectDeletedError. That is how one exempt-path request
+                # poisoned the User for all the requests after it.
+                with contextlib.suppress(Exception):
+                    db.session.expunge(db.session.identity_map.get((User, uid)))
                 try:
                     for candidate in candidates:
                         if candidate is None:
@@ -519,7 +533,20 @@ def create_app(config_name: str | None = None) -> Flask:
                         # With the candidate bound, any refresh succeeds.
                         user = db.session.get(User, uid)
                         if user is not None:
-                            resolved_out_of_scope = True
+                            # Materialise BEFORE detaching, while the row is
+                            # visible in this scope. An instance that is expired
+                            # and attached to no session cannot be refreshed at
+                            # all: the next attribute read raises
+                            # ObjectDeletedError on a user that exists, which is
+                            # exactly what this fallback path used to produce.
+                            with contextlib.suppress(Exception):
+                                _ = (
+                                    user.id,
+                                    user.role,
+                                    user.tenant_id,
+                                    user.is_active,
+                                    user.session_version,
+                                )
                             break
                 finally:
                     g.tenant_id, g.current_tenant, g.tenant_slug = prev[0], prev[1], prev[2]
@@ -527,16 +554,6 @@ def create_app(config_name: str | None = None) -> Flask:
                         db.session.info.pop('_tenant_id', None)
                     else:
                         db.session.info['_tenant_id'] = prev[3]
-                if resolved_out_of_scope:
-                    # Detach it. The row lives in a different tenant than the
-                    # one this request is scoped to, so any commit during the
-                    # request expires it — the layout renders an entitlement
-                    # banner that snapshots usage, which commits — and the next
-                    # attribute access re-reads it under this request's tenant,
-                    # where it is invisible: ObjectDeletedError mid-render, on a
-                    # row that was never deleted. Loaded column values survive
-                    # detachment, and no refresh is wanted here.
-                    db.session.expunge(user)
         finally:
             if prev_bypass:
                 g._tenant_filter_bypass = True

@@ -101,6 +101,12 @@ def _login(client, app, user=None, identity=None):
     with client.session_transaction() as sess:
         sess['_user_id'] = identity
         sess['_fresh'] = True
+    # Same reason as in tenant_context.login_test_client: the request reuses this
+    # app context, so any Flask-Login user cache left by a previous request would
+    # authenticate the next one with a stale instance.
+    from flask import g
+
+    g.pop('_login_user', None)
 
 
 def _signed_headers(tenant_id, user_id, secret=SECRET, timestamp=None):
