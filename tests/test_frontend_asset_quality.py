@@ -32,6 +32,8 @@ RE_BLOCK = re.compile(r'{%\s*block\s+(\w+)\s*%}')
 RE_LINK_CSS = re.compile(r'<link[^>]+href=["\']([^"\']+\.css)["\']', re.I)
 RE_SCRIPT_SRC = re.compile(r'<script[^>]+src=["\']([^"\']+\.js)["\']', re.I)
 RE_HARDCODED_STATIC = re.compile(r'["\']/(static/[^"\']+)["\']')
+# Quoted asset names inside the stylesheet-order declaration in config.py.
+RE_CSS_JS_STRING = re.compile('["\']([A-Za-z0-9_./-]+\\.(?:css|js))["\']')
 # Contrast risk: dark containers with light-invisible text classes
 RE_DARK_CONTAINER = re.compile(r'class="[^"]*(?:bg-dark|bg-gray-9|bg-slate-9|bg-black)[^"]*"', re.I)
 RE_INVISIBLE_TEXT = re.compile(
@@ -63,6 +65,32 @@ def _css_via_url_for(text: str) -> set[str]:
 
 def _js_via_url_for(text: str) -> set[str]:
     return {p for p in _parse_static_refs(text) if p.endswith('.js')}
+
+
+def _declared_stylesheet_order() -> set[str]:
+    """Every static path named by the stylesheet order declared in config.py.
+
+    The order lives in the ``# --- Stylesheet order`` region of config.py, from
+    the marker up to the next top-level ``class``/``def``. Reading it as text
+    rather than importing config keeps this test free of the application's
+    import-time requirements (config refuses to import without SECRET_KEY, and
+    this file is collected with --noconftest).
+    """
+    config_py = ROOT / 'config.py'
+    if not config_py.is_file():
+        return set()
+    text = config_py.read_text(encoding='utf-8', errors='ignore')
+    marker = '# --- Stylesheet order'
+    if marker not in text:
+        return set()
+    region = text.split(marker, 1)[1]
+    # Cut at the next section or top-level definition. Do NOT stop at
+    # STYLESHEET_SHELL_EXTRAS: the per-shell extras (journey, kiosk, platform,
+    # portal) are declared inside that dict, and stopping there declared exactly
+    # those four orphaned.
+    for stop in ('\nclass ', '\ndef ', '\n# --- '):
+        region = region.split(stop, 1)[0]
+    return set(RE_CSS_JS_STRING.findall(region))
 
 
 def _all_static_files() -> set[str]:
@@ -253,6 +281,19 @@ class TestFrontendAssetQuality:
                     referenced.update(_parse_static_refs(text))
             except Exception:
                 pass
+
+        # The shells no longer carry hand-written <link> lists. The order is
+        # declared once in config.py (STYLESHEET_VENDOR / _SHARED /
+        # _SHELL_EXTRAS) and rendered by the stylesheets() Jinja global, so those
+        # references are invisible to a scan of the templates — and the Python
+        # pass below only looks at files named static/branding/pwa.
+        #
+        # Read the declaration out of the source text rather than importing
+        # config: that module refuses to import without SECRET_KEY, and this
+        # test runs with --noconftest, so nothing has set it. Parsing keeps the
+        # file's character (filesystem and text, no app, no DB) and makes the
+        # single source of these references count as the reference.
+        referenced.update(_declared_stylesheet_order())
 
         all_files = _all_static_files()
         # Normalize referenced: strip query/fragment
