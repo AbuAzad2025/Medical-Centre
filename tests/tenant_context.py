@@ -200,6 +200,33 @@ def bind_tenant_on_g(tenant, *, db_session=None) -> None:
         g.enabled_modules = set()
 
 
+def reset_request_state() -> None:
+    """Drop the per-request state a test request must not inherit.
+
+    Under test the request reuses the conftest's app context, so ``g`` survives
+    from the previous request — in production it dies with the request. Two
+    entries matter and both were measured, not guessed:
+
+    * ``g._login_user`` — Flask-Login's per-request user cache. Left over from a
+      synthetic login, the next request authenticates with *that* instance
+      instead of loading the user from the session cookie. The instance is
+      expired (the fixture committed) and attached to no session, so the first
+      attribute read raises ``ObjectDeletedError`` on a user that exists.
+    * ``g.tenant_id`` — ``bind_tenant_from_session()`` returns early when ``g``
+      already carries an id, so a stale value silently skips the session binding
+      and the request runs against whichever tenant ``g`` happened to name while
+      the connection GUC names another. The module guard then sees no active
+      modules and answers 403.
+
+    Every helper that fakes a login — this module's, and the ones hand-rolled in
+    individual test files — must call this before the test issues its request.
+    """
+    from flask import g
+
+    g.pop('_login_user', None)
+    g.pop('tenant_id', None)
+
+
 def login_test_client(client, user, tenant, password: str = 'ValidPass123!'):
     """POST /auth/login and ensure SaaS session carries tenant context."""
     from app.core.rate_limiter import _shared_store
@@ -230,17 +257,9 @@ def login_test_client(client, user, tenant, password: str = 'ValidPass123!'):
             sess['tenant_slug'] = slug
         sess['_fresh'] = True
 
-    # The login request authenticated the *test's* user object. Under test the
-    # next request reuses the conftest's app context, so Flask-Login's
-    # ``g._login_user`` cache survives into it, and the request then
-    # authenticates with that instance instead of loading the user from the
-    # session cookie. The instance is expired (the fixture committed) and
-    # attached to no session, so the first attribute read raises
-    # ObjectDeletedError on a user that exists. Dropping the cache puts the
-    # request back on the production path: the loader reads the session.
-    from flask import g
-
-    g.pop('_login_user', None)
+    # The login request authenticated the *test's* user object; drop the
+    # per-request state it left behind (see reset_request_state).
+    reset_request_state()
     return resp
 
 
@@ -383,6 +402,20 @@ def activate_tenant_modules(app: Flask, tenant, module_names) -> None:
             db.session.add(TenantModule(tenant_id=tenant.id, module_name=name, is_active=True))
         if pending:
             db.session.commit()
+
+
+def refresh_scoped(app: Flask, tenant, obj):
+    """Re-read *obj* inside *tenant*'s RLS scope, and return it.
+
+    A bare ``session.refresh(obj)`` run after a request is evaluated against
+    whatever tenant is currently bound. For a row belonging to another tenant
+    that returns nothing, and SQLAlchemy reports it as "could not refresh" or
+    raises ObjectDeletedError on a row that is present. Read it where it lives.
+    """
+    with tenant_test_context(app, tenant):
+        db.session.expire(obj)
+        db.session.refresh(obj)
+    return obj
 
 
 def create_scoped(app: Flask, tenant, obj):

@@ -257,11 +257,19 @@ def _tenant_from_authenticated_user() -> Tenant | None:
 
 
 def bind_tenant_from_session() -> None:
-    """Bind tenant from session keys before Flask-Login user_loader runs."""
-    from flask import g, session
+    """Bind tenant from session keys before Flask-Login user_loader runs.
 
-    if g.get('tenant_id'):
-        return
+    The session is authoritative and is applied unconditionally. The early
+    return on an already-set ``g.tenant_id`` used to come first, which meant an
+    inherited ``g`` — the request reuses the app context under test, so ``g``
+    survives from whatever ran before — silently outranked the session. The
+    request then ran against the wrong tenant for part of its life: a stale id
+    makes bind_tenant_from_session do nothing, and anything read before the
+    correct binding is in place is read under the wrong tenant. In production
+    ``g`` is fresh per request, so this reordering changes nothing for real
+    traffic; it only stops state leaking in.
+    """
+    from flask import g, session
 
     tid = session.get('tenant_id')
     if tid:
@@ -269,6 +277,9 @@ def bind_tenant_from_session() -> None:
         if tenant:
             bind_g_tenant(tenant)
             return
+
+    if g.get('tenant_id'):
+        return
 
     slug = session.get('tenant_slug')
     if slug:

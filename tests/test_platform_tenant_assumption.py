@@ -25,7 +25,7 @@ from app.core.tenant.assumption_service import (
 from app.core.tenant.models import Tenant
 from app.extensions import db
 from models.user import User
-from tests.tenant_context import tenant_test_context
+from tests.tenant_context import reset_request_state, tenant_test_context
 
 # ─────────────────────────────────────────────
 # Helpers
@@ -224,6 +224,10 @@ def _login(client, user, tenant_slug: str | None = None):
             sess['tenant_id'] = int(_resolved_tenant_id)
         if tenant_slug:
             sess['tenant_slug'] = tenant_slug
+
+    # login_user() cached the test's instance in g._login_user, and this app
+    # context is shared with the next request. See tests/tenant_context.
+    reset_request_state()
 
 
 # ─────────────────────────────────────────────
