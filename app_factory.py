@@ -20,6 +20,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import inspect as _sa_inspect
 from sqlalchemy import select
+from werkzeug.exceptions import (
+    BadRequest,
+    MethodNotAllowed,
+    UnprocessableEntity,
+    UnsupportedMediaType,
+)
 
 from flask_session import Session
 from utils.db_safety import safe_commit, safe_rollback
@@ -713,6 +719,22 @@ def create_app(config_name: str | None = None) -> Flask:
                 402,
             )
 
+    def _wants_json() -> bool:
+        """True when the caller is an API client rather than a browser.
+
+        An API route that answers an authorization failure with an HTML error
+        page is a contract violation: a JSON client cannot read it, and it is
+        indistinguishable from a successful login redirect. Decided on the
+        path (``/api/``) or on what the caller asked for, so a browser hitting
+        /api/... by hand still gets the page.
+        """
+        if request.path.startswith('/api/') or request.path.endswith('/api'):
+            return True
+        accept = (request.headers.get('Accept') or '').lower()
+        if 'application/json' in accept and 'text/html' not in accept:
+            return True
+        return request.is_json
+
     @app.errorhandler(403)
     def handle_403(error):
         try:
@@ -726,6 +748,36 @@ def create_app(config_name: str | None = None) -> Flask:
             return render_template('errors/404.html'), 404
         except Exception:
             return jsonify(error='الصفحة غير متاحة حالياً'), 404
+
+    def _json_http_error(error):
+        """Render an HTTP error as JSON for an API client, else pass it through."""
+        if not _wants_json():
+            return error
+        return (
+            jsonify(
+                error=error.name.lower().replace(' ', '_'),
+                status=error.code,
+                description=error.description,
+            ),
+            error.code,
+        )
+
+    # Only the built-in codes that have no handler of their own. Werkzeug answers
+    # these with its default HTML page, which a JSON client cannot read, and a
+    # 4xx contract that answers HTML is indistinguishable from a misconfigured
+    # client. Deliberately NOT registered for HTTPException as a whole: the app
+    # has handlers for the custom exceptions (ModuleNotEnabledError,
+    # TenantIsolationError, ...) that must keep their own payloads.
+    for _code_error in (
+        BadRequest,
+        MethodNotAllowed,
+        UnsupportedMediaType,
+        UnprocessableEntity,
+    ):
+
+        @app.errorhandler(_code_error)
+        def _handle_api_http_error(error):
+            return _json_http_error(error)
 
     # Wire critical error alerts (uses module-level _alert_admin)
     @app.errorhandler(500)

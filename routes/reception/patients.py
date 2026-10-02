@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from flask import flash, g, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
+from werkzeug.exceptions import HTTPException
 
 from app.extensions import db
 from models.appointment import Appointment
@@ -728,6 +729,9 @@ def add_patient_allergy(patient_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'data': allergy.to_dict()})
 
+    except HTTPException:
+        # Malformed JSON is the client's 400/415, not our 500.
+        raise
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error adding patient allergy')
@@ -767,6 +771,9 @@ def add_patient_problem(patient_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         return jsonify({'success': True, 'data': problem.to_dict()})
 
+    except HTTPException:
+        # Malformed JSON is the client's 400/415, not our 500.
+        raise
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error adding patient problem')

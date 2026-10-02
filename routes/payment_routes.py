@@ -11,6 +11,7 @@ from decimal import Decimal
 from flask import Blueprint, abort, flash, g, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func, select
+from werkzeug.exceptions import HTTPException
 
 from app.extensions import db
 from models.insurance import InsuranceClaim
@@ -803,6 +804,9 @@ def generate_insurance_claim():
 
         return jsonify({'success': True, 'data': result})
 
+    except HTTPException:
+        # Malformed JSON is the client's 400/415, not our 500.
+        raise
     except Exception:
         logging.exception('Error generating insurance claim')
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
@@ -889,6 +893,9 @@ def adjudicate_insurance_claim(claim_id):
 
         return jsonify({'success': True, 'data': result})
 
+    except HTTPException:
+        # Malformed JSON is the client's 400/415, not our 500.
+        raise
     except Exception:
         logging.exception('Error adjudicating insurance claim')
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
