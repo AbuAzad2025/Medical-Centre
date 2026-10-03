@@ -58,6 +58,24 @@ _ALLOWED_FOR_PLATFORM = (
 )
 
 
+def _clinical_forms(path: str):
+    """Yield *path* and the thin-JSON API spelling of the same route.
+
+    Every clinical blueprint publishes two faces of one route: a server-rendered
+    page and a JSON twin (``/lab/requests`` and ``/api/lab/requests``). Matching
+    the prefix list alone guarded the page and left the twin open, and the twin
+    is not protected by the role check either -- ``owner`` inherits
+    ``super_admin`` in ROLE_HIERARCHY, which is a role in the api_lab/api_radiology
+    allowlist -- so a platform owner could cancel and amend a tenant's lab and
+    radiology records directly. One explicit list, both spellings.
+    """
+    yield path
+    if path.startswith('/api/'):
+        yield path[len('/api') :]
+    else:
+        yield '/api' + path
+
+
 def is_medical_endpoint(path: str) -> bool:
     """Return True if the path is a medical endpoint that must be guarded."""
     if not path:
@@ -74,9 +92,10 @@ def is_medical_endpoint(path: str) -> bool:
                 or path.startswith('/api/billing/')
             ):
                 return False
-    # Check medical prefixes
+    # Check medical prefixes, in both the page and the JSON spelling
+    forms = tuple(_clinical_forms(path))
     for prefix in _MEDICAL_PREFIXES:
-        if path.startswith(prefix):
+        if any(form.startswith(prefix) for form in forms):
             return True
     # Fallback: check substrings in endpoint name (for url_for endpoint checks)
     low = path.lower()

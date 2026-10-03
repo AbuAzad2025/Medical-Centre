@@ -879,15 +879,16 @@ def _saas_default_tenant_context(app, request, monkeypatch):
     outside an active request. Tests that require *no* tenant must opt out via
     ``@pytest.mark.no_tenant_context``.
     """
-    clear_tenant_g()
-    _db.session.info.pop('_tenant_id', None)
+    from tests.tenant_context import clear_tenant_context
+
+    clear_tenant_context()
     if not app.config.get('ENABLE_SAAS_MODE', False):
         yield
-        clear_tenant_g()
+        clear_tenant_context()
         return
     if request.node.get_closest_marker('no_tenant_context'):
         yield
-        clear_tenant_g()
+        clear_tenant_context()
         return
 
     monkeypatch.setattr(

@@ -51,6 +51,23 @@ def clear_tenant_g() -> None:
             g.pop(key, None)
 
 
+def clear_tenant_context() -> None:
+    """Drop *every* tenant binding, not only the Flask ``g`` ones.
+
+    ``tenant_filter._current_tenant_id()`` consults the transaction-scoped
+    ``session.info['_tenant_id']`` before ``g``, so clearing ``g`` alone leaves
+    the request looking like it still has a tenant and the fail-closed guard
+    stays silent. The ``db`` fixture rebinds that key on every single test, so a
+    helper that only clears ``g`` is a silent no-op rather than an obvious one.
+
+    Use this when the intent is "no tenant in scope at all"; use
+    :func:`clear_tenant_g` when the intent is "no tenant on this request".
+    """
+    clear_tenant_g()
+    with suppress(Exception):
+        db.session.info.pop('_tenant_id', None)
+
+
 def ensure_default_test_tenant(app: Flask):
     """Return (or create) the shared default tenant used by SaaS-mode tests."""
     from datetime import datetime

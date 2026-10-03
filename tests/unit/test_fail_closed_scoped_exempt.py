@@ -29,9 +29,9 @@ def test_select_explicit_scope_skips_fail_closed(app, test_tenant, test_medicati
 
 @pytest.mark.no_tenant_context
 def test_select_no_scope_still_fails_closed(app, test_tenant, test_medications):
-    from tests.tenant_context import clear_tenant_g
+    from tests.tenant_context import clear_tenant_context
 
-    clear_tenant_g()
+    clear_tenant_context()
     stmt = select(Prescription).filter(Prescription.id == 1)
     with pytest.raises(TenantIsolationError):
         db.session.execute(stmt).scalars().first()

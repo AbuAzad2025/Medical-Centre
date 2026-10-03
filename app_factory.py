@@ -737,6 +737,22 @@ def create_app(config_name: str | None = None) -> Flask:
 
     @app.errorhandler(403)
     def handle_403(error):
+        # A denial on an API route is the one 4xx a JSON client is guaranteed to
+        # hit, and it used to answer Werkzeug's HTML page. That is unreadable to
+        # the client and indistinguishable from a login redirect, so an API
+        # consumer cannot tell "you may not do this" from "you are not logged in".
+        # Decided by _wants_json(), so a browser on a /api/ URL by hand, and
+        # every non-API page denial, still get the HTML page.
+        if _wants_json():
+            return (
+                jsonify(
+                    success=False,
+                    error='forbidden',
+                    status=403,
+                    description=getattr(error, 'description', None) or 'Forbidden',
+                ),
+                403,
+            )
         try:
             return render_template('errors/403.html'), 403
         except Exception:
