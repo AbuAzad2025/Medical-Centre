@@ -22,7 +22,13 @@ os.environ.setdefault('SUPPRESS_DEPRECATION_WARNINGS', '1')
 os.environ.setdefault('SUPPRESS_LOGGING', '1')
 os.environ.setdefault('SKIP_PLATFORM_BOOTSTRAP', '1')
 os.environ.setdefault('RLS_BYPASS_ALLOWED', '1')
-os.environ['ENABLE_SAAS_MODE'] = 'false'
+
+# ENABLE_SAAS_MODE is deliberately NOT set here. This file used to assign
+# os.environ['ENABLE_SAAS_MODE'] = 'false' at import time, which is process-wide:
+# merely collecting this module switched SaaS mode off for every test that ran
+# after it, including tests in other directories that have nothing to do with
+# clinical safety. Its own app opts out in the fixture below instead, where the
+# scope is this module's tests and nothing else.
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
@@ -44,6 +50,8 @@ from services.prescription_service import PrescriptionService
 @pytest.fixture(scope='module')
 def app():
     app = create_app('testing')
+    # Scoped opt-out, replacing the old process-wide environment write.
+    app.config['ENABLE_SAAS_MODE'] = False
     with app.app_context():
         db.create_all()
         # Create default tenant with id=1

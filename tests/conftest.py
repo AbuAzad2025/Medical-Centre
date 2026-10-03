@@ -33,6 +33,13 @@ os.environ['RLS_BYPASS_ALLOWED'] = '1'
 os.environ['ENABLE_SAAS_MODE'] = 'true'
 os.environ.pop('FIELD_ENCRYPTION_KEY', None)
 
+# Captured here, at conftest import, which happens before any test module is
+# imported. Reading os.environ later is not safe: a test module that assigns to it
+# at module scope changes it for the whole process, and one already did --
+# tests/clinical/test_prescription_hard_stop_e2e.py set it to 'false' on import,
+# which silently switched SaaS mode off for every test that ran after it.
+SAAS_MODE_FOR_TESTS = os.environ['ENABLE_SAAS_MODE'].strip().lower() in ('1', 'true', 'yes', 'on')
+
 from sqlalchemy import text as sa_text
 
 from app.core.tenant.models import Tenant
@@ -898,16 +905,10 @@ def _saas_default_tenant_context(app, request, monkeypatch):
     # tenant -- which by that point holds 50+ users, committed for real by the
     # fixtures that never request `db` -- starts rejecting new ones. That is how a
     # single flipped flag turned 17 setups into "package limit exceeded".
-    # Re-assert it from the environment before every test. A test that needs it
-    # off switches it off itself, after this has run.
-    app.config['ENABLE_SAAS_MODE'] = os.environ.get(
-        'ENABLE_SAAS_MODE', 'false'
-    ).strip().lower() in (
-        '1',
-        'true',
-        'yes',
-        'on',
-    )
+    # Re-assert it before every test, from the value captured at conftest import
+    # rather than from os.environ, which test modules can rewrite on import. A
+    # test that needs it off switches it off itself, after this has run.
+    app.config['ENABLE_SAAS_MODE'] = SAAS_MODE_FOR_TESTS
     if not app.config.get('ENABLE_SAAS_MODE', False):
         yield
         clear_tenant_context()

@@ -39,15 +39,38 @@ class TestTraceIdMiddleware:
 
     def test_trace_id_in_logs(self, app, client, caplog):
         """Trace ID appears in log records via TraceIdFilter."""
+        from config import TraceIdFilter
+
         caplog.set_level(logging.INFO)
 
-        client.get('/test/log-trace', headers={'X-Request-ID': 'log-trace-456'})
+        # create_app() silences logging for the testing config -- both the global
+        # switch and the application logger -- and pytest's logging plugin takes
+        # over the root handlers, so the filter that get_logging_config() installs
+        # never runs and no record is ever stamped. The test could therefore only
+        # pass by accident, if an earlier test happened to switch logging back on.
+        # Re-enable it and put the filter on the logger, where it runs ahead of
+        # every handler, then put everything back.
+        app_logger = app.logger
+        trace_filter = TraceIdFilter()
+        previous_manager_disable = logging.root.manager.disable
+        previous_logger_disabled = app_logger.disabled
+        logging.disable(logging.NOTSET)
+        app_logger.disabled = False
+        app_logger.addFilter(trace_filter)
+        try:
+            client.get('/test/log-trace', headers={'X-Request-ID': 'log-trace-456'})
 
-        # Check that log records have trace_id
-        log_records = [r for r in caplog.records if 'Test log message' in r.message]
+            # Check that log records have trace_id
+            log_records = [r for r in caplog.records if 'Test log message' in r.message]
+        finally:
+            app_logger.removeFilter(trace_filter)
+            logging.disable(previous_manager_disable)
+            app_logger.disabled = previous_logger_disabled
         assert len(log_records) > 0
-        assert hasattr(log_records[0], 'trace_id')
-        assert log_records[0].trace_id == 'log-trace-456'
+        assert hasattr(log_records[0], 'trace_id'), (
+            f'record carries no trace_id: {log_records[0].__dict__}'
+        )
+        assert log_records[0].trace_id == 'log-trace-456', f'trace_id={log_records[0].trace_id!r}'
 
     def test_trace_id_unique_per_request(self, client):
         """Each request gets a unique trace ID when not provided."""
