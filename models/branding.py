@@ -122,14 +122,20 @@ class BrandingSettings(TenantMixin, db.Model):
 
     @classmethod
     def get_active_settings(cls):
-        """الحصول على الإعدادات النشطة — معزولة حسب tenant عند توفره."""
+        """?????? ??? ????????? ?????? - ?????? ??? tenant ??? ?????."""
         tenant_id = cls._tenant_id()
-        q = select(cls)
+
+        # select() returns a Select, which has no .first()/.filter_by() chain the
+        # way Query does -- calling .first() on it raised AttributeError and took
+        # the branding preview page down with it. Execute and read scalars.
+        def _first(stmt):
+            return db.session.execute(stmt).scalars().first()
+
         if tenant_id:
-            row = q.filter_by(tenant_id=tenant_id).first()
+            row = _first(select(cls).filter(cls.tenant_id == tenant_id))
             if row:
                 return row
-        return q.filter(cls.tenant_id.is_(None)).first() or q.first()
+        return _first(select(cls).filter(cls.tenant_id.is_(None))) or _first(select(cls))
 
     @classmethod
     def create_default(cls, user_id):

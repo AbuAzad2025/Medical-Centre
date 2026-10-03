@@ -351,6 +351,23 @@ class TestTicket4CorrectiveAddServiceAuthority:
 
         login_as(client, 'super_add_t4', 'super_admin')
 
+        # MC-005 zero-trust guard: super_admin reaches clinical PHI only through
+        # an explicit, audited tenant assumption. /reception/visits/<id>/add-service
+        # is a medical endpoint ('visit' is in _MEDICAL_ENDPOINT_SUBSTRINGS), so
+        # with no assumption the guard answers 403. That 403 is the correct answer
+        # -- the test was written before MC-005 and encoded the older expectation.
+        # Grant the assumption the guard requires, so the assertions below (302,
+        # the redirect target, the updated total, the audit row) actually run.
+        from app.core.tenant.assumption_service import PlatformAssumptionService
+        from tests.tenant_context import ensure_test_user
+
+        actor = ensure_test_user(_db, test_tenant, username='super_add_t4', role='super_admin')
+        PlatformAssumptionService.create_assumption(
+            user_id=actor.id,
+            assumed_tenant_id=tenant_id,
+            reason='Ticket 4: super admin adds a catalog service to an existing visit',
+        )
+
         with app.test_request_context():
             from flask import g
 

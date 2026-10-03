@@ -401,15 +401,11 @@ def api_sales_report():
             q = q.filter(
                 func.date(PharmacySale.created_at) <= datetime.strptime(to_date, '%Y-%m-%d').date()
             )
-    rows = (
-        db.session.execute(
-            q.group_by(func.date(PharmacySale.created_at)).order_by(
-                func.date(PharmacySale.created_at).desc()
-            )
+    rows = db.session.execute(
+        q.group_by(func.date(PharmacySale.created_at)).order_by(
+            func.date(PharmacySale.created_at).desc()
         )
-        .scalars()
-        .all()
-    )
+    ).all()
     data = [
         {
             'date': str(r.sale_date),

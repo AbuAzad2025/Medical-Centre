@@ -29,14 +29,22 @@ class TestCustomServiceLifecycle:
 
         login_as(client, 'recv_custom_t6', 'reception')
 
+        # The helper takes the acting user as an argument because the route is
+        # @login_required, so in production it is always a real user. A bare
+        # test_request_context() carries no session cookie, so flask_login's
+        # current_user resolves to AnonymousUserMixin there and .role raised
+        # AttributeError. Pass the user the route would have seen.
+        from tests.tenant_context import ensure_test_user
+
+        actor = ensure_test_user(_db, test_tenant, username='recv_custom_t6', role='reception')
+
         with app.test_request_context():
             from flask import g
-            from flask_login import current_user
 
             g.tenant_id = tenant_id
             from routes.reception.visits import _process_custom_services
 
-            svc_ids = _process_custom_services(['Custom Blood Test'], ['150.0'], d.id, current_user)
+            svc_ids = _process_custom_services(['Custom Blood Test'], ['150.0'], d.id, actor)
         assert len(svc_ids) == 1
         svc = _db.session.get(ServiceMaster, int(svc_ids[0]))
         assert svc.is_custom is True
@@ -164,13 +172,17 @@ class TestCustomServiceLifecycle:
 
         login_as(client, 'recv_inv_t6', 'reception')
 
+        # See test_custom_service_created_inactive: the bare request context has
+        # no session cookie, so current_user is anonymous and has no .id.
+        from tests.tenant_context import ensure_test_user
+
+        actor = ensure_test_user(_db, test_tenant, username='recv_inv_t6', role='reception')
+
         with app.test_request_context():
             from flask import g
 
             g.tenant_id = tenant_id
             import uuid
-
-            from flask_login import current_user
 
             from models.invoice import Invoice
 
@@ -178,7 +190,7 @@ class TestCustomServiceLifecycle:
                 visit_id=v.id,
                 invoice_number=f'INV-T6-{uuid.uuid4().hex[:8]}',
                 total_amount=100,
-                created_by=current_user.id,
+                created_by=actor.id,
             )
             _db.session.add(inv)
             _db.session.flush()
@@ -190,7 +202,7 @@ class TestCustomServiceLifecycle:
                 quantity=1,
                 unit_price=100,
                 total_price=100,
-                created_by=current_user.id,
+                created_by=actor.id,
             )
             _db.session.add(line)
             _db.session.commit()

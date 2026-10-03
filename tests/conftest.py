@@ -881,14 +881,42 @@ def _saas_default_tenant_context(app, request, monkeypatch):
     """
     from tests.tenant_context import clear_tenant_context
 
+    # Both sets, on purpose. clear_tenant_context() drops the tenant keys and the
+    # transaction-scoped session.info['_tenant_id']; clear_ghost_g() drops the
+    # login-identity and ghost-mode keys. Calling only the first (as this fixture
+    # briefly did) let g.current_user / g._login_user survive into the next test
+    # in a long shard, which is how the default test tenant ended up over its
+    # 50-user package cap and failed 20 setups with "max 50 users".
     clear_tenant_context()
+    clear_ghost_g()
+    # `app` is session-scoped, and several tests set ENABLE_SAAS_MODE on it to
+    # exercise the non-SaaS path (test_ghost_mode, test_tenant_rls,
+    # test_saas_access_contract, test_notification_rls_lifecycle). Most do not
+    # put it back, so once one of them runs, every later test in the session
+    # silently loses SaaS mode: this fixture then stops binding a tenant and
+    # stops neutralising the package-cap checks, and the shared default test
+    # tenant -- which by that point holds 50+ users, committed for real by the
+    # fixtures that never request `db` -- starts rejecting new ones. That is how a
+    # single flipped flag turned 17 setups into "package limit exceeded".
+    # Re-assert it from the environment before every test. A test that needs it
+    # off switches it off itself, after this has run.
+    app.config['ENABLE_SAAS_MODE'] = os.environ.get(
+        'ENABLE_SAAS_MODE', 'false'
+    ).strip().lower() in (
+        '1',
+        'true',
+        'yes',
+        'on',
+    )
     if not app.config.get('ENABLE_SAAS_MODE', False):
         yield
         clear_tenant_context()
+        clear_ghost_g()
         return
     if request.node.get_closest_marker('no_tenant_context'):
         yield
         clear_tenant_context()
+        clear_ghost_g()
         return
 
     monkeypatch.setattr(
@@ -906,7 +934,7 @@ def _saas_default_tenant_context(app, request, monkeypatch):
 
         _bind_tenant(tenant, db_session=_db.session)
         yield
-    clear_tenant_g()
+    clear_ghost_g()
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -922,8 +950,14 @@ _TENANT_GHOST_KEYS = (
 )
 
 
-def clear_tenant_g() -> None:
-    """Remove tenant-related keys from Flask ``g`` (shared session app context in tests)."""
+def clear_ghost_g() -> None:
+    """Drop the ghost-mode / login-identity keys from Flask ``g``.
+
+    Named for what it actually clears. It used to be called ``clear_tenant_g``,
+    sharing a name with tests/tenant_context.clear_tenant_g() while clearing a
+    *different* set of keys, so a caller reaching for one silently got the
+    other's behaviour. Keep both helpers; call both.
+    """
     for key in _TENANT_GHOST_KEYS:
         g.pop(key, None)
 
@@ -998,7 +1032,7 @@ def tenant_test_context(app: 'Flask', tenant=None, *, bypass: bool = False):
         try:
             yield
         finally:
-            clear_tenant_g()
+            clear_ghost_g()
 
 
 # Make fixtures available

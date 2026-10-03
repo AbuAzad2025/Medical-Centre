@@ -13,15 +13,26 @@ from models.visit import Visit
 class TestAutoAssignFailClosed:
     def test_tenant_scoped_record_without_context_raises(self, app, test_tenant):
         """Creating a tenant-scoped record without g.tenant_id must raise."""
+        from tests.tenant_context import clear_tenant_context
+
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
         _db.session.commit()
+        # Read the id while the tenant is still bound. After the commit the
+        # instance is expired, so touching p.id later re-reads the row -- and with
+        # no tenant in scope the RLS policy hides it, SQLAlchemy concludes the row
+        # is gone and raises ObjectDeletedError before this test ever reaches the
+        # assertion it is here to make.
+        patient_id = p.id
 
         with app.test_request_context():
-            from flask import g
-
-            g.tenant_id = None
-            v = Visit(patient_id=p.id, status='OPEN')
+            # clear_tenant_context, not just g.tenant_id = None: auto_assign_tenant
+            # resolves the tenant through _current_tenant_id(), which reads the
+            # transaction-scoped session.info['_tenant_id'] before g, and the db
+            # fixture rebinds that key on every test. Nulling g alone left a tenant
+            # in scope, so the guard never fired and this test asserted nothing.
+            clear_tenant_context()
+            v = Visit(patient_id=patient_id, status='OPEN')
             _db.session.add(v)
             with pytest.raises(TenantIsolationError):
                 _db.session.flush()
