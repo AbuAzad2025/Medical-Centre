@@ -11,6 +11,40 @@ import pytest
 from flask import Flask, g, jsonify
 from sqlalchemy import select, text
 
+# ── Environment guardrail ────────────────────────────────────────────────────
+# The suite must run on the interpreter the project pins. Both the repository's
+# own .venv and every pytest job in .github/workflows/ci.yml are Python 3.11, and
+# requirements.txt is resolved for it. Running against a different interpreter
+# does not fail loudly -- it fails confusingly, because a near-miss version
+# installs successfully with subtly different dependency versions.
+#
+# That is not hypothetical. The global interpreter on a developer machine had 21 of
+# the 32 pinned packages at different versions (Flask-SQLAlchemy 3.1.1 against a
+# pinned 3.0.5, celery 5.6 against 5.3, stripe 9 against 7, redis 8 against 5),
+# which produced failures that looked like application bugs and were nothing of
+# the kind: a missing `.db` attribute, a logger that would not emit.
+#
+# Deliberately keyed on the interpreter version and not on VIRTUAL_ENV: the venv is
+# usually invoked as `.venv/Scripts/python -m pytest` without being activated, so
+# VIRTUAL_ENV is unset, and it is equally unset on CI. Testing for it would reject
+# nothing and pass everything.
+#
+# When the project moves to a new Python, change this constant *and* the
+# python-version in ci.yml together -- the point is that they cannot drift apart
+# silently, which is exactly how the incident above happened.
+REQUIRED_PYTHON = (3, 11)
+if sys.version_info[:2] != REQUIRED_PYTHON:
+    in_venv = os.environ.get('VIRTUAL_ENV')
+    raise RuntimeError(
+        f'INVALID ENVIRONMENT: tests must run on Python {REQUIRED_PYTHON[0]}.'
+        f'{REQUIRED_PYTHON[1]} from the project .venv, not Python'
+        f' {sys.version_info.major}.{sys.version_info.minor}.'
+        f' (VIRTUAL_ENV={in_venv or "unset"}).'
+        f' Use D:\\recovers\\data\\medical\\.venv\\Scripts\\python.exe -m pytest,'
+        f' or activate it first. A different interpreter installs a different'
+        f' dependency set and reports failures that do not exist in CI.'
+    )
+
 # Load .env BEFORE any imports that touch config.py (which requires SECRET_KEY)
 sys.path.insert(0, str(Path(__file__).parent.parent))
 try:
