@@ -660,6 +660,29 @@ def create_app(config_name: str | None = None) -> Flask:
     def favicon():
         return redirect(url_for('static', filename='img/medical_logo.png'), code=302)
 
+    def _wants_json() -> bool:
+        """True when the caller is an API client rather than a browser.
+
+        An API route that answers a failure with an HTML error page is a contract
+        violation: a JSON client cannot read it, and an HTML page is
+        indistinguishable from a successful login redirect. Decided on the path
+        (``/api/``) or on what the caller asked for, so a browser hitting
+        /api/... by hand still gets the page.
+
+        Every error handler below answers through this, rather than repeating
+        ``request.is_json or request.path.startswith('/api/')``. The two are not
+        the same predicate -- this one also honours an explicit
+        ``Accept: application/json`` -- and the copies had already drifted: a
+        denial could come back as HTML from one handler and JSON from another
+        depending on which exception the path happened to raise.
+        """
+        if request.path.startswith('/api/') or request.path.endswith('/api'):
+            return True
+        accept = (request.headers.get('Accept') or '').lower()
+        if 'application/json' in accept and 'text/html' not in accept:
+            return True
+        return request.is_json
+
     # Global error handlers for custom exceptions (MUST precede generic handlers)
     from app.shared.tenant_filter import TenantIsolationError
     from utils.exceptions import IdempotencyError, ModuleNotEnabledError, TenantContextError
@@ -667,7 +690,7 @@ def create_app(config_name: str | None = None) -> Flask:
     @app.errorhandler(ModuleNotEnabledError)
     def handle_module_not_enabled(e):
         """SaaS module gate failure -> 403 JSON (API) or flash+redirect (HTML)."""
-        if request.is_json or request.path.startswith('/api/'):
+        if _wants_json():
             return jsonify(success=False, error=e.message, module=e.module_name), 403
         from flask import flash, redirect, url_for
 
@@ -679,7 +702,7 @@ def create_app(config_name: str | None = None) -> Flask:
     def handle_tenant_isolation(e):
         """RLS / cross-tenant access blocked -> 403 JSON (API) or 403 page."""
         _alert_admin('CRITICAL', 'Tenant isolation violation', error=str(e))
-        if request.is_json or request.path.startswith('/api/'):
+        if _wants_json():
             return jsonify(success=False, error=str(e)), 403
         try:
             return render_template('errors/403.html', message=str(e)), 403
@@ -690,7 +713,7 @@ def create_app(config_name: str | None = None) -> Flask:
     def handle_permission_error(e):
         """Generic cross-tenant guard from tenant_filter.py loaded_as_persistent."""
         _alert_admin('CRITICAL', 'Permission denied', error=str(e))
-        if request.is_json or request.path.startswith('/api/'):
+        if _wants_json():
             return jsonify(success=False, error='Cross-tenant access denied'), 403
         try:
             return render_template('errors/403.html', message=str(e)), 403
@@ -699,7 +722,7 @@ def create_app(config_name: str | None = None) -> Flask:
 
     @app.errorhandler(IdempotencyError)
     def handle_idempotency(e):
-        if request.is_json or request.path.startswith('/api/'):
+        if _wants_json():
             return jsonify(success=False, error='Duplicate request', retry_after=30), 409
         from flask import flash, redirect
 
@@ -718,22 +741,6 @@ def create_app(config_name: str | None = None) -> Flask:
                 jsonify(error='يتطلب الوصول تفعيل الاشتراك. يرجى التواصل مع إدارة المنصة.'),
                 402,
             )
-
-    def _wants_json() -> bool:
-        """True when the caller is an API client rather than a browser.
-
-        An API route that answers an authorization failure with an HTML error
-        page is a contract violation: a JSON client cannot read it, and it is
-        indistinguishable from a successful login redirect. Decided on the
-        path (``/api/``) or on what the caller asked for, so a browser hitting
-        /api/... by hand still gets the page.
-        """
-        if request.path.startswith('/api/') or request.path.endswith('/api'):
-            return True
-        accept = (request.headers.get('Accept') or '').lower()
-        if 'application/json' in accept and 'text/html' not in accept:
-            return True
-        return request.is_json
 
     @app.errorhandler(403)
     def handle_403(error):

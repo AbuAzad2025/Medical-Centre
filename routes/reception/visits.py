@@ -538,7 +538,7 @@ def create_visit():
                 is_force_payment=is_force_payment,
                 created_by=current_user.id,
                 currency='ILS',
-                created_at=datetime.utcnow(),
+                created_at=datetime.now(UTC),
             )
 
             # ========== المرحلة 6: إضافة بيانات التأمين ==========
@@ -684,7 +684,7 @@ def create_visit():
                         currency='ILS',
                         status=PaymentStatus.CONFIRMED,
                         received_by=current_user.id,
-                        payment_date=datetime.utcnow(),
+                        payment_date=datetime.now(UTC),
                     )
 
                     # حفظ بيانات البطاقة في الدفع

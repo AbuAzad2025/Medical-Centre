@@ -644,33 +644,6 @@ def login_as(test_tenant, db):
 
 
 @pytest.fixture(scope='function')
-def standalone_mode(app):
-    """Run the requesting test with SaaS mode off, then put it back.
-
-    ``app`` is session-scoped, so assigning ``app.config['ENABLE_SAAS_MODE']``
-    inside a test body leaks: every later test in the session inherits it. That
-    is not hypothetical either -- four files did exactly this, and the autouse
-    :func:`_saas_default_tenant_context` had to be written to re-assert the flag
-    before every test to stop one file's assignment silencing the fail-closed
-    guards for everything after it.
-
-    This fixture is the supported way to ask for standalone mode. It is
-    function-scoped and requested by the test rather than applied globally, so
-    autouse fixtures run first and this one gets the last word, and the previous
-    value is restored on the way out.
-
-    ``test_ghost_mode.py`` sets the flag alongside two other pieces of global
-    state it must also restore, so it keeps its own fixture and delegates here.
-    """
-    previous = app.config.get('ENABLE_SAAS_MODE')
-    app.config['ENABLE_SAAS_MODE'] = False
-    try:
-        yield app
-    finally:
-        app.config['ENABLE_SAAS_MODE'] = previous
-
-
-@pytest.fixture(scope='function')
 def runner(app):
     return app.test_cli_runner()
 

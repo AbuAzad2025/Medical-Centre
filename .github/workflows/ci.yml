@@ -150,14 +150,14 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:123@localhost:5432/medical_system_test
           TEST_DATABASE_URL: postgresql://postgres:123@localhost:5432/medical_system_test
-          SECRET_KEY: ci-test-secret-key
+          SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
           APP_ENV: testing
           FLASK_ENV: testing
           RLS_BYPASS_ALLOWED: "1"
         run: python -m flask db upgrade heads
       - name: Run agent1 reception tests (VSM-compliant)
         env:
-          SECRET_KEY: ci-test-secret-key
+          SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
           APP_ENV: testing
           FLASK_ENV: testing
           DATABASE_URL: postgresql://postgres:123@localhost:5432/medical_system_test
@@ -318,7 +318,7 @@ jobs:
           - 5432:5432
 
     env:
-      SECRET_KEY: ci-test-secret-key
+      SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
       APP_ENV: testing
       FLASK_ENV: testing
       FLASK_APP: wsgi:app
@@ -389,7 +389,7 @@ jobs:
           - 5432:5432
 
     env:
-      SECRET_KEY: ci-test-secret-key
+      SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
       APP_ENV: testing
       FLASK_ENV: testing
       FLASK_APP: wsgi:app
@@ -418,7 +418,7 @@ jobs:
           FLASK_APP: wsgi:app
           FLASK_ENV: testing
           APP_ENV: testing
-          SECRET_KEY: ci-test-secret-key
+          SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
 
       - name: 1/5 — Verify RLS startup guard rejects superuser
         run: python scripts/ci/verify_rls_guard_rejection.py
@@ -497,7 +497,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      SECRET_KEY: ci-test-secret-key
+      SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
       APP_ENV: testing
       FLASK_ENV: testing
       RLS_BYPASS_ALLOWED: "1"
@@ -556,7 +556,7 @@ jobs:
           - 5432:5432
 
     env:
-      SECRET_KEY: ci-test-secret-key
+      SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
       APP_ENV: testing
       FLASK_ENV: testing
       SUPPRESS_BACKGROUND_WORKER: "1"
@@ -630,7 +630,7 @@ jobs:
           - 6379:6379
 
     env:
-      SECRET_KEY: ci-test-secret-key
+      SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
       APP_ENV: testing
       FLASK_ENV: testing
       FLASK_APP: wsgi:app
@@ -695,7 +695,7 @@ jobs:
           - 6379:6379
 
     env:
-      SECRET_KEY: ci-test-secret-key
+      SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
       APP_ENV: testing
       FLASK_ENV: testing
       FLASK_APP: wsgi:app
@@ -768,7 +768,7 @@ jobs:
           - 6379:6379
 
     env:
-      SECRET_KEY: ci-test-secret-key
+      SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
       APP_ENV: testing
       FLASK_ENV: testing
       FLASK_APP: wsgi:app
@@ -841,7 +841,7 @@ jobs:
           - 6379:6379
 
     env:
-      SECRET_KEY: ci-test-secret-key
+      SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
       APP_ENV: testing
       FLASK_ENV: testing
       FLASK_APP: wsgi:app
@@ -918,7 +918,7 @@ jobs:
           - 6379:6379
 
     env:
-      SECRET_KEY: ci-test-secret-key
+      SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
       APP_ENV: testing
       FLASK_ENV: testing
       FLASK_APP: wsgi:app

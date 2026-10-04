@@ -303,23 +303,34 @@ class TestCreateVisit:
 
     def test_create_visit_quick_emergency(self, login_as, client, ctx):
         _make_reception(login_as, client, ctx)
-        ctx.department(name='Emergency', name_ar='الطوارئ')
-        resp = client.post(
-            '/reception/visits/create',
-            data={
-                'quick_emergency': '1',
-                'quick_patient_name': 'مريض طارئ',
-                'quick_reason': 'ألم شديد في الصدر يتطلب تدخلا سريعا',
-            },
-        )
-        assert resp.status_code in (302, 200)
-        v = (
-            ctx.db.session.query(Visit)
-            .filter(Visit.is_emergency.is_(True))
-            .order_by(Visit.id.desc())
-            .first()
-        )
-        assert v is not None
+        # The quick-emergency flow looks this department up by name, so the name
+        # cannot be randomised. This test does not use the transactional
+        # `rollback_db` fixture, so ctx.department() committed for real and the row
+        # outlived the test -- and tests/test_agent1_reception.py creates a
+        # department with the same name against a unique (tenant_id, name)
+        # constraint, which then failed depending on collection order. Remove it
+        # again rather than leaving state behind.
+        dept = ctx.department(name='Emergency', name_ar='الطوارئ')
+        try:
+            resp = client.post(
+                '/reception/visits/create',
+                data={
+                    'quick_emergency': '1',
+                    'quick_patient_name': 'مريض طارئ',
+                    'quick_reason': 'ألم شديد في الصدر يتطلب تدخلا سريعا',
+                },
+            )
+            assert resp.status_code in (302, 200)
+            v = (
+                ctx.db.session.query(Visit)
+                .filter(Visit.is_emergency.is_(True))
+                .order_by(Visit.id.desc())
+                .first()
+            )
+            assert v is not None
+        finally:
+            ctx.db.session.delete(dept)
+            ctx.db.session.commit()
 
     def test_create_visit_insurance_validation(self, login_as, client, ctx):
         _make_reception(login_as, client, ctx)
