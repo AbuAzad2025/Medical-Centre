@@ -224,6 +224,55 @@ def _migrate_test_schema(app) -> None:
     )
 
 
+@pytest.fixture(scope='session', autouse=True)
+def _uncap_shared_test_tenant():
+    """Stop the shared default test tenant inheriting the platform package cap.
+
+    The tenant the suite logs everyone into is created once per session and never
+    cleaned, and several fixtures create Users with a plain commit, so the row
+    count only climbs. Part-way through a long shard the platform catalogue gets
+    bootstrapped, at which point ``max_users`` starts resolving to the package
+    default of 50 -- and every subsequent user creation fails with "package limit
+    exceeded". That is how one shard lost 17 setups and 12 tests at once.
+
+    Root cause is the leak, not the cap, but fixing the leak means auditing every
+    fixture in the suite, and until that is done this makes the failure mode
+    unreachable: no cap for this one tenant, so an accumulating row count cannot
+    break an unrelated test. Scoped by tenant id, so the suites that test limits
+    on their own tenants -- test_saas_limits.py, test_saas_data_contracts.py --
+    still see real caps and still assert on them.
+    """
+    from sqlalchemy import select
+
+    from app.core.saas.resolver import EntitlementResolver
+    from app.core.tenant.models import Tenant
+    from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
+
+    original = EntitlementResolver.get_limit.__func__
+    shared_id = []
+
+    @classmethod
+    def get_limit(cls, tenant_id, limit_key, at=None):
+        if not shared_id:
+            with contextlib.suppress(Exception):
+                found = (
+                    db.session.execute(select(Tenant.id).filter_by(slug=DEFAULT_TEST_TENANT_SLUG))
+                    .scalars()
+                    .first()
+                )
+                if found is not None:
+                    shared_id.append(found)
+        if shared_id and tenant_id == shared_id[0]:
+            return None
+        return original(cls, tenant_id, limit_key, at=at)
+
+    EntitlementResolver.get_limit = get_limit
+    try:
+        yield
+    finally:
+        EntitlementResolver.get_limit = classmethod(original)
+
+
 @pytest.fixture(scope='session')
 def app():
     app = create_app('testing')
