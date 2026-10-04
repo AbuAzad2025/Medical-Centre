@@ -47,10 +47,30 @@ from services.clinical_safety_service import ClinicalSafetyService
 from services.prescription_service import PrescriptionService
 
 
+@pytest.fixture(autouse=True, scope='function')
+def _standalone_mode(app):
+    """Keep the SaaS module gates off for this module's tests.
+
+    Setting the flag once in the module-scoped ``app`` fixture is not enough. The
+    autouse ``_saas_default_tenant_context`` in conftest re-asserts
+    ENABLE_SAAS_MODE before every test -- for a good reason, since several tests
+    overwrite it and never restore it -- and it does so after this module's
+    fixtures have been created. A function-scoped autouse fixture is the only
+    hook that runs per test here, so it is where the opt-out has to be
+    re-applied.
+
+    Without it the module gates are live, they find no tenant in context, and
+    require_module() raises ModuleNotEnabledError("Tenant context required")
+    before a single clinical assertion is reached.
+    """
+    app.config['ENABLE_SAAS_MODE'] = False
+
+
 @pytest.fixture(scope='module')
 def app():
     app = create_app('testing')
-    # Scoped opt-out, replacing the old process-wide environment write.
+    # Also set here so anything that reads the flag outside a test function --
+    # module-scoped setup, other fixtures -- sees standalone mode too.
     app.config['ENABLE_SAAS_MODE'] = False
     with app.app_context():
         db.create_all()
