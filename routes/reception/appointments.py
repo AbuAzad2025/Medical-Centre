@@ -437,9 +437,15 @@ def follow_ups():
     query = select(FollowUpRequest)
 
     if search:
+        # Correlate through FollowUpRequest.patient_id, not Patient.id. Naming the
+        # Patient entity here put `patients` into the FROM clause beside
+        # follow_up_requests with nothing joining them, so the two were cross
+        # joined and the filter matched once per patient in the search result --
+        # every follow-up came back once per hit, and the list showed duplicates.
+        # The FK column needs only the id list, so patients stays out of the query.
         query = query.filter(
             # Encrypted columns: contains() on ciphertext never matches either.
-            Patient.id.in_(Patient.search_ids(search, limit=1000))
+            FollowUpRequest.patient_id.in_(Patient.search_ids(search, limit=1000))
         )
 
     if status:

@@ -230,16 +230,20 @@ class AdvancedReportService:
                     Visit.department_id == department_id
                 )
 
+            # Aggregate over the subquery's own column. Selecting Payment.amount
+            # instead made SQLAlchemy add `payments` to the FROM list next to the
+            # subquery, so the two were combined as a cross join: every payment row
+            # was repeated once per subquery row and the total came out multiplied
+            # by the payment count. The count() queries below were already correct,
+            # because count() references no column and adds nothing to the FROM.
+            payments_sub = payments_query.subquery()
             total_payments = (
-                db.session.execute(
-                    select(func.count()).select_from(payments_query.subquery())
-                ).scalar()
-                or 0
+                db.session.execute(select(func.count()).select_from(payments_sub)).scalar() or 0
             )
             total_revenue = (
                 db.session.execute(
-                    select(func.coalesce(func.sum(Payment.amount), 0)).select_from(
-                        payments_query.subquery()
+                    select(func.coalesce(func.sum(payments_sub.c.amount), 0)).select_from(
+                        payments_sub
                     )
                 ).scalar()
                 or 0
@@ -248,18 +252,14 @@ class AdvancedReportService:
             # حسب طريقة الدفع
             payment_method_stats = {}
             for method in ['CASH', 'CARD', 'INSURANCE', 'WIRE']:
+                method_sub = payments_query.filter(Payment.method == method).subquery()
                 count = (
-                    db.session.execute(
-                        select(func.count()).select_from(
-                            payments_query.filter(Payment.method == method).subquery()
-                        )
-                    ).scalar()
-                    or 0
+                    db.session.execute(select(func.count()).select_from(method_sub)).scalar() or 0
                 )
                 amount = (
                     db.session.execute(
-                        select(func.coalesce(func.sum(Payment.amount), 0)).select_from(
-                            payments_query.filter(Payment.method == method).subquery()
+                        select(func.coalesce(func.sum(method_sub.c.amount), 0)).select_from(
+                            method_sub
                         )
                     ).scalar()
                     or 0
@@ -291,16 +291,18 @@ class AdvancedReportService:
                     InvoiceService.department_id == department_id
                 )
 
+            # Same reasoning as payments_sub above: the outer aggregate must name
+            # the subquery's column, or Payment/Invoice get pulled into the FROM
+            # clause beside it.
+            invoices_sub = invoices_query.subquery()
+
             total_invoices = (
-                db.session.execute(
-                    select(func.count()).select_from(invoices_query.subquery())
-                ).scalar()
-                or 0
+                db.session.execute(select(func.count()).select_from(invoices_sub)).scalar() or 0
             )
             total_invoice_amount = (
                 db.session.execute(
-                    select(func.coalesce(func.sum(Invoice.total_amount), 0)).select_from(
-                        invoices_query.subquery()
+                    select(func.coalesce(func.sum(invoices_sub.c.total_amount), 0)).select_from(
+                        invoices_sub
                     )
                 ).scalar()
                 or 0

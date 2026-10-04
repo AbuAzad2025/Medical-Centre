@@ -90,9 +90,14 @@ class ReportCenterService:
             visits = (
                 db.session.execute(select(func.count()).select_from(vq.subquery())).scalar() or 0
             )
+            # Sum the subquery's own amount column. Naming Payment.amount made
+            # SQLAlchemy add `payments` to the FROM list beside the subquery, and
+            # the two were cross joined, so the revenue for a period came back
+            # multiplied by the number of matching payments.
+            pq_sub = pq.subquery()
             revenue = (
                 db.session.execute(
-                    select(func.coalesce(func.sum(Payment.amount), 0)).select_from(pq.subquery())
+                    select(func.coalesce(func.sum(pq_sub.c.amount), 0)).select_from(pq_sub)
                 ).scalar()
                 or 0
             )
