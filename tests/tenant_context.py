@@ -27,6 +27,10 @@ _TENANT_G_KEYS = (
 
 DEFAULT_TEST_TENANT_SLUG = 'pharmacy-shifa'
 
+# Ids of the shared test tenant(s) this session has created. Populated by
+# ensure_default_test_tenant. Consumers must treat it as read-only.
+SHARED_TEST_TENANT_IDS: set[int] = set()
+
 
 def _sync_tenant_sequence() -> None:
     """Keep ``tenants.id`` sequence ahead of seeded rows in PostgreSQL tests."""
@@ -162,6 +166,13 @@ def ensure_default_test_tenant(app: Flask):
                     changed = True
             if changed:
                 db.session.commit()
+            # Recorded so the conftest cap suppression can identify this tenant
+            # without querying for it. An earlier version resolved the id lazily
+            # from inside the patched get_limit, where the query has no reliable
+            # context and its failure was swallowed -- so on the shards the
+            # suppression silently never applied and the shared tenant kept its
+            # 50-user package cap.
+            SHARED_TEST_TENANT_IDS.add(tenant.id)
             return tenant
         finally:
             if prev_bypass:

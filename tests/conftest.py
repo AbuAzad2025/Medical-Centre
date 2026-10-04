@@ -242,27 +242,14 @@ def _uncap_shared_test_tenant():
     on their own tenants -- test_saas_limits.py, test_saas_data_contracts.py --
     still see real caps and still assert on them.
     """
-    from sqlalchemy import select
-
     from app.core.saas.resolver import EntitlementResolver
-    from app.core.tenant.models import Tenant
-    from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
+    from tests.tenant_context import SHARED_TEST_TENANT_IDS
 
     original = EntitlementResolver.get_limit.__func__
-    shared_id = []
 
     @classmethod
     def get_limit(cls, tenant_id, limit_key, at=None):
-        if not shared_id:
-            with contextlib.suppress(Exception):
-                found = (
-                    db.session.execute(select(Tenant.id).filter_by(slug=DEFAULT_TEST_TENANT_SLUG))
-                    .scalars()
-                    .first()
-                )
-                if found is not None:
-                    shared_id.append(found)
-        if shared_id and tenant_id == shared_id[0]:
+        if tenant_id in SHARED_TEST_TENANT_IDS:
             return None
         return original(cls, tenant_id, limit_key, at=at)
 
