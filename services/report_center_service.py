@@ -76,8 +76,25 @@ class ReportCenterService:
         from models.visit import Visit
 
         def _range_metrics(start_dt, end_dt):
-            vq = select(Visit)
-            pq = select(Payment)
+            # Apply the window. These two arguments used to be accepted and then
+            # ignored, so every month-over-month and year-over-year report showed
+            # the same figure in both periods with a delta of zero -- which reads
+            # as "no change" rather than as a missing filter.
+            #
+            # visit_date is a Date and payment_date a DateTime, so both are bounded
+            # by dates: the upper bound is exclusive of the following day so the
+            # whole of the last day is included regardless of its time component.
+            start_date = start_dt.date()
+            end_date_exclusive = end_dt.date() + timedelta(days=1)
+
+            vq = select(Visit).filter(
+                Visit.visit_date >= start_date,
+                Visit.visit_date < end_date_exclusive,
+            )
+            pq = select(Payment).filter(
+                Payment.payment_date >= start_date,
+                Payment.payment_date < end_date_exclusive,
+            )
             if department_id:
                 try:
                     dep_id = int(department_id)

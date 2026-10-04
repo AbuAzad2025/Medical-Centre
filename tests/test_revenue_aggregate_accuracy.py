@@ -177,3 +177,59 @@ def test_compare_periods_emits_no_cartesian_warning(app, payments):
         ReportCenterService.compare_periods(start, end, start, end)
     cartesian = [str(w.message) for w in caught if 'cartesian' in str(w.message).lower()]
     assert not cartesian, f'unexpected cartesian product: {cartesian}'
+
+
+def test_compare_periods_separates_the_two_windows(app, rollback_db):
+    """Period A and period B must report their own figures.
+
+    The month-over-month and year-over-year report branches in routes/manager/
+    reports.py and routes/super_admin/analytics.py call this with two different
+    windows and render both. If the windows are ignored, every comparison report
+    shows the same number twice and the delta is always zero, which reads as
+    "no change" rather than as a broken filter.
+    """
+    from flask import g
+
+    from app.extensions import db
+    from models.patient import Patient
+    from models.payment import Payment
+    from models.visit import Visit
+
+    tenant_id = g.get('tenant_id')
+    patient = Patient(first_name='Windowed', last_name='Patient')
+    db.session.add(patient)
+    db.session.flush()
+    visit = Visit(patient_id=patient.id, tenant_id=tenant_id, status='COMPLETED')
+    db.session.add(visit)
+    db.session.flush()
+
+    # One payment inside January, one inside February, and one far outside both.
+    for when, amount in (
+        (datetime(2024, 1, 15, 12, 0, 0), Decimal('11.00')),
+        (datetime(2024, 2, 15, 12, 0, 0), Decimal('22.00')),
+        (datetime(2023, 6, 15, 12, 0, 0), Decimal('99.00')),
+    ):
+        db.session.add(
+            Payment(
+                tenant_id=tenant_id,
+                patient_id=patient.id,
+                visit_id=visit.id,
+                method='CASH',
+                amount=amount,
+                status='CONFIRMED',
+                payment_date=when,
+            )
+        )
+    db.session.flush()
+
+    january = ReportCenterService.compare_periods(
+        datetime(2024, 1, 1, tzinfo=UTC),
+        datetime(2024, 1, 31, 23, 59, 59, tzinfo=UTC),
+        datetime(2024, 2, 1, tzinfo=UTC),
+        datetime(2024, 2, 29, 23, 59, 59, tzinfo=UTC),
+    )
+
+    assert Decimal(str(january['a']['revenue'])) == Decimal('11.00')
+    assert Decimal(str(january['b']['revenue'])) == Decimal('22.00')
+    assert january['a']['revenue'] != january['b']['revenue']
+    assert Decimal(str(january['delta']['revenue'])) == Decimal('-11.00')
