@@ -133,15 +133,16 @@ def test_financial_analytics_revenue_is_exact_sum(app, payments):
     distribution = payment_analytics['method_distribution']
     methods_delta = sum(Decimal(str(entry['amount'])) for entry in distribution.values())
     assert methods_delta - before_total == EXPECTED_TOTAL
-    for method in METHODS:
-        entry = distribution[method]
-        if entry['count'] == 0:
-            continue
-        # A method may already have rows from other tests; what must hold is that
-        # the amount tracks the count and never exceeds count * amount-per-row.
-        assert Decimal(str(entry['amount'])) <= Decimal(str(entry['count'])) * max(AMOUNTS), (
-            f'{method} amount inflated beyond its row count'
-        )
+    # Each method's count has to account for this test's three payments across the
+    # breakdown. An earlier version also bounded amount <= count * 30, reasoning
+    # that a multiplied total exceeds count times the largest amount inserted here.
+    # That bound is wrong: a single CASH payment from another test can legitimately
+    # be larger than 30, and the assertion failed on the shards for that reason
+    # rather than for anything to do with the defect. The sum invariant above is
+    # the one that actually distinguishes a cross join from a correct aggregate.
+    assert sum(int(entry['count']) for entry in distribution.values()) - before_count == len(
+        AMOUNTS
+    )
 
 
 def test_financial_analytics_emits_no_cartesian_warning(app, payments):
