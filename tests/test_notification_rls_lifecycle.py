@@ -360,10 +360,9 @@ class TestMissingTenantContext:
                 db.session.commit()
             db.session.rollback()
 
-    def test_missing_context_non_saas_still_requires_tenant(self, app):
+    def test_missing_context_non_saas_still_requires_tenant(self, app, standalone_mode):
         """Even in non-SaaS mode, tenant-scoped records require tenant context."""
         with app.test_request_context():
-            app.config['ENABLE_SAAS_MODE'] = False
             g.tenant_id = None
             g._tenant_filter_bypass = False
             n = Notification(

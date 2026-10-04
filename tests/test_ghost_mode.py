@@ -23,10 +23,13 @@ SECRET = 'test-ghost-secret'
 
 
 @pytest.fixture
-def ghost_env(app):
-    # Ghost Mode must work without a tenant context on the owner, so we
-    # exercise it with SaaS mode OFF (no forced tenant resolution). This is
-    # localized: the original config is restored on teardown.
+def ghost_env(app, standalone_mode):
+    # Ghost Mode must work without a tenant context on the owner, so we exercise it
+    # with SaaS mode OFF (no forced tenant resolution). That is delegated to the
+    # standalone_mode fixture, which owns the save/restore: doing it here meant
+    # saving whatever the flag happened to be and writing that back, so once any
+    # other file left it False the "restore" persisted False for the rest of the
+    # session.
     #
     # NOTE: Flask-Login reads ``app.config["SESSION_PROTECTION"]`` to decide
     # its session-protection mode (login_manager.py:390). Setting that config
@@ -37,15 +40,12 @@ def ghost_env(app):
     # setting it, keeping later tests protected.
     from app_factory import login_manager
 
-    prev_saas = app.config.get('ENABLE_SAAS_MODE')
     prev_prot_attr = login_manager.session_protection
     prev_prot_cfg = app.config.pop('SESSION_PROTECTION', None)
     app.config['PLATFORM_OWNER_SECRET'] = SECRET
-    app.config['ENABLE_SAAS_MODE'] = False
     login_manager.session_protection = None
 
     yield app
-    app.config['ENABLE_SAAS_MODE'] = prev_saas
     login_manager.session_protection = prev_prot_attr
     if prev_prot_cfg is not None:
         app.config['SESSION_PROTECTION'] = prev_prot_cfg

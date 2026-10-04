@@ -110,10 +110,9 @@ class TestFailClosedTenantIsolation:
             result = db.session.execute(select(Patient)).scalars().all()
             assert isinstance(result, list)
 
-    def test_non_saas_mode_allows_global_query(self, app, tenant_a):
+    def test_non_saas_mode_allows_global_query(self, app, tenant_a, standalone_mode):
         """In non-SaaS mode, queries without tenant context work normally."""
         with app.test_request_context():
-            app.config['ENABLE_SAAS_MODE'] = False
             g.tenant_id = None
             result = db.session.execute(select(Patient)).scalars().all()
             assert isinstance(result, list)

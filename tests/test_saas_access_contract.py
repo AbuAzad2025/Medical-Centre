@@ -171,7 +171,7 @@ class TestRequireEntitlementDecorator:
             result = allowed_view()
             assert result == ('ok', 200)
 
-    def test_route_skips_when_saas_mode_off(self, app, access_tenant):
+    def test_route_skips_when_saas_mode_off(self, app, access_tenant, standalone_mode):
         from flask import g
 
         @require_entitlement('lab.order')
@@ -179,6 +179,5 @@ class TestRequireEntitlementDecorator:
             return 'ok', 200
 
         with app.test_request_context():
-            app.config['ENABLE_SAAS_MODE'] = False
             g.current_tenant = access_tenant
             assert open_view() == ('ok', 200)
