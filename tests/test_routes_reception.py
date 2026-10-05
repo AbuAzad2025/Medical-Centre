@@ -55,9 +55,33 @@ def _cached_encryption(monkeypatch):
 
 
 @pytest.fixture
-def ctx(app, db, test_tenant):
-    """Data factory: create domain records (tenant auto-assigned by filter)."""
-    tenant_id = test_tenant.id
+def ctx(app, rollback_db):
+    """Data factory: create domain records (tenant auto-assigned by filter).
+
+    Takes ``rollback_db``, not ``db``. ``db`` is only a handle onto the scoped
+    session, so every ``commit()`` in this factory was a *real* commit: across
+    this file 73 tests each left behind a user, and most also a patient, a
+    department or a visit. Those rows survived into later tests, which is how
+    ``test_create_visit_quick_emergency`` in this file and the identically named
+    test in test_agent1_reception.py collided on a unique (tenant_id, name)
+    constraint depending on collection order, and why the shared tenant's user
+    count climbed towards the package cap.
+
+    ``rollback_db`` binds the session to one connection and switches the session
+    to ``create_savepoint``, so these ``commit()`` calls become SAVEPOINT
+    releases and the outer rollback discards them. ``db`` stays reachable as
+    ``ctx.db`` for the tests that use it.
+
+    The tenant id comes from ``g`` rather than from the ``test_tenant`` fixture:
+    rollback_db calls ``db.session.remove()``, which detaches whatever instance
+    that fixture returned, and reading an attribute on it afterwards raises
+    DetachedInstanceError. ``g.tenant_id`` is what rollback_db itself binds.
+    """
+    from flask import g
+
+    db = rollback_db
+    tenant_id = g.get('tenant_id')
+    assert tenant_id is not None, 'autouse tenant fixture should have bound a tenant'
 
     def _patient(**kw):
         p = Patient(

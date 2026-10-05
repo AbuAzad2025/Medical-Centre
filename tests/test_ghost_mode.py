@@ -59,6 +59,25 @@ def master_and_target(app, rollback_db, ghost_env):
     target = staff['doctor']  # a normal tenant-scoped user
     master = pb.seed_master_account()
 
+    # Watermark the id sequences so the seeders' rows can be removed again.
+    # seed_master_account / seed_dev_tenant / seed_staff are production code and
+    # commit for real, so without this every ghost test left a master account, a
+    # dev tenant and a staff set behind -- unbounded growth inside the session.
+    # Measured by a per-test row audit: one leaked user per ghost test.
+    from sqlalchemy import func
+    from sqlalchemy import select as sa_select
+
+    from app.core.tenant.models import Tenant as _GhostTenant
+    from app.extensions import db as _ghost_db
+    from models.user import User as _GhostUser
+
+    _watermark_user = _ghost_db.session.execute(
+        sa_select(func.coalesce(func.max(_GhostUser.id), 0))
+    ).scalar()
+    _watermark_tenant = _ghost_db.session.execute(
+        sa_select(func.coalesce(func.max(_GhostTenant.id), 0))
+    ).scalar()
+
     # Snapshot the identities while the rows are still loaded. The GUC is
     # cleared below, so afterwards an attribute read on these instances is a
     # refresh with no tenant bound, and RLS hides the row: ObjectDeletedError on
@@ -86,13 +105,36 @@ def master_and_target(app, rollback_db, ghost_env):
         db.session.execute(text('RESET app.tenant_id'))
     except Exception:
         pass
-    return {
+
+    yield {
         'master': master,
         'master_identity': identities['master'],
         'tenant': tenant,
         'target': target,
         'target_identity': identities['target'],
     }
+
+    # Remove what the seeders committed, so the next ghost test starts clean.
+    # Users first, then the tenant they belonged to.
+    try:
+        for leaked in (
+            _ghost_db.session.execute(sa_select(_GhostUser).where(_GhostUser.id > _watermark_user))
+            .scalars()
+            .all()
+        ):
+            _ghost_db.session.delete(leaked)
+        _ghost_db.session.commit()
+        for leaked_tenant in (
+            _ghost_db.session.execute(
+                sa_select(_GhostTenant).where(_GhostTenant.id > _watermark_tenant)
+            )
+            .scalars()
+            .all()
+        ):
+            _ghost_db.session.delete(leaked_tenant)
+        _ghost_db.session.commit()
+    except Exception:
+        _ghost_db.session.rollback()
 
 
 def _login(client, app, user=None, identity=None):

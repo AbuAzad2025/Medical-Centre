@@ -522,7 +522,7 @@ def app():
 
 
 @pytest.fixture(scope='function')
-def rollback_db(app):
+def rollback_db(app, request):
     """Transactional isolation: every write is rolled back after the test.
 
     Binds the shared scoped ``db.session`` to a single connection whose outer
@@ -537,7 +537,18 @@ def rollback_db(app):
     (read first by ``tenant_filter._current_tenant_id``). This dict lives on the
     session-scoped session and survives ``rollback_db``'s transaction rollback,
     so a tenant bound in one test would leak into the next. Clear it.
+
+    Opted out by tests marked ``concurrency``: those drive real threads against
+    PostgreSQL and assert on what actually committed. They need independent
+    connections and real commits, which is exactly what the savepoint arrangement
+    removes -- with one shared connection and create_savepoint, a losing thread's
+    rollback invalidates the savepoint the others are still using, and every
+    caller comes back PendingRollbackError instead of losing cleanly.
     """
+    if request.node.get_closest_marker('concurrency'):
+        yield _db
+        return
+
     from flask_sqlalchemy.session import Session as _FSASession
 
     connection = _db.engine.connect()
@@ -649,7 +660,23 @@ def test_tenant(app):
 
 @pytest.fixture(scope='function')
 def db(app):
-    """Shared SQLAlchemy database handle (same scoped session as the app)."""
+    """Shared SQLAlchemy database handle (same scoped session as the app).
+
+    Deliberately *not* backed by ``rollback_db``. Wiring it that way looked
+    appealing -- it would have given every test that asks for ``db`` transactional
+    isolation, and a per-test row audit showed it would remove 76 of 91 leaked
+    tests in a shard. It was reverted because ``rollback_db`` calls
+    ``db.session.remove()`` during setup, which detaches the instance
+    ``test_tenant`` returns, and a great many tests hold that instance and read
+    ``test_tenant.id`` in their own body. Making ``db`` imply isolation therefore
+    trades a slow leak for a broad DetachedInstanceError failure across the suite,
+    which is not a trade worth making blind.
+
+    Asking for ``rollback_db`` is what buys isolation, and the fixtures that write
+    have been converted one by one. The remaining leaked tests are counted by the
+    audit described in TECHDEBT.md; converting them is mechanical work, but doing
+    it through this fixture is a trap.
+    """
     return _db
 
 
@@ -665,15 +692,24 @@ def client(app):
 
 
 @pytest.fixture(scope='function')
-def login_as(test_tenant, db):
-    """Factory fixture: ``login_as(client, username, role)`` → authenticated client."""
-    from tests.tenant_context import ensure_test_user, login_test_client
+def login_as(app, db):
+    """Factory fixture: ``login_as(client, username, role)`` -> authenticated client.
+
+    The tenant is resolved per call rather than captured from the ``test_tenant``
+    fixture. Anything that removes the session -- ``rollback_db`` does, during its
+    own setup -- detaches the instance that fixture returned, and every later
+    attribute read on it raises DetachedInstanceError from
+    ensure_test_user's bind_tenant_on_g as much as from anywhere else. Fetching
+    the tenant here always returns an attached instance.
+    """
+    from tests.tenant_context import ensure_default_test_tenant, ensure_test_user, login_test_client
 
     def _login(client, username, role, password='test123', **user_extra):
+        tenant = ensure_default_test_tenant(app)
         user = ensure_test_user(
-            db, test_tenant, username=username, role=role, password=password, **user_extra
+            db, tenant, username=username, role=role, password=password, **user_extra
         )
-        login_test_client(client, user, test_tenant, password)
+        login_test_client(client, user, tenant, password)
         return client
 
     return _login

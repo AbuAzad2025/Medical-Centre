@@ -21,6 +21,37 @@ from services.saas_registration_service import SaasRegistrationError, SaasRegist
 from tests.tenant_context import tenant_test_context
 
 
+@pytest.fixture(autouse=True)
+def _remove_registered_tenants(app):
+    """Delete the tenants these tests register.
+
+    SaasRegistrationService.register_organization() commits for real -- that is
+    the whole point of the service -- so nothing here is inside the suite's
+    rollback transaction. Each of these tests therefore left a tenant and its admin
+    user behind, and a registration test that registers is not the place to also
+    leave three tenants in the shared database. Measured by a per-test row audit:
+    one leaked user per registration test.
+
+    Watermarks the tenant id before the test and removes anything above it
+    afterwards, users first so no foreign key is left dangling.
+    """
+    watermark = db.session.execute(select(func.coalesce(func.max(Tenant.id), 0))).scalar()
+    yield
+    try:
+        for leaked_user in (
+            db.session.execute(select(User).where(User.tenant_id > watermark)).scalars().all()
+        ):
+            db.session.delete(leaked_user)
+        db.session.commit()
+        for leaked_tenant in (
+            db.session.execute(select(Tenant).where(Tenant.id > watermark)).scalars().all()
+        ):
+            db.session.delete(leaked_tenant)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+
 def _seed_package_version():
     pkg = Package(
         name='Starter',

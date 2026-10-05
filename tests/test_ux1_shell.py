@@ -11,7 +11,13 @@ from models.user import User
 
 
 @pytest.fixture(scope='function')
-def owner_user_for_shell(app, test_tenant):
+def owner_user_for_shell(app, rollback_db):
+    # rollback_db, not a bare app: this fixture commits, and without the
+    # transaction those commits are real, so the user outlived the test. Measured
+    # with a per-test row-count audit: this was one of seven tests in the suite
+    # leaving a committed user behind.
+    from flask import g
+
     username = f'owner_shell_{uuid.uuid4().hex[:8]}'
     u = User(
         username=username,
@@ -19,7 +25,7 @@ def owner_user_for_shell(app, test_tenant):
         full_name='Owner Shell Test',
         role='owner',
         is_active=True,
-        tenant_id=test_tenant.id,
+        tenant_id=g.get('tenant_id'),
     )
     u.set_password('owner123')
     db.session.add(u)
