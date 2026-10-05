@@ -16,7 +16,7 @@ from models.visit import Visit
 
 class TestAddServiceWithoutReopening:
     def test_reception_adds_catalog_service_to_completed_visit(
-        self, app, test_tenant, client, login_as
+        self, app, rollback_db, test_tenant, client, login_as
     ):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
@@ -79,7 +79,9 @@ class TestAddServiceWithoutReopening:
         )
         assert len(lines) >= 1
 
-    def test_add_service_rejected_after_archive(self, app, test_tenant, client, login_as):
+    def test_add_service_rejected_after_archive(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -139,7 +141,9 @@ class TestAddServiceWithoutReopening:
         )
         assert len(lines) == 0
 
-    def test_non_reception_cannot_add_service(self, app, test_tenant, client, login_as):
+    def test_non_reception_cannot_add_service(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -189,7 +193,7 @@ class TestAddServiceWithoutReopening:
         # Doctor should be blocked (403 or redirect to login)
         assert resp.status_code in (302, 403)
 
-    def test_cross_tenant_add_service_denied(self, app, test_tenant, client, login_as):
+    def test_cross_tenant_add_service_denied(self, app, rollback_db, test_tenant, client, login_as):
         from app.core.tenant.models import Tenant
 
         tenant_id = test_tenant.id
@@ -261,7 +265,7 @@ class TestAddServiceWithoutReopening:
 class TestTicket4CorrectiveAddServiceAuthority:
     """Corrective Ticket 4: Post-completion add-service authority."""
 
-    def test_admin_cannot_add_service(self, app, test_tenant, client, login_as):
+    def test_admin_cannot_add_service(self, app, rollback_db, test_tenant, client, login_as):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -313,7 +317,9 @@ class TestTicket4CorrectiveAddServiceAuthority:
         v_after = _db.session.get(Visit, v.id)
         assert v_after.total_amount == Decimal('100.00')
 
-    def test_super_admin_add_service_creates_audit(self, app, test_tenant, client, login_as):
+    def test_super_admin_add_service_creates_audit(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -397,7 +403,9 @@ class TestTicket4CorrectiveAddServiceAuthority:
         assert audit is not None
         assert 'إضافة خدمة' in (audit.description or '')
 
-    def test_price_comes_from_catalog_not_client(self, app, test_tenant, client, login_as):
+    def test_price_comes_from_catalog_not_client(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)

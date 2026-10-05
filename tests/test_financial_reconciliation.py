@@ -15,7 +15,7 @@ from tests.tenant_context import login_test_client
 
 
 @pytest.fixture(scope='function')
-def recon_patient(app, test_tenant):
+def recon_patient(app, rollback_db, test_tenant):
     p = Patient(
         tenant_id=test_tenant.id,
         first_name='Recon',
@@ -28,7 +28,7 @@ def recon_patient(app, test_tenant):
 
 
 @pytest.fixture(scope='function')
-def recon_accountant(app, test_tenant):
+def recon_accountant(app, rollback_db, test_tenant):
     u = db.session.execute(select(User).filter_by(username='recon_accountant')).scalars().first()
     if not u:
         u = User(
@@ -46,7 +46,7 @@ def recon_accountant(app, test_tenant):
 
 
 @pytest.fixture(scope='function')
-def recon_visit(app, test_tenant, recon_patient):
+def recon_visit(app, rollback_db, test_tenant, recon_patient):
     v = Visit(
         tenant_id=test_tenant.id,
         patient_id=recon_patient.id,
@@ -58,7 +58,7 @@ def recon_visit(app, test_tenant, recon_patient):
 
 
 @pytest.fixture(scope='function')
-def recon_invoice(app, test_tenant, recon_visit):
+def recon_invoice(app, rollback_db, test_tenant, recon_visit):
     inv = Invoice(
         tenant_id=test_tenant.id,
         visit_id=recon_visit.id,
@@ -261,7 +261,7 @@ class TestInsuranceClaim:
         _db.session.commit()
         return inv
 
-    def test_create_claim_from_invoice(self, app, test_tenant, recon_visit):
+    def test_create_claim_from_invoice(self, app, rollback_db, test_tenant, recon_visit):
         """Successfully generate an insurance claim from an ISSUED invoice."""
         inv = self._create_issued_invoice(app, test_tenant, recon_visit)
 
@@ -301,7 +301,7 @@ class TestInsuranceClaim:
         assert claim.claim_date is not None
 
     def test_generate_endpoint_creates_draft_claim(
-        self, app, test_tenant, recon_visit, recon_accountant
+        self, app, rollback_db, test_tenant, recon_visit, recon_accountant
     ):
         """POST /payment/api/insurance/claims/generate issues a DRAFT claim from an ISSUED invoice."""
         inv = self._create_issued_invoice(app, test_tenant, recon_visit)
@@ -327,7 +327,9 @@ class TestInsuranceClaim:
         assert claim.claim_number == data['data']['claim_number']
         assert claim.invoice_id == inv.id
 
-    def test_create_claim_rejects_non_issued_invoice(self, app, test_tenant, recon_visit):
+    def test_create_claim_rejects_non_issued_invoice(
+        self, app, rollback_db, test_tenant, recon_visit
+    ):
         """Claim creation should fail for invoices that are not ISSUED."""
         from models.invoice import Invoice
 
@@ -350,7 +352,7 @@ class TestInsuranceClaim:
         assert result['ok'] is False
         assert 'ISSUED' in result['error']
 
-    def test_create_claim_rejects_missing_invoice(self, app, test_tenant):
+    def test_create_claim_rejects_missing_invoice(self, app, rollback_db, test_tenant):
         """Claim creation should fail for a non-existent invoice."""
         result = FinancialService.create_insurance_claim(
             invoice_id=999_999,
@@ -361,7 +363,7 @@ class TestInsuranceClaim:
         assert result['ok'] is False
         assert 'not found' in result['error']
 
-    def test_claim_status_transitions(self, app, test_tenant, recon_visit):
+    def test_claim_status_transitions(self, app, rollback_db, test_tenant, recon_visit):
         """Claim should transition through SUBMITTED → UNDER_REVIEW → APPROVED."""
         inv = self._create_issued_invoice(app, test_tenant, recon_visit)
 
@@ -404,7 +406,7 @@ class TestInsuranceClaim:
         assert claim.insurance_share_amount == 150.0
         assert claim.patient_share_amount == 50.0
 
-    def test_claim_partial_approval(self, app, test_tenant, recon_visit):
+    def test_claim_partial_approval(self, app, rollback_db, test_tenant, recon_visit):
         """PARTIALLY_APPROVED should split insurance and patient shares."""
         inv = self._create_issued_invoice(app, test_tenant, recon_visit)
 
@@ -432,7 +434,7 @@ class TestInsuranceClaim:
         assert claim.insurance_share_amount == 100.0
         assert claim.patient_share_amount == 100.0
 
-    def test_claim_rejection(self, app, test_tenant, recon_visit):
+    def test_claim_rejection(self, app, rollback_db, test_tenant, recon_visit):
         """REJECTED should set insurance share to 0 and patient share to total."""
         inv = self._create_issued_invoice(app, test_tenant, recon_visit)
 
@@ -460,7 +462,7 @@ class TestInsuranceClaim:
         assert claim.insurance_share_amount == 0
         assert claim.patient_share_amount == 200.0
 
-    def test_claim_settlement(self, app, test_tenant, recon_visit):
+    def test_claim_settlement(self, app, rollback_db, test_tenant, recon_visit):
         """SETTLED should mark the claim as settled with the settled amount."""
         inv = self._create_issued_invoice(app, test_tenant, recon_visit)
 
@@ -496,7 +498,7 @@ class TestInsuranceClaim:
         assert claim.approved_amount == 180.0
         assert claim.insurance_share_amount == 180.0
 
-    def test_claim_tenant_isolation(self, app, test_tenant, recon_visit):
+    def test_claim_tenant_isolation(self, app, rollback_db, test_tenant, recon_visit):
         """Claims should be isolated by tenant - one tenant cannot access another's claim."""
         inv = self._create_issued_invoice(app, test_tenant, recon_visit)
 
@@ -518,7 +520,7 @@ class TestInsuranceClaim:
         assert result['ok'] is False
         assert 'Tenant mismatch' in result['error']
 
-    def test_claim_get_endpoint(self, app, test_tenant, recon_visit, recon_accountant):
+    def test_claim_get_endpoint(self, app, rollback_db, test_tenant, recon_visit, recon_accountant):
         """GET /payment/api/insurance/claims/<id> should return claim details."""
         inv = self._create_issued_invoice(app, test_tenant, recon_visit)
 
@@ -544,7 +546,9 @@ class TestInsuranceClaim:
             assert data['data']['status'] == 'DRAFT'
             assert data['data']['total_claim'] == 200.0
 
-    def test_claim_adjudicate_endpoint(self, app, test_tenant, recon_visit, recon_accountant):
+    def test_claim_adjudicate_endpoint(
+        self, app, rollback_db, test_tenant, recon_visit, recon_accountant
+    ):
         """POST /payment/api/insurance/claims/<id>/adjudicate should update claim status."""
         inv = self._create_issued_invoice(app, test_tenant, recon_visit)
 

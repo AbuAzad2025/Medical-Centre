@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.fixture()
-def _authed(client, db, test_tenant):
+def _authed(client, db, rollback_db, test_tenant):
     """Authenticated reception user."""
     from tests.tenant_context import ensure_test_user, login_test_client
 
@@ -14,7 +14,7 @@ def _authed(client, db, test_tenant):
 
 
 @pytest.fixture()
-def _authed_admin(client, db, test_tenant):
+def _authed_admin(client, db, rollback_db, test_tenant):
     from tests.tenant_context import ensure_test_user, login_test_client
 
     u = ensure_test_user(db, test_tenant, username='deep_admin', role='super_admin')
@@ -30,7 +30,7 @@ class TestLoginDeepCoverage:
         assert resp.status_code == 200
         assert b'csrf_token' in resp.data or b'csrf-token' in resp.data
 
-    def test_login_ajax_json_success(self, app, db, test_tenant):
+    def test_login_ajax_json_success(self, app, db, rollback_db, test_tenant):
         from tests.tenant_context import ensure_test_user
 
         u = ensure_test_user(db, test_tenant, username='ajax_login', role='doctor')
@@ -52,7 +52,7 @@ class TestLoginDeepCoverage:
         resp = client.post('/auth/login', data={'username': '', 'password': ''})
         assert resp.status_code in (200, 400)
 
-    def test_lockout_after_max_attempts(self, app, db, test_tenant):
+    def test_lockout_after_max_attempts(self, app, db, rollback_db, test_tenant):
         """Simulate max_failed logins then verify lockout message (lines 159-223)."""
         from datetime import UTC, datetime, timedelta
 
@@ -80,7 +80,7 @@ class TestLoginDeepCoverage:
         # Should get 429 (locked) or 200 with error flash
         assert resp.status_code in (200, 429)
 
-    def test_inactive_user_login_rejected(self, app, db, test_tenant):
+    def test_inactive_user_login_rejected(self, app, db, rollback_db, test_tenant):
         from sqlalchemy import text as _sa_text
 
         from tests.tenant_context import ensure_test_user
@@ -183,7 +183,7 @@ class TestPasswordResetDeep:
             token = _generate_reset_token()
             assert len(token) > 20  # urlsafe(32) produces ~43 chars
 
-    def test_forgot_password_stores_token(self, app, db, test_tenant):
+    def test_forgot_password_stores_token(self, app, db, rollback_db, test_tenant):
         """Lines 614-643: forgot-password stores reset token in preferences."""
         from tests.tenant_context import ensure_test_user
 
@@ -202,7 +202,7 @@ class TestPasswordResetDeep:
         )
         assert resp.status_code in (200, 400)  # May fail on CSRF in testing
 
-    def test_verify_reset_token_valid(self, app, db, test_tenant):
+    def test_verify_reset_token_valid(self, app, db, rollback_db, test_tenant):
         """Lines 628-643: verify stored token matches and not expired."""
         from datetime import UTC, datetime, timedelta
 
@@ -219,7 +219,7 @@ class TestPasswordResetDeep:
             assert _verify_reset_token(u.id, token) is True
             assert _verify_reset_token(u.id, 'wrong_token') is False
 
-    def test_verify_reset_token_expired(self, app, db, test_tenant):
+    def test_verify_reset_token_expired(self, app, db, rollback_db, test_tenant):
         from datetime import UTC, datetime, timedelta
 
         from tests.tenant_context import ensure_test_user
@@ -233,7 +233,7 @@ class TestPasswordResetDeep:
             _store_reset_token(u.id, 'expired_token', expired)
             assert _verify_reset_token(u.id, 'expired_token') is False
 
-    def test_clear_reset_token(self, app, db, test_tenant):
+    def test_clear_reset_token(self, app, db, rollback_db, test_tenant):
         from tests.tenant_context import ensure_test_user
 
         u = ensure_test_user(db, test_tenant, username='clear_tok', role='reception')

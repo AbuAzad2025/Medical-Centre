@@ -9,7 +9,9 @@ from utils.tenant_query import TenantContextError
 
 
 class TestBillingVisitOwnership:
-    def test_process_payment_rejects_cross_tenant_visit(self, app, test_tenant, client, login_as):
+    def test_process_payment_rejects_cross_tenant_visit(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -28,7 +30,9 @@ class TestBillingVisitOwnership:
         # We expect either 200 (form rendered) or a redirect, but NOT 404
         assert resp.status_code != 404
 
-    def test_post_gl_rejects_cross_tenant_visit(self, app, test_tenant, client, login_as):
+    def test_post_gl_rejects_cross_tenant_visit(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -51,7 +55,9 @@ class TestBillingVisitOwnership:
             or resp.json.get('error')
         )
 
-    def test_finance_archive_rejects_cross_tenant_visit(self, app, test_tenant, client, login_as):
+    def test_finance_archive_rejects_cross_tenant_visit(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -74,7 +80,7 @@ class TestBillingVisitOwnership:
         resp = client.post('/finance/visits/99999999/archive')
         assert resp.status_code == 403
 
-    def test_get_tenant_record_blocks_cross_tenant_visit(self, app, test_tenant):
+    def test_get_tenant_record_blocks_cross_tenant_visit(self, app, rollback_db, test_tenant):
         from app.core.tenant.models import Tenant
 
         tenant_id = test_tenant.id
@@ -105,7 +111,9 @@ class TestBillingVisitOwnership:
 
 
 class TestReceptionFinancialRouteOwnership:
-    def test_reception_process_payment_same_tenant(self, app, test_tenant, client, login_as):
+    def test_reception_process_payment_same_tenant(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -130,7 +138,9 @@ class TestReceptionFinancialRouteOwnership:
             assert resp.status_code == 302
             assert 'view_visit' in resp.location or 'queue_management' in resp.location
 
-    def test_reception_process_payment_cross_tenant(self, app, test_tenant, client, login_as):
+    def test_reception_process_payment_cross_tenant(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         from app.core.tenant.models import Tenant
 
         tenant_id = test_tenant.id
@@ -165,7 +175,9 @@ class TestReceptionFinancialRouteOwnership:
             assert resp.status_code == 302
             assert '/reception/queue' in resp.location
 
-    def test_reception_print_receipt_same_tenant(self, app, test_tenant, client, login_as):
+    def test_reception_print_receipt_same_tenant(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -187,7 +199,9 @@ class TestReceptionFinancialRouteOwnership:
             # Should render receipt (200) or redirect, but NOT 404
             assert resp.status_code != 404
 
-    def test_reception_print_receipt_cross_tenant(self, app, test_tenant, client, login_as):
+    def test_reception_print_receipt_cross_tenant(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         from app.core.tenant.models import Tenant
 
         tenant_id = test_tenant.id
@@ -220,7 +234,9 @@ class TestReceptionFinancialRouteOwnership:
             assert resp.status_code == 302
             assert '/reception/queue' in resp.location
 
-    def test_reception_process_payment_missing_tenant_context(self, app, test_tenant, client):
+    def test_reception_process_payment_missing_tenant_context(
+        self, app, rollback_db, test_tenant, client
+    ):
         """Logging in is not possible without tenant context; test unauthenticated access."""
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
@@ -237,7 +253,9 @@ class TestReceptionFinancialRouteOwnership:
         # Should redirect to login because user is not authenticated
         assert resp.status_code == 302
 
-    def test_reception_print_receipt_missing_tenant_context(self, app, test_tenant, client):
+    def test_reception_print_receipt_missing_tenant_context(
+        self, app, rollback_db, test_tenant, client
+    ):
         """Logging in is not possible without tenant context; test unauthenticated access."""
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')

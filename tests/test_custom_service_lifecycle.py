@@ -11,7 +11,7 @@ from models.visit import Visit
 
 
 class TestCustomServiceLifecycle:
-    def test_custom_service_created_inactive(self, app, test_tenant, client, login_as):
+    def test_custom_service_created_inactive(self, app, rollback_db, test_tenant, client, login_as):
         tenant_id = test_tenant.id
         import uuid
 
@@ -51,7 +51,9 @@ class TestCustomServiceLifecycle:
         assert svc.is_active is False
         assert svc.created_by is not None
 
-    def test_approved_custom_service_becomes_active(self, app, test_tenant, client, login_as):
+    def test_approved_custom_service_becomes_active(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         import uuid
 
@@ -82,7 +84,9 @@ class TestCustomServiceLifecycle:
         assert svc_after.approved_by is not None
         assert svc_after.approved_at is not None
 
-    def test_rejected_custom_service_stays_inactive(self, app, test_tenant, client, login_as):
+    def test_rejected_custom_service_stays_inactive(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         import uuid
 
@@ -117,7 +121,9 @@ class TestCustomServiceLifecycle:
         assert svc_after.approved_by is not None
         assert 'مرفوض' in (svc_after.description or '')
 
-    def test_cross_tenant_custom_service_approval_denied(self, app, test_tenant, client, login_as):
+    def test_cross_tenant_custom_service_approval_denied(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         from app.core.tenant.models import Tenant
 
         tenant_id = test_tenant.id
@@ -158,7 +164,7 @@ class TestCustomServiceLifecycle:
         svc_after = _db.session.get(ServiceMaster, svc.id)
         assert svc_after.approved_by is None
 
-    def test_invoice_service_has_created_by(self, app, test_tenant, client, login_as):
+    def test_invoice_service_has_created_by(self, app, rollback_db, test_tenant, client, login_as):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -215,7 +221,7 @@ class TestCustomServiceLifecycle:
         assert line_after.created_by is not None
 
     def test_custom_service_not_in_catalog_before_approval(
-        self, app, test_tenant, client, login_as
+        self, app, rollback_db, test_tenant, client, login_as
     ):
         tenant_id = test_tenant.id
         import uuid
@@ -241,7 +247,9 @@ class TestCustomServiceLifecycle:
         )
         assert svc not in active
 
-    def test_custom_service_in_catalog_after_approval(self, app, test_tenant, client, login_as):
+    def test_custom_service_in_catalog_after_approval(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         import uuid
 
@@ -293,7 +301,9 @@ class TestCustomServiceLifecycle:
 class TestTicket3CorrectiveCustomService:
     """Corrective Ticket 3: Custom service workflow compliance."""
 
-    def test_rejection_preserves_price_and_name(self, app, test_tenant, client, login_as):
+    def test_rejection_preserves_price_and_name(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         tenant_id = test_tenant.id
         import uuid
 
@@ -337,7 +347,7 @@ class TestTicket3CorrectiveCustomService:
         assert svc_after.is_custom is True
         assert 'مرفوض' in (svc_after.description or '')
 
-    def test_approval_creates_audit_trail(self, app, test_tenant, client, login_as):
+    def test_approval_creates_audit_trail(self, app, rollback_db, test_tenant, client, login_as):
         from models.audit_trail import AuditTrail
 
         tenant_id = test_tenant.id
@@ -369,7 +379,7 @@ class TestTicket3CorrectiveCustomService:
         assert 'service' in entity_types
         assert 'visit' in entity_types
 
-    def test_rejection_creates_audit_trail(self, app, test_tenant, client, login_as):
+    def test_rejection_creates_audit_trail(self, app, rollback_db, test_tenant, client, login_as):
         from models.audit_trail import AuditTrail
 
         tenant_id = test_tenant.id
