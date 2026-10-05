@@ -11,7 +11,7 @@ from models.visit import Visit
 
 
 class TestAutoAssignFailClosed:
-    def test_tenant_scoped_record_without_context_raises(self, app, rollback_db, test_tenant):
+    def test_tenant_scoped_record_without_context_raises(self, app, test_tenant):
         """Creating a tenant-scoped record without g.tenant_id must raise."""
         from tests.tenant_context import clear_tenant_context
 
@@ -38,7 +38,7 @@ class TestAutoAssignFailClosed:
                 _db.session.flush()
             _db.session.rollback()
 
-    def test_global_model_without_context_allowed(self, app, rollback_db, test_tenant):
+    def test_global_model_without_context_allowed(self, app, test_tenant):
         """Global models (e.g., Tenant) can be created without tenant context."""
         with app.test_request_context():
             from flask import g
@@ -54,7 +54,7 @@ class TestAutoAssignFailClosed:
             _db.session.flush()
             _db.session.rollback()
 
-    def test_tenant_scoped_record_with_context_succeeds(self, app, rollback_db, test_tenant):
+    def test_tenant_scoped_record_with_context_succeeds(self, app, test_tenant):
         """Creating a tenant-scoped record with g.tenant_id set succeeds."""
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
@@ -73,7 +73,7 @@ class TestAutoAssignFailClosed:
 
 
 class TestForEachTenantLifecycle:
-    def test_expire_trials_runs_inside_tenant_context(self, app, rollback_db, test_tenant):
+    def test_expire_trials_runs_inside_tenant_context(self, app, test_tenant):
         """expire_trials must run inside for_each_tenant so SubscriptionLine is filtered."""
         from app.core.saas.lifecycle import TenantProvisioningService
         from services.tenant_job_runner import for_each_tenant
@@ -92,9 +92,7 @@ class TestForEachTenantLifecycle:
         for_each_tenant(app, _task)
         assert test_tenant.id in results
 
-    def test_purge_cancelled_tenants_runs_without_tenant_context(
-        self, app, rollback_db, test_tenant
-    ):
+    def test_purge_cancelled_tenants_runs_without_tenant_context(self, app, test_tenant):
         """purge_cancelled_tenants queries Tenant (global model) and works without context."""
         from app.core.saas.lifecycle import TenantProvisioningService
 
@@ -108,21 +106,21 @@ class TestForEachTenantLifecycle:
 
 
 class TestGlobalModelAllowlist:
-    def test_tenant_model_is_global(self, app, rollback_db, test_tenant):
+    def test_tenant_model_is_global(self, app, test_tenant):
         """Tenant itself is not tenant-scoped and can be created without context."""
         from app.core.tenant.models import Tenant
         from app.shared.tenant_filter import _skip_table
 
         assert _skip_table(Tenant) is True
 
-    def test_visit_model_is_tenant_scoped(self, app, rollback_db, test_tenant):
+    def test_visit_model_is_tenant_scoped(self, app, test_tenant):
         """Visit is tenant-scoped and requires context."""
         from app.shared.tenant_filter import _skip_table
         from models.visit import Visit
 
         assert _skip_table(Visit) is False
 
-    def test_user_model_is_tenant_scoped(self, app, rollback_db, test_tenant):
+    def test_user_model_is_tenant_scoped(self, app, test_tenant):
         """User is tenant-scoped and requires context."""
         from app.shared.tenant_filter import _skip_table
 
@@ -132,7 +130,7 @@ class TestGlobalModelAllowlist:
 class TestPurgeCancelledTenantsContract:
     """Verify purge_cancelled_tenants contract and global-model allowlist."""
 
-    def test_purge_uses_only_global_models(self, app, rollback_db, test_tenant):
+    def test_purge_uses_only_global_models(self, app, test_tenant):
         """purge_cancelled_tenants must only touch global models or explicit tenant_id."""
         from app.core.saas.lifecycle import TenantProvisioningService
         from app.core.tenant.models import PlatformAuditLog, Tenant, TenantSubscriptionHistory
@@ -153,9 +151,7 @@ class TestPurgeCancelledTenantsContract:
             count = TenantProvisioningService.purge_cancelled_tenants()
             assert count >= 0
 
-    def test_purge_does_not_create_tenant_scoped_without_explicit_tenant_id(
-        self, app, rollback_db, test_tenant
-    ):
+    def test_purge_does_not_create_tenant_scoped_without_explicit_tenant_id(self, app, test_tenant):
         """purge_cancelled_tenants must not create tenant-scoped records without explicit tenant_id."""
         from app.core.saas.lifecycle import TenantProvisioningService
 
@@ -169,7 +165,7 @@ class TestPurgeCancelledTenantsContract:
             # (if any were, auto_assign_tenant would have raised)
             assert count >= 0
 
-    def test_allowlist_contains_expected_global_models(self, app, rollback_db, test_tenant):
+    def test_allowlist_contains_expected_global_models(self, app, test_tenant):
         """Global-model allowlist must contain all expected platform-global tables."""
         from app.core.tenant.models import PlatformAuditLog, Tenant
         from app.shared.tenant_filter import _skip_table

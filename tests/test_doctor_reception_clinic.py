@@ -5,27 +5,13 @@ Flow: reception creates visit -> transfers to doctor -> doctor prescribes ->
 reception prints invoice. No module removed from other bundles.
 """
 
-import pytest
-from sqlalchemy import func, select
+from sqlalchemy import select
 
-from app.core.tenant.models import ProductBundle, seed_default_bundles
+from app.core.tenant.models import ProductBundle
 from app.extensions import db
 from models.invoice import Invoice
 from models.patient import Patient
 from models.visit import Visit
-
-
-@pytest.fixture(autouse=True)
-def _seed_bundles():
-    """Seed the product catalogue when it is missing.
-
-    These tests read ProductBundle rows and used to find them because another
-    file seeded them and leaked the rows in -- every commit in that file was a
-    real commit. Now that its writes are rolled back, the dependency would be a
-    silent cross-file coupling on leaked data, so the seed is done here instead.
-    """
-    if db.session.execute(select(func.count()).select_from(ProductBundle)).scalar() == 0:
-        seed_default_bundles()
 
 
 def test_reception_clinic_bundle_includes_billing(app):
@@ -52,7 +38,7 @@ def test_private_doctor_bundle_untouched(app):
 
 
 class TestReceptionDoctorFlow:
-    def test_reception_creates_and_transfers_to_doctor(self, app, rollback_db, test_tenant):
+    def test_reception_creates_and_transfers_to_doctor(self, app, test_tenant):
         import uuid
 
         from models.department import Department
@@ -109,9 +95,7 @@ class TestReceptionDoctorFlow:
             db.session.commit()
             assert visit.doctor_id == doc.id
 
-    def test_reception_prints_invoice_after_doctor_visit(
-        self, app, rollback_db, client, test_tenant, login_as
-    ):
+    def test_reception_prints_invoice_after_doctor_visit(self, app, client, test_tenant, login_as):
         from tests.tenant_context import ensure_test_user
 
         doctor = ensure_test_user(

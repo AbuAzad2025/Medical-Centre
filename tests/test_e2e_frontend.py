@@ -123,7 +123,7 @@ def e2e_seed(app, test_tenant, db):
 
 
 class TestFrontendE2E:
-    def test_all_get_pages_render_without_500(self, app, test_tenant, db, rollback_db, e2e_seed):
+    def test_all_get_pages_render_without_500(self, app, test_tenant, db, e2e_seed):
         rules = _discover_pages(app)
         assert len(rules) >= 100, f'discovery too small ({len(rules)}) — routing changed?'
 
@@ -163,7 +163,7 @@ class TestFrontendE2E:
             + '\n'.join(f'  [{r}] {p} -> {why}' for r, p, why in failures)
         )
 
-    def test_migrated_dashboards_emit_unified_header(self, app, test_tenant, db, rollback_db):
+    def test_migrated_dashboards_emit_unified_header(self, app, test_tenant, db):
         """Spot-check that key migrated staff pages render the unified header."""
         checks = [
             ('lab', '/lab/worklist', 'clinical-page-header'),

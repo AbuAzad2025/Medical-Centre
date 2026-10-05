@@ -655,19 +655,6 @@ def test_tenant(app):
             'dicom',
         ],
     )
-
-    # Detached on purpose, with every column already loaded.
-    # ``rollback_db`` calls ``db.session.remove()`` during its own setup, so any
-    # test taking both this fixture and ``rollback_db`` used to find this instance
-    # detached and raise DetachedInstanceError the moment it read
-    # ``test_tenant.id``. That is the whole reason isolation could not simply be
-    # switched on for the writing tests: the obstacle was never the transaction,
-    # it was this object. Load first (a commit above expired the attributes),
-    # then expunge, which keeps the values readable and makes the instance immune
-    # to a later session.remove().
-    for _column in t.__mapper__.columns:
-        getattr(t, _column.key, None)
-    _db.session.expunge(t)
     return t
 
 

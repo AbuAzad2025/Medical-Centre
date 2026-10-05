@@ -14,7 +14,7 @@ class TestLoginFlow:
         assert resp.status_code == 200
         assert b'username' in resp.data
 
-    def test_login_success_redirects(self, app, db, rollback_db, test_tenant):
+    def test_login_success_redirects(self, app, db, test_tenant):
         from tests.tenant_context import ensure_test_user
 
         u = ensure_test_user(db, test_tenant, username='login_cov', role='reception')
@@ -29,7 +29,7 @@ class TestLoginFlow:
         resp = _auth.post('/auth/login', data={'username': 'nonexistent_cov', 'password': 'wrong'})
         assert resp.status_code in (200, 401)
 
-    def test_logout(self, app, db, rollback_db, test_tenant):
+    def test_logout(self, app, db, test_tenant):
         from tests.tenant_context import ensure_test_user, login_test_client
 
         u = ensure_test_user(db, test_tenant, username='logout_cov', role='reception')
@@ -40,7 +40,7 @@ class TestLoginFlow:
 
 
 class TestProfileFlow:
-    def test_profile_get(self, app, db, rollback_db, test_tenant):
+    def test_profile_get(self, app, db, test_tenant):
         from tests.tenant_context import ensure_test_user, login_test_client
 
         u = ensure_test_user(db, test_tenant, username='prof_cov', role='reception')
@@ -49,7 +49,7 @@ class TestProfileFlow:
         resp = c.get('/auth/profile')
         assert resp.status_code == 200
 
-    def test_change_password_valid(self, app, db, rollback_db, test_tenant):
+    def test_change_password_valid(self, app, db, test_tenant):
         from tests.tenant_context import ensure_test_user, login_test_client
 
         u = ensure_test_user(db, test_tenant, username='chpw_cov', role='reception')
