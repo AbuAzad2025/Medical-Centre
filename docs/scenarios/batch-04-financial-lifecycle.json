@@ -1,0 +1,185 @@
+[
+  {
+    "scenario_id": "SC-031",
+    "title": "استرداد كامل — مسار المحاسب مكسور (E1)",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 42, "gender": "F", "payment_tier": "Cash", "national_id": "9000000031", "phone": "0501234597" },
+    "encounter_type": "N/A — دورة مالية",
+    "package_details": { "applicable": false, "reason": "لا باقة. الاسترداد عملية محاسبية معاكسة." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "تحصيل نقدي 300.00 على زيارة", "api": "POST /payment/process/<visit_id>", "financial_impact": { "paid": 300.00, "gl": "DR 1000 / CR 4000" } },
+      { "step": 2, "department": "Reception", "action": "طلب استرداد. RefundService.request_refund يتحقق من عدم تجاوز الاسترداد لكل دفعة (43-62) ومن التراكمي المُنفَّذ (190-203)", "api": "POST /payment/payments/<id>/refund", "financial_impact": { "refund_requested": 300.00, "status": "PENDING" } },
+      { "step": 3, "department": "Accountant", "action": "⛔ **المسار مكسور**: approve_refund(refund_id, approved_by=..., tenant_id=...) لكن التوقيع الفعلي approve_refund(refund_id, approved_by) بلا tenant_id ← TypeError ← HTTP 500", "api": "POST /accountant/refunds/<id>/approve", "financial_impact": { "result": "500_TypeError", "defect": "E1" } },
+      { "step": 4, "department": "Accountant", "action": "⛔ نفس العطل في reject و execute", "api": "POST /accountant/refunds/<id>/reject", "financial_impact": { "result": "500_TypeError", "defect": "E1" } },
+      { "step": 5, "department": "Accountant", "action": "**المسار العامل**: /payment/refund-requests/<id>/approve يحذف الوسيط الخاطئ فيستدعي الخدمة بلا tenant_id وينجح", "api": "POST /payment/refund-requests/<id>/approve", "financial_impact": { "status": "APPROVED" } },
+      { "step": 6, "department": "Accountant", "action": "التنفيذ: عكس تخصيص FIFO على الفواتير، Payment.status=REFUNDED، إبطال الإيصال المرتبط، وترحيل قيد عكسي مدين 4000 / دائن 1000", "api": "POST /payment/refund-requests/<id>/execute", "financial_impact": { "gl": "DR 4000 / CR 1000 300.00" } }
+    ],
+    "financial_summary": { "gross_total": 300.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 0.00, "outstanding": 0.00, "ledger": "قيدان متعاكسان متساويان — الدفتر يعود للصفر" },
+    "generated_outputs": ["RefundRequest PENDING←APPROVED←EXECUTED", "قيد عكسي", "إيصال مُبطَل", "**مسار المحاسب معطّل دائماً (E1)**"]
+  },
+  {
+    "scenario_id": "SC-032",
+    "title": "استرداد جزئي — عكس التخصيص",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 37, "gender": "M", "payment_tier": "Card", "national_id": "9000000032", "phone": "0501234598" },
+    "encounter_type": "N/A — دورة مالية",
+    "package_details": { "applicable": false, "reason": "لا باقة." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "دفعتان ببطاقة: 200.00 ثم 150.00. validate_card_payment يشترط last4 وحاملاً ≥3 محارف", "api": "POST /payment/process/<visit_id>", "financial_impact": { "paid": 350.00, "gl_account": "1002 Bank-Card Settlements" } },
+      { "step": 2, "department": "Reception", "action": "استرداد 120.00 من الدفعة الثانية فقط", "api": "POST /payment/payments/<id>/refund", "financial_impact": { "refund": 120.00 } },
+      { "step": 3, "department": "Accountant", "action": "عكس التوزيع **بترتيب معكوس (جديد أولاً)**: services/refund_service.py:205-238 يعكس FIFO على الفواتير", "api": "POST /payment/refund-requests/<id>/execute", "financial_impact": { "invoice_paid": 230.00 } },
+      { "step": 4, "department": "Accountant", "action": "حماية مبالغة: مجموع المُنفَّذ لا يتجاوز مجموع المدفوع لكل دفعة", "api": "GET /payment/payments/<id>", "financial_impact": { "over_refund_blocked": true } },
+      { "step": 5, "department": "Accountant", "action": "فجوة: إلغاء الدفع ممكن فقط خلال نافذة 24 ساعة عبر Payment.can_be_cancelled. بعد ذلك مسار الاسترداد فقط", "api": "models/payment.py:238-256", "financial_impact": { "cancel_window_hours": 24 } }
+    ],
+    "financial_summary": { "gross_total": 350.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 230.00, "outstanding": 120.00, "ledger": "صافي مدين 1002 بقيمة 230.00" },
+    "generated_outputs": ["RefundRequest", "عكس تخصيص الفاتورة", "قيد عكسي", "Payment.status=REFUNDED جزئياً"]
+  },
+  {
+    "scenario_id": "SC-033",
+    "title": "دفع بالعملة الأجنبية — تقييد خاطئ + تدمير أسعار الصرف (E3, E4)",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 45, "gender": "F", "payment_tier": "Insurance", "national_id": "9000000033", "phone": "0501234599" },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "الأسعار والدفاتر كلها ILS. CurrencySettings.SUPPORTED_CURRENCIES تسرد SAR/AED/QAR/KWD/BHD/OMR وهي **غير موجودة** في app.shared.enums.Currency (ILS/EGP/USD/EUR/JOD)", "api": "GET /reception/api/check-rate", "financial_impact": 0 },
+      { "step": 2, "department": "Reception", "action": "المسار: check-rate يستدعي CurrencyConverter.get_rate/convert، ثم visit.paid_amount **يزداد بالقيمة المحوّلة**", "api": "POST /payment/process/<visit_id>", "financial_impact": { "submitted": "50.00 USD", "converted_paid": "185.00 ILS" } },
+      { "step": 3, "department": "Accountant", "action": "⛔ **فجوة E3**: Payment.amount يُخزَّن بالقيمة المُدخلة (50.00) مع currency='USD'، لكن GLService.post_payment **يقيّد دائن 4000 بالمبلغ بلا تحويل** ⇒ USD يُقيَّد كـILS. وPaymentAllocationService.allocate يطرح 50.00 من Invoice.total_amount بالـILS ⇒ paid_amount تالف", "api": "GET /accountant/trial-balance", "financial_impact": { "gl_credit_wrong_by": 135.00, "invoice_corrupted": true } },
+      { "step": 4, "department": "Manager", "action": "⛔ **فجوة E4 أشد خطورة**: CurrencyConverter.ensure_manual_rate ينفّذ UPDATE على **كل** صفوف ExchangeRate النشطة لتصفيرها، بلا فلتر زوج عملات وبلا فلتر مستأجر. حفظ سعر USD واحد يقتل كل الأسعار في قاعدة البيانات لكل المستأجرين", "api": "POST /manager/exchange-rates", "financial_impact": { "all_active_rates_disabled": true } },
+      { "step": 5, "department": "Reception", "action": "أسوأ: POST /reception/api/save-manual-rate خلف login_required فقط — **بلا أي تحقق من الدور**. أي مستخدم مصادَق يستطيع تدمير أسعار الصرف", "api": "POST /reception/api/save-manual-rate", "financial_impact": { "authz": "missing" } },
+      { "step": 6, "department": "Accountant", "action": "بعد الإجهاز لا يعود السعر التحويل، فالمسار يفشل عند Conversion لا يجد سعراً نشطاً", "api": "GET /manager/exchange-rates", "financial_impact": 0 }
+    ],
+    "financial_summary": { "gross_total": 185.00, "package_deduction": 0.00, "insurance_coverage": 148.00, "patient_out_of_pocket": 37.00, "paid": 37.00, "outstanding": 0.00, "ledger": "**قيد خاطئ**: دائن 4000 بقيمة 50.00 بدل 185.00 — ميزان المراجعة منحرف 135.00 (E3)" },
+    "generated_outputs": ["Payment currency='USD'", "GLJournal خاطئ", "Invoice.paid_amount تالف", "ExchangeRate صفوف معطّلة عالمياً (E4)"]
+  },
+  {
+    "scenario_id": "SC-034",
+    "title": "المشتريات — استلام دفعة ورحيل 1300/2005",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 0, "gender": "M", "payment_tier": "N/A", "national_id": "N/A — عملية مورّد" },
+    "encounter_type": "N/A — دورة مالية",
+    "package_details": { "applicable": false, "reason": "لا باقة. المشتريات عملية مورّد لا تمسّ المريض." },
+    "journey_steps": [
+      { "step": 1, "department": "Procurement", "action": "أمر شراء: ProcurementService.create_purchase_order بمبلغ = purchase_price × quantity", "api": "POST /procurement/new", "financial_impact": { "po_amount": 4200.00 } },
+      { "step": 2, "department": "Procurement", "action": "الاستلام: InventoryLedgerService يخصم، و remaining_quantity=0 ضبط idempotent، و GLService.post_procurement يرحّل مدين 1300 المخزون / دائن 2005 مستحقات الموردين", "api": "POST /procurement/receive/<id>", "financial_impact": { "gl": "DR 1300 / CR 2005 4200.00" } },
+      { "step": 3, "department": "Procurement", "action": "بوابة idempotency: البوسترمحمي بـ(tenant_id, source_type, source_id)، فإعادة الاستلام لا تنشئ قيداً ثانياً", "api": "services/gl_service.py:492-540", "financial_impact": { "duplicate_journal": false } },
+      { "step": 4, "department": "Pharmacy", "action": "الصرف ثم البيع: الخصم من المخزون يخفض 1300 فعلياً عبر متوسط التكلفة، والبيع يرفع 4000/4100", "api": "POST /medication/pos/sell", "financial_impact": { "cogs_account": 5000 } },
+      { "step": 5, "department": "Accountant", "action": "فجوة: أمر الشراء نفسه بلا مراجعة ولا موافقة. لا Workflow ولا status ولا accrual", "api": "GET /procurement/supplier/<id>/summary", "financial_impact": { "approval_workflow": "absent" } },
+      { "step": 6, "department": "Accountant", "action": "مصروف: GLService.post_expense يرحّل مدين 6000 / دائن 1000 بـExpense.status='RECORDED'", "api": "POST /accountant/periods/close", "financial_impact": { "gl": "DR 6000 / CR 1000" } }
+    ],
+    "financial_summary": { "gross_total": 4200.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 0.00, "outstanding": 0.00, "ledger": "DR 1300 4200.00 / CR 2005 4200.00" },
+    "generated_outputs": ["MedicationPurchase", "InventoryLedger", "GLJournal", "ملخص مورّد"]
+  },
+  {
+    "scenario_id": "SC-035",
+    "title": "إقفال الفترة + ميزان المراجعة",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 0, "gender": "M", "payment_tier": "N/A", "national_id": "N/A — عملية محاسبية" },
+    "encounter_type": "N/A — دورة مالية",
+    "package_details": { "applicable": false, "reason": "لا باقة." },
+    "journey_steps": [
+      { "step": 1, "department": "Accountant", "action": "ضمان دليل الحسابات: ensure_coa عملية idempotent، حساسة لـSaaS GUC، وتبذر 13 حساباً عند غيابها", "api": "services/gl_service.py:228-251", "financial_impact": { "accounts": 13 } },
+      { "step": 2, "department": "Accountant", "action": "ضمان الفترات: ensure_financial_periods ينشئ السنة الميلادية الحالية", "api": "services/gl_service.py:266-293", "financial_impact": 0 },
+      { "step": 3, "department": "Accountant", "action": "ميزان المراجعة يحسب total_debit و total_credit ويقارن |dr−cr| < 0.01", "api": "GET /accountant/trial-balance", "financial_impact": { "balanced": true } },
+      { "step": 4, "department": "Accountant", "action": "كشف دفتر حساب برصيد تراكمي", "api": "GET /accountant/accounts/<int:account_id>", "financial_impact": 0 },
+      { "step": 5, "department": "Accountant", "action": "إقفال الفترة. **السلوك الصحيح**: _check_period_closed يرفض أي قيد جديد على فترة مغلقة بـValueError ⇒ لا possibile ترحيل في فترة مغلقة", "api": "POST /accountant/periods/close", "financial_impact": { "period_closed": true } },
+      { "step": 6, "department": "Accountant", "action": "⛔ **فجوة**: لا يوجد مسار لـإعادة فتح فترة، ولا VOID لـGLJournal من الواجهة رغم وجود status='VOID' في التعداد. **التصحيح المعطّل نهائياً**", "api": "— (لا يوجد مسار)", "financial_impact": { "reopen": "impossible", "void_journal": "no_route" } },
+      { "step": 7, "department": "Accountant", "action": "فجوة: post_gl لا يرحّل شيئاً — يضبط visit.gl_posted_at ويكتب AuditTrail فقط. الإيراد يُعترف به مرة واحدة عند الدفع لا عند القيد", "api": "POST /finance/post", "financial_impact": { "journal_posted": false, "defect": "E22" } }
+    ],
+    "financial_summary": { "gross_total": 0.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 0.00, "outstanding": 0.00, "ledger": "متوازن — ميزان المراجعة يمرّ. حماية الفترة المغلقة **منفَّذة وفعّالة**" },
+    "generated_outputs": ["13 Account", "FinancialPeriod(is_closed)", "ميزان المراجعة", "**لا reopening ولا VOID من الواجهة**"]
+  },
+  {
+    "scenario_id": "SC-036",
+    "title": "إغلاق الصندوق اليومي — فارق غير موثوق",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 0, "gender": "M", "payment_tier": "N/A", "national_id": "N/A — عملية صندوق" },
+    "encounter_type": "N/A — دورة مالية",
+    "package_details": { "applicable": false, "reason": "لا باقة." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "فتح صندوق. **فجوة**: CashRegister.get_or_create_today يرشّح بـfilter_by(register_date=today, is_closed=False) — **بلا tenant_id وبلا receptionist_id** ⇒ أي موظف استقبال يتقاسم صندوقاً واحداً", "api": "GET /reception/cash-register", "financial_impact": { "shared_till": true } },
+      { "step": 2, "department": "Reception", "action": "احتساب المتوقع: يعيد حساب expected_cash/card/insurance من **كل** مدفوعات اليوم في المستأجر لا من صندوق هذا الموظف ⇒ **التباين لكل مستخدم بلا معنى**", "api": "GET /reception/daily-close", "financial_impact": { "per_user_variance": "meaningless", "defect": "E17" } },
+      { "step": 3, "department": "Reception", "action": "الإغلاق: variance = actual_total − expected_total، ثم is_closed=True", "api": "POST /reception/daily-close", "financial_impact": { "variance": -12.00 } },
+      { "step": 4, "department": "Reception", "action": "فجوة: التحقق من الفارق السالب غير موجود. **يمكن الإغلاق بفارق نقدي سالب دون أي تبرير أو موافقة**", "api": "POST /reception/daily-close", "financial_impact": { "negative_variance_accepted": true } },
+      { "step": 5, "department": "Doctor", "action": "مرتبطة: تسوية أتعاب الطبيب تستخدم نفس الصيغة (30% افتراضي، min(fee,total)) مكرّرة **أربع مرات** في أربعة ملفات", "api": "GET /manager/settlements", "financial_impact": { "formula_duplicated": 4 } }
+    ],
+    "financial_summary": { "gross_total": 0.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 0.00, "outstanding": 0.00, "ledger": "الصندوق لا يرحّل قيد تسوية فارق — الفارق يبقى فراغاً في الدفاتر" },
+    "generated_outputs": ["CashRegister(is_closed)", "variance محسوب بلا تبرير", "**لا قيد تسوية فارق**"]
+  },
+  {
+    "scenario_id": "SC-037",
+    "title": "تسليم المناوبة — تجميد النقد والأعمال المعلّقة",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 0, "gender": "M", "payment_tier": "N/A", "national_id": "N/A — عملية مناوبة" },
+    "encounter_type": "N/A — دورة مالية",
+    "package_details": { "applicable": false, "reason": "لا باقة." },
+    "journey_steps": [
+      { "step": 1, "department": "Nurse", "action": "فتح مناوبة. ShiftHandoverService.open_shift(user_id, role, to_user_id, notes) — **فجوة: لا @role_required على أي مسار تسليم، login_required فقط**", "api": "POST /handover/open", "financial_impact": 0 },
+      { "step": 2, "department": "Nurse", "action": "لقطة النقد: _build_cash_summary يجمع صناديق اليوم مع expected/actual/difference", "api": "POST /handover/open", "financial_impact": { "cash_snapshot": true } },
+      { "step": 3, "department": "Nurse", "action": "لقطة الأعمال المعلّقة: _build_pending_items يعدّ تذاكر الطابور المنتظرة + LabRequest في PENDING/IN_PROGRESS + RadiologyRequest في PENDING/IN_PROGRESS + وصفات غير مصروفة", "api": "POST /handover/open", "financial_impact": 0 },
+      { "step": 4, "department": "Nurse", "action": "⛔ **فجوة معزولة**: استعلامات _build_pending_items **بلا فلتر مستأجر** ⇒ عدد الزيارات والطلبات من مستأجر آخر يظهر في لقطة مناوبة هذا المستأجر", "api": "POST /handover/open", "financial_impact": { "cross_tenant_count_leak": true } },
+      { "step": 5, "department": "Nurse", "action": "قواعد صارمة مفروضة: role_required، already_open، not_open، not_closed، invalid_target، role_mismatch، cash_diff_requires_note، not_assignee — كلها رموزStable تُترجم لعربية", "api": "POST /handover/<shift_id>/acknowledge", "financial_impact": 0 },
+      { "step": 6, "department": "Nurse", "action": "cash_diff_requires_note: أي فرق نقدي يتطلب ملاحظة — **قاعدة جيدة لكنها لا تمنع فرقاً سالباً في الإغلاق (SC-036)**", "api": "POST /handover/<shift_id>/close", "financial_impact": 0 }
+    ],
+    "financial_summary": { "gross_total": 0.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 0.00, "outstanding": 0.00, "ledger": "بلا أثر — لقطة فقط، تجميد الأرقام عند الإغلاق" },
+    "generated_outputs": ["ShiftHandover بلقطة نقدية", "لقطة أعمال معلّقة", "**تسريب عدّاد بين المستأجرين**"]
+  },
+  {
+    "scenario_id": "SC-038",
+    "title": "تسوية Visit مقابل Invoice — الخدمة موجودة والميتقة",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 49, "gender": "F", "payment_tier": "Cash", "national_id": "9000000038", "phone": "0501234600" },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "قابل المصادقة: GatekeeperService.can_archive_visit يشترط مطابقة Σ invoice_services.total_price == visit.total_amount **عند وجود أسطر**. أرشفة بلا أسطر فInvoice تتجاوز الفحص بصمت", "api": "POST /reception/visits/<id>/archive", "financial_impact": { "reconciliation": "only_when_lines_exist" } },
+      { "step": 2, "department": "Accountant", "action": "⛔ **الكود الميت**: FinancialService.reconcile_visit_payments(76-134) هي الجسر الوحيد بين الكتابين — ومستدعوها **الاختبارات فقط**، صفر مسارات", "api": "— (لا يوجد مسار)", "financial_impact": { "bridge": "dead_code" } },
+      { "step": 3, "department": "Accountant", "action": "النتيجة العملية: معظم الزيارات **بلا فواتير** لأن send-to-accounting نقرة يدوية اختيارية. visit.paid_amount يتحرك بينما Invoice.paid_amount لا يتحرك ⇒ لوحات المحاسب تُقلّل التحصيل بصورة منهجية", "api": "GET /accountant/open-invoices", "financial_impact": { "collection_rate_understated": true, "defect": "E6" } },
+      { "step": 4, "department": "Accountant", "action": "PaymentAllocationService.allocate هو الجسر الفعلي وهو **لا يفعل شيئاً بلا فواتير** (يتنقّل على قائمة فارغة)", "api": "services/billing_state_service.py:113-148", "financial_impact": { "allocation": "no_invoices_no_op" } },
+      { "step": 5, "department": "Accountant", "action": "BillingStateService.get_billing_state و can_checkout **ميتّة**؛ReceiptService.issue_receipt/mark_printed/void_receipt ميتّة أيضاً — لا مسار يستدعيها", "api": "— (لا يوجد مسار)", "financial_impact": { "dead_services": 2 } },
+      { "step": 6, "department": "Accountant", "action": "ReceiptService.can_checkout يقرأ getattr(visit,'debt_approved',False) — **وعمود debt_approved غير موجود على Visit** ⇒ دائماً False", "api": "services/billing_state_service.py", "financial_impact": { "always_false": true } },
+      { "step": 7, "department": "Accountant", "action": "الإيصالات الفعلية: نصوص visit.receipt_number + جدول receipts الذي **يكتبه ReceiptService الميتة فقط**. qr_code و is_debt و mark_as_printed كلها غير مستخدمة", "api": "GET /reception/print_receipt/<id>", "financial_impact": { "receipt_table": "effectively_unused" } }
+    ],
+    "financial_summary": { "gross_total": 180.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 180.00, "paid": 180.00, "outstanding": 0.00, "ledger": "الدفتر صحيح — لكن **تقارير التحصيل غير موثوقة** faute الجسر الميت" },
+    "generated_outputs": ["Invoice", "Receipt نصي", "GLJournal", "**جسر التسوية كود ميت (E6)**"]
+  },
+  {
+    "scenario_id": "SC-039",
+    "title": "تجاوز حصة الدفع القسري 5% — رفض المصادقة",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 58, "gender": "M", "payment_tier": "Charity", "national_id": "9000000039", "phone": "0501234601" },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة. الدفع القسري إعفاء Watchdog لا منتج." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "بعد 24 زيارة في 30 يوماً منها 2 force payment: النسبة = 2/24×100 = 8.33% ≥ 5 ⇒ **كل** دفعة قسرية جديدة مرفوضة", "api": "POST /payment/process/<visit_id>", "financial_impact": { "rejected": true } },
+      { "step": 2, "department": "Manager", "action": "validate_force_payment: فحص الأدوار بقائمة صارمة ['manager','super_admin'] بلا تسلسل هرمي ⇒ **محاسب عادي لا يستطيع الاعتماد** حتى لو كان دوره accountant", "api": "POST /manager/approve-force-payment/<visit_id>", "financial_impact": { "role_gate": "manager_only" } },
+      { "step": 3, "department": "Manager", "action": "فصل المهام: إذا visit.created_by == user_id ⇒ رفض. **لا يمكن للطبيب المعالج أن يوافق على دفعه القسري**", "api": "POST /manager/approve-force-payment/<visit_id>", "financial_impact": { "separation_of_duties": true } },
+      { "step": 4, "department": "Manager", "action": "سبب إلزامي: len(reason.strip()) ≥ 10 وإلا رفض", "api": "POST /manager/approve-force-payment/<visit_id>", "financial_impact": 0 },
+      { "step": 5, "department": "Manager", "action": "⛔ **تناقض مقصود**: get_force_payment_statistics(651-698) تحسب نفس النسبة لكن تُرجع is_within_limit = percentage <= 5 — **والتحقق يرفض عند >= 5**. عند 5.0 بالضبط: التحقق يرفض واللوحة تقول 'ضمن الحدود'. حدّان متعارضان", "api": "GET /manager/reports", "financial_impact": { "boundary_disagreement": "exactly_5_percent", "defect": "boundary" } },
+      { "step": 6, "department": "Manager", "action": "إحصاءات وتغطية: approved/pending = force − approved", "api": "GET /manager/force-payment-approvals", "financial_impact": 0 },
+      { "step": 7, "department": "Accountant", "action": "فجوة: MAX_FORCE_PAYMENT_PERCENTAGE = 5 ثابت في صنف GatekeeperService بلا مسار تجاوز عبر SystemConfig — **لا يستطيع مدير مخبوز رفع أو خفض الحصة**", "api": "— (لا يوجد مسار)", "financial_impact": { "configurable": false } }
+    ],
+    "financial_summary": { "gross_total": 50.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 0.00, "outstanding": 50.00, "ledger": "لا إيراد معترف به للشطبات — **الشطب خارج الدفتر دائماً (E22)**" },
+    "generated_outputs": ["رفض 8.33% > 5%", "AuditTrail محاولة", "**تناقض حدّ 5% بين التحقق واللوحة**"]
+  },
+  {
+    "scenario_id": "SC-040",
+    "title": "مطالبة تأمين — حكم جزئي ثم EOB ثم تسوية",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 63, "gender": "M", "payment_tier": "Insurance", "national_id": "9000000040", "phone": "0501234602" },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة تأمين. المطالبة تعداد بنود بلا سقف ولا استثناءات ولا جدول رسوم مسموح." },
+    "journey_steps": [
+      { "step": 1, "department": "Accountant", "action": "إنشاء المطالبة. **الفجوة**: InsuranceClaimLine **لا يُكتب أبداً** ⇒ لا بنود في المطالبة، فلا يمكن تسوية الدفعة إلى الخدمات", "api": "POST /api/claims", "financial_impact": { "claim_lines": 0 } },
+      { "step": 2, "department": "Accountant", "action": "⛔ **مدخل العميل**: routes/insurance_routes.py يأخذ total_claim من **جسم الطلب** بلا اشتقاق من الفاتورة. أي رقم يدخل المطالبة", "api": "POST /api/claims", "financial_impact": { "total_from_client": true, "defect": "E14" } },
+      { "step": 3, "department": "Accountant", "action": "رفع: submit() ينقل DRAFT ← SUBMITTED", "api": "POST /api/claims/<id>/submit", "financial_impact": 0 },
+      { "step": 4, "department": "Accountant", "action": "الحكم **يدوي بالكامل**: adjudicate() يضبط approved_amount الذي يكتبه المحاسب. **لا يوجد محرك جدول رسوم مسموح ولا نسبة تلقائية** —gvرفض ما يرفضه المؤسِّس لا يمكن تمثيله", "api": "POST /api/claims/<id>/adjudicate", "financial_impact": { "approved": 960.00, "engine": "manual" } },
+      { "step": 5, "department": "Accountant", "action": "التسوية: settle() ينقل إلى SETTLED", "api": "POST /api/claims/<id>/settle", "financial_impact": 0 },
+      { "step": 6, "department": "Accountant", "action": "EOB: نموذج eobs يحمل total_billed و total_allowed و patient_responsibility و denial_reason و raw_payload. **لكن EOB لا يكتبه أي مسار** — النموذج موجود بلا كاتب مثل SurgerySchedule", "api": "POST /api/claims/<id>/settle", "financial_impact": { "eob_rows": 0 } },
+      { "step": 7, "department": "Accountant", "action": "⛔ **فجوة E13**: record_payout يكتب insurance_payouts فقط — بلا Payment وبلا GLService ⇒ حساب 1105 Insurance Receivables لا يُخفَّض أبداً، والإيراد الموعود لا يظهر في ميزان المراجعة", "api": "POST /api/claims/<id>/payout", "financial_impact": { "ledger_impact": 0.00, "defect": "E13" } },
+      { "step": 8, "department": "Accountant", "action": "⛔ حالة النموذج: InsuranceCompany لا تحمل نسبة تغطية ولا فرنشيز ولا exclusions ولا جدول خطط. **النسبة تُكتب يدوياً عند الاستقبال** ولا تُشتق من أي كيان تعاقدي", "api": "models/insurance.py:14-46", "financial_impact": { "coverage_authoritative_source": "none" } }
+    ],
+    "financial_summary": { "gross_total": 1200.00, "package_deduction": 0.00, "insurance_coverage": 960.00, "patient_out_of_pocket": 240.00, "paid": 240.00, "outstanding": 0.00, "ledger": "1105 يظل رصيده 960.00 **للأبد**؛ لا قيد EOB ولا قيد دفعة (E13)" },
+    "generated_outputs": ["InsuranceClaim DRAFT←SUBMITTED←PARTIALLY_APPROVED←SETTLED", "InsurancePayout", "**لا InsuranceClaimLine ولا صفوف EOB**", "لا GLJournal"]
+  }
+]

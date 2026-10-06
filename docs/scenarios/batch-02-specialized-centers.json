@@ -1,0 +1,182 @@
+[
+  {
+    "scenario_id": "SC-011",
+    "title": "عيادة أسنان — خريطة الأسنان بلا فوترة",
+    "facility_scope": "Specialized Center",
+    "patient_profile": { "age": 41, "gender": "M", "payment_tier": "Cash", "national_id": "9000000011", "phone": "0501234577" },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا توجد باقة أسنان. عيادة الأسنان واجهة سريرية فقط بلا أي مسار فوترة مرتبط بها." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "تسجيل المريض + زيارة قسم طب الأسنان", "api": "POST /reception/visits/create", "financial_impact": { "visit_total": 50.00, "payment_status": "PENDING" } },
+      { "step": 2, "department": "Reception", "action": "تسوية الاستشارة؛ فقط هذا المبلغ قابل للفوترة", "api": "POST /payment/process/<visit_id>", "financial_impact": { "paid": 50.00 } },
+      { "step": 3, "department": "Doctor", "action": "خريطة الأسنان تُقرأ/تُحفظ لكل سن (M1..M8). **فجوة**: ToothChart هي واجهة سريرية بحتة — لا InvoiceService ولا سطر فوترة، ولا يوجد أي مسار يحوّل سناً إلى ServiceMaster", "api": "GET /doctor/dental-chart/<patient_id>", "financial_impact": { "billable_services_recorded": 0 } },
+      { "step": 4, "department": "Doctor", "action": "حفظ الخريطة", "api": "POST /doctor/dental-chart/save", "financial_impact": 0 },
+      { "step": 5, "department": "Reception", "action": "إنهاء الزيارة والأرشفة تنجح رغم أن العمل السني الفعلي غير مُفوتر — لا يوجد أي فحص يمنع الأرشفة والخدمات غير المسعّرة", "api": "POST /reception/visits/<visit_id>/end", "financial_impact": { "revenue_for_procedure": 0.00 } }
+    ],
+    "financial_summary": { "gross_total": 50.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 50.00, "paid": 50.00, "outstanding": 0.00, "ledger": "مدين 1000 / دائن 4000 بقيمة 50.00 — لا قيد لأي إجراء سنّي" },
+    "generated_outputs": ["ToothChart سني", "Invoice للاستشارة فقط", "Receipt", "GLJournal"]
+  },
+  {
+    "scenario_id": "SC-012",
+    "title": "متابعة حمل — حقول الحمل + تعارض أدوية",
+    "facility_scope": "Specialized Center",
+    "patient_profile": { "age": 28, "gender": "F", "payment_tier": "Insurance", "national_id": "9000000012", "phone": "0501234578", "is_pregnant": true, "pregnancy_weeks": 24 },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا توجد باقة ولادة أو متابعة حمل. الفحوصات تُفوتر كخدمات مفردة." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "تسجيل المريض مع is_pregnant=True و pregnancy_weeks=24 و last_menstruation_date — هذه الحقول موجودة فعلاً على نموذج المريض", "api": "POST /reception/add_patient", "financial_impact": 0 },
+      { "step": 2, "department": "Doctor", "action": "فحوصات ما قبل الولادة — كل فحص سطر منفصل عبر add-service؛ **لا يوجد مسار أو حزمة ante-natal**", "api": "POST /reception/visits/<visit_id>/add-service", "financial_impact": { "line_items": 4, "visit_total": 210.00 } },
+      { "step": 3, "department": "Doctor", "action": "الترحيب: ClinicalSafetyService.check_prescription_safety يشمل _check_pregnancy_safety ويقرأ Medication.pregnancy_category (A/B/C/D/X) فيحجب فئة D/X بإجراء HARD_STOP", "api": "POST /doctor/prescription/<visit_id>", "financial_impact": { "blocked": "pregnancy contraindication" } },
+      { "step": 4, "department": "Doctor", "action": "اختيار دواء فئة C معOverrides موثّق لـ head_physician ثم الحفظ", "api": "POST /doctor/prescription/<visit_id>", "financial_impact": { "prescription_total": 64.00 } },
+      { "step": 5, "department": "Reception", "action": "تغطية 70% تُحسَب خطياً على الإجمالي: insurance_amount = total×0.7، patient_share = total×0.3. **لا تحمّل ولا فرنشيز** — grep عنهما يعطي صفر نتيجة", "api": "POST /payment/process/<visit_id>", "financial_impact": { "visit_total": 274.00, "insurance_amount": 191.80, "patient_share": 82.20, "paid": 82.20 } },
+      { "step": 6, "department": "Doctor", "action": "ضبط follow_up_required + follow_up_date؛ _sync_follow_up_request_for_visit ينشئ FollowUpRequest بحالة PENDING", "api": "POST /doctor/save-visit-summary/<visit_id>", "financial_impact": 0 }
+    ],
+    "financial_summary": { "gross_total": 274.00, "package_deduction": 0.00, "insurance_coverage": 191.80, "patient_out_of_pocket": 82.20, "paid": 82.20, "outstanding": 0.00, "ledger": "مدين 1000 82.20 / دائن 4000 82.20؛ 191.80 ذمة غير مُرحَّلة" },
+    "generated_outputs": ["Invoice بسطرين إلى أربعة", "Receipt", "Prescription مع تجاوز موثّق", "FollowUpRequest", "GLJournal"]
+  },
+  {
+    "scenario_id": "SC-013",
+    "title": "فحص صحة تنفيذي — طلبات متعددة، فاتورة واحدة",
+    "facility_scope": "Specialized Center",
+    "patient_profile": { "age": 45, "gender": "M", "payment_tier": "Corporate", "national_id": "9000000013", "phone": "0501234579" },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا توجد باقة فحص صحة تنفيذي. فحص الصحة يولّد طلبات فحوص مفردة تُجمع في فاتورة واحدة فقط لأن الفاتورة مرتبطة بالزيارة." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "الكشف: **'Corporate' ليس نموذجاً في النظام**. السداد يُسجَّل كـInsuranceCompany تختارها الاستقبال، أو كنقد. coverage يُكتب يدوياً", "api": "POST /reception/visits/create", "financial_impact": { "payment_method": "insurance", "coverage_manual": 90.00 } },
+      { "step": 2, "department": "Lab", "action": "طلب شامل: CBC، سكر صائم، HbA1c، دهون، وظائف كبد، وظائف كلى، TSH — 7 أسطر LabResult كلها PENDING بأرقام مرجعية منسوخة من الفهرس", "api": "POST /doctor/lab-request/<visit_id>", "financial_impact": { "pending_financial_settlement": true } },
+      { "step": 3, "department": "Radiology", "action": "طلب أشعةAbdomen/سinaire — خط منفصل؛ radiology_ordered=True ويعيد الطابور", "api": "POST /doctor/radiology-request/<visit_id>", "financial_impact": 0 },
+      { "step": 4, "department": "Reception", "action": "الفوترة: كل بند عبر add-service يزيد visit.total_amount و invoice.total_amount معاً. **لا يوجد خصم حزمة ولا سعر مجمّع**؛ الفاتورة = 8 سطور مستقلة", "api": "POST /reception/visits/<visit_id>/add-service", "financial_impact": { "visit_total": 486.00, "invoice_lines": 8 } },
+      { "step": 5, "department": "Reception", "action": "تحصيل حصة المريض: insurance_amount = 437.40، patient_share = 48.60. حارس التجاوز يرفض أي مبلغ فوق 48.60", "api": "POST /payment/process/<visit_id>", "financial_impact": { "paid": 48.60, "payment_status": "PAID" } },
+      { "step": 6, "department": "Lab", "action": "كل النتائج VALIDATED؛ القيم الحرجة (مثلاً سكر صائم 210) تُطلق إشعاراً تلقائياً عبر notify_results_ready", "api": "POST /lab/worklist/request/<request_id>", "financial_impact": 0 },
+      { "step": 7, "department": "Accountant", "action": "مطالبة تأمين بـ437.40 — لكن FinancialService.create_insurance_claim يضبط patient_share_amount = invoice.total_amount و insurance_share = 0، فتبدأ المطالبة **مسؤولةً عن المبلغ كله** لا عن الذمة", "api": "POST /api/claims", "financial_impact": { "claim_patient_share": 486.00, "claim_insurance_share": 0.00, "defect": "E14" } }
+    ],
+    "financial_summary": { "gross_total": 486.00, "package_deduction": 0.00, "insurance_coverage": 437.40, "patient_out_of_pocket": 48.60, "paid": 48.60, "outstanding": 0.00, "ledger": "مدين 1000 48.60 / دائن 4000 48.60؛ المطالبة تحمل بيانات معكوسة عن E14" },
+    "generated_outputs": ["Invoice بثمانية أسطر", "Receipt 48.60", "7 LabResult مُتحقَّقة", "1 RadiologyResult", "InsuranceClaim بإ-share خاطئ", "إشعارات قيم حرجة"]
+  },
+  {
+    "scenario_id": "SC-014",
+    "title": "مختبر قائم بذاته — مسار بلا استقبال",
+    "facility_scope": "Specialized Center",
+    "patient_profile": { "age": 33, "gender": "F", "payment_tier": "Cash", "national_id": "9000000014", "phone": "0501234580" },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة فحوص. يُستخدم ملف SaaS standalone_lab للتحكم بالوحدات لا للتسعير." },
+    "journey_steps": [
+      { "step": 1, "department": "Lab", "action": "مرضى قائم على الباقة SaaS standalone_lab: وحدة reception مُطفأة، فلا يوجد مسار تسجيل ولا Visit", "api": "— (وحدة reception معطّلة)", "financial_impact": 0 },
+      { "step": 2, "department": "Lab", "action": "FHIR ServiceRequest خارجي ينشئ LabRequest + LabResult بدون Visit. request_number='SR-<ts>' و status REQUESTED مع باركود تلقائي", "api": "POST /lab/api/fhir/servicerequest", "financial_impact": 0 },
+      { "step": 3, "department": "Reception", "action": "فجوة حاسمة: LabRequest.visit_id قابل للـNULL، إذاً **لا يمكن فوترة الفحص**. لا يوجد مسار فوترة للمختبر القائم بذاته ولا حتى في standalone reception. الفحص يُنفَّذ مجاناً بلا أي Visit أو Invoice", "api": "— (لا يوجد مسار)", "financial_impact": { "billable": false } },
+      { "step": 4, "department": "Lab", "action": "المسار الوحيد الممكن للفوترة: استيراد HL7 ثم مطابقة زيارة موجودة يدوياً", "api": "POST /lab/api/hl7/import", "financial_impact": 0 },
+      { "step": 5, "department": "Lab", "action": "دورة حياة كاملة للطلب وتنفيذ النتائج", "api": "POST /lab/worklist/request/<request_id>", "financial_impact": 0 },
+      { "step": 6, "department": "Lab", "action": "DiagnosticReport مُصدَّر", "api": "GET /lab/api/fhir/diagnosticreport/lab/<result_id>", "financial_impact": 0 }
+    ],
+    "financial_summary": { "gross_total": 0.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 0.00, "outstanding": 0.00, "ledger": "لا إدخال محاسبي على الإطلاق —_configuration خطأ تشغيلي وليس سلوكاً مقصوداً" },
+    "generated_outputs": ["LabRequest SR-*", "Barcode", "LabResult", "DiagnosticReport FHIR", "لا فاتورة"]
+  },
+  {
+    "scenario_id": "SC-015",
+    "title": "أشعة قائمة بذاتها — بوابة قدرات المنصة",
+    "facility_scope": "Specialized Center",
+    "patient_profile": { "age": 50, "gender": "M", "payment_tier": "Insurance", "national_id": "9000000015", "phone": "0501234581" },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة أشعة." },
+    "journey_steps": [
+      { "step": 1, "department": "Radiology", "action": "وحدة radiology مفعّلة على الباقة SaaS standalone_radiology؛ guard_module('radiology') يسمح بالوصول", "api": "GET /radiology/worklist", "financial_impact": 0 },
+      { "step": 2, "department": "Radiology", "action": "طلب FHIR خارجي بلا Visit — نفس فجوة الفوترة في SC-014", "api": "POST /radiology/api/fhir/radiology-request", "financial_impact": { "billable": false } },
+      { "step": 3, "department": "Radiology", "action": "بوابة قدرات المنصة: بعض المسارات تحت /super-admin تتطلب ability منطقية. عند التعطيل ترجع 404 لا 403 — وهي النتيجة المتوقعة في SC-014 و SC-015 لـ CAP_WEBAUTHN", "api": "GET /biometric", "financial_impact": 0 },
+      { "step": 4, "department": "Radiology", "action": "تنفيذ النتيجة + مراجعة ثانية", "api": "POST /radiology/worklist/complete/<request_id>", "financial_impact": 0 },
+      { "step": 5, "department": "Radiology", "action": "تحميل صور DICOM من PACSconfiguration", "api": "GET /radiology/images/<result_id>", "financial_impact": 0 },
+      { "step": 6, "department": "Radiology", "action": "فجوة الطباعة: print_report و print_pdf يعتمدان على visit_id؛ بلا زيارة لا يوجد تقرير مطبوع قابل للتسليم", "api": "GET /radiology/print_report/<result_id>", "financial_impact": { "blocker": "visit_id مطلوب" } }
+    ],
+    "financial_summary": { "gross_total": 0.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 0.00, "outstanding": 0.00, "ledger": "لا إدخال محاسبي — لا مسار فوترة للأشعة القائمة بذاتها" },
+    "generated_outputs": ["RadiologyRequest", "RadiologyResult", "رابط PACS", "لا فاتورة"]
+  },
+  {
+    "scenario_id": "SC-016",
+    "title": "Walk-in عيادة — دفع مقدّم عند إنشاء الزيارة",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 36, "gender": "M", "payment_tier": "Cash", "national_id": "9000000016", "phone": "0501234582" },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "إنشاء زيارة مع amount_paid مسبقاً 50.00 — **فجوة E11**: الاستقبال يبني Payment(...) مباشرة بالـORM ولا يستدعي PaymentService ولا GL ولا idempotency، ثم يرقّع visit_id يدوياً فلا يحدث تخصيص فاتورة", "api": "POST /reception/visits/create", "financial_impact": { "paid": 50.00, "payment_status": "PAID", "gl_posted": false, "invoice_allocation": false } },
+      { "step": 2, "department": "Reception", "action": "لا تجاوز فحص على amount_paid — بخلاف /payment/process الذي يرفض المبلغ الزائد بـ400", "api": "POST /reception/visits/create", "financial_impact": { "overpayment_accepted": true } },
+      { "step": 3, "department": "Reception", "action": "الطابور ينجح فوراً لأن PAID", "api": "POST /reception/queue/add-patient", "financial_impact": 0 },
+      { "step": 4, "department": "Reception", "action": "إضافة خدمة 30.00 ← visit.total 80، paid 50، لكن InvoiceService لا يعرف الدفعة الأولى لأن التخصيص لم يحدث", "api": "POST /reception/visits/<visit_id>/add-service", "financial_impact": { "visit_total": 80.00, "paid": 50.00, "payment_status": "PARTIAL" } },
+      { "step": 5, "department": "Reception", "action": "تسوية المتبقي 30.00 عبر المسار السليم؛ الدفعة الثانية تُرحَّل محاسبياً وتُخصم من الفاتورة، لكن الأولى تبقى خارج الدفتر", "api": "POST /payment/process/<visit_id>", "financial_impact": { "paid": 80.00, "payment_status": "PAID", "invoice_balance_due": 0.00, "gl_understated_by": 50.00 } },
+      { "step": 6, "department": "Accountant", "action": "فجوة: رصيد الصندوق اليومي يحسب كل مدفوعات اليوم في المستأجر لا صندوق هذا الموظف — CashRegister.get_or_create_today لا يرشّح بـtenant_id ولا بـreceptionist_id، فأي موظف استقبال يتقاسم صندوقاً واحداً", "api": "GET /reception/cash-register", "financial_impact": { "per_user_variance": "meaningless" } }
+    ],
+    "financial_summary": { "gross_total": 80.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 80.00, "paid": 80.00, "outstanding": 0.00, "ledger": "القيد الفعلي 30.00 فقط — 50.00 نقد مُحصَّل بلا قيد (E11)" },
+    "generated_outputs": ["Payment بلا idempotency_key", "GLJournal بقيمة 30.00 فقط", "Invoice + Receipt"]
+  },
+  {
+    "scenario_id": "SC-017",
+    "title": "عاجل — أولوية urgent في الطابور",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 72, "gender": "F", "payment_tier": "Cash", "national_id": "9000000017", "phone": "0501234583" },
+    "encounter_type": "Emergency (ER)",
+    "package_details": { "applicable": false, "reason": "لا باقة." },
+    "journey_steps": [
+      { "step": 1, "department": "Emergency", "action": "إنشاء حالة طارئة مع تذكرة priority_level='urgent'", "api": "POST /emergency/cases/create", "financial_impact": { "visit_total": 100.00, "payment_status": "PENDING" } },
+      { "step": 2, "department": "Emergency", "action": "الفرز GREEN ← severity MODERATE، و triage_level='GREEN'", "api": "POST /emergency/triage/<emergency_id>", "financial_impact": 0 },
+      { "step": 3, "department": "Reception", "action": "الطابور: الأولوية تُشتق من is_emergency → 'urgent'. محرك الترتيب kind_rank يجعل الطوارئ rank=0 فيتجاوز كل الاعتيادية", "api": "POST /reception/queue/add-patient", "financial_impact": 0 },
+      { "step": 4, "department": "Reception", "action": "إعفاء الدفع: QueueSettings.emergency_payment_waived يسمح بدخول بطاقة غير مسددة. **منفَّذ لكن مُعطَّل افتراضياً في معظم الأقسام**", "api": "POST /reception/queue/add-patient", "financial_impact": { "waived": 100.00 } },
+      { "step": 5, "department": "Reception", "action": "تسوية لاحقة 100.00", "api": "POST /payment/process/<visit_id>", "financial_impact": { "paid": 100.00 } },
+      { "step": 6, "department": "Doctor", "action": "فجوة: متوسط زمن الانتظار في قائمة الطبيب **مثبَّت على 15** في routes/doctor/queue.py:55 — قيمة عرض وهمية لا تعكس البيانات", "api": "GET /doctor/patient-queue", "financial_impact": { "average_wait_time_hardcoded": 15 } }
+    ],
+    "financial_summary": { "gross_total": 100.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 100.00, "paid": 100.00, "outstanding": 0.00, "ledger": "مدين 1000 / دائن 4000 بقيمة 100.00" },
+    "generated_outputs": ["EmergencyCase", "EmergencyStatusHistory", "تذكرة urgent", "Invoice + Receipt + GLJournal"]
+  },
+  {
+    "scenario_id": "SC-018",
+    "title": "حجز أونلاين + تسجيل وصول عبر الكشك",
+    "facility_scope": "Polyclinic",
+    "patient_profile": { "age": 31, "gender": "F", "payment_tier": "Cash", "national_id": "9000000018", "phone": "0501234584" },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة. _resolve_booking_fee يستعمل DoctorPricing.get_price(tier) — وهو **أتعاب الطبيب** لا سعر الاستشارة، كسعر حجز للمريض." },
+    "journey_steps": [
+      { "step": 1, "department": "Booking", "action": "حجز OnlineBooking", "api": "POST /booking/", "financial_impact": { "fee": "doctor_fee_not_consultation_fee" } },
+      { "step": 2, "department": "Booking", "action": "**فجوة**: POST /booking/payment/<id> ينشئ PaymentTransaction بحالة 'pending' **ولا يكملها أبداً** — لا بوابة دفع، لا Payment، لا قيد محاسبي، لا ربط بزيارة. وهو **ليس خلف login_required** بل خلف rate_limit(10/hour) فقط، فيستطيع أي شخص إنشاء معاملات معلّقة", "api": "POST /booking/payment/<id>", "financial_impact": { "status": "pending_forever", "gl": 0.00 } },
+      { "step": 3, "department": "Kiosk", "action": "تسجيل وصول ذاتي. **فجوة أمنية**: GET /kiosk/check-in بلا أي حارس، و POST /kiosk/api/check-in بلا login_required وبلا CSRF exemption وبلا حد معدل. يكفي معرفة الرقم الوطني", "api": "POST /kiosk/api/check-in", "financial_impact": 0 },
+      { "step": 4, "department": "Kiosk", "action": "perform_kiosk_checkin: يبحث بعمى في الهاش عن national_id بطول ≥5، يجد موعد اليوم SCHEDULED/CONFIRMED، يمنع التكرار بعلامة [APPOINTMENT:<id>] داخل Visit.notes، ينشئ Visit ويقلب الموعد إلى CONFIRMED، ثم يضيف للطابور", "api": "POST /kiosk/api/check-in", "financial_impact": { "visit_created": true } },
+      { "step": 5, "department": "Reception", "action": "الفجوة تنتقل للسداد: الزيارة المولّدة PENDING، والطابور يرفضها. ومع ذلك لا يوجد مسار تسجيل خروج تلقائي من الكشك فيُسقط الحالة الوسيطة", "api": "POST /reception/queue/add-patient", "financial_impact": { "blocked_reason": "payment_required" } },
+      { "step": 6, "department": "Reception", "action": "تسوية يدوية", "api": "POST /payment/process/<visit_id>", "financial_impact": { "paid": 50.00, "payment_status": "PAID" } }
+    ],
+    "financial_summary": { "gross_total": 50.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 50.00, "paid": 50.00, "outstanding": 0.00, "ledger": "مدين 1000 / دائن 4000 بقيمة 50.00؛ معاملة الحجز pendindg بلا أي قيد" },
+    "generated_outputs": ["OnlineBooking status=completed", "PaymentTransaction pendindg بلا بوابة", "Visit + QueueManagement", "Invoice + Receipt"]
+  },
+  {
+    "scenario_id": "SC-019",
+    "title": "صيدلية قائمة بذاتها — بيع POS ومرتجعات",
+    "facility_scope": "Specialized Center",
+    "patient_profile": { "age": 60, "gender": "M", "payment_tier": "Cash", "national_id": "9000000019", "phone": "0501234585" },
+    "encounter_type": "Outpatient (OPD) — صيدلة دون زيارة",
+    "package_details": { "applicable": false, "reason": "لا باقة أدوية." },
+    "journey_steps": [
+      { "step": 1, "department": "Pharmacy", "action": "بحث عن دواء في الفهرس", "api": "GET /medication/api/medications/search", "financial_impact": 0 },
+      { "step": 2, "department": "Pharmacy", "action": "بيع مباشر. **فجوة E15**: POST /medication/pos/sell ينشئ PharmacySale + PharmacySaleItem ويخصم المخزون عبر PharmacyStockService لكنه **لا يستدعي GLService.post_pharmacy_sale**. لا قيد محاسبي، لا COGS، الإيراد مفقود من 4100", "api": "POST /medication/pos/sell", "financial_impact": { "total_amount": 138.00, "gl_posted": false } },
+      { "step": 3, "department": "Pharmacy", "action": "للإيراد المُرحَّل: PharmacySaleService.create_sale يحسب متوسط التكلفة ويرحّل مدين 1000 / دائن 4100 + مدين 5000 / دائن 1300. **نفس العملية بقيمتين محاسبيتين مختلفتين حسب المسار**", "api": "— (PharmacySaleService.create_sale)", "financial_impact": { "gl_posted": true, "cogs": true } },
+      { "step": 4, "department": "Pharmacy", "action": "مرتجع. process_pharmacy_return يعكس حركة المخزون ويعيد المبلغ. **فجوة**: PharmacySaleService.void_sale لا يرحّل أي قيد عكسي، والإيراد المُرحَّل يبقى في الدفاتر", "api": "POST /payment/api/pharmacy/returns", "financial_impact": { "refund": 46.00, "reversing_journal": false } },
+      { "step": 5, "department": "Pharmacy", "action": "فجوة دفترية: PharmacySale و PharmacySaleItem و PharmacyReturn **لا تحمل أي مفتاح أجنبي إلى Invoice أو Payment**. ثلاثة كتب منفصلة تماماً", "api": "GET /medication/sales", "financial_impact": { "gl_bridge": "none" } },
+      { "step": 6, "department": "Pharmacy", "action": "طلب توريد وfulfillment يخصم المخزون ويكتب StockMovement", "api": "POST /supply-requests/<id>/fulfill", "financial_impact": 0 }
+    ],
+    "financial_summary": { "gross_total": 138.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 138.00, "paid": 138.00, "outstanding": 0.00, "ledger": "**صفر قيد** إن تم البيع عبر POS (E15)؛ المرتجع بلا قيد عكسي" },
+    "generated_outputs": ["PharmacySale SCP-*", "PharmacySaleItem", "StockMovement", "PharmacyReturn", "لا GLJournal"]
+  },
+  {
+    "scenario_id": "SC-020",
+    "title": "نشر التذكيرات — قراءة فقط، لا مسار تسجيل",
+    "facility_scope": "Specialized Center",
+    "patient_profile": { "age": 2, "gender": "F", "payment_tier": "Cash", "national_id": "9000000020", "phone": "0501234586" },
+    "encounter_type": "Outpatient (OPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة تحصينات." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "زيارة الرضيع", "api": "POST /reception/visits/create", "financial_impact": { "visit_total": 50.00 } },
+      { "step": 2, "department": "Doctor", "action": "تسجيل لقاح في Visit.notes كنص. **فجوة**: Immunization لا يُنشأ في أي موضع خارج تعريف النموذج، فلا يوجد مسار تسجيل لقاح في كل النظام", "api": "— (لا يوجد مسار)", "financial_impact": { "immunization_rows": 0 } },
+      { "step": 3, "department": "Nurse", "action": "قائمة اللقاحات تتوقع صفوفاً غير موجودة — فارغة دائماً", "api": "GET /vaccination/patient/<id>", "financial_impact": 0 },
+      { "step": 4, "department": "Nurse", "action": "قائمة 'اللقاحات القادمة' تُحسب في بايثون من next_due_date >= date.today() لا في SQL", "api": "GET /vaccination/vaccines", "financial_impact": 0 },
+      { "step": 5, "department": "Nurse", "action": "قوائم التذكيرات: shift_handover_service._build_pending_items يعدّ الطلبات المعلّقة — **لكن استعلاماته بلا فلتر مستأجر**، فيتسرب عدد الزيارات إلى مستأجرين آخرين", "api": "POST /handover/open", "financial_impact": { "cross_tenant_count_leak": true } },
+      { "step": 6, "department": "Nurse", "action": "تسجيل العلامات الحيوية بفحوص مدى حقيقية: انقباض < انبساط (400)، حرارة 30–45، نبض 20–250، SpO2 50–100", "api": "POST /nurse/record-vital-signs/<patient_id>", "financial_impact": 0 }
+    ],
+    "financial_summary": { "gross_total": 50.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 50.00, "paid": 0.00, "outstanding": 50.00, "ledger": "مدين 0 / دائن 0 — أي خدمة لقاح غير موجودة أصلاً فلا يمكن فوترتها" },
+    "generated_outputs": ["Visit.notes بنصVaccine", "VitalSigns", "ShiftHandover", "لا صفوف Immunization"]
+  }
+]

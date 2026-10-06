@@ -1,0 +1,191 @@
+[
+  {
+    "scenario_id": "SC-021",
+    "title": "طوارئ ← عيادة داخلية ← ⛔ تحويل ER→ward محجوب",
+    "facility_scope": "Tertiary Hospital",
+    "patient_profile": { "age": 68, "gender": "M", "payment_tier": "Insurance", "national_id": "9000000021", "phone": "0501234587" },
+    "encounter_type": "Emergency → Inpatient",
+    "package_details": { "applicable": false, "reason": "لا توجد باقة رعاية داخلية ولا سقف أيام. النموذج Admission يحمل admission_type و length_of_stay لكن لا tariff ولا أجرة ليلية." },
+    "journey_steps": [
+      { "step": 1, "department": "Emergency", "action": "حالة طوارئ + تذكرة urgent", "api": "POST /emergency/cases/create", "financial_impact": { "visit_total": 100.00, "payment_status": "PENDING" } },
+      { "step": 2, "department": "Emergency", "action": "الفرز YELLOW ← HIGH", "api": "POST /emergency/triage/<emergency_id>", "financial_impact": 0 },
+      { "step": 3, "department": "Reception", "action": "التحويل إلى medicine. **قاعدة Hub-and-Spoke** تسمح بـreception↔clinical فقط، وتُرجع 'direct_peer_transfer_disabled' للتحويل بين clinical⇄clinical", "api": "services/queue_management_service.transfer_visit", "financial_impact": 0 },
+      { "step": 4, "department": "Reception", "action": "**فجوة حاسمة**: POST /emergency/cases/<id>/convert محجوب بـrole_required('reception') وهو **تحويل ER→ward** منطقياً، لكن AdmissionService لا يُستدعى من أي مسار في routes/emergency/. Grep: صفر مستدعٍ هناك. لا يوجد مسار ER→IPD", "api": "POST /emergency/cases/<id>/convert", "financial_impact": { "blocker": "no_er_to_ipd_route" } },
+      { "step": 5, "department": "Nurse", "action": "البديل المتاح: ترقيم مباشر عبر AdmissionService.create_admission بـvisit_id و bed_id. يقبل admission_type='EMERGENCY'", "api": "POST /bed/api/admissions/admit", "financial_impact": { "admission_created": true } },
+      { "step": 6, "department": "Nurse", "action": "create_admission: يحمّل الزيارة والسرير بـget_tenant_record fail-closed، يرفض visit.is_inpatient القائم، ويرفض bed.status != AVAILABLE. يضبط Bed←OCCUPIED + current_patient_id، و Visit.is_inpatient=True + bed_id + ward_id + admission_date", "api": "POST /bed/api/admissions/admit", "financial_impact": 0 },
+      { "step": 7, "department": "Accountant", "action": "الإقامة الاستشفائية: نموذج Admission بلا tariff ولا أجرة ليلية. **لا يوجد أي نموذج Room_Rate أو Invoice_per_day**، وحساب الإيراد يكبر فقط عبر add-service بأصناف مفردة", "api": "POST /reception/visits/<visit_id>/add-service", "financial_impact": { "visit_total": 100.00, "daily_charge_model": "absent" } },
+      { "step": 8, "department": "Nurse", "action": "الفوترة الاستشفائية **غير منفَّذة**. لا يوجد مسار 'daily bed charge'. الغرفة تُحاسب فقط إن أضاف الاستقبال صنفاً يدوياً كل يوم", "api": "— (لا يوجد مسار)", "financial_impact": { "billable_per_night": false } }
+    ],
+    "financial_summary": { "gross_total": 100.00, "package_deduction": 0.00, "insurance_coverage": 80.00, "patient_out_of_pocket": 20.00, "paid": 20.00, "outstanding": 0.00, "ledger": "مدين 1000 20.00 / دائن 4000 20.00 — **لا إيراد إقامة لثلاث ليالٍ** لأن النموذج غائب" },
+    "generated_outputs": ["EmergencyCase", "Admission(admission_type='EMERGENCY')", "Bed←OCCUPIED", "Visit.is_inpatient=True", "EmergencyStatusHistory"]
+  },
+  {
+    "scenario_id": "SC-022",
+    "title": "العناية المركزة — نوع الغرفة غير مُسعَّر",
+    "facility_scope": "Tertiary Hospital",
+    "patient_profile": { "age": 74, "gender": "F", "payment_tier": "Cash", "national_id": "9000000022", "phone": "0501234588" },
+    "encounter_type": "Inpatient (IPD)",
+    "package_details": { "applicable": false, "reason": "**لا توجد باقة 'إقامة ICU بسقف'**. Ward.ward_type يقبل ICU/MATERNITY/SURGERY لكن Room.room_type و Bed.bed_type بلا أي عمود سعر. التسعير بالICU غير موجود في النظام." },
+    "journey_steps": [
+      { "step": 1, "department": "Nurse", "action": "إتاحة أسرة ICU: GET /bed/api/available-beds **لا يرشّح على الإتاحة** — يعيد كل أسرار القسم. التصفية على العميل", "api": "GET /bed/api/available-beds", "financial_impact": 0 },
+      { "step": 2, "department": "Nurse", "action": "Ward.ward_type='ICU', Room.room_type='ICU_BAY', Bed.bed_type='ICU' — **كلها حقول وصفية بلا سعر مرتبط**", "api": "GET /bed/ward/<id>", "financial_impact": { "rate_model": "none" } },
+      { "step": 3, "department": "Nurse", "action": "الترقيم في سرير ICU", "api": "POST /bed/api/admissions/admit", "financial_impact": 0 },
+      { "step": 4, "department": "Nurse", "action": "مقياس Braden للجريحة: ≤9 severe، ≤12 high، ≤14 moderate، وإلا low. والنورتون: ≤14 high، ≤18 moderate، وإلا low. **حسابات حقيقية ومنفَّذة**", "api": "POST /nursing-assessment/new/<patient_id>", "financial_impact": 0 },
+      { "step": 5, "department": "Doctor", "action": "الفحوصات اليومية. **فجوة**: DoctorPricing لا يدخل إلا على calculate_visit_cost **عند إنشاء الزيارة**. لا يوجد مسار تسعير لزيارة يومية قائمة. Follow-up خصم 30% متاح بـvisit_type='FOLLOW_UP' على زيارة جديدة، لا على amm_Qurng قائمة", "api": "POST /reception/visits/create", "financial_impact": { "daily_repricing": "no_route" } },
+      { "step": 6, "department": "Reception", "action": "الفوترة اليدوية اليومية: الاستقبال ينشئ زيارة FOLLOW_UP جديدة على نفس المريض في كل يوم وضيف صنفاً واحداً. **لا يوجد modelo StayEpisode يجمع هذه الأيام**", "api": "POST /reception/visits/<visit_id>/add-service", "financial_impact": { "manual_visits_created": 3, "total": 360.00 } },
+      { "step": 7, "department": "Accountant", "action": "النتيجة: 3 فواتير و3 إيصالات و3 قيود لنفس Episode الواحد. Trial Balance يميل للإيراد ثلاثي الأضعاف لحساب إقامة واحدة", "api": "GET /accountant/trial-balance", "financial_impact": { "fragmentation": "one_stay_three_invoices" } }
+    ],
+    "financial_summary": { "gross_total": 360.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 360.00, "paid": 360.00, "outstanding": 0.00, "ledger": "3 قيود ← دائن 4000 بقيمة 360.00 لكن لثلاث زيارات مرقّمة، فلا يمكن حساب إيراد الإقامة الداخلية" },
+    "generated_outputs": ["Admission", "Bed ICU", "2 NursingAssessment (Braden + Norton)", "Invoice × 3", "GLJournal × 3"]
+  },
+  {
+    "scenario_id": "SC-023",
+    "title": "نقل بين الأسرة + حساب مدة الإقامة",
+    "facility_scope": "Tertiary Hospital",
+    "patient_profile": { "age": 55, "gender": "M", "payment_tier": "Insurance", "national_id": "9000000023", "phone": "0501234589" },
+    "encounter_type": "Inpatient (IPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة. BedTransfer.transfer_type='INTER_WARD' و'ICU' معرّفان لكن بلا تسعير DifferentialType." },
+    "journey_steps": [
+      { "step": 1, "department": "Nurse", "action": "ترقيم في جناح عام", "api": "POST /bed/api/admissions/admit", "financial_impact": 0 },
+      { "step": 2, "department": "Nurse", "action": "النقل إلى سرير آخر: AdmissionService.process_transfer ينشئ BedTransfer(from_bed_id, to_bed_id, transfer_type='INTERNAL'، reason، requested_by_id، approved_by_id)", "api": "POST /bed/api/admissions/<id>/transfer", "financial_impact": 0 },
+      { "step": 3, "department": "Nurse", "action": "النقل إلى ICU بـtransfer_type='ICU'", "api": "POST /bed/api/admissions/<id>/transfer", "financial_impact": { "differential_charge": "no_model" } },
+      { "step": 4, "department": "Nurse", "action": "فجوة: PHASE3 gap #9 مفتوح جزئياً — لا خطوة طلب/موافقة على النقل، والمسار ينفّذ النقل مباشرة بمجرد دور nurse/admin/manager", "api": "POST /bed/api/admissions/<id>/transfer", "financial_impact": { "approval_step": "absent" } },
+      { "step": 5, "department": "Nurse", "action": "حساب مدة الإقامة: Admission.compute_length_of_stay يحسب بـadmission_datetime وdischarge_datetime بعد توحيد المنطقة الزمنية إلى UTC", "api": "GET /bed/admission/<id>", "financial_impact": { "length_of_stay_days": 6 } },
+      { "step": 6, "department": "Accountant", "action": "**فجوة مالية**: لا حقل day_rate في Admission. مدة الإقامة معروفة (6) لكن لا شيء يحسب 6 × rate. الفوترة تبقى يدوية بالكامل", "api": "GET /accountant/open-invoices", "financial_impact": { "los_days": 6 } }
+    ],
+    "financial_summary": { "gross_total": 0.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 0.00, "outstanding": 0.00, "ledger": "إقامة 6 أيام بـ0.00 — لا نموذج تسعير ليلي في النظام" },
+    "generated_outputs": ["BedTransfer × 2", "Admission.length_of_stay=6", "Bed final status"]
+  },
+  {
+    "scenario_id": "SC-024",
+    "title": "الخروج إلى المنزل ⛔ لا ملخص خروج منظم",
+    "facility_scope": "Tertiary Hospital",
+    "patient_profile": { "age": 63, "gender": "M", "payment_tier": "Insurance", "national_id": "9000000024", "phone": "0501234590" },
+    "encounter_type": "Inpatient (IPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة. PHASE3 gap #8 'No DischargeSummary model' ما زال مفتوحاً — grep عن discharge_summary يعطي صفر نتيجة." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "تسوية كل الأصناف المضافة يدوياً قبل الخروج — can_be_archived يرفض PENDING", "api": "POST /payment/process/<visit_id>", "financial_impact": { "paid": 480.00, "payment_status": "PAID" } },
+      { "step": 2, "department": "Nurse", "action": "الخروج. process_discharge يتحقق من status=='ADMITTED'، ويصدّق discharge_type على تعداد DischargeType ويعيد القائمة المسموحة عند الخطأ", "api": "POST /bed/api/admissions/<id>/discharge", "financial_impact": 0 },
+      { "step": 3, "department": "Nurse", "action": "**الفجوة الأولى**: كل ما يمكن حفظه هو string حر في Admission.discharge_diagnosis. لا حقول منظمة للأدوية عند الخروج ولا خطة متابعة ولا حالة عند الخروج", "api": "POST /bed/api/admissions/<id>/discharge", "financial_impact": { "structured_summary_fields": 0 } },
+      { "step": 4, "department": "Nurse", "action": "**الفجوة الثانية**: ensure_completed على Visit مغلّف بـcontextlib.suppress(ValueError)، فإذا لم تستطع الزيارة الوصول قانونياً إلى COMPLETED تُترك **بلا خطأ ولا أثر**", "api": "POST /bed/api/admissions/<id>/discharge", "financial_impact": { "silent_suppress": true } },
+      { "step": 5, "department": "Nurse", "action": "تحرير السرير ← BedStatus.CLEANING + تصفير current_patient_id، و Visit.is_inpatient=False + bed_id/ward_id=NULL + discharge_date", "api": "POST /bed/api/admissions/<id>/discharge", "financial_impact": 0 },
+      { "step": 6, "department": "Accountant", "action": "الإيصال النهائي. **الفجوة الثالثة**: لا يوجد تقرير خروج مطبوع. print_receipt يعيد حساب أتعاب الطبيب كـ30% من الإجمالي — وهي قيم عرض لا تُكتب في أي عمود", "api": "GET /reception/print_receipt/<id>", "financial_impact": { "doctor_fee_display": 144.00, "persisted": false } },
+      { "step": 7, "department": "Accountant", "action": "قائمة العمل لا تحتوي عنصر 'مستند خروج'. _build_pending_items يعدّ الطوابير وطلبات المختبر والأشعة والوصفات فقط", "api": "GET /inbox", "financial_impact": 0 }
+    ],
+    "financial_summary": { "gross_total": 480.00, "package_deduction": 0.00, "insurance_coverage": 384.00, "patient_out_of_pocket": 96.00, "paid": 96.00, "outstanding": 0.00, "ledger": "مدين 1000 96.00 / دائن 4000 96.00" },
+    "generated_outputs": ["Admission.status='DISCHARGED'", "discharge_diagnosis كنص حر", "Bed←CLEANING", "إيصال نهائي", "**لا ملخص خروج**"]
+  },
+  {
+    "scenario_id": "SC-025",
+    "title": "الخروج إلى جهة أخرى ← ذمم قابلة للتحصيل 1100",
+    "facility_scope": "Tertiary Hospital",
+    "patient_profile": { "age": 47, "gender": "F", "payment_tier": "Insurance", "national_id": "9000000025", "phone": "0501234591" },
+    "encounter_type": "Inpatient (IPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة نقل." },
+    "journey_steps": [
+      { "step": 1, "department": "Nurse", "action": "ترقيم في جناح العناية ثم سداد جزئي — force payment", "api": "POST /bed/api/admissions/admit", "financial_impact": { "visit_total": 900.00, "paid": 300.00, "payment_status": "PARTIAL" } },
+      { "step": 2, "department": "Nurse", "action": "الخروج بـdischarge_type='TRANSFER'", "api": "POST /bed/api/admissions/<id>/discharge", "financial_impact": 0 },
+      { "step": 3, "department": "Accountant", "action": "المتبقي 600.00. **الفجوة**: الفاتورة يجب أن تُنشأ بـsend-to-accounting ليُخصم منها؛ دونها PaymentAllocationService.allocate لا يوزّع شيئاً بينما Visit.paid_amount يتحرك — كتابان منفصلان بلا جسر", "api": "POST /payment/process/<visit_id>", "financial_impact": { "invoice_allocation": 0.00, "visit_remaining": 600.00 } },
+      { "step": 4, "department": "Accountant", "action": "قائمة الفواتير المفتوحة: FinancialService.get_pending_invoices يرشّح على Invoice.status.in_(['PENDING','PARTIAL']) — وهذه قيم **غير موجودة** في التعداد (DRAFT|ISSUED|POSTED|PAID|VOID). **يُعيد دائماً قائمة فارغة**", "api": "GET /accountant/open-invoices", "financial_impact": { "returns": "always_empty", "defect": "E18" } },
+      { "step": 5, "department": "Accountant", "action": "كشف المتبقي بالبحث اليدوي: كشف ديون يجمع Visit.remaining_amount لزيارات PENDING|PARTIAL|DEBT — يعمل، لكنه غير تلقائي", "api": "GET /accountant/audit/debts", "financial_impact": { "outstanding": 600.00 } },
+      { "step": 6, "department": "Accountant", "action": "قائمة حساب المريض: total_billed يجمع Invoice.total_amount بينما total_remaining يجمع Visit.remaining_amount — **مصدران مختلفان**. مريض بلا فواتير يظهر total_billed=0 بجانب outstanding≠0", "api": "GET /accountant/invoices/financial", "financial_impact": { "statement_inconsistent": true, "defect": "E23" } }
+    ],
+    "financial_summary": { "gross_total": 900.00, "package_deduction": 0.00, "insurance_coverage": 720.00, "patient_out_of_pocket": 180.00, "paid": 300.00, "outstanding": 600.00, "ledger": "مدين 1000 300.00 / دائن 4000 300.00؛ ذمم 600.00 غير مرصودة في الفواتير" },
+    "generated_outputs": ["Admission.status='DISCHARGED'", "discharge_type='TRANSFER'", "كشف ديون", "قائمة مفتوحة فارغة (E18)", "كشف حساب غير متسق (E23)"]
+  },
+  {
+    "scenario_id": "SC-026",
+    "title": "ولادة — ⛔ لا يوجد مسار ولادة",
+    "facility_scope": "Tertiary Hospital",
+    "patient_profile": { "age": 29, "gender": "F", "payment_tier": "Insurance", "national_id": "9000000026", "phone": "0501234592", "is_pregnant": true, "pregnancy_weeks": 39 },
+    "encounter_type": "Inpatient (IPD)",
+    "package_details": { "applicable": false, "reason": "**لا توجد باقة ولادة**. Ward.ward_type='MATERNITY' و Room.room_type بلا تسعير، ولا نموذج تواريخ ولادة أو وليد أو حضّانات. ICD/CPT لا تُبذر عمداً." },
+    "journey_steps": [
+      { "step": 1, "department": "Emergency", "action": "مخاض — حالة طوارئ", "api": "POST /emergency/cases/create", "financial_impact": { "visit_total": 100.00 } },
+      { "step": 2, "department": "Doctor", "action": "فحوصات ما قبل الولادة كخدمات مفردة. **لا يوجد أي نموذج ولادة**: لا Baby، لا DeliveryRecord، لا gestational_weeks_after_birth", "api": "POST /reception/visits/<visit_id>/add-service", "financial_impact": { "line_items": 6, "visit_total": 340.00 } },
+      { "step": 3, "department": "Nurse", "action": "ترقيم في جناح ولادة — حقل Ward.ward_type='MATERNITY' موجود ويقبل القيمة، لكنه **حقل تصنيف بلا أي أثر مالي**", "api": "POST /bed/api/admissions/admit", "financial_impact": { "maternity_rate": "no_model" } },
+      { "step": 4, "department": "Doctor", "action": "**⛔ Caesarean مستحيل**: لا SurgerySchedule ولا SurgeryChecklist ولا مسار إنشاء. لا يوجد writer لـ OR في أي موضع: Scope ← ORSchedule ← لا شيء", "api": "— (لا يوجد مسار)", "financial_impact": { "blocker": "no_or_writer" } },
+      { "step": 5, "department": "Doctor", "action": "البديل المتاح التلقائي: ولادة vaginal تُسجَّل كنص في Visit.notes مع Visit.diagnosis. **لا يوجد Structured Delivery Data إطلاقاً**", "api": "POST /doctor/diagnosis/<visit_id>", "financial_impact": 0 },
+      { "step": 6, "department": "Nurse", "action": "تمريض: NursingAssessment بمقاييس Braden وNorton وMorse وPain وGlasgow — **مقاييس عنايةICU**، لا مقياس Partogram أو Bishop ولا Dreyfus", "api": "POST /nursing-assessment/new/<patient_id>", "financial_impact": 0 },
+      { "step": 7, "department": "Nurse", "action": "الخروج بـadmission_type='ELECTIVE'. الفارق بين الولادة الطبيعية والقيصرية غير قابل للترميز — لا حقل delivery_mode", "api": "POST /bed/api/admissions/<id>/discharge", "financial_impact": { "delivery_mode_field": "absent" } },
+      { "step": 8, "department": "Accountant", "action": "الفوترة كلها يدوية عبر أصناف مفردة. **لا باقة ولادة ولا سعر قيصرية** — رياضياً لا يمكن للنظام أن يميّز بين ولادة بـ4,200 وقيصرية بـ9,800", "api": "POST /payment/process/<visit_id>", "financial_impact": { "visit_total": 780.00, "patient_share": 195.00 } }
+    ],
+    "financial_summary": { "gross_total": 780.00, "package_deduction": 0.00, "insurance_coverage": 585.00, "patient_out_of_pocket": 195.00, "paid": 195.00, "outstanding": 0.00, "ledger": "مدين 1000 195.00 / دائن 4000 195.00 — **لا يمكن تمثيل كلفة ولادة ولا قيصرية**" },
+    "generated_outputs": ["Admission في جناح ولادة", "Visit.notes بنص الولادة", "Invoice بستة أسطر", "Receipt", "**لا سجل ولادة ولا سجل ولادة قيصرية**"]
+  },
+  {
+    "scenario_id": "SC-027",
+    "title": "يوم جراحي ⛔ — النموذج موجود ولا كاتب",
+    "facility_scope": "Tertiary Hospital",
+    "patient_profile": { "age": 51, "gender": "M", "payment_tier": "Insurance", "national_id": "9000000027", "phone": "0501234593" },
+    "encounter_type": "Day Surgery",
+    "package_details": { "applicable": false, "reason": "**لا توجد باقة جراحة**. CPTCode موجود كنموذج مرجعي لكن لا تُبذر ولا يُنشئها أي مسار." },
+    "journey_steps": [
+      { "step": 1, "department": "Reception", "action": "زيارة قبل الجراحة", "api": "POST /reception/visits/create", "financial_impact": { "visit_total": 120.00 } },
+      { "step": 2, "department": "Doctor", "action": "تقييم ما قبل الجراحة", "api": "POST /doctor/save-visit-summary/<visit_id>", "financial_impact": 0 },
+      { "step": 3, "department": "Doctor", "action": "⛔ **Scheduling مستحيل**: routes/or_management_routes.py فيه مساران GET فقط. لا POST لـإنشاء SurgerySchedule. **لا SurgeryService**. SurgerySchedule لا يُنشأ في أي موضع في المستودع", "api": "GET /or/schedule", "financial_impact": { "blocker": "no_or_writer" } },
+      { "step": 4, "department": "Doctor", "action": "النموذج SurgerySchedule يملك كل شيء: procedure_name، cpt_code_id، icd10_code_id، or_room، خمسة أعضاء فريق، consent_signed، actual_start/end، outcome، complications، estimated_blood_loss. **لا شيء منه قابل للكتابة**", "api": "— (لا يوجد مسار)", "financial_impact": 0 },
+      { "step": 5, "department": "Doctor", "action": "قائمة WHO كاملة موجودة (Sign In ×8، Time Out ×8، Sign Out ×5) في SurgeryChecklist — **ولا مسار لكتابة أي بند منها**", "api": "— (لا يوجد مسار)", "financial_impact": { "who_checklist": "read_only_impossible" } },
+      { "step": 6, "department": "Nurse", "action": "فجوة إضافية: or غير مُقيَّد بأي module في app/core/module/registry.py، فـ/or/schedule متاح حتى على باقة billing_only. حدّ أدنى من feature gating", "api": "GET /or/schedule", "financial_impact": 0 },
+      { "step": 7, "department": "Accountant", "action": "فجوة الفوترة: **لا نموذج SurgicalBundle ولا Case Package**. أجرة الجراحة لا تُسجَّل إلا كـadd-service يدوي باسم ServiceMaster عام. لا يوجد جدول رسوم جراحية عام", "api": "POST /reception/visits/<visit_id>/add-service", "financial_impact": { "surgeon_fee": "manual_generic_service_only" } }
+    ],
+    "financial_summary": { "gross_total": 120.00, "package_deduction": 0.00, "insurance_coverage": 96.00, "patient_out_of_pocket": 24.00, "paid": 24.00, "outstanding": 0.00, "ledger": "مدين 1000 24.00 / دائن 4000 24.00 — **أجرة الجراحة غير ممثلة إطلاقاً**" },
+    "generated_outputs": ["Visit", "Invoice", "Receipt", "**لا SurgerySchedule ولا SurgeryChecklist ولا سجل جراحي**"]
+  },
+  {
+    "scenario_id": "SC-028",
+    "title": "eMAR ⛔ — صف واحد لا يُنشأ",
+    "facility_scope": "Tertiary Hospital",
+    "patient_profile": { "age": 66, "gender": "M", "payment_tier": "Cash", "national_id": "9000000028", "phone": "0501234594" },
+    "encounter_type": "Inpatient (IPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة دوائية." },
+    "journey_steps": [
+      { "step": 1, "department": "Doctor", "action": "وصفة بصنفين. **نموذج MedicationSchedule و eMARAdministration كاملان ومفصّلان — ولا أحد ينشئ صفاً واحداً**. الاستثناء الوحيد في المستودع كله: tests/test_high_risk_hardening.py:83", "api": "POST /doctor/prescription/<visit_id>", "financial_impact": { "emar_rows_created": 0 } },
+      { "step": 2, "department": "Nurse", "action": "لوحة eMAR: ترشّح على date(eMARAdministration.scheduled_time)==today **بلا أي فلتر مستأجر** ثم يقسّم pending/given **في بايثون** لا في SQL", "api": "GET /emar/dashboard", "financial_impact": { "cross_tenant_read": true } },
+      { "step": 3, "department": "Nurse", "action": "النتيجة: **اللوحة فارغة دائماً** في نظام حيّ. لا يمكن تسجيل أي جرعة", "api": "GET /emar/patient/<patient_id>", "financial_impact": 0 },
+      { "step": 4, "department": "Nurse", "action": "**فجوة عدم وصول**: POST /emar/administer/<id> يحتاج admin_id، فلا يوجد مسار يمكن الوصول إليه. الخدمة نفسها NursingService.record_emar_administration **منفَّذة بجودة عالية**: تحقق من التعداد، مطابقة المريض والدواء مع الجدول، رفض إعادة توثيق صف طرفي، إلزام سبب لـ REFUSED و HELD", "api": "POST /emar/administer/<admin_id>", "financial_impact": { "reachable": false } },
+      { "step": 5, "department": "Nurse", "action": "المسار البديل المتاح: POST /nurse/administer-medication/<prescription_item_id> يكتب في MedicationAdministrationLog — **نموذج أرقّ تماماً**: بلا status، بلا فحص دواء-مريض، بلا رفض، بلا vital signs", "api": "POST /nurse/administer-medication/<prescription_item_id>", "financial_impact": { "log_rows": 1, "clinical_safety": "thin" } },
+      { "step": 6, "department": "Nurse", "action": "نموذجان متوازيان للتسجيل الدوائي: eMARAdministration (غني) وMedicationAdministrationLog (فقير). الأول لا يُستخدم، الثاني يُستخدم — **تقسيم السجل الطبي الدوائي**", "api": "GET /nurse/medication-administration", "financial_impact": 0 },
+      { "step": 7, "department": "Pharmacist", "action": "فحص جدّي: الصرف يتحقق من التفاعلات وExpiry والمخزون وROW LOCK — لكنه يفشل 402 إذا كانت الوصفة PENDING، فلا صرف ووصف بلا دفعة", "api": "POST /medication/prescriptions/dispense/<prescription_id>", "financial_impact": { "blocked_until_paid": true } }
+    ],
+    "financial_summary": { "gross_total": 172.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 172.00, "paid": 172.00, "outstanding": 0.00, "ledger": "مدين 1000 / دائن 4000 بقيمة 172.00" },
+    "generated_outputs": ["Prescription + Items", "PrescriptionDispenseLog", "StockMovement", "MedicationAdministrationLog (النموذج الرقيق)", "**لا eMARAdministration ولا جدول جرعات**"]
+  },
+  {
+    "scenario_id": "SC-029",
+    "title": "إعادة الدخول — العلامة موجودة والمنطق غائب",
+    "facility_scope": "Tertiary Hospital",
+    "patient_profile": { "age": 70, "gender": "M", "payment_tier": "Insurance", "national_id": "9000000029", "phone": "0501234595" },
+    "encounter_type": "Inpatient (IPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة إعادة دخول." },
+    "journey_steps": [
+      { "step": 1, "department": "Nurse", "action": "إقامة أولى بـadmission_type='EMERGENCY' وخروج HOME", "api": "POST /bed/api/admissions/admit", "financial_impact": { "visit_total": 400.00 } },
+      { "step": 2, "department": "Nurse", "action": "الخروج", "api": "POST /bed/api/admissions/<id>/discharge", "financial_impact": { "discharge_type": "HOME" } },
+      { "step": 3, "department": "Nurse", "action": "إعادة دخول بعد 9 أيام بـadmission_type='READMISSION' — القيمة موجودة في التعداد ومقبولة في Admission.admission_type", "api": "POST /bed/api/admissions/admit", "financial_impact": { "readmission_within_30d": true } },
+      { "step": 4, "department": "Accountant", "action": "**الفجوة**: Admission.readmission_flag خاصية تحسب القراءة فقط — ولا تقارن Admissions سابقة.**", "api": "GET /bed/admission/<id>", "financial_impact": { "flag_is_informational_only": true } },
+      { "step": 5, "department": "Accountant", "action": "لا تسعير مختلف لإعادة الدخول، ولا خصم، ولا تحذير في أي موضع بنظام الفوترة. **الإعادة تُسعَّر كإقامة أولى جديدة تماماً**", "api": "GET /accountant/audit/debts", "financial_impact": { "readmission_pricing": "identical" } },
+      { "step": 6, "department": "Accountant", "action": "لا تقرير إعادة دخول، ولا مؤشر في لوحة الواجهة", "api": "GET /accountant/reports", "financial_impact": 0 }
+    ],
+    "financial_summary": { "gross_total": 820.00, "package_deduction": 0.00, "insurance_coverage": 656.00, "patient_out_of_pocket": 164.00, "paid": 164.00, "outstanding": 0.00, "ledger": "مدين 1000 / دائن 4000 بقيمة 820.00 — بلا أي معالجة لتحمل إعادة الدخول" },
+    "generated_outputs": ["Admission × 2", "readmission_flag معلومة فقط", "Invoice × 2", "Receipt × 2", "**لا تقرير إعادة دخول**"]
+  },
+  {
+    "scenario_id": "SC-030",
+    "title": "ATC / صيدلية المستشفى — الخصم مرتبط بالوصفة لا بالحساب",
+    "facility_scope": "Tertiary Hospital",
+    "patient_profile": { "age": 44, "gender": "F", "payment_tier": "Cash", "national_id": "9000000030", "phone": "0501234596" },
+    "encounter_type": "Inpatient (IPD)",
+    "package_details": { "applicable": false, "reason": "لا باقة أدوية لمستشفى." },
+    "journey_steps": [
+      { "step": 1, "department": "Doctor", "action": "وصفة من صنفين. الرض لكل أصناف، total_cost على PrescriptionItem", "api": "POST /doctor/prescription/<visit_id>", "financial_impact": { "prescription_total": 246.00 } },
+      { "step": 2, "department": "Pharmacy", "action": "صرف بعد السداد. **ربط الوصفة بالحساب عبر Visit فقط**؛ الحارس 402 يقرأ payment_status للزيارة، وليس حالة الوصفة", "api": "POST /medication/prescriptions/dispense/<prescription_id>", "financial_impact": { "paid": 246.00, "paid_status": "PAID" } },
+      { "step": 3, "department": "Pharmacy", "action": "الخصم بقفل صف على Medication.stock_quantity + PharmacyStockService.adjust_stock(-qty، 'sale'، reference PrescriptionItem) + صف StockMovement. **مستوى المخزون على Medication نفسه**، لا على دفعة أو جرد", "api": "POST /medication/prescriptions/dispense/<prescription_id>", "financial_impact": { "stock_moved": -30 } },
+      { "step": 4, "department": "Pharmacy", "action": "فجوة: PrescriptionItem بلا عمود expiry ولا batch_number. StockMovement يحملهما، لكن **سجل الوصفة لا يعرف أي دفعة صُرف**", "api": "GET /medication/api/prescriptions", "financial_impact": { "traceability": "no_batch_on_item" } },
+      { "step": 5, "department": "Pharmacy", "action": "فجوة: جدول DrugInteraction **عالمي بلا tenant_id** (من أصل 4 نماذج فقط بلا tenant_id في الموديلات). تفاعل دواء من الكتالوج A قد يحجب دواءً من كتالوج B لمستأجر آخر", "api": "POST /medication/interactions", "financial_impact": { "cross_tenant_interactions": true } },
+      { "step": 6, "department": "Pharmacy", "action": "تنبيه إعادة طلب: is_low_stock عند stock_quantity <= minimum_stock", "api": "GET /medication/stock-alerts", "financial_impact": 0 },
+      { "step": 7, "department": "Procurement", "action": "شراء دفعة: POST /procurement/receive/<id> يخصم من InventoryLedgerService ويضبط remaining_quantity=0 (idempotent) ويرحّل مدين 1300 / دائن 2005", "api": "POST /procurement/receive/<id>", "financial_impact": { "gl": "DR 1300 / CR 2005" } }
+    ],
+    "financial_summary": { "gross_total": 246.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 246.00, "paid": 246.00, "outstanding": 0.00, "ledger": "مدين 1000 / دائن 4000 بقيمة 246.00؛ شراء الأدوية مدين 1300 / دائن 2005" },
+    "generated_outputs": ["Prescription + Items", "PrescriptionDispenseLog", "StockMovement × N", "GLJournal (بيع)", "GLJournal (شراء)"]
+  }
+]
