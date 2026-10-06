@@ -2,7 +2,6 @@
 
 from unittest.mock import patch
 
-import pytest
 from sqlalchemy import select
 
 from app.extensions import db
@@ -16,7 +15,6 @@ from models.visit import Visit
 class TestManagerApprovalTenantSafety:
     """Patch MAX_FORCE_PAYMENT_PERCENTAGE to 100% so tests are not blocked by the 5% quota."""
 
-    @pytest.mark.no_isolation
     def test_manager_approve_same_tenant(self, app, rollback_db, test_tenant, client, login_as):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
@@ -37,8 +35,15 @@ class TestManagerApprovalTenantSafety:
 
         login_as(client, 'mgr_approve_t2', 'manager')
 
+        # GatekeeperService.validate_force_payment rejects when the share of force
+        # payments among all visits of the last 30 days is >= MAX_FORCE_PAYMENT_
+        # PERCENTAGE. That share is a ratio over the whole database, so it is 100
+        # whenever the only recent visit is this one, and 100 >= 100 refuses. A
+        # patch of 100 therefore only passes when some other test has committed a
+        # non-force visit first, which is pollution this suite no longer has.
+        # Disabling the quota means patching above the maximum possible ratio.
         with patch(
-            'services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100
+            'services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 101
         ):
             resp = client.post(f'/manager/approve-force-payment/{v.id}', follow_redirects=False)
         assert resp.status_code == 302

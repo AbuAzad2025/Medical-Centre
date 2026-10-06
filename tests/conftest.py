@@ -545,9 +545,7 @@ def rollback_db(app, request):
     rollback invalidates the savepoint the others are still using, and every
     caller comes back PendingRollbackError instead of losing cleanly.
     """
-    if request.node.get_closest_marker('concurrency') or request.node.get_closest_marker(
-        'no_isolation'
-    ):
+    if request.node.get_closest_marker('concurrency'):
         yield _db
         return
 

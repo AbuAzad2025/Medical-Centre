@@ -110,6 +110,7 @@ class TestStripeWebhookIdempotency:
         finally:
             lock.release(event_id)
 
+    @pytest.mark.concurrency
     def test_concurrent_distinct_events_create_multiple_records(self, app, test_tenant):
         import json
         import threading
