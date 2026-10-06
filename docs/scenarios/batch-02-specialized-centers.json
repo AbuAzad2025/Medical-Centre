@@ -27,7 +27,7 @@
       { "step": 1, "department": "Reception", "action": "تسجيل المريض مع is_pregnant=True و pregnancy_weeks=24 و last_menstruation_date — هذه الحقول موجودة فعلاً على نموذج المريض", "api": "POST /reception/add_patient", "financial_impact": 0 },
       { "step": 2, "department": "Doctor", "action": "فحوصات ما قبل الولادة — كل فحص سطر منفصل عبر add-service؛ **لا يوجد مسار أو حزمة ante-natal**", "api": "POST /reception/visits/<visit_id>/add-service", "financial_impact": { "line_items": 4, "visit_total": 210.00 } },
       { "step": 3, "department": "Doctor", "action": "الترحيب: ClinicalSafetyService.check_prescription_safety يشمل _check_pregnancy_safety ويقرأ Medication.pregnancy_category (A/B/C/D/X) فيحجب فئة D/X بإجراء HARD_STOP", "api": "POST /doctor/prescription/<visit_id>", "financial_impact": { "blocked": "pregnancy contraindication" } },
-      { "step": 4, "department": "Doctor", "action": "اختيار دواء فئة C معOverrides موثّق لـ head_physician ثم الحفظ", "api": "POST /doctor/prescription/<visit_id>", "financial_impact": { "prescription_total": 64.00 } },
+      { "step": 4, "department": "Doctor", "action": "اختيار دواء فئة C مع تجاوز موثّق من رئيس الأطباء ثم الحفظ", "api": "POST /doctor/prescription/<visit_id>", "financial_impact": { "prescription_total": 64.00 } },
       { "step": 5, "department": "Reception", "action": "تغطية 70% تُحسَب خطياً على الإجمالي: insurance_amount = total×0.7، patient_share = total×0.3. **لا تحمّل ولا فرنشيز** — grep عنهما يعطي صفر نتيجة", "api": "POST /payment/process/<visit_id>", "financial_impact": { "visit_total": 274.00, "insurance_amount": 191.80, "patient_share": 82.20, "paid": 82.20 } },
       { "step": 6, "department": "Doctor", "action": "ضبط follow_up_required + follow_up_date؛ _sync_follow_up_request_for_visit ينشئ FollowUpRequest بحالة PENDING", "api": "POST /doctor/save-visit-summary/<visit_id>", "financial_impact": 0 }
     ],
@@ -80,10 +80,10 @@
     "package_details": { "applicable": false, "reason": "لا باقة أشعة." },
     "journey_steps": [
       { "step": 1, "department": "Radiology", "action": "وحدة radiology مفعّلة على الباقة SaaS standalone_radiology؛ guard_module('radiology') يسمح بالوصول", "api": "GET /radiology/worklist", "financial_impact": 0 },
-      { "step": 2, "department": "Radiology", "action": "طلب FHIR خارجي بلا Visit — نفس فجوة الفوترة في SC-014", "api": "POST /radiology/api/fhir/radiology-request", "financial_impact": { "billable": false } },
-      { "step": 3, "department": "Radiology", "action": "بوابة قدرات المنصة: بعض المسارات تحت /super-admin تتطلب ability منطقية. عند التعطيل ترجع 404 لا 403 — وهي النتيجة المتوقعة في SC-014 و SC-015 لـ CAP_WEBAUTHN", "api": "GET /biometric", "financial_impact": 0 },
+      { "step": 2, "department": "Radiology", "action": "طلب FHIR خارجي بلا Visit — نفس فجوة الفوترة في SC-014", "api": "— (لا يوجد مسار إنشاء طلب أشعة عبر FHIR)", "financial_impact": { "billable": false } },
+      { "step": 3, "department": "Radiology", "action": "بوابة قدرات المنصة: بعض المسارات تحت /super-admin تتطلب ability منطقية. عند التعطيل ترجع 404 لا 403 — وهي النتيجة المتوقعة في SC-014 و SC-015 لـ CAP_WEBAUTHN", "api": "GET /biometric/", "financial_impact": 0 },
       { "step": 4, "department": "Radiology", "action": "تنفيذ النتيجة + مراجعة ثانية", "api": "POST /radiology/worklist/complete/<request_id>", "financial_impact": 0 },
-      { "step": 5, "department": "Radiology", "action": "تحميل صور DICOM من PACSconfiguration", "api": "GET /radiology/images/<result_id>", "financial_impact": 0 },
+      { "step": 5, "department": "Radiology", "action": "تحميل صور DICOM من PACSconfiguration", "api": "GET /radiology/images", "financial_impact": 0 },
       { "step": 6, "department": "Radiology", "action": "فجوة الطباعة: print_report و print_pdf يعتمدان على visit_id؛ بلا زيارة لا يوجد تقرير مطبوع قابل للتسليم", "api": "GET /radiology/print_report/<result_id>", "financial_impact": { "blocker": "visit_id مطلوب" } }
     ],
     "financial_summary": { "gross_total": 0.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 0.00, "outstanding": 0.00, "ledger": "لا إدخال محاسبي — لا مسار فوترة للأشعة القائمة بذاتها" },
@@ -155,8 +155,8 @@
       { "step": 2, "department": "Pharmacy", "action": "بيع مباشر. **فجوة E15**: POST /medication/pos/sell ينشئ PharmacySale + PharmacySaleItem ويخصم المخزون عبر PharmacyStockService لكنه **لا يستدعي GLService.post_pharmacy_sale**. لا قيد محاسبي، لا COGS، الإيراد مفقود من 4100", "api": "POST /medication/pos/sell", "financial_impact": { "total_amount": 138.00, "gl_posted": false } },
       { "step": 3, "department": "Pharmacy", "action": "للإيراد المُرحَّل: PharmacySaleService.create_sale يحسب متوسط التكلفة ويرحّل مدين 1000 / دائن 4100 + مدين 5000 / دائن 1300. **نفس العملية بقيمتين محاسبيتين مختلفتين حسب المسار**", "api": "— (PharmacySaleService.create_sale)", "financial_impact": { "gl_posted": true, "cogs": true } },
       { "step": 4, "department": "Pharmacy", "action": "مرتجع. process_pharmacy_return يعكس حركة المخزون ويعيد المبلغ. **فجوة**: PharmacySaleService.void_sale لا يرحّل أي قيد عكسي، والإيراد المُرحَّل يبقى في الدفاتر", "api": "POST /payment/api/pharmacy/returns", "financial_impact": { "refund": 46.00, "reversing_journal": false } },
-      { "step": 5, "department": "Pharmacy", "action": "فجوة دفترية: PharmacySale و PharmacySaleItem و PharmacyReturn **لا تحمل أي مفتاح أجنبي إلى Invoice أو Payment**. ثلاثة كتب منفصلة تماماً", "api": "GET /medication/sales", "financial_impact": { "gl_bridge": "none" } },
-      { "step": 6, "department": "Pharmacy", "action": "طلب توريد وfulfillment يخصم المخزون ويكتب StockMovement", "api": "POST /supply-requests/<id>/fulfill", "financial_impact": 0 }
+      { "step": 5, "department": "Pharmacy", "action": "فجوة دفترية: PharmacySale و PharmacySaleItem و PharmacyReturn **لا تحمل أي مفتاح أجنبي إلى Invoice أو Payment**. ثلاثة كتب منفصلة تماماً", "api": "GET /medication/sales-history", "financial_impact": { "gl_bridge": "none" } },
+      { "step": 6, "department": "Pharmacy", "action": "طلب توريد وfulfillment يخصم المخزون ويكتب StockMovement", "api": "POST /medication/supply-requests/<int:request_id>/fulfill", "financial_impact": 0 }
     ],
     "financial_summary": { "gross_total": 138.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 138.00, "paid": 138.00, "outstanding": 0.00, "ledger": "**صفر قيد** إن تم البيع عبر POS (E15)؛ المرتجع بلا قيد عكسي" },
     "generated_outputs": ["PharmacySale SCP-*", "PharmacySaleItem", "StockMovement", "PharmacyReturn", "لا GLJournal"]

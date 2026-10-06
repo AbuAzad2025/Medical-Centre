@@ -25,7 +25,7 @@
     "facility_scope": "Tertiary Hospital",
     "patient_profile": { "age": 74, "gender": "F", "payment_tier": "Cash", "national_id": "9000000022", "phone": "0501234588" },
     "encounter_type": "Inpatient (IPD)",
-    "package_details": { "applicable": false, "reason": "**لا توجد باقة 'إقامة ICU بسقف'**. Ward.ward_type يقبل ICU/MATERNITY/SURGERY لكن Room.room_type و Bed.bed_type بلا أي عمود سعر. التسعير بالICU غير موجود في النظام." },
+    "package_details": { "applicable": false, "reason": "**لا توجد باقة 'إقامة ICU بسقف'**. Ward.ward_type يقبل ICU/MATERNITY/SURGERY لكن Room.room_type و Bed.bed_type بلا أي عمود سعر. التسعير حسب نوع وحدة العناية غير موجود في النظام." },
     "journey_steps": [
       { "step": 1, "department": "Nurse", "action": "إتاحة أسرة ICU: GET /bed/api/available-beds **لا يرشّح على الإتاحة** — يعيد كل أسرار القسم. التصفية على العميل", "api": "GET /bed/api/available-beds", "financial_impact": 0 },
       { "step": 2, "department": "Nurse", "action": "Ward.ward_type='ICU', Room.room_type='ICU_BAY', Bed.bed_type='ICU' — **كلها حقول وصفية بلا سعر مرتبط**", "api": "GET /bed/ward/<id>", "financial_impact": { "rate_model": "none" } },
@@ -88,7 +88,7 @@
       { "step": 3, "department": "Accountant", "action": "المتبقي 600.00. **الفجوة**: الفاتورة يجب أن تُنشأ بـsend-to-accounting ليُخصم منها؛ دونها PaymentAllocationService.allocate لا يوزّع شيئاً بينما Visit.paid_amount يتحرك — كتابان منفصلان بلا جسر", "api": "POST /payment/process/<visit_id>", "financial_impact": { "invoice_allocation": 0.00, "visit_remaining": 600.00 } },
       { "step": 4, "department": "Accountant", "action": "قائمة الفواتير المفتوحة: FinancialService.get_pending_invoices يرشّح على Invoice.status.in_(['PENDING','PARTIAL']) — وهذه قيم **غير موجودة** في التعداد (DRAFT|ISSUED|POSTED|PAID|VOID). **يُعيد دائماً قائمة فارغة**", "api": "GET /accountant/open-invoices", "financial_impact": { "returns": "always_empty", "defect": "E18" } },
       { "step": 5, "department": "Accountant", "action": "كشف المتبقي بالبحث اليدوي: كشف ديون يجمع Visit.remaining_amount لزيارات PENDING|PARTIAL|DEBT — يعمل، لكنه غير تلقائي", "api": "GET /accountant/audit/debts", "financial_impact": { "outstanding": 600.00 } },
-      { "step": 6, "department": "Accountant", "action": "قائمة حساب المريض: total_billed يجمع Invoice.total_amount بينما total_remaining يجمع Visit.remaining_amount — **مصدران مختلفان**. مريض بلا فواتير يظهر total_billed=0 بجانب outstanding≠0", "api": "GET /accountant/invoices/financial", "financial_impact": { "statement_inconsistent": true, "defect": "E23" } }
+      { "step": 6, "department": "Accountant", "action": "قائمة حساب المريض: total_billed يجمع Invoice.total_amount بينما total_remaining يجمع Visit.remaining_amount — **مصدران مختلفان**. مريض بلا فواتير يظهر total_billed=0 بجانب outstanding≠0", "api": "GET /accountant/invoices", "financial_impact": { "statement_inconsistent": true, "defect": "E23" } }
     ],
     "financial_summary": { "gross_total": 900.00, "package_deduction": 0.00, "insurance_coverage": 720.00, "patient_out_of_pocket": 180.00, "paid": 300.00, "outstanding": 600.00, "ledger": "مدين 1000 300.00 / دائن 4000 300.00؛ ذمم 600.00 غير مرصودة في الفواتير" },
     "generated_outputs": ["Admission.status='DISCHARGED'", "discharge_type='TRANSFER'", "كشف ديون", "قائمة مفتوحة فارغة (E18)", "كشف حساب غير متسق (E23)"]
@@ -106,7 +106,7 @@
       { "step": 3, "department": "Nurse", "action": "ترقيم في جناح ولادة — حقل Ward.ward_type='MATERNITY' موجود ويقبل القيمة، لكنه **حقل تصنيف بلا أي أثر مالي**", "api": "POST /bed/api/admissions/admit", "financial_impact": { "maternity_rate": "no_model" } },
       { "step": 4, "department": "Doctor", "action": "**⛔ Caesarean مستحيل**: لا SurgerySchedule ولا SurgeryChecklist ولا مسار إنشاء. لا يوجد writer لـ OR في أي موضع: Scope ← ORSchedule ← لا شيء", "api": "— (لا يوجد مسار)", "financial_impact": { "blocker": "no_or_writer" } },
       { "step": 5, "department": "Doctor", "action": "البديل المتاح التلقائي: ولادة vaginal تُسجَّل كنص في Visit.notes مع Visit.diagnosis. **لا يوجد Structured Delivery Data إطلاقاً**", "api": "POST /doctor/diagnosis/<visit_id>", "financial_impact": 0 },
-      { "step": 6, "department": "Nurse", "action": "تمريض: NursingAssessment بمقاييس Braden وNorton وMorse وPain وGlasgow — **مقاييس عنايةICU**، لا مقياس Partogram أو Bishop ولا Dreyfus", "api": "POST /nursing-assessment/new/<patient_id>", "financial_impact": 0 },
+      { "step": 6, "department": "Nurse", "action": "تمريض: NursingAssessment بمقاييس Braden وNorton وMorse وPain وGlasgow — **مقاييس العناية المركزة**، لا مقياس Partogram أو Bishop ولا Dreyfus", "api": "POST /nursing-assessment/new/<patient_id>", "financial_impact": 0 },
       { "step": 7, "department": "Nurse", "action": "الخروج بـadmission_type='ELECTIVE'. الفارق بين الولادة الطبيعية والقيصرية غير قابل للترميز — لا حقل delivery_mode", "api": "POST /bed/api/admissions/<id>/discharge", "financial_impact": { "delivery_mode_field": "absent" } },
       { "step": 8, "department": "Accountant", "action": "الفوترة كلها يدوية عبر أصناف مفردة. **لا باقة ولادة ولا سعر قيصرية** — رياضياً لا يمكن للنظام أن يميّز بين ولادة بـ4,200 وقيصرية بـ9,800", "api": "POST /payment/process/<visit_id>", "financial_impact": { "visit_total": 780.00, "patient_share": 195.00 } }
     ],

@@ -28,7 +28,7 @@
       { "step": 1, "department": "Reception", "action": "دفعتان ببطاقة: 200.00 ثم 150.00. validate_card_payment يشترط last4 وحاملاً ≥3 محارف", "api": "POST /payment/process/<visit_id>", "financial_impact": { "paid": 350.00, "gl_account": "1002 Bank-Card Settlements" } },
       { "step": 2, "department": "Reception", "action": "استرداد 120.00 من الدفعة الثانية فقط", "api": "POST /payment/payments/<id>/refund", "financial_impact": { "refund": 120.00 } },
       { "step": 3, "department": "Accountant", "action": "عكس التوزيع **بترتيب معكوس (جديد أولاً)**: services/refund_service.py:205-238 يعكس FIFO على الفواتير", "api": "POST /payment/refund-requests/<id>/execute", "financial_impact": { "invoice_paid": 230.00 } },
-      { "step": 4, "department": "Accountant", "action": "حماية مبالغة: مجموع المُنفَّذ لا يتجاوز مجموع المدفوع لكل دفعة", "api": "GET /payment/payments/<id>", "financial_impact": { "over_refund_blocked": true } },
+      { "step": 4, "department": "Accountant", "action": "حماية مبالغة: مجموع المُنفَّذ لا يتجاوز مجموع المدفوع لكل دفعة", "api": "GET /accountant/payments", "financial_impact": { "over_refund_blocked": true } },
       { "step": 5, "department": "Accountant", "action": "فجوة: إلغاء الدفع ممكن فقط خلال نافذة 24 ساعة عبر Payment.can_be_cancelled. بعد ذلك مسار الاسترداد فقط", "api": "models/payment.py:238-256", "financial_impact": { "cancel_window_hours": 24 } }
     ],
     "financial_summary": { "gross_total": 350.00, "package_deduction": 0.00, "insurance_coverage": 0.00, "patient_out_of_pocket": 0.00, "paid": 230.00, "outstanding": 120.00, "ledger": "صافي مدين 1002 بقيمة 230.00" },
@@ -78,7 +78,7 @@
     "encounter_type": "N/A — دورة مالية",
     "package_details": { "applicable": false, "reason": "لا باقة." },
     "journey_steps": [
-      { "step": 1, "department": "Accountant", "action": "ضمان دليل الحسابات: ensure_coa عملية idempotent، حساسة لـSaaS GUC، وتبذر 13 حساباً عند غيابها", "api": "services/gl_service.py:228-251", "financial_impact": { "accounts": 13 } },
+      { "step": 1, "department": "Accountant", "action": "ضمان دليل الحسابات: ensure_coa عملية idempotent، حساسة لتعداد GUC الخاص بـSaaS، وتبذر 13 حساباً عند غيابها", "api": "services/gl_service.py:228-251", "financial_impact": { "accounts": 13 } },
       { "step": 2, "department": "Accountant", "action": "ضمان الفترات: ensure_financial_periods ينشئ السنة الميلادية الحالية", "api": "services/gl_service.py:266-293", "financial_impact": 0 },
       { "step": 3, "department": "Accountant", "action": "ميزان المراجعة يحسب total_debit و total_credit ويقارن |dr−cr| < 0.01", "api": "GET /accountant/trial-balance", "financial_impact": { "balanced": true } },
       { "step": 4, "department": "Accountant", "action": "كشف دفتر حساب برصيد تراكمي", "api": "GET /accountant/accounts/<int:account_id>", "financial_impact": 0 },
@@ -173,7 +173,7 @@
       { "step": 1, "department": "Accountant", "action": "إنشاء المطالبة. **الفجوة**: InsuranceClaimLine **لا يُكتب أبداً** ⇒ لا بنود في المطالبة، فلا يمكن تسوية الدفعة إلى الخدمات", "api": "POST /api/claims", "financial_impact": { "claim_lines": 0 } },
       { "step": 2, "department": "Accountant", "action": "⛔ **مدخل العميل**: routes/insurance_routes.py يأخذ total_claim من **جسم الطلب** بلا اشتقاق من الفاتورة. أي رقم يدخل المطالبة", "api": "POST /api/claims", "financial_impact": { "total_from_client": true, "defect": "E14" } },
       { "step": 3, "department": "Accountant", "action": "رفع: submit() ينقل DRAFT ← SUBMITTED", "api": "POST /api/claims/<id>/submit", "financial_impact": 0 },
-      { "step": 4, "department": "Accountant", "action": "الحكم **يدوي بالكامل**: adjudicate() يضبط approved_amount الذي يكتبه المحاسب. **لا يوجد محرك جدول رسوم مسموح ولا نسبة تلقائية** —gvرفض ما يرفضه المؤسِّس لا يمكن تمثيله", "api": "POST /api/claims/<id>/adjudicate", "financial_impact": { "approved": 960.00, "engine": "manual" } },
+      { "step": 4, "department": "Accountant", "action": "الحكم **يدوي بالكامل**: adjudicate() يضبط approved_amount الذي يكتبه المحاسب. **لا يوجد محرك جدول رسوم مسموح ولا نسبة تلقائية** —ورفض شركة التأمين لا يمكن تمثيله", "api": "POST /api/claims/<id>/adjudicate", "financial_impact": { "approved": 960.00, "engine": "manual" } },
       { "step": 5, "department": "Accountant", "action": "التسوية: settle() ينقل إلى SETTLED", "api": "POST /api/claims/<id>/settle", "financial_impact": 0 },
       { "step": 6, "department": "Accountant", "action": "EOB: نموذج eobs يحمل total_billed و total_allowed و patient_responsibility و denial_reason و raw_payload. **لكن EOB لا يكتبه أي مسار** — النموذج موجود بلا كاتب مثل SurgerySchedule", "api": "POST /api/claims/<id>/settle", "financial_impact": { "eob_rows": 0 } },
       { "step": 7, "department": "Accountant", "action": "⛔ **فجوة E13**: record_payout يكتب insurance_payouts فقط — بلا Payment وبلا GLService ⇒ حساب 1105 Insurance Receivables لا يُخفَّض أبداً، والإيراد الموعود لا يظهر في ميزان المراجعة", "api": "POST /api/claims/<id>/payout", "financial_impact": { "ledger_impact": 0.00, "defect": "E13" } },
