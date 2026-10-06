@@ -6,7 +6,7 @@ import pytest
 
 
 class TestPageHeaderMacro:
-    def test_renders_title_subtitle_and_actions(self, app):
+    def test_renders_title_subtitle_and_actions(self, app, rollback_db):
         with app.app_context():
             from flask import render_template_string
 
@@ -30,7 +30,7 @@ class TestPageHeaderMacro:
 
 class TestReceptionPagesUsePageHeader:
     @pytest.fixture
-    def reception_client(self, client, login_as):
+    def reception_client(self, client, login_as, rollback_db):
         return login_as(client, 'reception_ph5', 'reception', full_name='استقبال PH5')
 
     def test_visits_page_has_clinical_page_header(self, reception_client):
@@ -66,7 +66,7 @@ class TestReceptionPagesUsePageHeader:
 
 class TestDoctorQueuePageHeader:
     @pytest.fixture
-    def doctor_client(self, client, login_as):
+    def doctor_client(self, client, login_as, rollback_db):
         return login_as(client, 'doctor_ph5', 'doctor', full_name='طبيب PH5')
 
     def test_patient_queue_header(self, doctor_client):
@@ -106,15 +106,15 @@ class TestPharmacyPosPageHeader:
 
 class TestLabRadiologyEmergencyPageHeader:
     @pytest.fixture
-    def lab_client(self, client, login_as):
+    def lab_client(self, client, login_as, rollback_db):
         return login_as(client, 'lab_ph5', 'lab', full_name='مختبر PH5')
 
     @pytest.fixture
-    def radiology_client(self, client, login_as):
+    def radiology_client(self, client, login_as, rollback_db):
         return login_as(client, 'radiology_ph5', 'radiology', full_name='أشعة PH5')
 
     @pytest.fixture
-    def emergency_client(self, client, login_as):
+    def emergency_client(self, client, login_as, rollback_db):
         return login_as(client, 'emergency_ph5', 'emergency', full_name='طوارئ PH5')
 
     def test_lab_worklist_header(self, lab_client):
@@ -156,11 +156,11 @@ class TestLabRadiologyEmergencyPageHeader:
 
 class TestNurseSuperAdminPageHeader:
     @pytest.fixture
-    def nurse_client(self, client, login_as):
+    def nurse_client(self, client, login_as, rollback_db):
         return login_as(client, 'nurse_ph5', 'nurse', full_name='ممرض PH5')
 
     @pytest.fixture
-    def superadmin_client(self, client, login_as):
+    def superadmin_client(self, client, login_as, rollback_db):
         return login_as(client, 'superadmin_ph5', 'super_admin', full_name='سوبر أدمن PH5')
 
     def test_nurse_reports_header(self, nurse_client):
@@ -236,7 +236,7 @@ class TestMedicalHeaderDebt:
             assert 'content-header' not in text, rel
             assert 'class="page-title"' not in text, rel
 
-    def test_all_macro_importers_compile(self, app):
+    def test_all_macro_importers_compile(self, app, rollback_db):
         """Every template using the macro must compile (Jinja syntax check)."""
         from pathlib import Path
 
@@ -254,7 +254,7 @@ class TestMedicalHeaderDebt:
                     errors.append((rel, type(e).__name__, str(e)[:160]))
         assert not errors, errors
 
-    def test_macro_templates_url_for_endpoints_exist(self, app):
+    def test_macro_templates_url_for_endpoints_exist(self, app, rollback_db):
         """Catch url_for BuildErrors: every endpoint referenced in a migrated
         template must be registered in the URL map."""
         import re
@@ -278,7 +278,7 @@ class TestMedicalHeaderDebt:
 class TestPageHeaderFormAndHero:
     """Macro extensions: CSRF-protected form action + gradient hero variant."""
 
-    def test_form_action_renders_post_with_csrf(self, app):
+    def test_form_action_renders_post_with_csrf(self, app, rollback_db):
         from flask import render_template_string
 
         tmpl = (
@@ -294,7 +294,7 @@ class TestPageHeaderFormAndHero:
         assert 'name="csrf_token"' in html
         assert 'btn-info' in html
 
-    def test_hero_variant_renders_gradient(self, app):
+    def test_hero_variant_renders_gradient(self, app, rollback_db):
         from flask import render_template_string
 
         tmpl = (
@@ -309,7 +309,7 @@ class TestPageHeaderFormAndHero:
         assert 'text-white' in html
         assert 'btn-light' in html
 
-    def test_view_appointment_uses_macro_form(self, app):
+    def test_view_appointment_uses_macro_form(self, app, rollback_db):
         from types import SimpleNamespace
 
         from flask import render_template
@@ -338,7 +338,7 @@ class TestPageHeaderFormAndHero:
 
 
 class TestDashboardHeroAndInfoPagesRender:
-    def test_legacy_dashboard_heroes_render_with_hero_header(self, app):
+    def test_legacy_dashboard_heroes_render_with_hero_header(self, app, rollback_db):
         from pathlib import Path
 
         for tmpl, cls in [
@@ -351,7 +351,7 @@ class TestDashboardHeroAndInfoPagesRender:
             assert "hero_class='" + cls + "'" in src
 
     @pytest.mark.parametrize('tmpl', ['main/about.html', 'main/terms.html', 'main/privacy.html'])
-    def test_public_info_pages_render(self, app, tmpl):
+    def test_public_info_pages_render(self, app, rollback_db, tmpl):
         from flask import render_template
 
         with app.test_request_context():

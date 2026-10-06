@@ -55,7 +55,7 @@ def _make_dept(name, name_ar, tenant_id):
 
 
 class TestLabBundleContents:
-    def test_standalone_lab_modules(self, app):
+    def test_standalone_lab_modules(self, app, rollback_db):
         _seed_bundles_if_empty()
         with app.app_context():
             bundle = (
@@ -66,7 +66,7 @@ class TestLabBundleContents:
             assert bundle is not None
             assert bundle.get_modules() == ['lab', 'billing', 'reporting']
 
-    def test_lab_with_reception_modules(self, app):
+    def test_lab_with_reception_modules(self, app, rollback_db):
         _seed_bundles_if_empty()
         with app.app_context():
             bundle = (
@@ -83,7 +83,7 @@ class TestLabBundleContents:
                 'reporting',
             ]
 
-    def test_both_lab_bundles_coexist(self, app):
+    def test_both_lab_bundles_coexist(self, app, rollback_db):
         _seed_bundles_if_empty()
         with app.app_context():
             slugs = db.session.execute(select(ProductBundle.slug)).scalars().all()
@@ -92,14 +92,14 @@ class TestLabBundleContents:
 
 
 class TestLabBundleActivation:
-    def test_lab_allowed_in_both(self, app):
+    def test_lab_allowed_in_both(self, app, rollback_db):
         for slug in ('standalone_lab', 'lab_with_reception'):
             t = _tenant_with_bundle(slug, app)
             with tenant_test_context(app, t):
                 ok, err = can_activate_module(t.id, 'lab')
                 assert ok is True, f'lab should be allowed in {slug}: {err}'
 
-    def test_reception_only_in_lab_with_reception(self, app):
+    def test_reception_only_in_lab_with_reception(self, app, rollback_db):
         t_standalone = _tenant_with_bundle('standalone_lab', app)
         with tenant_test_context(app, t_standalone):
             ok, _ = can_activate_module(t_standalone.id, 'reception')
@@ -109,7 +109,7 @@ class TestLabBundleActivation:
             ok, _ = can_activate_module(t_with.id, 'reception')
             assert ok is True
 
-    def test_pharmacy_blocked_in_lab_bundles(self, app):
+    def test_pharmacy_blocked_in_lab_bundles(self, app, rollback_db):
         for slug in ('standalone_lab', 'lab_with_reception'):
             t = _tenant_with_bundle(slug, app)
             with tenant_test_context(app, t):
@@ -119,7 +119,7 @@ class TestLabBundleActivation:
 
 
 class TestLabBundleFlows:
-    def test_standalone_walkin_without_visit(self, app):
+    def test_standalone_walkin_without_visit(self, app, rollback_db):
         t = _tenant_with_bundle('standalone_lab', app)
         with tenant_test_context(app, t):
             labtech = ensure_test_user(db, t, username=f'labwalk_{t.id}', role='lab')
@@ -131,7 +131,7 @@ class TestLabBundleFlows:
             assert ok is False
             assert 'No test IDs' in str(result.get('error', ''))
 
-    def test_lab_with_reception_requires_visit(self, app):
+    def test_lab_with_reception_requires_visit(self, app, rollback_db):
         t = _tenant_with_bundle('lab_with_reception', app)
         with tenant_test_context(app, t):
             labtech = ensure_test_user(db, t, username=f'labrec_{t.id}', role='lab')
@@ -143,7 +143,7 @@ class TestLabBundleFlows:
             assert ok is False
             assert 'visit_id is required' in str(result.get('error', ''))
 
-    def test_reception_to_lab_transfer_allowed(self, app):
+    def test_reception_to_lab_transfer_allowed(self, app, rollback_db):
         from services.queue_management_service import QueueManagementService
 
         t = _tenant_with_bundle('lab_with_reception', app)
@@ -166,7 +166,7 @@ class TestLabBundleFlows:
             )
             assert ok is True, f'reception->lab should be allowed: {msg}'
 
-    def test_lab_dashboard_routing(self, app):
+    def test_lab_dashboard_routing(self, app, rollback_db):
         t = _tenant_with_bundle('standalone_lab', app)
         with tenant_test_context(app, t):
             bundle = (

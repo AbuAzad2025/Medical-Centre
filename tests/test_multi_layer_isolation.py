@@ -50,7 +50,7 @@ def _tenant_with_bundle(bundle_slug, app):
 
 
 class TestPostLoginRouting:
-    def test_tenant_admin_routed_to_bundle_dashboard(self, app):
+    def test_tenant_admin_routed_to_bundle_dashboard(self, app, rollback_db):
         # standalone_pharmacy -> pharmacy portal, standalone_lab -> lab, private_doctor_clinic -> doctor
         cases = [
             ('standalone_pharmacy', 'medication.dashboard'),
@@ -83,7 +83,7 @@ class TestPostLoginRouting:
                         f'{bundle_slug} admin got {endpoint}, expected {expected_endpoint}'
                     )
 
-    def test_staff_routed_to_role_dashboard(self, app):
+    def test_staff_routed_to_role_dashboard(self, app, rollback_db):
         t = _tenant_with_bundle('multi_department_center', app)
         with tenant_test_context(app, t):
             bundle = (
@@ -105,7 +105,7 @@ class TestPostLoginRouting:
                     endpoint = resolve_dashboard_for_user(u)
                     assert endpoint == expected, f'role {role} got {endpoint}, expected {expected}'
 
-    def test_route_guard_blocks_unsubscribed_bundle(self, app, client, test_tenant):
+    def test_route_guard_blocks_unsubscribed_bundle(self, app, rollback_db, client, test_tenant):
         # Create a tenant with only pharmacy, try to access lab route
         t = _tenant_with_bundle('standalone_pharmacy', app)
         with tenant_test_context(app, t):
@@ -130,14 +130,14 @@ class TestPostLoginRouting:
 
 
 class TestBundleIsolation:
-    def test_can_activate_module_rejects_outside_bundle(self, app):
+    def test_can_activate_module_rejects_outside_bundle(self, app, rollback_db):
         t = _tenant_with_bundle('standalone_pharmacy', app)
         with tenant_test_context(app, t):
             ok, msg = can_activate_module(t.id, 'lab')
             assert ok is False
             assert 'not included' in msg.lower()
 
-    def test_ui_nav_hides_unsubscribed(self, app):
+    def test_ui_nav_hides_unsubscribed(self, app, rollback_db):
         t = _tenant_with_bundle('standalone_pharmacy', app)
         with tenant_test_context(app, t):
             bundle = (
@@ -160,7 +160,7 @@ class TestBundleIsolation:
 
 
 class TestTenantIsolation:
-    def test_cross_tenant_data_leakage_blocked(self, app):
+    def test_cross_tenant_data_leakage_blocked(self, app, rollback_db):
         # Create two tenants
         t1 = _tenant_with_bundle('standalone_pharmacy', app)
         t2 = _tenant_with_bundle('standalone_lab', app)
@@ -186,7 +186,7 @@ class TestTenantIsolation:
                 # Expected: TenantIsolationError or TenantContextError
                 assert 'tenant' in str(e).lower() or 'isolation' in str(e).lower()
 
-    def test_tenant_id_filter_enforced(self, app):
+    def test_tenant_id_filter_enforced(self, app, rollback_db):
         t = _tenant_with_bundle('multi_department_center', app)
         with tenant_test_context(app, t):
             from app.shared.tenant_filter import _model_has_tenant_column
@@ -199,7 +199,7 @@ class TestTenantIsolation:
 
 
 class TestRoleIsolation:
-    def test_role_hierarchy(self, app):
+    def test_role_hierarchy(self, app, rollback_db):
         from utils.decorators import ROLE_HIERARCHY
 
         # Strict hierarchy: super_admin only inherits admin/manager, not clinical
@@ -209,7 +209,7 @@ class TestRoleIsolation:
         assert 'doctor' not in ROLE_HIERARCHY['super_admin']
         assert 'lab' not in ROLE_HIERARCHY['super_admin']
 
-    def test_reception_cannot_access_clinical(self, app, client, test_tenant):
+    def test_reception_cannot_access_clinical(self, app, rollback_db, client, test_tenant):
         # Login as reception and try to access doctor endpoint
         from tests.tenant_context import login_test_client
 
@@ -242,7 +242,7 @@ class TestRoleIsolation:
 
 
 class TestPlatformOwnerPrivacyGuard:
-    def test_platform_owner_blocked_from_patient_endpoints(self, app, client):
+    def test_platform_owner_blocked_from_patient_endpoints(self, app, rollback_db, client):
         # Create platform owner user
         from seeds.production_baseline import seed_master_account
 
@@ -287,7 +287,7 @@ class TestPlatformOwnerPrivacyGuard:
                 except Exception as e:
                     assert '403' in str(e) or 'Forbidden' in str(e) or 'Medical Privacy' in str(e)
 
-    def test_platform_owner_allowed_on_tenant_management(self, app):
+    def test_platform_owner_allowed_on_tenant_management(self, app, rollback_db):
         # Platform owner should be allowed on /owner/* and /super-admin/*
         from app.shared.medical_privacy import is_medical_endpoint
 
@@ -295,7 +295,7 @@ class TestPlatformOwnerPrivacyGuard:
         assert is_medical_endpoint('/super-admin/dashboard') is False
         assert is_medical_endpoint('/api/billing/stripe/webhook') is False
 
-    def test_super_admin_blocked_from_medical(self, app):
+    def test_super_admin_blocked_from_medical(self, app, rollback_db):
         from app.shared.medical_privacy import enforce_medical_privacy_guard
         from models.user import User
 

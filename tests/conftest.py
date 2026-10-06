@@ -545,7 +545,9 @@ def rollback_db(app, request):
     rollback invalidates the savepoint the others are still using, and every
     caller comes back PendingRollbackError instead of losing cleanly.
     """
-    if request.node.get_closest_marker('concurrency'):
+    if request.node.get_closest_marker('concurrency') or request.node.get_closest_marker(
+        'no_isolation'
+    ):
         yield _db
         return
 
@@ -591,7 +593,7 @@ def rollback_db(app, request):
 
 
 @pytest.fixture(scope='function')
-def test_tenant(app):
+def test_tenant(app, rollback_db):
     """Create a test tenant for pharmacy-shifa with all modules active (SaaS CI)."""
     from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG, ensure_default_test_tenant
 

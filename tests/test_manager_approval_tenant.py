@@ -2,6 +2,7 @@
 
 from unittest.mock import patch
 
+import pytest
 from sqlalchemy import select
 
 from app.extensions import db
@@ -15,7 +16,8 @@ from models.visit import Visit
 class TestManagerApprovalTenantSafety:
     """Patch MAX_FORCE_PAYMENT_PERCENTAGE to 100% so tests are not blocked by the 5% quota."""
 
-    def test_manager_approve_same_tenant(self, app, test_tenant, client, login_as):
+    @pytest.mark.no_isolation
+    def test_manager_approve_same_tenant(self, app, rollback_db, test_tenant, client, login_as):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -48,7 +50,7 @@ class TestManagerApprovalTenantSafety:
         assert v_after.payment_status == PaymentStatus.DEBT
         assert v_after.force_payment_approved_by is not None
 
-    def test_manager_reject_same_tenant(self, app, test_tenant, client, login_as):
+    def test_manager_reject_same_tenant(self, app, rollback_db, test_tenant, client, login_as):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -83,7 +85,9 @@ class TestManagerApprovalTenantSafety:
         assert v_after.is_force_payment is False
         assert v_after.payment_status == PaymentStatus.PENDING
 
-    def test_manager_approve_cross_tenant_denied(self, app, test_tenant, client, login_as):
+    def test_manager_approve_cross_tenant_denied(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         from app.core.tenant.models import Tenant
 
         other = Tenant(
@@ -124,7 +128,9 @@ class TestManagerApprovalTenantSafety:
         v_after = _db.session.get(Visit, v.id)
         assert v_after.force_payment_approved_by is None
 
-    def test_manager_reject_cross_tenant_denied(self, app, test_tenant, client, login_as):
+    def test_manager_reject_cross_tenant_denied(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         from app.core.tenant.models import Tenant
 
         other = Tenant(
@@ -167,7 +173,9 @@ class TestManagerApprovalTenantSafety:
         v_after = _db.session.get(Visit, v.id)
         assert v_after.is_force_payment is True
 
-    def test_manager_approval_missing_tenant_context(self, app, test_tenant, client, login_as):
+    def test_manager_approval_missing_tenant_context(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         """Missing tenant context should deny access."""
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
@@ -195,7 +203,9 @@ class TestManagerApprovalTenantSafety:
         # Should redirect (flash error) rather than processing
         assert resp.status_code == 302
 
-    def test_manager_approval_does_not_enqueue(self, app, test_tenant, client, login_as):
+    def test_manager_approval_does_not_enqueue(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         """Ticket 1: Manager approval must not auto-enqueue the visit."""
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
