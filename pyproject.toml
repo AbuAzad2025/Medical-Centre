@@ -193,6 +193,13 @@ unfixable = ["E711", "E712"]
 "tests/test_*.py" = [
     "T201",
 ]
+# CLI generators. print() is the output channel for a tool run from a shell, and
+# E402 is unavoidable because the generator puts its own directory on sys.path to
+# import its sibling modules.
+"tools/scenario_gen/*.py" = [
+    "T201",
+    "E402",
+]
 
 [tool.ruff.lint.pylint]
 allow-magic-value-types = ["str", "bytes", "int", "float", "complex"]
