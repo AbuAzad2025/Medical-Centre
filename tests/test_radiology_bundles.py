@@ -55,7 +55,7 @@ def _make_dept(name, name_ar, tenant_id):
 
 
 class TestRadiologyBundleContents:
-    def test_standalone_radiology_modules(self, app):
+    def test_standalone_radiology_modules(self, app, rollback_db):
         _seed_bundles_if_empty()
         with app.app_context():
             bundle = (
@@ -66,7 +66,7 @@ class TestRadiologyBundleContents:
             assert bundle is not None
             assert bundle.get_modules() == ['radiology', 'billing', 'reporting']
 
-    def test_radiology_with_reception_modules(self, app):
+    def test_radiology_with_reception_modules(self, app, rollback_db):
         _seed_bundles_if_empty()
         with app.app_context():
             bundle = (
@@ -83,7 +83,7 @@ class TestRadiologyBundleContents:
                 'reporting',
             ]
 
-    def test_both_radiology_bundles_coexist(self, app):
+    def test_both_radiology_bundles_coexist(self, app, rollback_db):
         _seed_bundles_if_empty()
         with app.app_context():
             slugs = db.session.execute(select(ProductBundle.slug)).scalars().all()
@@ -92,14 +92,14 @@ class TestRadiologyBundleContents:
 
 
 class TestRadiologyBundleActivation:
-    def test_radiology_allowed_in_both(self, app):
+    def test_radiology_allowed_in_both(self, app, rollback_db):
         for slug in ('standalone_radiology', 'radiology_with_reception'):
             t = _tenant_with_bundle(slug, app)
             with tenant_test_context(app, t):
                 ok, err = can_activate_module(t.id, 'radiology')
                 assert ok is True, f'radiology should be allowed in {slug}: {err}'
 
-    def test_reception_only_in_with_reception(self, app):
+    def test_reception_only_in_with_reception(self, app, rollback_db):
         t_standalone = _tenant_with_bundle('standalone_radiology', app)
         with tenant_test_context(app, t_standalone):
             ok, _ = can_activate_module(t_standalone.id, 'reception')
@@ -109,7 +109,7 @@ class TestRadiologyBundleActivation:
             ok, _ = can_activate_module(t_with.id, 'reception')
             assert ok is True
 
-    def test_pharmacy_blocked_in_radiology_bundles(self, app):
+    def test_pharmacy_blocked_in_radiology_bundles(self, app, rollback_db):
         for slug in ('standalone_radiology', 'radiology_with_reception'):
             t = _tenant_with_bundle(slug, app)
             with tenant_test_context(app, t):
@@ -119,7 +119,7 @@ class TestRadiologyBundleActivation:
 
 
 class TestRadiologyBundleFlows:
-    def test_standalone_walkin_without_visit(self, app):
+    def test_standalone_walkin_without_visit(self, app, rollback_db):
         t = _tenant_with_bundle('standalone_radiology', app)
         with tenant_test_context(app, t):
             tech = ensure_test_user(db, t, username=f'radwalk_{t.id}', role='radiology')
@@ -140,7 +140,7 @@ class TestRadiologyBundleFlows:
             )
             assert ok is True, f'walk-in should work in standalone_radiology: {result}'
 
-    def test_with_reception_requires_visit(self, app):
+    def test_with_reception_requires_visit(self, app, rollback_db):
         t = _tenant_with_bundle('radiology_with_reception', app)
         with tenant_test_context(app, t):
             tech = ensure_test_user(db, t, username=f'radrec_{t.id}', role='radiology')
@@ -162,7 +162,7 @@ class TestRadiologyBundleFlows:
             assert ok is False
             assert 'visit_id is required' in str(result.get('error', ''))
 
-    def test_reception_to_radiology_transfer_allowed(self, app):
+    def test_reception_to_radiology_transfer_allowed(self, app, rollback_db):
         from services.queue_management_service import QueueManagementService
 
         t = _tenant_with_bundle('radiology_with_reception', app)
@@ -185,7 +185,7 @@ class TestRadiologyBundleFlows:
             )
             assert ok is True, f'reception->radiology should be allowed: {msg}'
 
-    def test_radiology_dashboard_routing(self, app):
+    def test_radiology_dashboard_routing(self, app, rollback_db):
         t = _tenant_with_bundle('standalone_radiology', app)
         with tenant_test_context(app, t):
             bundle = (

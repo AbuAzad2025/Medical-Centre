@@ -97,7 +97,7 @@ class TestTenantJobRunner:
 class TestNotificationQueueTenantIsolation:
     """Notification queue processing must be scoped to a single tenant."""
 
-    def test_process_notification_queue_filters_by_tenant(self, app, monkeypatch):
+    def test_process_notification_queue_filters_by_tenant(self, app, rollback_db, monkeypatch):
         from app.core.tenant.models import Tenant
         from app.shared.enums import NotificationState
         from models.notification import NotificationQueue
@@ -174,7 +174,7 @@ class TestNotificationQueueTenantIsolation:
 class TestAppointmentRemindersTenantIsolation:
     """Appointment reminder worker must be scoped to a single tenant."""
 
-    def test_send_appointment_reminders_filters_by_tenant(self, app, monkeypatch):
+    def test_send_appointment_reminders_filters_by_tenant(self, app, rollback_db, monkeypatch):
         from datetime import datetime, timedelta
 
         from app.core.tenant.models import Tenant

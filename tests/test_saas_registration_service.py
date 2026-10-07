@@ -78,7 +78,7 @@ def _signup_kwargs(version_id, slug):
 
 
 class TestRegistrationValidation:
-    def test_invalid_slug_rejected(self, app):
+    def test_invalid_slug_rejected(self, app, rollback_db):
         version = _seed_package_version()
         with (
             tenant_test_context(app, bypass=True),
@@ -88,7 +88,7 @@ class TestRegistrationValidation:
                 **_signup_kwargs(version.id, 'Bad Slug!'),
             )
 
-    def test_missing_required_fields(self, app):
+    def test_missing_required_fields(self, app, rollback_db):
         version = _seed_package_version()
         with (
             tenant_test_context(app, bypass=True),
@@ -104,7 +104,7 @@ class TestRegistrationValidation:
                 package_version_id=version.id,
             )
 
-    def test_weak_password_rejected(self, app):
+    def test_weak_password_rejected(self, app, rollback_db):
         version = _seed_package_version()
         slug = f'weak-{uuid.uuid4().hex[:6]}'
         kwargs = _signup_kwargs(version.id, slug)
@@ -115,7 +115,7 @@ class TestRegistrationValidation:
         ):
             SaasRegistrationService.register_organization(**kwargs)
 
-    def test_duplicate_slug_rejected(self, app):
+    def test_duplicate_slug_rejected(self, app, rollback_db):
         version = _seed_package_version()
         slug = f'dup-{uuid.uuid4().hex[:6]}'
         with tenant_test_context(app, bypass=True):
@@ -133,7 +133,7 @@ class TestRegistrationValidation:
 
 
 class TestPaymentRequiredPending:
-    def test_no_trial_package_sets_pending_status(self, app, monkeypatch):
+    def test_no_trial_package_sets_pending_status(self, app, rollback_db, monkeypatch):
         monkeypatch.delenv('SAAS_REQUIRE_PAYMENT_AT_SIGNUP', raising=False)
         version = _seed_package_version(trial_days=0)
         slug = f'paid-{uuid.uuid4().hex[:6]}'
@@ -143,7 +143,7 @@ class TestPaymentRequiredPending:
             )
         assert result.tenant.status == TenantStatus.PENDING
 
-    def test_env_flag_forces_payment_required(self, app, monkeypatch):
+    def test_env_flag_forces_payment_required(self, app, rollback_db, monkeypatch):
         monkeypatch.setenv('SAAS_REQUIRE_PAYMENT_AT_SIGNUP', 'true')
         version = _seed_package_version(trial_days=14)
         slug = f'envpay-{uuid.uuid4().hex[:6]}'
@@ -153,7 +153,7 @@ class TestPaymentRequiredPending:
             )
         assert result.tenant.status == TenantStatus.PENDING
 
-    def test_checkout_url_when_stripe_configured(self, app, monkeypatch):
+    def test_checkout_url_when_stripe_configured(self, app, rollback_db, monkeypatch):
         monkeypatch.setenv('STRIPE_SECRET_KEY', 'sk_test_reg')
         version = _seed_package_version(trial_days=0)
         slug = f'chk-{uuid.uuid4().hex[:6]}'
@@ -172,7 +172,7 @@ class TestPaymentRequiredPending:
 
 
 class TestSignupAbuseProtections:
-    def test_honeypot_rejects_bot(self, app):
+    def test_honeypot_rejects_bot(self, app, rollback_db):
         version = _seed_package_version()
         slug = f'bot-{uuid.uuid4().hex[:6]}'
         with (
@@ -184,7 +184,7 @@ class TestSignupAbuseProtections:
                 honeypot='http://spam.example',
             )
 
-    def test_email_flood_limit(self, app):
+    def test_email_flood_limit(self, app, rollback_db):
         version = _seed_package_version()
         email = f'flood-{uuid.uuid4().hex[:6]}@example.com'
         now = datetime.now(UTC)
@@ -211,7 +211,7 @@ class TestSignupAbuseProtections:
                     package_version_id=version.id,
                 )
 
-    def test_ip_flood_limit(self, app):
+    def test_ip_flood_limit(self, app, rollback_db):
         version = _seed_package_version()
         client_ip = f'10.99.{uuid.uuid4().hex[:2]}.{uuid.uuid4().hex[:2]}'
         now = datetime.now(UTC)
@@ -242,7 +242,7 @@ class TestSignupAbuseProtections:
 
 
 class TestRegistrationProvisioning:
-    def test_provisioning_error_wrapped(self, app):
+    def test_provisioning_error_wrapped(self, app, rollback_db):
         from app.core.saas.lifecycle import ProvisioningError, TenantProvisioningService
 
         version = _seed_package_version()
@@ -258,7 +258,7 @@ class TestRegistrationProvisioning:
         ):
             SaasRegistrationService.register_organization(**_signup_kwargs(version.id, slug))
 
-    def test_client_ip_stored_in_tenant_settings(self, app):
+    def test_client_ip_stored_in_tenant_settings(self, app, rollback_db):
         version = _seed_package_version()
         slug = f'ip-{uuid.uuid4().hex[:6]}'
         client_ip = '203.0.113.50'
@@ -271,11 +271,11 @@ class TestRegistrationProvisioning:
 
 
 class TestResolveDefaultPackage:
-    def test_env_override(self, app, monkeypatch):
+    def test_env_override(self, app, rollback_db, monkeypatch):
         monkeypatch.setenv('SAAS_DEFAULT_PACKAGE_VERSION_ID', '42')
         assert SaasRegistrationService.resolve_default_package_version_id() == 42
 
-    def test_no_available_package_raises(self, app, monkeypatch):
+    def test_no_available_package_raises(self, app, rollback_db, monkeypatch):
         monkeypatch.delenv('SAAS_DEFAULT_PACKAGE_VERSION_ID', raising=False)
         fake_result = MagicMock()
         fake_result.scalars.return_value.first.return_value = None
@@ -289,7 +289,7 @@ class TestResolveDefaultPackage:
 
 
 class TestCaptchaVerification:
-    def test_captcha_http_failure_raises(self, app, monkeypatch):
+    def test_captcha_http_failure_raises(self, app, rollback_db, monkeypatch):
         monkeypatch.setenv('SIGNUP_CAPTCHA_SECRET', 'test-secret')
         with (
             patch('urllib.request.urlopen', side_effect=OSError('network down')),
@@ -297,7 +297,7 @@ class TestCaptchaVerification:
         ):
             SaasRegistrationService._verify_captcha('token')
 
-    def test_captcha_invalid_response_raises(self, app, monkeypatch):
+    def test_captcha_invalid_response_raises(self, app, rollback_db, monkeypatch):
         monkeypatch.setenv('SIGNUP_CAPTCHA_SECRET', 'test-secret')
         fake_resp = MagicMock()
         fake_resp.read.return_value = b'{"success": false}'
@@ -311,7 +311,7 @@ class TestCaptchaVerification:
 
 
 class TestMaybeCreateCheckout:
-    def test_creates_checkout_session_end_to_end(self, app, monkeypatch):
+    def test_creates_checkout_session_end_to_end(self, app, rollback_db, monkeypatch):
         monkeypatch.setenv('STRIPE_SECRET_KEY', 'sk_test_checkout')
         version = _seed_package_version(trial_days=0)
         slug = f'co-{uuid.uuid4().hex[:6]}'

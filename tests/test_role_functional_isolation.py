@@ -395,7 +395,7 @@ class TestApiEnforcement:
         # Should be 403 or redirect, not 200
         assert resp.status_code in (302, 403, 404)
 
-    def test_platform_owner_blocked_from_medical_api(self, app, client):
+    def test_platform_owner_blocked_from_medical_api(self, app, rollback_db, client):
         from seeds.production_baseline import seed_master_account
         from tests.tenant_context import login_test_client
 

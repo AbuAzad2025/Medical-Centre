@@ -27,7 +27,7 @@ from tests.tenant_context import tenant_test_context
 
 
 @pytest.fixture(scope='function')
-def saas_tenant(app):
+def saas_tenant(app, rollback_db):
     import uuid
 
     t = Tenant(
@@ -50,7 +50,7 @@ def saas_tenant(app):
 
 
 @pytest.fixture(scope='function')
-def saas_user(app, saas_tenant):
+def saas_user(app, rollback_db, saas_tenant):
     u = User(
         username=f'saas_admin_{uuid.uuid4().hex[:8]}',
         email='saas@test.local',
@@ -67,7 +67,7 @@ def saas_user(app, saas_tenant):
 
 
 @pytest.fixture(scope='function')
-def package_bundle(app):
+def package_bundle(app, rollback_db):
     import uuid
 
     slug = f'doctor_clinic_full_{uuid.uuid4().hex[:8]}'
@@ -84,7 +84,7 @@ def package_bundle(app):
 
 
 @pytest.fixture(scope='function')
-def package_version(app, package_bundle):
+def package_version(app, rollback_db, package_bundle):
     pv = PackageVersion(
         package_id=package_bundle.id,
         version='1.0.0',

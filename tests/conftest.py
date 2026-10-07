@@ -544,6 +544,12 @@ def rollback_db(app, request):
     removes -- with one shared connection and create_savepoint, a losing thread's
     rollback invalidates the savepoint the others are still using, and every
     caller comes back PendingRollbackError instead of losing cleanly.
+
+    The tenant binding below is skipped for tests marked ``no_tenant_context``.
+    ``_saas_default_tenant_context`` already declines to bind a tenant for them,
+    because they assert on the fail-closed behaviour of an unbound request;
+    binding one here as well silently gave them a tenant and
+    ``test_tenant_rls.py`` stopped raising the isolation error it exists to check.
     """
     if request.node.get_closest_marker('concurrency'):
         yield _db
@@ -564,7 +570,9 @@ def rollback_db(app, request):
     _FSASession.get_bind = lambda _self, *_a, **_k: connection
     _db.session.configure(join_transaction_mode='create_savepoint')
 
-    if app.config.get('ENABLE_SAAS_MODE', False):
+    if app.config.get('ENABLE_SAAS_MODE', False) and not request.node.get_closest_marker(
+        'no_tenant_context'
+    ):
         from tests.tenant_context import bind_tenant_on_g, ensure_default_test_tenant
 
         tenant = ensure_default_test_tenant(app)

@@ -25,7 +25,7 @@ from services.visit_state_machine_service import VisitStateMachineService
 
 @pytest.mark.usefixtures('app')
 class TestReturnToTreatment:
-    def test_reception_can_return_completed_visit_to_open(self, app):
+    def test_reception_can_return_completed_visit_to_open(self, app, rollback_db):
         with app.app_context():
             from flask import g
 
@@ -78,7 +78,7 @@ class TestReturnToTreatment:
                 assert ok
                 assert v.status == 'OPEN'
 
-    def test_doctor_cannot_return_to_treatment(self, app):
+    def test_doctor_cannot_return_to_treatment(self, app, rollback_db):
         with app.app_context():
             from flask import g
 
@@ -129,7 +129,7 @@ class TestReturnToTreatment:
                     VisitStateMachineService.return_to_treatment(v, actor=doc, reason='Follow-up')
                 assert 'not authorized' in str(exc_info.value)
 
-    def test_manager_cannot_return_to_treatment(self, app):
+    def test_manager_cannot_return_to_treatment(self, app, rollback_db):
         with app.app_context():
             from flask import g
 
@@ -180,7 +180,7 @@ class TestReturnToTreatment:
                     VisitStateMachineService.return_to_treatment(v, actor=mgr, reason='Follow-up')
                 assert 'not authorized' in str(exc_info.value)
 
-    def test_non_completed_visit_cannot_return(self, app):
+    def test_non_completed_visit_cannot_return(self, app, rollback_db):
         with app.app_context():
             from flask import g
 
@@ -231,7 +231,7 @@ class TestReturnToTreatment:
                     VisitStateMachineService.return_to_treatment(v, actor=rec, reason='Follow-up')
                 assert 'only valid from COMPLETED' in str(exc_info.value)
 
-    def test_return_to_treatment_requires_actor(self, app):
+    def test_return_to_treatment_requires_actor(self, app, rollback_db):
         with app.app_context():
             from flask import g
 
@@ -273,7 +273,9 @@ class TestReturnToTreatment:
                     VisitStateMachineService.return_to_treatment(v, actor=None, reason='Follow-up')
                 assert 'actor required' in str(exc_info.value)
 
-    def test_add_service_does_not_change_visit_status(self, app, test_tenant, client, login_as):
+    def test_add_service_does_not_change_visit_status(
+        self, app, rollback_db, test_tenant, client, login_as
+    ):
         from models.service import ServiceMaster
 
         tenant_id = test_tenant.id
@@ -320,7 +322,7 @@ class TestReturnToTreatment:
         assert v_after.status == 'COMPLETED'
 
     def test_reception_return_to_treatment_route_creates_audit(
-        self, app, test_tenant, client, login_as
+        self, app, rollback_db, test_tenant, client, login_as
     ):
         from models.audit_trail import AuditTrail
 

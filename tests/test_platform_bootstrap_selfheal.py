@@ -237,7 +237,7 @@ class TestReferenceData:
 
 
 class TestPlatformAdmin:
-    def test_admin_is_created_with_a_generated_password(self, monkeypatch):
+    def test_admin_is_created_with_a_generated_password(self, app, rollback_db, monkeypatch):
         """No fixed default password may exist: it is an open door."""
         from models.user import User
 
@@ -258,7 +258,7 @@ class TestPlatformAdmin:
         assert 'admin123' not in admin.password_hash
         assert admin.check_password('admin123') is False
 
-    def test_existing_admin_password_is_never_reset(self, monkeypatch):
+    def test_existing_admin_password_is_never_reset(self, app, rollback_db, monkeypatch):
         """Re-running bootstrap must not lock anyone out."""
         from models.user import User
 
@@ -285,7 +285,7 @@ class TestPlatformAdmin:
         assert again.password_hash == original_hash
         assert again.check_password('a-completely-different-password') is False
 
-    def test_configured_password_is_honoured(self, monkeypatch):
+    def test_configured_password_is_honoured(self, app, rollback_db, monkeypatch):
         from models.user import User
 
         monkeypatch.setenv('PLATFORM_ADMIN_PASSWORD', 'a-deliberate-password-123')
@@ -300,7 +300,7 @@ class TestPlatformAdmin:
 
 
 class TestRunPlatformBootstrap:
-    def test_one_failing_step_does_not_stop_the_others(self, monkeypatch):
+    def test_one_failing_step_does_not_stop_the_others(self, app, rollback_db, monkeypatch):
         """A degraded platform is recoverable; a crash loop is not."""
         import app.core.platform_bootstrap as pb
 
@@ -343,7 +343,7 @@ class TestRunPlatformBootstrap:
 
 
 @pytest.mark.parametrize('name', ['REPORT_FOLDER', 'UPLOAD_FOLDER'])
-def test_configured_storage_paths_are_created(app, name, tmp_path, monkeypatch):
+def test_configured_storage_paths_are_created(app, rollback_db, name, tmp_path, monkeypatch):
     target = tmp_path / name
     monkeypatch.setitem(app.config, name, str(target))
     from app.core import platform_bootstrap as pb
@@ -352,12 +352,12 @@ def test_configured_storage_paths_are_created(app, name, tmp_path, monkeypatch):
     assert target.is_dir(), f'{name} was not provisioned'
 
 
-def test_health_endpoint_still_answers_after_bootstrap(app):
+def test_health_endpoint_still_answers_after_bootstrap(app, rollback_db):
     client = app.test_client()
     assert client.get('/__health').status_code == 200
 
 
-def test_no_bootstrap_writes_with_an_unbound_tenant(app):
+def test_no_bootstrap_writes_with_an_unbound_tenant(app, rollback_db):
     """Guards the RLS trap: a platform write with no tenant bound is rejected."""
     with app.app_context():
         db.session.execute(text("SELECT set_config('app.tenant_id', '', false)"))

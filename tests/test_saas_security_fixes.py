@@ -63,7 +63,7 @@ def _seed_trial_package():
 
 
 class TestTrialTenantLogin:
-    def test_trial_slug_resolves_for_login(self, app):
+    def test_trial_slug_resolves_for_login(self, app, rollback_db):
         from app.core.tenant.middleware import _get_tenant_by_slug
         from services.saas_registration_service import SaasRegistrationService
 
@@ -84,7 +84,7 @@ class TestTrialTenantLogin:
             assert resolved is not None
             assert resolved.id == tenant.id
 
-    def test_trial_tenant_login_flow(self, app, client, monkeypatch):
+    def test_trial_tenant_login_flow(self, app, rollback_db, client, monkeypatch):
         monkeypatch.setenv('ENABLE_SAAS_MODE', 'true')
         version = _seed_trial_package()
         slug = f'trial-flow-{uuid.uuid4().hex[:8]}'
@@ -115,7 +115,7 @@ class TestTrialTenantLogin:
 
 
 class TestStripeWebhookCsrf:
-    def test_webhook_not_blocked_by_csrf(self, app, client, monkeypatch):
+    def test_webhook_not_blocked_by_csrf(self, app, rollback_db, client, monkeypatch):
         monkeypatch.setenv('STRIPE_WEBHOOK_SECRET', 'whsec_test')
         monkeypatch.setattr(
             'services.stripe_subscription_service.StripeSubscriptionService.ingest_webhook',
@@ -131,7 +131,7 @@ class TestStripeWebhookCsrf:
 
 
 class TestPerTenantUsername:
-    def test_same_username_different_tenants_allowed(self, app):
+    def test_same_username_different_tenants_allowed(self, app, rollback_db):
         from services.saas_registration_service import SaasRegistrationService
 
         version = _seed_trial_package()

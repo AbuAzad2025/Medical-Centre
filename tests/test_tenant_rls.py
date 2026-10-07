@@ -11,9 +11,13 @@ from models.patient import Patient
 
 
 @pytest.fixture
-def tenant_a(app):
-    from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
+def tenant_a(app, rollback_db):
+    from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG, ensure_default_test_tenant
 
+    # This class is marked no_tenant_context, so rollback_db does not bind or
+    # bootstrap a tenant for it. Create the default tenant here rather than
+    # assuming rollback_db already did.
+    ensure_default_test_tenant(app)
     t = (
         db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG))
         .scalars()
@@ -27,7 +31,7 @@ def tenant_a(app):
 
 
 @pytest.fixture
-def tenant_b(app):
+def tenant_b(app, rollback_db):
     import uuid
 
     from flask import g
@@ -60,7 +64,7 @@ def tenant_b(app):
 
 @pytest.mark.no_tenant_context
 class TestFailClosedTenantIsolation:
-    def test_saas_mode_no_tenant_raises_isolation_error(self, app, tenant_a):
+    def test_saas_mode_no_tenant_raises_isolation_error(self, app, rollback_db, tenant_a):
         """In SaaS mode, querying a tenant-scoped model without g.tenant_id raises."""
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = True
@@ -69,7 +73,7 @@ class TestFailClosedTenantIsolation:
             with pytest.raises(TenantIsolationError):
                 db.session.execute(select(Patient)).scalars().all()
 
-    def test_saas_mode_with_tenant_succeeds(self, app, tenant_a):
+    def test_saas_mode_with_tenant_succeeds(self, app, rollback_db, tenant_a):
         """In SaaS mode with tenant context, queries execute normally."""
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = True
@@ -77,7 +81,7 @@ class TestFailClosedTenantIsolation:
             result = db.session.execute(select(Patient)).scalars().all()
             assert isinstance(result, list)
 
-    def test_cross_tenant_data_invisible(self, app, tenant_a, tenant_b):
+    def test_cross_tenant_data_invisible(self, app, rollback_db, tenant_a, tenant_b):
         """Tenant A cannot see Tenant B's data."""
         from tests.tenant_context import bind_tenant_on_g
 
@@ -101,7 +105,7 @@ class TestFailClosedTenantIsolation:
             found = db.session.execute(select(Patient).filter_by(id=patient_id)).scalars().first()
             assert found is None
 
-    def test_bypass_flag_allows_global_query(self, app, tenant_a):
+    def test_bypass_flag_allows_global_query(self, app, rollback_db, tenant_a):
         """Explicit bypass flag allows queries without tenant context."""
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = True
@@ -110,7 +114,7 @@ class TestFailClosedTenantIsolation:
             result = db.session.execute(select(Patient)).scalars().all()
             assert isinstance(result, list)
 
-    def test_non_saas_mode_allows_global_query(self, app, tenant_a, standalone_mode):
+    def test_non_saas_mode_allows_global_query(self, app, rollback_db, tenant_a, standalone_mode):
         """In non-SaaS mode, queries without tenant context work normally."""
         with app.test_request_context():
             g.tenant_id = None

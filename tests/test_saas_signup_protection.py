@@ -78,7 +78,7 @@ def _signup_kwargs(version_id, slug):
 
 
 class TestSignupHoneypot:
-    def test_honeypot_filled_rejects_bot(self, app):
+    def test_honeypot_filled_rejects_bot(self, app, rollback_db):
         version = _seed_package_version()
         slug = f'bot-{uuid.uuid4().hex[:6]}'
         with (
@@ -92,7 +92,7 @@ class TestSignupHoneypot:
 
 
 class TestSignupFloodLimit:
-    def test_email_flood_limit_blocks_pending_signups(self, app):
+    def test_email_flood_limit_blocks_pending_signups(self, app, rollback_db):
         version = _seed_package_version()
         email = f'flood-{uuid.uuid4().hex[:6]}@example.com'
         now = datetime.now(UTC)
@@ -123,7 +123,7 @@ class TestSignupFloodLimit:
 
 
 class TestSignupCaptcha:
-    def test_captcha_skipped_when_no_secret(self, app, monkeypatch):
+    def test_captcha_skipped_when_no_secret(self, app, rollback_db, monkeypatch):
         monkeypatch.delenv('SIGNUP_CAPTCHA_SECRET', raising=False)
         version = _seed_package_version()
         slug = f'nocap-{uuid.uuid4().hex[:6]}'
@@ -134,7 +134,7 @@ class TestSignupCaptcha:
             )
         assert tenant.slug == slug
 
-    def test_captcha_required_when_secret_set(self, app, monkeypatch):
+    def test_captcha_required_when_secret_set(self, app, rollback_db, monkeypatch):
         monkeypatch.setenv('SIGNUP_CAPTCHA_SECRET', 'test-secret')
         version = _seed_package_version()
         slug = f'cap-{uuid.uuid4().hex[:6]}'
@@ -147,7 +147,7 @@ class TestSignupCaptcha:
                 captcha_token=None,
             )
 
-    def test_captcha_verified_when_secret_and_token_valid(self, app, monkeypatch):
+    def test_captcha_verified_when_secret_and_token_valid(self, app, rollback_db, monkeypatch):
         monkeypatch.setenv('SIGNUP_CAPTCHA_SECRET', 'test-secret')
         version = _seed_package_version()
         slug = f'capok-{uuid.uuid4().hex[:6]}'

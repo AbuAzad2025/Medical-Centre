@@ -39,7 +39,7 @@ def test_capabilities_read_env(monkeypatch):
     assert platform_capability('sso') is False
 
 
-def test_template_context_injects_platform_capability(app):
+def test_template_context_injects_platform_capability(app, rollback_db):
     with app.test_request_context('/'):
         from flask import render_template_string
 
@@ -57,7 +57,7 @@ def test_template_context_injects_platform_capability(app):
         ('PLATFORM_CAP_SSO', '/sso/config'),
     ],
 )
-def test_gated_routes_404_when_disabled(client, login_as, cap_env, path):
+def test_gated_routes_404_when_disabled(rollback_db, client, login_as, cap_env, path):
     login_as(client, 'cap_mgr', 'manager')
     resp = client.get(path)
     assert resp.status_code == 404
@@ -71,20 +71,22 @@ def test_gated_routes_404_when_disabled(client, login_as, cap_env, path):
         ('PLATFORM_CAP_SSO', '/sso/config'),
     ],
 )
-def test_gated_routes_available_when_enabled(client, login_as, monkeypatch, cap_env, path):
+def test_gated_routes_available_when_enabled(
+    rollback_db, client, login_as, monkeypatch, cap_env, path
+):
     monkeypatch.setenv(cap_env, 'true')
     login_as(client, 'cap_mgr2', 'super_admin')
     resp = client.get(path)
     assert resp.status_code != 404
 
 
-def test_sms_test_endpoint_404_when_disabled(client, login_as):
+def test_sms_test_endpoint_404_when_disabled(rollback_db, client, login_as):
     login_as(client, 'cap_sa', 'super_admin')
     resp = client.post('/super-admin/system/sms/test', json={'phone_number': '+15551234567'})
     assert resp.status_code == 404
 
 
-def test_sms_test_endpoint_reachable_when_enabled(client, login_as, monkeypatch):
+def test_sms_test_endpoint_reachable_when_enabled(rollback_db, client, login_as, monkeypatch):
     monkeypatch.setenv('PLATFORM_CAP_SMS_LIVE', 'true')
     login_as(client, 'cap_sa2', 'super_admin')
     resp = client.post('/super-admin/system/sms/test', json={'phone_number': ''})

@@ -63,7 +63,7 @@ def _seed_default_package_version() -> int:
 
 @pytest.mark.usefixtures('app')
 class TestPlatformTenantAudit:
-    def test_registration_creates_platform_audit_log(self, app):
+    def test_registration_creates_platform_audit_log(self, app, rollback_db):
         with app.app_context():
             _seed_default_package_version()
             slug = 'audit-tenant-' + uuid.uuid4().hex[:6]
@@ -92,7 +92,7 @@ class TestPlatformTenantAudit:
             assert 'Audit Tenant' in log.details
             assert 'admin_' in log.details
 
-    def test_registration_audit_log_includes_ip_when_available(self, app):
+    def test_registration_audit_log_includes_ip_when_available(self, app, rollback_db):
         with app.app_context():
             _seed_default_package_version()
             slug = 'audit-ip-' + uuid.uuid4().hex[:6]

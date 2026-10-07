@@ -22,7 +22,7 @@ from services.gatekeeper_service import GatekeeperService
 
 @pytest.mark.usefixtures('app')
 class TestServiceLineReconciliation:
-    def test_archive_allowed_when_reconciled(self, app):
+    def test_archive_allowed_when_reconciled(self, app, rollback_db):
         with app.app_context():
             from flask import g
 
@@ -116,7 +116,7 @@ class TestServiceLineReconciliation:
                 ok, msg = GatekeeperService.can_archive_visit(v.id, u.id)
                 assert ok, msg
 
-    def test_archive_blocked_when_mismatch(self, app):
+    def test_archive_blocked_when_mismatch(self, app, rollback_db):
         with app.app_context():
             from flask import g
 
@@ -199,7 +199,7 @@ class TestServiceLineReconciliation:
                 assert not ok
                 assert 'تسوية' in msg or 'لا يتوافق' in msg
 
-    def test_archive_allowed_zero_amount_no_services(self, app):
+    def test_archive_allowed_zero_amount_no_services(self, app, rollback_db):
         with app.app_context():
             from flask import g
 

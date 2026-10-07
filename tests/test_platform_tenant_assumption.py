@@ -237,7 +237,7 @@ def _login(client, user, tenant_slug: str | None = None):
 
 @pytest.mark.no_tenant_context
 class TestAssumptionService:
-    def test_create_assumption(self, app):
+    def test_create_assumption(self, app, rollback_db):
         with app.app_context():
             tenant = _create_tenant()
             user = _create_user('sa_create', 'super_admin', tenant_id=None)
@@ -252,7 +252,7 @@ class TestAssumptionService:
             assert a.user_id == user.id
             assert a.assumed_tenant_id == tenant.id
 
-    def test_create_assumption_requires_reason(self, app):
+    def test_create_assumption_requires_reason(self, app, rollback_db):
         with app.app_context():
             tenant = _create_tenant()
             user = _create_user('sa_reason', 'super_admin', tenant_id=None)
@@ -264,7 +264,7 @@ class TestAssumptionService:
                     reason='short',
                 )
 
-    def test_has_valid_assumption(self, app):
+    def test_has_valid_assumption(self, app, rollback_db):
         with app.app_context():
             tenant = _create_tenant()
             user = _create_user('sa_valid', 'super_admin', tenant_id=None)
@@ -278,7 +278,7 @@ class TestAssumptionService:
             assert PlatformAssumptionService.has_valid_assumption(user.id, tenant.id) is True
             assert PlatformAssumptionService.has_valid_assumption(user.id, 99999) is False
 
-    def test_expired_assumption(self, app):
+    def test_expired_assumption(self, app, rollback_db):
         with app.app_context():
             tenant = _create_tenant()
             user = _create_user('sa_expired', 'super_admin', tenant_id=None)
@@ -292,7 +292,7 @@ class TestAssumptionService:
 
             assert PlatformAssumptionService.has_valid_assumption(user.id, tenant.id) is False
 
-    def test_revoked_assumption(self, app):
+    def test_revoked_assumption(self, app, rollback_db):
         with app.app_context():
             tenant = _create_tenant()
             user = _create_user('sa_revoke', 'super_admin', tenant_id=None)
@@ -313,7 +313,7 @@ class TestAssumptionService:
 
             assert PlatformAssumptionService.has_valid_assumption(user.id, tenant.id) is False
 
-    def test_get_active_assumptions(self, app):
+    def test_get_active_assumptions(self, app, rollback_db):
         with app.app_context():
             t1 = _create_tenant()
             t2 = _create_tenant()
@@ -333,7 +333,7 @@ class TestAssumptionService:
             active = PlatformAssumptionService.get_active_assumptions(user_id=user.id)
             assert len(active) == 2
 
-    def test_owner_role_assumption(self, app):
+    def test_owner_role_assumption(self, app, rollback_db):
         with app.app_context():
             tenant = _create_tenant()
             owner_user = _create_user('owner_as', 'owner', tenant_id=None)
@@ -346,7 +346,7 @@ class TestAssumptionService:
 
             assert PlatformAssumptionService.has_valid_assumption(owner_user.id, tenant.id) is True
 
-    def test_non_platform_user_has_no_assumption(self, app):
+    def test_non_platform_user_has_no_assumption(self, app, rollback_db):
         with app.app_context():
             tenant = _create_tenant()
             reception_user = _create_user('rec_noas', 'reception', tenant_id=tenant.id)
@@ -364,7 +364,7 @@ class TestAssumptionService:
 
 @pytest.mark.no_tenant_context
 class TestMiddlewareTenantAssumption:
-    def test_normal_user_own_tenant_allowed(self, app, client):
+    def test_normal_user_own_tenant_allowed(self, app, rollback_db, client):
         """A normal reception user can access their own tenant's route."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -377,7 +377,7 @@ class TestMiddlewareTenantAssumption:
         resp = client.get(f'/t/{slug}/reception/visits')
         assert resp.status_code == 200, f'Own-tenant access blocked (got {resp.status_code})'
 
-    def test_super_admin_no_assumption_blocked(self, app, client):
+    def test_super_admin_no_assumption_blocked(self, app, rollback_db, client):
         """Super admin without assumption accessing non-exempt tenant route → 403."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -390,7 +390,7 @@ class TestMiddlewareTenantAssumption:
         resp = client.get(f'/t/{slug}/reception/visits')
         assert resp.status_code == 403, f'Expected 403, got {resp.status_code}'
 
-    def test_super_admin_with_assumption_allowed(self, app, client):
+    def test_super_admin_with_assumption_allowed(self, app, rollback_db, client):
         """Super admin with active assumption can access tenant route."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -410,7 +410,7 @@ class TestMiddlewareTenantAssumption:
             f'Super admin with assumption blocked (got {resp.status_code})'
         )
 
-    def test_super_admin_with_assumption_cross_tenant_blocked(self, app, client):
+    def test_super_admin_with_assumption_cross_tenant_blocked(self, app, rollback_db, client):
         """Super admin with assumption for Tenant A cannot access Tenant B."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -429,7 +429,7 @@ class TestMiddlewareTenantAssumption:
         resp = client.get(f'/t/{slug_b}/reception/visits')
         assert resp.status_code == 403, f'Expected 403 cross-tenant, got {resp.status_code}'
 
-    def test_super_admin_expired_assumption_blocked(self, app, client):
+    def test_super_admin_expired_assumption_blocked(self, app, rollback_db, client):
         """Super admin with expired assumption → 403."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -448,7 +448,7 @@ class TestMiddlewareTenantAssumption:
         resp = client.get(f'/t/{slug}/reception/visits')
         assert resp.status_code == 403, f'Expected 403, got {resp.status_code}'
 
-    def test_revoked_assumption_blocked(self, app, client):
+    def test_revoked_assumption_blocked(self, app, rollback_db, client):
         """Revoked assumption → 403."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -471,7 +471,7 @@ class TestMiddlewareTenantAssumption:
         resp = client.get(f'/t/{slug}/reception/visits')
         assert resp.status_code == 403, f'Expected 403, got {resp.status_code}'
 
-    def test_non_platform_user_cross_tenant_blocked(self, app, client):
+    def test_non_platform_user_cross_tenant_blocked(self, app, rollback_db, client):
         """A reception user from Tenant A cannot access Tenant B."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -489,7 +489,7 @@ class TestMiddlewareTenantAssumption:
         resp = client.get(f'/t/{slug_b}/reception/visits')
         assert resp.status_code == 403, f'Expected 403, got {resp.status_code}'
 
-    def test_super_admin_exempt_path_not_blocked(self, app, client):
+    def test_super_admin_exempt_path_not_blocked(self, app, rollback_db, client):
         """Super admin can access /super-admin/ and /owner/ paths without assumption."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -500,7 +500,7 @@ class TestMiddlewareTenantAssumption:
         resp = client.get('/super-admin/dashboard')
         assert resp.status_code == 200, f'Exempt path blocked (got {resp.status_code})'
 
-    def test_owner_with_assumption_allowed(self, app, client):
+    def test_owner_with_assumption_allowed(self, app, rollback_db, client):
         """Platform owner with assumption can access tenant route."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -537,7 +537,7 @@ class TestAssumptionOwnerAPI:
             _login(client, user, None)
         return user.id
 
-    def test_create_assumption_api(self, app, client):
+    def test_create_assumption_api(self, app, rollback_db, client):
         """POST /owner/api/assumptions creates an assumption."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -563,7 +563,7 @@ class TestAssumptionOwnerAPI:
         assert data['assumption']['assumed_tenant_id'] == tenant_id
         assert data['assumption']['is_active'] is True
 
-    def test_list_assumptions_api(self, app, client):
+    def test_list_assumptions_api(self, app, rollback_db, client):
         """GET /owner/api/assumptions lists active assumptions."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -584,7 +584,7 @@ class TestAssumptionOwnerAPI:
         data = resp.get_json()
         assert data['count'] >= 1
 
-    def test_revoke_assumption_api(self, app, client):
+    def test_revoke_assumption_api(self, app, rollback_db, client):
         """POST /owner/api/assumptions/<id>/revoke revokes an assumption."""
         app.config['ENABLE_SAAS_MODE'] = True
 
@@ -612,7 +612,7 @@ class TestAssumptionOwnerAPI:
         assert data['assumption']['is_active'] is False
         assert data['assumption']['revoke_reason'] == 'Revoked via API test'
 
-    def test_create_assumption_requires_fields(self, app, client):
+    def test_create_assumption_requires_fields(self, app, rollback_db, client):
         """POST /owner/api/assumptions without required fields → 400."""
         app.config['ENABLE_SAAS_MODE'] = True
         self._login_owner(client, app)
@@ -633,7 +633,7 @@ class TestAssumptionOwnerAPI:
 
 @pytest.mark.no_tenant_context
 class TestStrongSessionProtection:
-    def test_real_login_remains_authenticated_under_strong(self, app, client):
+    def test_real_login_remains_authenticated_under_strong(self, app, rollback_db, client):
         """A real POST /auth/login (calls login_user() which sets _id) stays
         authenticated on the next request under session_protection='strong'."""
         app.config['ENABLE_SAAS_MODE'] = True
@@ -661,7 +661,7 @@ class TestStrongSessionProtection:
             f'(Location: {resp.headers.get("Location", "")})'
         )
 
-    def test_repaired_helper_remains_authenticated_under_strong(self, app, client):
+    def test_repaired_helper_remains_authenticated_under_strong(self, app, rollback_db, client):
         """The fixed _login() helper (which now uses login_user()) stays
         authenticated on the next request under session_protection='strong'."""
         import sys as _sys
@@ -690,7 +690,7 @@ class TestStrongSessionProtection:
             f'(Location: {resp.headers.get("Location", "")})'
         )
 
-    def test_missing_id_is_rejected_under_strong(self, app, client):
+    def test_missing_id_is_rejected_under_strong(self, app, rollback_db, client):
         """A session with _user_id but no _id is rejected (302 to login)."""
         app.config['ENABLE_SAAS_MODE'] = True
         with app.app_context():

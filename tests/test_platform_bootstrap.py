@@ -27,7 +27,7 @@ def _count(table):
         return db.session.execute(select(func.count()).select_from(table)).scalar() or 0
 
 
-def test_bootstrap_seeds_15_core_modules_and_is_idempotent(app, monkeypatch):
+def test_bootstrap_seeds_15_core_modules_and_is_idempotent(app, rollback_db, monkeypatch):
     monkeypatch.delenv('SKIP_PLATFORM_BOOTSTRAP', raising=False)
     with app.app_context():
         # Ensure idempotent: second run adds 0
@@ -69,7 +69,7 @@ def test_bootstrap_seeds_15_core_modules_and_is_idempotent(app, monkeypatch):
             assert exists is not None, f'core module {name} missing in module_definitions'
 
 
-def test_bootstrap_seeds_23_product_bundles(app, monkeypatch):
+def test_bootstrap_seeds_23_product_bundles(app, rollback_db, monkeypatch):
     monkeypatch.delenv('SKIP_PLATFORM_BOOTSTRAP', raising=False)
     with app.app_context():
         # Run bootstrap
@@ -90,7 +90,7 @@ def test_bootstrap_seeds_23_product_bundles(app, monkeypatch):
         assert bundle_count == 23
 
 
-def test_bootstrap_creates_platform_master_account(app, monkeypatch):
+def test_bootstrap_creates_platform_master_account(app, rollback_db, monkeypatch):
     monkeypatch.delenv('SKIP_PLATFORM_BOOTSTRAP', raising=False)
     with app.app_context():
         run_platform_bootstrap(quiet=True)
@@ -110,7 +110,7 @@ def test_bootstrap_creates_platform_master_account(app, monkeypatch):
             assert fetched.role == 'platform_owner'
 
 
-def test_clean_baseline_has_no_mock_demo_data(app):
+def test_clean_baseline_has_no_mock_demo_data(app, rollback_db):
     """Clean baseline enforcement: no mock/demo data from local_dev_story."""
     from seeds import tenant_bypass
 
@@ -137,7 +137,7 @@ def test_clean_baseline_has_no_mock_demo_data(app):
             assert 'azad-dev' not in all_slugs
 
 
-def test_ensure_helpers_are_idempotent_and_return_counts(app, monkeypatch):
+def test_ensure_helpers_are_idempotent_and_return_counts(app, rollback_db, monkeypatch):
     monkeypatch.delenv('SKIP_PLATFORM_BOOTSTRAP', raising=False)
     with app.app_context():
         assert ensure_module_definitions() >= 0
