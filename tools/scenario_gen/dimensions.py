@@ -150,6 +150,57 @@ def build_dimensions() -> tuple[Dimension, ...]:
             'Treatment record lifecycle.',
         ),
         Dimension(
+            'subscription_type',
+            'enum',
+            _enum_values('app.shared.enums', 'SubscriptionType'),
+            'SaaS subscription billing period. The platform bills tenants with this; '
+            'it has nothing to do with patient billing.',
+        ),
+        Dimension(
+            'tenant_status',
+            'enum',
+            _enum_values('app.shared.enums', 'TenantStatus'),
+            'Tenant.status.',
+        ),
+        Dimension(
+            'security_severity',
+            'enum',
+            _enum_values('app.shared.enums', 'SecuritySeverity'),
+            'SecurityEvent severity.',
+        ),
+        Dimension(
+            'log_level',
+            'enum',
+            _enum_values('app.shared.enums', 'LogLevel'),
+            'SystemLog level.',
+        ),
+        Dimension(
+            'backup_type',
+            'enum',
+            _enum_values('app.shared.enums', 'BackupType'),
+            'Backup type.',
+        ),
+        Dimension(
+            'backup_status',
+            'enum',
+            _enum_values('app.shared.enums', 'BackupStatus'),
+            'Backup job status.',
+        ),
+        Dimension(
+            'module_status',
+            'enum',
+            ('enabled', 'disabled'),
+            'TenantModule activation. A module is reachable only when active, and '
+            'the gate is disabled entirely when ENABLE_SAAS_MODE is False.',
+        ),
+        Dimension(
+            'bundle_kind',
+            'enum',
+            ('custom', 'polyclinic', 'hospital', 'urgent_care'),
+            'ProductBundle shapes from the seeded profiles. Each is a JSON array of '
+            'module names with a price and a max_users or max_patients ceiling.',
+        ),
+        Dimension(
             'procedure_status',
             'enum',
             _enum_values('app.shared.enums', 'ProcedureStatus'),

@@ -5604,5 +5604,2525 @@
         "assertion": "requires itemised reconciliation to balance"
       }
     ]
+  },
+  {
+    "scenario_id": "GS-0136",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "manager",
+      "payment_status": "PAID"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0137",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "manager",
+      "payment_status": "PARTIAL"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0138",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "manager",
+      "payment_status": "DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0139",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "manager",
+      "payment_status": "EMERGENCY_DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0140",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "manager",
+      "payment_status": "CONFIRMED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0141",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "manager",
+      "payment_status": "REFUNDED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0142",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "manager",
+      "payment_status": "CANCELLED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0143",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "nurse",
+      "payment_status": "PENDING"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0144",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "nurse",
+      "payment_status": "PAID"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0145",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "nurse",
+      "payment_status": "PARTIAL"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0146",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "nurse",
+      "payment_status": "DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0147",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "nurse",
+      "payment_status": "EMERGENCY_DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0148",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "nurse",
+      "payment_status": "CONFIRMED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0149",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "nurse",
+      "payment_status": "REFUNDED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0150",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "nurse",
+      "payment_status": "CANCELLED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0151",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "owner",
+      "payment_status": "PENDING"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0152",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "owner",
+      "payment_status": "PAID"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0153",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "owner",
+      "payment_status": "PARTIAL"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0154",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "owner",
+      "payment_status": "DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0155",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "owner",
+      "payment_status": "EMERGENCY_DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0156",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "owner",
+      "payment_status": "CONFIRMED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0157",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "owner",
+      "payment_status": "REFUNDED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0158",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "owner",
+      "payment_status": "CANCELLED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0159",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "patient",
+      "payment_status": "PENDING"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0160",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "patient",
+      "payment_status": "PAID"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0161",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "patient",
+      "payment_status": "PARTIAL"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0162",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "patient",
+      "payment_status": "DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0163",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "patient",
+      "payment_status": "EMERGENCY_DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0164",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "patient",
+      "payment_status": "CONFIRMED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0165",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "patient",
+      "payment_status": "REFUNDED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0166",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "patient",
+      "payment_status": "CANCELLED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0167",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "pharmacist",
+      "payment_status": "PENDING"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0168",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "pharmacist",
+      "payment_status": "PAID"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0169",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "pharmacist",
+      "payment_status": "PARTIAL"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0170",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "pharmacist",
+      "payment_status": "DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0171",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "pharmacist",
+      "payment_status": "EMERGENCY_DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0172",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "pharmacist",
+      "payment_status": "CONFIRMED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0173",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "pharmacist",
+      "payment_status": "REFUNDED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0174",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "pharmacist",
+      "payment_status": "CANCELLED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0175",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "radiology",
+      "payment_status": "PENDING"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0176",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "radiology",
+      "payment_status": "PAID"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0177",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "radiology",
+      "payment_status": "PARTIAL"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0178",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "radiology",
+      "payment_status": "DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0179",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "radiology",
+      "payment_status": "EMERGENCY_DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0180",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "radiology",
+      "payment_status": "CONFIRMED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0181",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "radiology",
+      "payment_status": "REFUNDED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0182",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "radiology",
+      "payment_status": "CANCELLED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0183",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "reception",
+      "payment_status": "PENDING"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0184",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "reception",
+      "payment_status": "PAID"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0185",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "reception",
+      "payment_status": "PARTIAL"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0186",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "reception",
+      "payment_status": "DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0187",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "reception",
+      "payment_status": "EMERGENCY_DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0188",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "reception",
+      "payment_status": "CONFIRMED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0189",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "reception",
+      "payment_status": "REFUNDED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0190",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "reception",
+      "payment_status": "CANCELLED"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0191",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "super_admin",
+      "payment_status": "PENDING"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0192",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "super_admin",
+      "payment_status": "PAID"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0193",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "super_admin",
+      "payment_status": "PARTIAL"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0194",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "super_admin",
+      "payment_status": "DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0195",
+    "template": "QUEUE_GATE_AND_ADD_SERVICE_RBAC",
+    "family": "rbac",
+    "axes": {
+      "actor_role": "super_admin",
+      "payment_status": "EMERGENCY_DEBT"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist.",
+      "payment_status": "PaymentStatus as the code defines it."
+    },
+    "rule": "Queue entry resolves payment_status server-side from the Visit and never trusts the caller. A non-reception role posting add-service is refused, manager is excluded because the guard passes use_hierarchy=False, and super_admin needs an explicit audited tenant assumption to reach clinical PHI. Archiving requires SUM(invoice_services) to equal visit.total_amount.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit PENDING"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "refused for non-reception, and while unpaid"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/add-service",
+        "assertion": "price taken from the catalog, never the client"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<id>/archive",
+        "assertion": "requires itemised reconciliation to balance"
+      }
+    ]
   }
 ]

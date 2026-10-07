@@ -33,6 +33,23 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 OUT_DIR = os.path.join(ROOT, 'docs', 'scenarios', 'generated')
 
 
+def _install_family_templates() -> None:
+    """Register the family modules so their templates are in TEMPLATES.
+
+    Imported lazily and by name, because clinical_templates and
+    platform_templates import from this module and a top-level import would be
+    circular.
+    """
+    import clinical_templates
+    import platform_templates
+
+    clinical_templates.add_clinical_templates()
+    platform_templates.add_platform_templates()
+
+
+_install_family_templates()
+
+
 def axes_for(template, dims):
     """Return [(name, values), ...] for the axes this template declares."""
     by_name = {d.name: d for d in dims}

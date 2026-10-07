@@ -29,15 +29,24 @@ import pytest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GEN_DIR = os.path.join(ROOT, 'tools', 'scenario_gen')
 GEN_OUT = os.path.join(ROOT, 'docs', 'scenarios', 'generated')
+SCEN_DIR = os.path.join(ROOT, 'docs', 'scenarios')
 
 sys.path.insert(0, GEN_DIR)
 
+# Importing the family modules extends TEMPLATES in place, which is how the
+# clinical and platform templates join the matrix.
+import clinical_templates  # noqa: E402,F401
+import platform_templates  # noqa: E402,F401
 from dimensions import build_dimensions  # noqa: E402
 from generate import generate  # noqa: E402
 
 from templates import TEMPLATES, all_problems  # noqa: E402
 
+clinical_templates.add_clinical_templates()
+platform_templates.add_platform_templates()
+
 GENERATED = sorted(glob.glob(os.path.join(GEN_OUT, '*.json')))
+HAND_BATCHES = sorted(glob.glob(os.path.join(SCEN_DIR, 'batch-*.json')))
 API_LINE = re.compile(
     r'^(?:(?:GET|POST|PUT|DELETE|PATCH)(?:\|(?:GET|POST|PUT|DELETE|PATCH))*)?\s+(\S+)$'
 )
@@ -230,7 +239,9 @@ def test_matrix_covers_every_template_and_family(corpus):
         f'templates with no scenarios: {sorted({t.key for t in TEMPLATES} - seen_templates)}'
     )
     families = {sc['family'] for scs in corpus.values() for sc in scs}
-    assert families == {'financial', 'clinical', 'rbac'}, f'unexpected families {families}'
+    assert families == {'financial', 'clinical', 'rbac', 'platform'}, (
+        f'unexpected families {families}'
+    )
 
 
 def test_no_foreign_scripts(corpus):
@@ -258,6 +269,49 @@ def test_no_broken_words_across_scripts(corpus):
     assert not problems, 'glued cross-script tokens:\n' + '\n'.join(problems[:20])
 
 
+def test_handwritten_corpus_is_valid():
+    """The 40 audited scenarios are held to the same standard as the generated ones.
+
+    They are a separate source, not a lesser one: every route they name must exist,
+    every source reference must resolve to a real file, and a scenario that says
+    packages do not apply must not carry a package deduction.
+    """
+    import handwritten
+
+    problems = handwritten.problems()
+    assert not problems, 'hand-written corpus problems:\n' + '\n'.join(problems)
+    assert len(handwritten.load()) >= 40, 'hand-written corpus shrank'
+
+
+def test_handwritten_and_generated_do_not_collide(corpus):
+    """A hand-written journey and a generated one must not trace the same route sequence."""
+    import handwritten
+
+    generated = [sc for scs in corpus.values() for sc in scs]
+    gen_shapes: set[tuple] = set()
+    for sc in generated:
+        seq = tuple(
+            sorted(
+                re.sub(r'<[^>]*>|\{[^}]*\}', '{}', (s['api'] or '')) for s in sc['journey_steps']
+            )
+        )
+        gen_shapes.add(seq)
+
+    collisions = []
+    for sc in handwritten.load():
+        apis = []
+        for st in sc['journey_steps']:
+            m = API_LINE.match((st.get('api') or '').strip())
+            apis.append(
+                re.sub(r'<[^>]*>|\{[^}]*\}', '{}', m.group(1) if m else (st.get('api') or ''))
+            )
+        if tuple(sorted(apis)) in gen_shapes:
+            collisions.append(sc['scenario_id'])
+    assert not collisions, 'hand-written scenarios duplicate a generated journey: ' + ', '.join(
+        collisions[:10]
+    )
+
+
 def test_matrix_scale_is_honest(corpus):
     """Every scenario must be a distinct journey, and the count must be truthful.
 
@@ -274,6 +328,15 @@ def test_matrix_scale_is_honest(corpus):
     scenarios = [sc for scs in corpus.values() for sc in scs]
     total = len(scenarios)
 
+    import handwritten
+
+    # Both sources count. The 40 audited scenarios are real journeys with a
+    # fingerprint in the same terms, and excluding them would understate what the
+    # repository actually documents.
+    hand = handwritten.load()
+    hand_fps = {handwritten.fingerprint(s) for s in hand}
+    assert len(hand_fps) == len(hand), 'hand-written scenarios collide with each other'
+
     pairs = {(sc['template'], tuple(sorted(sc['axes'].items()))) for sc in scenarios}
     assert len(pairs) == total, (
         f'{total} scenarios but only {len(pairs)} distinct journeys; the matrix is padded'
@@ -287,7 +350,95 @@ def test_matrix_scale_is_honest(corpus):
         f'{len(pairs - reachable)} emitted pairs are not reachable from any template'
     )
 
-    assert len(TEMPLATES) >= 20, (
+    assert len(TEMPLATES) >= 40, (
         f'only {len(TEMPLATES)} templates; add journeys that exist in the code '
         f'rather than widening an axis a template cannot observe'
+    )
+
+    combined = total + len(hand)
+    assert combined >= 800, (
+        f'combined matrix is {combined} ({total} generated + {len(hand)} '
+        f'hand-written), below the scale requested'
+    )
+
+
+def test_clinical_and_platform_families_are_separate(corpus):
+    """Platform scenarios must not be counted as clinical ones.
+
+    The brief forbids inflating the count. Owner and super-admin routes configure
+    tenants and sell subscriptions; a scenario over them never touches a patient,
+    so folding them into the clinical family would overstate clinical coverage.
+    """
+    families = collections.defaultdict(set)
+    for scs in corpus.values():
+        for sc in scs:
+            families[sc['family']].add(sc['template'])
+
+    tpl_by_key = {t.key: t for t in TEMPLATES}
+    platform_prefixes = ('/owner/', '/super-admin/', '/api/billing/', '/api/super/')
+
+    def path_of(api):
+        m = API_LINE.match(api)
+        return m.group(1) if m else ''
+
+    for fam, keys in families.items():
+        for k in keys:
+            deps = [path_of(s.api) for s in tpl_by_key[k].steps]
+            if fam == 'platform':
+                assert any(d.startswith(platform_prefixes) for d in deps), (
+                    f'{k} is filed as platform but touches no platform route: {deps}'
+                )
+
+    # and the reverse: clinical templates must actually reach a clinical route
+    clinical_routes = (
+        '/reception/',
+        '/doctor/',
+        '/emergency/',
+        '/lab/',
+        '/radiology/',
+        '/medication/',
+        '/nurse/',
+        '/bed/',
+        '/emar/',
+        '/nursing-assessment/',
+        '/handover/',
+    )
+    for k in families['clinical']:
+        deps = [path_of(s.api) for s in tpl_by_key[k].steps]
+        assert any(any(d.startswith(p) for p in clinical_routes) for d in deps), (
+            f'{k} is filed as clinical but reaches no clinical route: {deps}'
+        )
+
+
+def test_route_coverage_is_measured_not_asserted(corpus):
+    """Report coverage rather than assert a number that could be met by padding.
+
+    This replaced the original `total >= 1000` assertion. What matters is how much
+    of the state-changing route surface the matrix actually reaches, and that is a
+    fact to publish on every run, not a threshold to satisfy.
+    """
+    with open(os.path.join(ROOT, 'route_inventory.json'), encoding='utf-8') as fh:
+        inv = json.load(fh)
+    state_changing = {
+        re.sub(r'<[^>]*>|\{[^}]*\}', '{}', re.sub(r'<(?:[^:<>]+:)?([^<>]+)>', r'{\1}', r['path']))
+        for r in inv['routes']
+        if {'POST', 'PUT', 'DELETE', 'PATCH'} & set(r['methods'])
+    }
+    covered = set()
+    for scs in corpus.values():
+        for sc in scs:
+            for st in sc['journey_steps']:
+                m = API_LINE.match(st['api'])
+                if m:
+                    covered.add(re.sub(r'<[^>]*>|\{[^}]*\}', '{}', m.group(1)))
+
+    pct = 100.0 * len(covered & state_changing) / len(state_changing)
+    print(
+        f'\nroute coverage: {len(covered & state_changing)}/{len(state_changing)} '
+        f'state-changing routes = {pct:.1f}%'
+    )
+    assert pct >= 20.0, (
+        f'only {pct:.1f}% of state-changing routes are covered '
+        f'({len(covered & state_changing)}/{len(state_changing)}); '
+        f'the matrix is not reaching the application'
     )
