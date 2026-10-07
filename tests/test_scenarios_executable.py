@@ -291,7 +291,17 @@ class TestQueuePaymentGateExecutable:
 
         # 4. The payment reached the general ledger, debiting cash and crediting
         #    revenue for exactly the collected amount.
-        journal, lines = _journal_for(app, tenant.id, visit.id)
+        from models.payment import Payment
+
+        payment = (
+            db.session.execute(
+                select(Payment).filter_by(visit_id=visit.id).order_by(Payment.id.desc())
+            )
+            .scalars()
+            .first()
+        )
+        assert payment is not None, 'no Payment row was created for the visit'
+        journal, lines = _journal_for(app, tenant.id, payment.id)
         assert journal is not None, 'no GL journal was posted for the payment'
         debits = sum(Decimal(str(ln.debit_amount)) for ln in lines)
         credits = sum(Decimal(str(ln.credit_amount)) for ln in lines)
