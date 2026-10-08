@@ -985,7 +985,7 @@ jobs:
           path: covdata
           merge-multiple: true
 
-- name: Combine Python coverage and report
+      - name: Combine Python coverage and report
         run: |
           coverage combine covdata
           coverage report
