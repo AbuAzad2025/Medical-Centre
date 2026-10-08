@@ -1006,11 +1006,13 @@ jobs:
             find covdata -maxdepth 3 -type f | head -n 20
           fi
           python tools/reports/coverage_report.py
-          cat docs/reports/README.md >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          cat docs/reports/backend-coverage.md >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          cat docs/reports/frontend-coverage.md >> "$GITHUB_STEP_SUMMARY"
+          {
+            cat docs/reports/README.md
+            echo ""
+            cat docs/reports/backend-coverage.md
+            echo ""
+            cat docs/reports/frontend-coverage.md
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the generated reports
         if: always()
