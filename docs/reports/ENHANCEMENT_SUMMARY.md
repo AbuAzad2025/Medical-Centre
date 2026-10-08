@@ -8,7 +8,7 @@
 
 ## What Was Done
 
-### 1. Comprehensive Audit (`COMMERCIAL_READINESS_AUDIT.md`)
+### 1. Comprehensive Audit (`docs/reports/COMMERCIAL_READINESS_AUDIT.md`)
 - Full codebase review identifying **30 critical/high/medium severity gaps** for a commercial medical system
 - Organized by: Security, Clinical Safety, Compliance, Reliability, Operations, Code Quality
 - Priority matrix with effort/impact ratings for roadmap planning

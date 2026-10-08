@@ -985,21 +985,39 @@ jobs:
           path: covdata
           merge-multiple: true
 
-      - name: Combine Python coverage and report
+- name: Combine Python coverage and report
         run: |
           coverage combine covdata
           coverage report
           coverage json -o coverage.json
-      - name: Coverage summary (Python)
-        run: |
-          echo "aW1wb3J0IGpzb24sIHN5cwpmcm9tIGNvbGxlY3Rpb25zIGltcG9ydCBkZWZhdWx0ZGljdApkYXRhID0ganNvbi5sb2FkKG9wZW4oJ2NvdmVyYWdlLmpzb24nKSkKdG90YWxzID0gZGF0YVsndG90YWxzJ10KcHJpbnQoZidCQUNLRU5EIFRPVEFMOiB7dG90YWxzWyJwZXJjZW50X2NvdmVyZWQiXTouMWZ9JSAoe3RvdGFsc1siY292ZXJlZF9saW5lcyJdfS97dG90YWxzWyJudW1fc3RhdGVtZW50cyJdfSBsaW5lcyknKQpieV9wa2cgPSBkZWZhdWx0ZGljdChsYW1iZGE6IHsnY292ZXJlZCc6IDAsICd0b3RhbCc6IDB9KQpmb3IgcGF0aCwgZW50cnkgaW4gZGF0YVsnZmlsZXMnXS5pdGVtcygpOgogICAgcGFydHMgPSBwYXRoLnJlcGxhY2UoJ1xcJywgJy8nKS5zcGxpdCgnLycpCiAgICBwa2cgPSBwYXJ0c1swXSBpZiBwYXJ0cyBlbHNlICdvdGhlcicKICAgIGJ5X3BrZ1twa2ddWydjb3ZlcmVkJ10gKz0gZW50cnlbJ3N1bW1hcnknXVsnY292ZXJlZF9saW5lcyddCiAgICBieV9wa2dbcGtnXVsndG90YWwnXSArPSBlbnRyeVsnc3VtbWFyeSddWydudW1fc3RhdGVtZW50cyddCmZvciBwa2cgaW4gc29ydGVkKGJ5X3BrZyk6CiAgICBjLCB0ID0gYnlfcGtnW3BrZ11bJ2NvdmVyZWQnXSwgYnlfcGtnW3BrZ11bJ3RvdGFsJ10KICAgIHBjdCA9ICgxMDAuMCAqIGMgLyB0KSBpZiB0IGVsc2UgMAogICAgcHJpbnQoZicgIHtwa2d9OiB7cGN0Oi4xZn0lICh7Y30ve3R9KScp" | base64 -d | python
 
-      - name: Report frontend coverage
-        if: always()
+      - name: Generate the committed reports
         run: |
-          if [ -f covdata/coverage-final.json ]; then
-            echo "aW1wb3J0IGpzb24sIHN5cwpkYXRhID0ganNvbi5sb2FkKG9wZW4oJ2NvdmRhdGEvY292ZXJhZ2UtZmluYWwuanNvbicpKQojIFZpdGVzdCB2OCBjb3ZlcmFnZSBmb3JtYXQgbWF5IGhhdmUgZGlmZmVyZW50IHN0cnVjdHVyZQp0b3RhbHMgPSBkYXRhLmdldCgndG90YWxzJywge30pCmlmIG5vdCB0b3RhbHMgYW5kICdtYXAnIGluIGRhdGE6CiAgICAjIENhbGN1bGF0ZSB0b3RhbHMgZnJvbSBmaWxlcwogICAgY292ZXJlZCA9IHN1bShmLmdldCgnc3VtbWFyeScsIHt9KS5nZXQoJ2NvdmVyZWQnLCAwKSBmb3IgZiBpbiBkYXRhLmdldCgnZmlsZXMnLCB7fSkudmFsdWVzKCkpCiAgICB0b3RhbCA9IHN1bShmLmdldCgnc3VtbWFyeScsIHt9KS5nZXQoJ3RvdGFsJywgMCkgZm9yIGYgaW4gZGF0YS5nZXQoJ2ZpbGVzJywge30pLnZhbHVlcygpKQogICAgdG90YWxzID0geydwZXJjZW50JzogKDEwMC4wICogY292ZXJlZCAvIHRvdGFsKSBpZiB0b3RhbCBlbHNlIDAsICdjb3ZlcmVkJzogY292ZXJlZCwgJ3RvdGFsJzogdG90YWx9CnByaW50KGYnRlJPTlRFTkQgVE9UQUw6IHt0b3RhbHMuZ2V0KCJwZXJjZW50IiwgMCk6LjFmfSUgKHt0b3RhbHMuZ2V0KCJjb3ZlcmVkIiwgMCl9L3t0b3RhbHMuZ2V0KCJ0b3RhbCIsIDApfSBsaW5lcyknKQpmb3IgcGtnLCBlbnRyeSBpbiBkYXRhLmdldCgnZmlsZXMnLCB7fSkuaXRlbXMoKToKICAgIGlmICdzdW1tYXJ5JyBpbiBlbnRyeToKICAgICAgICBjID0gZW50cnlbJ3N1bW1hcnknXVsnY292ZXJlZCddCiAgICAgICAgdCA9IGVudHJ5WydzdW1tYXJ5J11bJ3RvdGFsJ10KICAgICAgICBwY3QgPSAoMTAwLjAgKiBjIC8gdCkgaWYgdCBlbHNlIDAKICAgICAgICBwcmludChmJyAge3BrZ306IHtwY3Q6LjFmfSUgKHtjfS97dH0pJykK" | base64 -d | python
+          # The frontend artifact keeps its original directory layout, so it lands
+          # somewhere under covdata/. The report tool reads a fixed path; copying
+          # it there is clearer than teaching the tool to search, and it fails
+          # loudly when the artifact is missing rather than reporting a zero.
+          found=$(find covdata -name coverage-final.json | head -n 1)
+          if [ -n "$found" ]; then
+            mkdir -p coverage
+            cp "$found" coverage/coverage-final.json
           else
-            echo "Frontend coverage artifact not found"
+            echo "frontend coverage artifact missing under covdata/"
+            find covdata -maxdepth 3 -type f | head -n 20
           fi
+          python tools/reports/coverage_report.py
+          cat docs/reports/README.md >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat docs/reports/backend-coverage.md >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat docs/reports/frontend-coverage.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the generated reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage-reports
+          path: docs/reports/
+          retention-days: 30
+          if-no-files-found: warn
 

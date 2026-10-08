@@ -219,8 +219,8 @@ While all verification gates passed, the following items should be addressed bef
 
 | File | Purpose |
 |------|---------|
-| `COMMERCIAL_READINESS_AUDIT.md` | Full gap analysis with 30 findings |
-| `ENHANCEMENT_SUMMARY.md` | Complete changelog of all modifications |
+| `docs/reports/COMMERCIAL_READINESS_AUDIT.md` | Full gap analysis with 30 findings |
+| `docs/reports/ENHANCEMENT_SUMMARY.md` | Complete changelog of all modifications |
 | `scripts/ops/pre_pilot_verification.py` | Standalone verification runner (86 assertions) |
 | `services/password_policy_service.py` | NIST-compliant password policy + HIBP check |
 | `services/clinical_safety_service.py` | Prescription hard-stop safety engine |

@@ -19818,5 +19818,574 @@
         "assertion": "reconciliation must balance before archiving"
       }
     ]
+  },
+  {
+    "scenario_id": "GS-0434",
+    "template": "OVERPAYMENT_AND_BOUNDARY",
+    "family": "financial",
+    "axes": {
+      "payment_amount_over_remaining": "150",
+      "line_item_count": "1"
+    },
+    "axes_note": {
+      "payment_amount_over_remaining": "Amounts are expressed as a percentage of visit.total_amount. /payment/process rejects amount > remaining with 400 and amount <= 0 while remaining > 0 with 400, so 150 is the overpayment case.",
+      "line_item_count": "How many add-service lines the invoice carries. Archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so a mismatched count is what the reconciliation check exists to catch."
+    },
+    "axes_effect": {
+      "payment_amount_over_remaining": "the payment is 150 percent of the balance, which decides between partial, exact and rejected",
+      "line_item_count": "the invoice carries 1 lines, which is what the archive reconciliation counts"
+    },
+    "rule": "Two independent guards. /payment/process rejects amount > remaining and amount <= 0 while remaining > 0. And archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so the line count has to match the billed total or the visit cannot be archived.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "GET|POST /reception/visits/create",
+        "assertion": "visit created"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /payment/process/<visit_id>",
+        "assertion": "zero amount against a balance refused 400"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<visit_id>/add-service",
+        "assertion": "lines appended to the invoice"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /payment/process/<visit_id>",
+        "assertion": "overpayment beyond remaining refused 400"
+      },
+      {
+        "step": 5,
+        "department": "Reception",
+        "api": "POST /reception/visits/<visit_id>/archive",
+        "assertion": "reconciliation must balance before archiving"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0435",
+    "template": "OVERPAYMENT_AND_BOUNDARY",
+    "family": "financial",
+    "axes": {
+      "payment_amount_over_remaining": "150",
+      "line_item_count": "2"
+    },
+    "axes_note": {
+      "payment_amount_over_remaining": "Amounts are expressed as a percentage of visit.total_amount. /payment/process rejects amount > remaining with 400 and amount <= 0 while remaining > 0 with 400, so 150 is the overpayment case.",
+      "line_item_count": "How many add-service lines the invoice carries. Archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so a mismatched count is what the reconciliation check exists to catch."
+    },
+    "axes_effect": {
+      "payment_amount_over_remaining": "the payment is 150 percent of the balance, which decides between partial, exact and rejected",
+      "line_item_count": "the invoice carries 2 lines, which is what the archive reconciliation counts"
+    },
+    "rule": "Two independent guards. /payment/process rejects amount > remaining and amount <= 0 while remaining > 0. And archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so the line count has to match the billed total or the visit cannot be archived.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "GET|POST /reception/visits/create",
+        "assertion": "visit created"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /payment/process/<visit_id>",
+        "assertion": "zero amount against a balance refused 400"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<visit_id>/add-service",
+        "assertion": "lines appended to the invoice"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /payment/process/<visit_id>",
+        "assertion": "overpayment beyond remaining refused 400"
+      },
+      {
+        "step": 5,
+        "department": "Reception",
+        "api": "POST /reception/visits/<visit_id>/archive",
+        "assertion": "reconciliation must balance before archiving"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0436",
+    "template": "OVERPAYMENT_AND_BOUNDARY",
+    "family": "financial",
+    "axes": {
+      "payment_amount_over_remaining": "150",
+      "line_item_count": "5"
+    },
+    "axes_note": {
+      "payment_amount_over_remaining": "Amounts are expressed as a percentage of visit.total_amount. /payment/process rejects amount > remaining with 400 and amount <= 0 while remaining > 0 with 400, so 150 is the overpayment case.",
+      "line_item_count": "How many add-service lines the invoice carries. Archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so a mismatched count is what the reconciliation check exists to catch."
+    },
+    "axes_effect": {
+      "payment_amount_over_remaining": "the payment is 150 percent of the balance, which decides between partial, exact and rejected",
+      "line_item_count": "the invoice carries 5 lines, which is what the archive reconciliation counts"
+    },
+    "rule": "Two independent guards. /payment/process rejects amount > remaining and amount <= 0 while remaining > 0. And archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so the line count has to match the billed total or the visit cannot be archived.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "GET|POST /reception/visits/create",
+        "assertion": "visit created"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /payment/process/<visit_id>",
+        "assertion": "zero amount against a balance refused 400"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<visit_id>/add-service",
+        "assertion": "lines appended to the invoice"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /payment/process/<visit_id>",
+        "assertion": "overpayment beyond remaining refused 400"
+      },
+      {
+        "step": 5,
+        "department": "Reception",
+        "api": "POST /reception/visits/<visit_id>/archive",
+        "assertion": "reconciliation must balance before archiving"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0437",
+    "template": "ACCOUNTING_PERIOD_CLOSE",
+    "family": "financial",
+    "axes": {
+      "currency": "ILS"
+    },
+    "axes_note": {
+      "currency": "app.shared.enums.Currency. Note CurrencySettings.SUPPORTED_CURRENCIES also lists SAR, AED, QAR, KWD, BHD and OMR, which do not exist here."
+    },
+    "axes_effect": {
+      "currency": "the period is closed with amounts carried in ILS, while the trial balance reads the same account rows the ledger wrote"
+    },
+    "rule": "The trial balance computes total_debit and total_credit and compares them within one cent. A closed FinancialPeriod rejects any further journal through _check_period_closed, which raises rather than warns. The currency axis is observed because a foreign payment is credited to 4000 unconverted, so the trial balance drifts by the FX difference.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "GET /accountant/trial-balance",
+        "assertion": "debits and credits compared within 0.01"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /accountant/accounts/<int:account_id>",
+        "assertion": "running balance for one account"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /accountant/periods/close",
+        "assertion": "period closed; later journals refused"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0438",
+    "template": "ACCOUNTING_PERIOD_CLOSE",
+    "family": "financial",
+    "axes": {
+      "currency": "EGP"
+    },
+    "axes_note": {
+      "currency": "app.shared.enums.Currency. Note CurrencySettings.SUPPORTED_CURRENCIES also lists SAR, AED, QAR, KWD, BHD and OMR, which do not exist here."
+    },
+    "axes_effect": {
+      "currency": "the period is closed with amounts carried in EGP, while the trial balance reads the same account rows the ledger wrote"
+    },
+    "rule": "The trial balance computes total_debit and total_credit and compares them within one cent. A closed FinancialPeriod rejects any further journal through _check_period_closed, which raises rather than warns. The currency axis is observed because a foreign payment is credited to 4000 unconverted, so the trial balance drifts by the FX difference.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "GET /accountant/trial-balance",
+        "assertion": "debits and credits compared within 0.01"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /accountant/accounts/<int:account_id>",
+        "assertion": "running balance for one account"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /accountant/periods/close",
+        "assertion": "period closed; later journals refused"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0439",
+    "template": "ACCOUNTING_PERIOD_CLOSE",
+    "family": "financial",
+    "axes": {
+      "currency": "USD"
+    },
+    "axes_note": {
+      "currency": "app.shared.enums.Currency. Note CurrencySettings.SUPPORTED_CURRENCIES also lists SAR, AED, QAR, KWD, BHD and OMR, which do not exist here."
+    },
+    "axes_effect": {
+      "currency": "the period is closed with amounts carried in USD, while the trial balance reads the same account rows the ledger wrote"
+    },
+    "rule": "The trial balance computes total_debit and total_credit and compares them within one cent. A closed FinancialPeriod rejects any further journal through _check_period_closed, which raises rather than warns. The currency axis is observed because a foreign payment is credited to 4000 unconverted, so the trial balance drifts by the FX difference.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "GET /accountant/trial-balance",
+        "assertion": "debits and credits compared within 0.01"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /accountant/accounts/<int:account_id>",
+        "assertion": "running balance for one account"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /accountant/periods/close",
+        "assertion": "period closed; later journals refused"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0440",
+    "template": "ACCOUNTING_PERIOD_CLOSE",
+    "family": "financial",
+    "axes": {
+      "currency": "EUR"
+    },
+    "axes_note": {
+      "currency": "app.shared.enums.Currency. Note CurrencySettings.SUPPORTED_CURRENCIES also lists SAR, AED, QAR, KWD, BHD and OMR, which do not exist here."
+    },
+    "axes_effect": {
+      "currency": "the period is closed with amounts carried in EUR, while the trial balance reads the same account rows the ledger wrote"
+    },
+    "rule": "The trial balance computes total_debit and total_credit and compares them within one cent. A closed FinancialPeriod rejects any further journal through _check_period_closed, which raises rather than warns. The currency axis is observed because a foreign payment is credited to 4000 unconverted, so the trial balance drifts by the FX difference.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "GET /accountant/trial-balance",
+        "assertion": "debits and credits compared within 0.01"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /accountant/accounts/<int:account_id>",
+        "assertion": "running balance for one account"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /accountant/periods/close",
+        "assertion": "period closed; later journals refused"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0441",
+    "template": "ACCOUNTING_PERIOD_CLOSE",
+    "family": "financial",
+    "axes": {
+      "currency": "JOD"
+    },
+    "axes_note": {
+      "currency": "app.shared.enums.Currency. Note CurrencySettings.SUPPORTED_CURRENCIES also lists SAR, AED, QAR, KWD, BHD and OMR, which do not exist here."
+    },
+    "axes_effect": {
+      "currency": "the period is closed with amounts carried in JOD, while the trial balance reads the same account rows the ledger wrote"
+    },
+    "rule": "The trial balance computes total_debit and total_credit and compares them within one cent. A closed FinancialPeriod rejects any further journal through _check_period_closed, which raises rather than warns. The currency axis is observed because a foreign payment is credited to 4000 unconverted, so the trial balance drifts by the FX difference.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "GET /accountant/trial-balance",
+        "assertion": "debits and credits compared within 0.01"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /accountant/accounts/<int:account_id>",
+        "assertion": "running balance for one account"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /accountant/periods/close",
+        "assertion": "period closed; later journals refused"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0442",
+    "template": "SHIFT_HANDOVER_CASH_SNAPSHOT",
+    "family": "financial",
+    "axes": {
+      "task_state": "pending"
+    },
+    "axes_note": {
+      "task_state": "Nursing task lifecycle."
+    },
+    "axes_effect": {
+      "task_state": "the handover sheet is closed in pending"
+    },
+    "rule": "open_shift snapshots the day cash across CashRegister rows and counts pending work: waiting queue tickets, lab and radiology requests still PENDING or IN_PROGRESS, and undispensed prescriptions. Those pending counts carry no tenant filter, so the snapshot can include another tenant's rows when RLS is not active.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift opened, cash snapshot taken"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /handover/<shift_id>/acknowledge",
+        "assertion": "assignee acknowledges"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /handover/<shift_id>/close",
+        "assertion": "close freezes cash and pending work"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0443",
+    "template": "SHIFT_HANDOVER_CASH_SNAPSHOT",
+    "family": "financial",
+    "axes": {
+      "task_state": "in_progress"
+    },
+    "axes_note": {
+      "task_state": "Nursing task lifecycle."
+    },
+    "axes_effect": {
+      "task_state": "the handover sheet is closed in in_progress"
+    },
+    "rule": "open_shift snapshots the day cash across CashRegister rows and counts pending work: waiting queue tickets, lab and radiology requests still PENDING or IN_PROGRESS, and undispensed prescriptions. Those pending counts carry no tenant filter, so the snapshot can include another tenant's rows when RLS is not active.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift opened, cash snapshot taken"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /handover/<shift_id>/acknowledge",
+        "assertion": "assignee acknowledges"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /handover/<shift_id>/close",
+        "assertion": "close freezes cash and pending work"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0444",
+    "template": "SHIFT_HANDOVER_CASH_SNAPSHOT",
+    "family": "financial",
+    "axes": {
+      "task_state": "completed"
+    },
+    "axes_note": {
+      "task_state": "Nursing task lifecycle."
+    },
+    "axes_effect": {
+      "task_state": "the handover sheet is closed in completed"
+    },
+    "rule": "open_shift snapshots the day cash across CashRegister rows and counts pending work: waiting queue tickets, lab and radiology requests still PENDING or IN_PROGRESS, and undispensed prescriptions. Those pending counts carry no tenant filter, so the snapshot can include another tenant's rows when RLS is not active.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift opened, cash snapshot taken"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /handover/<shift_id>/acknowledge",
+        "assertion": "assignee acknowledges"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /handover/<shift_id>/close",
+        "assertion": "close freezes cash and pending work"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0445",
+    "template": "SHIFT_HANDOVER_CASH_SNAPSHOT",
+    "family": "financial",
+    "axes": {
+      "task_state": "cancelled"
+    },
+    "axes_note": {
+      "task_state": "Nursing task lifecycle."
+    },
+    "axes_effect": {
+      "task_state": "the handover sheet is closed in cancelled"
+    },
+    "rule": "open_shift snapshots the day cash across CashRegister rows and counts pending work: waiting queue tickets, lab and radiology requests still PENDING or IN_PROGRESS, and undispensed prescriptions. Those pending counts carry no tenant filter, so the snapshot can include another tenant's rows when RLS is not active.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift opened, cash snapshot taken"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /handover/<shift_id>/acknowledge",
+        "assertion": "assignee acknowledges"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /handover/<shift_id>/close",
+        "assertion": "close freezes cash and pending work"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0446",
+    "template": "EMERGENCY_TREATMENT_AND_ORDERS",
+    "family": "clinical",
+    "axes": {
+      "treatment_status": "pending",
+      "emergency_severity": "LOW"
+    },
+    "axes_note": {
+      "treatment_status": "Treatment record lifecycle.",
+      "emergency_severity": "EmergencyCase.severity, uppercased by a validator."
+    },
+    "axes_effect": {
+      "treatment_status": "the treatment record moves to pending",
+      "emergency_severity": "the treatment is recorded against LOW severity"
+    },
+    "rule": "The ER has its own lab, radiology and prescription endpoints that do not run the hub-and-spoke re-queue the outpatient path uses. /emergency/api/ems/intake is the exception: it creates a Patient and an EmergencyCase but no Visit and no queue ticket, so an EMS-intaken patient never reaches the billing path.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/emergency-treatment/<visit_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/lab-request/<emergency_id>",
+        "assertion": "ER lab request without hub-and-spoke"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/emergency-visits/<visit_id>/complete",
+        "assertion": "completed_at set without a state-machine transition"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0447",
+    "template": "EMERGENCY_TREATMENT_AND_ORDERS",
+    "family": "clinical",
+    "axes": {
+      "treatment_status": "pending",
+      "emergency_severity": "MODERATE"
+    },
+    "axes_note": {
+      "treatment_status": "Treatment record lifecycle.",
+      "emergency_severity": "EmergencyCase.severity, uppercased by a validator."
+    },
+    "axes_effect": {
+      "treatment_status": "the treatment record moves to pending",
+      "emergency_severity": "the treatment is recorded against MODERATE severity"
+    },
+    "rule": "The ER has its own lab, radiology and prescription endpoints that do not run the hub-and-spoke re-queue the outpatient path uses. /emergency/api/ems/intake is the exception: it creates a Patient and an EmergencyCase but no Visit and no queue ticket, so an EMS-intaken patient never reaches the billing path.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/emergency-treatment/<visit_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/lab-request/<emergency_id>",
+        "assertion": "ER lab request without hub-and-spoke"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/emergency-visits/<visit_id>/complete",
+        "assertion": "completed_at set without a state-machine transition"
+      }
+    ]
   }
 ]

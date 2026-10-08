@@ -656,6 +656,99 @@ PLATFORM_ADMIN_TEMPLATES: tuple[Template, ...] = (
             ),
         ),
     ),
+    Template(
+        key='SUPERADMIN_PLATFORM_USER_DIRECTORY',
+        family='platform',
+        axes=('actor_role',),
+        observed={
+            'actor_role': (
+                'super_admin',
+                'owner',
+                'admin',
+                'manager',
+                'reception',
+                'doctor',
+                'nurse',
+                'lab',
+                'radiology',
+                'pharmacist',
+                'accountant',
+            )
+        },
+        rule=(
+            'The platform console manages users directly while the owner console '
+            'manages them per tenant, so the same person can hold two accounts with '
+            'two sets of credentials. Both consoles route creation through '
+            'actor_may_assign_role, which is what stops a privileged operator from '
+            'minting an account more privileged than itself. The account is not '
+            'reached by tenant scoping because the platform console is above the '
+            'tenant.'
+        ),
+        steps=(
+            _s(SUPER_ADMIN, 'POST /super-admin/users/create', 'platform user created'),
+            _s(
+                SUPER_ADMIN,
+                'POST /super-admin/users/<int:user_id>/edit',
+                'account details corrected',
+            ),
+            _s(
+                SUPER_ADMIN,
+                'POST /super-admin/users/<int:user_id>/reset-password',
+                'credential reset',
+            ),
+            _s(SUPER_ADMIN, 'POST /super-admin/users/<int:user_id>/delete', 'account removed'),
+            _s(
+                OWNER,
+                'POST /owner/users/<int:user_id>/delete',
+                'tenant-side removal of the same person',
+            ),
+        ),
+    ),
+    Template(
+        key='SUPERADMIN_BRANDING_DIRECT_UPDATE',
+        family='platform',
+        axes=('config_type',),
+        observed={'config_type': ('string', 'integer', 'boolean', 'json', 'file', 'password')},
+        rule=(
+            'Branding has two writers: apply-theme sets one of the stored themes, '
+            'and update writes the fields directly. A direct update can therefore '
+            'produce a tenant whose branding matches no stored theme, which is why '
+            're-applying a theme afterwards is a separate action rather than a '
+            'reset.'
+        ),
+        steps=(
+            _s(SUPER_ADMIN, 'GET /owner/themes', 'the stored themes it may apply'),
+            _s(
+                SUPER_ADMIN,
+                'POST /super-admin/branding/update',
+                'branding fields written directly',
+            ),
+            _s(
+                SUPER_ADMIN,
+                'POST /super-admin/branding/apply-theme/<int:theme_id>',
+                'stored theme applied over it',
+            ),
+        ),
+    ),
+    Template(
+        key='SUPERADMIN_BACKUP_ROW_REMOVAL',
+        family='platform',
+        axes=('backup_status',),
+        observed={'backup_status': ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'CANCELLED')},
+        rule=(
+            'Deleting a backup is a row removal, so retention is enforced by a '
+            'delete loop rather than by a policy the scheduler checks. The row can '
+            'be removed whatever state it is in, which is why an in-progress backup '
+            'can leave a restore target that no longer exists.'
+        ),
+        steps=(
+            _s(SUPER_ADMIN, 'GET /super-admin/backup/settings', 'backup settings listed'),
+            _s(SUPER_ADMIN, 'POST /super-admin/backup/create', 'backup taken'),
+            _s(
+                SUPER_ADMIN, 'POST /super-admin/backup/delete/<int:backup_id>', 'backup row removed'
+            ),
+        ),
+    ),
 )
 
 

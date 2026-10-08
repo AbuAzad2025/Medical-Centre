@@ -1,1336 +1,5 @@
 [
   {
-    "scenario_id": "GS-0866",
-    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
-    "family": "clinical",
-    "axes": {
-      "stock_movement_type": "transfer_out",
-      "prescription_state": "issued"
-    },
-    "axes_note": {
-      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
-      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
-    },
-    "axes_effect": {
-      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
-      "prescription_state": "the prescription is issued when the POS charges it"
-    },
-    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "POST /medication/purchases/add",
-        "assertion": "stock received, ledger movement written"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/pos/charge",
-        "assertion": "dispensed, cash collected"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/api/external-drug-import",
-        "assertion": "drug imported from catalogue"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0867",
-    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
-    "family": "clinical",
-    "axes": {
-      "stock_movement_type": "transfer_out",
-      "prescription_state": "active"
-    },
-    "axes_note": {
-      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
-      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
-    },
-    "axes_effect": {
-      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
-      "prescription_state": "the prescription is active when the POS charges it"
-    },
-    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "POST /medication/purchases/add",
-        "assertion": "stock received, ledger movement written"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/pos/charge",
-        "assertion": "dispensed, cash collected"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/api/external-drug-import",
-        "assertion": "drug imported from catalogue"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0868",
-    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
-    "family": "clinical",
-    "axes": {
-      "stock_movement_type": "transfer_out",
-      "prescription_state": "dispensed"
-    },
-    "axes_note": {
-      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
-      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
-    },
-    "axes_effect": {
-      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
-      "prescription_state": "the prescription is dispensed when the POS charges it"
-    },
-    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "POST /medication/purchases/add",
-        "assertion": "stock received, ledger movement written"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/pos/charge",
-        "assertion": "dispensed, cash collected"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/api/external-drug-import",
-        "assertion": "drug imported from catalogue"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0869",
-    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
-    "family": "clinical",
-    "axes": {
-      "stock_movement_type": "transfer_out",
-      "prescription_state": "partial"
-    },
-    "axes_note": {
-      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
-      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
-    },
-    "axes_effect": {
-      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
-      "prescription_state": "the prescription is partial when the POS charges it"
-    },
-    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "POST /medication/purchases/add",
-        "assertion": "stock received, ledger movement written"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/pos/charge",
-        "assertion": "dispensed, cash collected"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/api/external-drug-import",
-        "assertion": "drug imported from catalogue"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0870",
-    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
-    "family": "clinical",
-    "axes": {
-      "stock_movement_type": "transfer_out",
-      "prescription_state": "cancelled"
-    },
-    "axes_note": {
-      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
-      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
-    },
-    "axes_effect": {
-      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
-      "prescription_state": "the prescription is cancelled when the POS charges it"
-    },
-    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "POST /medication/purchases/add",
-        "assertion": "stock received, ledger movement written"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/pos/charge",
-        "assertion": "dispensed, cash collected"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/api/external-drug-import",
-        "assertion": "drug imported from catalogue"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0871",
-    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
-    "family": "clinical",
-    "axes": {
-      "stock_movement_type": "transfer_out",
-      "prescription_state": "expired"
-    },
-    "axes_note": {
-      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
-      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
-    },
-    "axes_effect": {
-      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
-      "prescription_state": "the prescription is expired when the POS charges it"
-    },
-    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "POST /medication/purchases/add",
-        "assertion": "stock received, ledger movement written"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/pos/charge",
-        "assertion": "dispensed, cash collected"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/api/external-drug-import",
-        "assertion": "drug imported from catalogue"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0872",
-    "template": "EMERGENCY_CASE_TREATMENT",
-    "family": "clinical",
-    "axes": {
-      "emergency_status": "NEW"
-    },
-    "axes_note": {
-      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
-    },
-    "axes_effect": {
-      "emergency_status": "the case moves to NEW, and the edit route writes no history row while moving it"
-    },
-    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "treatment started"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/treatment/<int:emergency_id>",
-        "assertion": "treatment record added"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/radiology-request/<int:emergency_id>",
-        "assertion": "imaging ordered"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "POST /emergency/prescription/<int:emergency_id>",
-        "assertion": "emergency prescription"
-      },
-      {
-        "step": 5,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "EMS prehospital intake recorded"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0873",
-    "template": "EMERGENCY_CASE_TREATMENT",
-    "family": "clinical",
-    "axes": {
-      "emergency_status": "WAITING"
-    },
-    "axes_note": {
-      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
-    },
-    "axes_effect": {
-      "emergency_status": "the case moves to WAITING, and the edit route writes no history row while moving it"
-    },
-    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "treatment started"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/treatment/<int:emergency_id>",
-        "assertion": "treatment record added"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/radiology-request/<int:emergency_id>",
-        "assertion": "imaging ordered"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "POST /emergency/prescription/<int:emergency_id>",
-        "assertion": "emergency prescription"
-      },
-      {
-        "step": 5,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "EMS prehospital intake recorded"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0874",
-    "template": "EMERGENCY_CASE_TREATMENT",
-    "family": "clinical",
-    "axes": {
-      "emergency_status": "TRIAGE"
-    },
-    "axes_note": {
-      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
-    },
-    "axes_effect": {
-      "emergency_status": "the case moves to TRIAGE, and the edit route writes no history row while moving it"
-    },
-    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "treatment started"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/treatment/<int:emergency_id>",
-        "assertion": "treatment record added"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/radiology-request/<int:emergency_id>",
-        "assertion": "imaging ordered"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "POST /emergency/prescription/<int:emergency_id>",
-        "assertion": "emergency prescription"
-      },
-      {
-        "step": 5,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "EMS prehospital intake recorded"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0875",
-    "template": "EMERGENCY_CASE_TREATMENT",
-    "family": "clinical",
-    "axes": {
-      "emergency_status": "RESUSCITATION"
-    },
-    "axes_note": {
-      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
-    },
-    "axes_effect": {
-      "emergency_status": "the case moves to RESUSCITATION, and the edit route writes no history row while moving it"
-    },
-    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "treatment started"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/treatment/<int:emergency_id>",
-        "assertion": "treatment record added"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/radiology-request/<int:emergency_id>",
-        "assertion": "imaging ordered"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "POST /emergency/prescription/<int:emergency_id>",
-        "assertion": "emergency prescription"
-      },
-      {
-        "step": 5,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "EMS prehospital intake recorded"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0876",
-    "template": "EMERGENCY_CASE_TREATMENT",
-    "family": "clinical",
-    "axes": {
-      "emergency_status": "TREATMENT"
-    },
-    "axes_note": {
-      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
-    },
-    "axes_effect": {
-      "emergency_status": "the case moves to TREATMENT, and the edit route writes no history row while moving it"
-    },
-    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "treatment started"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/treatment/<int:emergency_id>",
-        "assertion": "treatment record added"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/radiology-request/<int:emergency_id>",
-        "assertion": "imaging ordered"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "POST /emergency/prescription/<int:emergency_id>",
-        "assertion": "emergency prescription"
-      },
-      {
-        "step": 5,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "EMS prehospital intake recorded"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0877",
-    "template": "EMERGENCY_CASE_TREATMENT",
-    "family": "clinical",
-    "axes": {
-      "emergency_status": "OBSERVATION"
-    },
-    "axes_note": {
-      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
-    },
-    "axes_effect": {
-      "emergency_status": "the case moves to OBSERVATION, and the edit route writes no history row while moving it"
-    },
-    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "treatment started"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/treatment/<int:emergency_id>",
-        "assertion": "treatment record added"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/radiology-request/<int:emergency_id>",
-        "assertion": "imaging ordered"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "POST /emergency/prescription/<int:emergency_id>",
-        "assertion": "emergency prescription"
-      },
-      {
-        "step": 5,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "EMS prehospital intake recorded"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0878",
-    "template": "EMERGENCY_CASE_TREATMENT",
-    "family": "clinical",
-    "axes": {
-      "emergency_status": "IN_PROGRESS"
-    },
-    "axes_note": {
-      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
-    },
-    "axes_effect": {
-      "emergency_status": "the case moves to IN_PROGRESS, and the edit route writes no history row while moving it"
-    },
-    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "treatment started"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/treatment/<int:emergency_id>",
-        "assertion": "treatment record added"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/radiology-request/<int:emergency_id>",
-        "assertion": "imaging ordered"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "POST /emergency/prescription/<int:emergency_id>",
-        "assertion": "emergency prescription"
-      },
-      {
-        "step": 5,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "EMS prehospital intake recorded"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0879",
-    "template": "EMERGENCY_CASE_TREATMENT",
-    "family": "clinical",
-    "axes": {
-      "emergency_status": "COMPLETED"
-    },
-    "axes_note": {
-      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
-    },
-    "axes_effect": {
-      "emergency_status": "the case moves to COMPLETED, and the edit route writes no history row while moving it"
-    },
-    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "treatment started"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/treatment/<int:emergency_id>",
-        "assertion": "treatment record added"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/radiology-request/<int:emergency_id>",
-        "assertion": "imaging ordered"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "POST /emergency/prescription/<int:emergency_id>",
-        "assertion": "emergency prescription"
-      },
-      {
-        "step": 5,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "EMS prehospital intake recorded"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0880",
-    "template": "EMERGENCY_CASE_TREATMENT",
-    "family": "clinical",
-    "axes": {
-      "emergency_status": "TRANSFERRED"
-    },
-    "axes_note": {
-      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
-    },
-    "axes_effect": {
-      "emergency_status": "the case moves to TRANSFERRED, and the edit route writes no history row while moving it"
-    },
-    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "treatment started"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/treatment/<int:emergency_id>",
-        "assertion": "treatment record added"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/radiology-request/<int:emergency_id>",
-        "assertion": "imaging ordered"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "POST /emergency/prescription/<int:emergency_id>",
-        "assertion": "emergency prescription"
-      },
-      {
-        "step": 5,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "EMS prehospital intake recorded"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0881",
-    "template": "EMERGENCY_QUEUE_TO_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "triage_level": "RED"
-    },
-    "axes_note": {
-      "triage_level": "routes/emergency/queue.py maps RED->CRITICAL, YELLOW->HIGH, GREEN->MODERATE. These three are the only values written."
-    },
-    "axes_effect": {
-      "triage_level": "the case is triaged RED, and only RED reaches resuscitation without a wait; the emergency severity the queue writes is derived from it rather than chosen separately"
-    },
-    "rule": "Triage RED maps to a CRITICAL emergency severity and is the only level that reaches RESUSCITATION without a wait. A case that stabilises becomes an Admission, and the admission type is recorded separately from the emergency severity, so the same clinical picture can be filed under two different admission types. The admission type is deliberately not an axis here: the generator takes a full cross product, and pairing RED with ELECTIVE or GREEN with EMERGENCY would assert a clinical pairing the code never enforces.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "case triaged"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "stabilised"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/visits/create",
-        "assertion": "inpatient visit opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0882",
-    "template": "EMERGENCY_QUEUE_TO_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "triage_level": "YELLOW"
-    },
-    "axes_note": {
-      "triage_level": "routes/emergency/queue.py maps RED->CRITICAL, YELLOW->HIGH, GREEN->MODERATE. These three are the only values written."
-    },
-    "axes_effect": {
-      "triage_level": "the case is triaged YELLOW, and only RED reaches resuscitation without a wait; the emergency severity the queue writes is derived from it rather than chosen separately"
-    },
-    "rule": "Triage RED maps to a CRITICAL emergency severity and is the only level that reaches RESUSCITATION without a wait. A case that stabilises becomes an Admission, and the admission type is recorded separately from the emergency severity, so the same clinical picture can be filed under two different admission types. The admission type is deliberately not an axis here: the generator takes a full cross product, and pairing RED with ELECTIVE or GREEN with EMERGENCY would assert a clinical pairing the code never enforces.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "case triaged"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "stabilised"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/visits/create",
-        "assertion": "inpatient visit opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0883",
-    "template": "EMERGENCY_QUEUE_TO_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "triage_level": "GREEN"
-    },
-    "axes_note": {
-      "triage_level": "routes/emergency/queue.py maps RED->CRITICAL, YELLOW->HIGH, GREEN->MODERATE. These three are the only values written."
-    },
-    "axes_effect": {
-      "triage_level": "the case is triaged GREEN, and only RED reaches resuscitation without a wait; the emergency severity the queue writes is derived from it rather than chosen separately"
-    },
-    "rule": "Triage RED maps to a CRITICAL emergency severity and is the only level that reaches RESUSCITATION without a wait. A case that stabilises becomes an Admission, and the admission type is recorded separately from the emergency severity, so the same clinical picture can be filed under two different admission types. The admission type is deliberately not an axis here: the generator takes a full cross product, and pairing RED with ELECTIVE or GREEN with EMERGENCY would assert a clinical pairing the code never enforces.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/api/ems/intake",
-        "assertion": "case triaged"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/start-treatment/<int:emergency_id>",
-        "assertion": "stabilised"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/visits/create",
-        "assertion": "inpatient visit opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0884",
-    "template": "INPATIENT_BED_AND_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "bed_status": "AVAILABLE",
-      "admission_status": "ADMITTED",
-      "discharge_type": "HOME"
-    },
-    "axes_note": {
-      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
-      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
-      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
-    },
-    "axes_effect": {
-      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
-      "admission_status": "the admission ends ADMITTED",
-      "discharge_type": "the discharge is typed HOME"
-    },
-    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/admit",
-        "assertion": "admission opened and a bed assigned"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
-        "assertion": "bed released on discharge"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /nurse/api/protocols",
-        "assertion": "nursing protocol recorded"
-      },
-      {
-        "step": 4,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift handover opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0885",
-    "template": "INPATIENT_BED_AND_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "bed_status": "AVAILABLE",
-      "admission_status": "ADMITTED",
-      "discharge_type": "TRANSFER"
-    },
-    "axes_note": {
-      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
-      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
-      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
-    },
-    "axes_effect": {
-      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
-      "admission_status": "the admission ends ADMITTED",
-      "discharge_type": "the discharge is typed TRANSFER"
-    },
-    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/admit",
-        "assertion": "admission opened and a bed assigned"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
-        "assertion": "bed released on discharge"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /nurse/api/protocols",
-        "assertion": "nursing protocol recorded"
-      },
-      {
-        "step": 4,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift handover opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0886",
-    "template": "INPATIENT_BED_AND_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "bed_status": "AVAILABLE",
-      "admission_status": "ADMITTED",
-      "discharge_type": "DEATH"
-    },
-    "axes_note": {
-      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
-      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
-      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
-    },
-    "axes_effect": {
-      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
-      "admission_status": "the admission ends ADMITTED",
-      "discharge_type": "the discharge is typed DEATH"
-    },
-    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/admit",
-        "assertion": "admission opened and a bed assigned"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
-        "assertion": "bed released on discharge"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /nurse/api/protocols",
-        "assertion": "nursing protocol recorded"
-      },
-      {
-        "step": 4,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift handover opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0887",
-    "template": "INPATIENT_BED_AND_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "bed_status": "AVAILABLE",
-      "admission_status": "ADMITTED",
-      "discharge_type": "AGAINST_ADVICE"
-    },
-    "axes_note": {
-      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
-      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
-      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
-    },
-    "axes_effect": {
-      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
-      "admission_status": "the admission ends ADMITTED",
-      "discharge_type": "the discharge is typed AGAINST_ADVICE"
-    },
-    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/admit",
-        "assertion": "admission opened and a bed assigned"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
-        "assertion": "bed released on discharge"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /nurse/api/protocols",
-        "assertion": "nursing protocol recorded"
-      },
-      {
-        "step": 4,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift handover opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0888",
-    "template": "INPATIENT_BED_AND_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "bed_status": "AVAILABLE",
-      "admission_status": "DISCHARGED",
-      "discharge_type": "HOME"
-    },
-    "axes_note": {
-      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
-      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
-      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
-    },
-    "axes_effect": {
-      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
-      "admission_status": "the admission ends DISCHARGED",
-      "discharge_type": "the discharge is typed HOME"
-    },
-    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/admit",
-        "assertion": "admission opened and a bed assigned"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
-        "assertion": "bed released on discharge"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /nurse/api/protocols",
-        "assertion": "nursing protocol recorded"
-      },
-      {
-        "step": 4,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift handover opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0889",
-    "template": "INPATIENT_BED_AND_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "bed_status": "AVAILABLE",
-      "admission_status": "DISCHARGED",
-      "discharge_type": "TRANSFER"
-    },
-    "axes_note": {
-      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
-      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
-      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
-    },
-    "axes_effect": {
-      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
-      "admission_status": "the admission ends DISCHARGED",
-      "discharge_type": "the discharge is typed TRANSFER"
-    },
-    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/admit",
-        "assertion": "admission opened and a bed assigned"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
-        "assertion": "bed released on discharge"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /nurse/api/protocols",
-        "assertion": "nursing protocol recorded"
-      },
-      {
-        "step": 4,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift handover opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0890",
-    "template": "INPATIENT_BED_AND_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "bed_status": "AVAILABLE",
-      "admission_status": "DISCHARGED",
-      "discharge_type": "DEATH"
-    },
-    "axes_note": {
-      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
-      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
-      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
-    },
-    "axes_effect": {
-      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
-      "admission_status": "the admission ends DISCHARGED",
-      "discharge_type": "the discharge is typed DEATH"
-    },
-    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/admit",
-        "assertion": "admission opened and a bed assigned"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
-        "assertion": "bed released on discharge"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /nurse/api/protocols",
-        "assertion": "nursing protocol recorded"
-      },
-      {
-        "step": 4,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift handover opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0891",
-    "template": "INPATIENT_BED_AND_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "bed_status": "AVAILABLE",
-      "admission_status": "DISCHARGED",
-      "discharge_type": "AGAINST_ADVICE"
-    },
-    "axes_note": {
-      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
-      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
-      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
-    },
-    "axes_effect": {
-      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
-      "admission_status": "the admission ends DISCHARGED",
-      "discharge_type": "the discharge is typed AGAINST_ADVICE"
-    },
-    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/admit",
-        "assertion": "admission opened and a bed assigned"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
-        "assertion": "bed released on discharge"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /nurse/api/protocols",
-        "assertion": "nursing protocol recorded"
-      },
-      {
-        "step": 4,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift handover opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0892",
-    "template": "INPATIENT_BED_AND_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "bed_status": "AVAILABLE",
-      "admission_status": "TRANSFERRED",
-      "discharge_type": "HOME"
-    },
-    "axes_note": {
-      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
-      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
-      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
-    },
-    "axes_effect": {
-      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
-      "admission_status": "the admission ends TRANSFERRED",
-      "discharge_type": "the discharge is typed HOME"
-    },
-    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/admit",
-        "assertion": "admission opened and a bed assigned"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
-        "assertion": "bed released on discharge"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /nurse/api/protocols",
-        "assertion": "nursing protocol recorded"
-      },
-      {
-        "step": 4,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift handover opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0893",
-    "template": "INPATIENT_BED_AND_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "bed_status": "AVAILABLE",
-      "admission_status": "TRANSFERRED",
-      "discharge_type": "TRANSFER"
-    },
-    "axes_note": {
-      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
-      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
-      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
-    },
-    "axes_effect": {
-      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
-      "admission_status": "the admission ends TRANSFERRED",
-      "discharge_type": "the discharge is typed TRANSFER"
-    },
-    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/admit",
-        "assertion": "admission opened and a bed assigned"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
-        "assertion": "bed released on discharge"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /nurse/api/protocols",
-        "assertion": "nursing protocol recorded"
-      },
-      {
-        "step": 4,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift handover opened"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0894",
-    "template": "INPATIENT_BED_AND_ADMISSION",
-    "family": "clinical",
-    "axes": {
-      "bed_status": "AVAILABLE",
-      "admission_status": "TRANSFERRED",
-      "discharge_type": "DEATH"
-    },
-    "axes_note": {
-      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
-      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
-      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
-    },
-    "axes_effect": {
-      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
-      "admission_status": "the admission ends TRANSFERRED",
-      "discharge_type": "the discharge is typed DEATH"
-    },
-    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/admit",
-        "assertion": "admission opened and a bed assigned"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
-        "assertion": "bed released on discharge"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /nurse/api/protocols",
-        "assertion": "nursing protocol recorded"
-      },
-      {
-        "step": 4,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift handover opened"
-      }
-    ]
-  },
-  {
     "scenario_id": "GS-0895",
     "template": "INPATIENT_BED_AND_ADMISSION",
     "family": "clinical",
@@ -15387,6 +14056,1243 @@
   },
   {
     "scenario_id": "GS-1210",
+    "template": "RECEPTION_POINT_OF_SALE_CHARGE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "CASH"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by CASH: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "The reception POS is a second collection path with its own gate: it refuses unless the billing module is enabled for the tenant, and it accepts JSON as well as form data, so the amount can arrive from a fetch call that a form post cannot express. It is a separate route from /payment/process, which is why a POS charge is not the same write as settling a visit.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit priced for collection"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "collected at the desk, JSON body"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /accountant/payments",
+        "assertion": "payment read back on the accounting side"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1211",
+    "template": "RECEPTION_POINT_OF_SALE_CHARGE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "CARD"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by CARD: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "The reception POS is a second collection path with its own gate: it refuses unless the billing module is enabled for the tenant, and it accepts JSON as well as form data, so the amount can arrive from a fetch call that a form post cannot express. It is a separate route from /payment/process, which is why a POS charge is not the same write as settling a visit.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit priced for collection"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "collected at the desk, JSON body"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /accountant/payments",
+        "assertion": "payment read back on the accounting side"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1212",
+    "template": "RECEPTION_POINT_OF_SALE_CHARGE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "visa"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by visa: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "The reception POS is a second collection path with its own gate: it refuses unless the billing module is enabled for the tenant, and it accepts JSON as well as form data, so the amount can arrive from a fetch call that a form post cannot express. It is a separate route from /payment/process, which is why a POS charge is not the same write as settling a visit.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit priced for collection"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "collected at the desk, JSON body"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /accountant/payments",
+        "assertion": "payment read back on the accounting side"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1213",
+    "template": "RECEPTION_POINT_OF_SALE_CHARGE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "mada"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by mada: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "The reception POS is a second collection path with its own gate: it refuses unless the billing module is enabled for the tenant, and it accepts JSON as well as form data, so the amount can arrive from a fetch call that a form post cannot express. It is a separate route from /payment/process, which is why a POS charge is not the same write as settling a visit.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit priced for collection"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "collected at the desk, JSON body"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /accountant/payments",
+        "assertion": "payment read back on the accounting side"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1214",
+    "template": "RECEPTION_POINT_OF_SALE_CHARGE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "WIRE"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by WIRE: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "The reception POS is a second collection path with its own gate: it refuses unless the billing module is enabled for the tenant, and it accepts JSON as well as form data, so the amount can arrive from a fetch call that a form post cannot express. It is a separate route from /payment/process, which is why a POS charge is not the same write as settling a visit.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit priced for collection"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "collected at the desk, JSON body"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /accountant/payments",
+        "assertion": "payment read back on the accounting side"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1215",
+    "template": "RECEPTION_POINT_OF_SALE_CHARGE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "INSURANCE"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by INSURANCE: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "The reception POS is a second collection path with its own gate: it refuses unless the billing module is enabled for the tenant, and it accepts JSON as well as form data, so the amount can arrive from a fetch call that a form post cannot express. It is a separate route from /payment/process, which is why a POS charge is not the same write as settling a visit.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit priced for collection"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "collected at the desk, JSON body"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /accountant/payments",
+        "assertion": "payment read back on the accounting side"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1216",
+    "template": "RECEPTION_POINT_OF_SALE_CHARGE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "FORCE"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by FORCE: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "The reception POS is a second collection path with its own gate: it refuses unless the billing module is enabled for the tenant, and it accepts JSON as well as form data, so the amount can arrive from a fetch call that a form post cannot express. It is a separate route from /payment/process, which is why a POS charge is not the same write as settling a visit.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit priced for collection"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "collected at the desk, JSON body"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /accountant/payments",
+        "assertion": "payment read back on the accounting side"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1217",
+    "template": "PATIENT_SATISFACTION_SURVEY",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "The survey is the only public write in the application that is keyed on a token rather than a session, so it is reachable by a patient who was never given an account. The rating is validated as one to five and a second submission returns the already-submitted view rather than an error, which is the right shape for a patient trying twice and the wrong shape for a caller probing whether a token was already used.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "GET /reception/survey/<token>",
+        "assertion": "survey opened by token"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/survey/<token>",
+        "assertion": "rating submitted"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/survey/<token>",
+        "assertion": "second submission returns the submitted view"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1218",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "accountant"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as accountant, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1219",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "admin"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as admin, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1220",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "doctor"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as doctor, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1221",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "emergency"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as emergency, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1222",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "er_doctor"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as er_doctor, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1223",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "lab"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as lab, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1224",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "manager"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as manager, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1225",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "nurse"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as nurse, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1226",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "owner"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as owner, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1227",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "patient"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as patient, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1228",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "pharmacist"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as pharmacist, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1229",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "radiology"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as radiology, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1230",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "reception"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as reception, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1231",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "super_admin"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as super_admin, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1232",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "technician"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as technician, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1233",
+    "template": "DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "user"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the journey is run as user, which is what decides whether the role_required decorator admits or refuses the step"
+    },
+    "rule": "The layout is stored per user and validated against the ids the default layout declares, so a panel id the application no longer ships is dropped rather than stored. That is what makes the write safe against a stale client, and it also means a panel removed from the default disappears from a saved layout without the user being told.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/api/dashboard-layout",
+        "assertion": "layout saved"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<string:template_id>/delete",
+        "assertion": "note template removed"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "GET /doctor/print-medical-report/<int:visit_id>",
+        "assertion": "layout read back"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1234",
+    "template": "LAB_PANEL_REMOVAL",
+    "family": "clinical",
+    "axes": {
+      "lab_order_status": "ordered"
+    },
+    "axes_note": {
+      "lab_order_status": "LabOrder.status, the seven-step order workflow. The result column is a separate LabResultStatus, and the two can disagree."
+    },
+    "axes_effect": {
+      "lab_order_status": "the lab order advances to ordered, which is a separate progression from LabResult.status"
+    },
+    "rule": "Removing a panel is not the same as removing a test: a panel is a named bundle, so deleting it removes the bundle while the tests it referenced stay in the catalogue. Any order already priced against the panel keeps its line, which is why the panel can be deleted with paid work still referring to it.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/add",
+        "assertion": "panel created"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/edit",
+        "assertion": "panel edited"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/delete",
+        "assertion": "panel removed"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1235",
+    "template": "LAB_PANEL_REMOVAL",
+    "family": "clinical",
+    "axes": {
+      "lab_order_status": "sample_collected"
+    },
+    "axes_note": {
+      "lab_order_status": "LabOrder.status, the seven-step order workflow. The result column is a separate LabResultStatus, and the two can disagree."
+    },
+    "axes_effect": {
+      "lab_order_status": "the lab order advances to sample_collected, which is a separate progression from LabResult.status"
+    },
+    "rule": "Removing a panel is not the same as removing a test: a panel is a named bundle, so deleting it removes the bundle while the tests it referenced stay in the catalogue. Any order already priced against the panel keeps its line, which is why the panel can be deleted with paid work still referring to it.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/add",
+        "assertion": "panel created"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/edit",
+        "assertion": "panel edited"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/delete",
+        "assertion": "panel removed"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1236",
+    "template": "LAB_PANEL_REMOVAL",
+    "family": "clinical",
+    "axes": {
+      "lab_order_status": "in_progress"
+    },
+    "axes_note": {
+      "lab_order_status": "LabOrder.status, the seven-step order workflow. The result column is a separate LabResultStatus, and the two can disagree."
+    },
+    "axes_effect": {
+      "lab_order_status": "the lab order advances to in_progress, which is a separate progression from LabResult.status"
+    },
+    "rule": "Removing a panel is not the same as removing a test: a panel is a named bundle, so deleting it removes the bundle while the tests it referenced stay in the catalogue. Any order already priced against the panel keeps its line, which is why the panel can be deleted with paid work still referring to it.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/add",
+        "assertion": "panel created"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/edit",
+        "assertion": "panel edited"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/delete",
+        "assertion": "panel removed"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1237",
+    "template": "LAB_PANEL_REMOVAL",
+    "family": "clinical",
+    "axes": {
+      "lab_order_status": "results_entered"
+    },
+    "axes_note": {
+      "lab_order_status": "LabOrder.status, the seven-step order workflow. The result column is a separate LabResultStatus, and the two can disagree."
+    },
+    "axes_effect": {
+      "lab_order_status": "the lab order advances to results_entered, which is a separate progression from LabResult.status"
+    },
+    "rule": "Removing a panel is not the same as removing a test: a panel is a named bundle, so deleting it removes the bundle while the tests it referenced stay in the catalogue. Any order already priced against the panel keeps its line, which is why the panel can be deleted with paid work still referring to it.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/add",
+        "assertion": "panel created"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/edit",
+        "assertion": "panel edited"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/delete",
+        "assertion": "panel removed"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1238",
+    "template": "LAB_PANEL_REMOVAL",
+    "family": "clinical",
+    "axes": {
+      "lab_order_status": "approved"
+    },
+    "axes_note": {
+      "lab_order_status": "LabOrder.status, the seven-step order workflow. The result column is a separate LabResultStatus, and the two can disagree."
+    },
+    "axes_effect": {
+      "lab_order_status": "the lab order advances to approved, which is a separate progression from LabResult.status"
+    },
+    "rule": "Removing a panel is not the same as removing a test: a panel is a named bundle, so deleting it removes the bundle while the tests it referenced stay in the catalogue. Any order already priced against the panel keeps its line, which is why the panel can be deleted with paid work still referring to it.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/add",
+        "assertion": "panel created"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/edit",
+        "assertion": "panel edited"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/delete",
+        "assertion": "panel removed"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1239",
+    "template": "LAB_PANEL_REMOVAL",
+    "family": "clinical",
+    "axes": {
+      "lab_order_status": "delivered"
+    },
+    "axes_note": {
+      "lab_order_status": "LabOrder.status, the seven-step order workflow. The result column is a separate LabResultStatus, and the two can disagree."
+    },
+    "axes_effect": {
+      "lab_order_status": "the lab order advances to delivered, which is a separate progression from LabResult.status"
+    },
+    "rule": "Removing a panel is not the same as removing a test: a panel is a named bundle, so deleting it removes the bundle while the tests it referenced stay in the catalogue. Any order already priced against the panel keeps its line, which is why the panel can be deleted with paid work still referring to it.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/add",
+        "assertion": "panel created"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/edit",
+        "assertion": "panel edited"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/delete",
+        "assertion": "panel removed"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1240",
+    "template": "LAB_PANEL_REMOVAL",
+    "family": "clinical",
+    "axes": {
+      "lab_order_status": "cancelled"
+    },
+    "axes_note": {
+      "lab_order_status": "LabOrder.status, the seven-step order workflow. The result column is a separate LabResultStatus, and the two can disagree."
+    },
+    "axes_effect": {
+      "lab_order_status": "the lab order advances to cancelled, which is a separate progression from LabResult.status"
+    },
+    "rule": "Removing a panel is not the same as removing a test: a panel is a named bundle, so deleting it removes the bundle while the tests it referenced stay in the catalogue. Any order already priced against the panel keeps its line, which is why the panel can be deleted with paid work still referring to it.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/add",
+        "assertion": "panel created"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/edit",
+        "assertion": "panel edited"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<int:id>/delete",
+        "assertion": "panel removed"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1241",
     "template": "IDENTITY_REGISTRATION_AND_LOGIN",
     "family": "rbac",
     "axes": {
@@ -15429,7 +15335,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1211",
+    "scenario_id": "GS-1242",
     "template": "IDENTITY_REGISTRATION_AND_LOGIN",
     "family": "rbac",
     "axes": {
@@ -15472,7 +15378,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1212",
+    "scenario_id": "GS-1243",
     "template": "IDENTITY_REGISTRATION_AND_LOGIN",
     "family": "rbac",
     "axes": {
@@ -15515,7 +15421,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1213",
+    "scenario_id": "GS-1244",
     "template": "IDENTITY_REGISTRATION_AND_LOGIN",
     "family": "rbac",
     "axes": {
@@ -15558,7 +15464,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1214",
+    "scenario_id": "GS-1245",
     "template": "IDENTITY_REGISTRATION_AND_LOGIN",
     "family": "rbac",
     "axes": {
@@ -15601,7 +15507,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1215",
+    "scenario_id": "GS-1246",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -15650,7 +15556,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1216",
+    "scenario_id": "GS-1247",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -15699,7 +15605,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1217",
+    "scenario_id": "GS-1248",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -15748,7 +15654,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1218",
+    "scenario_id": "GS-1249",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -15797,7 +15703,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1219",
+    "scenario_id": "GS-1250",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -15846,7 +15752,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1220",
+    "scenario_id": "GS-1251",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -15895,7 +15801,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1221",
+    "scenario_id": "GS-1252",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -15944,7 +15850,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1222",
+    "scenario_id": "GS-1253",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -15993,7 +15899,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1223",
+    "scenario_id": "GS-1254",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -16042,7 +15948,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1224",
+    "scenario_id": "GS-1255",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -16091,7 +15997,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1225",
+    "scenario_id": "GS-1256",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -16140,7 +16046,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1226",
+    "scenario_id": "GS-1257",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -16189,7 +16095,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1227",
+    "scenario_id": "GS-1258",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -16238,7 +16144,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1228",
+    "scenario_id": "GS-1259",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -16287,7 +16193,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1229",
+    "scenario_id": "GS-1260",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -16336,7 +16242,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1230",
+    "scenario_id": "GS-1261",
     "template": "IDENTITY_PASSWORD_LIFECYCLE",
     "family": "rbac",
     "axes": {
@@ -16385,7 +16291,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1231",
+    "scenario_id": "GS-1262",
     "template": "IDENTITY_SECOND_FACTOR_ENROLMENT",
     "family": "rbac",
     "axes": {
@@ -16428,7 +16334,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1232",
+    "scenario_id": "GS-1263",
     "template": "IDENTITY_SECOND_FACTOR_ENROLMENT",
     "family": "rbac",
     "axes": {
@@ -16471,7 +16377,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1233",
+    "scenario_id": "GS-1264",
     "template": "IDENTITY_SECOND_FACTOR_ENROLMENT",
     "family": "rbac",
     "axes": {
@@ -16514,7 +16420,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1234",
+    "scenario_id": "GS-1265",
     "template": "IDENTITY_BIOMETRIC_ENROLMENT",
     "family": "rbac",
     "axes": {},
@@ -16551,7 +16457,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1235",
+    "scenario_id": "GS-1266",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16588,7 +16494,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1236",
+    "scenario_id": "GS-1267",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16625,7 +16531,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1237",
+    "scenario_id": "GS-1268",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16662,7 +16568,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1238",
+    "scenario_id": "GS-1269",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16699,7 +16605,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1239",
+    "scenario_id": "GS-1270",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16736,7 +16642,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1240",
+    "scenario_id": "GS-1271",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16773,7 +16679,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1241",
+    "scenario_id": "GS-1272",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16810,7 +16716,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1242",
+    "scenario_id": "GS-1273",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16847,7 +16753,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1243",
+    "scenario_id": "GS-1274",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16884,7 +16790,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1244",
+    "scenario_id": "GS-1275",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16921,7 +16827,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1245",
+    "scenario_id": "GS-1276",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16958,7 +16864,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1246",
+    "scenario_id": "GS-1277",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -16995,7 +16901,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1247",
+    "scenario_id": "GS-1278",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -17032,7 +16938,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1248",
+    "scenario_id": "GS-1279",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -17069,7 +16975,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1249",
+    "scenario_id": "GS-1280",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -17106,7 +17012,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1250",
+    "scenario_id": "GS-1281",
     "template": "IDENTITY_SESSION_TERMINATION",
     "family": "rbac",
     "axes": {
@@ -17143,7 +17049,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1251",
+    "scenario_id": "GS-1282",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17180,7 +17086,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1252",
+    "scenario_id": "GS-1283",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17217,7 +17123,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1253",
+    "scenario_id": "GS-1284",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17254,7 +17160,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1254",
+    "scenario_id": "GS-1285",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17291,7 +17197,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1255",
+    "scenario_id": "GS-1286",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17328,7 +17234,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1256",
+    "scenario_id": "GS-1287",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17365,7 +17271,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1257",
+    "scenario_id": "GS-1288",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17402,7 +17308,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1258",
+    "scenario_id": "GS-1289",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17439,7 +17345,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1259",
+    "scenario_id": "GS-1290",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17476,7 +17382,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1260",
+    "scenario_id": "GS-1291",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17513,7 +17419,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1261",
+    "scenario_id": "GS-1292",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17550,7 +17456,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1262",
+    "scenario_id": "GS-1293",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17587,7 +17493,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1263",
+    "scenario_id": "GS-1294",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17624,7 +17530,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1264",
+    "scenario_id": "GS-1295",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17661,7 +17567,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1265",
+    "scenario_id": "GS-1296",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17698,7 +17604,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1266",
+    "scenario_id": "GS-1297",
     "template": "IDENTITY_IMPERSONATION",
     "family": "rbac",
     "axes": {
@@ -17735,7 +17641,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1267",
+    "scenario_id": "GS-1298",
     "template": "IDENTITY_SSO_FEDERATION",
     "family": "rbac",
     "axes": {
@@ -17772,7 +17678,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1268",
+    "scenario_id": "GS-1299",
     "template": "IDENTITY_SSO_FEDERATION",
     "family": "rbac",
     "axes": {
@@ -17809,7 +17715,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1269",
+    "scenario_id": "GS-1300",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -17855,7 +17761,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1270",
+    "scenario_id": "GS-1301",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -17901,7 +17807,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1271",
+    "scenario_id": "GS-1302",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -17947,7 +17853,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1272",
+    "scenario_id": "GS-1303",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -17993,7 +17899,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1273",
+    "scenario_id": "GS-1304",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18039,7 +17945,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1274",
+    "scenario_id": "GS-1305",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18085,7 +17991,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1275",
+    "scenario_id": "GS-1306",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18131,7 +18037,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1276",
+    "scenario_id": "GS-1307",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18177,7 +18083,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1277",
+    "scenario_id": "GS-1308",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18223,7 +18129,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1278",
+    "scenario_id": "GS-1309",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18269,7 +18175,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1279",
+    "scenario_id": "GS-1310",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18315,7 +18221,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1280",
+    "scenario_id": "GS-1311",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18361,7 +18267,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1281",
+    "scenario_id": "GS-1312",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18407,7 +18313,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1282",
+    "scenario_id": "GS-1313",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18453,7 +18359,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1283",
+    "scenario_id": "GS-1314",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18499,7 +18405,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1284",
+    "scenario_id": "GS-1315",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18545,7 +18451,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1285",
+    "scenario_id": "GS-1316",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18591,7 +18497,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1286",
+    "scenario_id": "GS-1317",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18637,7 +18543,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1287",
+    "scenario_id": "GS-1318",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18683,7 +18589,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1288",
+    "scenario_id": "GS-1319",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18729,7 +18635,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1289",
+    "scenario_id": "GS-1320",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18775,7 +18681,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1290",
+    "scenario_id": "GS-1321",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18821,7 +18727,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1291",
+    "scenario_id": "GS-1322",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18867,7 +18773,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1292",
+    "scenario_id": "GS-1323",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18913,7 +18819,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1293",
+    "scenario_id": "GS-1324",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -18959,7 +18865,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1294",
+    "scenario_id": "GS-1325",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -19005,7 +18911,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1295",
+    "scenario_id": "GS-1326",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -19051,7 +18957,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1296",
+    "scenario_id": "GS-1327",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -19097,7 +19003,7 @@
     ]
   },
   {
-    "scenario_id": "GS-1297",
+    "scenario_id": "GS-1328",
     "template": "IDENTITY_PERMISSION_MATRIX",
     "family": "rbac",
     "axes": {
@@ -19111,6 +19017,604 @@
     "axes_effect": {
       "permission_category": "the permission is created in the backup_restore category, and the matrix is written per category, so an empty category denies everything",
       "permission_level": "the permission carries the admin level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1329",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "backup_restore",
+      "permission_level": "super_admin"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the backup_restore category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the super_admin level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1330",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "reports",
+      "permission_level": "read"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the reports category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the read level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1331",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "reports",
+      "permission_level": "write"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the reports category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the write level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1332",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "reports",
+      "permission_level": "delete"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the reports category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the delete level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1333",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "reports",
+      "permission_level": "admin"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the reports category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the admin level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1334",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "reports",
+      "permission_level": "super_admin"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the reports category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the super_admin level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1335",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "settings",
+      "permission_level": "read"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the settings category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the read level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1336",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "settings",
+      "permission_level": "write"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the settings category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the write level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1337",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "settings",
+      "permission_level": "delete"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the settings category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the delete level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1338",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "settings",
+      "permission_level": "admin"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the settings category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the admin level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1339",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "settings",
+      "permission_level": "super_admin"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the settings category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the super_admin level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1340",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "security",
+      "permission_level": "read"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the security category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the read level, which is the string the role decorator matches on"
+    },
+    "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/create",
+        "assertion": "permission created"
+      },
+      {
+        "step": 2,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/edit",
+        "assertion": "permission edited"
+      },
+      {
+        "step": 3,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions-matrix",
+        "assertion": "matrix written"
+      },
+      {
+        "step": 4,
+        "department": "SuperAdmin",
+        "api": "POST /super-admin/permissions/<int:permission_id>/delete",
+        "assertion": "permission deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-1341",
+    "template": "IDENTITY_PERMISSION_MATRIX",
+    "family": "rbac",
+    "axes": {
+      "permission_category": "security",
+      "permission_level": "write"
+    },
+    "axes_note": {
+      "permission_category": "Permission.category. The permissions matrix is built per category, so a new category starts with no rows.",
+      "permission_level": "Permission.level. The role decorator checks the level string, so this axis is what decides whether a write is allowed at all."
+    },
+    "axes_effect": {
+      "permission_category": "the permission is created in the security category, and the matrix is written per category, so an empty category denies everything",
+      "permission_level": "the permission carries the write level, which is the string the role decorator matches on"
     },
     "rule": "The permissions matrix is built per category and level, and the role decorator checks the level string rather than the category, so a permission is effective as soon as its level string is recognised on any category. A category with no rows denies everything and is indistinguishable from a category nobody created.",
     "expected_payment_status": "PAID",

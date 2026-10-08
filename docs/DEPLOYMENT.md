@@ -89,7 +89,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 1. `curl -f https://<host>/health` و `curl -f https://<host>/__health`.
 2. `python scripts/ci/verify_migrations.py` للتأكد من التهجيرات ورأس واحد.
 3. راجع `docs/PLATFORM_STATUS.md` لقسم «التحقق السريع بعد النشر».
-4. راجع `COMMERCIAL_READINESS_AUDIT.md` (86 فحصاً) و `PRE_PILOT_VERIFICATION_REPORT.md`.
+4. راجع `docs/reports/COMMERCIAL_READINESS_AUDIT.md` (86 فحصاً) و `docs/reports/PRE_PILOT_VERIFICATION_REPORT.md`.
 
 ---
 

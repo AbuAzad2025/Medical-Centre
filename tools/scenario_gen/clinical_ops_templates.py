@@ -23,6 +23,7 @@ RADIOLOGY = 'Radiology'
 PHARMACY = 'Pharmacy'
 EMERGENCY = 'Emergency'
 NURSE = 'Nurse'
+ACCOUNTANT = 'Accountant'
 
 CLINICAL_OPS_TEMPLATES: tuple[Template, ...] = (
     Template(
@@ -624,6 +625,99 @@ CLINICAL_OPS_TEMPLATES: tuple[Template, ...] = (
             _s(RECEPTION, 'GET /barcode/api/scan', 'label resolved to a patient'),
             _s(RECEPTION, 'POST /barcode/api/scan', 'scan recorded'),
             _s(RECEPTION, 'POST /reception/queue/add-patient', 'ticket raised from the scan'),
+        ),
+    ),
+    Template(
+        key='RECEPTION_POINT_OF_SALE_CHARGE',
+        family='financial',
+        axes=('payment_method',),
+        observed={'payment_method': ('CASH', 'CARD', 'visa', 'mada', 'WIRE', 'INSURANCE', 'FORCE')},
+        rule=(
+            'The reception POS is a second collection path with its own gate: it '
+            'refuses unless the billing module is enabled for the tenant, and it '
+            'accepts JSON as well as form data, so the amount can arrive from a '
+            'fetch call that a form post cannot express. It is a separate route '
+            'from /payment/process, which is why a POS charge is not the same '
+            'write as settling a visit.'
+        ),
+        steps=(
+            _s(RECEPTION, 'POST /reception/visits/create', 'visit priced for collection'),
+            _s(RECEPTION, 'POST /reception/pos/charge', 'collected at the desk, JSON body'),
+            _s(ACCOUNTANT, 'GET /accountant/payments', 'payment read back on the accounting side'),
+        ),
+    ),
+    Template(
+        key='PATIENT_SATISFACTION_SURVEY',
+        family='clinical',
+        axes=(),
+        observed={},
+        rule=(
+            'The survey is the only public write in the application that is keyed on '
+            'a token rather than a session, so it is reachable by a patient who was '
+            'never given an account. The rating is validated as one to five and a '
+            'second submission returns the already-submitted view rather than an '
+            'error, which is the right shape for a patient trying twice and the '
+            'wrong shape for a caller probing whether a token was already used.'
+        ),
+        steps=(
+            _s(RECEPTION, 'GET /reception/survey/<token>', 'survey opened by token'),
+            _s(RECEPTION, 'POST /reception/survey/<token>', 'rating submitted'),
+            _s(
+                RECEPTION,
+                'POST /reception/survey/<token>',
+                'second submission returns the submitted view',
+            ),
+        ),
+    ),
+    Template(
+        key='DOCTOR_DASHBOARD_LAYOUT_PERSISTENCE',
+        family='clinical',
+        axes=('actor_role',),
+        observed={'actor_role': ('doctor', 'admin', 'manager', 'super_admin')},
+        rule=(
+            'The layout is stored per user and validated against the ids the default '
+            'layout declares, so a panel id the application no longer ships is '
+            'dropped rather than stored. That is what makes the write safe against '
+            'a stale client, and it also means a panel removed from the default '
+            'disappears from a saved layout without the user being told.'
+        ),
+        steps=(
+            _s(DOCTOR, 'POST /doctor/api/dashboard-layout', 'layout saved'),
+            _s(DOCTOR, 'POST /doctor/api/note-templates', 'note template created'),
+            _s(
+                DOCTOR,
+                'POST /doctor/api/note-templates/<string:template_id>/delete',
+                'note template removed',
+            ),
+            _s(DOCTOR, 'GET /doctor/print-medical-report/<int:visit_id>', 'layout read back'),
+        ),
+    ),
+    Template(
+        key='LAB_PANEL_REMOVAL',
+        family='clinical',
+        axes=('lab_order_status',),
+        observed={
+            'lab_order_status': (
+                'ordered',
+                'sample_collected',
+                'in_progress',
+                'results_entered',
+                'approved',
+                'delivered',
+                'cancelled',
+            )
+        },
+        rule=(
+            'Removing a panel is not the same as removing a test: a panel is a named '
+            'bundle, so deleting it removes the bundle while the tests it referenced '
+            'stay in the catalogue. Any order already priced against the panel keeps '
+            'its line, which is why the panel can be deleted with paid work still '
+            'referring to it.'
+        ),
+        steps=(
+            _s(LAB, 'POST /lab/test-panels/add', 'panel created'),
+            _s(LAB, 'POST /lab/test-panels/<int:id>/edit', 'panel edited'),
+            _s(LAB, 'POST /lab/test-panels/<int:id>/delete', 'panel removed'),
         ),
     ),
 )

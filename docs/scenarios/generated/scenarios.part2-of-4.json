@@ -1,574 +1,5 @@
 [
   {
-    "scenario_id": "GS-0434",
-    "template": "OVERPAYMENT_AND_BOUNDARY",
-    "family": "financial",
-    "axes": {
-      "payment_amount_over_remaining": "150",
-      "line_item_count": "1"
-    },
-    "axes_note": {
-      "payment_amount_over_remaining": "Amounts are expressed as a percentage of visit.total_amount. /payment/process rejects amount > remaining with 400 and amount <= 0 while remaining > 0 with 400, so 150 is the overpayment case.",
-      "line_item_count": "How many add-service lines the invoice carries. Archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so a mismatched count is what the reconciliation check exists to catch."
-    },
-    "axes_effect": {
-      "payment_amount_over_remaining": "the payment is 150 percent of the balance, which decides between partial, exact and rejected",
-      "line_item_count": "the invoice carries 1 lines, which is what the archive reconciliation counts"
-    },
-    "rule": "Two independent guards. /payment/process rejects amount > remaining and amount <= 0 while remaining > 0. And archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so the line count has to match the billed total or the visit cannot be archived.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/visits/create",
-        "assertion": "visit created"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "POST /payment/process/<visit_id>",
-        "assertion": "zero amount against a balance refused 400"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/visits/<visit_id>/add-service",
-        "assertion": "lines appended to the invoice"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /payment/process/<visit_id>",
-        "assertion": "overpayment beyond remaining refused 400"
-      },
-      {
-        "step": 5,
-        "department": "Reception",
-        "api": "POST /reception/visits/<visit_id>/archive",
-        "assertion": "reconciliation must balance before archiving"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0435",
-    "template": "OVERPAYMENT_AND_BOUNDARY",
-    "family": "financial",
-    "axes": {
-      "payment_amount_over_remaining": "150",
-      "line_item_count": "2"
-    },
-    "axes_note": {
-      "payment_amount_over_remaining": "Amounts are expressed as a percentage of visit.total_amount. /payment/process rejects amount > remaining with 400 and amount <= 0 while remaining > 0 with 400, so 150 is the overpayment case.",
-      "line_item_count": "How many add-service lines the invoice carries. Archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so a mismatched count is what the reconciliation check exists to catch."
-    },
-    "axes_effect": {
-      "payment_amount_over_remaining": "the payment is 150 percent of the balance, which decides between partial, exact and rejected",
-      "line_item_count": "the invoice carries 2 lines, which is what the archive reconciliation counts"
-    },
-    "rule": "Two independent guards. /payment/process rejects amount > remaining and amount <= 0 while remaining > 0. And archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so the line count has to match the billed total or the visit cannot be archived.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/visits/create",
-        "assertion": "visit created"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "POST /payment/process/<visit_id>",
-        "assertion": "zero amount against a balance refused 400"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/visits/<visit_id>/add-service",
-        "assertion": "lines appended to the invoice"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /payment/process/<visit_id>",
-        "assertion": "overpayment beyond remaining refused 400"
-      },
-      {
-        "step": 5,
-        "department": "Reception",
-        "api": "POST /reception/visits/<visit_id>/archive",
-        "assertion": "reconciliation must balance before archiving"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0436",
-    "template": "OVERPAYMENT_AND_BOUNDARY",
-    "family": "financial",
-    "axes": {
-      "payment_amount_over_remaining": "150",
-      "line_item_count": "5"
-    },
-    "axes_note": {
-      "payment_amount_over_remaining": "Amounts are expressed as a percentage of visit.total_amount. /payment/process rejects amount > remaining with 400 and amount <= 0 while remaining > 0 with 400, so 150 is the overpayment case.",
-      "line_item_count": "How many add-service lines the invoice carries. Archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so a mismatched count is what the reconciliation check exists to catch."
-    },
-    "axes_effect": {
-      "payment_amount_over_remaining": "the payment is 150 percent of the balance, which decides between partial, exact and rejected",
-      "line_item_count": "the invoice carries 5 lines, which is what the archive reconciliation counts"
-    },
-    "rule": "Two independent guards. /payment/process rejects amount > remaining and amount <= 0 while remaining > 0. And archiving requires SUM(invoice_services.total_price) to equal visit.total_amount, so the line count has to match the billed total or the visit cannot be archived.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/visits/create",
-        "assertion": "visit created"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "POST /payment/process/<visit_id>",
-        "assertion": "zero amount against a balance refused 400"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/visits/<visit_id>/add-service",
-        "assertion": "lines appended to the invoice"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /payment/process/<visit_id>",
-        "assertion": "overpayment beyond remaining refused 400"
-      },
-      {
-        "step": 5,
-        "department": "Reception",
-        "api": "POST /reception/visits/<visit_id>/archive",
-        "assertion": "reconciliation must balance before archiving"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0437",
-    "template": "ACCOUNTING_PERIOD_CLOSE",
-    "family": "financial",
-    "axes": {
-      "currency": "ILS"
-    },
-    "axes_note": {
-      "currency": "app.shared.enums.Currency. Note CurrencySettings.SUPPORTED_CURRENCIES also lists SAR, AED, QAR, KWD, BHD and OMR, which do not exist here."
-    },
-    "axes_effect": {
-      "currency": "the period is closed with amounts carried in ILS, while the trial balance reads the same account rows the ledger wrote"
-    },
-    "rule": "The trial balance computes total_debit and total_credit and compares them within one cent. A closed FinancialPeriod rejects any further journal through _check_period_closed, which raises rather than warns. The currency axis is observed because a foreign payment is credited to 4000 unconverted, so the trial balance drifts by the FX difference.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Accountant",
-        "api": "GET /accountant/trial-balance",
-        "assertion": "debits and credits compared within 0.01"
-      },
-      {
-        "step": 2,
-        "department": "Accountant",
-        "api": "GET /accountant/accounts/<int:account_id>",
-        "assertion": "running balance for one account"
-      },
-      {
-        "step": 3,
-        "department": "Accountant",
-        "api": "POST /accountant/periods/close",
-        "assertion": "period closed; later journals refused"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0438",
-    "template": "ACCOUNTING_PERIOD_CLOSE",
-    "family": "financial",
-    "axes": {
-      "currency": "EGP"
-    },
-    "axes_note": {
-      "currency": "app.shared.enums.Currency. Note CurrencySettings.SUPPORTED_CURRENCIES also lists SAR, AED, QAR, KWD, BHD and OMR, which do not exist here."
-    },
-    "axes_effect": {
-      "currency": "the period is closed with amounts carried in EGP, while the trial balance reads the same account rows the ledger wrote"
-    },
-    "rule": "The trial balance computes total_debit and total_credit and compares them within one cent. A closed FinancialPeriod rejects any further journal through _check_period_closed, which raises rather than warns. The currency axis is observed because a foreign payment is credited to 4000 unconverted, so the trial balance drifts by the FX difference.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Accountant",
-        "api": "GET /accountant/trial-balance",
-        "assertion": "debits and credits compared within 0.01"
-      },
-      {
-        "step": 2,
-        "department": "Accountant",
-        "api": "GET /accountant/accounts/<int:account_id>",
-        "assertion": "running balance for one account"
-      },
-      {
-        "step": 3,
-        "department": "Accountant",
-        "api": "POST /accountant/periods/close",
-        "assertion": "period closed; later journals refused"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0439",
-    "template": "ACCOUNTING_PERIOD_CLOSE",
-    "family": "financial",
-    "axes": {
-      "currency": "USD"
-    },
-    "axes_note": {
-      "currency": "app.shared.enums.Currency. Note CurrencySettings.SUPPORTED_CURRENCIES also lists SAR, AED, QAR, KWD, BHD and OMR, which do not exist here."
-    },
-    "axes_effect": {
-      "currency": "the period is closed with amounts carried in USD, while the trial balance reads the same account rows the ledger wrote"
-    },
-    "rule": "The trial balance computes total_debit and total_credit and compares them within one cent. A closed FinancialPeriod rejects any further journal through _check_period_closed, which raises rather than warns. The currency axis is observed because a foreign payment is credited to 4000 unconverted, so the trial balance drifts by the FX difference.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Accountant",
-        "api": "GET /accountant/trial-balance",
-        "assertion": "debits and credits compared within 0.01"
-      },
-      {
-        "step": 2,
-        "department": "Accountant",
-        "api": "GET /accountant/accounts/<int:account_id>",
-        "assertion": "running balance for one account"
-      },
-      {
-        "step": 3,
-        "department": "Accountant",
-        "api": "POST /accountant/periods/close",
-        "assertion": "period closed; later journals refused"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0440",
-    "template": "ACCOUNTING_PERIOD_CLOSE",
-    "family": "financial",
-    "axes": {
-      "currency": "EUR"
-    },
-    "axes_note": {
-      "currency": "app.shared.enums.Currency. Note CurrencySettings.SUPPORTED_CURRENCIES also lists SAR, AED, QAR, KWD, BHD and OMR, which do not exist here."
-    },
-    "axes_effect": {
-      "currency": "the period is closed with amounts carried in EUR, while the trial balance reads the same account rows the ledger wrote"
-    },
-    "rule": "The trial balance computes total_debit and total_credit and compares them within one cent. A closed FinancialPeriod rejects any further journal through _check_period_closed, which raises rather than warns. The currency axis is observed because a foreign payment is credited to 4000 unconverted, so the trial balance drifts by the FX difference.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Accountant",
-        "api": "GET /accountant/trial-balance",
-        "assertion": "debits and credits compared within 0.01"
-      },
-      {
-        "step": 2,
-        "department": "Accountant",
-        "api": "GET /accountant/accounts/<int:account_id>",
-        "assertion": "running balance for one account"
-      },
-      {
-        "step": 3,
-        "department": "Accountant",
-        "api": "POST /accountant/periods/close",
-        "assertion": "period closed; later journals refused"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0441",
-    "template": "ACCOUNTING_PERIOD_CLOSE",
-    "family": "financial",
-    "axes": {
-      "currency": "JOD"
-    },
-    "axes_note": {
-      "currency": "app.shared.enums.Currency. Note CurrencySettings.SUPPORTED_CURRENCIES also lists SAR, AED, QAR, KWD, BHD and OMR, which do not exist here."
-    },
-    "axes_effect": {
-      "currency": "the period is closed with amounts carried in JOD, while the trial balance reads the same account rows the ledger wrote"
-    },
-    "rule": "The trial balance computes total_debit and total_credit and compares them within one cent. A closed FinancialPeriod rejects any further journal through _check_period_closed, which raises rather than warns. The currency axis is observed because a foreign payment is credited to 4000 unconverted, so the trial balance drifts by the FX difference.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Accountant",
-        "api": "GET /accountant/trial-balance",
-        "assertion": "debits and credits compared within 0.01"
-      },
-      {
-        "step": 2,
-        "department": "Accountant",
-        "api": "GET /accountant/accounts/<int:account_id>",
-        "assertion": "running balance for one account"
-      },
-      {
-        "step": 3,
-        "department": "Accountant",
-        "api": "POST /accountant/periods/close",
-        "assertion": "period closed; later journals refused"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0442",
-    "template": "SHIFT_HANDOVER_CASH_SNAPSHOT",
-    "family": "financial",
-    "axes": {
-      "task_state": "pending"
-    },
-    "axes_note": {
-      "task_state": "Nursing task lifecycle."
-    },
-    "axes_effect": {
-      "task_state": "the handover sheet is closed in pending"
-    },
-    "rule": "open_shift snapshots the day cash across CashRegister rows and counts pending work: waiting queue tickets, lab and radiology requests still PENDING or IN_PROGRESS, and undispensed prescriptions. Those pending counts carry no tenant filter, so the snapshot can include another tenant's rows when RLS is not active.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift opened, cash snapshot taken"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /handover/<shift_id>/acknowledge",
-        "assertion": "assignee acknowledges"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /handover/<shift_id>/close",
-        "assertion": "close freezes cash and pending work"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0443",
-    "template": "SHIFT_HANDOVER_CASH_SNAPSHOT",
-    "family": "financial",
-    "axes": {
-      "task_state": "in_progress"
-    },
-    "axes_note": {
-      "task_state": "Nursing task lifecycle."
-    },
-    "axes_effect": {
-      "task_state": "the handover sheet is closed in in_progress"
-    },
-    "rule": "open_shift snapshots the day cash across CashRegister rows and counts pending work: waiting queue tickets, lab and radiology requests still PENDING or IN_PROGRESS, and undispensed prescriptions. Those pending counts carry no tenant filter, so the snapshot can include another tenant's rows when RLS is not active.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift opened, cash snapshot taken"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /handover/<shift_id>/acknowledge",
-        "assertion": "assignee acknowledges"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /handover/<shift_id>/close",
-        "assertion": "close freezes cash and pending work"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0444",
-    "template": "SHIFT_HANDOVER_CASH_SNAPSHOT",
-    "family": "financial",
-    "axes": {
-      "task_state": "completed"
-    },
-    "axes_note": {
-      "task_state": "Nursing task lifecycle."
-    },
-    "axes_effect": {
-      "task_state": "the handover sheet is closed in completed"
-    },
-    "rule": "open_shift snapshots the day cash across CashRegister rows and counts pending work: waiting queue tickets, lab and radiology requests still PENDING or IN_PROGRESS, and undispensed prescriptions. Those pending counts carry no tenant filter, so the snapshot can include another tenant's rows when RLS is not active.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift opened, cash snapshot taken"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /handover/<shift_id>/acknowledge",
-        "assertion": "assignee acknowledges"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /handover/<shift_id>/close",
-        "assertion": "close freezes cash and pending work"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0445",
-    "template": "SHIFT_HANDOVER_CASH_SNAPSHOT",
-    "family": "financial",
-    "axes": {
-      "task_state": "cancelled"
-    },
-    "axes_note": {
-      "task_state": "Nursing task lifecycle."
-    },
-    "axes_effect": {
-      "task_state": "the handover sheet is closed in cancelled"
-    },
-    "rule": "open_shift snapshots the day cash across CashRegister rows and counts pending work: waiting queue tickets, lab and radiology requests still PENDING or IN_PROGRESS, and undispensed prescriptions. Those pending counts carry no tenant filter, so the snapshot can include another tenant's rows when RLS is not active.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "POST /handover/open",
-        "assertion": "shift opened, cash snapshot taken"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "POST /handover/<shift_id>/acknowledge",
-        "assertion": "assignee acknowledges"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "POST /handover/<shift_id>/close",
-        "assertion": "close freezes cash and pending work"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0446",
-    "template": "EMERGENCY_TREATMENT_AND_ORDERS",
-    "family": "clinical",
-    "axes": {
-      "treatment_status": "pending",
-      "emergency_severity": "LOW"
-    },
-    "axes_note": {
-      "treatment_status": "Treatment record lifecycle.",
-      "emergency_severity": "EmergencyCase.severity, uppercased by a validator."
-    },
-    "axes_effect": {
-      "treatment_status": "the treatment record moves to pending",
-      "emergency_severity": "the treatment is recorded against LOW severity"
-    },
-    "rule": "The ER has its own lab, radiology and prescription endpoints that do not run the hub-and-spoke re-queue the outpatient path uses. /emergency/api/ems/intake is the exception: it creates a Patient and an EmergencyCase but no Visit and no queue ticket, so an EMS-intaken patient never reaches the billing path.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/emergency-treatment/<visit_id>",
-        "assertion": "treatment started"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/lab-request/<emergency_id>",
-        "assertion": "ER lab request without hub-and-spoke"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/emergency-visits/<visit_id>/complete",
-        "assertion": "completed_at set without a state-machine transition"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0447",
-    "template": "EMERGENCY_TREATMENT_AND_ORDERS",
-    "family": "clinical",
-    "axes": {
-      "treatment_status": "pending",
-      "emergency_severity": "MODERATE"
-    },
-    "axes_note": {
-      "treatment_status": "Treatment record lifecycle.",
-      "emergency_severity": "EmergencyCase.severity, uppercased by a validator."
-    },
-    "axes_effect": {
-      "treatment_status": "the treatment record moves to pending",
-      "emergency_severity": "the treatment is recorded against MODERATE severity"
-    },
-    "rule": "The ER has its own lab, radiology and prescription endpoints that do not run the hub-and-spoke re-queue the outpatient path uses. /emergency/api/ems/intake is the exception: it creates a Patient and an EmergencyCase but no Visit and no queue ticket, so an EMS-intaken patient never reaches the billing path.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/emergency-treatment/<visit_id>",
-        "assertion": "treatment started"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/lab-request/<emergency_id>",
-        "assertion": "ER lab request without hub-and-spoke"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/emergency-visits/<visit_id>/complete",
-        "assertion": "completed_at set without a state-machine transition"
-      }
-    ]
-  },
-  {
     "scenario_id": "GS-0448",
     "template": "EMERGENCY_TREATMENT_AND_ORDERS",
     "family": "clinical",
@@ -19442,6 +18873,1337 @@
         "department": "Pharmacy",
         "api": "POST /medication/api/external-drug-import",
         "assertion": "drug imported from catalogue"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0866",
+    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
+    "family": "clinical",
+    "axes": {
+      "stock_movement_type": "transfer_out",
+      "prescription_state": "issued"
+    },
+    "axes_note": {
+      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
+      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
+    },
+    "axes_effect": {
+      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
+      "prescription_state": "the prescription is issued when the POS charges it"
+    },
+    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Pharmacy",
+        "api": "POST /medication/purchases/add",
+        "assertion": "stock received, ledger movement written"
+      },
+      {
+        "step": 2,
+        "department": "Pharmacy",
+        "api": "POST /medication/pos/charge",
+        "assertion": "dispensed, cash collected"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "POST /medication/api/external-drug-import",
+        "assertion": "drug imported from catalogue"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0867",
+    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
+    "family": "clinical",
+    "axes": {
+      "stock_movement_type": "transfer_out",
+      "prescription_state": "active"
+    },
+    "axes_note": {
+      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
+      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
+    },
+    "axes_effect": {
+      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
+      "prescription_state": "the prescription is active when the POS charges it"
+    },
+    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Pharmacy",
+        "api": "POST /medication/purchases/add",
+        "assertion": "stock received, ledger movement written"
+      },
+      {
+        "step": 2,
+        "department": "Pharmacy",
+        "api": "POST /medication/pos/charge",
+        "assertion": "dispensed, cash collected"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "POST /medication/api/external-drug-import",
+        "assertion": "drug imported from catalogue"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0868",
+    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
+    "family": "clinical",
+    "axes": {
+      "stock_movement_type": "transfer_out",
+      "prescription_state": "dispensed"
+    },
+    "axes_note": {
+      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
+      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
+    },
+    "axes_effect": {
+      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
+      "prescription_state": "the prescription is dispensed when the POS charges it"
+    },
+    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Pharmacy",
+        "api": "POST /medication/purchases/add",
+        "assertion": "stock received, ledger movement written"
+      },
+      {
+        "step": 2,
+        "department": "Pharmacy",
+        "api": "POST /medication/pos/charge",
+        "assertion": "dispensed, cash collected"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "POST /medication/api/external-drug-import",
+        "assertion": "drug imported from catalogue"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0869",
+    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
+    "family": "clinical",
+    "axes": {
+      "stock_movement_type": "transfer_out",
+      "prescription_state": "partial"
+    },
+    "axes_note": {
+      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
+      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
+    },
+    "axes_effect": {
+      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
+      "prescription_state": "the prescription is partial when the POS charges it"
+    },
+    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Pharmacy",
+        "api": "POST /medication/purchases/add",
+        "assertion": "stock received, ledger movement written"
+      },
+      {
+        "step": 2,
+        "department": "Pharmacy",
+        "api": "POST /medication/pos/charge",
+        "assertion": "dispensed, cash collected"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "POST /medication/api/external-drug-import",
+        "assertion": "drug imported from catalogue"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0870",
+    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
+    "family": "clinical",
+    "axes": {
+      "stock_movement_type": "transfer_out",
+      "prescription_state": "cancelled"
+    },
+    "axes_note": {
+      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
+      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
+    },
+    "axes_effect": {
+      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
+      "prescription_state": "the prescription is cancelled when the POS charges it"
+    },
+    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Pharmacy",
+        "api": "POST /medication/purchases/add",
+        "assertion": "stock received, ledger movement written"
+      },
+      {
+        "step": 2,
+        "department": "Pharmacy",
+        "api": "POST /medication/pos/charge",
+        "assertion": "dispensed, cash collected"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "POST /medication/api/external-drug-import",
+        "assertion": "drug imported from catalogue"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0871",
+    "template": "PHARMACY_PURCHASE_AND_DISPENSE",
+    "family": "clinical",
+    "axes": {
+      "stock_movement_type": "transfer_out",
+      "prescription_state": "expired"
+    },
+    "axes_note": {
+      "stock_movement_type": "InventoryLedgerService movement types. The enum has no dispense and no waste member even though dispensing is the main outflow.",
+      "prescription_state": "Prescription.state. The enum is wider than the column CHECK constraint, so part of this axis is not representable in the database."
+    },
+    "axes_effect": {
+      "stock_movement_type": "the ledger records a transfer_out movement; the dispense itself has no member of its own",
+      "prescription_state": "the prescription is expired when the POS charges it"
+    },
+    "rule": "A purchase writes an inventory ledger movement and a dispense writes another, and the enum has no dispense and no waste member even though dispensing is the main outflow, so a sale has to be recorded as a generic movement. A prescription reaches DISPENSED through the POS charge, which is the only pharmacy route that touches money.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Pharmacy",
+        "api": "POST /medication/purchases/add",
+        "assertion": "stock received, ledger movement written"
+      },
+      {
+        "step": 2,
+        "department": "Pharmacy",
+        "api": "POST /medication/pos/charge",
+        "assertion": "dispensed, cash collected"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "POST /medication/api/external-drug-import",
+        "assertion": "drug imported from catalogue"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0872",
+    "template": "EMERGENCY_CASE_TREATMENT",
+    "family": "clinical",
+    "axes": {
+      "emergency_status": "NEW"
+    },
+    "axes_note": {
+      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
+    },
+    "axes_effect": {
+      "emergency_status": "the case moves to NEW, and the edit route writes no history row while moving it"
+    },
+    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/treatment/<int:emergency_id>",
+        "assertion": "treatment record added"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/radiology-request/<int:emergency_id>",
+        "assertion": "imaging ordered"
+      },
+      {
+        "step": 4,
+        "department": "Emergency",
+        "api": "POST /emergency/prescription/<int:emergency_id>",
+        "assertion": "emergency prescription"
+      },
+      {
+        "step": 5,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "EMS prehospital intake recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0873",
+    "template": "EMERGENCY_CASE_TREATMENT",
+    "family": "clinical",
+    "axes": {
+      "emergency_status": "WAITING"
+    },
+    "axes_note": {
+      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
+    },
+    "axes_effect": {
+      "emergency_status": "the case moves to WAITING, and the edit route writes no history row while moving it"
+    },
+    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/treatment/<int:emergency_id>",
+        "assertion": "treatment record added"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/radiology-request/<int:emergency_id>",
+        "assertion": "imaging ordered"
+      },
+      {
+        "step": 4,
+        "department": "Emergency",
+        "api": "POST /emergency/prescription/<int:emergency_id>",
+        "assertion": "emergency prescription"
+      },
+      {
+        "step": 5,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "EMS prehospital intake recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0874",
+    "template": "EMERGENCY_CASE_TREATMENT",
+    "family": "clinical",
+    "axes": {
+      "emergency_status": "TRIAGE"
+    },
+    "axes_note": {
+      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
+    },
+    "axes_effect": {
+      "emergency_status": "the case moves to TRIAGE, and the edit route writes no history row while moving it"
+    },
+    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/treatment/<int:emergency_id>",
+        "assertion": "treatment record added"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/radiology-request/<int:emergency_id>",
+        "assertion": "imaging ordered"
+      },
+      {
+        "step": 4,
+        "department": "Emergency",
+        "api": "POST /emergency/prescription/<int:emergency_id>",
+        "assertion": "emergency prescription"
+      },
+      {
+        "step": 5,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "EMS prehospital intake recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0875",
+    "template": "EMERGENCY_CASE_TREATMENT",
+    "family": "clinical",
+    "axes": {
+      "emergency_status": "RESUSCITATION"
+    },
+    "axes_note": {
+      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
+    },
+    "axes_effect": {
+      "emergency_status": "the case moves to RESUSCITATION, and the edit route writes no history row while moving it"
+    },
+    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/treatment/<int:emergency_id>",
+        "assertion": "treatment record added"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/radiology-request/<int:emergency_id>",
+        "assertion": "imaging ordered"
+      },
+      {
+        "step": 4,
+        "department": "Emergency",
+        "api": "POST /emergency/prescription/<int:emergency_id>",
+        "assertion": "emergency prescription"
+      },
+      {
+        "step": 5,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "EMS prehospital intake recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0876",
+    "template": "EMERGENCY_CASE_TREATMENT",
+    "family": "clinical",
+    "axes": {
+      "emergency_status": "TREATMENT"
+    },
+    "axes_note": {
+      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
+    },
+    "axes_effect": {
+      "emergency_status": "the case moves to TREATMENT, and the edit route writes no history row while moving it"
+    },
+    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/treatment/<int:emergency_id>",
+        "assertion": "treatment record added"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/radiology-request/<int:emergency_id>",
+        "assertion": "imaging ordered"
+      },
+      {
+        "step": 4,
+        "department": "Emergency",
+        "api": "POST /emergency/prescription/<int:emergency_id>",
+        "assertion": "emergency prescription"
+      },
+      {
+        "step": 5,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "EMS prehospital intake recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0877",
+    "template": "EMERGENCY_CASE_TREATMENT",
+    "family": "clinical",
+    "axes": {
+      "emergency_status": "OBSERVATION"
+    },
+    "axes_note": {
+      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
+    },
+    "axes_effect": {
+      "emergency_status": "the case moves to OBSERVATION, and the edit route writes no history row while moving it"
+    },
+    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/treatment/<int:emergency_id>",
+        "assertion": "treatment record added"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/radiology-request/<int:emergency_id>",
+        "assertion": "imaging ordered"
+      },
+      {
+        "step": 4,
+        "department": "Emergency",
+        "api": "POST /emergency/prescription/<int:emergency_id>",
+        "assertion": "emergency prescription"
+      },
+      {
+        "step": 5,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "EMS prehospital intake recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0878",
+    "template": "EMERGENCY_CASE_TREATMENT",
+    "family": "clinical",
+    "axes": {
+      "emergency_status": "IN_PROGRESS"
+    },
+    "axes_note": {
+      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
+    },
+    "axes_effect": {
+      "emergency_status": "the case moves to IN_PROGRESS, and the edit route writes no history row while moving it"
+    },
+    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/treatment/<int:emergency_id>",
+        "assertion": "treatment record added"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/radiology-request/<int:emergency_id>",
+        "assertion": "imaging ordered"
+      },
+      {
+        "step": 4,
+        "department": "Emergency",
+        "api": "POST /emergency/prescription/<int:emergency_id>",
+        "assertion": "emergency prescription"
+      },
+      {
+        "step": 5,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "EMS prehospital intake recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0879",
+    "template": "EMERGENCY_CASE_TREATMENT",
+    "family": "clinical",
+    "axes": {
+      "emergency_status": "COMPLETED"
+    },
+    "axes_note": {
+      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
+    },
+    "axes_effect": {
+      "emergency_status": "the case moves to COMPLETED, and the edit route writes no history row while moving it"
+    },
+    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/treatment/<int:emergency_id>",
+        "assertion": "treatment record added"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/radiology-request/<int:emergency_id>",
+        "assertion": "imaging ordered"
+      },
+      {
+        "step": 4,
+        "department": "Emergency",
+        "api": "POST /emergency/prescription/<int:emergency_id>",
+        "assertion": "emergency prescription"
+      },
+      {
+        "step": 5,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "EMS prehospital intake recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0880",
+    "template": "EMERGENCY_CASE_TREATMENT",
+    "family": "clinical",
+    "axes": {
+      "emergency_status": "TRANSFERRED"
+    },
+    "axes_note": {
+      "emergency_status": "EmergencyCase.status. Nine values across five routes, and /emergency/cases/edit writes no history row while moving them."
+    },
+    "axes_effect": {
+      "emergency_status": "the case moves to TRANSFERRED, and the edit route writes no history row while moving it"
+    },
+    "rule": "An emergency case moves through the machine in the enum while the triage level written by the queue route is a separate RED, YELLOW, GREEN scale. Nine states are reachable through five routes, and /emergency/cases/edit writes no history row while moving them, so an edited case has no record of what it was before.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/treatment/<int:emergency_id>",
+        "assertion": "treatment record added"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/radiology-request/<int:emergency_id>",
+        "assertion": "imaging ordered"
+      },
+      {
+        "step": 4,
+        "department": "Emergency",
+        "api": "POST /emergency/prescription/<int:emergency_id>",
+        "assertion": "emergency prescription"
+      },
+      {
+        "step": 5,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "EMS prehospital intake recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0881",
+    "template": "EMERGENCY_QUEUE_TO_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "triage_level": "RED"
+    },
+    "axes_note": {
+      "triage_level": "routes/emergency/queue.py maps RED->CRITICAL, YELLOW->HIGH, GREEN->MODERATE. These three are the only values written."
+    },
+    "axes_effect": {
+      "triage_level": "the case is triaged RED, and only RED reaches resuscitation without a wait; the emergency severity the queue writes is derived from it rather than chosen separately"
+    },
+    "rule": "Triage RED maps to a CRITICAL emergency severity and is the only level that reaches RESUSCITATION without a wait. A case that stabilises becomes an Admission, and the admission type is recorded separately from the emergency severity, so the same clinical picture can be filed under two different admission types. The admission type is deliberately not an axis here: the generator takes a full cross product, and pairing RED with ELECTIVE or GREEN with EMERGENCY would assert a clinical pairing the code never enforces.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "case triaged"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "stabilised"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "inpatient visit opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0882",
+    "template": "EMERGENCY_QUEUE_TO_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "triage_level": "YELLOW"
+    },
+    "axes_note": {
+      "triage_level": "routes/emergency/queue.py maps RED->CRITICAL, YELLOW->HIGH, GREEN->MODERATE. These three are the only values written."
+    },
+    "axes_effect": {
+      "triage_level": "the case is triaged YELLOW, and only RED reaches resuscitation without a wait; the emergency severity the queue writes is derived from it rather than chosen separately"
+    },
+    "rule": "Triage RED maps to a CRITICAL emergency severity and is the only level that reaches RESUSCITATION without a wait. A case that stabilises becomes an Admission, and the admission type is recorded separately from the emergency severity, so the same clinical picture can be filed under two different admission types. The admission type is deliberately not an axis here: the generator takes a full cross product, and pairing RED with ELECTIVE or GREEN with EMERGENCY would assert a clinical pairing the code never enforces.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "case triaged"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "stabilised"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "inpatient visit opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0883",
+    "template": "EMERGENCY_QUEUE_TO_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "triage_level": "GREEN"
+    },
+    "axes_note": {
+      "triage_level": "routes/emergency/queue.py maps RED->CRITICAL, YELLOW->HIGH, GREEN->MODERATE. These three are the only values written."
+    },
+    "axes_effect": {
+      "triage_level": "the case is triaged GREEN, and only RED reaches resuscitation without a wait; the emergency severity the queue writes is derived from it rather than chosen separately"
+    },
+    "rule": "Triage RED maps to a CRITICAL emergency severity and is the only level that reaches RESUSCITATION without a wait. A case that stabilises becomes an Admission, and the admission type is recorded separately from the emergency severity, so the same clinical picture can be filed under two different admission types. The admission type is deliberately not an axis here: the generator takes a full cross product, and pairing RED with ELECTIVE or GREEN with EMERGENCY would assert a clinical pairing the code never enforces.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "case triaged"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<int:emergency_id>",
+        "assertion": "stabilised"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "inpatient visit opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0884",
+    "template": "INPATIENT_BED_AND_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "bed_status": "AVAILABLE",
+      "admission_status": "ADMITTED",
+      "discharge_type": "HOME"
+    },
+    "axes_note": {
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
+    },
+    "axes_effect": {
+      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
+      "admission_status": "the admission ends ADMITTED",
+      "discharge_type": "the discharge is typed HOME"
+    },
+    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "admission opened and a bed assigned"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
+        "assertion": "bed released on discharge"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "nursing protocol recorded"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift handover opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0885",
+    "template": "INPATIENT_BED_AND_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "bed_status": "AVAILABLE",
+      "admission_status": "ADMITTED",
+      "discharge_type": "TRANSFER"
+    },
+    "axes_note": {
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
+    },
+    "axes_effect": {
+      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
+      "admission_status": "the admission ends ADMITTED",
+      "discharge_type": "the discharge is typed TRANSFER"
+    },
+    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "admission opened and a bed assigned"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
+        "assertion": "bed released on discharge"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "nursing protocol recorded"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift handover opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0886",
+    "template": "INPATIENT_BED_AND_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "bed_status": "AVAILABLE",
+      "admission_status": "ADMITTED",
+      "discharge_type": "DEATH"
+    },
+    "axes_note": {
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
+    },
+    "axes_effect": {
+      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
+      "admission_status": "the admission ends ADMITTED",
+      "discharge_type": "the discharge is typed DEATH"
+    },
+    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "admission opened and a bed assigned"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
+        "assertion": "bed released on discharge"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "nursing protocol recorded"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift handover opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0887",
+    "template": "INPATIENT_BED_AND_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "bed_status": "AVAILABLE",
+      "admission_status": "ADMITTED",
+      "discharge_type": "AGAINST_ADVICE"
+    },
+    "axes_note": {
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
+    },
+    "axes_effect": {
+      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
+      "admission_status": "the admission ends ADMITTED",
+      "discharge_type": "the discharge is typed AGAINST_ADVICE"
+    },
+    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "admission opened and a bed assigned"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
+        "assertion": "bed released on discharge"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "nursing protocol recorded"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift handover opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0888",
+    "template": "INPATIENT_BED_AND_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "bed_status": "AVAILABLE",
+      "admission_status": "DISCHARGED",
+      "discharge_type": "HOME"
+    },
+    "axes_note": {
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
+    },
+    "axes_effect": {
+      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
+      "admission_status": "the admission ends DISCHARGED",
+      "discharge_type": "the discharge is typed HOME"
+    },
+    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "admission opened and a bed assigned"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
+        "assertion": "bed released on discharge"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "nursing protocol recorded"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift handover opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0889",
+    "template": "INPATIENT_BED_AND_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "bed_status": "AVAILABLE",
+      "admission_status": "DISCHARGED",
+      "discharge_type": "TRANSFER"
+    },
+    "axes_note": {
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
+    },
+    "axes_effect": {
+      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
+      "admission_status": "the admission ends DISCHARGED",
+      "discharge_type": "the discharge is typed TRANSFER"
+    },
+    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "admission opened and a bed assigned"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
+        "assertion": "bed released on discharge"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "nursing protocol recorded"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift handover opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0890",
+    "template": "INPATIENT_BED_AND_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "bed_status": "AVAILABLE",
+      "admission_status": "DISCHARGED",
+      "discharge_type": "DEATH"
+    },
+    "axes_note": {
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
+    },
+    "axes_effect": {
+      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
+      "admission_status": "the admission ends DISCHARGED",
+      "discharge_type": "the discharge is typed DEATH"
+    },
+    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "admission opened and a bed assigned"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
+        "assertion": "bed released on discharge"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "nursing protocol recorded"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift handover opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0891",
+    "template": "INPATIENT_BED_AND_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "bed_status": "AVAILABLE",
+      "admission_status": "DISCHARGED",
+      "discharge_type": "AGAINST_ADVICE"
+    },
+    "axes_note": {
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
+    },
+    "axes_effect": {
+      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
+      "admission_status": "the admission ends DISCHARGED",
+      "discharge_type": "the discharge is typed AGAINST_ADVICE"
+    },
+    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "admission opened and a bed assigned"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
+        "assertion": "bed released on discharge"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "nursing protocol recorded"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift handover opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0892",
+    "template": "INPATIENT_BED_AND_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "bed_status": "AVAILABLE",
+      "admission_status": "TRANSFERRED",
+      "discharge_type": "HOME"
+    },
+    "axes_note": {
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
+    },
+    "axes_effect": {
+      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
+      "admission_status": "the admission ends TRANSFERRED",
+      "discharge_type": "the discharge is typed HOME"
+    },
+    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "admission opened and a bed assigned"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
+        "assertion": "bed released on discharge"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "nursing protocol recorded"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift handover opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0893",
+    "template": "INPATIENT_BED_AND_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "bed_status": "AVAILABLE",
+      "admission_status": "TRANSFERRED",
+      "discharge_type": "TRANSFER"
+    },
+    "axes_note": {
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
+    },
+    "axes_effect": {
+      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
+      "admission_status": "the admission ends TRANSFERRED",
+      "discharge_type": "the discharge is typed TRANSFER"
+    },
+    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "admission opened and a bed assigned"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
+        "assertion": "bed released on discharge"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "nursing protocol recorded"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift handover opened"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0894",
+    "template": "INPATIENT_BED_AND_ADMISSION",
+    "family": "clinical",
+    "axes": {
+      "bed_status": "AVAILABLE",
+      "admission_status": "TRANSFERRED",
+      "discharge_type": "DEATH"
+    },
+    "axes_note": {
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly.",
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "discharge_type": "Discharge.discharge_type. AGAINST_ADVICE is the one that needs a signature the schema has no column for."
+    },
+    "axes_effect": {
+      "bed_status": "the bed ends AVAILABLE, and availability has to subtract OUT_OF_ORDER because it is not an occupancy",
+      "admission_status": "the admission ends TRANSFERRED",
+      "discharge_type": "the discharge is typed DEATH"
+    },
+    "rule": "Bed, room and ward are three separate tables and none of them prices anything, so an ICU stay and a general stay cost the same. Bed availability has to subtract OUT_OF_ORDER explicitly because it is not an occupancy. DISCHARGED and DECEASED both release the bed through the same path, and only the discharge type distinguishes them.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "admission opened and a bed assigned"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<int:admission_id>/discharge",
+        "assertion": "bed released on discharge"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "nursing protocol recorded"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /handover/open",
+        "assertion": "shift handover opened"
       }
     ]
   }

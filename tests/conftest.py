@@ -682,7 +682,7 @@ def db(app):
 
     Asking for ``rollback_db`` is what buys isolation, and the fixtures that write
     have been converted one by one. The remaining leaked tests are counted by the
-    audit described in TECHDEBT.md; converting them is mechanical work, but doing
+    audit described in docs/reports/TECHDEBT.md; converting them is mechanical work, but doing
     it through this fixture is a trap.
     """
     return _db

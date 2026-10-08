@@ -48,8 +48,8 @@ SELECT slug, name_ar, monthly_price FROM product_bundles WHERE is_active ORDER B
 
 ## الوضع الحالي
 
-- **الجاهزية التجارية:** تدقيق اكتمل في يوليو 2026 (`COMMERCIAL_READINESS_AUDIT.md`) — 86 فحصاً تجاوزها النظام.
-- **ما قبل التشغيل التجريبي:** `PRE_PILOT_VERIFICATION_REPORT.md` — v3.1.
+- **الجاهزية التجارية:** تدقيق اكتمل في يوليو 2026 (`docs/reports/COMMERCIAL_READINESS_AUDIT.md`) — 86 فحصاً تجاوزها النظام.
+- **ما قبل التشغيل التجريبي:** `docs/reports/PRE_PILOT_VERIFICATION_REPORT.md` — v3.1.
 - **CI:** 15 وظيفة خضراء تشمل الهجرات، الأمان (bandit/mypy/pip-audit)، RLS، القوالب، الإملاء.
 
 ---

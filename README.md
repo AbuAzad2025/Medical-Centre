@@ -17,9 +17,9 @@
 | [docs/CEO_OVERVIEW.md](docs/CEO_OVERVIEW.md) | ملخص إداري تنفيذي |
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | دليل استخدام مركز طبي واحد |
 | [docs/DYNAMIC_FORM_GOVERNANCE.md](docs/DYNAMIC_FORM_GOVERNANCE.md) | عقد نماذج التخصص الديناميكية |
-| [COMMERCIAL_READINESS_AUDIT.md](COMMERCIAL_READINESS_AUDIT.md) | تدقيق الجاهزية التجارية (2026-07) |
-| [ENHANCEMENT_SUMMARY.md](ENHANCEMENT_SUMMARY.md) | ملخص التحسينات (2026-07) |
-| [PRE_PILOT_VERIFICATION_REPORT.md](PRE_PILOT_VERIFICATION_REPORT.md) | تقرير تحقق ما قبل التشغيل التجريبي |
+| [docs/reports/COMMERCIAL_READINESS_AUDIT.md](docs/reports/COMMERCIAL_READINESS_AUDIT.md) | تدقيق الجاهزية التجارية (2026-07) |
+| [docs/reports/ENHANCEMENT_SUMMARY.md](docs/reports/ENHANCEMENT_SUMMARY.md) | ملخص التحسينات (2026-07) |
+| [docs/reports/PRE_PILOT_VERIFICATION_REPORT.md](docs/reports/PRE_PILOT_VERIFICATION_REPORT.md) | تقرير تحقق ما قبل التشغيل التجريبي |
 
 ---
 

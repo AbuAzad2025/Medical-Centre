@@ -2,7 +2,7 @@ import json
 import re
 from pathlib import Path
 
-BASE = Path(r'D:\Data\MED-2-7-2025\medical_system')
+BASE = Path(__file__).resolve().parents[2]
 
 # More targeted audit: actual functional issues
 

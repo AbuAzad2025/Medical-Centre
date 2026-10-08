@@ -82,7 +82,7 @@
 ## 3) مقارنة التوثيق بالشيفرة — ما كُذب
 
 ### 3.1 تقرير «مرحلة البوابة» أعطى ضماناً كاذباً
-`PRE_PILOT_VERIFICATION_REPORT.md:238` يدّعي **«86/86 تأكيداً ناجحاً»**.
+`docs/reports/PRE_PILOT_VERIFICATION_REPORT.md:238` يدّعي **«86/86 تأكيداً ناجحاً»**.
 `docs/DEEP_AUDIT_REPORT_2026-09-27.md:129` ينقضه:
 > «`pre_pilot_verification.py` يفحص `Model.__table__.columns` (بيانات ORM الوصفية) **لا** المخطط المهاجَر…
 > **هذه بوابة تحقق تُعطي ضماناً كاذباً**»
@@ -92,7 +92,7 @@
 أُضيفت لاحقاً في `migrations/versions/s3_013_missing_schema_objects.py`.
 
 ### 3.2 تقرير الفجوة الصحية تاريخي و outdated
-`HEALTHCARE_GAP_AUDIT_REPORT.md` موسوم بنفسه **تاريخياً** (سطور 4-9). جدول التحقق:
+`docs/reports/HEALTHCARE_GAP_AUDIT_REPORT.md` موسوم بنفسه **تاريخياً** (سطور 4-9). جدول التحقق:
 
 | ادّعاء تاريخي (`:line`) | الحالة الآن |
 |---|---|
