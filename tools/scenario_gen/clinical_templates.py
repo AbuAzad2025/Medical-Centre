@@ -109,7 +109,7 @@ CLINICAL_TEMPLATES: tuple[Template, ...] = (
                 'case data amended, no history entry',
             ),
             _s(EMERGENCY, 'POST /emergency/cases/<int:id>/resolve', 'case resolved'),
-            _s(EMERGENCY, 'GET /emergency/cases/<int:case_id>', 'history reviewed'),
+            _s(EMERGENCY, 'GET /emergency/cases/<int:id>', 'history reviewed'),
         ),
     ),
     Template(

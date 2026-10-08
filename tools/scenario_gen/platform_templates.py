@@ -39,12 +39,12 @@ PLATFORM_TEMPLATES: tuple[Template, ...] = (
             _s(OWNER, 'GET /owner/subscriptions', 'subscriptions listed'),
             _s(
                 OWNER,
-                'POST /owner/subscriptions/<int:subscription_id>/upgrade',
+                'POST /owner/subscriptions/<int:tenant_id>/upgrade',
                 'subscription upgraded',
             ),
             _s(
                 OWNER,
-                'POST /owner/subscriptions/<int:subscription_id>/cancel',
+                'POST /owner/subscriptions/<int:tenant_id>/cancel',
                 'subscription cancelled',
             ),
         ),

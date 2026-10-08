@@ -50,6 +50,7 @@ HAND_BATCHES = sorted(glob.glob(os.path.join(SCEN_DIR, 'batch-*.json')))
 API_LINE = re.compile(
     r'^(?:(?:GET|POST|PUT|DELETE|PATCH)(?:\|(?:GET|POST|PUT|DELETE|PATCH))*)?\s+(\S+)$'
 )
+PLACEHOLDERS = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 
 FOREIGN = re.compile(r'[\u0e00-\u0fff\u3000-\u9fff\uff00-\uffef\u0400-\u04ff\uac00-\ud7af]')
 GLUED = re.compile('[A-Za-z][\u0621-\u064a\u066e-\u06d3\u06fa-\u06ff]')
@@ -402,12 +403,88 @@ def test_clinical_and_platform_families_are_separate(corpus):
         '/emar/',
         '/nursing-assessment/',
         '/handover/',
+        # Telemedicine is a doctor-patient consultation, so a scenario over it is
+        # clinical even though no department owns the blueprint. It was missing
+        # from this list, which forced telemedicine journeys to be filed as
+        # non-clinical to pass; correcting the list is the honest fix.
+        '/telemedicine/',
+        # These record or surface something about a patient, so a scenario that
+        # reaches only one of them is still clinical. They were absent from this
+        # list, which forced those journeys to be misfiled to pass the gate.
+        '/specialty-forms/',
+        '/patient-education/',
+        '/ai-imaging/',
     )
     for k in families['clinical']:
         deps = [path_of(s.api) for s in tpl_by_key[k].steps]
         assert any(any(d.startswith(p) for p in clinical_routes) for d in deps), (
             f'{k} is filed as clinical but reaches no clinical route: {deps}'
         )
+
+
+def test_every_axis_states_what_it_does_to_the_run(corpus):
+    """An axis must carry a mechanism, and the mechanism must name the value.
+
+    The failure this replaces is quiet: a template declares an axis, the
+    generator multiplies the journey over every value of it, and the emitted
+    scenarios differ only in a field nobody reads. The count goes up and the
+    coverage does not. Requiring the axis to say what it changes, with the value
+    substituted into the sentence, is what makes the count mean something.
+    """
+    problems = []
+    for scenarios in corpus.values():
+        for sc in scenarios:
+            effect = sc.get('axes_effect')
+            assert effect is not None, f'{sc["scenario_id"]}: no stated axis effect'
+            assert set(effect) == set(sc['axes']), (
+                f'{sc["scenario_id"]}: axes {sorted(sc["axes"])} but effects {sorted(effect)}'
+            )
+            for axis, value in sc['axes'].items():
+                text = effect[axis]
+                if not text.strip():
+                    problems.append(f'{sc["scenario_id"]}: axis {axis} has an empty effect')
+                elif value not in text:
+                    problems.append(
+                        f'{sc["scenario_id"]}: effect for {axis}={value} does not '
+                        f'mention the value: {text!r}'
+                    )
+    assert not problems, 'axes that state nothing about the run:\n' + '\n'.join(problems[:20])
+
+
+def test_every_axis_reaches_the_journey(corpus):
+    """An axis must be an input the operator sends, not a field the audit records.
+
+        Two ways to qualify: the axis is a route converter on one of the steps, so the
+    value is literally part of the URL, or the axis has an entry in
+    ``axis_effects.SUPPLIED_BY`` naming the form field or column that carries it.
+
+    ``audit_action`` on a catalogue write is the case this exists for. It describes
+    what an audit row ends up containing, it is not sent by the operator, and varying
+    it produced the same run sixteen times. Entries that say "written by the audit
+    writer, not sent by the operator" are recorded rather than removed so the axis is
+    still available to the two templates whose journey really is an audit write.
+    """
+    from axis_effects import SUPPLIED_BY
+
+    converters = {}
+    for tpl in TEMPLATES:
+        names = set()
+        for step in tpl.steps:
+            m = API_LINE.match(step.api)
+            if m:
+                names |= set(PLACEHOLDERS.findall(m.group(1)))
+        converters[tpl.key] = names
+
+    problems = []
+    for tpl in TEMPLATES:
+        for axis in tpl.axes:
+            if axis in converters[tpl.key]:
+                continue
+            origin = SUPPLIED_BY.get(axis)
+            if origin and 'not sent by the operator' not in origin:
+                continue
+            problems.append(f'{tpl.key}: axis {axis} reaches nothing on the journey')
+    assert not problems, 'axes that are not an input to the run:\n' + '\n'.join(problems[:20])
 
 
 def test_route_coverage_is_measured_not_asserted(corpus):

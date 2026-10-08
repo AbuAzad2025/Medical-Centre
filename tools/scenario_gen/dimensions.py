@@ -64,7 +64,19 @@ def _radiology_modalities() -> tuple[str, ...]:
 
 
 def build_dimensions() -> tuple[Dimension, ...]:
-    """Return every axis the generator may vary, grounded in the code."""
+    """Return every axis the generator may vary, grounded in the code.
+
+    The second tier lives in dimensions_advanced because it is derived from the
+    same enums but only the clinical-ops, identity and platform templates read it.
+    Both tiers are returned here so there is one registry to validate against.
+    """
+    from dimensions_advanced import build_advanced_dimensions
+
+    return build_dimensions_first_tier() + build_advanced_dimensions()
+
+
+def build_dimensions_first_tier() -> tuple[Dimension, ...]:
+    """The financial and clinical lifecycle axes."""
     return (
         Dimension(
             'ward_type',

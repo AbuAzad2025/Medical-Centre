@@ -39,7 +39,40 @@ def _load_routes() -> tuple[set[str], set[str]]:
     return exact, shapes
 
 
+def _placeholders(path: str) -> list[str]:
+    """The converter names a route or a template passes, in order.
+
+    Kept separate from the shape because the shape erases them, and erasing them
+    is what let a template call /owner/subscriptions/<subscription_id>/cancel
+    against a route that actually reads <tenant_id>: the shapes matched, so the
+    mismatch went unnoticed. A template that names the wrong converter documents a
+    route that does not exist, which is the exact failure this module exists to
+    prevent.
+    """
+    return re.findall(r'<(?:[^:<>]+:)?([^<>]+)>', path)
+
+
+def _load_routes_by_shape() -> dict[str, list[tuple[str, ...]]]:
+    """Map each erased shape to the converter names the application actually reads.
+
+    Only the names matter, not the converter types: a template may write
+    ``<visit_id>`` for a route declared ``<int:visit_id>`` because the type is an
+    implementation detail, whereas writing ``<subscription_id>`` for a route that
+    reads ``<tenant_id>`` documents a route that does not exist.
+    """
+    with open(INVENTORY, encoding='utf-8') as fh:
+        inv = json.load(fh)
+
+    out: dict[str, set[tuple[str, ...]]] = {}
+    for r in inv['routes']:
+        p = r['path'].strip()
+        shape = re.sub(r'<[^>]*>|\{[^}]*\}', '{}', p)
+        out.setdefault(shape, set()).add(tuple(_placeholders(p)))
+    return {k: sorted(v) for k, v in out.items()}
+
+
 EXACT, SHAPES = _load_routes()
+PLACEHOLDER_NAMES = _load_routes_by_shape()
 VERBS = r'(?:GET|POST|PUT|DELETE|PATCH)'
 API_LINE = re.compile(rf'^(?:(?P<verb>{VERBS})(?:\|{VERBS})*)?\s+(?P<path>\S+)$')
 
@@ -49,6 +82,27 @@ class Step:
     department: str
     api: str
     assertion: str
+
+
+def _expand_effect(
+    spec: dict[str, str | dict[str, str]], axis_values: dict[str, tuple[str, ...]]
+) -> dict[str, dict[str, str]]:
+    """Turn each mechanism into the sentence for every value it applies to.
+
+    A mechanism must contain ``{value}``; that is enforced here rather than trusted,
+    because a mechanism without it is a sentence that would read identically for
+    every value and the dimension would be pure padding.
+    """
+    out: dict[str, dict[str, str]] = {}
+    for axis, mechanism in spec.items():
+        values = axis_values.get(axis, ())
+        if isinstance(mechanism, dict):
+            out[axis] = dict(mechanism)
+        elif '{value}' in mechanism:
+            out[axis] = {v: mechanism.format(value=v) for v in values}
+        else:
+            out[axis] = {}
+    return out
 
 
 @dataclass(frozen=True)
@@ -62,6 +116,19 @@ class Template:
     expected_status: str = 'PAID'
     tags: tuple[str, ...] = field(default_factory=tuple)
     axis_values: dict[str, tuple[str, ...]] = field(default_factory=dict, init=False)
+    #: axis -> a mechanism, or an explicit per-value mapping.
+    #:
+    #: The mechanism is a format string containing ``{value}``, so one authored
+    #: sentence per axis produces one true sentence per value: "the run activates
+    #: the {value} module" expands to the eighteen real module names. Requiring
+    #: ``{value}`` is what stops a mechanism from being a constant sentence with a
+    #: dimension stapled on, which would leave the matrix indistinguishable in the
+    #: place a reader cares about.
+    #:
+    #: An axis with no mechanism is rejected. That is the whole point: an axis that
+    #: cannot say what it does to the run is padding, and this is where padding is
+    #: stopped rather than discovered during review.
+    effect: dict[str, str | dict[str, str]] = field(default_factory=dict)
 
     def __post_init__(self):
         from dimensions import build_dimensions
@@ -72,6 +139,16 @@ class Template:
             'axis_values',
             {name: by_name[name].values for name in self.axes if name in by_name},
         )
+        object.__setattr__(self, '_expanded_effect', _expand_effect(self.effect, self.axis_values))
+
+    def effects(self, assignment: dict[str, str]) -> dict[str, str]:
+        """The stated effect of each axis for one scenario."""
+        expanded = self._expanded_effect
+        return {a: expanded[a][v] for a, v in assignment.items() if a in expanded}
+
+    @property
+    def expanded_effect(self) -> dict[str, dict[str, str]]:
+        return self._expanded_effect
 
     def validate(self) -> list[str]:
         """Every api, and every observed enum member, must match the real code."""
@@ -84,10 +161,27 @@ class Template:
             shape = re.sub(r'<[^>]*>|\{[^}]*\}', '{}', m.group('path'))
             if shape not in SHAPES:
                 problems.append(f'{self.key}: no route {m.group("path")}')
+            elif tuple(_placeholders(m.group('path'))) not in PLACEHOLDER_NAMES.get(shape, ()):
+                problems.append(
+                    f'{self.key}: {m.group("path")} names a converter the route does not read; '
+                    f'the application reads {PLACEHOLDER_NAMES.get(shape)}'
+                )
 
         for axis in self.axes:
             if axis not in self.observed:
                 problems.append(f'{self.key}: declares axis {axis} but observes nothing on it')
+            mechanism = self.effect.get(axis)
+            if isinstance(mechanism, dict):
+                missing = [v for v in self.axis_values.get(axis, ()) if v not in mechanism]
+                if missing:
+                    problems.append(
+                        f'{self.key}: axis {axis} has no stated effect for {missing[:4]}'
+                    )
+            elif not isinstance(mechanism, str) or '{value}' not in mechanism:
+                problems.append(
+                    f'{self.key}: declares axis {axis} but states no mechanism for it; '
+                    'an axis that changes nothing about the run is padding'
+                )
         for axis, members in self.observed.items():
             if axis not in self.axes:
                 problems.append(f'{self.key}: observes {axis} but does not declare it')
@@ -317,7 +411,7 @@ def _base_templates() -> tuple[Template, ...]:
                 ),
                 _s(
                     LAB,
-                    'POST /api/lab/results/<id>/amend',
+                    'POST /api/lab/results/<result_id>/amend',
                     'amend records amended_by and keeps the original value',
                 ),
             ),
@@ -353,7 +447,7 @@ def _base_templates() -> tuple[Template, ...]:
                 ),
                 _s(
                     RADIOLOGY,
-                    'POST /radiology/results/<id>/second-review',
+                    'POST /radiology/results/<result_id>/second-review',
                     'reviewed_by and reviewed_at set',
                 ),
             ),
@@ -405,12 +499,12 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(NURSE, 'POST /bed/api/admissions/admit', 'bed OCCUPIED, visit is_inpatient'),
                 _s(
                     NURSE,
-                    'POST /bed/api/admissions/<id>/transfer',
+                    'POST /bed/api/admissions/<admission_id>/transfer',
                     'BedTransfer recorded with no approval step',
                 ),
                 _s(
                     NURSE,
-                    'POST /bed/api/admissions/<id>/discharge',
+                    'POST /bed/api/admissions/<admission_id>/discharge',
                     'bed CLEANING, discharge_type validated',
                 ),
             ),
@@ -440,12 +534,12 @@ def _base_templates() -> tuple[Template, ...]:
                 ),
                 _s(
                     RECEPTION,
-                    'POST /reception/visits/<id>/add-service',
+                    'POST /reception/visits/<visit_id>/add-service',
                     'price taken from the catalog, never the client',
                 ),
                 _s(
                     RECEPTION,
-                    'POST /reception/visits/<id>/archive',
+                    'POST /reception/visits/<visit_id>/archive',
                     'requires itemised reconciliation to balance',
                 ),
             ),
@@ -469,14 +563,22 @@ def _base_templates() -> tuple[Template, ...]:
                 ),
                 _s(
                     RECEPTION,
-                    'POST /payment/payments/<id>/refund',
+                    'POST /payment/payments/<payment_id>/refund',
                     'request created; over-refund blocked',
                 ),
-                _s(ACCOUNTANT, 'POST /accountant/refunds/<id>/approve', 'TypeError, HTTP 500'),
-                _s(ACCOUNTANT, 'POST /payment/refund-requests/<id>/approve', 'the working path'),
                 _s(
                     ACCOUNTANT,
-                    'POST /payment/refund-requests/<id>/execute',
+                    'POST /accountant/refunds/<refund_id>/approve',
+                    'TypeError, HTTP 500',
+                ),
+                _s(
+                    ACCOUNTANT,
+                    'POST /payment/refund-requests/<refund_id>/approve',
+                    'the working path',
+                ),
+                _s(
+                    ACCOUNTANT,
+                    'POST /payment/refund-requests/<refund_id>/execute',
                     'allocation reversed, journal posted',
                 ),
             ),
@@ -540,12 +642,12 @@ def _base_templates() -> tuple[Template, ...]:
                 ),
                 _s(
                     RECEPTION,
-                    'POST /reception/appointments/<id>/checkin',
+                    'POST /reception/appointments/<appointment_id>/checkin',
                     'Visit created OPEN/PENDING, appointment CONFIRMED',
                 ),
                 _s(
                     RECEPTION,
-                    'POST /reception/appointments/<id>/checkin',
+                    'POST /reception/appointments/<appointment_id>/checkin',
                     'second call refused by the marker, no duplicate visit',
                 ),
                 _s(
@@ -572,12 +674,12 @@ def _base_templates() -> tuple[Template, ...]:
             steps=(
                 _s(
                     RECEPTION,
-                    'POST /reception/api/patients/<id>/problems/add',
+                    'POST /reception/api/patients/<patient_id>/problems/add',
                     'problem recorded with severity and status',
                 ),
                 _s(
                     RECEPTION,
-                    'POST /reception/api/patients/<id>/allergies/add',
+                    'POST /reception/api/patients/<patient_id>/allergies/add',
                     'allergen recorded',
                 ),
                 _s(
@@ -610,7 +712,9 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(NURSE, 'POST /nurse/record-vital-signs/<patient_id>', 'valid vitals stored'),
                 _s(NURSE, 'POST /nurse/tasks/create', 'task created with priority'),
                 _s(
-                    NURSE, 'POST /nurse/tasks/<id>/status', 'task advanced through its state ladder'
+                    NURSE,
+                    'POST /nurse/tasks/<task_id>/status',
+                    'task advanced through its state ladder',
                 ),
             ),
         ),
@@ -638,7 +742,7 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             steps=(
                 _s(NURSE, 'GET /bed/wards', 'ward list, unpriced'),
-                _s(NURSE, 'GET /bed/room/<id>', 'room and its beds'),
+                _s(NURSE, 'GET /bed/room/<room_id>', 'room and its beds'),
                 _s(
                     NURSE,
                     'POST /bed/api/admissions/admit',
@@ -736,7 +840,7 @@ def _base_templates() -> tuple[Template, ...]:
                 ),
                 _s(
                     RECEPTION,
-                    'POST /reception/visits/<id>/add-service',
+                    'POST /reception/visits/<visit_id>/add-service',
                     'lines appended to the invoice',
                 ),
                 _s(
@@ -746,7 +850,7 @@ def _base_templates() -> tuple[Template, ...]:
                 ),
                 _s(
                     RECEPTION,
-                    'POST /reception/visits/<id>/archive',
+                    'POST /reception/visits/<visit_id>/archive',
                     'reconciliation must balance before archiving',
                 ),
             ),
@@ -817,12 +921,12 @@ def _base_templates() -> tuple[Template, ...]:
             steps=(
                 _s(
                     EMERGENCY,
-                    'POST /emergency/emergency-treatment/<emergency_id>',
+                    'POST /emergency/emergency-treatment/<visit_id>',
                     'treatment started',
                 ),
                 _s(
                     EMERGENCY,
-                    'POST /emergency/lab-request/<visit_id>',
+                    'POST /emergency/lab-request/<emergency_id>',
                     'ER lab request without hub-and-spoke',
                 ),
                 _s(
@@ -851,20 +955,20 @@ def _base_templates() -> tuple[Template, ...]:
             steps=(
                 _s(
                     RECEPTION,
-                    'POST /reception/visits/<id>/send-to-accounting',
+                    'POST /reception/visits/<visit_id>/send-to-accounting',
                     'invoice created; claims require one',
                 ),
                 _s(ACCOUNTANT, 'POST /api/claims', 'claim DRAFT, but share amounts are inverted'),
-                _s(ACCOUNTANT, 'POST /api/claims/<id>/submit', 'SUBMITTED'),
+                _s(ACCOUNTANT, 'POST /api/claims/<claim_id>/submit', 'SUBMITTED'),
                 _s(
                     ACCOUNTANT,
-                    'POST /api/claims/<id>/adjudicate',
+                    'POST /api/claims/<claim_id>/adjudicate',
                     'approved_amount typed in, no fee schedule',
                 ),
-                _s(ACCOUNTANT, 'POST /api/claims/<id>/settle', 'SETTLED'),
+                _s(ACCOUNTANT, 'POST /api/claims/<claim_id>/settle', 'SETTLED'),
                 _s(
                     ACCOUNTANT,
-                    'POST /api/claims/<id>/payout',
+                    'POST /api/claims/<claim_id>/payout',
                     'payout recorded with no GL entry, so 1105 stays open',
                 ),
             ),

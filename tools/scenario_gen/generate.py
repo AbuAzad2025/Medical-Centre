@@ -25,26 +25,67 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# The dimensions read enums out of the application itself, so the repository root
+# has to be importable before anything is generated. The test suite puts it there
+# too; adding it here is what lets the generator run as a standalone command.
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
 from dimensions import Fingerprint, build_dimensions  # noqa: E402
 
 from templates import TEMPLATES, all_problems  # noqa: E402
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT_DIR = os.path.join(ROOT, 'docs', 'scenarios', 'generated')
 
 
 def _install_family_templates() -> None:
     """Register the family modules so their templates are in TEMPLATES.
 
-    Imported lazily and by name, because clinical_templates and
-    platform_templates import from this module and a top-level import would be
-    circular.
+    Imported lazily and by name, because the family modules import from this one
+    and templates.py and a top-level import would be circular.
+
+    The families are clinical-ops, identity, platform-admin and integration, and
+    they are installed after the base set so a duplicate key is resolved in favour
+    of the original template rather than silently replacing it.
     """
+    import clinical_ops_templates
     import clinical_templates
+    import identity_templates
+    import integration_templates
+    import platform_admin_templates
     import platform_templates
 
     clinical_templates.add_clinical_templates()
     platform_templates.add_platform_templates()
+    clinical_ops_templates.add_clinical_ops_templates()
+    identity_templates.add_identity_templates()
+    platform_admin_templates.add_platform_admin_templates()
+    integration_templates.add_integration_templates()
+    _apply_axis_effects()
+
+
+def _apply_axis_effects() -> None:
+    """Attach each axis's stated mechanism to the template that declares it.
+
+    Kept out of the template modules so the mechanism table can be read and
+    reviewed in one place rather than scattered across six files, and so an axis
+    with no mechanism fails loudly here instead of quietly multiplying the
+    matrix.
+    """
+    from axis_effects import effects_for
+
+    for tpl in TEMPLATES:
+        mechanisms = effects_for(tpl)
+        missing = [a for a in tpl.axes if a not in mechanisms]
+        if missing:
+            raise AssertionError(
+                f'{tpl.key}: no stated mechanism for axis {missing[0]!r}. Either the '
+                'axis changes nothing about the run and must be deleted from the '
+                'template, or the mechanism belongs in axis_effects.py'
+            )
+        object.__setattr__(tpl, 'effect', mechanisms)
+        tpl.__post_init__()
 
 
 _install_family_templates()
@@ -93,6 +134,7 @@ def generate(limit: int | None = None, group: int = 1, groups: int = 1):
                     'family': tpl.family,
                     'axes': assignment,
                     'axes_note': {n: by_name[n].note for n in names},
+                    'axes_effect': tpl.effects(assignment),
                     'rule': tpl.rule,
                     'expected_payment_status': tpl.expected_status,
                     'tags': list(tpl.tags),
