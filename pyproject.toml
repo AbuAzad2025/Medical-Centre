@@ -200,6 +200,16 @@ unfixable = ["E711", "E712"]
     "T201",
     "E402",
 ]
+# Report generators and audits, same reasoning: they are invoked from a shell or a
+# CI step and the report they print is the whole point of running them.
+"tools/reports/*.py" = [
+    "T201",
+    "E402",
+]
+"tools/audit/*.py" = [
+    "T201",
+    "E402",
+]
 
 [tool.ruff.lint.pylint]
 allow-magic-value-types = ["str", "bytes", "int", "float", "complex"]

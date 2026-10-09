@@ -150,7 +150,7 @@ for js in BASE.glob('static/js/**/*.js'):
 
 
 # Print results
-def report(title, issues):  # noqa: T201
+def report(title, issues):
     """Print a section, and say so plainly when a section is empty.
 
     The previous tail of this file looped over the collected issues with `pass`
@@ -162,11 +162,11 @@ def report(title, issues):  # noqa: T201
     debug leftovers.
     """
     if not issues:
-        print(f'{title}: none')  # noqa: T201
+        print(f'{title}: none')
         return
-    print(f'{title}: {len(issues)}')  # noqa: T201
+    print(f'{title}: {len(issues)}')
     for issue in issues:
-        print(f'  - {issue}')  # noqa: T201
+        print(f'  - {issue}')
 
 
 # The select check is a heuristic and will always produce items that are correct
@@ -180,6 +180,6 @@ template_issues[:] = [i for i in template_issues if 'missing required/onchange' 
 
 report('findings (route and URL defects)', hard_findings + template_issues)
 report('review (heuristic, not a defect)', review_items)
-print(f'total findings: {len(hard_findings) + len(template_issues)}')  # noqa: T201
-print(f'total review items: {len(review_items)}')  # noqa: T201
+print(f'total findings: {len(hard_findings) + len(template_issues)}')
+print(f'total review items: {len(review_items)}')
 raise SystemExit(1 if (hard_findings or template_issues) else 0)

@@ -319,7 +319,12 @@ def render_backend(data: dict) -> str:
         rows.append((f'`{package}`', f'{m.covered:,}', f'{m.total:,}', _pct(m.pct)))
     if rows:
         rows.sort(key=lambda r: float(r[3].rstrip('%')))
-        lines += ['## By package', '', _table(rows, ('package', 'covered', 'statements', 'percent')), '']
+        lines += [
+            '## By package',
+            '',
+            _table(rows, ('package', 'covered', 'statements', 'percent')),
+            '',
+        ]
 
     worst = metrics.get('(all)').worst(20) if '(all)' in metrics else []
     if worst:
@@ -450,14 +455,14 @@ def render_summary(py: dict | None, fe: dict | None, scen: dict) -> str:
         '',
         _table(
             [
-                ('generated', f"{scen['generated']:,}"),
-                ('hand-written and audited', f"{scen['handwritten']:,}"),
-                ('total', f"{scen['total']:,}"),
-                ('templates', f"{scen['templates']:,}"),
-                ('code-derived axes', f"{scen['axes']:,}"),
+                ('generated', f'{scen["generated"]:,}'),
+                ('hand-written and audited', f'{scen["handwritten"]:,}'),
+                ('total', f'{scen["total"]:,}'),
+                ('templates', f'{scen["templates"]:,}'),
+                ('code-derived axes', f'{scen["axes"]:,}'),
                 (
                     'state-changing routes reached',
-                    f"{scen['routes_covered']}/{scen['routes_total']}",
+                    f'{scen["routes_covered"]}/{scen["routes_total"]}',
                 ),
             ],
             ('measure', 'count'),
