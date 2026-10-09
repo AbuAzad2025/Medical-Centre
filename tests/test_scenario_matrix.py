@@ -45,7 +45,11 @@ from templates import TEMPLATES, all_problems  # noqa: E402
 clinical_templates.add_clinical_templates()
 platform_templates.add_platform_templates()
 
-GENERATED = sorted(glob.glob(os.path.join(GEN_OUT, '*.json')))
+# Scoped to the matrix shards on purpose. The generated directory also holds
+# read-route-inventory.json, which is an inventory rather than a list of
+# scenarios, and globbing it in makes every test here read a string where it
+# expects a dict. A future artefact in this directory needs the same care.
+GENERATED = sorted(glob.glob(os.path.join(GEN_OUT, 'scenarios*.json')))
 HAND_BATCHES = sorted(glob.glob(os.path.join(SCEN_DIR, 'batch-*.json')))
 API_LINE = re.compile(
     r'^(?:(?:GET|POST|PUT|DELETE|PATCH)(?:\|(?:GET|POST|PUT|DELETE|PATCH))*)?\s+(\S+)$'
@@ -70,8 +74,31 @@ def route_shapes():
 
 @pytest.fixture(scope='session')
 def corpus():
+    """The generated shards only.
+
+    Kept separate from ``all_scenarios`` because the generated corpus is what the
+    reproducibility and duplication checks are about: they assert the generator
+    emits exactly what is committed. Coverage is a different question and must
+    include the hand-written scenarios, which is what ``all_scenarios`` is for.
+    """
     out = {}
     for p in GENERATED:
+        with open(p, encoding='utf-8') as fh:
+            out[p] = json.load(fh)
+    return out
+
+
+@pytest.fixture(scope='session')
+def all_scenarios():
+    """Every scenario in the repository, generated and hand-written.
+
+    The coverage gates read this rather than ``corpus``. Reading ``corpus`` alone
+    under-reported both figures: 40 audited scenarios were excluded, so a route
+    covered only by a hand-written journey looked uncovered. The number published
+    to a reader has to be the number over everything that exists.
+    """
+    out = {}
+    for p in GENERATED + HAND_BATCHES:
         with open(p, encoding='utf-8') as fh:
             out[p] = json.load(fh)
     return out
@@ -487,7 +514,52 @@ def test_every_axis_reaches_the_journey(corpus):
     assert not problems, 'axes that are not an input to the run:\n' + '\n'.join(problems[:20])
 
 
-def test_route_coverage_is_measured_not_asserted(corpus):
+def test_every_route_is_reached_not_just_the_mutating_ones(all_scenarios):
+    """Every route, reads included, not only the ones that change state.
+
+    The matrix started with state-changing routes on the reasoning that a GET
+    cannot corrupt anything. For a clinical system that is wrong: a read that
+    returns the wrong patient, the wrong price or a stale queue is a safety
+    defect. 354 read-only routes were undocumented because of it, and this is the
+    check that stops the gap reopening the next time a screen is added.
+
+    It is also the check most likely to fail on a new feature, which is the point:
+    a new list endpoint should force a decision about whether it is documented,
+    rather than being added and forgotten.
+    """
+    with open(os.path.join(ROOT, 'route_inventory.json'), encoding='utf-8') as fh:
+        inv = json.load(fh)
+
+    def shape(path):
+        named = re.sub(r'<(?:[^:<>]+:)?([^<>]+)>', r'{\1}', path)
+        return re.sub(r'<[^>]*>|\{[^}]*\}', '{}', named)
+
+    every = {shape(r['path']) for r in inv['routes']}
+    reads = {
+        shape(r['path'])
+        for r in inv['routes']
+        if not {'POST', 'PUT', 'DELETE', 'PATCH'} & set(r['methods'])
+    }
+    covered = set()
+    for scs in all_scenarios.values():
+        for sc in scs:
+            for st in sc['journey_steps']:
+                m = API_LINE.match(st['api'])
+                if m:
+                    covered.add(shape(m.group(1)))
+
+    uncovered_reads = sorted(reads - covered)
+    assert not uncovered_reads, (
+        f'{len(uncovered_reads)} read-only routes have no scenario, including '
+        f'{uncovered_reads[:8]}. A read that returns the wrong record is a safety '
+        'defect, not a cosmetic one'
+    )
+    pct = 100.0 * len(covered & every) / len(every)
+    print(f'\nroute coverage: {len(covered & every)}/{len(every)} routes = {pct:.1f}%')
+    assert pct >= 99.0, f'only {pct:.1f}% of all routes are reached by a scenario'
+
+
+def test_route_coverage_is_measured_not_asserted(all_scenarios):
     """Report coverage rather than assert a number that could be met by padding.
 
     This replaced the original `total >= 1000` assertion. What matters is how much
@@ -502,7 +574,7 @@ def test_route_coverage_is_measured_not_asserted(corpus):
         if {'POST', 'PUT', 'DELETE', 'PATCH'} & set(r['methods'])
     }
     covered = set()
-    for scs in corpus.values():
+    for scs in all_scenarios.values():
         for sc in scs:
             for st in sc['journey_steps']:
                 m = API_LINE.match(st['api'])

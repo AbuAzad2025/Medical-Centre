@@ -55,6 +55,7 @@ def _install_family_templates() -> None:
     import integration_templates
     import platform_admin_templates
     import platform_templates
+    import read_templates
 
     clinical_templates.add_clinical_templates()
     platform_templates.add_platform_templates()
@@ -62,6 +63,7 @@ def _install_family_templates() -> None:
     identity_templates.add_identity_templates()
     platform_admin_templates.add_platform_admin_templates()
     integration_templates.add_integration_templates()
+    read_templates.add_read_templates()
     _apply_axis_effects()
 
 

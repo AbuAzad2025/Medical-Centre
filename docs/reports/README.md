@@ -8,7 +8,7 @@ the generators are in `tools/reports/`.
 
 | measure | current | detail |
 |---|---|---|
-| Backend Python statements | 68.8% | `docs/reports/backend-coverage.md` |
+| Backend Python statements | not measured here | `docs/reports/backend-coverage.md` |
 | Frontend JavaScript statements | 0.5% | `docs/reports/frontend-coverage.md` — narrow measurement, see that file |
 | State-changing routes reached by the scenario matrix | 100.0% | `docs/scenarios/generated/README.md` |
 
@@ -16,25 +16,25 @@ the generators are in `tools/reports/`.
 
 | measure | count |
 |---|---|
-| generated | 1,787 |
+| generated | 2,491 |
 | hand-written and audited | 40 |
-| total | 1,827 |
-| templates | 125 |
-| code-derived axes | 80 |
+| total | 2,531 |
+| templates | 212 |
+| code-derived axes | 84 |
 | state-changing routes reached | 326/326 |
 
 Families:
 
 | family | scenarios |
 |---|---|
-| `clinical` | 759 |
-| `financial` | 352 |
-| `platform` | 385 |
-| `rbac` | 291 |
+| `clinical` | 1,122 |
+| `financial` | 481 |
+| `platform` | 484 |
+| `rbac` | 404 |
 
 ## Why scenario count and coverage are different numbers
 
-The matrix holds 1,827 scenarios and reaches
+The matrix holds 2,531 scenarios and reaches
 100.0% of the state-changing routes. Those two numbers are
 not supposed to track each other, and the difference is deliberate: scenarios
 multiply over a dimension, so a journey with a genuine five-value state

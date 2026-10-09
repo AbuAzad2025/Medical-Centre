@@ -220,7 +220,7 @@ def scenario_stats() -> dict:
                 continue
         return out
 
-    generated = load('docs/scenarios/generated/*.json')
+    generated = load('docs/scenarios/generated/scenarios*.json')
     hand = load('docs/scenarios/batch-*.json')
     families: dict[str, int] = defaultdict(int)
     for sc in generated:

@@ -469,7 +469,7 @@ class TestScenarioMatrixIsExecutableDocumented:
 
         gen = Path(__file__).resolve().parents[1] / 'docs' / 'scenarios' / 'generated'
         keys = set()
-        for f in sorted(gen.glob('*.json')):
+        for f in sorted(gen.glob('scenarios*.json')):
             for sc in json.loads(f.read_text(encoding='utf-8')):
                 keys.add(sc['template'])
         missing = self.EXECUTED - keys

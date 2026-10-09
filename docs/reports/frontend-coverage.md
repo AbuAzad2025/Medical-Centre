@@ -98,24 +98,24 @@ frontend would be wrong, and the header says so on purpose.
 
 | script | covered/total | percent |
 |---|---|---|
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/base.js` | 0/354 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/radiology/process.js` | 0/342 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/reception/create_visit.js` | 0/315 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/performance.js` | 0/289 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/reception/queue_management.js` | 0/271 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/super_admin/system_backup.js` | 0/245 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/security.js` | 0/209 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/reception/patients.js` | 0/207 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/pharmacy/pos.js` | 0/161 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/doctor/prescription.js` | 0/158 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/doctor/notes.js` | 0/142 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/reception/create_appointment.js` | 0/141 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/manager/unit_control.js` | 0/132 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/super_admin/system_config.js` | 0/118 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/doctor/dashboard.js` | 0/112 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/reception/appointments.js` | 0/111 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/reception/add_patient_to_queue.js` | 0/102 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/events.js` | 0/96 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/super_admin/branding.js` | 0/92 | 0.0% |
-| `/home/runner/work/Medical-Centre/Medical-Centre/static/js/pages/doctor/patient_queue.js` | 0/89 | 0.0% |
+| `D:/recovers/data/medical/static/js/base.js` | 0/354 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/radiology/process.js` | 0/342 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/reception/create_visit.js` | 0/315 | 0.0% |
+| `D:/recovers/data/medical/static/js/performance.js` | 0/289 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/reception/queue_management.js` | 0/271 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/super_admin/system_backup.js` | 0/245 | 0.0% |
+| `D:/recovers/data/medical/static/js/security.js` | 0/209 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/reception/patients.js` | 0/207 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/pharmacy/pos.js` | 0/161 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/doctor/prescription.js` | 0/158 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/doctor/notes.js` | 0/142 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/reception/create_appointment.js` | 0/141 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/manager/unit_control.js` | 0/132 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/super_admin/system_config.js` | 0/118 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/doctor/dashboard.js` | 0/112 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/reception/appointments.js` | 0/111 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/reception/add_patient_to_queue.js` | 0/102 | 0.0% |
+| `D:/recovers/data/medical/static/js/events.js` | 0/96 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/super_admin/branding.js` | 0/92 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/doctor/patient_queue.js` | 0/89 | 0.0% |
 
