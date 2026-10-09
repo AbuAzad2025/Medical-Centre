@@ -8,7 +8,7 @@ the generators are in `tools/reports/`.
 
 | measure | current | detail |
 |---|---|---|
-| Backend Python statements | not measured here | `docs/reports/backend-coverage.md` |
+| Backend Python statements | 68.8% | `docs/reports/backend-coverage.md` |
 | Frontend JavaScript statements | 0.5% | `docs/reports/frontend-coverage.md` — narrow measurement, see that file |
 | State-changing routes reached by the scenario matrix | 100.0% | `docs/scenarios/generated/README.md` |
 
