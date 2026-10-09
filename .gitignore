@@ -82,9 +82,16 @@ medical_system.db
 
 # Stale doc scratch dirs
 docs/tests/
-reports/
+# Anchored to the repository root on purpose. Unanchored, this pattern also matched
+# docs/reports/ and tools/reports/, which are committed: docs/reports holds the
+# generated coverage reports and tools/reports holds the generator that produces
+# them. CI proved it, by failing on files that were written and never committed.
+/reports/
 pytest_out.txt
 agent-tools/
+# Coverage tool output. Named separately because it is not under /reports/.
+/coverage/
+/covdata/
 
 # Ad-hoc scripts at repo root only (scripts/dev/ is tracked)
 /dev/
