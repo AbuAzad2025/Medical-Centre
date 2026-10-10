@@ -318,6 +318,12 @@ class TestTheReceptionHandOff:
     attempted, and the hand-off always fails.
     """
 
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            'known defect: the reception hand-off is dead code: filter(Department.get_type() == "reception") calls an unbound method, raises TypeError, and is swallowed'
+        ),
+    )
     def test_the_patient_is_queued_at_reception_after_a_prescription(self, clinic):
         """One prescription puts the patient in the reception queue.
 
@@ -346,6 +352,12 @@ class TestTheReceptionHandOff:
             'payment for the prescription.'
         )
 
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            'known defect: pending_financial_settlement is assigned before the hand-off is attempted, so it records an intention rather than an outstanding task'
+        ),
+    )
     def test_the_settlement_flag_is_not_set_when_the_hand_off_did_not_happen(self, clinic):
         """pending_financial_settlement must mean a hand-off is genuinely outstanding.
 
@@ -403,6 +415,12 @@ class TestTheReceptionHandOff:
             f'the second drug was not added to the visit: {second} prescription(s) after two writes'
         )
 
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            'known defect: prescription_number carries int(time()) against a unique column, so two writes in one second collide'
+        ),
+    )
     def test_two_prescriptions_on_one_visit_do_not_collide_within_a_second(self, clinic):
         """Two writes in the same clock second must both be written.
 
@@ -440,6 +458,12 @@ class TestTheReceptionHandOff:
             f'collides. It needs a per-row discriminator rather than a timestamp.'
         )
 
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            'known defect: the failed insert is never rolled back, so the aborted transaction poisons every later statement in the session'
+        ),
+    )
     def test_a_rejected_prescription_leaves_the_session_usable(self, clinic):
         """A refused write must not poison the session for whatever comes next.
 

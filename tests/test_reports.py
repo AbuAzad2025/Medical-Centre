@@ -193,6 +193,56 @@ def test_scenario_execution_registry_is_accurate():
     )
 
 
+def test_known_defects_are_declared_strict_xfail():
+    """Every xfail in the scenario suite must be strict and must carry a reason.
+
+    A bare xfail is how a documented defect quietly becomes a test nobody reads: it
+    keeps reporting without anybody deciding anything, and it happily survives the
+    bug being fixed. strict=True turns that fix into an XPASS, which fails and asks
+    for the marker to be removed deliberately.
+
+    Parsed rather than run, so the check is about how the suite declares its known
+    defects rather than about what the database happens to do today.
+    """
+    import ast
+    import pathlib
+    import sys as _sys
+
+    sys_path = os.path.join(ROOT, 'tests')
+    if sys_path not in _sys.path:
+        _sys.path.insert(0, sys_path)
+    from scenario_execution_registry import EXECUTED_TEMPLATES  # noqa: PLC0415
+
+    modules = sorted({mod for mod, _ in EXECUTED_TEMPLATES.values()})
+    checked = 0
+    problems: list[str] = []
+
+    for module in modules:
+        path = pathlib.Path(__file__).parent / f'{module}.py'
+        if not path.exists():
+            continue
+        tree = ast.parse(path.read_text(encoding='utf-8'))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.FunctionDef):
+                continue
+            for deco in node.decorator_list:
+                if not isinstance(deco, ast.Call):
+                    continue
+                name = getattr(deco.func, 'attr', None) or getattr(deco.func, 'id', None)
+                if name != 'xfail':
+                    continue
+                checked += 1
+                kwargs = {kw.arg: kw.value for kw in deco.keywords}
+                strict = kwargs.get('strict')
+                if not (isinstance(strict, ast.Constant) and strict.value is True):
+                    problems.append(f'{module}.{node.name}: xfail without strict=True')
+                if 'reason' not in kwargs:
+                    problems.append(f'{module}.{node.name}: xfail without a reason')
+
+    assert checked > 0, 'no xfail markers found; the scenario modules changed shape?'
+    assert not problems, 'xfail markers that will not survive a fix:\n' + '\n'.join(problems)
+
+
 def test_scenario_execution_coverage_never_regresses():
     """Execution coverage is a floor, not a headline.
 
