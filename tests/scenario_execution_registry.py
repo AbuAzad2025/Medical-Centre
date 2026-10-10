@@ -69,6 +69,23 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'test_scenarios_executable_isolation',
         'skip then return leaves exactly one ticket, so a patient is never on the board twice',
     ),
+    # ── pharmacy money ───────────────────────────────────────────────────
+    'PHARMACY_POS_SALE_AND_RETURN': (
+        'test_scenarios_executable_pharmacy',
+        'a sale decrements stock and produces a receipt; a card sale without the '
+        'last four digits or a transaction id is refused before stock moves',
+    ),
+    'PHARMACY_PURCHASE_AND_DISPENSE': (
+        'test_scenarios_executable_pharmacy',
+        'a purchase adds exactly the stock it was told to add, a purchase against '
+        'a missing medication is refused rather than inventing one, and reception '
+        'cannot dispense',
+    ),
+    'PHARMACY_STOCK_AND_SUPPLY': (
+        'test_scenarios_executable_pharmacy',
+        'a supply request is created with a medication id and a per-id quantity, '
+        'and approval moves it to APPROVED',
+    ),
     # ── access control ───────────────────────────────────────────────────
     'QUEUE_GATE_AND_ADD_SERVICE_RBAC': (
         'test_scenarios_executable_isolation',
