@@ -145,7 +145,7 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'MFA setup works; biometric challenge/complete/remove works; SSO config '
         'only handles LDAP fields (SAML fields exist in model but route ignores them)',
     ),
-    'IDENTITY_STAFF_ACCOUNT_LIFECYCLE': (
+    'STAFF_SCHEDULE_AND_ABSENCE': (
         'test_scenarios_executable_rbac',
         'deactivation survives an open session, and deletion is a separate console',
     ),
