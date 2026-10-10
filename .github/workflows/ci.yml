@@ -936,6 +936,8 @@ jobs:
       STRIPE_SECRET_KEY: sk_test_ci_e2e
       STRIPE_WEBHOOK_SECRET: whsec_test_ci_e2e
       COVERAGE_FILE: .coverage.core.${{ matrix.shard }}
+      PLATFORM_CAP_WEBAUTHN: "true"
+      PLATFORM_CAP_SSO: "true"
 
     steps:
       - uses: actions/checkout@v5
