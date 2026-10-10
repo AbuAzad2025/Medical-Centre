@@ -20,16 +20,14 @@
 
 ---
 
-## `BLOCKED-02` — دورة جرعات الدواء (eMAR)
+## `BLOCKED-02` — دورة جرعات الدواء (eMAR) — **مُغلق**
 
 | | |
 |---|---|
-| **الدليل** | لا شيء في التطبيق ينشئ `eMARAdministration` أو `MedicationSchedule`. الاستثناء الوحيد في كامل المستودع: `tests/test_high_risk_hardening.py:83`. |
-| **ما ينقص** | مولّد جداول الجرعات من الوصفة، وربط `MedicationSchedule` بـ `PrescriptionItem`. |
-| **النموذج موجود** | `models/emar.py:112` `MedicationSchedule` و`models/emar.py:12` `eMARAdministration` بحالات (`SCHEDULED/GIVEN/NOT_GIVEN/HELD/REFUSED/PARTIAL/MISSED/LATE`)، شرائط باركود، وحقول علامات حيوية لكل جرعة، وأسباب إلزامية للرفض/التأجيل. |
-| **الخدمة موجودة** | `services/nursing_service.py:237` `record_emar_administration` — منفَّذة بجودة عالية (تحقق التعداد، مطابقة المريض والدواء، منع إعادة توثيق صف طرفي). **غير قابلة للوصول**. |
-| **البديل** | `POST /nurse/administer-medication/<prescription_item_id>` يكتب في `MedicationAdministrationLog` (`models/nurse.py:161`) — نموذج أرقّ: بلا `status`، بلا فحص دواء/مريض، بلا رفض، بلا vitals. |
-| **الأثر** | السجل الدوائي مُقسّم: النموذج الغني معطّل، والرقيق يعمل. |
+| **الحالة** | **مُغلق.** كانت هذه الملاحظة تقول إن eMAR لا يمكن الوصول إليه؛ لم تعد صحيحة. |
+| **ماذا تغيّر** | أضيفت ثلاثة مسارات: `GET /emar/dashboard` و`GET /emar/patient/<patient_id>` و`POST /emar/administer/<admin_id>` (`routes/emar_routes.py:22,48,72`). مسار الـadminister يستدعي `NursingService.record_emar_administration`، أي الخدمة الغنية نفسها التي كانت موصوفة بأنها غير قابلة للوصول. |
+| **لماذا كانت خاطئة** | كُتبت بقراءة الكود قبل إضافة المسارات. لم تُراجَع منذ ذلك الحين. اكتُشف الآن بواسطة `tools/scenario_gen/verify_blocked.py` الذي يفحص كل ادعاء قابل للتحقق مقابل الكود عند كل تشغيل. |
+| **ما يبقى | الخلل Authentication Handbook لأن eMAR كان غير قابل للوصول؛ المسار موجود الآن والالتزامات خارجه. |
 
 ---
 
@@ -81,15 +79,14 @@
 
 ---
 
-## `BLOCKED-07` — إنشاء سرير / غرفة / جناح عبر التطبيق
+## `BLOCKED-07` — إنشاء Ward / Room / Bed — **مُغلق جزئياً**
 
 | | |
 |---|---|
-| **الدليل** | لا يوجد أي مسار POST لـ`Ward` أو `Room` أو `Bed`. مسارات `/bed/wards` و`/bed/ward/<id>` و`/bed/room/<id>` قراءة فقط. استنساخ `Ward(` / `Bed(` لا يعطي نتيجة خارج `tests/test_admission_service.py`. |
-| **النماذج موجودة** | `models/bed_management.py` — `Ward` (7 أنواع)، `Room` (5 أنواع)، `Bed` (6 أنواع)، `Admission`، `BedTransfer`. |
-| **الأثر** | أي سيناريو رعاية داخلية يتطلب **تهيئة البيانات مسبقاً خارج التطبيق**. |
-| **ملاحظة** | `GET /bed/api/available-beds` **لا يرشّح على الإتاحة** — يعيد كل أسرار القسم؛ التصفية على العميل. |
-| **قيد مقصود** | `utils/seed_manifest.py` يرفض بذر الأسرة عمداً: *"Physical inventory of one specific building; inventing them makes occupancy reporting lie."* |
+| **الحالة** | **مُغلق جزئياً.** المسارات موجودة؛ ما زال ما يُنشئ الصفوف غائباً. |
+| **ماذا تغيّر** | `GET /bed/wards` و`GET /bed/ward/<id>` و`GET /bed/room/<id>` موجودة الآن، إضافةً إلى `POST /bed/api/admissions/admit`. Previously the note said no route served these at all. |
+| **ما يبقى | لا يوجد مسار `POST` لإنشاء Ward أو Room أو Bed. Admissions تُنشأ عبر `admit`، لكن Ward وRoom لا تُنشأان إلا من `Ward(` و`Bed(` مباشرة في `tests/test_admission_service.py`. |
+| **لماذا يهم** | Ward وRoom بيانات مرجعية مطلوبة لوضع المريض داخلها. مستودع جديد يبدأ بلا صفوف، وشاشة السكن تعرض قائمة فارغة حتى تُنشأ الصفوف يدوياً في الصدفة. |
 
 ---
 

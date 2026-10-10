@@ -169,6 +169,67 @@ def test_no_report_claims_full_coverage_without_a_measured_denominator():
             )
 
 
+def test_blocked_journeys_are_re_verified_against_the_code():
+    """Every checkable blocked note must still be true of the code.
+
+    A blocked note is a claim that something does not exist. Those claims were
+    written by reading the code, and reading the code is how a document goes
+    stale: two of the ten had already become false, because the application grew
+    the thing the note said was missing. A note that says a feature is absent when
+    it is present is worse than no note, because it stops someone looking for it.
+
+    The check is a script rather than an assertion duplicated here, so the same
+    tool that produced the correction is the one that guards it afterwards.
+    """
+    import subprocess
+    import sys
+
+    env = dict(os.environ, PYTHONIOENCODING='utf-8')
+    proc = subprocess.run(
+        [sys.executable, 'tools/scenario_gen/verify_blocked.py'],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding='utf-8',
+        errors='replace',
+        env=env,
+    )
+    assert proc.returncode == 0, (
+        f'a blocked-journeys note no longer matches the code:\n{proc.stdout}\n{proc.stderr}'
+    )
+    assert 'RESOLVED' in proc.stdout, (
+        'the verification tool reported nothing as resolved; either it lost its '
+        'resolution records or the blocked document was rewritten without them'
+    )
+
+
+def test_blocked_document_exists_and_names_every_id():
+    """The blocked document and the checker must agree on which items exist."""
+    import re as _re
+
+    path = os.path.join(ROOT, 'docs', 'scenarios', 'blocked-journeys.md')
+    assert os.path.isfile(path), 'docs/scenarios/blocked-journeys.md is missing'
+
+    with open(path, encoding='utf-8') as fh:
+        text = fh.read()
+    documented = set(_re.findall(r'BLOCKED-\d+', text))
+    assert documented, 'the blocked document names no items'
+
+    sys_path = os.path.join(ROOT, 'tools', 'scenario_gen')
+    import sys
+
+    if sys_path not in sys.path:
+        sys.path.insert(0, sys_path)
+    import verify_blocked  # noqa: PLC0415
+
+    checked = {spec['id'] for spec in verify_blocked.CHECKS}
+    missing = checked - documented
+    assert not missing, (
+        f'the verifier checks {sorted(missing)} but the document does not name them; '
+        f'a check with no note behind it is a check nobody reads'
+    )
+
+
 def test_route_inventory_still_present_for_the_reports():
     """The reports depend on route_inventory.json; fail loudly if it moves."""
     assert os.path.isfile(os.path.join(ROOT, 'route_inventory.json'))
