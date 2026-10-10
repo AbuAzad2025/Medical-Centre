@@ -464,6 +464,33 @@ class TestScenarioMatrixIsExecutableDocumented:
         'FORCE_PAYMENT_QUOTA_AND_APPROVAL',
     }
 
+    def test_the_registry_matches_what_this_file_actually_executes(self):
+        """This file's own template list must agree with the shared registry.
+
+        The registry exists because each file used to keep its own list, and one of
+        them was five templates long while three other files executed several more
+        without recording it. The published figure was then off by an order of
+        magnitude and adding a test did not move it.
+
+        Asserting the two agree means the duplication cannot drift back, and the
+        direction of the comparison is deliberate: the registry is allowed to know
+        about templates this file does not execute, but this file may not execute a
+        template the registry does not know about.
+        """
+        from tests.scenario_execution_registry import EXECUTED_TEMPLATES
+
+        mine = set(self.EXECUTED)
+        declared_for_this_file = {
+            key
+            for key, (owner, _) in EXECUTED_TEMPLATES.items()
+            if owner == 'test_scenarios_executable'
+        }
+        assert mine == declared_for_this_file, (
+            f'this file declares {sorted(mine)} but the registry says '
+            f'{sorted(declared_for_this_file)} for it. One of the two is out of date '
+            f'and the published coverage figure is whichever is wrong'
+        )
+
     def test_executed_templates_exist_in_the_matrix(self):
         from pathlib import Path
 

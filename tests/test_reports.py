@@ -169,6 +169,63 @@ def test_no_report_claims_full_coverage_without_a_measured_denominator():
             )
 
 
+def test_scenario_execution_registry_is_accurate():
+    """Every template the registry claims is executed must exist in the matrix.
+
+    The registry is the number a reader is given, so a key that names a template
+    which does not exist inflates it silently. It cost one key to find: the file
+    recorded the renewal scenario under a name that was never generated.
+    """
+    sys_path = os.path.join(ROOT, 'tests')
+    import sys
+
+    if sys_path not in sys.path:
+        sys.path.insert(0, sys_path)
+    from scenario_execution_registry import executed_coverage  # noqa: PLC0415
+
+    report = executed_coverage()
+    assert not report['unknown_templates'], (
+        f'the registry names templates the matrix does not contain: {report["unknown_templates"]}'
+    )
+    assert report['templates_executed'] > 0, 'the registry claims nothing is executed'
+    assert report['scenarios_executed'] <= report['scenarios_total'], (
+        'the registry claims more scenarios executed than the matrix contains'
+    )
+
+
+def test_scenario_execution_coverage_never_regresses():
+    """Execution coverage is a floor, not a headline.
+
+    Written as a comparison against a number rather than a percentage so that adding
+    a template to the matrix does not silently make the gate harder and deleting one
+    does not silently make it easier. The floor moves only when someone raises it
+    deliberately, which is the only honest way to move it.
+    """
+    sys_path = os.path.join(ROOT, 'tests')
+    import sys
+
+    if sys_path not in sys.path:
+        sys.path.insert(0, sys_path)
+    from scenario_execution_registry import executed_coverage  # noqa: PLC0415
+
+    report = executed_coverage()
+    floor_pct = 16.0
+    floor_templates = 19
+    assert report['templates_executed'] >= floor_templates, (
+        f'execution coverage fell to {report["templates_executed"]} templates from a '
+        f'floor of {floor_templates}'
+    )
+    assert report['pct_scenarios'] >= floor_pct, (
+        f'execution coverage fell to {report["pct_scenarios"]:.1f}% of scenarios from '
+        f'a floor of {floor_pct}%'
+    )
+    print(
+        f'\nexecuted scenarios: {report["scenarios_executed"]}/{report["scenarios_total"]} '
+        f'({report["pct_scenarios"]:.1f}%) across '
+        f'{report["templates_executed"]}/{report["templates_total"]} templates'
+    )
+
+
 def test_blocked_journeys_are_re_verified_against_the_code():
     """Every checkable blocked note must still be true of the code.
 
