@@ -97,6 +97,11 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'the audit matrix is a coverage plan rather than a journey, and the routes '
         'that carry it are executed instead',
     ),
+    'LAB_RESULT_LIFECYCLE': (
+        'test_scenarios_executable_lab',
+        'the lifecycle is sound up to finalize, but an empty or partly filled panel '
+        'reports DONE and the doctor is notified that a result is ready',
+    ),
     'DIAGNOSIS_AND_PROBLEM_LIST': (
         'test_scenarios_executable_diagnosis',
         'the first diagnosis save is correct, but a second one clears the follow-up '
