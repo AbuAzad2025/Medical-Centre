@@ -97,6 +97,11 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'the audit matrix is a coverage plan rather than a journey, and the routes '
         'that carry it are executed instead',
     ),
+    'DIAGNOSIS_AND_PROBLEM_LIST': (
+        'test_scenarios_executable_diagnosis',
+        'the first diagnosis save is correct, but a second one clears the follow-up '
+        'date and the vitals, appends the note again and duplicates the medical record',
+    ),
     'DOCTOR_PRESCRIPTION_STATE_CHANGES': (
         'test_scenarios_executable_prescriptions',
         'the prescription writes correctly and an allergy refuses it, but the '
