@@ -338,9 +338,11 @@ class TestTwoPatientsCannotShareABed:
         ward['app'].extensions['sqlalchemy'].session.rollback()
         ward['app'].extensions['sqlalchemy'].session.remove()
 
-        admissions = db.session.execute(
-            select(Admission).filter_by(bed_id=bed.id, status='ADMITTED')
-        ).scalars().all()
+        admissions = (
+            db.session.execute(select(Admission).filter_by(bed_id=bed.id, status='ADMITTED'))
+            .scalars()
+            .all()
+        )
         assert len(admissions) <= 1, (
             f'bed {bed.bed_number} carries {len(admissions)} live admissions after two '
             f'successful admits: {[a.id for a in admissions]}. Both requests read the '

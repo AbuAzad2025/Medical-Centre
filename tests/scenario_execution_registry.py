@@ -97,6 +97,11 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'the audit matrix is a coverage plan rather than a journey, and the routes '
         'that carry it are executed instead',
     ),
+    'EMERGENCY_CASE_RESOLUTION': (
+        'test_scenarios_executable_emergency',
+        'create and resolve work, but converting an emergency transfers the visit '
+        'without updating the case status or writing history',
+    ),
     'INPATIENT_BED_AND_ADMISSION': (
         'test_scenarios_executable_inpatient',
         'admit, transfer and discharge work correctly end to end, but the admit read '
