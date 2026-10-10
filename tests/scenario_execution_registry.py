@@ -97,6 +97,11 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'the audit matrix is a coverage plan rather than a journey, and the routes '
         'that carry it are executed instead',
     ),
+    'DOCTOR_PRESCRIPTION_STATE_CHANGES': (
+        'test_scenarios_executable_prescriptions',
+        'the prescription writes correctly and an allergy refuses it, but the '
+        'reception hand-off behind the settlement flag has never run',
+    ),
     'IDENTITY_PERMISSION_MATRIX': (
         'test_scenarios_executable_permissions',
         'the permission catalogue cannot be written to at all: the enums the form '
