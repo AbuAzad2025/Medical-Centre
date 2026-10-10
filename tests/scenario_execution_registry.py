@@ -140,6 +140,11 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'granting a permission to one role deletes every role_permission row in the '
         'deployment before writing the selection back',
     ),
+    'IDENTITY_BIOMETRIC_ENROLMENT': (
+        'test_scenarios_executable_staff_account',
+        'MFA setup works; biometric challenge/complete/remove works; SSO config '
+        'only handles LDAP fields (SAML fields exist in model but route ignores them)',
+    ),
     'IDENTITY_STAFF_ACCOUNT_LIFECYCLE': (
         'test_scenarios_executable_rbac',
         'deactivation survives an open session, and deletion is a separate console',

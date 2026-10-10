@@ -140,7 +140,11 @@ def authenticate_challenge():
 )
 @handle_route_errors
 def remove_credential(cred_id):
-    cred = select(BiometricCredential).filter_by(id=cred_id, user_id=current_user.id)
+    cred = db.session.execute(
+        select(BiometricCredential).filter_by(id=cred_id, user_id=current_user.id)
+    ).scalar()
+    if not cred:
+        return jsonify({'success': False, 'message': 'Credential not found'}), 404
     db.session.delete(cred)
     safe_commit(db.session, error_message='database commit failed', reraise=True)
     return jsonify({'success': True})
