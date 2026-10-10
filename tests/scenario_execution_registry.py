@@ -97,10 +97,16 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'the audit matrix is a coverage plan rather than a journey, and the routes '
         'that carry it are executed instead',
     ),
+    'IDENTITY_PERMISSION_MATRIX': (
+        'test_scenarios_executable_permissions',
+        'the permission catalogue cannot be written to at all: the enums the form '
+        'posts do not match the columns, the create route never sets tenant_id, and '
+        'the page renders an empty list when its query fails so the two look alike',
+    ),
     'IDENTITY_ROLE_DEPARTMENT_BINDING': (
-        'test_scenarios_executable_rbac',
-        'a blueprint with a guard in the source, asserted against every tested '
-        'blueprint rather than against one',
+        'test_scenarios_executable_permissions',
+        'granting a permission to one role deletes every role_permission row in the '
+        'deployment before writing the selection back',
     ),
     'IDENTITY_STAFF_ACCOUNT_LIFECYCLE': (
         'test_scenarios_executable_rbac',
