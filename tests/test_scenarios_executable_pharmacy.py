@@ -315,7 +315,7 @@ class TestSupplyRequestLifecycleIsExecuted:
 
     def test_a_supply_request_is_created_and_can_be_approved(self, pharmacy):
         """The two writes the supply chain has, driven over HTTP."""
-        app, client, tenant = pharmacy['app'], pharmacy['client'], pharmacy['tenant']
+        app, tenant = pharmacy['app'], pharmacy['tenant']
         from tests.tenant_context import ensure_test_user, login_test_client
 
         manager = ensure_test_user(db, tenant, username='e2e_supply_manager', role='manager')

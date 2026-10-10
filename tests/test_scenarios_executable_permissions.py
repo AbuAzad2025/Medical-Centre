@@ -189,7 +189,6 @@ class TestPermissionMatrixIsExecuted:
         app, client, tenant = platform['app'], platform['client'], platform['tenant']
         import inspect
 
-        source = inspect.getsource(type(client).__mro__[0]) if False else ''
         from routes.super_admin import roles as roles_module
 
         handler = inspect.getsource(roles_module.permissions)
