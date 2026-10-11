@@ -69,7 +69,6 @@ def er(app, test_tenant):
     db.session.add(patient)
     db.session.flush()
 
-
     visit = Visit(
         tenant_id=test_tenant.id,
         patient_id=patient.id,
@@ -146,8 +145,6 @@ class TestEmergencyPrescription:
         assert rx.diagnosis == 'chest pain', 'diagnosis not copied from emergency'
 
 
-
-
 @covers('EMERGENCY_TREATMENT_AND_ORDERS')
 class TestEmergencyLabAndRadiology:
     def test_a_lab_request_is_created_for_the_emergency(self, er):
@@ -168,7 +165,9 @@ class TestEmergencyLabAndRadiology:
         lr = db.session.get(LabRequest, er['emergency'].lab_request_id)
         assert lr is not None, 'no lab request was created'
         # The lab request route stores urgency in notes, not test IDs
-        assert 'ROUTINE' in (lr.notes or ''), f'ROUTINE not found in lab request notes: {lr.notes!r}'
+        assert 'ROUTINE' in (lr.notes or ''), (
+            f'ROUTINE not found in lab request notes: {lr.notes!r}'
+        )
 
     def test_a_radiology_request_is_created_for_the_emergency(self, er):
         """A radiology request can be created for an emergency case."""
