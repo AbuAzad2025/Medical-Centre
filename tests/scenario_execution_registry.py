@@ -140,6 +140,11 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'granting a permission to one role deletes every role_permission row in the '
         'deployment before writing the selection back',
     ),
+    'INPATIENT_PLACEMENT_BY_WARD_AND_BED': (
+        'test_scenarios_executable_placement',
+        'available-beds lists occupied and out-of-order beds with no status field, '
+        'and nothing prices a bed so ICU bills like a standard ward',
+    ),
     'IDENTITY_PASSWORD_LIFECYCLE': (
         'test_scenarios_executable_identity',
         'change and operator reset both work and are audited; the reveal-password '
