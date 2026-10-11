@@ -81,14 +81,13 @@ def clinic(app, test_tenant):
 
     # get_type() resolves to 'reception' from either name, which is what the
     # hand-off filters on.
-    db.session.add(
-        Department(
-            tenant_id=test_tenant.id,
-            name='Reception',
-            name_ar='استقبال',
-            is_active=True,
-        )
+    reception_dept = Department(
+        tenant_id=test_tenant.id,
+        name='Reception',
+        name_ar='استقبال',
+        is_active=True,
     )
+    db.session.add(reception_dept)
 
     patient = Patient(
         tenant_id=test_tenant.id,
@@ -136,6 +135,7 @@ def clinic(app, test_tenant):
         'visit': visit,
         'drug_a': drugs[0],
         'drug_b': drugs[1],
+        'reception': reception_dept,
     }
 
 
@@ -318,18 +318,45 @@ class TestTheReceptionHandOff:
     attempted, and the hand-off always fails.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: the reception hand-off is dead code: filter(Department.get_type() == "reception") calls an unbound method, raises TypeError, and is swallowed'
-        ),
-    )
-    def test_the_patient_is_queued_at_reception_after_a_prescription(self, clinic):
-        """One prescription puts the patient in the reception queue.
+    def test_the_visit_is_moved_to_reception_for_settlement(self, clinic):
+        """One prescription routes the visit to reception, and it now does.
 
-        Staged with a reception department present, because the hand-off is skipped
-        when there is not one and that omission makes this case pass for the wrong
-        reason.
+        The hand-off used to be dead twice over. The lookup called
+        Department.get_type unbound and raised TypeError, which a bare
+        `except Exception: pass` swallowed; and behind that, the hand-off asked
+        add_patient_to_queue for a ticket, which refuses any visit that is not PAID
+        -- the patient is being sent to reception in order to pay.
+
+        It now moves the visit to the reception department and takes no clinical
+        ticket. Staged with a reception department present, because the hand-off is
+        skipped when there is not one, and skipping it is the state the old code was
+        in every time.
+        """
+        from tests.tenant_context import refresh_scoped
+
+        app, client, tenant = clinic['app'], clinic['client'], clinic['tenant']
+        visit, reception = clinic['visit'], clinic['reception']
+
+        _write_prescription(client, visit.id, clinic['drug_a'].id)
+
+        fresh = refresh_scoped(app, tenant, visit)
+        assert fresh.prescription_issued is True
+        assert fresh.department_id == reception.id, (
+            f'the visit was left in department {fresh.department_id} after a '
+            f'prescription; reception is {reception.id}. Nobody collects the payment'
+        )
+        assert fresh.pending_financial_settlement is True, (
+            'the visit reached reception but is not flagged as owing money, so the '
+            'settlement worklist has nothing to work from'
+        )
+
+    def test_no_clinical_queue_ticket_is_created_for_an_unpaid_visit(self, clinic):
+        """The hand-off deliberately takes no ticket, and that is the decision.
+
+        Pinned because it is a choice rather than an accident. A ticket in the
+        clinical queue claims a queue position, and this patient is at a till; the
+        admission rule admits only PAID visits anyway. Reception finds the visit
+        through visit.payment_status instead.
         """
         from models.queue_management import QueueManagement
 
@@ -342,52 +369,41 @@ class TestTheReceptionHandOff:
             .select_from(QueueManagement)
             .filter_by(patient_id=visit.patient_id, visit_id=visit.id)
         ).scalar()
-        assert queued and queued > 0, (
-            'no queue entry was written for the visit. The route looks for its '
-            'reception department with filter(Department.get_type() == "reception"), '
-            'but get_type is a Python method: evaluating it unbound raises '
-            '"TypeError: get_type() missing 1 required positional argument: self", '
-            'the query is never built, and the bare except that follows skips the '
-            'hand-off. The patient is never sent to reception, so nobody collects '
-            'payment for the prescription.'
+        assert not queued, (
+            f'a clinical queue ticket was created for an unpaid visit ({queued}). '
+            f'The admission rule only lets a PAID visit into a clinical queue, so '
+            f'this ticket either came from somewhere that bypasses the rule or the '
+            f'rule is not being applied. Either way the ticket means the wrong thing'
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: pending_financial_settlement is assigned before the hand-off is attempted, so it records an intention rather than an outstanding task'
-        ),
-    )
-    def test_the_settlement_flag_is_not_set_when_the_hand_off_did_not_happen(self, clinic):
-        """pending_financial_settlement must mean a hand-off is genuinely outstanding.
+    def test_the_prescriber_can_still_reach_the_visit_afterwards(self, clinic):
+        """Ownership survives the hand-off. This is the part I got wrong twice.
 
-        The flag is assigned before the hand-off is attempted, and the hand-off is
-        attempted inside a try that swallows everything. So the flag is set whether
-        or not anything happened, which makes it useless as a work queue: a visit '
-        'waiting for payment is indistinguishable from one whose payment step was '
-        'never started.
+        I first reported this case passing as the finding, then claimed the fix
+        would break it. Both were wrong. add_patient_to_queue reads doctor_id only
+        for a brand new visit and this route has already flushed one, so clearing
+        visit.doctor_id was never part of the hand-off -- it only destroyed the
+        visit's clinical owner and closed this route to the prescriber who had just
+        used it.
         """
-        from models.queue_management import QueueManagement
         from tests.tenant_context import refresh_scoped
 
-        app, client = clinic['app'], clinic['client']
-        visit = clinic['visit']
+        app, client, tenant = clinic['app'], clinic['client'], clinic['tenant']
+        doctor, visit = clinic['doctor'], clinic['visit']
 
         _write_prescription(client, visit.id, clinic['drug_a'].id)
 
-        queued = db.session.execute(
-            select(func.count())
-            .select_from(QueueManagement)
-            .filter_by(patient_id=visit.patient_id, visit_id=visit.id)
-        ).scalar()
+        fresh = refresh_scoped(app, tenant, visit)
+        assert fresh.doctor_id == doctor.id, (
+            f'the visit was taken off doctor {doctor.id} by writing a prescription '
+            f'(doctor_id is now {fresh.doctor_id}), which closes this route to its '
+            f'own prescriber'
+        )
 
-        fresh = refresh_scoped(app, clinic['tenant'], visit)
-        assert not (fresh.pending_financial_settlement and not queued), (
-            'the visit is flagged as awaiting financial settlement but the patient '
-            'was never queued anywhere. The flag is written on line 398, before the '
-            'hand-off is attempted on line 403, so it records an intention rather '
-            'than an outstanding task. Set it only where the hand-off succeeded, or '
-            'nothing will ever work off it.'
+        resp = client.get(f'/doctor/prescription/{visit.id}', follow_redirects=False)
+        assert resp.status_code == 200, (
+            f'the prescribing page answered {resp.status_code} after a prescription '
+            f'was written, so the doctor cannot review or extend what they wrote'
         )
 
     def test_a_doctor_can_add_a_second_drug_to_the_same_visit(self, clinic):

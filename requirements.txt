@@ -36,3 +36,10 @@ cryptography==50.0.0
 
 # Dev / load-testing (install separately: pip install locust)
 # locust==2.31.6
+
+# Lint / format. Pinned here because the version is what decides the verdict:
+# CI installs ruff==0.16.4 in .github/workflows/ci.yml and a different local
+# version formats the same file differently, so a clean local run says nothing
+# about CI. Two red builds came from this before the pin existed. Keep the two
+# versions identical.
+ruff==0.16.4
