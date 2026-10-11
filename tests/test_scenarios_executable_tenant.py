@@ -60,31 +60,49 @@ def platform_owner(app, test_tenant):
 
 
 def _seed_bundle(profile_code, modules):
-    """A ProductBundle row for *profile_code*.
+    """Ensure a ProductBundle row exists for *profile_code*, carrying *modules*.
 
     get_bundle_for_profile reads the ProductBundle table, so a profile with no row
-    resolves to no bundle at all. Every test that is about the boundary needs one.
+    resolves to no bundle at all and the boundary being tested does not exist.
+
+    Idempotent, and deliberately so. Whether product_bundles is seeded is an
+    environment difference — it is empty locally and populated in CI — so inserting
+    unconditionally either duplicates the row or trips a unique constraint,
+    depending on where the test runs. Looking first makes the case mean the same
+    thing everywhere, which is the property an xfail needs most: a marker that
+    fires in one environment and not another is not a record of a defect.
     """
     import json
 
     from app.core.tenant.models import ProductBundle
 
-    db.session.add(
-        ProductBundle(
-            name=profile_code.replace('_', ' ').title(),
-            name_ar=profile_code,
-            slug=profile_code,
-            monthly_price=0,
-            yearly_price=0,
-            setup_fee=0,
-            currency='SAR',
-            modules=json.dumps(modules),
-            is_public=True,
-            is_active=True,
-            profile_code=profile_code,
-        )
+    existing = (
+        db.session.execute(db.select(ProductBundle).filter_by(profile_code=profile_code))
+        .scalars()
+        .first()
     )
+    if existing is not None:
+        existing.modules = json.dumps(modules)
+        existing.is_active = True
+        db.session.commit()
+        return existing
+
+    bundle = ProductBundle(
+        name=profile_code.replace('_', ' ').title(),
+        name_ar=profile_code,
+        slug=f'{profile_code}-e2e',
+        monthly_price=0,
+        yearly_price=0,
+        setup_fee=0,
+        currency='SAR',
+        modules=json.dumps(modules),
+        is_public=True,
+        is_active=True,
+        profile_code=profile_code,
+    )
+    db.session.add(bundle)
     db.session.commit()
+    return bundle
 
 
 def _fresh_tenant(slug, profile=None):
