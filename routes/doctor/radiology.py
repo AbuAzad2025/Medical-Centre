@@ -102,31 +102,55 @@ def radiology_request(visit_id):
             visit.notes += ('\n\n' if visit.notes else '') + memo_text
             visit.radiology_ordered = True
             # === Financial Gate: Hub-and-Spoke ===
-            visit.pending_financial_settlement = True
+            # The patient owes money for this visit, so the visit moves to reception,
+            # where the unpaid-visit worklist (driven by visit.payment_status =
+            # PENDING) is what actually collects it.
+            #
+            # This block carried the same three defects as the prescription hand-off
+            # and has been corrected the same way:
+            #
+            #   * Department.get_type is a plain Python method that resolves the type
+            #     from the name, so it cannot be a SQL predicate. Calling it unbound
+            #     raised TypeError before the query was built, and a bare
+            #     `except Exception: pass` swallowed that. The hand-off never ran.
+            #
+            #   * The hand-off then called add_patient_to_queue, which refuses any
+            #     visit that is not PAID -- and this patient is being sent to
+            #     reception precisely in order to pay. It asked the queue for exactly
+            #     the thing the queue withholds, so it could not have succeeded even
+            #     with the lookup fixed.
+            #
+            #   * visit.doctor_id was cleared. That was never part of the hand-off:
+            #     add_patient_to_queue only reads doctor_id when creating a brand new
+            #     visit, and this one already exists. Clearing it destroyed the
+            #     visit's clinical owner and closed this route to the prescriber.
+            handed_off = False
             try:
                 from models.department import Department
-                from services.queue_management_service import QueueManagementService
 
-                reception_dept = (
-                    db.session.execute(
-                        select(Department).filter(Department.get_type() == 'reception')
-                    )
-                    .scalars()
-                    .first()
+                reception_dept = next(
+                    (
+                        d
+                        for d in db.session.execute(select(Department).filter_by(is_active=True))
+                        .scalars()
+                        .all()
+                        if d.get_type() == 'reception'
+                    ),
+                    None,
                 )
-                if reception_dept:
-                    visit.department_id = reception_dept.id
-                    visit.doctor_id = None
-                    db.session.flush()
-                    QueueManagementService().add_patient_to_queue(
-                        patient_id=visit.patient_id,
-                        department_id=reception_dept.id,
-                        visit_id=visit.id,
-                        is_emergency=visit.is_emergency,
-                        created_by=current_user.id,
+                if reception_dept is None:
+                    logging.warning(
+                        'Radiology ordered but no active reception department exists; '
+                        'the visit was not routed for settlement'
                     )
+                else:
+                    visit.department_id = reception_dept.id
+                    handed_off = True
             except Exception:
-                pass
+                logging.exception('Radiology settlement hand-off failed')
+
+            if handed_off:
+                visit.pending_financial_settlement = True
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             try:
                 db.session.add(
