@@ -395,31 +395,62 @@ def prescription(visit_id):
             prescription = result
             visit.prescription_issued = True
             # === Financial Gate: Hub-and-Spoke ===
-            visit.pending_financial_settlement = True
+            # The patient owes money for this visit, so the visit moves to reception,
+            # where the unpaid-visit worklist (driven by visit.payment_status =
+            # PENDING) is what actually collects it.
+            #
+            # Three things here were wrong and they masked each other:
+            #
+            #   * The department lookup called Department.get_type unbound. get_type is
+            #     a plain Python method that resolves the type from the name, so it
+            #     cannot be a SQL predicate — evaluating it raised TypeError before
+            #     the query was built, and a bare `except Exception: pass` swallowed
+            #     that. The hand-off never ran, for anyone, ever.
+            #
+            #   * The hand-off then called add_patient_to_queue. That is refused for
+            #     any visit that is not PAID — and this patient is being sent to
+            #     reception precisely in order to pay. The settlement hand-off asked
+            #     the queue for the one thing the queue exists to withhold. Even with
+            #     the lookup fixed it could not have succeeded.
+            #
+            #   * visit.doctor_id was cleared. That was never part of the hand-off:
+            #     add_patient_to_queue only reads doctor_id when creating a brand new
+            #     visit, and this one already exists. Clearing it destroyed the
+            #     visit's clinical owner and made this very route unreachable
+            #     afterwards, because the guard selects Visit.doctor_id ==
+            #     current_user.id. A prescriber could never amend their own
+            #     prescription.
+            handed_off = False
             try:
                 from models.department import Department
-                from services.queue_management_service import QueueManagementService
 
-                reception_dept = (
-                    db.session.execute(
-                        select(Department).filter(Department.get_type() == 'reception')
-                    )
-                    .scalars()
-                    .first()
+                reception_dept = next(
+                    (
+                        d
+                        for d in db.session.execute(
+                            select(Department).filter_by(is_active=True)
+                        )
+                        .scalars()
+                        .all()
+                        if d.get_type() == 'reception'
+                    ),
+                    None,
                 )
-                if reception_dept:
-                    visit.department_id = reception_dept.id
-                    visit.doctor_id = None
-                    db.session.flush()
-                    QueueManagementService().add_patient_to_queue(
-                        patient_id=visit.patient_id,
-                        department_id=reception_dept.id,
-                        visit_id=visit.id,
-                        is_emergency=visit.is_emergency,
-                        created_by=current_user.id,
+                if reception_dept is None:
+                    logging.warning(
+                        'Prescription written but no active reception department exists; '
+                        'the visit was not routed for settlement'
                     )
+                else:
+                    visit.department_id = reception_dept.id
+                    handed_off = True
             except Exception:
-                pass
+                # This used to swallow the failure silently, which is how a dead
+                # hand-off stayed invisible. Log it and leave the flag unset.
+                logging.exception('Prescription settlement hand-off failed')
+
+            if handed_off:
+                visit.pending_financial_settlement = True
 
             _notify_pharmacy_non_catalog(non_catalog_medications, visit, current_user)
 
