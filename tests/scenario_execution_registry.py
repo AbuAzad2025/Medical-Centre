@@ -140,6 +140,21 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'granting a permission to one role deletes every role_permission row in the '
         'deployment before writing the selection back',
     ),
+    'IDENTITY_PASSWORD_LIFECYCLE': (
+        'test_scenarios_executable_identity',
+        'change and operator reset both work and are audited; the reveal-password '
+        'route the spec names does not exist; a form-posted change returns 500',
+    ),
+    'IDENTITY_SESSION_TERMINATION': (
+        'test_scenarios_executable_identity',
+        'terminate-others closes the sessions but writes no audit row, so a '
+        'revocation is indistinguishable from an expiry',
+    ),
+    'IDENTITY_IMPERSONATION': (
+        'test_scenarios_executable_identity',
+        'impersonation writes an IMPERSONATE row naming operator and target; rows '
+        'written afterwards carry no reference back to the operator',
+    ),
     'READ_DOCTOR_RECORDS_AND_PATIENTS': (
         'test_scenarios_executable_read_surfaces',
         'the patient search states no tenant of its own and is isolated by the '
