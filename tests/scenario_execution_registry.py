@@ -140,6 +140,16 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'granting a permission to one role deletes every role_permission row in the '
         'deployment before writing the selection back',
     ),
+    'MEDICATION_CATALOG_AND_INTERACTIONS': (
+        'test_scenarios_executable_interactions',
+        'normalisation and severity clamping are correct; the table has no tenant_id '
+        'so a clinic interaction is global and the rendered list leaks other '
+        "tenants' formulary",
+    ),
+    'INPATIENT_SURGERY_SCHEDULING': (
+        'test_scenarios_executable_placement',
+        'the operating room has no create route, so the surgery journey cannot be run end to end',
+    ),
     'OWNER_MODULE_ENTITLEMENT': (
         'test_scenarios_executable_tenant',
         'the bundle boundary fails open when no ProductBundle row matches, and the '

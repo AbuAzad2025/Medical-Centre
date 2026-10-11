@@ -259,3 +259,46 @@ class TestAdmissionGuardsStillHold:
             .all()
         )
         assert not rows, 'an admission was written against a bed that is out of order'
+
+
+@covers('INPATIENT_SURGERY_SCHEDULING')
+class TestTheOperatingRoomCannotBeWritten:
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            'known defect: the OR blueprint has two GET routes and no writer, so a '
+            'surgery can never be booked. SurgerySchedule exists with required '
+            'columns and nothing can write it'
+        ),
+    )
+    def test_an_operation_can_be_scheduled(self, house):
+        """Booking a list for theatre is the whole of this journey, and it cannot run.
+
+        /or exposes a schedule view and a per-surgery view, both GET. There is no
+        create route and no other code path that inserts a SurgerySchedule, so the
+        table the specification describes scheduling into is populated by nothing —
+        not by the interface, not by a seed, not by a service.
+
+        For a template of 54 scenarios this is the whole thing: a patient cannot be
+        put on a theatre list through this application.
+        """
+        import inspect
+
+        from app.modules import owner as _unused  # noqa: F401  (import side effects only)
+        from routes import or_management_routes as or_module
+
+        source = inspect.getsource(or_module)
+        write_methods = ("method=['POST'", 'method="POST"', "method='POST'")
+        assert any(m in source for m in write_methods), (
+            'no POST route exists in the OR blueprint. SurgerySchedule has required '
+            'columns (procedure_name, scheduled_date) and nothing can write it, so '
+            'an operation cannot be booked through this application'
+        )
+
+        from models.or_management import SurgerySchedule
+
+        rows = db.session.execute(select(SurgerySchedule)).scalars().all()
+        assert len(rows) == 1, (
+            f'expected one scheduled operation after booking, found {len(rows)}. '
+            f'There is no route that creates a SurgerySchedule'
+        )
