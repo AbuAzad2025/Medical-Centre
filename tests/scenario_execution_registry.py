@@ -140,6 +140,16 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'granting a permission to one role deletes every role_permission row in the '
         'deployment before writing the selection back',
     ),
+    'OWNER_MODULE_ENTITLEMENT': (
+        'test_scenarios_executable_tenant',
+        'the bundle boundary fails open when no ProductBundle row matches, and the '
+        'module routes are scoped to the operator tenant so activate/deactivate do '
+        'not reach the tenant they name',
+    ),
+    'OWNER_TENANT_SELF_SERVICE_SIGNUP': (
+        'test_scenarios_executable_tenant',
+        'neither public signup route is registered, though the spec describes both as shipped',
+    ),
     'INPATIENT_PLACEMENT_BY_WARD_AND_BED': (
         'test_scenarios_executable_placement',
         'available-beds lists occupied and out-of-order beds with no status field, '
