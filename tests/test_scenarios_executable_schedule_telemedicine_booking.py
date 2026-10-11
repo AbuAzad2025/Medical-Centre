@@ -45,6 +45,8 @@ What execution established:
 
 from __future__ import annotations
 
+from datetime import date
+
 import pytest
 from flask import g
 from sqlalchemy import select
@@ -190,14 +192,6 @@ class TestShiftHandover:
 class TestTelemedicineConsultation:
     """The telemedicine consultation lifecycle."""
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: /telemedicine/consultations create endpoint returns 400 '
-            'when visit_id is provided; the visit creation or validation may be '
-            'failing in the test environment'
-        ),
-    )
     def test_creating_a_consultation_schedules_it(self, duty):
         """A doctor creates a consultation for an existing visit, status SCHEDULED."""
 
@@ -226,7 +220,9 @@ class TestTelemedicineConsultation:
             json={'visit_id': visit.id},
             follow_redirects=False,
         )
-        assert resp.status_code == 200
+        # This application answers these POSTs with 201, not 200. Both are fine;
+        # the row below is the evidence either way.
+        assert resp.status_code in (200, 201)
         body = resp.get_json()
         assert body.get('success') is True
 
@@ -430,14 +426,6 @@ class TestTelemedicineConsultation:
 class TestPatientBooking:
     """The patient booking lifecycle: create -> confirm -> telemedicine link -> cancel."""
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: /booking/create returns 302 redirect instead of 200 '
-            'when called with form data; the endpoint may require a patient '
-            'account link or may redirect to confirmation page'
-        ),
-    )
     def test_creating_a_booking_creates_an_online_booking(self, duty):
         """A patient books an appointment, creating an OnlineBooking."""
 
@@ -467,26 +455,35 @@ class TestPatientBooking:
         )
         assert resp.status_code == 200
 
-        # An OnlineBooking should be created
-        from models.online_booking import OnlineBooking
-
+        # Found by a column that is not encrypted. first_name, last_name, phone,
+        # email and national_id on OnlineBooking are all EncryptedString, so a
+        # filter naming any of them compares plaintext against ciphertext and
+        # matches nothing whenever field encryption is switched on. Whether it is
+        # switched on is environment-dependent, which is how this case came to fail
+        # locally and pass in CI for one reason and one reason only.
         booking = (
             db.session.execute(
-                select(OnlineBooking).filter_by(first_name='Test', last_name='Patient')
+                select(OnlineBooking).where(
+                    OnlineBooking.appointment_date == date(2026, 12, 1),
+                    OnlineBooking.status == 'pending',
+                )
             )
             .scalars()
             .first()
         )
-        assert booking is not None
-        assert booking.status == 'pending'
-        assert booking.booking_reference is not None
+        assert booking is not None, 'no pending booking was written for the submitted date'
+        assert booking.booking_reference, 'the booking reference was not generated'
+        assert booking.confirmation_code, 'the confirmation code was not generated'
+        assert booking.department_id is not None
+        assert booking.doctor_id == duty['doctor'].id
 
     @pytest.mark.xfail(
         strict=True,
         reason=(
-            'known defect: /booking/cancel/<id> returns 302 redirect instead of '
-            '200/404; the endpoint may require a patient account context or '
-            'may redirect to dashboard'
+            'known defect: cancel_booking only serves role=patient and requires a '
+            'linked PatientAccount, so a reception or admin user cannot cancel a '
+            'booking for a patient who rings up to cancel by phone. There is no '
+            'other cancel route in the booking blueprint.'
         ),
     )
     def test_cancelling_a_booking_works(self, duty):
@@ -516,7 +513,8 @@ class TestPatientBooking:
 
         _client = duty['client_doctor']
         resp = _client.post(f'/booking/cancel/{booking.id}', follow_redirects=False)
-        assert resp.status_code in (200, 404)
+        # A redirect is the right answer to a form POST; the row is the evidence.
+        assert resp.status_code in (200, 302, 404)
 
         fresh = db.session.get(OnlineBooking, booking.id)
         if fresh:
