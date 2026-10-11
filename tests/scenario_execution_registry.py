@@ -140,6 +140,11 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'granting a permission to one role deletes every role_permission row in the '
         'deployment before writing the selection back',
     ),
+    'READ_DOCTOR_RECORDS_AND_PATIENTS': (
+        'test_scenarios_executable_read_surfaces',
+        'the patient search states no tenant of its own and is isolated by the '
+        'do_orm_execute listener plus patients RLS; measured rather than assumed',
+    ),
     'IDENTITY_BIOMETRIC_ENROLMENT': (
         'test_scenarios_executable_staff_account',
         'MFA setup works; biometric challenge/complete/remove works; SSO config '

@@ -259,8 +259,8 @@ def test_scenario_execution_coverage_never_regresses():
     from scenario_execution_registry import executed_coverage  # noqa: PLC0415
 
     report = executed_coverage()
-    floor_pct = 33.0
-    floor_templates = 30
+    floor_pct = 34.0
+    floor_templates = 31
     assert report['templates_executed'] >= floor_templates, (
         f'execution coverage fell to {report["templates_executed"]} templates from a '
         f'floor of {floor_templates}'
