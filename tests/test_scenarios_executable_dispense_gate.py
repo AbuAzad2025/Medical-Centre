@@ -144,9 +144,11 @@ def _reset_prescription_to_issued(rx_id, visit):
         rx.status = PrescriptionState.ACTIVE
         db.session.flush()
     # Clear any existing dispense log
-    logs = db.session.execute(
-        select(PrescriptionDispenseLog).filter_by(prescription_id=rx_id)
-    ).scalars().all()
+    logs = (
+        db.session.execute(select(PrescriptionDispenseLog).filter_by(prescription_id=rx_id))
+        .scalars()
+        .all()
+    )
     for log in logs:
         db.session.delete(log)
     db.session.commit()
