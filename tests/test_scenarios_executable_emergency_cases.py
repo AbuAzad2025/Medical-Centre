@@ -47,7 +47,7 @@ from app.extensions import db
 from models.emergency import EmergencyCase
 from models.lab_request import LabRequest
 from models.medication import Medication, Prescription
-from models.patient import Patient
+from models.patient import Patient, PatientAllergy
 from models.problem_list import PatientProblem
 from models.radiology_request import RadiologyRequest
 from models.visit import Visit
@@ -357,3 +357,63 @@ class TestProblemListIsWrittenCleanly:
             select(PatientProblem).filter_by(problem_description='should not be written')
         ).scalar()
         assert not written, 'a problem was written for a patient outside this tenant'
+
+
+@covers('PATIENT_CHART_PROBLEM_AND_ALLERGY')
+class TestAllergyListIsWrittenCleanly:
+    """The allergy API creates records and validates required fields."""
+
+    def test_an_allergy_is_added_to_the_patient(self, er):
+        """An allergy recorded at reception belongs to that patient."""
+        client, patient = er['rec_client'], er['patient']
+
+        resp = client.post(
+            f'/reception/api/patients/{patient.id}/allergies/add',
+            json={
+                'allergen': 'penicillin',
+                'severity': 'HIGH',
+                'description': 'rash and swelling',
+            },
+        )
+        assert resp.status_code == 200, f'adding an allergy answered {resp.status_code}'
+        body = resp.get_json()
+        assert body.get('success') is True, f'the endpoint reported {body!r}'
+
+        rows = (
+            db.session.execute(select(PatientAllergy).filter_by(patient_id=patient.id))
+            .scalars()
+            .all()
+        )
+        assert len(rows) == 1, f'expected one allergy, found {len(rows)}'
+        assert rows[0].allergen == 'penicillin'
+        assert rows[0].severity == 'HIGH'
+        assert rows[0].description == 'rash and swelling'
+
+    def test_an_allergy_without_an_allergen_is_refused(self, er):
+        """The one guard on this endpoint, asserted so it cannot be lost."""
+        client = er['rec_client']
+
+        resp = client.post(
+            f'/reception/api/patients/{er["patient"].id}/allergies/add',
+            json={'allergen': '   '},
+        )
+        assert resp.status_code == 400, (
+            f'a blank allergen was answered {resp.status_code} instead of 400'
+        )
+
+    def test_an_allergy_cannot_be_added_to_another_tenants_patient(self, er):
+        """The tenant check runs before the insert, so this is a 404 and not a write."""
+        client = er['rec_client']
+
+        resp = client.post(
+            '/reception/api/patients/999999/allergies/add',
+            json={'allergen': 'should not be written'},
+        )
+        assert resp.status_code == 404, (
+            f'an allergy against a patient outside this tenant answered {resp.status_code} '
+            'instead of 404'
+        )
+        written = db.session.execute(
+            select(PatientAllergy).filter_by(allergen='should not be written')
+        ).scalar()
+        assert not written, 'an allergy was written for a patient outside this tenant'
