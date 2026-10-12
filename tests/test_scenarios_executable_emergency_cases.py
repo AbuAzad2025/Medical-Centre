@@ -13,11 +13,20 @@ Driven through:
 What execution established:
 
   * The emergency prescription flow reuses the shared prescription service and
-    correctly marks the visit as prescription_issued and pending_financial_settlement.
+    marks the visit as prescription_issued and pending_financial_settlement.
 
-  * Lab and radiology requests are created correctly and link back to the
-    emergency visit. They return redirects to the patient queue (302), which is
-    the expected behavior for form submissions.
+  * The emergency lab route parsed the ordered tests, checked at least one was
+    present, and then dropped them: the LabRequest carried no test rows and the
+    notes never named them, so the lab department received an empty order. The
+    route now resolves the names against the catalogue into structured result
+    rows and writes anything it cannot resolve into the notes, so an order can
+    never lose its contents. A test missing from the catalogue stays visible.
+
+  * The emergency lab request was also written with visit_id=None even though
+    the emergency case has a visit, so the order was not reachable from the
+    clinical encounter.
+
+  * Radiology requests are created correctly and name their modality.
 
   * The problem list API creates ACTIVE problems and allows toggling status.
     It validates required fields and rejects empty descriptions.
@@ -109,7 +118,7 @@ class TestEmergencyPrescription:
 
     def test_an_emergency_prescription_is_created_and_linked(self, er):
         """The create endpoint uses the shared prescription service."""
-        client, emergency = er['er_client'], er['emergency']
+        emergency = er['emergency']
 
         med = Medication(
             tenant_id=er['tenant'].id,
@@ -144,34 +153,100 @@ class TestEmergencyPrescription:
         assert rx is not None, 'no prescription was created'
         assert rx.diagnosis == 'chest pain', 'diagnosis not copied from emergency'
 
+    def test_the_visit_is_flagged_as_having_a_prescription(self, er):
+        """The visit is marked so the settlement flag and the billing gate agree."""
+        emergency = er['emergency']
+        med = Medication(
+            tenant_id=er['tenant'].id,
+            trade_name='E2E Aspirin',
+            scientific_name='aspirin',
+            dosage_form='tablet',
+            strength='100mg',
+            price=1.00,
+            is_active=True,
+        )
+        db.session.add(med)
+        db.session.commit()
+
+        resp = er['er_client'].post(
+            f'/emergency/prescription/{emergency.id}',
+            data={
+                'medications[]': ['E2E Aspirin'],
+                'dosages[]': ['1 tablet'],
+                'frequencies[]': ['once daily'],
+                'durations[]': ['7'],
+                'instructions[]': ['after food'],
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code in (200, 302), f'emergency prescription answered {resp.status_code}'
+
+        db.session.expire_all()
+        fresh_visit = db.session.get(Visit, emergency.visit_id)
+        assert fresh_visit is not None, 'the emergency visit disappeared'
+        assert fresh_visit.prescription_issued is True, (
+            'visit.prescription_issued was not set to True after prescription creation'
+        )
+
 
 @covers('EMERGENCY_TREATMENT_AND_ORDERS')
 class TestEmergencyLabAndRadiology:
     def test_a_lab_request_is_created_for_the_emergency(self, er):
-        """A lab request can be created for an emergency case."""
-        from models.department import Department
+        """A lab request can be created for an emergency case.
 
-        dept = Department(tenant_id=er['tenant'].id, name='Lab', name_ar='مختبر', is_active=True)
-        db.session.add(dept)
+        The ordered tests are the point of the order, so they are asserted as
+        rows: a request the lab cannot read the contents of is not an order.
+        """
+        from models.lab_request import LabResult
+        from models.lab_test_catalog import LabTestCatalog
+
+        catalog = LabTestCatalog(
+            tenant_id=er['tenant'].id,
+            code='CBC',
+            name_ar='صورة دم كاملة',
+            name_en='CBC',
+            category='hematology',
+            is_active=True,
+        )
+        db.session.add(catalog)
         db.session.commit()
 
         resp = er['er_client'].post(
             f'/emergency/lab-request/{er["emergency"].id}',
-            data={'tests[]': ['CBC', 'BMP'], 'notes': 'stat'},
+            data={'tests[]': ['CBC'], 'notes': 'stat'},
             follow_redirects=False,
         )
         assert resp.status_code in (200, 302), f'lab request answered {resp.status_code}'
 
         lr = db.session.get(LabRequest, er['emergency'].lab_request_id)
         assert lr is not None, 'no lab request was created'
-        # The lab request route stores urgency in notes, not test IDs
-        assert 'ROUTINE' in (lr.notes or ''), (
-            f'ROUTINE not found in lab request notes: {lr.notes!r}'
+
+        results = db.session.execute(select(LabResult).filter_by(request_id=lr.id)).scalars().all()
+        assert len(results) == 1, (
+            f'the order named one test but produced {len(results)} result rows: the '
+            'requested tests are not reaching the lab'
+        )
+        assert results[0].test_code == 'CBC'
+        assert results[0].status == 'PENDING'
+
+    def test_a_test_missing_from_the_catalogue_is_still_recorded(self, er):
+        """An unknown test name must not be silently dropped from the order."""
+        resp = er['er_client'].post(
+            f'/emergency/lab-request/{er["emergency"].id}',
+            data={'tests[]': ['NOT-IN-CATALOGUE'], 'notes': ''},
+            follow_redirects=False,
+        )
+        assert resp.status_code in (200, 302), f'lab request answered {resp.status_code}'
+
+        lr = db.session.get(LabRequest, er['emergency'].lab_request_id)
+        assert lr is not None, 'no lab request was created'
+        assert 'NOT-IN-CATALOGUE' in (lr.notes or ''), (
+            f'the requested test was lost entirely: notes={lr.notes!r}'
         )
 
     def test_a_radiology_request_is_created_for_the_emergency(self, er):
         """A radiology request can be created for an emergency case."""
-        client, emergency = er['er_client'], er['emergency']
+        emergency = er['emergency']
 
         from models.department import Department
 

@@ -123,6 +123,13 @@ def prescription(emergency_id):
                 flash(f'تعذر حفظ الوصفة: {result}', 'error')
                 return redirect(url_for('emergency.prescription', emergency_id=emergency_id))
 
+            # Same contract as routes/doctor/prescriptions.py: the visit carries the
+            # flag so the settlement gate and the billing path agree that a
+            # prescription exists. Without it the encounter looks untreated and
+            # never reaches the settlement queue.
+            if visit is not None:
+                visit.prescription_issued = True
+
             try:
                 db.session.add(
                     AuditTrail(
@@ -176,19 +183,80 @@ def lab_request(emergency_id):
                 return redirect(request.referrer or url_for('emergency.patient_queue'))
             urgency = (request.form.get('urgency') or 'ROUTINE').strip()
             notes = (request.form.get('notes') or '').strip()
-            notes_text = f'[{urgency}] {notes}' if notes else f'[{urgency}]'
+
+            # The ordered tests used to be parsed above and then thrown away: the
+            # LabRequest was built with no test rows and no mention of them in the
+            # notes, so the lab department received an order naming nothing. The
+            # names the clinician picked are now resolved against the catalogue and
+            # turned into structured LabResult rows, and whatever cannot be
+            # resolved is still written into the notes so no order is ever lost.
+            from models.lab_request import LabResult
+            from models.lab_test_catalog import LabTestCatalog
+
+            catalog_tests = (
+                db.session.execute(
+                    select(LabTestCatalog).filter(
+                        LabTestCatalog.tenant_id == emergency.tenant_id,
+                        LabTestCatalog.is_active.is_(True),
+                    )
+                )
+                .scalars()
+                .all()
+            )
+
+            resolved, unmatched = [], []
+            wanted = [t.strip() for t in tests_requested if t and t.strip()]
+            for test_name in wanted:
+                match = next(
+                    (t for t in catalog_tests if test_name in {t.name_en, t.name_ar, t.code}),
+                    None,
+                )
+                if match is not None:
+                    resolved.append(match)
+                else:
+                    unmatched.append(test_name)
+
+            notes_parts = [f'[{urgency}]']
+            if wanted:
+                ordered = ', '.join(t.name_ar for t in resolved)
+                notes_parts.append(
+                    f'الفحوصات المطلوبة: {ordered}' if ordered else 'الفحوصات المطلوبة:'
+                )
+                if unmatched:
+                    notes_parts.append('غير موجودة في دليل الفحوصات: ' + ', '.join(unmatched))
+            if notes:
+                notes_parts.append(notes)
+            notes_text = ' '.join(p for p in notes_parts if p)
 
             lab_request = LabRequest(
                 tenant_id=emergency.tenant_id,
                 patient_id=emergency.patient_id,
-                visit_id=None,
+                visit_id=emergency.visit_id,
                 requested_by=current_user.id,
                 status='REQUESTED',
                 notes=notes_text,
             )
             db.session.add(lab_request)
             db.session.flush()
+
+            for catalog_test in resolved:
+                db.session.add(
+                    LabResult(
+                        tenant_id=emergency.tenant_id,
+                        request_id=lab_request.id,
+                        patient_id=emergency.patient_id,
+                        test_code=catalog_test.code,
+                        test_name=catalog_test.name_ar,
+                        unit=catalog_test.unit,
+                        reference_range=catalog_test.default_reference_range,
+                        status='PENDING',
+                    )
+                )
+            db.session.flush()
+
             emergency.lab_request_id = lab_request.id
+            if emergency.visit is not None:
+                emergency.visit.lab_tests_ordered = True
 
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             flash('تم إرسال طلب الفحوصات بنجاح', 'success')

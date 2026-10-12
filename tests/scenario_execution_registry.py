@@ -102,6 +102,25 @@ EXECUTED_TEMPLATES: dict[str, tuple[str, str]] = {
         'create and resolve work, but converting an emergency transfers the visit '
         'without updating the case status or writing history',
     ),
+    'EMERGENCY_TREATMENT_AND_ORDERS': (
+        'test_scenarios_executable_emergency_cases',
+        'prescription, lab and radiology orders are created and linked to the '
+        'emergency visit. The lab route parsed the ordered tests and then dropped '
+        'them, so the lab received an order naming nothing, and it wrote the request '
+        'with no visit; the prescription route never set visit.prescription_issued, '
+        'so the encounter never reached the settlement queue',
+    ),
+    'PATIENT_CHART_PROBLEM_AND_ALLERGY': (
+        'test_scenarios_executable_emergency_cases',
+        'the problem list writes, validates, toggles and refuses a patient outside '
+        'the tenant; the allergy half of this template is not executed yet',
+    ),
+    'NURSING_VITALS_AND_TASK_TRIAGE': (
+        'test_scenarios_executable_nursing',
+        'vitals are range-validated and a recorded allergy hard-stops the write; a '
+        'second vitals save clears the follow-up date and duplicates the medical '
+        'record. The task lifecycle is correct',
+    ),
     'INPATIENT_BED_AND_ADMISSION': (
         'test_scenarios_executable_inpatient',
         'admit, transfer and discharge work correctly end to end, but the admit read '
