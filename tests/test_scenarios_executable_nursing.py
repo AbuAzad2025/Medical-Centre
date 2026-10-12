@@ -288,7 +288,7 @@ class TestTasksMoveThroughTheirLadder:
         """The state ladder is the point of a task, so one transition is asserted."""
         from models.task_management import Task
 
-        client, patient = ward['client'], ward['patient']
+        client = ward['client']
 
         client.post(
             '/nurse/tasks/create',
