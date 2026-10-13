@@ -541,6 +541,8 @@ class TestInpatientAdmitTransferDischarge:
         )
         for t in transfers:
             db.session.delete(t)
+        from tests.tenant_context import reset_request_state
+
         db.session.commit()
 
         # Re-login nurse client after cleanup to ensure fresh session
@@ -567,6 +569,7 @@ class TestInpatientAdmitTransferDischarge:
         bed1 = adt_ctx['bed1']
 
         # Admit
+        reset_request_state()
         resp = doc_client.post(
             '/bed/api/admissions/admit',
             json={'visit_id': visit.id, 'bed_id': bed1.id},
@@ -574,6 +577,7 @@ class TestInpatientAdmitTransferDischarge:
         assert resp.status_code == 403
 
         # Discharge (needs valid admission_id first; create via nurse)
+        reset_request_state()
         nurse_client = adt_ctx['nurse_client']
         resp = nurse_client.post(
             '/bed/api/admissions/admit',
@@ -582,6 +586,7 @@ class TestInpatientAdmitTransferDischarge:
         assert resp.status_code == 200
         admission_id = resp.get_json()['admission_id']
 
+        reset_request_state()
         resp = doc_client.post(
             f'/bed/api/admissions/{admission_id}/discharge',
             json={'discharge_type': 'HOME'},
