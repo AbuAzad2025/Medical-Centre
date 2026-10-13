@@ -204,14 +204,6 @@ def create_app(config_name: str | None = None) -> Flask:
                 'EncryptedString columns would degrade to plaintext.'
             )
 
-    @app.before_request
-    def _bind_tenant_from_session_early():
-        try:
-            from app.core.tenant.middleware import bind_tenant_from_session
-
-            bind_tenant_from_session()
-        except Exception as e:
-            app.logger.debug('Tenant bind early (expected on first request): %s', e)
 
     if app.config.get('TESTING'):
         @app.before_request
@@ -2016,3 +2008,13 @@ def create_app(config_name: str | None = None) -> Flask:
             app.logger.info('Celery enabled — in-process backup automation thread disabled')
 
     return app
+
+    @app.before_request
+    def _bind_tenant_from_session_early():
+        try:
+            from app.core.tenant.middleware import bind_tenant_from_session
+
+            bind_tenant_from_session()
+        except Exception as e:
+            app.logger.debug('Tenant bind early (expected on first request): %s', e)
+
