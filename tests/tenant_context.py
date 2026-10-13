@@ -328,9 +328,11 @@ def ensure_test_user(
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
-        elif (normalize_role(user.role) != normalize_role(role)
-              or not user.is_active
-              or int(getattr(user, 'session_version', 0) or 0) != 0):
+        elif (
+            normalize_role(user.role) != normalize_role(role)
+            or not user.is_active
+            or int(getattr(user, 'session_version', 0) or 0) != 0
+        ):
             # The role/session_version is part of what this helper promises, not a
             # hint. The test database persists between runs, so a username first
             # created under another role or with a bumped session_version came
