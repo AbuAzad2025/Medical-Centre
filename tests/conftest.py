@@ -1135,7 +1135,12 @@ def login_test_client(client, user, tenant, password: str = 'ValidPass123!') -> 
 def ensure_test_user(
     db, tenant, *, username: str, role: str, password: str = 'ValidPass123!', **extra
 ):
-    """Create a user if it doesn't exist, or return existing one."""
+    """Create a user if it doesn't exist, or return existing one.
+
+    An existing row is reconciled against `role`: the test database persists
+    between runs, so a username first created under another role used to come
+    back unchanged and the caller silently got someone the gate rejects.
+    """
 
     u = db.session.execute(select(User).filter_by(username=username)).scalars().first()
     if not u:
@@ -1150,6 +1155,11 @@ def ensure_test_user(
         )
         u.set_password(password)
         db.session.add(u)
+        db.session.commit()
+    elif u.role != role or not u.is_active or int(getattr(u, 'session_version', 0) or 0) != 0:
+        u.role = role
+        u.is_active = True
+        u.session_version = 0
         db.session.commit()
     return u
 
