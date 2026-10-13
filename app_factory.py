@@ -213,6 +213,21 @@ def create_app(config_name: str | None = None) -> Flask:
         except Exception as e:
             app.logger.debug('Tenant bind early (expected on first request): %s', e)
 
+    if app.config.get('TESTING'):
+        @app.before_request
+        def _clear_test_request_cache():
+            """Clear per-request caches that persist across test requests.
+
+            In tests, the app context is reused so g._login_user and g.tenant_id
+            can leak from one request to the next. This runs before the tenant
+            binding so the session is authoritative.
+            """
+            from flask import g
+            g.pop('_login_user', None)
+            g.pop('tenant_id', None)
+            g.pop('current_tenant', None)
+            g.pop('tenant_slug', None)
+
     login_manager.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)
