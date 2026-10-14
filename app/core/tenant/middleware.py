@@ -348,6 +348,7 @@ def set_tenant_context():
         '/_ghost_whoami',
         '/medication/sales/',
         '/medication/print/',
+        '/test/',
     ]
 
     is_exempt = any(request.path.startswith(p) for p in exempt_paths) or request.path == '/'
@@ -376,13 +377,36 @@ def set_tenant_context():
         tenant = g.get('current_tenant')
 
     if tenant is None and not is_exempt:
+        # Capture request info for use in exception handler
+        req_path = request.path
+        req_full_path = request.full_path
+        req_accept = request.headers.get('Accept', '')
+        has_api_key = bool(request.headers.get('X-API-Key'))
+        # Skip tenant check for API key requests - let api_middleware handle auth
+        if has_api_key:
+            return None
         try:
             tenant = resolve_tenant()
-        except TenantResolutionError as exc:
+        except TenantResolutionError:
             if saas and not g.get('tenant_id'):
-                from flask import abort
+                from flask import abort, redirect, url_for
 
-                abort(403, description=str(exc))
+                # For HTML requests, redirect to login instead of 403
+                # Check if request wants JSON (API)
+                is_api = (
+                    req_path.startswith('/api/')
+                    or req_path.endswith('/api')
+                    or '/api/' in req_path
+                    or (req_accept or '').lower().startswith('application/json')
+                    or request.is_json
+                )
+                if is_api:
+                    # For API requests without tenant, return 401 (unauthenticated)
+                    # instead of 403 (forbidden) since the issue is missing auth
+                    abort(401, description='Authentication required')
+                # Redirect to login with next parameter for HTML requests
+                return redirect(url_for('auth.login', next=req_full_path))
+
             tenant = None
 
     if tenant is None:
