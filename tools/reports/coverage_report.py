@@ -479,7 +479,7 @@ def render_summary(py: dict | None, fe: dict | None, scen: dict) -> str:
                 _table(
                     [(f'`{f.path}`', f'{f.covered}/{f.total}', _pct(f.pct)) for f in worst],
                     ('script', 'covered/total', 'percent'),
-                    ),
+                ),
                 '',
             ]
 
