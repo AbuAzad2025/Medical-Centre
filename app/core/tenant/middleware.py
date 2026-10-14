@@ -376,6 +376,14 @@ def set_tenant_context():
         bind_tenant_from_session()
         tenant = g.get('current_tenant')
 
+    # Check if tenant was bound via fixture (db.session.info['_tenant_id'])
+    if tenant is None:
+        fixture_tid = db.session.info.get('_tenant_id')
+        if fixture_tid:
+            tenant = db.session.get(Tenant, fixture_tid)
+            if tenant:
+                bind_g_tenant(tenant)
+
     if tenant is None and not is_exempt:
         # Capture request info for use in exception handler
         req_path = request.path
