@@ -451,6 +451,39 @@ def render_summary(py: dict | None, fe: dict | None, scen: dict) -> str:
             ('measure', 'current', 'detail'),
         ),
         '',
+    ]
+
+    # Backend gaps (top 10 worst)
+    if py:
+        metrics = python_metrics(py)
+        worst = metrics.get('(all)').worst(10) if '(all)' in metrics else []
+        if worst:
+            lines += [
+                '## Backend — biggest gaps (by statement coverage)',
+                '',
+                _table(
+                    [(f'`{f.path}`', f'{f.covered}/{f.total}', _pct(f.pct)) for f in worst],
+                    ('module', 'covered/total', 'percent'),
+                ),
+                '',
+            ]
+
+    # Frontend gaps (top 10 worst)
+    if fe:
+        m = frontend_metrics(fe)
+        worst = m['statements'].worst(10)
+        if worst:
+            lines += [
+                '## Frontend — biggest gaps (by statement coverage)',
+                '',
+                _table(
+                    [(f'`{f.path}`', f'{f.covered}/{f.total}', _pct(f.pct)) for f in worst],
+                    ('script', 'covered/total', 'percent'),
+                    ),
+                '',
+            ]
+
+    lines += [
         '## Scenario matrix',
         '',
         _table(
