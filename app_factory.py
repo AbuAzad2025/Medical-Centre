@@ -85,7 +85,7 @@ def _platform_tenant_scope():
     return platform_tenant_scope()
 
 
-def create_app(config_name: str | None = None) -> Flask:
+def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     app = Flask(__name__, instance_relative_config=True)
 
     # The stylesheet <link> list used to be hand-written into five shells. It is
@@ -204,8 +204,8 @@ def create_app(config_name: str | None = None) -> Flask:
                 'EncryptedString columns would degrade to plaintext.'
             )
 
-
     if app.config.get('TESTING'):
+
         @app.before_request
         def _clear_test_request_cache():
             """Clear per-request caches that persist across test requests.
@@ -215,6 +215,7 @@ def create_app(config_name: str | None = None) -> Flask:
             binding so the session is authoritative.
             """
             from flask import g
+
             g.pop('_login_user', None)
             g.pop('tenant_id', None)
             g.pop('current_tenant', None)
@@ -2017,4 +2018,3 @@ def create_app(config_name: str | None = None) -> Flask:
             bind_tenant_from_session()
         except Exception as e:
             app.logger.debug('Tenant bind early (expected on first request): %s', e)
-
