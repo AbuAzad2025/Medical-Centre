@@ -74,17 +74,22 @@ class TestRunSystemBackupTenantContext:
             db.session.commit()
 
             path = build_backup_path(str(tmp_path), 'tenant_ctx_backup')
-            backup = Backup(
-                tenant_id=tenant.id,
-                backup_name='tenant_ctx_backup',
-                backup_type='full',
-                backup_path=path,
-                backup_status=BackupStatus.PENDING,
-                created_by=test_user.id,
-            )
-            db.session.add(backup)
-            db.session.commit()
-            backup_id = backup.id
+            # `backups` carries a WITH CHECK policy, so the row has to be written
+            # with its own tenant bound rather than the default test tenant.
+            from tests.tenant_context import tenant_test_context
+
+            with tenant_test_context(app, tenant):
+                backup = Backup(
+                    tenant_id=tenant.id,
+                    backup_name='tenant_ctx_backup',
+                    backup_type='full',
+                    backup_path=path,
+                    backup_status=BackupStatus.PENDING,
+                    created_by=test_user.id,
+                )
+                db.session.add(backup)
+                db.session.commit()
+                backup_id = backup.id
             tenant_id = tenant.id
 
         tenant_ids_seen = []

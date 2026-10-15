@@ -122,49 +122,74 @@ def test_local_dev_story_seeds_tenant_and_staff(app, rollback_db):
     assert tenant.slug == dev.DEV_TENANT_SLUG
     assert tenant.name == dev.DEV_TENANT_NAME
 
-    active = db.session.execute(
-        select(func.count())
-        .select_from(TenantModule)
-        .filter_by(tenant_id=tenant.id, is_active=True)
-    ).scalar()
-    assert active == APPLICATION_MODULE_COUNT
+    # Read inside the dev tenant's own scope. The autouse bypass only clears the
+    # ORM filter; it never reaches PostgreSQL, so with the connection GUC still
+    # naming the default test tenant the policies hide every dev-tenant row and
+    # these counts read as zero. The seeders bind the tenant only while they run.
+    from tests.tenant_context import tenant_test_context
 
-    roles = {
-        u.role for u in db.session.execute(select(User).filter_by(tenant_id=tenant.id)).scalars()
-    }
-    assert {'reception', 'doctor', 'lab', 'pharmacist'}.issubset(roles)
+    with tenant_test_context(app, tenant):
+        active = db.session.execute(
+            select(func.count())
+            .select_from(TenantModule)
+            .filter_by(tenant_id=tenant.id, is_active=True)
+        ).scalar()
+        assert active == APPLICATION_MODULE_COUNT
+
+        roles = {
+            u.role
+            for u in db.session.execute(select(User).filter_by(tenant_id=tenant.id)).scalars()
+        }
+        assert {'reception', 'doctor', 'lab', 'pharmacist'}.issubset(roles)
 
 
 def test_local_dev_story_clinical_flow_linked(app, rollback_db):
+    from tests.tenant_context import tenant_test_context
+
     _clean_seed_data()
     tenant, _staff, _flow = _seed_dev(True)
-    patient = db.session.execute(select(Patient).filter_by(tenant_id=tenant.id)).scalars().first()
-    visit = db.session.execute(select(Visit).filter_by(tenant_id=tenant.id)).scalars().first()
-    lab = db.session.execute(select(LabRequest).filter_by(tenant_id=tenant.id)).scalars().first()
-    rx = db.session.execute(select(Prescription).filter_by(tenant_id=tenant.id)).scalars().first()
-    inv = db.session.execute(select(Invoice).filter_by(tenant_id=tenant.id)).scalars().first()
 
-    assert patient is not None
-    assert visit is not None and visit.patient_id == patient.id
-    assert lab is not None and lab.visit_id == visit.id and lab.status == 'REQUESTED'
-    assert rx is not None and rx.visit_id == visit.id and rx.status == 'active'
-    assert inv is not None and inv.paid_amount == 0 and inv.status == 'ISSUED'
+    # See test_local_dev_story_seeds_tenant_and_staff: the assertions have to
+    # run with the dev tenant bound or RLS hides the rows they are checking.
+    with tenant_test_context(app, tenant):
+        patient = (
+            db.session.execute(select(Patient).filter_by(tenant_id=tenant.id)).scalars().first()
+        )
+        visit = db.session.execute(select(Visit).filter_by(tenant_id=tenant.id)).scalars().first()
+        lab = (
+            db.session.execute(select(LabRequest).filter_by(tenant_id=tenant.id)).scalars().first()
+        )
+        rx = (
+            db.session.execute(select(Prescription).filter_by(tenant_id=tenant.id))
+            .scalars()
+            .first()
+        )
+        inv = db.session.execute(select(Invoice).filter_by(tenant_id=tenant.id)).scalars().first()
+
+        assert patient is not None
+        assert visit is not None and visit.patient_id == patient.id
+        assert lab is not None and lab.visit_id == visit.id and lab.status == 'REQUESTED'
+        assert rx is not None and rx.visit_id == visit.id and rx.status == 'active'
+        assert inv is not None and inv.paid_amount == 0 and inv.status == 'ISSUED'
 
 
 def test_local_dev_story_idempotent(app, rollback_db):
+    from tests.tenant_context import tenant_test_context
+
     _clean_seed_data()
     t1, _s1, _f1 = _seed_dev(True)
     t2, _s2, _f2 = _seed_dev(True)
     assert t1.id == t2.id
-    assert (
-        db.session.execute(
-            select(func.count()).select_from(Patient).filter_by(tenant_id=t1.id)
-        ).scalar()
-        == 1
-    )
-    assert (
-        db.session.execute(
-            select(func.count()).select_from(User).filter_by(username='dev_doctor')
-        ).scalar()
-        == 1
-    )
+    with tenant_test_context(app, t1):
+        assert (
+            db.session.execute(
+                select(func.count()).select_from(Patient).filter_by(tenant_id=t1.id)
+            ).scalar()
+            == 1
+        )
+        assert (
+            db.session.execute(
+                select(func.count()).select_from(User).filter_by(username='dev_doctor')
+            ).scalar()
+            == 1
+        )

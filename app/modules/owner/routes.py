@@ -26,6 +26,7 @@ from app.core.saas.models import (
     SubscriptionLineType,
 )
 from app.core.saas.projection import EntitlementProjectionService
+from app.core.tenant.middleware import bound_tenant_scope
 from app.core.tenant.models import (
     NotificationRule,
     PlatformAuditLog,
@@ -88,9 +89,24 @@ def _mask_secret(value, keep=4):
 
 
 def _log_action(action, entity_type, entity_id=None, details=None):
+    """Write a PlatformAuditLog row with platform scope (tenant_id=0).
+
+    Owner routes may run with a tenant bound from the login context, but
+    platform_audit_logs requires tenant_id = app.tenant_id. The platform
+    scope uses tenant_id=0 (not NULL), and the GUC must be set to '0'.
+    """
+    from sqlalchemy import text
+
+    prev_guc = None
+    try:
+        prev_guc = db.session.execute(text('SHOW app.tenant_id')).scalar()
+        db.session.execute(text("SET app.tenant_id = '0'"))
+    except Exception:
+        pass
     try:
         log = PlatformAuditLog(
             user_id=current_user.id,
+            tenant_id=0,
             action=action,
             entity_type=entity_type,
             entity_id=entity_id,
@@ -102,6 +118,12 @@ def _log_action(action, entity_type, entity_id=None, details=None):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
+    finally:
+        if prev_guc is not None:
+            try:
+                db.session.execute(text('SET app.tenant_id = :tid'), {'tid': str(prev_guc)})
+            except Exception:
+                pass
 
 
 def _compute_platform_revenue():
@@ -1980,19 +2002,27 @@ def api_activate_module(tenant_id, module_name):
     ok, err = can_activate_module(tenant_id, module_name)
     if not ok:
         return jsonify({'error': err}), 400
-    tm = (
-        db.session.execute(
-            select(TenantModule).filter_by(tenant_id=tenant_id, module_name=module_name)
+
+    from app.core.tenant.models import Tenant
+
+    tenant = db.session.get(Tenant, tenant_id)
+    if not tenant:
+        return jsonify({'error': 'Tenant not found'}), 404
+
+    with bound_tenant_scope(tenant):
+        tm = (
+            db.session.execute(
+                select(TenantModule).filter_by(tenant_id=tenant_id, module_name=module_name)
+            )
+            .scalars()
+            .first()
         )
-        .scalars()
-        .first()
-    )
-    if not tm:
-        tm = TenantModule(tenant_id=tenant_id, module_name=module_name)
-        db.session.add(tm)
-    tm.is_active = True
-    tm.activated_at = datetime.now(UTC)
-    safe_commit(db.session, error_message='database commit failed', reraise=True)
+        if not tm:
+            tm = TenantModule(tenant_id=tenant_id, module_name=module_name)
+            db.session.add(tm)
+        tm.is_active = True
+        tm.activated_at = datetime.now(UTC)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
     dispatch_webhook(EVENT_MODULE_ACTIVATED, {'tenant_id': tenant_id, 'module': module_name})
     return jsonify({'status': 'activated', 'module': module_name})
 
@@ -2002,19 +2032,26 @@ def api_activate_module(tenant_id, module_name):
 @owner_required
 def api_deactivate_module(tenant_id, module_name):
 
-    tm = (
-        db.session.execute(
-            select(TenantModule).filter_by(tenant_id=tenant_id, module_name=module_name)
+    from app.core.tenant.models import Tenant
+
+    tenant = db.session.get(Tenant, tenant_id)
+    if not tenant:
+        return jsonify({'error': 'Tenant not found'}), 404
+
+    with bound_tenant_scope(tenant):
+        tm = (
+            db.session.execute(
+                select(TenantModule).filter_by(tenant_id=tenant_id, module_name=module_name)
+            )
+            .scalars()
+            .first()
         )
-        .scalars()
-        .first()
-    )
-    if tm:
-        tm.is_active = False
-        tm.deactivated_at = datetime.now(UTC)
-        safe_commit(db.session, error_message='database commit failed', reraise=True)
-        _log_action('DEACTIVATE_MODULE', 'module', tenant_id, f'Deactivated {module_name}')
-        dispatch_webhook(EVENT_MODULE_DEACTIVATED, {'tenant_id': tenant_id, 'module': module_name})
+        if tm:
+            tm.is_active = False
+            tm.deactivated_at = datetime.now(UTC)
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+    _log_action('DEACTIVATE_MODULE', 'module', tenant_id, f'Deactivated {module_name}')
+    dispatch_webhook(EVENT_MODULE_DEACTIVATED, {'tenant_id': tenant_id, 'module': module_name})
     return jsonify({'status': 'deactivated', 'module': module_name})
 
 

@@ -6,6 +6,7 @@ and set_tenant_context() as the Flask before_request handler.
 """
 
 import logging
+from contextlib import contextmanager
 
 from flask import current_app, g, request
 from sqlalchemy import func, select
@@ -305,6 +306,35 @@ def bind_g_tenant(tenant: Tenant | None) -> None:
         db.session.info['_tenant_id'] = tid
     except Exception:
         pass
+
+
+@contextmanager
+def bound_tenant_scope(tenant: Tenant | None):
+    """Temporarily bind *tenant* as the RLS subject, restoring the previous one.
+
+    A platform owner is authenticated without a tenant bound, so any write to a
+    tenant-scoped table on another tenant's behalf is rejected by the table's
+    WITH CHECK policy. The policy is correct; the caller has to name the tenant
+    it is acting for.
+    """
+    prev_g = {k: getattr(g, k, None) for k in ('tenant_id', 'current_tenant', 'tenant_slug')}
+    prev_info = db.session.info.get('_tenant_id')
+    try:
+        bind_g_tenant(tenant)
+        yield
+    finally:
+        for k, v in prev_g.items():
+            if v is None:
+                try:
+                    delattr(g, k)
+                except AttributeError:
+                    pass
+            else:
+                setattr(g, k, v)
+        if prev_info is None:
+            db.session.info.pop('_tenant_id', None)
+        else:
+            db.session.info['_tenant_id'] = prev_info
 
 
 def set_tenant_context():

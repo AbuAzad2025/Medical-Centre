@@ -18,6 +18,7 @@ from app.extensions import db
 from models.audit_trail import AuditTrail
 from seeds import local_dev_story as dev
 from seeds import production_baseline as pb
+from seeds import tenant_bypass
 
 SECRET = 'test-ghost-secret'
 
@@ -53,11 +54,28 @@ def ghost_env(app, standalone_mode):
 
 @pytest.fixture
 def master_and_target(app, rollback_db, ghost_env):
+    def _identity(u):
+        return f'{u.id}:{int(getattr(u, "session_version", 0) or 0)}'
+
     pb.seed_master_account()
+    master = pb.seed_master_account()
+    # Read the platform account's identity NOW, while the scope its seeder bound
+    # is still in effect. `dev.seed_dev_tenant()` below rebinds the connection
+    # GUC to the dev tenant, and the users policy then hides this platform row:
+    # the later attribute read raises ObjectDeletedError on a user that exists.
+    # The same applies to the dev-tenant staff, read while the dev tenant is bound.
+    master_identity = _identity(master)
+
     tenant = dev.seed_dev_tenant()
     staff = dev.seed_staff(tenant)
     target = staff['doctor']  # a normal tenant-scoped user
-    master = pb.seed_master_account()
+    # `seed_staff` binds the tenant only while it runs and restores on exit, so
+    # the read has to rebind too - otherwise the policy hides the dev-tenant row
+    # and the attribute refresh raises ObjectDeletedError.
+    with tenant_bypass(tenant):
+        target_identity = _identity(target)
+        target_username = target.username
+        tenant_id = int(tenant.id)
 
     # Watermark the id sequences so the seeders' rows can be removed again.
     # seed_master_account / seed_dev_tenant / seed_staff are production code and
@@ -78,14 +96,11 @@ def master_and_target(app, rollback_db, ghost_env):
         sa_select(func.coalesce(func.max(_GhostTenant.id), 0))
     ).scalar()
 
-    # Snapshot the identities while the rows are still loaded. The GUC is
-    # cleared below, so afterwards an attribute read on these instances is a
-    # refresh with no tenant bound, and RLS hides the row: ObjectDeletedError on
-    # a user that exists. Taking the id now avoids depending on that.
-    def _identity(u):
-        return f'{u.id}:{int(getattr(u, "session_version", 0) or 0)}'
-
-    identities = {'master': _identity(master), 'target': _identity(target)}
+    # The identities were snapshotted above, while each row was still visible
+    # under the scope its seeder bound. The GUC is cleared below, so from here on
+    # any attribute read on these instances is a refresh with no tenant bound and
+    # RLS hides the row.
+    identities = {'master': master_identity, 'target': target_identity}
     # Seeders bind g.tenant_id to the seeded tenant; clear it so the test
     # request re-resolves tenant context from the logged-in user instead of
     # inheriting the leaked dev-tenant id.
@@ -109,9 +124,16 @@ def master_and_target(app, rollback_db, ghost_env):
     yield {
         'master': master,
         'master_identity': identities['master'],
+        # Plain ids, captured while each row was visible. Tests must use these
+        # rather than `master.id` / `target.id`: by the time they run the GUC is
+        # cleared, so an attribute read is a refresh that RLS refuses.
+        'master_id': int(identities['master'].split(':', 1)[0]),
         'tenant': tenant,
         'target': target,
         'target_identity': identities['target'],
+        'target_id': int(identities['target'].split(':', 1)[0]),
+        'target_username': target_username,
+        'tenant_id': tenant_id,
     }
 
     # Remove what the seeders committed, so the next ghost test starts clean.
@@ -195,62 +217,64 @@ def test_signature_requires_secret_configured(ghost_env):
 
 
 def test_ghost_impersonation_rebinds_context(app, rollback_db, client, master_and_target):
-    master = master_and_target['master']
-    tenant = master_and_target['tenant']
-    target = master_and_target['target']
+    master_id = master_and_target['master_id']
+    tenant_id = master_and_target['tenant_id']
+    target_id = master_and_target['target_id']
+    target_username = master_and_target['target_username']
     _login(client, app, identity=master_and_target['master_identity'])
 
-    resp = client.get('/_ghost_whoami', headers=_signed_headers(tenant.id, target.id))
+    resp = client.get('/_ghost_whoami', headers=_signed_headers(tenant_id, target_id))
     assert resp.status_code == 200
     data = resp.get_json()
     assert data['ghost'] is True
-    assert data['user_id'] == target.id
-    assert data['tenant_id'] == tenant.id
-    assert data['username'] == target.username
+    assert data['user_id'] == target_id
+    assert data['tenant_id'] == tenant_id
+    assert data['username'] == target_username
 
     # Audit trail recorded for the impersonated request.
-    audit = db.session.execute(
-        select(AuditTrail).filter_by(action='IMPERSONATE', entity_id=target.id)
-    ).scalar()
-    assert audit is not None
-    assert audit.tenant_id == tenant.id
-    details = json.loads(audit.new_values)
-    assert details['real_actor_id'] == master.id
-    assert details['impersonated_user_id'] == target.id
+    with tenant_bypass():
+        audit = db.session.execute(
+            select(AuditTrail).filter_by(action='IMPERSONATE', entity_id=target_id)
+        ).scalar()
+        assert audit is not None
+        assert audit.tenant_id == tenant_id
+        details = json.loads(audit.new_values)
+        assert details['real_actor_id'] == master_id
+        assert details['impersonated_user_id'] == target_id
 
 
 def test_ghost_rejects_bad_signature(app, rollback_db, client, master_and_target):
-    master = master_and_target['master']
-    tenant = master_and_target['tenant']
-    target = master_and_target['target']
+    master_id = master_and_target['master_id']
+    tenant_id = master_and_target['tenant_id']
+    target_id = master_and_target['target_id']
     _login(client, app, identity=master_and_target['master_identity'])
 
-    headers = _signed_headers(tenant.id, target.id)
+    headers = _signed_headers(tenant_id, target_id)
     headers[HEADER_SIGNATURE] = 'invalid'
     resp = client.get('/_ghost_whoami', headers=headers)
     data = resp.get_json()
     # Not impersonated → actor remains the master, no ghost flag.
     assert data['ghost'] is False
-    assert data['user_id'] == master.id
+    assert data['user_id'] == master_id
 
 
 def test_ghost_ignored_for_non_owner(app, rollback_db, client, master_and_target):
-    target = master_and_target['target']  # normal doctor, NOT a platform owner
-    tenant = master_and_target['tenant']
+    # normal doctor, NOT a platform owner
+    tenant_id = master_and_target['tenant_id']
+    target_id = master_and_target['target_id']
     _login(client, app, identity=master_and_target['target_identity'])
 
     # Even with a perfectly valid signature, a non-owner must NOT impersonate.
-    resp = client.get('/_ghost_whoami', headers=_signed_headers(tenant.id, target.id))
+    resp = client.get('/_ghost_whoami', headers=_signed_headers(tenant_id, target_id))
     data = resp.get_json()
     assert data['ghost'] is False
-    assert data['user_id'] == target.id
+    assert data['user_id'] == target_id
 
 
 def test_ghost_no_headers_is_noop(app, rollback_db, client, master_and_target):
-    master = master_and_target['master']
     _login(client, app, identity=master_and_target['master_identity'])
     resp = client.get('/_ghost_whoami')  # no impersonation headers
     assert resp.status_code == 200
     data = resp.get_json()
     assert data['ghost'] is False
-    assert data['user_id'] == master.id
+    assert data['user_id'] == master_and_target['master_id']

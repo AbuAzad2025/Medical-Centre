@@ -16,21 +16,34 @@ celery = get_celery_app()
 
 
 def _load_backup_without_tenant_context(backup_id: int):
-    """Load a Backup row bypassing ORM tenant filters (Celery has no request tenant)."""
+    """Load a Backup row bypassing ORM tenant filters and RLS (Celery has no request tenant)."""
     from flask import g
+    from sqlalchemy import text
 
     from app.extensions import db
     from models.backup import Backup
 
-    prev = g.get('_tenant_filter_bypass', False)
+    prev_bypass = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
+    # Also clear the RLS GUC so the row is visible regardless of current tenant.
+    prev_guc = None
+    try:
+        prev_guc = db.session.execute(text('SHOW app.tenant_id')).scalar()
+        db.session.execute(text("SET LOCAL app.tenant_id = ''"))
+    except Exception:
+        pass
     try:
         return db.session.get(Backup, backup_id)
     finally:
-        if prev:
+        if prev_bypass:
             g._tenant_filter_bypass = True
         else:
             g.pop('_tenant_filter_bypass', None)
+        if prev_guc is not None:
+            try:
+                db.session.execute(text('SET LOCAL app.tenant_id = :tid'), {'tid': str(prev_guc)})
+            except Exception:
+                pass
 
 
 def _purge_expired_tokens() -> dict:
