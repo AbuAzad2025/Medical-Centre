@@ -193,23 +193,34 @@ class TestC4CrossTenantProbing:
         db.session.add(other)
         db.session.flush()
 
-        p_b = _mk_patient(db, other.id, 'C4NAT000001')
-        v = Visit(
-            tenant_id=other.id,
-            patient_id=p_b.id,
-            visit_type='REGULAR',
-            status='OPEN',
-            visit_date=date.today(),
-            currency='ILS',
-            created_at=datetime.now(UTC),
-        )
-        db.session.add(v)
-        db.session.commit()
+        # `patients` and `visits` carry a WITH CHECK policy, so tenant B's rows
+        # must be written while tenant B is the bound tenant. Writing them from
+        # tenant A's context is rejected with InsufficientPrivilege - which is
+        # the policy working, not a failure to work around.
+        with tenant_test_context(app, other):
+            p_b = _mk_patient(db, other.id, 'C4NAT000001')
+            v = Visit(
+                tenant_id=other.id,
+                patient_id=p_b.id,
+                visit_type='REGULAR',
+                status='OPEN',
+                visit_date=date.today(),
+                currency='ILS',
+                created_at=datetime.now(UTC),
+            )
+            db.session.add(v)
+            db.session.commit()
+            # Read the id while the row is still visible. Once the scope closes
+            # the ORM filter re-asserts tenant A, tenant B's row stops being
+            # visible, and touching `v` afterwards raises ObjectDeletedError on
+            # a row that was never actually deleted.
+            other_visit_id = v.id
+            other_visit_slug = other.slug
 
         u = ensure_test_user(db, test_tenant, username='c4_probe', role='doctor')
         login_test_client(client, u, test_tenant)
 
-        resp = client.get(f'/t/{other.slug}/doctor/visits/{v.id}')
+        resp = client.get(f'/t/{other_visit_slug}/doctor/visits/{other_visit_id}')
         assert resp.status_code in (302, 403, 404), f'unexpected {resp.status_code}'
         assert resp.status_code != 500
 

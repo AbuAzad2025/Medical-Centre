@@ -70,6 +70,23 @@ class SaasRegistrationService:
             else:
                 g.pop('_tenant_filter_bypass', None)
 
+    @staticmethod
+    def _with_bound_tenant(tenant, fn):
+        """Run *fn* with *tenant* bound as the RLS subject on the connection.
+
+        ``g._tenant_filter_bypass`` only silences the ORM-side filter; it never
+        reaches PostgreSQL, so an RLS WITH CHECK policy still rejects the row.
+        Pinning the GUC is what actually makes the write admissible.
+        """
+        from sqlalchemy import text
+
+        db.session.execute(
+            text("SELECT set_config('app.tenant_id', :tid, true)"),
+            {'tid': str(int(tenant.id))},
+        )
+        db.session.info['_tenant_id'] = int(tenant.id)
+        return fn()
+
     @classmethod
     def _validate_bot_fields(cls, honeypot: str | None) -> None:
         if honeypot and str(honeypot).strip():
@@ -306,26 +323,41 @@ class SaasRegistrationService:
         except Exception:
             ip = None
             ua = None
-        db.session.add(
-            PlatformAuditLog(
-                action='SAAS_SIGNUP',
-                entity_type='tenant',
-                entity_id=tenant.id,
-                details=json.dumps(
-                    {
-                        'slug': slug,
-                        'name': name.strip(),
-                        'admin_username': username,
-                        'admin_role': cls.DEFAULT_ADMIN_ROLE,
-                        'pending_payment': payment_required,
-                        'package_version_id': pkg_id,
-                        'billing_type': billing_type,
-                    },
-                    ensure_ascii=False,
-                ),
-                ip_address=ip,
-                user_agent=ua,
-            )
+        # `platform_audit_logs` is RLS-protected by
+        # `tenant_isolation_platform_audit_logs`, which requires
+        # `tenant_id = current_setting('app.tenant_id')`. Leaving tenant_id NULL
+        # made that comparison NULL, so the insert was rejected with
+        # InsufficientPrivilege and the signup audit was never written - in
+        # production as well as under test.
+        #
+        # The fix is to attribute the row to the tenant that was just created
+        # and bind that tenant for the write, which is also the more useful
+        # answer to "which tenant did this audit entry describe?". The policy
+        # is satisfied, not relaxed.
+        cls._with_bound_tenant(
+            tenant,
+            lambda: db.session.add(
+                PlatformAuditLog(
+                    tenant_id=tenant.id,
+                    action='SAAS_SIGNUP',
+                    entity_type='tenant',
+                    entity_id=tenant.id,
+                    details=json.dumps(
+                        {
+                            'slug': slug,
+                            'name': name.strip(),
+                            'admin_username': username,
+                            'admin_role': cls.DEFAULT_ADMIN_ROLE,
+                            'pending_payment': payment_required,
+                            'package_version_id': pkg_id,
+                            'billing_type': billing_type,
+                        },
+                        ensure_ascii=False,
+                    ),
+                    ip_address=ip,
+                    user_agent=ua,
+                )
+            ),
         )
         safe_commit(db.session, error_message='Failed to save audit log', reraise=True)
 

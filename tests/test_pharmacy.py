@@ -13,6 +13,11 @@ from models.patient import Patient
 from models.user import User
 from models.visit import Visit
 
+# Trade name of the row owned by the *other* tenant in the isolation test.
+# One constant for both the write and the read: if they ever drift the read
+# matches nothing and the isolation assertion holds vacuously.
+OTHER_TRADE_NAME = 'دواء منشأة أخرى'
+
 
 class TestMedicationCatalog:
     """Medication CRUD and search tests."""
@@ -272,54 +277,75 @@ class TestTenantIsolation:
         from app.core.tenant.models import Tenant
         from app_factory import db
         from models.medication import Medication
+        from tests.tenant_context import tenant_test_context
 
-        g._tenant_filter_bypass = True
+        other = db.session.execute(select(Tenant).filter_by(slug='other-test')).scalars().first()
+        if not other:
+            other = Tenant(
+                slug='other-test',
+                name='Other Test',
+                status='active',
+                contact_email='other@test.com',
+            )
+            db.session.add(other)
+            db.session.commit()
+
         try:
-            other = (
-                db.session.execute(select(Tenant).filter_by(slug='other-test')).scalars().first()
-            )
-            if not other:
-                other = Tenant(
-                    slug='other-test',
-                    name='Other Test',
-                    status='active',
-                    contact_email='other@test.com',
-                )
-                db.session.add(other)
-                db.session.commit()
-            other_tenant_id = other.id
+            # `medications` carries a WITH CHECK policy. g._tenant_filter_bypass
+            # is an ORM-side flag that never reaches PostgreSQL, so writing
+            # tenant B's row from tenant A's context is rejected with
+            # InsufficientPrivilege. Bind tenant B instead of weakening the
+            # policy.
+            with tenant_test_context(app, other):
+                m = db.session.execute(
+                    select(Medication).filter_by(tenant_id=other.id, trade_name=OTHER_TRADE_NAME)
+                ).scalar()
+                if not m:
+                    m = Medication(
+                        tenant_id=other.id,
+                        trade_name=OTHER_TRADE_NAME,
+                        scientific_name='Other Drug',
+                        dosage_form='tablet',
+                        strength='500mg',
+                        price=10.00,
+                        stock_quantity=10,
+                        minimum_stock=5,
+                    )
+                    db.session.add(m)
+                    db.session.commit()
+                assert m.id is not None
 
-            m = db.session.execute(
-                select(Medication).filter_by(
-                    tenant_id=other_tenant_id, trade_name='دواء منشأة أخرى'
+            # Read back as tenant A, bound properly. Assigning `g.tenant_id` by
+            # hand is not enough: `tenant_filter._current_tenant_id()` reads
+            # `db.session.info['_tenant_id']` *before* `g.tenant_id`, and the
+            # scope above left tenant B in that dict, so a manual assignment was
+            # ignored and the query returned tenant B's own row.
+            with tenant_test_context(app, test_tenant):
+                meds = (
+                    db.session.execute(
+                        select(Medication).filter(Medication.trade_name == OTHER_TRADE_NAME)
+                    )
+                    .scalars()
+                    .all()
                 )
-            ).scalar()
-            if not m:
-                m = Medication(
-                    tenant_id=other_tenant_id,
-                    trade_name='دواء منشأة أخرى',
-                    scientific_name='Other Drug',
-                    dosage_form='tablet',
-                    strength='500mg',
-                    price=10.00,
-                    stock_quantity=10,
-                    minimum_stock=5,
+                assert len(meds) == 0
+
+            # Tenant B still sees it, so the row was not simply never written and
+            # the assertion above is measuring isolation rather than absence.
+            with tenant_test_context(app, other):
+                seen_by_owner = (
+                    db.session.execute(
+                        select(Medication).filter(Medication.trade_name == OTHER_TRADE_NAME)
+                    )
+                    .scalars()
+                    .all()
                 )
-                db.session.add(m)
-                db.session.commit()
+                assert len(seen_by_owner) == 1
         finally:
-            g.pop('_tenant_filter_bypass', None)
-
-        g.tenant_id = test_tenant.id
-        meds = (
-            db.session.execute(
-                select(Medication).filter(Medication.trade_name == 'دواء منشأة أخرى')
-            )
-            .scalars()
-            .all()
-        )
-        assert len(meds) == 0
-        g.tenant_id = None
+            # The shared app context outlives this test, so `g.tenant_id` left
+            # naming tenant B silently re-scoped every later test in the run.
+            db.session.info.pop('_tenant_id', None)
+            g.pop('tenant_id', None)
 
 
 class TestControlledDispenseAck:

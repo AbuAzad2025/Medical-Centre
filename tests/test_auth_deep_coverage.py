@@ -206,11 +206,15 @@ class TestPasswordResetDeep:
         """Lines 628-643: verify stored token matches and not expired."""
         from datetime import UTC, datetime, timedelta
 
-        from tests.tenant_context import ensure_test_user
+        from tests.tenant_context import ensure_test_user, tenant_test_context
 
         u = ensure_test_user(db, test_tenant, username='verify_tok', role='reception')
 
-        with app.app_context():
+        # The token helpers load the user by primary key, so they must run inside
+        # the tenant's own scope. A bare app_context leaves `users` unbound and
+        # the RLS policy hides the row: the store silently no-ops and the verify
+        # returns False for a token that was written moments earlier.
+        with tenant_test_context(app, test_tenant):
             from routes.auth_routes import _store_reset_token, _verify_reset_token
 
             token = 'test_token_abc123'
@@ -222,23 +226,32 @@ class TestPasswordResetDeep:
     def test_verify_reset_token_expired(self, app, db, test_tenant):
         from datetime import UTC, datetime, timedelta
 
-        from tests.tenant_context import ensure_test_user
+        from tests.tenant_context import ensure_test_user, tenant_test_context
 
         u = ensure_test_user(db, test_tenant, username='expire_tok', role='reception')
 
-        with app.app_context():
+        with tenant_test_context(app, test_tenant):
+            from models.user import User
             from routes.auth_routes import _store_reset_token, _verify_reset_token
 
             expired = datetime.now(UTC) - timedelta(hours=2)
             _store_reset_token(u.id, 'expired_token', expired)
             assert _verify_reset_token(u.id, 'expired_token') is False
 
+            # Pin down the cause. `_verify_reset_token` also returns False when
+            # the row is invisible, so without this the assertion would still
+            # pass if the store silently failed and nothing was ever written.
+            db.session.expire_all()
+            stored = db.session.get(User, u.id).preferences
+            assert stored['password_reset_token'] == 'expired_token'
+            assert datetime.fromisoformat(stored['password_reset_expires']) < datetime.now(UTC)
+
     def test_clear_reset_token(self, app, db, test_tenant):
-        from tests.tenant_context import ensure_test_user
+        from tests.tenant_context import ensure_test_user, tenant_test_context
 
         u = ensure_test_user(db, test_tenant, username='clear_tok', role='reception')
 
-        with app.app_context():
+        with tenant_test_context(app, test_tenant):
             from datetime import UTC, datetime, timedelta
 
             from routes.auth_routes import (
@@ -251,7 +264,7 @@ class TestPasswordResetDeep:
             _store_reset_token(u.id, 'tok123', expires)
             assert _verify_reset_token(u.id, 'tok123') is True
             _clear_reset_token(u.id)
-            assert isinstance(_verify_reset_token(u.id, 'tok123'), bool)
+            assert _verify_reset_token(u.id, 'tok123') is False
 
 
 class TestImpersonateFlow:

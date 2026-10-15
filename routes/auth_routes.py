@@ -628,7 +628,11 @@ def _store_reset_token(user_id: int, token: str, expires_at: datetime) -> None:
     user = db.session.get(User, user_id)
     if not user:
         return
-    prefs = user.preferences or {}
+    # `preferences` is a plain db.JSON column, so SQLAlchemy does not track an
+    # in-place dict mutation: it compares the attribute value at flush time and
+    # an unchanged identity is treated as unchanged. Build a new dict so the
+    # update is genuinely recorded.
+    prefs = dict(user.preferences or {})
     prefs['password_reset_token'] = token
     prefs['password_reset_expires'] = expires_at.isoformat()
     user.preferences = prefs
@@ -660,7 +664,11 @@ def _clear_reset_token(user_id: int) -> None:
     user = db.session.get(User, user_id)
     if not user or not user.preferences:
         return
-    prefs = user.preferences
+    # Copy for the same reason as _store_reset_token: popping from the live
+    # dict mutates the same object the attribute still points at, so SQLAlchemy
+    # sees no change and the token stays in the row. That is a security bug, not
+    # a cosmetic one: a consumed reset link kept working for its full hour.
+    prefs = dict(user.preferences)
     prefs.pop('password_reset_token', None)
     prefs.pop('password_reset_expires', None)
     user.preferences = prefs
