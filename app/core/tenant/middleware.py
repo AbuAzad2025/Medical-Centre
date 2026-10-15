@@ -323,12 +323,12 @@ def bound_tenant_scope(tenant: Tenant | None):
         bind_g_tenant(tenant)
         yield
     finally:
+        from contextlib import suppress
+
         for k, v in prev_g.items():
             if v is None:
-                try:
+                with suppress(AttributeError):
                     delattr(g, k)
-                except AttributeError:
-                    pass
             else:
                 setattr(g, k, v)
         if prev_info is None:

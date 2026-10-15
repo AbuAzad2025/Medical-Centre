@@ -111,13 +111,21 @@ class TestPasswordResetIsAudited:
         # _log_action in the owner module writes PlatformAuditLog, not the tenant
         # AuditTrail the clinical modules use. Two audit tables in one deployment is
         # worth knowing about; what matters here is that this one records the reset.
+        from sqlalchemy import text
+
         from app.core.tenant.models import PlatformAuditLog
 
-        rows = (
-            db.session.execute(select(PlatformAuditLog).filter_by(user_id=operator['owner'].id))
-            .scalars()
-            .all()
-        )
+        # Platform audit rows have tenant_id=1 (platform tenant) and require GUC='1' to be visible.
+        prev_guc = db.session.execute(text('SHOW app.tenant_id')).scalar()
+        db.session.execute(text("SET app.tenant_id = '1'"))
+        try:
+            rows = (
+                db.session.execute(select(PlatformAuditLog).filter_by(user_id=operator['owner'].id))
+                .scalars()
+                .all()
+            )
+        finally:
+            db.session.execute(text('SET app.tenant_id = :tid'), {'tid': str(prev_guc)})
         resets = [r for r in rows if r.action == 'RESET_PASSWORD']
         assert resets, (
             f'no audit row records the password reset. {len(rows)} audit row(s) exist '

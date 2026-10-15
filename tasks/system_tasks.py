@@ -40,10 +40,10 @@ def _load_backup_without_tenant_context(backup_id: int):
         else:
             g.pop('_tenant_filter_bypass', None)
         if prev_guc is not None:
-            try:
+            from contextlib import suppress
+
+            with suppress(Exception):
                 db.session.execute(text('SET LOCAL app.tenant_id = :tid'), {'tid': str(prev_guc)})
-            except Exception:
-                pass
 
 
 def _purge_expired_tokens() -> dict:

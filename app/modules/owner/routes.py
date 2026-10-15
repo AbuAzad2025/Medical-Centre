@@ -89,24 +89,24 @@ def _mask_secret(value, keep=4):
 
 
 def _log_action(action, entity_type, entity_id=None, details=None):
-    """Write a PlatformAuditLog row with platform scope (tenant_id=0).
+    """Write a PlatformAuditLog row with platform tenant scope (tenant_id=1).
 
     Owner routes may run with a tenant bound from the login context, but
     platform_audit_logs requires tenant_id = app.tenant_id. The platform
-    scope uses tenant_id=0 (not NULL), and the GUC must be set to '0'.
+    tenant has id=1 (slug='platform'), so we bind that tenant for the write.
     """
     from sqlalchemy import text
 
     prev_guc = None
     try:
         prev_guc = db.session.execute(text('SHOW app.tenant_id')).scalar()
-        db.session.execute(text("SET app.tenant_id = '0'"))
+        db.session.execute(text("SET app.tenant_id = '1'"))
     except Exception:
         pass
     try:
         log = PlatformAuditLog(
             user_id=current_user.id,
-            tenant_id=0,
+            tenant_id=1,
             action=action,
             entity_type=entity_type,
             entity_id=entity_id,
@@ -120,10 +120,10 @@ def _log_action(action, entity_type, entity_id=None, details=None):
         safe_rollback(db.session, error_message='database rollback')
     finally:
         if prev_guc is not None:
-            try:
+            from contextlib import suppress
+
+            with suppress(Exception):
                 db.session.execute(text('SET app.tenant_id = :tid'), {'tid': str(prev_guc)})
-            except Exception:
-                pass
 
 
 def _compute_platform_revenue():
