@@ -210,6 +210,10 @@ unfixable = ["E711", "E712"]
     "T201",
     "E402",
 ]
+"tools/openapi/*.py" = [
+    "T201",
+    "E402",
+]
 
 [tool.ruff.lint.pylint]
 allow-magic-value-types = ["str", "bytes", "int", "float", "complex"]

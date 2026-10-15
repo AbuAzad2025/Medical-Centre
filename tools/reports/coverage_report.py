@@ -413,7 +413,9 @@ def render_frontend(data: dict) -> str:
     return '\n'.join(lines) + '\n'
 
 
-def render_summary(py: dict | None, fe: dict | None, scen: dict) -> str:
+def render_summary(
+    py: dict | None, fe: dict | None, scen: dict, fb_match: dict | None = None
+) -> str:
     py_total = py.get('totals', {}).get('covered_lines') if py else None
     py_stmt = py.get('totals', {}).get('num_statements') if py else None
     py_pct = 100.0 * py_total / py_stmt if py_total and py_stmt else None
@@ -483,6 +485,30 @@ def render_summary(py: dict | None, fe: dict | None, scen: dict) -> str:
                 '',
             ]
 
+    # Frontend-Backend matching summary
+    if fb_match:
+        matched_pages = fb_match.get('matched_pages', 0)
+        total_pages = fb_match.get('total_pages', 0)
+        match_pct = 100.0 * matched_pages / total_pages if total_pages else 0
+        orphaned = fb_match.get('orphaned_templates', 0)
+        missing_coverage = fb_match.get('missing_coverage_templates', 0)
+
+        lines += [
+            '## Frontend-Backend Template Matching',
+            '',
+            _table(
+                [
+                    ('Frontend pages matched', f'{matched_pages}/{total_pages} ({match_pct:.1f}%)'),
+                    ('Orphaned backend templates', str(orphaned)),
+                    ('Templates with missing frontend coverage', str(missing_coverage)),
+                ],
+                ('metric', 'value'),
+            ),
+            '',
+            'See `docs/reports/frontend-backend-matching.md` for detailed cross-reference.',
+            '',
+        ]
+
     lines += [
         '## Scenario matrix',
         '',
@@ -529,6 +555,30 @@ def main() -> int:
     fe = read_frontend_coverage()
     scen = scenario_stats()
 
+    # Run frontend-backend matching
+    sys.path.insert(0, os.path.join(ROOT, 'tools', 'scenario_gen'))
+    from frontend_backend_matcher import (
+        extract_frontend_pages,
+        find_missing_frontend_coverage,
+        find_orphaned_backend_templates,
+        generate_report,
+        load_backend_templates,
+        match_frontend_to_backend,
+    )
+
+    pages = extract_frontend_pages()
+    templates = load_backend_templates()
+    results = match_frontend_to_backend(pages, templates)
+    orphaned = find_orphaned_backend_templates(results, templates)
+    missing_coverage = find_missing_frontend_coverage(templates, pages)
+
+    fb_match = {
+        'matched_pages': sum(1 for r in results if r.matched),
+        'total_pages': len(results),
+        'orphaned_templates': len(orphaned),
+        'missing_coverage_templates': len(missing_coverage),
+    }
+
     written = []
     if py:
         path = os.path.join(REPORTS_DIR, 'backend-coverage.md')
@@ -548,8 +598,15 @@ def main() -> int:
 
     summary_path = os.path.join(REPORTS_DIR, 'README.md')
     with open(summary_path, 'w', encoding='utf-8', newline='\n') as fh:
-        fh.write(render_summary(py, fe, scen))
+        fh.write(render_summary(py, fe, scen, fb_match))
     written.append(('README.md', 'summary'))
+
+    # Also write the frontend-backend matching report
+    fb_report = generate_report(pages, templates, results)
+    fb_report_path = os.path.join(REPORTS_DIR, 'frontend-backend-matching.md')
+    with open(fb_report_path, 'w', encoding='utf-8', newline='\n') as fh:
+        fh.write(fb_report)
+    written.append(('frontend-backend-matching.md', 'template matching'))
 
     for name, note in written:
         print(f'  wrote docs/reports/{name}  {note}')
