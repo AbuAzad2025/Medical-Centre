@@ -119,7 +119,17 @@ class TestMFASetupAndVerify:
 
 @covers('STAFF_ACCOUNT_LIFECYCLE')
 class TestBiometricRegistration:
-    """WebAuthn biometric credential registration and removal."""
+    """WebAuthn biometric credential registration and removal.
+
+    `/biometric` and `/sso` sit behind platform capability flags that default to
+    off, and the guard answers 404 when the flag is clear. These tests are about
+    the endpoints' behaviour, so they turn the flag on explicitly rather than
+    asserting the 404 - `test_platform_capabilities.py` owns the flag semantics.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _webauthn_on(self, monkeypatch):
+        monkeypatch.setenv('PLATFORM_CAP_WEBAUTHN', 'true')
 
     def test_register_challenge_returns_a_challenge(self, staff):
         """The first step returns a challenge without a success field."""
@@ -201,7 +211,15 @@ class TestBiometricRegistration:
 
 @covers('STAFF_ACCOUNT_LIFECYCLE')
 class TestSSOConfiguration:
-    """LDAP SSO provider configuration (SAML fields exist in model but not in route)."""
+    """LDAP SSO provider configuration (SAML fields exist in model but not in route).
+
+    `/sso` is behind the `sso` platform capability flag, which defaults to off
+    and answers 404 when clear. See TestBiometricRegistration for the rationale.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _sso_on(self, monkeypatch):
+        monkeypatch.setenv('PLATFORM_CAP_SSO', 'true')
 
     def test_sso_config_accepts_and_stores_ldap_provider(self, staff):
         """POST /sso/config stores an LDAP provider configuration."""

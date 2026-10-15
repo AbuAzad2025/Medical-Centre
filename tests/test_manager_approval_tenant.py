@@ -107,31 +107,45 @@ class TestManagerApprovalTenantSafety:
         _db.session.add(p)
         _db.session.commit()
 
-        v = Visit(
-            patient_id=p.id,
-            tenant_id=other.id,
-            status='OPEN',
-            total_amount=100,
-            paid_amount=0,
-            is_force_payment=True,
-            force_payment_reason='Emergency surgery needed',
-        )
-        _db.session.add(v)
-        _db.session.commit()
+        # `visits` carries a WITH CHECK policy, so tenant B's visit is written
+        # inside tenant B's scope and the id is read back there. Reading the
+        # patient id first matters: tenant B's scope hides tenant A's row, and
+        # an attribute refresh on it raises ObjectDeletedError.
+        from tests.tenant_context import tenant_test_context
+
+        # Read the id while tenant A is still bound.
+        patient_id = p.id
+
+        with tenant_test_context(app, other):
+            v = Visit(
+                patient_id=patient_id,
+                tenant_id=other.id,
+                status='OPEN',
+                total_amount=100,
+                paid_amount=0,
+                is_force_payment=True,
+                force_payment_reason='Emergency surgery needed',
+            )
+            _db.session.add(v)
+            _db.session.commit()
+            other_visit_id = v.id
 
         login_as(client, 'mgr_cross_t2', 'manager')
 
         with patch(
             'services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100
         ):
-            resp = client.post(f'/manager/approve-force-payment/{v.id}', follow_redirects=False)
+            resp = client.post(
+                f'/manager/approve-force-payment/{other_visit_id}', follow_redirects=False
+            )
         # Must redirect with flash error rather than disclosing cross-tenant data
         assert resp.status_code == 302
         assert 'force_payment_approvals' in resp.location or 'manager' in resp.location
 
-        # Verify visit was NOT approved
-        v_after = _db.session.get(Visit, v.id)
-        assert v_after.force_payment_approved_by is None
+        # Verify visit was NOT approved, read as the tenant that owns it.
+        with tenant_test_context(app, other):
+            v_after = _db.session.get(Visit, other_visit_id)
+            assert v_after.force_payment_approved_by is None
 
     def test_manager_reject_cross_tenant_denied(
         self, app, rollback_db, test_tenant, client, login_as
@@ -150,17 +164,23 @@ class TestManagerApprovalTenantSafety:
         _db.session.add(p)
         _db.session.commit()
 
-        v = Visit(
-            patient_id=p.id,
-            tenant_id=other.id,
-            status='OPEN',
-            total_amount=100,
-            paid_amount=0,
-            is_force_payment=True,
-            force_payment_reason='Emergency surgery needed',
-        )
-        _db.session.add(v)
-        _db.session.commit()
+        from tests.tenant_context import tenant_test_context
+
+        patient_id = p.id
+
+        with tenant_test_context(app, other):
+            v = Visit(
+                patient_id=patient_id,
+                tenant_id=other.id,
+                status='OPEN',
+                total_amount=100,
+                paid_amount=0,
+                is_force_payment=True,
+                force_payment_reason='Emergency surgery needed',
+            )
+            _db.session.add(v)
+            _db.session.commit()
+            other_visit_id = v.id
 
         login_as(client, 'mgr_reject_cross_t2', 'manager')
 
@@ -168,15 +188,16 @@ class TestManagerApprovalTenantSafety:
             'services.gatekeeper_service.GatekeeperService.MAX_FORCE_PAYMENT_PERCENTAGE', 100
         ):
             resp = client.post(
-                f'/manager/reject-force-payment/{v.id}',
+                f'/manager/reject-force-payment/{other_visit_id}',
                 data={'rejection_reason': 'Reason for rejection is clear and sufficient'},
                 follow_redirects=False,
             )
         assert resp.status_code == 302
 
-        # Verify visit was NOT rejected
-        v_after = _db.session.get(Visit, v.id)
-        assert v_after.is_force_payment is True
+        # Verify visit was NOT rejected, read as the tenant that owns it.
+        with tenant_test_context(app, other):
+            v_after = _db.session.get(Visit, other_visit_id)
+            assert v_after.is_force_payment is True
 
     def test_manager_approval_missing_tenant_context(
         self, app, rollback_db, test_tenant, client, login_as
