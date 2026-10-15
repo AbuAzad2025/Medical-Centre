@@ -5,6 +5,7 @@ import pytest
 from app_factory import db as _db
 from models.patient import Patient
 from models.visit import Visit
+from tests.tenant_context import tenant_test_context
 from utils.tenant_query import TenantContextError
 
 
@@ -89,10 +90,16 @@ class TestBillingVisitOwnership:
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
         _db.session.commit()
+        # Read the id while tenant A is bound; tenant B's scope hides this row.
+        patient_id = p.id
 
-        v = Visit(patient_id=p.id, tenant_id=other.id, status='OPEN')
-        _db.session.add(v)
-        _db.session.commit()
+        # `visits` carries a WITH CHECK policy, so tenant B's visit must be
+        # written while tenant B is bound.
+        with tenant_test_context(app, other):
+            v = Visit(patient_id=patient_id, tenant_id=other.id, status='OPEN')
+            _db.session.add(v)
+            _db.session.commit()
+            other_visit_id = v.id
 
         with app.test_request_context():
             from flask import g
@@ -101,7 +108,7 @@ class TestBillingVisitOwnership:
             with pytest.raises(TenantContextError):
                 from utils.tenant_query import get_tenant_record
 
-                get_tenant_record(Visit, v.id)
+                get_tenant_record(Visit, other_visit_id)
 
 
 class TestReceptionFinancialRouteOwnership:
@@ -145,12 +152,21 @@ class TestReceptionFinancialRouteOwnership:
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
         _db.session.commit()
+        patient_id = p.id
 
-        v = Visit(
-            patient_id=p.id, tenant_id=other.id, status='OPEN', total_amount=100, paid_amount=50
-        )
-        _db.session.add(v)
-        _db.session.commit()
+        # `visits` carries a WITH CHECK policy: write tenant B's visit inside
+        # tenant B's scope, and read the id back there too.
+        with tenant_test_context(app, other):
+            v = Visit(
+                patient_id=patient_id,
+                tenant_id=other.id,
+                status='OPEN',
+                total_amount=100,
+                paid_amount=50,
+            )
+            _db.session.add(v)
+            _db.session.commit()
+            other_visit_id = v.id
 
         login_as(client, 'recv_pay_cross', 'reception')
 
@@ -159,7 +175,8 @@ class TestReceptionFinancialRouteOwnership:
 
             g.tenant_id = tenant_id
             resp = client.post(
-                f'/reception/visits/{v.id}/send-to-accounting', follow_redirects=False
+                f'/reception/visits/{other_visit_id}/send-to-accounting',
+                follow_redirects=False,
             )
             # Must redirect (flash error) rather than disclosing cross-tenant data
             assert resp.status_code == 302
@@ -202,12 +219,19 @@ class TestReceptionFinancialRouteOwnership:
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
         _db.session.commit()
+        patient_id = p.id
 
-        v = Visit(
-            patient_id=p.id, tenant_id=other.id, status='OPEN', total_amount=100, paid_amount=50
-        )
-        _db.session.add(v)
-        _db.session.commit()
+        with tenant_test_context(app, other):
+            v = Visit(
+                patient_id=patient_id,
+                tenant_id=other.id,
+                status='OPEN',
+                total_amount=100,
+                paid_amount=50,
+            )
+            _db.session.add(v)
+            _db.session.commit()
+            other_visit_id = v.id
 
         login_as(client, 'recv_rcpt_cross', 'reception')
 
@@ -215,7 +239,7 @@ class TestReceptionFinancialRouteOwnership:
             from flask import g
 
             g.tenant_id = tenant_id
-            resp = client.get(f'/reception/print_receipt/{v.id}', follow_redirects=False)
+            resp = client.get(f'/reception/print_receipt/{other_visit_id}', follow_redirects=False)
             # Must redirect (flash error) rather than disclosing cross-tenant data
             assert resp.status_code == 302
             assert '/reception/queue' in resp.location

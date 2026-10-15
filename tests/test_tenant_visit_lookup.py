@@ -30,26 +30,39 @@ class TestGetTenantRecordVisit:
             assert record.id == v.id
 
     def test_cross_tenant_visit_raises(self, app, test_tenant):
+        from tests.tenant_context import tenant_test_context
+
         tenant_id = test_tenant.id
         other_slug = f'other-tenant-{uuid.uuid4().hex[:8]}'
         other = Tenant(name='Other', slug=other_slug, contact_email='other@example.com')
         _db.session.add(other)
         _db.session.commit()
 
-        p = Patient(first_name='ت', last_name='ت', tenant_id=tenant_id)
+        p = Patient(first_name='?', last_name='?', tenant_id=tenant_id)
         _db.session.add(p)
         _db.session.commit()
+        # Read the id while tenant A is still the bound tenant. Inside tenant B's
+        # scope the policy hides this row and any attribute refresh on `p` raises
+        # ObjectDeletedError on a patient that was never deleted.
+        patient_id = p.id
 
-        v = Visit(patient_id=p.id, tenant_id=other.id, status='OPEN')
-        _db.session.add(v)
-        _db.session.commit()
+        # `visits` carries a WITH CHECK policy, so tenant B's visit has to be
+        # written while tenant B is bound. Naming tenant_id on the row is not
+        # enough - the write is rejected with InsufficientPrivilege otherwise.
+        with tenant_test_context(app, other):
+            v = Visit(patient_id=patient_id, tenant_id=other.id, status='OPEN')
+            _db.session.add(v)
+            _db.session.commit()
+            # Read the id here too: once the scope closes, tenant B's row is no
+            # longer visible and touching `v` raises ObjectDeletedError.
+            other_visit_id = v.id
 
         with app.test_request_context():
             from flask import g
 
             g.tenant_id = tenant_id
             with pytest.raises(TenantContextError):
-                get_tenant_record(Visit, v.id)
+                get_tenant_record(Visit, other_visit_id)
 
     def test_missing_visit_raises(self, app, test_tenant):
         with app.test_request_context():
