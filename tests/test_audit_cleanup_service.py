@@ -2,6 +2,9 @@
 
 from datetime import UTC, datetime, timedelta
 
+import pytest
+from sqlalchemy import text
+
 from app.extensions import db
 from models.audit_trail import LoginAttempt, SecurityEvent, SystemLog
 from models.phi_audit_log import PHIAuditLog
@@ -177,8 +180,14 @@ class TestAuditCleanupActualDeletion:
             assert r['error'] is None
             assert r['deleted'] == 1
 
-    def test_phi_audit_logs_respects_retention(self, app, test_tenant):
-        # PHIAuditLog requires actor_id to be a valid user or None
+    def test_phi_audit_logs_refuses_retention_deletion(self, app, test_tenant):
+        """phi_audit_logs is immutable, so retention must refuse rather than delete.
+
+        The app role holds no UPDATE/DELETE on the table (revoked in s2_003) and
+        the RLS policies are `no_update` / `no_delete` (s2_007). The previous
+        version of this test asserted `deleted == 1`, which could only ever pass
+        if one of those two layers was removed.
+        """
         old = PHIAuditLog(
             tenant_id=test_tenant.id,
             actor_id=None,
@@ -206,9 +215,20 @@ class TestAuditCleanupActualDeletion:
             sleep_ms=0,
             dry_run=False,
         )
-        assert result['deleted'] == 1
-        assert db.session.get(PHIAuditLog, old_id) is None
+        # The refusal is explicit, not a silent zero.
+        assert result['deleted'] == 0
+        assert result['error'] is not None
+        assert 'immutable' in result['error']
+
+        # Both rows survive, including the one past the nominal 90-day window.
+        assert db.session.get(PHIAuditLog, old_id) is not None
         assert db.session.get(PHIAuditLog, new_id) is not None
+
+        # The database refuses the delete too, independently of this service.
+        with pytest.raises(Exception):
+            db.session.execute(text('DELETE FROM phi_audit_logs WHERE id = :i'), {'i': old_id})
+        db.session.rollback()
+        assert db.session.get(PHIAuditLog, old_id) is not None
 
     def test_batch_size_limits_deletion_per_pass(self, app, test_tenant):
         # Create 5 old records, batch_size=2
@@ -239,7 +259,6 @@ class TestAuditCleanupActualDeletion:
 
     def test_retention_config_has_all_tables(self):
         expected = {
-            'phi_audit_logs',
             'platform_audit_logs',
             'audit_trails',
             'system_logs',
@@ -253,3 +272,10 @@ class TestAuditCleanupActualDeletion:
             assert 'model_path' in cfg
             assert 'column' in cfg
             assert cfg['days'] > 0
+
+    def test_immutable_tables_are_never_in_retention_config(self):
+        """The immutable PHI trail must not reappear in the destructive config."""
+        from services.audit_cleanup_service import IMMUTABLE_TABLES
+
+        assert 'phi_audit_logs' in IMMUTABLE_TABLES
+        assert not (IMMUTABLE_TABLES & set(RETENTION_CONFIG.keys()))

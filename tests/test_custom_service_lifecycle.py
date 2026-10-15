@@ -134,17 +134,23 @@ class TestCustomServiceLifecycle:
         import uuid
 
         code = f'CUSTOM-T6-{uuid.uuid4().hex[:6].upper()}'
-        svc = ServiceMaster(
-            code=code,
-            name='Custom T6 Cross',
-            category='lab',
-            base_price=100,
-            is_custom=True,
-            is_active=False,
-            tenant_id=other.id,
-        )
-        _db.session.add(svc)
-        _db.session.commit()
+        # `service_master` carries a WITH CHECK policy, so tenant B's row has to
+        # be written while tenant B is bound; the id is read back there too.
+        from tests.tenant_context import tenant_test_context
+
+        with tenant_test_context(app, other):
+            svc = ServiceMaster(
+                code=code,
+                name='Custom T6 Cross',
+                category='lab',
+                base_price=100,
+                is_custom=True,
+                is_active=False,
+                tenant_id=other.id,
+            )
+            _db.session.add(svc)
+            _db.session.commit()
+            other_svc_id = svc.id
 
         login_as(client, 'mgr_cross_t6', 'manager')
 
@@ -152,11 +158,16 @@ class TestCustomServiceLifecycle:
             from flask import g
 
             g.tenant_id = tenant_id
-            resp = client.post(f'/manager/approve-custom-service/{svc.id}', follow_redirects=False)
+            resp = client.post(
+                f'/manager/approve-custom-service/{other_svc_id}', follow_redirects=False
+            )
         assert resp.status_code == 302
 
-        svc_after = _db.session.get(ServiceMaster, svc.id)
-        assert svc_after.approved_by is None
+        # Read the row as tenant B, where it is visible. Looking it up from tenant
+        # A's context would raise ObjectDeletedError on a row that still exists.
+        with tenant_test_context(app, other):
+            svc_after = _db.session.get(ServiceMaster, other_svc_id)
+            assert svc_after.approved_by is None
 
     def test_invoice_service_has_created_by(self, app, test_tenant, client, login_as):
         tenant_id = test_tenant.id

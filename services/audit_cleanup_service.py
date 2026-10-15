@@ -2,13 +2,16 @@
 Audit Cleanup Service — batched, non-blocking retention policy enforcement.
 
 Tables covered:
-  - phi_audit_logs      (config: PHI_AUDIT_RETENTION_DAYS,   default 90)
   - platform_audit_logs (config: PLATFORM_AUDIT_RETENTION_DAYS, default 180)
   - audit_trails        (config: AUDIT_TRAIL_RETENTION_DAYS,    default 180)
   - system_logs         (config: SYSTEM_LOG_RETENTION_DAYS,     default 90)
   - security_events     (config: SECURITY_EVENT_RETENTION_DAYS, default 365)
   - login_attempts      (config: LOGIN_ATTEMPT_RETENTION_DAYS,  default 30)
   - slow_query_reports  (config: SLOW_QUERY_RETENTION_DAYS,     default 90)
+
+Deliberately NOT covered:
+  - phi_audit_logs. It is an immutable PHI access trail (privileges revoked in
+    s2_003, no_update/no_delete RLS policies in s2_007). See IMMUTABLE_TABLES.
 
 Design principles:
   1. Batched DELETE (default 5 000 rows / batch) to avoid long table locks.
@@ -35,12 +38,15 @@ logger = logging.getLogger(__name__)
 DEFAULT_BATCH_SIZE = int(os.getenv('AUDIT_CLEANUP_BATCH_SIZE', '5000'))
 DEFAULT_SLEEP_MS = int(os.getenv('AUDIT_CLEANUP_SLEEP_MS', '100'))
 
+# Tables that must never be pruned by this job, whatever the config says.
+# `phi_audit_logs` is an immutable PHI access trail, enforced twice over:
+# s2_003 revokes UPDATE/DELETE from the app role, and s2_007 adds
+# `phi_audit_logs_no_update` / `phi_audit_logs_no_delete` RLS policies. Listing
+# it in RETENTION_CONFIG only produced a job that failed silently every night
+# while reporting success, so it is refused here explicitly instead.
+IMMUTABLE_TABLES = frozenset({'phi_audit_logs'})
+
 RETENTION_CONFIG = {
-    'phi_audit_logs': {
-        'days': int(os.getenv('PHI_AUDIT_RETENTION_DAYS', '90')),
-        'model_path': 'models.phi_audit_log.PHIAuditLog',
-        'column': 'created_at',
-    },
     'platform_audit_logs': {
         'days': int(os.getenv('PLATFORM_AUDIT_RETENTION_DAYS', '180')),
         'model_path': 'app.core.tenant.models.PlatformAuditLog',
@@ -138,6 +144,23 @@ class AuditCleanupService:
         Returns {"table": ..., "deleted": N, "dry_run": bool, "error": str|None}
         """
         import time as _time
+
+        if table_name in IMMUTABLE_TABLES:
+            # Fail loudly rather than reporting a clean run. A retention policy
+            # that cannot be honoured must be visible to whoever scheduled it.
+            msg = (
+                f'{table_name} is an immutable audit trail; refusing to prune it. '
+                'Retention for this table is a records-management decision, not a '
+                'cleanup job.'
+            )
+            logger.error(msg)
+            return {
+                'table': table_name,
+                'deleted': 0,
+                'eligible': None,
+                'dry_run': dry_run,
+                'error': msg,
+            }
 
         cutoff = datetime.now(UTC) - timedelta(days=retention_days)
         total_deleted = 0
