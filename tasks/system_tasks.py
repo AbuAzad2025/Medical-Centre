@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import delete as sa_delete
 
 from celery_app import get_celery_app
 from services.backup_automation_service import BackupAutomationError
@@ -15,79 +15,28 @@ logger = logging.getLogger(__name__)
 celery = get_celery_app()
 
 
-def _load_backup_without_tenant_context(backup_id: int):
-    """Load a Backup row bypassing ORM tenant filters and RLS (Celery has no request tenant)."""
-    from flask import g
-    from sqlalchemy import text
-
-    from app.extensions import db
-    from models.backup import Backup
-
-    prev_bypass = g.get('_tenant_filter_bypass', False)
-    g._tenant_filter_bypass = True
-    # Also clear the RLS GUC so the row is visible regardless of current tenant.
-    prev_guc = None
-    try:
-        prev_guc = db.session.execute(text('SHOW app.tenant_id')).scalar()
-        db.session.execute(text("SET LOCAL app.tenant_id = ''"))
-    except Exception:
-        pass
-    try:
-        return db.session.get(Backup, backup_id)
-    finally:
-        if prev_bypass:
-            g._tenant_filter_bypass = True
-        else:
-            g.pop('_tenant_filter_bypass', None)
-        if prev_guc is not None:
-            from contextlib import suppress
-
-            with suppress(Exception):
-                db.session.execute(text('SET LOCAL app.tenant_id = :tid'), {'tid': str(prev_guc)})
-
-
 def _purge_expired_tokens() -> dict:
-    """Purge expired OAuth tokens, password reset tokens, and email verification tokens."""
-    from flask import g
+    """Unimplemented: the token tables this purged no longer exist.
 
-    from app.extensions import db
-    from models.email_verification_token import EmailVerificationToken
-    from models.oauth_token import OAuthToken
-    from models.password_reset_token import PasswordResetToken
+    It imported ``models.oauth_token.OAuthToken``,
+    ``models.password_reset_token.PasswordResetToken`` and
+    ``models.email_verification_token.EmailVerificationToken``. None of those
+    modules are in the tree, so every call raised ModuleNotFoundError and the
+    daily task never purged anything. Password reset tokens are no longer rows
+    at all - they live in ``User.preferences`` as ``password_reset_token`` /
+    ``password_reset_expires`` (see routes/auth_routes.py), and expiring them
+    means rewriting tenant-scoped user rows under each tenant's own scope.
 
-    g._tenant_filter_bypass = True
-    try:
-        datetime.utcnow()
-        deleted = 0
-
-        # Expired OAuth tokens
-        oauth_expired = select(OAuthToken).delete(synchronize_session=False)
-        deleted += oauth_expired
-
-        # Expired password reset tokens
-        pwd_expired = select(PasswordResetToken).delete(synchronize_session=False)
-        deleted += pwd_expired
-
-        # Expired email verification tokens
-        email_expired = select(EmailVerificationToken).delete(synchronize_session=False)
-        deleted += email_expired
-
-        db.session.commit()
-        logger.info(f'Purged {deleted} expired tokens')
-        return {
-            'deleted': deleted,
-            'types': {
-                'oauth': oauth_expired,
-                'password_reset': pwd_expired,
-                'email_verification': email_expired,
-            },
-        }
-    except Exception:
-        db.session.rollback()
-        logger.exception('Failed to purge expired tokens: %s')
-        raise
-    finally:
-        g.pop('_tenant_filter_bypass', None)
+    Refusing loudly is the safe state. The previous body would have deleted
+    every row in whichever table it did find, because none of the DELETEs had a
+    WHERE clause, so a partial "fix" that guessed at table names would be worse
+    than an explicit refusal.
+    """
+    raise NotImplementedError(
+        'token purge is not implemented: the oauth_token / password_reset_token '
+        '/ email_verification_token tables were removed. Password reset tokens '
+        'now live in User.preferences and need a tenant-scoped rewriter.'
+    )
 
 
 def _purge_old_audit_logs() -> dict:
@@ -98,17 +47,26 @@ def _purge_old_audit_logs() -> dict:
     from models.audit_trail import AuditTrail
 
     retention_days = 90  # Configurable via env later
-    datetime.utcnow() - timedelta(days=retention_days)
+    # The cutoff was previously computed and thrown away on a bare expression
+    # line, and the DELETE below carried no WHERE clause - so this task wiped
+    # the entire audit trail on every run, not just rows past retention. It is
+    # a scheduled Celery task (tasks.purge_old_audit_logs), so that was live.
+    cutoff = datetime.now(UTC) - timedelta(days=retention_days)
 
     g._tenant_filter_bypass = True
     try:
-        deleted = select(AuditTrail).delete(synchronize_session=False)
+        deleted = (
+            sa_delete(AuditTrail)
+            .where(AuditTrail.created_at < cutoff)
+            .execution_options(synchronize_session=False)
+        )
+        deleted = db.session.execute(deleted).rowcount
         db.session.commit()
         logger.info(f'Purged {deleted} audit logs older than {retention_days} days')
         return {'deleted': deleted, 'retention_days': retention_days}
     except Exception:
         db.session.rollback()
-        logger.exception('Failed to purge old audit logs: %s')
+        logger.exception('Failed to purge old audit logs')
         raise
     finally:
         g.pop('_tenant_filter_bypass', None)
@@ -119,19 +77,36 @@ def _purge_stale_notifications() -> dict:
     from flask import g
 
     from app.extensions import db
-    from models.notification import Notification
-    from models.notification_queue import NotificationQueue
+    from app.shared.enums import NotificationState
+    from models.notification import Notification, NotificationQueue
 
     g._tenant_filter_bypass = True
     try:
-        datetime.utcnow() - timedelta(days=30)
-        datetime.utcnow() - timedelta(days=7)
+        # Both cutoffs were previously computed and discarded on bare expression
+        # lines, and both DELETEs had no WHERE clause - so this task removed
+        # every notification and the entire retry queue on every run, on a daily
+        # schedule. Notifications that were unread, and retries that had not
+        # failed yet, were destroyed along with the stale ones.
+        now = datetime.now(UTC)
+        read_cutoff = now - timedelta(days=30)
+        retry_cutoff = now - timedelta(days=7)
 
         # Old read notifications
-        deleted_notifs = select(Notification).delete(synchronize_session=False)
+        deleted_notifs = db.session.execute(
+            sa_delete(Notification)
+            .where(Notification.is_read.is_(True), Notification.read_at < read_cutoff)
+            .execution_options(synchronize_session=False)
+        ).rowcount
 
         # Failed notification retries older than 7 days
-        failed_retries = select(NotificationQueue).delete(synchronize_session=False)
+        failed_retries = db.session.execute(
+            sa_delete(NotificationQueue)
+            .where(
+                NotificationQueue.status == NotificationState.FAILED,
+                NotificationQueue.created_at < retry_cutoff,
+            )
+            .execution_options(synchronize_session=False)
+        ).rowcount
 
         db.session.commit()
         logger.info(
@@ -140,7 +115,7 @@ def _purge_stale_notifications() -> dict:
         return {'notifications': deleted_notifs, 'failed_retries': failed_retries}
     except Exception:
         db.session.rollback()
-        logger.exception('Failed to purge stale notifications: %s')
+        logger.exception('Failed to purge stale notifications')
         raise
     finally:
         g.pop('_tenant_filter_bypass', None)
@@ -211,7 +186,7 @@ def purge_expired_tokens_task(self) -> dict:
         result['task_id'] = self.request.id
         return result
     except Exception:
-        logger.exception('Expired tokens purge failed: %s')
+        logger.exception('Expired tokens purge failed')
         raise
 
 
@@ -224,7 +199,7 @@ def purge_old_audit_logs_task(self) -> dict:
         result['task_id'] = self.request.id
         return result
     except Exception:
-        logger.exception('Audit logs purge failed: %s')
+        logger.exception('Audit logs purge failed')
         raise
 
 
@@ -237,7 +212,7 @@ def purge_stale_notifications_task(self) -> dict:
         result['task_id'] = self.request.id
         return result
     except Exception:
-        logger.exception('Stale notifications purge failed: %s')
+        logger.exception('Stale notifications purge failed')
         raise
 
 
@@ -250,29 +225,38 @@ def run_all_maintenance_task(self) -> dict:
     try:
         results['expired_tokens'] = _purge_expired_tokens()
     except Exception as e:
-        logger.exception('Token purge failed: %s')
+        logger.exception('Token purge failed')
         results['expired_tokens'] = {'error': str(e)}
 
     try:
         results['audit_logs'] = _purge_old_audit_logs()
     except Exception as e:
-        logger.exception('Audit logs purge failed: %s')
+        logger.exception('Audit logs purge failed')
         results['audit_logs'] = {'error': str(e)}
 
     try:
         results['stale_notifications'] = _purge_stale_notifications()
     except Exception as e:
-        logger.exception('Stale notifications purge failed: %s')
+        logger.exception('Stale notifications purge failed')
         results['stale_notifications'] = {'error': str(e)}
 
     results['task_id'] = self.request.id
-    results['completed_at'] = datetime.utcnow().isoformat()
+    results['completed_at'] = datetime.now(UTC).isoformat()
     logger.info(f'Maintenance cycle completed: {results}')
     return results
 
 
 def _load_backup_without_tenant_context(backup_id: int):
-    """Load a Backup row bypassing ORM tenant filters (Celery has no request tenant)."""
+    """Fallback load for callers that do not pass a tenant.
+
+    `g._tenant_filter_bypass` only silences the ORM filter; it never reaches
+    PostgreSQL. `backups` is RLS-protected by `tenant_id = app.tenant_id`, so if
+    the GUC names a different tenant this returns None no matter what the ORM
+    does, and the caller cannot learn the owning tenant from the row it cannot
+    read. That is why `queue_system_backup` and the task both accept
+    `tenant_id` and every caller passes it; this exists only so a legacy caller
+    that omits it degrades to "not found" instead of guessing a tenant.
+    """
     from flask import g
 
     from app.extensions import db
