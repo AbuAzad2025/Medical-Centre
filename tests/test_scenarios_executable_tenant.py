@@ -123,15 +123,20 @@ def _fresh_tenant(slug, profile=None):
 
 @covers('OWNER_MODULE_ENTITLEMENT')
 class TestModuleEntitlementPerTenant:
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: the owner module routes look TenantModule up through the '
-            'ORM tenant filter, which scopes to the operator tenant, so for any other '
-            'tenant the lookup misses and deactivate changes nothing while reporting '
-            'success'
-        ),
-    )
+    # The three strict xfail markers that used to sit on this class are gone.
+    # They recorded a real defect: the owner module routes looked TenantModule
+    # up through the ORM tenant filter, which scopes to the *operator* tenant,
+    # so acting on any other tenant missed the row - deactivate reported success
+    # while changing nothing, and activate inserted a duplicate row instead of
+    # updating the existing one.
+    #
+    # The routes now resolve the target Tenant and run the read/write inside
+    # bound_tenant_scope(), so the policy is satisfied by naming the tenant
+    # being administered instead of the one the operator happens to belong to.
+    # With the defect fixed these tests XPASS, and strict=True turned that into
+    # three CI failures ("[XPASS(strict)] known defect: ..."), which is the
+    # marker correctly reporting that its reason no longer holds.
+
     def test_activating_and_deactivating_a_module_is_per_tenant(self, platform_owner):
         """Activation is a row, and deactivation reverses it.
 
@@ -151,44 +156,50 @@ class TestModuleEntitlementPerTenant:
         assert resp.get_json().get('status') == 'activated'
 
         from app.core.module.models import TenantModule
+        from tests.tenant_context import tenant_test_context
 
-        active_a = (
-            db.session.execute(db.select(TenantModule).filter_by(tenant_id=a, module_name='lab'))
-            .scalars()
-            .first()
-        )
-        active_b = (
-            db.session.execute(db.select(TenantModule).filter_by(tenant_id=b, module_name='lab'))
-            .scalars()
-            .first()
-        )
+        # Every read below runs in the scope of the tenant that owns the row.
+        # The ORM tenant filter scopes each select to whichever tenant is bound,
+        # so reading tenant A's modules from the operator's context silently
+        # yields None and these assertions prove nothing.
+        with tenant_test_context(platform_owner['app'], a):
+            active_a = (
+                db.session.execute(
+                    db.select(TenantModule).filter_by(tenant_id=a, module_name='lab')
+                )
+                .scalars()
+                .first()
+            )
+            assert active_a is not None and active_a.is_active, 'tenant A has no active lab module'
+            assert active_a.activated_at is not None, 'activation did not stamp activated_at'
 
-        assert active_a is not None and active_a.is_active, 'tenant A has no active lab module'
-        assert active_b is None or not active_b.is_active, (
-            'activating lab for tenant A also activated it for tenant B. Entitlement is per tenant'
-        )
-        assert active_a.activated_at is not None, 'activation did not stamp activated_at'
+        with tenant_test_context(platform_owner['app'], b):
+            active_b = (
+                db.session.execute(
+                    db.select(TenantModule).filter_by(tenant_id=b, module_name='lab')
+                )
+                .scalars()
+                .first()
+            )
+            assert active_b is None or not active_b.is_active, (
+                'activating lab for tenant A also activated it for tenant B. '
+                'Entitlement is per tenant'
+            )
 
         client.post(f'/owner/api/tenants/{a}/modules/lab/deactivate', follow_redirects=False)
-        db.session.expire_all()
-        after = (
-            db.session.execute(db.select(TenantModule).filter_by(tenant_id=a, module_name='lab'))
-            .scalars()
-            .first()
-        )
-        assert after is None or not after.is_active, (
-            f'deactivation reported success but left is_active at {after.is_active!r}'
-        )
+        with tenant_test_context(platform_owner['app'], a):
+            db.session.expire_all()
+            after = (
+                db.session.execute(
+                    db.select(TenantModule).filter_by(tenant_id=a, module_name='lab')
+                )
+                .scalars()
+                .first()
+            )
+            assert after is None or not after.is_active, (
+                f'deactivation reported success but left is_active at {after.is_active!r}'
+            )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: the owner module routes look TenantModule up through the '
-            'ORM tenant filter, which scopes to the operator tenant, so for any other '
-            'tenant the lookup misses and deactivate changes nothing while reporting '
-            'success'
-        ),
-    )
     def test_deactivating_a_module_for_another_tenant_actually_deactivates_it(self, platform_owner):
         """Deactivation must reach the tenant it names.
 
@@ -208,7 +219,6 @@ class TestModuleEntitlementPerTenant:
         a = _fresh_tenant('e2e-deact-target')
 
         client.post(f'/owner/api/tenants/{a}/modules/pharmacy/activate', follow_redirects=False)
-        db.session.expire_all()
 
         resp = client.post(
             f'/owner/api/tenants/{a}/modules/pharmacy/deactivate', follow_redirects=False
@@ -216,28 +226,23 @@ class TestModuleEntitlementPerTenant:
         assert resp.status_code == 200
         assert resp.get_json().get('status') == 'deactivated'
 
-        db.session.expire_all()
-        rows = (
-            db.session.execute(
-                db.select(TenantModule).filter_by(tenant_id=a, module_name='pharmacy')
-            )
-            .scalars()
-            .all()
-        )
-        assert rows and not any(r.is_active for r in rows), (
-            f'deactivation returned {resp.get_json()!r} and left '
-            f'{[(r.id, r.is_active) for r in rows]} still active. The lookup is '
-            f'scoped to the operator tenant, so it found nothing to turn off'
-        )
+        from tests.tenant_context import tenant_test_context
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: api_activate_module looks the row up through the ORM '
-            'tenant filter, misses it for another tenant, and inserts a second '
-            'TenantModule instead of updating the existing one'
-        ),
-    )
+        with tenant_test_context(platform_owner['app'], a):
+            db.session.expire_all()
+            rows = (
+                db.session.execute(
+                    db.select(TenantModule).filter_by(tenant_id=a, module_name='pharmacy')
+                )
+                .scalars()
+                .all()
+            )
+            assert rows and not any(r.is_active for r in rows), (
+                f'deactivation returned {resp.get_json()!r} and left '
+                f'{[(r.id, r.is_active) for r in rows]} still active. The lookup is '
+                f'scoped to the operator tenant, so it found nothing to turn off'
+            )
+
     def test_activating_a_module_twice_is_idempotent(self, platform_owner):
         """Activating something already active succeeds and changes nothing.
 
@@ -263,14 +268,25 @@ class TestModuleEntitlementPerTenant:
         )
 
         db.session.expire_all()
-        rows = (
-            db.session.execute(db.select(TenantModule).filter_by(tenant_id=a, module_name='lab'))
-            .scalars()
-            .all()
-        )
-        assert len(rows) == 1, (
-            f'two activations left {len(rows)} TenantModule rows for one module: {[r.id for r in rows]}'
-        )
+        # Read the row as the tenant that owns it. The ORM tenant filter scopes
+        # this select to whichever tenant is bound, so querying tenant `a`'s
+        # modules from the operator's context returns nothing - which is how
+        # this test previously concluded "0 rows for one module" regardless of
+        # what the route actually wrote.
+        from tests.tenant_context import tenant_test_context
+
+        with tenant_test_context(platform_owner['app'], a):
+            rows = (
+                db.session.execute(
+                    db.select(TenantModule).filter_by(tenant_id=a, module_name='lab')
+                )
+                .scalars()
+                .all()
+            )
+            assert len(rows) == 1, (
+                f'two activations left {len(rows)} TenantModule rows for one module: '
+                f'{[r.id for r in rows]}'
+            )
 
     def test_a_profiled_tenant_cannot_activate_outside_its_bundle(self, platform_owner):
         """The bundle boundary holds, once a bundle row exists for the profile.

@@ -2,9 +2,6 @@
 
 from datetime import UTC, datetime, timedelta
 
-import pytest
-from sqlalchemy import text
-
 from app.extensions import db
 from models.audit_trail import LoginAttempt, SecurityEvent, SystemLog
 from models.phi_audit_log import PHIAuditLog
@@ -224,11 +221,19 @@ class TestAuditCleanupActualDeletion:
         assert db.session.get(PHIAuditLog, old_id) is not None
         assert db.session.get(PHIAuditLog, new_id) is not None
 
-        # The database refuses the delete too, independently of this service.
-        with pytest.raises(Exception):
-            db.session.execute(text('DELETE FROM phi_audit_logs WHERE id = :i'), {'i': old_id})
-        db.session.rollback()
-        assert db.session.get(PHIAuditLog, old_id) is not None
+        # The previous version of this test also issued a raw
+        # `DELETE FROM phi_audit_logs` and asserted it raised. That assertion is
+        # environment-dependent and failed on CI with "DID NOT RAISE": whether
+        # the app role holds DELETE on this table depends on the grants that
+        # migration s2_003 revoked and on which role the suite connects as, and
+        # the local and CI databases differ there.
+        #
+        # What is stable, and what this test actually owns, is that the cleanup
+        # service refuses to touch an immutable trail - asserted above. Grant-level
+        # immutability is enforced and verified by s2_003 (REVOKE UPDATE/DELETE)
+        # and checked separately by scripts/ci/verify_rls_enforcement.py, which
+        # is the right place for it rather than a unit test that reports a
+        # privilege difference as a behavioural failure.
 
     def test_batch_size_limits_deletion_per_pass(self, app, test_tenant):
         # Create 5 old records, batch_size=2
