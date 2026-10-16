@@ -126,7 +126,7 @@ def create_backup():
 
         if celery_is_enabled() or task_always_eager():
             try:
-                task_id = queue_system_backup(backup.id)
+                task_id = queue_system_backup(backup.id, tenant_id=backup.tenant_id)
                 return jsonify(
                     {
                         'accepted': True,

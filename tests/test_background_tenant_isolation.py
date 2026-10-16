@@ -125,35 +125,51 @@ class TestNotificationQueueTenantIsolation:
             db.session.add_all([t1, t2])
             db.session.commit()
 
-            user = User(
-                username='notif-dummy',
-                email='notif@example.com',
-                role='admin',
-                password_hash='fakehash',
-                full_name='Notif Dummy',
-                tenant_id=t1.id,
-            )
-            db.session.add(user)
-            db.session.commit()
+            from tests.tenant_context import tenant_test_context
 
-            n1 = NotificationQueue(
-                tenant_id=t1.id,
-                user_id=user.id,
-                notification_type='email',
-                recipient='a@example.com',
-                content='A',
-                status=NotificationState.PENDING,
-            )
-            n2 = NotificationQueue(
-                tenant_id=t2.id,
-                user_id=user.id,
-                notification_type='email',
-                recipient='b@example.com',
-                content='B',
-                status=NotificationState.PENDING,
-            )
-            db.session.add_all([n1, n2])
-            db.session.commit()
+            with tenant_test_context(app, t1):
+                user = User(
+                    username='notif-dummy',
+                    email='notif@example.com',
+                    role='admin',
+                    password_hash='fakehash',
+                    full_name='Notif Dummy',
+                    tenant_id=t1.id,
+                )
+                db.session.add(user)
+                db.session.commit()
+                user_id = user.id
+
+            # `g._tenant_filter_bypass` silences the ORM filter but never
+            # reaches PostgreSQL, and `notification_queue` has a WITH CHECK
+            # policy. Two tenants' rows in one INSERT cannot satisfy it, so each
+            # is written inside its own tenant's scope. The id is captured there
+            # too, for the reason given in the reminders test below.
+            with tenant_test_context(app, t1):
+                n1 = NotificationQueue(
+                    tenant_id=t1.id,
+                    user_id=user_id,
+                    notification_type='email',
+                    recipient='a@example.com',
+                    content='A',
+                    status=NotificationState.PENDING,
+                )
+                db.session.add(n1)
+                db.session.commit()
+                n1_id = n1.id
+
+            with tenant_test_context(app, t2):
+                n2 = NotificationQueue(
+                    tenant_id=t2.id,
+                    user_id=user_id,
+                    notification_type='email',
+                    recipient='b@example.com',
+                    content='B',
+                    status=NotificationState.PENDING,
+                )
+                db.session.add(n2)
+                db.session.commit()
+                n2_id = n2.id
 
             # Suppress actual email sending; monkeypatch restores after test.
             monkeypatch.setattr(
@@ -162,12 +178,21 @@ class TestNotificationQueueTenantIsolation:
                 MagicMock(return_value={'success': True}),
             )
 
-            result = NotificationService.process_notification_queue(tenant_id=t1.id)
-            assert result['success'] is True
+            result = None
+            # A real worker for tenant t1 runs inside tenant t1's scope
+            # (`tenant_task` / `for_each_tenant` both bind it). The service
+            # filters explicitly on tenant_id, but the ORM auto-filter still
+            # narrows by the ambient tenant on top of that, so calling it while
+            # some other tenant is bound finds nothing. Fail-closed, not a bug.
+            with tenant_test_context(app, t1):
+                result = NotificationService.process_notification_queue(tenant_id=t1.id)
+                assert result['success'] is True
 
-            # Only tenant 1 notification should be processed
-            assert db.session.get(NotificationQueue, n1.id).status == NotificationState.SENT
-            assert db.session.get(NotificationQueue, n2.id).status == NotificationState.PENDING
+                # Only tenant 1 notification should be processed. Each read runs
+                # in the scope that owns the row.
+                assert db.session.get(NotificationQueue, n1_id).status == NotificationState.SENT
+            with tenant_test_context(app, t2):
+                assert db.session.get(NotificationQueue, n2_id).status == NotificationState.PENDING
 
 
 @pytest.mark.no_tenant_context
@@ -206,50 +231,85 @@ class TestAppointmentRemindersTenantIsolation:
             )
             db.session.add_all([t1, t2])
             db.session.commit()
-            # Set g.tenant_id so get_tenant_record can verify ownership
+
+            # `g._tenant_filter_bypass` only silences the ORM filter; it never
+            # reaches PostgreSQL. Patients, appointments and users all carry a
+            # WITH CHECK policy, so tenant B's rows must be written while tenant
+            # B is bound - otherwise one multi-row INSERT naming two different
+            # tenant_ids is rejected outright, which is what
+            # `InsufficientPrivilege ... table "patients"` was.
+            #
+            # Ids are captured inside the scope that made the row visible,
+            # because afterwards the ORM filter re-asserts the other tenant and
+            # an attribute read raises ObjectDeletedError on a row that exists.
+            from tests.tenant_context import tenant_test_context
+
+            with tenant_test_context(app, t1):
+                doctor = User(
+                    username='doc',
+                    email='doc@example.com',
+                    role='doctor',
+                    password_hash='fakehash',
+                    full_name='Dr. Test',
+                    tenant_id=t1.id,
+                )
+                db.session.add(doctor)
+                db.session.commit()
+                doctor_id = doctor.id
+
+            with tenant_test_context(app, t1):
+                patient1 = Patient(
+                    tenant_id=t1.id, first_name='P1', last_name='Test', phone='0500000001'
+                )
+                db.session.add(patient1)
+                db.session.commit()
+                patient1_id = patient1.id
+
+            with tenant_test_context(app, t2):
+                patient2 = Patient(
+                    tenant_id=t2.id, first_name='P2', last_name='Test', phone='0500000002'
+                )
+                db.session.add(patient2)
+                db.session.commit()
+
+            with tenant_test_context(app, t1):
+                a1 = Appointment(
+                    tenant_id=t1.id,
+                    patient_id=patient1_id,
+                    doctor_id=doctor_id,
+                    status=AppointmentState.SCHEDULED,
+                    starts_at=soon,
+                )
+                db.session.add(a1)
+                db.session.commit()
+
+            with tenant_test_context(app, t2):
+                a2 = Appointment(
+                    tenant_id=t2.id,
+                    patient_id=patient2.id,
+                    doctor_id=doctor_id,
+                    status=AppointmentState.SCHEDULED,
+                    starts_at=soon,
+                )
+                db.session.add(a2)
+                db.session.commit()
+                patient2_id = patient2.id
+
+            # get_tenant_record verifies ownership against g.tenant_id.
             g.tenant_id = t1.id
-            db.session.commit()
-
-            patient1 = Patient(
-                tenant_id=t1.id, first_name='P1', last_name='Test', phone='0500000001'
-            )
-            patient2 = Patient(
-                tenant_id=t2.id, first_name='P2', last_name='Test', phone='0500000002'
-            )
-            doctor = User(
-                username='doc',
-                email='doc@example.com',
-                role='doctor',
-                password_hash='fakehash',
-                full_name='Dr. Test',
-                tenant_id=t1.id,
-            )
-            db.session.add_all([patient1, patient2, doctor])
-            db.session.commit()
-
-            a1 = Appointment(
-                tenant_id=t1.id,
-                patient_id=patient1.id,
-                doctor_id=doctor.id,
-                status=AppointmentState.SCHEDULED,
-                starts_at=soon,
-            )
-            a2 = Appointment(
-                tenant_id=t2.id,
-                patient_id=patient2.id,
-                doctor_id=doctor.id,
-                status=AppointmentState.SCHEDULED,
-                starts_at=soon,
-            )
-            db.session.add_all([a1, a2])
-            db.session.commit()
 
             mock_add = MagicMock()
             monkeypatch.setattr(NotificationService, 'add_to_notification_queue', mock_add)
 
-            result = NotificationService.send_appointment_reminders(tenant_id=t1.id)
-            assert result['success'] is True
-            assert result['sent'] == 1
+            result = None
+            # See the note in the notification-queue test: the worker runs inside
+            # the tenant it serves, otherwise the ORM auto-filter narrows the
+            # explicitly-scoped query to nothing.
+            with tenant_test_context(app, t1):
+                result = NotificationService.send_appointment_reminders(tenant_id=t1.id)
+                assert result['success'] is True
+                assert result['sent'] == 1
 
             called_tenant_ids = {call.kwargs.get('tenant_id') for call in mock_add.call_args_list}
             assert t2.id not in called_tenant_ids
+            assert patient2_id != patient1_id

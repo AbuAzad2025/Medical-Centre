@@ -315,6 +315,11 @@ class TestTenantIsolationIsExecuted:
         visit, _patient_row = _paid_visit(
             app, home_client, test_tenant, home_dept, home_doctor, home_service, login_as
         )
+        # Read the id while the home tenant is still bound. `login_test_client`
+        # below rebinds the scope to `other`, and an attribute read after that
+        # is a refresh that RLS refuses - ObjectDeletedError on a row that is
+        # present and owned by another tenant.
+        visit_id = visit.id
 
         # A second tenant, with its own clinician, created rather than assumed.
         other = Tenant(
@@ -336,15 +341,15 @@ class TestTenantIsolationIsExecuted:
 
         login_test_client(stranger_client, stranger, other)
 
-        resp = stranger_client.get(f'/reception/view_visit/{visit.id}', follow_redirects=False)
+        resp = stranger_client.get(f'/reception/view_visit/{visit_id}', follow_redirects=False)
         assert resp.status_code in (302, 403, 404), (
-            f'tenant {other.id} read visit {visit.id} from tenant {test_tenant.id} with '
+            f'tenant {other.id} read visit {visit_id} from tenant {test_tenant.id} with '
             f'{resp.status_code}; the tenant boundary is not holding'
         )
 
         body = resp.get_data(as_text=True)
         assert (
-            str(visit.id) not in body
+            str(visit_id) not in body
             or 'not found' in body.lower()
             or resp.status_code
             in (
@@ -357,15 +362,20 @@ class TestTenantIsolationIsExecuted:
         )
 
         # And the row is untouched: a refused read must not have consumed it.
-        db.session.expire_all()
-        survivor = db.session.get(Visit, visit.id)
-        assert survivor is not None, (
-            f'visit {visit.id} disappeared after a refused cross-tenant read; the '
-            f'refusal destroyed a row it was supposed to protect'
-        )
-        assert survivor.tenant_id == test_tenant.id, (
-            'the visit changed tenant; a refused read wrote to it'
-        )
+        # Read it as the tenant that owns it - from the stranger's scope the row
+        # is correctly invisible, which would make this check meaningless.
+        from tests.tenant_context import tenant_test_context
+
+        with tenant_test_context(app, test_tenant):
+            db.session.expire_all()
+            survivor = db.session.get(Visit, visit_id)
+            assert survivor is not None, (
+                f'visit {visit_id} disappeared after a refused cross-tenant read; the '
+                f'refusal destroyed a row it was supposed to protect'
+            )
+            assert survivor.tenant_id == test_tenant.id, (
+                'the visit changed tenant; a refused read wrote to it'
+            )
 
     def test_the_diagnostic_route_still_answers_without_a_session(self, app):
         """/_ghost_whoami remains unauthenticated, which is the recorded finding.

@@ -3,7 +3,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from app.core.saas.models import (
     Package,
@@ -138,7 +138,7 @@ class TestPerTenantUsername:
         shared = f'shared_{uuid.uuid4().hex[:8]}'
         slug_a = f'ta-{uuid.uuid4().hex[:6]}'
         slug_b = f'tb-{uuid.uuid4().hex[:6]}'
-        SaasRegistrationService.register_organization(
+        tenant_a, _ = SaasRegistrationService.register_organization(
             slug=slug_a,
             name='A',
             contact_email=f'{slug_a}@a.test',
@@ -156,12 +156,29 @@ class TestPerTenantUsername:
             admin_full_name='Admin B',
             package_version_id=version.id,
         )
-        with app.app_context(), app.test_request_context():
-            from flask import g
 
-            g._tenant_filter_bypass = True
-            count = db.session.execute(
-                select(func.count()).select_from(User).filter_by(username=shared)
-            ).scalar()
-            assert count == 2
-            assert tenant_b.id is not None
+        # Usernames are unique per tenant, not globally, so the property to
+        # check is that each tenant holds exactly one user with this name and
+        # that the two are distinct accounts.
+        #
+        # The count cannot be taken from a single unbound context: RLS scopes
+        # `users` to the bound tenant, so rows belonging to the other signup
+        # are invisible and the total reads 0 regardless of what was written.
+        # Each tenant is therefore counted inside its own scope.
+        from tests.tenant_context import tenant_test_context
+
+        seen = {}
+        for tenant in (tenant_a, tenant_b):
+            with tenant_test_context(app, tenant):
+                rows = db.session.execute(select(User).filter_by(username=shared)).scalars().all()
+                assert len(rows) == 1, (
+                    f'tenant {tenant.id} holds {len(rows)} users named {shared}; '
+                    'the per-tenant uniqueness rule is not being enforced'
+                )
+                seen[tenant.id] = rows[0].id
+
+        assert len(set(seen.values())) == 2, (
+            'both tenants resolved to the same user id; the same account was '
+            'shared across the tenant boundary'
+        )
+        assert tenant_b.id is not None

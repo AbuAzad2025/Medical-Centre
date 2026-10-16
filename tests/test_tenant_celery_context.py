@@ -107,7 +107,11 @@ class TestRunSystemBackupTenantContext:
         with patch(
             'services.backup_execution_service.execute_backup_by_id', side_effect=fake_execute
         ):
-            result = run_system_backup(backup_id)
+            # Pass the tenant the queue would pass. The task cannot discover it by
+            # reading the row first: `backups` is RLS-protected by
+            # `tenant_id = app.tenant_id`, so that read returns nothing. This is
+            # exactly the argument queue_system_backup now forwards.
+            result = run_system_backup(backup_id, tenant_id=tenant_id)
 
         assert result['backup_id'] == backup_id
         assert tenant_ids_seen == [tenant_id]

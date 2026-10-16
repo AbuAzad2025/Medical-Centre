@@ -53,7 +53,7 @@ class TestCeleryBackupTask:
                 return_value=None,
             ),
         ):
-            task_id = queue_system_backup(backup.id)
+            task_id = queue_system_backup(backup.id, tenant_id=backup.tenant_id)
 
         assert task_id
         db.session.refresh(backup)

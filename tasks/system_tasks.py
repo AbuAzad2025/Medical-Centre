@@ -147,35 +147,43 @@ def _purge_stale_notifications() -> dict:
 
 
 @celery.task(name='tasks.run_system_backup', bind=True)
-def run_system_backup(self, backup_id: int) -> dict:
-    """Run pg_dump for a queued Backup record outside the web request cycle."""
+def run_system_backup(self, backup_id: int, tenant_id: int | None = None) -> dict:
+    """Run pg_dump for a queued Backup record outside the web request cycle.
+
+    *tenant_id* is supplied by the queue because the row cannot be discovered
+    without a tenant binding: `backups` is RLS-protected by
+    `tenant_id = app.tenant_id`, so reading the row to learn its tenant always
+    returns nothing. When the caller knows the tenant we bind it and read the
+    row under that scope.
+    """
     from flask import current_app
 
     from services.backup_execution_service import execute_backup_by_id
     from services.tenant_job_runner import get_flask_app, with_tenant_context
 
     app = get_flask_app() or current_app._get_current_object()
-    backup = _load_backup_without_tenant_context(backup_id)
-    if backup is None:
-        raise BackupAutomationError(f'Backup record {backup_id} not found')
+
+    if tenant_id is None:
+        backup = _load_backup_without_tenant_context(backup_id)
+        if backup is None:
+            raise BackupAutomationError(f'Backup record {backup_id} not found')
+        tenant_id = backup.tenant_id
 
     try:
-        if backup.tenant_id is not None:
+        if tenant_id is not None:
             outcome = with_tenant_context(
                 app,
-                backup.tenant_id,
+                tenant_id,
                 lambda: _backup_result_tuple(execute_backup_by_id, backup_id),
             )
         else:
             outcome = _backup_result_tuple(execute_backup_by_id, backup_id)
     except BackupAutomationError:
-        logger.exception('Celery backup task failed backup_id=%s: %s')
+        logger.exception('Celery backup task failed backup_id=%s', backup_id)
         raise
 
     if outcome is None:
-        raise BackupAutomationError(
-            f'Backup tenant {backup.tenant_id} not found for backup {backup_id}'
-        )
+        raise BackupAutomationError(f'Backup tenant {tenant_id} not found for backup {backup_id}')
 
     status, size = outcome
     return {

@@ -93,7 +93,7 @@ def create_backup():
 
             if celery_is_enabled() or task_always_eager():
                 try:
-                    queue_system_backup(backup.id)
+                    queue_system_backup(backup.id, tenant_id=backup.tenant_id)
                     flash('تم إرسال النسخة الاحتياطية إلى قائمة الانتظار', 'success')
                     return redirect(url_for('backup.dashboard'))
                 except BackupQueueError as exc:
