@@ -44,7 +44,7 @@
                             </td>
                             <td>{{ log.entity_type }}</td>
                             <td>{{ log.entity_id }}</td>
-                            <td>{{ log.description|truncate(80) }}</td>
+                            <td>{{ (log.description or '')|truncate(80) }}</td>
                             <td>{{ log.user_id or 'N/A' }}</td>
                             <td>{{ log.user_ip or 'N/A' }}</td>
                         </tr>

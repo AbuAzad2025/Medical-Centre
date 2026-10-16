@@ -238,6 +238,39 @@ class TestOwnerSupportAudit:
         resp = client.get('/owner/error-audit-logs')
         assert resp.status_code in (200, 302)
 
+    def test_error_audit_logs_renders_rows_with_no_description(
+        self, login_as, client, ctx, test_tenant
+    ):
+        """A NULL description must not break the page.
+
+        `description` is nullable, and Jinja's `truncate` filter calls `len()`
+        on its input, so `{{ log.description|truncate(80) }}` raised
+        `TypeError: object of type 'NoneType' has no len()` for any audit row
+        without one - taking the whole owner's error-audit view down with a
+        single row. Surfaced on CI shard 3, where such a row was present.
+        """
+        from models.audit_trail import AuditTrail
+        from tests.tenant_context import tenant_test_context
+
+        _make_owner(login_as, client, ctx)
+
+        with tenant_test_context(client.application, test_tenant):
+            ctx.db.session.add(
+                AuditTrail(
+                    tenant_id=test_tenant.id,
+                    action='view',
+                    entity_type='system',
+                    entity_id=1,
+                    # description deliberately left NULL
+                )
+            )
+            ctx.db.session.commit()
+
+        resp = client.get('/owner/error-audit-logs')
+        assert resp.status_code in (200, 302), (
+            f'the page answered {resp.status_code}; a NULL description must render, not raise'
+        )
+
     def test_error_logs(self, login_as, client, ctx):
         _make_owner(login_as, client, ctx)
         resp = client.get('/owner/error-logs')
