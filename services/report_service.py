@@ -119,26 +119,29 @@ class ReportService:
                     Visit.department_id == department_id
                 )
 
+            # Aggregate over the payments query itself. Wrapping it in
+            # `.subquery()` and keeping `Payment.amount` in the outer select
+            # added the real `payments` table as a second, unjoined FROM, so the
+            # sum ran over every (subquery row x payment row) pair and the
+            # reported revenue came out multiplied by the payment count.
             total_revenue = (
                 db.session.execute(
-                    select(func.coalesce(func.sum(Payment.amount), 0)).select_from(
-                        payments_query.subquery()
-                    )
+                    payments_query.with_only_columns(func.coalesce(func.sum(Payment.amount), 0))
                 ).scalar()
                 or 0
             )
             cash_payments = (
                 db.session.execute(
-                    select(func.coalesce(func.sum(Payment.amount), 0)).select_from(
-                        payments_query.filter(Payment.method == 'CASH').subquery()
+                    payments_query.filter(Payment.method == 'CASH').with_only_columns(
+                        func.coalesce(func.sum(Payment.amount), 0)
                     )
                 ).scalar()
                 or 0
             )
             insurance_payments = (
                 db.session.execute(
-                    select(func.coalesce(func.sum(Payment.amount), 0)).select_from(
-                        payments_query.filter(Payment.method == 'INSURANCE').subquery()
+                    payments_query.filter(Payment.method == 'INSURANCE').with_only_columns(
+                        func.coalesce(func.sum(Payment.amount), 0)
                     )
                 ).scalar()
                 or 0

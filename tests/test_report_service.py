@@ -122,6 +122,45 @@ class TestSummaries:
         res = RP.get_dashboard_summary(department_id=seed.dept.id)
         assert res['success'] is True
 
+    def test_revenue_totals_are_not_multiplied_by_payment_count(self, seed):
+        """Revenue aggregates must not scale with the number of payment rows.
+
+        The dashboard built each total as
+        ``select(sum(Payment.amount)).select_from(select(Payment).subquery())``.
+        The subquery is the only FROM element, so naming ``Payment.amount``
+        pulled the real ``payments`` table in as a second, unjoined FROM and the
+        aggregate was evaluated over every (subquery row x payment row) pair.
+        With N payments the reported revenue came out as N x the true sum.
+
+        A single-payment fixture cannot see this: 1 x anything is unchanged,
+        which is why the existing dashboard tests passed while the figure was
+        wrong for every real tenant with more than one payment.
+        """
+        # Clear the seeded payment so the totals below are unambiguous.
+        for existing in seed.db.session.query(Payment).all():
+            seed.db.session.delete(existing)
+        seed.db.session.commit()
+
+        v = seed.visit()
+        seed.payment(v.id, amount=100, method='CASH')
+        seed.payment(v.id, amount=50, method='INSURANCE')
+        seed.payment(v.id, amount=25, method='CASH')
+
+        res = RP.get_dashboard_summary()
+        assert res['success'] is True
+        fin = res['summary']['financial']
+
+        # True figures: 100 + 50 + 25 = 175; CASH = 125; INSURANCE = 50.
+        assert fin['total_revenue'] == 175
+        assert fin['cash_payments'] == 125
+        assert fin['insurance_payments'] == 50
+
+        # And the parts must reconcile to the whole. Under the Cartesian
+        # aggregate every figure was scaled by the same factor, so this held
+        # even while the absolute numbers were wrong - the absolute assertions
+        # above are the ones that actually pin the bug.
+        assert fin['cash_payments'] + fin['insurance_payments'] == fin['total_revenue']
+
     def test_financial_report(self, seed):
         res = RP.get_financial_report()
         assert res['success'] is True
