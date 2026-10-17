@@ -146,13 +146,12 @@ class TestFinalizeIsNotTheDefault:
     presence of a report.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: an empty POST carries no action, and a missing action is '
-            'treated as finalize, so posting nothing marks the report DONE'
-        ),
-    )
+    # Both strict xfail markers that sat here are gone. They recorded that the
+    # finalize decision was taken from the *absence* of an action rather than the
+    # presence of a report, and that completion was announced on every save.
+    # Finalize is now explicit-only and requires findings or an impression, and
+    # the notification fires only on a genuinely completed report.
+
     def test_an_empty_submission_does_not_finalize_the_report(self, imaging):
         """A form nobody filled in is not a report.
 
@@ -174,13 +173,6 @@ class TestFinalizeIsNotTheDefault:
             f'so the report is declared complete before anybody wrote one.'
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: _notify_radiology_complete is called on every action, so '
-            'saving a draft announces a finished report to the requester'
-        ),
-    )
     def test_a_draft_save_does_not_announce_a_finished_report(self, imaging):
         """Saving work in progress is not completing it.
 

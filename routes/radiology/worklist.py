@@ -302,7 +302,25 @@ def worklist_complete(request_id):
             request.files.getlist('image_upload') if request.files else [], res, payload
         )
 
-        should_finalize = action in (None, 'finalize')
+        is_draft = action == 'save'
+        # Finalization is decided by the presence of a report, not by the
+        # absence of an action. Previously `action in (None, 'finalize')` meant
+        # an empty POST - an abandoned draft, a double-clicked submit, a client
+        # posting an empty body - marked the report DONE, and completion was
+        # announced on every save.
+        #
+        # So: a draft save never finalizes, and anything else finalizes only when
+        # there is an actual opinion to report.
+        report_content = bool(
+            (res and ((res.findings or '').strip() or (res.impression or '').strip())) or ''
+        )
+        should_finalize = (not is_draft) and report_content
+        if action == 'finalize' and not report_content:
+            logging.warning(
+                'Radiology finalize refused for request %s: no findings and no impression',
+                req.id,
+            )
+
         if should_finalize:
             req.status = OrderState.DONE
             _log_radiology_workflow(req.id, 'DONE', 'finalize')
@@ -312,7 +330,11 @@ def worklist_complete(request_id):
         req.updated_at = datetime.now(UTC)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 
-        _notify_radiology_complete(req, bool(is_critical))
+        # Only a completed report announces itself. Notifying on every action
+        # told the requester a result was ready while the worklist still showed
+        # the request open.
+        if should_finalize:
+            _notify_radiology_complete(req, bool(is_critical))
 
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': True, 'message': 'تم إكمال الطلب'}), 200
