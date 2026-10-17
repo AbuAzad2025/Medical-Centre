@@ -149,13 +149,6 @@ class TestFinalizeRequiresResults:
     through here is a report that will not be chased.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: finalize sets the request to DONE unconditionally, so an '
-            'order with no results at all reports as complete'
-        ),
-    )
     def test_a_request_with_no_results_cannot_be_finalized(self, lab):
         """A panel nobody filled in is not a finished report.
 
@@ -176,13 +169,6 @@ class TestFinalizeRequiresResults:
             f'panel is indistinguishable from a completed one.'
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: finalize marks the request DONE after validating only the '
-            'results that have a value, so a partly filled panel reports as complete'
-        ),
-    )
     def test_a_partly_filled_panel_cannot_be_finalized(self, lab):
         """One result out of three is not a finished report either.
 
@@ -222,13 +208,13 @@ class TestFinalizeRequiresResults:
 
 @covers('LAB_RESULT_LIFECYCLE')
 class TestTheRequesterIsToldTruthfully:
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: _notify_lab_results_ready runs on every finalize, so the '
-            'doctor is told a result is ready when the report is empty'
-        ),
-    )
+    # The strict xfail that sat here is gone. It recorded that
+    # _notify_lab_results_ready ran on every finalize, so the doctor was told a
+    # result was ready when the report was empty. That is the same defect as the
+    # two finalize guards above - finalize now refuses an empty or part-filled
+    # panel and returns before the notification is dispatched - so the test
+    # XPASSed and strict=True reported the fix as a failure.
+
     def test_the_doctor_is_not_told_a_result_is_ready_when_there_is_none(self, lab):
         """The notification has to agree with the report.
 

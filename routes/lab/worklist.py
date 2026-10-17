@@ -251,10 +251,32 @@ def worklist_request(request_id):
             any_change = _process_lab_results_form(lab_request, request.form)
 
             if action == 'finalize':
-                for res in lab_request.results:
-                    if (res.value or '').strip():
-                        res.status = LabResultStatus.VALIDATED
-                        res.performed_by = current_user.id
+                results = list(lab_request.results)
+                # Finalizing is the point at which the report stops being
+                # pending and the doctor is told to look at it, so it has to be
+                # refused unless the panel is genuinely complete. Previously the
+                # loop below validated only the results that already carried a
+                # value and then marked the request DONE regardless, so an
+                # untouched panel and a part-filled one both reported as
+                # finished - a doctor opened a DONE report to find nothing.
+                missing = [res for res in results if not (res.value or '').strip()]
+                if not results:
+                    flash(
+                        'لا يمكن إنهاء طلب المختبر: لا توجد نتائج مسجلة على اللوحة',
+                        'error',
+                    )
+                    return redirect(url_for('lab.worklist_request', request_id=lab_request.id))
+                if missing:
+                    flash(
+                        f'لا يمكن إنهاء طلب المختبر: {len(missing)} نتيجة غير مكتملة '
+                        'ولا يمكن إعلان التقرير جاهزاً قبل إدخالها جميعاً',
+                        'error',
+                    )
+                    return redirect(url_for('lab.worklist_request', request_id=lab_request.id))
+
+                for res in results:
+                    res.status = LabResultStatus.VALIDATED
+                    res.performed_by = current_user.id
                 lab_request.status = OrderState.DONE
                 lab_request.completed_at = datetime.now(UTC)
                 lab_request.updated_at = datetime.now(UTC)
