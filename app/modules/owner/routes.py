@@ -89,41 +89,58 @@ def _mask_secret(value, keep=4):
 
 
 def _log_action(action, entity_type, entity_id=None, details=None):
-    """Write a PlatformAuditLog row with platform tenant scope (tenant_id=1).
+    """Record a platform action in platform_audit_logs. Fails closed.
 
-    Owner routes may run with a tenant bound from the login context, but
-    platform_audit_logs requires tenant_id = app.tenant_id. The platform
-    tenant has id=1 (slug='platform'), so we bind that tenant for the write.
+    ``platform_audit_logs`` is RLS-protected by ``tenant_id = app.tenant_id``,
+    so the row must be written while the platform tenant is bound. This resolves
+    that tenant by slug via ``platform_tenant_scope()`` rather than assuming
+    id 1, and lets ``PlatformTenantMissingError`` propagate.
+
+    Two things this used to get wrong, both silent:
+
+    * It issued a bare ``SET app.tenant_id = '1'``. That is not enough - the
+      ``tenant_filter`` ``reassert_set_local`` hook re-issues the GUC from
+      ``session.info``/``g`` before every ORM statement, so the SET was undone
+      before the INSERT was evaluated and the WITH CHECK clause rejected the row
+      with InsufficientPrivilege. Measured: raw SET -> flush FAILED,
+      ``bound_tenant_scope`` -> flush OK.
+    * It wrapped the write in ``except Exception: safe_rollback(...)``. Every
+      failure was therefore invisible: the route returned 200 and the action
+      left no trace. The audit trail is the thing that makes an owner action
+      explainable after the fact, so a dropped write is worse than a visible
+      error. Failures now propagate.
+
+    This is called from owner routes, so a genuine audit failure now surfaces to
+    the caller as a 500 rather than silently succeeding.
+
+    The identity of the caller is read before the scope switch for a related
+    reason: `users` is tenant-scoped, so binding the platform tenant hides the
+    operator's own row.
     """
-    from sqlalchemy import text
+    from app.core.tenant.middleware import platform_tenant_scope
 
-    prev_guc = None
-    try:
-        prev_guc = db.session.execute(text('SHOW app.tenant_id')).scalar()
-        db.session.execute(text("SET app.tenant_id = '1'"))
-    except Exception:
-        pass
-    try:
+    # Read everything off the caller BEFORE switching scope. `users` is
+    # tenant-scoped, so once the platform tenant is bound the operator's own row
+    # is no longer visible and any attribute refresh on `current_user` raises
+    # ObjectDeletedError on a user that plainly exists. Capturing first is what
+    # makes the platform scope safe to enter at all.
+    actor_id = getattr(current_user, 'id', None)
+    actor_ip = request.remote_addr
+    agent = request.user_agent.string[:255] if request.user_agent else None
+
+    with platform_tenant_scope() as platform_tenant:
         log = PlatformAuditLog(
-            user_id=current_user.id,
-            tenant_id=1,
+            user_id=actor_id,
+            tenant_id=platform_tenant.id,
             action=action,
             entity_type=entity_type,
             entity_id=entity_id,
             details=details,
-            ip_address=request.remote_addr,
-            user_agent=request.user_agent.string[:255] if request.user_agent else None,
+            ip_address=actor_ip,
+            user_agent=agent,
         )
         db.session.add(log)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-    except Exception:
-        safe_rollback(db.session, error_message='database rollback')
-    finally:
-        if prev_guc is not None:
-            from contextlib import suppress
-
-            with suppress(Exception):
-                db.session.execute(text('SET app.tenant_id = :tid'), {'tid': str(prev_guc)})
 
 
 def _compute_platform_revenue():

@@ -43,6 +43,10 @@ class TenantResolutionError(Exception):
     pass
 
 
+class PlatformTenantMissingError(TenantResolutionError):
+    """No platform tenant exists, so a platform-level write cannot be attributed."""
+
+
 def _get_tenant_by_slug(slug: str) -> Tenant | None:
     """Return login-eligible tenant by slug (active, trial, or pending payment)."""
     from app.shared.enums import TenantStatus
@@ -335,6 +339,49 @@ def bound_tenant_scope(tenant: Tenant | None):
             db.session.info.pop('_tenant_id', None)
         else:
             db.session.info['_tenant_id'] = prev_info
+
+
+@contextmanager
+def platform_tenant_scope():
+    """Bind the platform tenant for the duration of a platform-level write.
+
+    Resolves the platform tenant by its slug (``PLATFORM_TENANT_SLUG``,
+    defaulting to ``platform``) rather than a hard-coded id, and binds it with
+    ``bound_tenant_scope`` so ``g``, ``session.info['_tenant_id']`` and the
+    connection GUC all move together.
+
+    Binding all three matters. Issuing a bare ``SET app.tenant_id = ...`` is not
+    enough: ``tenant_filter`` installs a ``reassert_set_local`` hook that
+    re-issues the GUC from ``session.info``/``g`` before every ORM statement, so
+    a raw SET is stomped back before the INSERT is evaluated and the WITH CHECK
+    clause rejects the row with InsufficientPrivilege. Measured, both directions:
+
+        raw SET app.tenant_id='1'  -> flush FAILED (row rejected)
+        bound_tenant_scope(tenant) -> flush OK
+
+    Raises ``PlatformTenantMissingError`` when no platform tenant exists. It
+    deliberately does not create one - silently provisioning a tenant from an
+    audit write would hide a broken deployment behind a side effect.
+    """
+    from sqlalchemy import select
+
+    from app.core.tenant.models import Tenant
+
+    try:
+        cfg = current_app.config
+    except RuntimeError:
+        cfg = {}
+    slug = (cfg.get('PLATFORM_TENANT_SLUG') or 'platform').strip().lower()
+
+    # `tenants` is a global reference table, so this read is not tenant-scoped.
+    tenant = db.session.execute(select(Tenant).filter(Tenant.slug == slug)).scalars().first()
+    if tenant is None:
+        raise PlatformTenantMissingError(
+            f'no tenant with slug {slug!r}; platform-level writes cannot be '
+            f'attributed. Seed the platform tenant or set PLATFORM_TENANT_SLUG.'
+        )
+    with bound_tenant_scope(tenant):
+        yield tenant
 
 
 def set_tenant_context():

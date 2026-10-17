@@ -111,21 +111,26 @@ class TestPasswordResetIsAudited:
         # _log_action in the owner module writes PlatformAuditLog, not the tenant
         # AuditTrail the clinical modules use. Two audit tables in one deployment is
         # worth knowing about; what matters here is that this one records the reset.
-        from sqlalchemy import text
-
+        from app.core.tenant.middleware import platform_tenant_scope
         from app.core.tenant.models import PlatformAuditLog
 
-        # Platform audit rows have tenant_id=1 (platform tenant) and require GUC='1' to be visible.
-        prev_guc = db.session.execute(text('SHOW app.tenant_id')).scalar()
-        db.session.execute(text("SET app.tenant_id = '1'"))
-        try:
+        # Capture the id first. `users` is tenant-scoped, so inside the platform
+        # scope the operator's own row is hidden and reading the attribute
+        # raises ObjectDeletedError on a user that exists.
+        owner_id = operator['owner'].id
+
+        # Read through the same scope helper _log_action uses. A bare
+        # `SET app.tenant_id = '1'` does not work here either: the tenant_filter
+        # reassert hook re-issues the GUC from session.info/g before every ORM
+        # statement, so a manual SET is undone before the SELECT runs and the row
+        # reads as absent - which is how this test concluded "no audit row records
+        # the password reset" even after the write itself was made to succeed.
+        with platform_tenant_scope():
             rows = (
-                db.session.execute(select(PlatformAuditLog).filter_by(user_id=operator['owner'].id))
+                db.session.execute(select(PlatformAuditLog).filter_by(user_id=owner_id))
                 .scalars()
                 .all()
             )
-        finally:
-            db.session.execute(text('SET app.tenant_id = :tid'), {'tid': str(prev_guc)})
         resets = [r for r in rows if r.action == 'RESET_PASSWORD']
         assert resets, (
             f'no audit row records the password reset. {len(rows)} audit row(s) exist '
