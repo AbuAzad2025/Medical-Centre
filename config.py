@@ -199,6 +199,17 @@ class Config:
         raise RuntimeError(
             'SECRET_KEY environment variable is required. Set it before running the application.'
         )
+    # Fail closed on a short signing key. SECRET_KEY signs the session cookie, so
+    # its length is the brute-force budget on session forgery; a 32-byte floor is
+    # the 256-bit baseline. Previously any non-empty value was accepted, so a
+    # one-character key produced a running, forgeable deployment. Both the local
+    # .env (64 chars) and CI (38) already clear this.
+    if len(SECRET_KEY.encode('utf-8')) < 32:
+        raise RuntimeError(
+            f'SECRET_KEY must be at least 32 bytes (256-bit); '
+            f'got {len(SECRET_KEY.encode("utf-8"))}. Generate one with '
+            f'`python -c "import secrets; print(secrets.token_urlsafe(48))"`.'
+        )
 
     # إعدادات الأداء
     JSON_SORT_KEYS = False
