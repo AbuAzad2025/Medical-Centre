@@ -32,7 +32,11 @@ def test_alembic_heads_expected(app):
         [sys.executable, '-m', 'flask', 'db', 'heads'],
         env={
             **__import__('os').environ,
-            'SECRET_KEY': 'test',
+            # config.py refuses a SECRET_KEY under 32 bytes, so this throwaway
+            # subprocess needs a full-length one. It only has to let wsgi import
+            # so alembic can resolve the revision graph; it never serves traffic
+            # and the database URL below is a throwaway.
+            'SECRET_KEY': 'test-secret-key-for-migrations-only-32c',
             'FLASK_ENV': 'testing',
             'FLASK_APP': 'wsgi:app',
             'DATABASE_URL': 'postgresql://localhost/test',
