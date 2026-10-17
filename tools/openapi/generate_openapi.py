@@ -44,6 +44,16 @@ CONVERTER_RE = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 # Methods that are transport-level aliases rather than distinct operations.
 SKIPPED_METHODS = frozenset({'HEAD', 'OPTIONS', 'TRACE'})
 
+# Endpoints that exist in the inventory but are not part of the production API
+# surface, and so must not be advertised to consumers of the published contract.
+#
+# `/static/<path:filename>` is Flask's asset route, not an API endpoint.
+# `/test/*` are error-injection diagnostics registered by tests/conftest.py; they
+# only exist when the app runs under TestingConfig. Verified against the live
+# url_map: 0 live operations are missing from the inventory, but these 10 were
+# inventory entries with no production counterpart.
+NON_PRODUCTION_PREFIXES = ('/static/', '/test/')
+
 ERROR_RESPONSES: dict[str, str] = {
     '400': 'Bad request',
     '401': 'Unauthorized',
@@ -113,6 +123,8 @@ def generate_spec(inventory: dict[str, Any]) -> dict[str, Any]:
     for route in inventory.get('routes', []):
         raw_path = route.get('path')
         if not raw_path:
+            continue
+        if raw_path.startswith(NON_PRODUCTION_PREFIXES):
             continue
 
         path = normalize_path(raw_path)
