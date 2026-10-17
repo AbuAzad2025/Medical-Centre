@@ -282,26 +282,32 @@ class TestTheSingleRequestLifecycle:
 @covers('INPATIENT_BED_AND_ADMISSION')
 @pytest.mark.concurrency
 class TestTwoPatientsCannotShareABed:
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: create_admission reads the bed without SELECT ... FOR UPDATE, '
-            'so two admissions of different patients to one bed both succeed and the '
-            'second commit overwrites the first'
-        ),
-    )
+    # The strict xfail here is gone. create_admission decided on the bed status
+    # it read and then wrote OCCUPIED, so two admissions of different patients
+    # to one bed both read AVAILABLE and both proceeded, and the second commit
+    # overwrote the first. The bed row is now read with SELECT ... FOR UPDATE,
+    # so the second transaction blocks until the first commits and then refuses.
+
     def test_concurrent_admissions_of_one_bed_produce_one_patient(self, ward):
         """Two patients, one bed, released together: exactly one may end up in it.
 
-        The invariant, not an interleaving: however the two requests interleave, the
-        bed must name at most one patient and the bed must not carry two live
-        admissions. Asserting the specific winner would test the scheduler instead of
-        the code.
+        The invariant, not an interleaving: however the two requests interleave,
+        the bed must name at most one patient and must not carry two live
+        admissions. Asserting the specific winner would test the scheduler
+        instead of the code.
 
-        create_admission decides on the status it read and then writes OCCUPIED. With
-        no row lock, both requests read AVAILABLE and both proceed, so this fails
-        intermittently rather than always. The test retries a few times to give the
-        race a fair chance to appear.
+        This used to retry three times and *skip* when the race failed to
+        surface, which meant it asserted nothing whenever the defect was absent -
+        exactly when it was least useful. It now runs once and asserts the
+        outcome rather than retrying for a lucky interleaving.
+
+        Measured caveat: with the row lock removed this test still passes here.
+        The two threads rarely interleave tightly enough to both read AVAILABLE
+        before either commits, so "exactly one succeeded" is true for reasons
+        unrelated to the lock. This test pins the observable invariant; it does
+        NOT by itself prove the lock is present. Discriminating between locked
+        and unlocked needs a barrier that forces both transactions to read before
+        either commits, which is not written yet.
         """
         from services.admission_service import AdmissionService
         from tests.test_concurrency import _run_concurrently
@@ -310,6 +316,12 @@ class TestTwoPatientsCannotShareABed:
         bed = ward['beds'][0]
         visits = [v for _, v in ward['visits']]
 
+        # Capture the scalars now. The concurrent run tears the session down
+        # below, after which any attribute access on this instance raises
+        # DetachedInstanceError instead of surfacing the real assertion.
+        bed_id = bed.id
+        bed_label = bed.bed_number
+
         def admit(idx):
             with app.test_request_context():
                 from flask import g
@@ -317,35 +329,40 @@ class TestTwoPatientsCannotShareABed:
                 g.tenant_id = tid
                 svc = AdmissionService()
                 return svc.create_admission(
-                    visit_id=visits[idx].id, bed_id=bed.id, user_id=ward['nurse'].id, tenant_id=tid
+                    visit_id=visits[idx].id,
+                    bed_id=bed_id,
+                    user_id=ward['nurse'].id,
+                    tenant_id=tid,
                 )
 
-        # Run a few times to give the race a fair chance to appear.
-        for _ in range(3):
-            results = _run_concurrently(admit, 2)
+        results = _run_concurrently(admit, 2)
 
-            successes = [r for r in results if isinstance(r, dict) and r.get('success')]
-            if len(successes) >= 2:
-                break
-            # Small delay to let the DB settle between attempts.
-            import time
-
-            time.sleep(0.05)
-        else:
-            pytest.skip('the two admissions did not both read AVAILABLE; race not observed')
+        successes = [r for r in results if isinstance(r, dict) and r.get('success')]
+        assert len(successes) == 1, (
+            f'exactly one of two concurrent admits to bed {bed_label} must succeed, '
+            f'got {len(successes)}: {results!r}. Zero means the row lock serialised '
+            f'both into refusal; two means it did not apply.'
+        )
 
         # Clean up any aborted transactions before checking state.
         ward['app'].extensions['sqlalchemy'].session.rollback()
         ward['app'].extensions['sqlalchemy'].session.remove()
 
-        admissions = (
-            db.session.execute(select(Admission).filter_by(bed_id=bed.id, status='ADMITTED'))
-            .scalars()
-            .all()
-        )
-        assert len(admissions) <= 1, (
-            f'bed {bed.bed_number} carries {len(admissions)} live admissions after two '
-            f'successful admits: {[a.id for a in admissions]}. Both requests read the '
-            f'bed as AVAILABLE and both wrote OCCUPIED, so the second commit overwrote '
-            f'the first patient. The read needs a row lock.'
-        )
+        # session.remove() also cleared the tenant binding, so this tenant-scoped
+        # query needs re-binding - the fail-closed guard refuses it otherwise.
+        # The Tenant row is re-fetched by the captured id rather than reusing
+        # ward['tenant']: that instance was detached by session.remove() too.
+        from app.core.tenant.models import Tenant
+        from tests.tenant_context import bind_tenant_on_g
+
+        with app.test_request_context():
+            bind_tenant_on_g(db.session.get(Tenant, tid), db_session=db.session)
+            admissions = (
+                db.session.execute(select(Admission).filter_by(bed_id=bed_id, status='ADMITTED'))
+                .scalars()
+                .all()
+            )
+            assert len(admissions) <= 1, (
+                f'bed {bed_label} carries {len(admissions)} live admissions: '
+                f'{[a.id for a in admissions]}. One bed must never carry two.'
+            )
