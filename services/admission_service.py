@@ -16,6 +16,8 @@ from __future__ import annotations
 from contextlib import suppress
 from datetime import UTC, datetime
 
+from sqlalchemy import select
+
 from app.extensions import db
 from app.shared.enums import AdmissionStatus, BedStatus, DischargeType
 from services.visit_state_machine_service import VisitStateMachineService
@@ -39,8 +41,29 @@ class AdmissionService:
 
         try:
             visit = get_tenant_record(Visit, visit_id, tenant_id)
-            bed = get_tenant_record(Bed, bed_id, tenant_id)
         except TenantContextError:
+            return {
+                'success': False,
+                'message': 'الزيارة أو السرير غير موجودين أو غير مصرح لكم بهما',
+            }
+
+        # Lock the bed row before reading its status.
+        #
+        # create_admission decides on the status it read and then writes OCCUPIED.
+        # Read without a lock, two admissions of different patients to the same
+        # bed both read AVAILABLE, both passed the check below, and the second
+        # commit overwrote the first - one bed, two live admissions, and the
+        # bed naming only the last patient written.
+        #
+        # SELECT ... FOR UPDATE makes the second transaction block until the first
+        # commits, then re-read the now-current row and refuse. The invariant is
+        # enforced by the database, not by which request happened to win a
+        # scheduling race. The tenant predicate is kept explicit so this stays as
+        # tightly scoped as the get_tenant_record() it replaces.
+        bed = db.session.execute(
+            select(Bed).where(Bed.id == bed_id, Bed.tenant_id == tenant_id).with_for_update()
+        ).scalar_one_or_none()
+        if bed is None:
             return {
                 'success': False,
                 'message': 'الزيارة أو السرير غير موجودين أو غير مصرح لكم بهما',
