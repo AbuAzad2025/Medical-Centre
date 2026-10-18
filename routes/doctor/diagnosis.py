@@ -80,11 +80,25 @@ def diagnosis(visit_id):
                 flash('الملاحظات طويلة جداً', 'warning')
                 return redirect(url_for('doctor.diagnosis', visit_id=visit_id))
 
+            incoming_vitals = {
+                'blood_pressure': (request.form.get('blood_pressure') or '').strip(),
+                'heart_rate': (request.form.get('heart_rate') or '').strip(),
+                'temperature': (request.form.get('temperature') or '').strip(),
+                'respiratory_rate': (request.form.get('respiratory_rate') or '').strip(),
+            }
+            # Merge rather than replace. `vital_signs` holds readings the
+            # clinician took during the consultation; a later save that touches
+            # only the diagnosis must not erase them. Overwriting wholesale
+            # meant any save without the vitals fields blanked them.
+            existing_vitals = {}
+            if visit.vital_signs:
+                try:
+                    existing_vitals = json.loads(visit.vital_signs) or {}
+                except (TypeError, ValueError):
+                    existing_vitals = {}
             vital_signs = {
-                'blood_pressure': (request.form.get('blood_pressure') or '').strip() or None,
-                'heart_rate': (request.form.get('heart_rate') or '').strip() or None,
-                'temperature': (request.form.get('temperature') or '').strip() or None,
-                'respiratory_rate': (request.form.get('respiratory_rate') or '').strip() or None,
+                key: (value or existing_vitals.get(key) or None)
+                for key, value in incoming_vitals.items()
             }
 
             visit.chief_complaint = chief_complaint
@@ -99,9 +113,10 @@ def diagnosis(visit_id):
                     visit.follow_up_date = datetime.strptime(follow_up_date_raw, '%Y-%m-%d').date()
                 except Exception:
                     flash('صيغة تاريخ المتابعة غير صحيحة', 'warning')
-                    visit.follow_up_date = None
-            else:
-                visit.follow_up_date = None
+                    # A malformed date must not silently clear a booked one.
+            # An empty field means the form did not send it, not "clear it".
+            # Re-saving the diagnosis alone must not cancel a booked follow-up.
+            # Cancelling is an explicit action, never a side effect of a save.
             visit.vital_signs = json.dumps(vital_signs, ensure_ascii=False)
             try:
                 VisitStateMachineService.ensure_in_progress(visit, actor=current_user)
@@ -109,23 +124,45 @@ def diagnosis(visit_id):
                 visit.status = VisitState.IN_PROGRESS
             if additional_notes:
                 memo_text = '[ملاحظات طبية]\n' + additional_notes
-                visit.notes = visit.notes or ''
-                visit.notes += ('\n\n' if visit.notes else '') + memo_text
+                current_notes = visit.notes or ''
+                # Append once. Re-saving the same memo used to append it again on
+                # every save, so three saves left three copies of it on the visit.
+                if memo_text not in current_notes:
+                    visit.notes = current_notes + ('\n\n' if current_notes else '') + memo_text
 
             try:
                 _sync_follow_up_request_for_visit(visit, current_user.id)
             except Exception as e:
                 logging.warning(f'Error in {__name__}: {e}')
-            medical_record = MedicalRecord(
-                tenant_id=visit.tenant_id,
-                patient_id=visit.patient_id,
-                visit_id=visit.id,
-                title='تشخيص طبي',
-                details=f'الشكوى الرئيسية: {chief_complaint}\nالأعراض: {symptoms}\nالتشخيص: {diagnosis}',
-                created_by=current_user.id,
+            # Revise the visit's record instead of appending a new one. A
+            # correction to a diagnosis must supersede the earlier entry; adding
+            # a second row left two records claiming to be the permanent one.
+            medical_record = (
+                db.session.execute(
+                    select(MedicalRecord)
+                    .where(MedicalRecord.visit_id == visit.id, MedicalRecord.title == 'تشخيص طبي')
+                    .order_by(MedicalRecord.id.desc())
+                    .limit(1)
+                )
+                .scalars()
+                .first()
             )
+            record_details = (
+                f'الشكوى الرئيسية: {chief_complaint}\nالأعراض: {symptoms}\nالتشخيص: {diagnosis}'
+            )
+            if medical_record is None:
+                medical_record = MedicalRecord(
+                    tenant_id=visit.tenant_id,
+                    patient_id=visit.patient_id,
+                    visit_id=visit.id,
+                    title='تشخيص طبي',
+                    details=record_details,
+                    created_by=current_user.id,
+                )
+                db.session.add(medical_record)
+            else:
+                medical_record.details = record_details
 
-            db.session.add(medical_record)
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             try:
                 db.session.add(
