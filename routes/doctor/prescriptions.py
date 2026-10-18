@@ -3,6 +3,7 @@
 import json
 import logging
 from datetime import UTC, date, datetime, timedelta
+from uuid import uuid4
 
 # Imports
 from flask import flash, g, jsonify, redirect, render_template, request, url_for
@@ -258,7 +259,12 @@ def prescription(visit_id):
                     visit_prescriptions=visit_prescriptions,
                 )
 
-            prescription_number = f'RX-{visit_id}-{int(datetime.now(UTC).timestamp())}'
+            # A per-row discriminator, not a timestamp. prescription_number is
+            # unique, and a clock-derived number collides whenever two drugs are
+            # written for one visit inside the same second - an amendment, a
+            # double-click, or any retry after a timeout is enough. Higher time
+            # resolution only narrows the window; the uuid makes it unreachable.
+            prescription_number = f'RX-{visit_id}-{uuid4().hex[:12]}'
             notes_parts = []
             if additional_notes:
                 notes_parts.append(additional_notes)
@@ -549,6 +555,13 @@ def prescription(visit_id):
             visit_prescriptions=visit_prescriptions,
         )
     except Exception:
+        # Roll the aborted transaction back before anything else touches the
+        # session. After a failed flush the transaction is aborted, so every
+        # later statement in the same session fails too - usually the tenant
+        # filter re-asserting SET LOCAL, which surfaces as a TenantIsolationError
+        # instead of the real cause. One rejected prescription left the session
+        # broken for the rest of the request.
+        db.session.rollback()
         logging.exception('Error in prescription: %s')
         flash('حدث خطأ في حفظ الوصفة', 'error')
         return redirect(url_for('doctor.patient_queue'))

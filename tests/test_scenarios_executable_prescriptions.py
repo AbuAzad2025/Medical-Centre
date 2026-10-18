@@ -431,12 +431,6 @@ class TestTheReceptionHandOff:
             f'the second drug was not added to the visit: {second} prescription(s) after two writes'
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: prescription_number carries int(time()) against a unique column, so two writes in one second collide'
-        ),
-    )
     def test_two_prescriptions_on_one_visit_do_not_collide_within_a_second(self, clinic):
         """Two writes in the same clock second must both be written.
 
