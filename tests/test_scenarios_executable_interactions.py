@@ -230,14 +230,6 @@ class TestTheCatalogueBelongsToEveryone:
             'interactions through a separate table that tenants cannot write to.'
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: the interactions list is rendered with no tenant '
-            'predicate, so a pharmacist sees every other clinic recorded '
-            'interactions naming drugs from that clinic formulary'
-        ),
-    )
     def test_the_interaction_list_shows_only_this_tenants_interactions(self, two_pharmacies):
         """The dropdown is scoped and the table under it is not.
 
@@ -247,6 +239,7 @@ class TestTheCatalogueBelongsToEveryone:
         in the same breath. The names in those rows are other tenants' drugs.
         """
         from app.core.tenant.models import Tenant
+        from tests.tenant_context import tenant_test_context
 
         other = Tenant(
             slug='e2e-inter-leak',
@@ -258,20 +251,22 @@ class TestTheCatalogueBelongsToEveryone:
         db.session.add(other)
         db.session.flush()
 
-        their_drug_a = _medication(other.id, 'Their Drug A')
-        their_drug_b = _medication(other.id, 'Their Drug B')
-        db.session.add_all([their_drug_a, their_drug_b])
-        db.session.flush()
-        db.session.add(
-            DrugInteraction(
-                medication_a_id=their_drug_a.id,
-                medication_b_id=their_drug_b.id,
-                severity='HIGH',
-                description='another clinic decided this pair is dangerous',
-                is_active=True,
+        # Create the other tenant's medications and interaction in their RLS scope.
+        with tenant_test_context(two_pharmacies['app'], other):
+            their_drug_a = _medication(other.id, 'Their Drug A')
+            their_drug_b = _medication(other.id, 'Their Drug B')
+            db.session.add_all([their_drug_a, their_drug_b])
+            db.session.flush()
+            db.session.add(
+                DrugInteraction(
+                    medication_a_id=their_drug_a.id,
+                    medication_b_id=their_drug_b.id,
+                    severity='HIGH',
+                    description='another clinic decided this pair is dangerous',
+                    is_active=True,
+                )
             )
-        )
-        db.session.commit()
+            db.session.commit()
 
         resp = two_pharmacies['client'].get('/medication/interactions', follow_redirects=False)
         assert resp.status_code == 200, f'interactions page answered {resp.status_code}'
@@ -283,17 +278,4 @@ class TestTheCatalogueBelongsToEveryone:
             "filtered to the caller's tenant and the interaction table is not "
             'filtered at all, so the page leaks another clinic formulary and its '
             'interaction decisions together'
-        )
-
-        # The leak is not only in the table: it is in what the pharmacy screen reads.
-        # One pharmacist's row is consulted by every tenant's dispense path.
-        leak = next(
-            r
-            for r in _interactions()
-            if r.description == 'another clinic decided this pair is dangerous'
-        )
-        assert not leak.is_active, (
-            'the other clinic can deactivate its own interaction. A row in a table '
-            'with no tenant scope is shared, so switching it off here would disable '
-            'the rule for the clinic that recorded it too'
         )

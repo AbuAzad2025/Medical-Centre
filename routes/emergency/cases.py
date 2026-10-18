@@ -401,9 +401,9 @@ def convert_emergency_case(id):
             target_department_id = None
         if not target_department_id:
             return jsonify({'success': False, 'message': 'القسم غير موجود'}), 404
-        from services.queue_management_service import QueueManagementService
         from app.shared.enums import EmergencyStatus
         from models.emergency_status_history import EmergencyStatusHistory
+        from services.queue_management_service import QueueManagementService
 
         ok, msg = QueueManagementService().transfer_visit(
             visit.id, target_department_id, target_doctor_id if dest == 'doctor' else None

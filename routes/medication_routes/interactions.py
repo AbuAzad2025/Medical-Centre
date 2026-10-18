@@ -7,7 +7,6 @@ from datetime import UTC, datetime
 from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
-from sqlalchemy.orm import aliased
 
 from app.extensions import db
 from models.drug_interaction import DrugInteraction
@@ -15,7 +14,6 @@ from models.medication import Medication
 from routes.medication_routes import medication_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
-
 
 # =============================================
 # INTERACTIONS ROUTES
@@ -90,20 +88,30 @@ def interactions():
     # is already tenant-scoped, so an interaction with a drug the user
     # cannot see must not appear.
     tenant_id = current_user.tenant_id
-    MedA = aliased(Medication)
-    MedB = aliased(Medication)
+    # Subquery: get all medication IDs for this tenant
+    my_med_ids = select(Medication.id).filter(Medication.tenant_id == tenant_id)
     rows = (
         db.session.execute(
             select(DrugInteraction)
-            .join(MedA, DrugInteraction.medication_a_id == MedA.id)
-            .join(MedB, DrugInteraction.medication_b_id == MedB.id)
-            .filter(MedA.tenant_id == tenant_id, MedB.tenant_id == tenant_id)
+            .filter(
+                DrugInteraction.medication_a_id.in_(my_med_ids),
+                DrugInteraction.medication_b_id.in_(my_med_ids),
+            )
             .order_by(DrugInteraction.created_at.desc())
             .limit(500)
         )
         .scalars()
         .all()
     )
+    import logging
+
+    logging.warning(f'INTERACTIONS: tenant_id={tenant_id}, rows={len(rows)}')
+    for r in rows[:5]:
+        ma = db.session.get(Medication, r.medication_a_id)
+        mb = db.session.get(Medication, r.medication_b_id)
+        logging.warning(
+            f'  DI {r.id}: a={r.medication_a_id}(t={ma.tenant_id if ma else None}) b={r.medication_b_id}(t={mb.tenant_id if mb else None})'
+        )
     return render_template('medication/interactions.html', medications=meds, interactions=rows)
 
 
