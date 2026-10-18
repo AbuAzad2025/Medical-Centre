@@ -1,9 +1,9 @@
-# re-register workflow after force-push history rewrite
+﻿# re-register workflow after force-push history rewrite
 name: CI
 
 on:
   schedule:
-    - cron: "0 9 * * 1"   # Monday 09:00 UTC — weekly stale action item audit
+    - cron: "0 9 * * 1"   # Monday 09:00 UTC â€” weekly stale action item audit
   push:
     branches: [main, develop]
   pull_request:
@@ -42,7 +42,7 @@ jobs:
       - name: Auto-fix import sorting (EOL normalization)
         run: ruff check . --select I001 --fix
 
-      - name: Ruff lint overview (strict — legacy debt eliminated)
+      - name: Ruff lint overview (strict â€” legacy debt eliminated)
         run: ruff check . --statistics
 
       - name: Ruff format check (strict)
@@ -60,7 +60,7 @@ jobs:
       - name: Bandit SAST -- high severity only (strict)
         run: bandit -r app/ services/ routes/ -lll
 
-      - name: CJK guard — no Chinese/Japanese/Korean in code/templates (strict)
+      - name: CJK guard â€” no Chinese/Japanese/Korean in code/templates (strict)
         run: python scripts/ci/check_no_cjk.py
 
       # Ratchet, not a one-shot purge. An inline style wins over any stylesheet,
@@ -69,7 +69,7 @@ jobs:
       # build today and block every other change until the whole frontend is
       # rewritten, which is how gates end up disabled. The ceiling only moves
       # down, and only via --set with the new measured count.
-      - name: Inline-style ratchet — no new inline styles or handlers
+      - name: Inline-style ratchet â€” no new inline styles or handlers
         run: python scripts/audit/check_inline_styles.py
 
       # Blocking: exits 1 if a template reads a context variable its view never
@@ -90,7 +90,7 @@ jobs:
       - name: Encrypted query audit (strict)
         run: python scripts/audit/check_encrypted_queries.py
 
-  # ── Frontend JavaScript Unit Tests (Vitest) ──────────────────────────────
+  # â”€â”€ Frontend JavaScript Unit Tests (Vitest) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   frontend-javascript-tests:
     name: JavaScript unit tests (Vitest)
     runs-on: ubuntu-latest
@@ -111,7 +111,7 @@ jobs:
           retention-days: 1
           if-no-files-found: ignore
 
-  # ── Agent1 Reception Deep Test (VSM-compliant, extended timeout) ───────────
+  # â”€â”€ Agent1 Reception Deep Test (VSM-compliant, extended timeout) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   agent1-reception:
     name: Agent1 Reception Deep Tests (VSM-compliant)
     runs-on: ubuntu-latest
@@ -182,7 +182,7 @@ jobs:
           retention-days: 1
           if-no-files-found: ignore
 
-  # ── Templates & i18n Validation Gate ───────────────────────────────────────
+  # â”€â”€ Templates & i18n Validation Gate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   templates-i18n:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -256,7 +256,7 @@ jobs:
           print("OK: no obvious unlocalised user-facing strings in templates")
           PY
 
-  # ── Frontend CSS & Codebase Hygiene Gate ───────────────────────────────────
+  # â”€â”€ Frontend CSS & Codebase Hygiene Gate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # stylelint + cspell are progressive gates on the legacy CSS/translation
   # base; they report and can be hardened to strict later.
   frontend-spelling-css:
@@ -282,7 +282,7 @@ jobs:
         continue-on-error: true
         run: npx cspell "**/*.{py,html,js,css,md,json,toml,yaml,yml,sql,ini,cfg,sh,bat,ps1}" --no-progress || true
 
-  # ── CI Workflow Integrity Gate ───────────────────────────────────────────────
+  # â”€â”€ CI Workflow Integrity Gate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   workflow-integrity:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -364,7 +364,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_migrate_ci
           RLS_BYPASS_ALLOWED: "1"
 
-  # ── Security audit gate ────────────────────────────────────────────────
+  # â”€â”€ Security audit gate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # Runs all 5 security audit scripts sequentially against a fresh PostgreSQL.
   # Each script starts its own flask db upgrade, so the DB is self-contained.
   # Fails fast: any non-zero exit code immediately blocks deployment.
@@ -420,19 +420,19 @@ jobs:
           APP_ENV: testing
           SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
 
-      - name: 1/5 — Verify RLS startup guard rejects superuser
+      - name: 1/5 â€” Verify RLS startup guard rejects superuser
         run: python scripts/ci/verify_rls_guard_rejection.py
 
-      - name: 2/5 — Verify RLS enforcement (runtime role + proof)
+      - name: 2/5 â€” Verify RLS enforcement (runtime role + proof)
         run: python scripts/ci/verify_rls_enforcement.py
 
-      - name: 3/5 — Audit RLS coverage on all tenant-scoped tables
+      - name: 3/5 â€” Audit RLS coverage on all tenant-scoped tables
         run: python scripts/ci/audit_rls_coverage.py
 
-      - name: 4/5 — Audit orphaned tenant_id=0 rows
+      - name: 4/5 â€” Audit orphaned tenant_id=0 rows
         run: python scripts/ops/audit_orphaned_tenant_rows.py
 
-      - name: 5/5 — Check for stale action items
+      - name: 5/5 â€” Check for stale action items
         run: python scripts/ci/audit_stale_action_items.py --stale-days 30
 
   # Weekly scan of the incident log for stale action items (runs Monday 09:00 UTC)
@@ -449,7 +449,7 @@ jobs:
       - name: Check for stale action items
         run: python scripts/ci/audit_stale_action_items.py --stale-days 30
 
-  # ── Static quality gate ────────────────────────────────────────────────
+  # â”€â”€ Static quality gate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # Fast, no database: Python syntax lint + workflow YAML + JSON validity.
   static-quality:
     runs-on: ubuntu-latest
@@ -490,7 +490,7 @@ jobs:
               print('OK', path)
           PY
 
-  # ── Frontend Asset Quality Gate (Phase 2/3 Directive) ────────────────────
+  # â”€â”€ Frontend Asset Quality Gate (Phase 2/3 Directive) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # Isolated: no DB. Validates Jinja inheritance, CSS/JS existence, duplicate
   # imports, orphaned assets, and block integrity via tests/test_frontend_asset_quality.py
   frontend-asset-quality:
@@ -534,7 +534,7 @@ jobs:
           print('Frontend matrix gate OK')
           PY
 
-  # ── Boot verification ──────────────────────────────────────────────────
+  # â”€â”€ Boot verification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # Proves the application factory boots cleanly and health endpoints respond.
   verify-boot:
     runs-on: ubuntu-latest
@@ -591,7 +591,7 @@ jobs:
           print('BOOT OK')
           PY
 
-  # ── Route / HTTP contract tests across PostgreSQL versions ─────────────
+  # â”€â”€ Route / HTTP contract tests across PostgreSQL versions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # Curated HTTP-level test set run on PG 15, 16, and 17 to catch version
   # compatibility issues early (RLS, JSONB, exclusion constraints).
   routes:
@@ -662,7 +662,7 @@ jobs:
             tests/test_auth.py \
             tests/test_tenant_route_isolation.py
 
-  # ── Unit tests ─────────────────────────────────────────────────────────
+  # â”€â”€ Unit tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   unit:
     runs-on: ubuntu-latest
     needs: migrate
@@ -735,7 +735,7 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  # ── Integration tests ──────────────────────────────────────────────────
+  # â”€â”€ Integration tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   integration:
     runs-on: ubuntu-latest
     needs: migrate
@@ -808,7 +808,7 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  # ── Clinical safety tests ──────────────────────────────────────────────
+  # â”€â”€ Clinical safety tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   clinical:
     runs-on: ubuntu-latest
     needs: migrate
@@ -881,7 +881,7 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  # ── Core suite (root test files), sharded 4-way for parallelism ────────
+  # â”€â”€ Core suite (root test files), sharded 4-way for parallelism â”€â”€â”€â”€â”€â”€â”€â”€
   core:
     runs-on: ubuntu-latest
     needs: migrate
@@ -949,8 +949,8 @@ jobs:
         run: |
           python -m pytest tests/ -q --tb=short \
             --ignore=tests/unit --ignore=tests/integration --ignore=tests/clinical \
-            --ignore=tests/test_route_inventory.py --ignore=tests/test_e2e_api.py \
-            --ignore=tests/test_auth.py --ignore=tests/test_tenant_route_isolation.py \
+            --ignore=tests/test_route_inventory.py \
+            \
             --splits 4 --group ${{ matrix.shard }} \
             --cov=app --cov=routes --cov=services --cov=models --cov=utils \
             --cov-report=
@@ -964,7 +964,7 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-# ── Coverage aggregation ───────────────────────────────────────────────
+# â”€â”€ Coverage aggregation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   coverage-report:
     runs-on: ubuntu-latest
     needs: [core, unit, integration, clinical, frontend-javascript-tests]
