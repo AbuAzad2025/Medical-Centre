@@ -210,12 +210,27 @@ def dashboard_portal():
 @booking_bp.route('/cancel/<int:booking_id>', methods=['POST'])
 @login_required
 def cancel_booking(booking_id):
-    if current_user.role != 'patient':
-        if request.accept_mimetypes.best == 'application/json':
-            return jsonify({'success': False, 'message': 'غير مصرح'}), 403
-        flash('ليس لديك صلاحية', 'error')
-        return redirect(url_for('booking.dashboard_portal'))
-    try:
+    # Allow staff (reception, admin, manager, doctor) to cancel any booking.
+    # Patients can only cancel their own bookings via PatientAccount link.
+    is_staff = current_user.role in {'reception', 'admin', 'manager', 'doctor'}
+
+    # Authorization: determine booking and validate access
+    if is_staff:
+        # Staff can cancel any booking
+        booking = db.session.get(OnlineBooking, booking_id)
+        if not booking:
+            if request.accept_mimetypes.best == 'application/json':
+                return jsonify({'success': False, 'message': 'الحجز غير موجود'}), 404
+            flash('الحجز غير موجود', 'error')
+            return redirect(url_for('booking.dashboard_portal'))
+    else:
+        # Patient path: must be patient role and have linked PatientAccount
+        if current_user.role != 'patient':
+            if request.accept_mimetypes.best == 'application/json':
+                return jsonify({'success': False, 'message': 'غير مصرح'}), 403
+            flash('ليس لديك صلاحية', 'error')
+            return redirect(url_for('booking.dashboard_portal'))
+
         link = (
             db.session.execute(select(PatientAccount).filter_by(user_id=current_user.id))
             .scalars()
@@ -226,60 +241,64 @@ def cancel_booking(booking_id):
                 return jsonify({'success': False, 'message': 'لا يوجد حساب مريض مرتبط'}), 403
             flash('لا يوجد حساب مريض مرتبط', 'error')
             return redirect(url_for('booking.dashboard_portal'))
+
         booking = db.session.get(OnlineBooking, booking_id)
         if not booking or booking.patient_id != link.patient_id:
             if request.accept_mimetypes.best == 'application/json':
                 return jsonify({'success': False, 'message': 'الحجز غير موجود'}), 404
             flash('الحجز غير موجود', 'error')
             return redirect(url_for('booking.dashboard_portal'))
-        if not booking.can_be_cancelled():
-            if request.accept_mimetypes.best == 'application/json':
-                return jsonify({'success': False, 'message': 'لا يمكن إلغاء هذا الحجز حالياً'}), 409
-            flash('لا يمكن إلغاء هذا الحجز', 'warning')
-            return redirect(url_for('booking.dashboard_portal'))
-        booking.status = 'cancelled'
-        booking.cancelled_at = datetime.now(UTC)
-        safe_commit(db.session, error_message='database commit failed', reraise=True)
-        try:
-            from services.notification_service import NotificationService
 
-            NotificationService.send_notification(
-                recipient_role='reception',
-                title='إلغاء حجز',
-                message=f'تم إلغاء الحجز {booking.booking_reference} بواسطة المريض.',
-                notification_type='warning',
-                is_urgent=False,
-            )
-            if booking.email:
-                NotificationService.add_to_notification_queue(
-                    user_id=current_user.id,
-                    notification_type='email',
-                    recipient=booking.email,
-                    subject='إلغاء حجز',
-                    content=f'تم إلغاء حجزك رقم {booking.booking_reference}.',
-                    priority='normal',
-                    scheduled_at=datetime.now(UTC),
-                )
-            NotificationService.send_notification(
-                recipient_id=current_user.id,
-                title='تم إلغاء الحجز',
-                message=f'تم إلغاء حجزك رقم {booking.booking_reference}.',
-                notification_type='info',
-                is_urgent=False,
-            )
-        except Exception as e:
-            logging.warning(f'Error in {__name__}: {e}')
+    # Shared cancellation logic for both staff and patient
+    if not booking.can_be_cancelled():
         if request.accept_mimetypes.best == 'application/json':
-            return jsonify({'success': True}), 200
-        flash('تم إلغاء الحجز', 'success')
+            return jsonify({'success': False, 'message': 'لا يمكن إلغاء هذا الحجز حالياً'}), 409
+        flash('لا يمكن إلغاء هذا الحجز', 'warning')
         return redirect(url_for('booking.dashboard_portal'))
-    except Exception:
-        safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Cancel booking error: %s')
-        if request.accept_mimetypes.best == 'application/json':
-            return jsonify({'success': False, 'message': 'تعذر إلغاء الحجز حالياً'}), 500
-        flash('حدث خطأ', 'error')
-        return redirect(url_for('booking.dashboard_portal'))
+
+    booking.status = 'cancelled'
+    booking.cancelled_at = datetime.now(UTC)
+    safe_commit(db.session, error_message='database commit failed', reraise=True)
+
+    try:
+        from services.notification_service import NotificationService
+
+        if is_staff:
+            actor_desc = f'بواسطة {current_user.role}'
+        else:
+            actor_desc = 'بواسطة المريض'
+
+        NotificationService.send_notification(
+            recipient_role='reception',
+            title='إلغاء حجز',
+            message=f'تم إلغاء الحجز {booking.booking_reference} {actor_desc}.',
+            notification_type='warning',
+            is_urgent=False,
+        )
+        if booking.email:
+            NotificationService.add_to_notification_queue(
+                user_id=current_user.id,
+                notification_type='email',
+                recipient=booking.email,
+                subject='إلغاء حجز',
+                content=f'تم إلغاء حجزك رقم {booking.booking_reference}.',
+                priority='normal',
+                scheduled_at=datetime.now(UTC),
+            )
+        NotificationService.send_notification(
+            recipient_id=current_user.id,
+            title='تم إلغاء الحجز',
+            message=f'تم إلغاء حجزك رقم {booking.booking_reference}.',
+            notification_type='info',
+            is_urgent=False,
+        )
+    except Exception as e:
+        logging.warning(f'Error in {__name__}: {e}')
+
+    if request.accept_mimetypes.best == 'application/json':
+        return jsonify({'success': True}), 200
+    flash('تم إلغاء الحجز', 'success')
+    return redirect(url_for('booking.dashboard_portal'))
 
 
 @booking_bp.route('/')

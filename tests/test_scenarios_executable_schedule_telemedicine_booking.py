@@ -143,14 +143,6 @@ class TestShiftHandover:
         assert fresh.closed_by_id == duty['nurse'].id
         assert fresh.closed_at is not None
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: /handover/<id>/acknowledge returns 400/404 instead of '
-            'updating to_user_id and status to ACKNOWLEDGED; the endpoint may not '
-            'be implemented or may require different parameters'
-        ),
-    )
     def test_incoming_nurse_acknowledges_the_handover(self, duty):
         """The incoming nurse acknowledges the handover, stamping their ID and time."""
         from tests.tenant_context import refresh_scoped
@@ -477,15 +469,6 @@ class TestPatientBooking:
         assert booking.department_id is not None
         assert booking.doctor_id == duty['doctor'].id
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: cancel_booking only serves role=patient and requires a '
-            'linked PatientAccount, so a reception or admin user cannot cancel a '
-            'booking for a patient who rings up to cancel by phone. There is no '
-            'other cancel route in the booking blueprint.'
-        ),
-    )
     def test_cancelling_a_booking_works(self, duty):
         """Cancelling a booking works."""
 

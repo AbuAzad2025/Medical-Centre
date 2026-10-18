@@ -206,6 +206,7 @@ class ShiftHandoverService:
             raise HandoverError('not_assignee')
 
         sh.status = 'ACKNOWLEDGED'
+        sh.to_user_id = user_id
         sh.acknowledged_at = datetime.now(UTC)
         safe_commit(db.session, error_message='handover acknowledge failed', reraise=True)
         return sh.to_dict()

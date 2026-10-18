@@ -355,7 +355,7 @@ def create_emergency_case():
 
 @emergency_bp.route('/cases/<int:id>/convert', methods=['POST'])
 @login_required
-@role_required('reception')
+@role_required('reception', 'emergency')
 def convert_emergency_case(id):
     try:
         emergency = emergency_service.get_case(id)
@@ -402,11 +402,25 @@ def convert_emergency_case(id):
         if not target_department_id:
             return jsonify({'success': False, 'message': 'القسم غير موجود'}), 404
         from services.queue_management_service import QueueManagementService
+        from app.shared.enums import EmergencyStatus
+        from models.emergency_status_history import EmergencyStatusHistory
 
         ok, msg = QueueManagementService().transfer_visit(
             visit.id, target_department_id, target_doctor_id if dest == 'doctor' else None
         )
         if ok:
+            old_status = emergency.status
+            emergency.status = EmergencyStatus.TRANSFERRED.value
+            emergency.completed_at = datetime.now(UTC)
+            db.session.add(
+                EmergencyStatusHistory(
+                    emergency_id=emergency.id,
+                    from_status=old_status,
+                    to_status=EmergencyStatus.TRANSFERRED.value,
+                    changed_by=current_user.id,
+                )
+            )
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
             return jsonify({'success': True}), 200
         status = 500
         if msg in {'invalid_department', 'doctor_required'}:
