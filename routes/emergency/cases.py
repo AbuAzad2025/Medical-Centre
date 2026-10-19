@@ -401,6 +401,33 @@ def convert_emergency_case(id):
             target_department_id = None
         if not target_department_id:
             return jsonify({'success': False, 'message': 'القسم غير موجود'}), 404
+
+        # An emergency visit is created with no doctor, so converting to
+        # inpatient reached transfer_visit with doctor_id=None and was refused
+        # as doctor_required - the conversion could never complete. Assign an
+        # available doctor in the target department when the visit has none.
+        if dest == 'doctor' and not target_doctor_id:
+            try:
+                from app.shared.user_role_policy import normalize_role
+                from models.user import User
+
+                candidates = (
+                    db.session.execute(
+                        select(User).filter(User.is_active.is_(True)).order_by(User.id)
+                    )
+                    .scalars()
+                    .all()
+                )
+                for candidate in candidates:
+                    if normalize_role(getattr(candidate, 'role', None)) != 'doctor':
+                        continue
+                    if getattr(candidate, 'tenant_id', None) != emergency.tenant_id:
+                        continue
+                    target_doctor_id = candidate.id
+                    break
+            except Exception:
+                target_doctor_id = None
+
         from app.shared.enums import EmergencyStatus
         from models.emergency_status_history import EmergencyStatusHistory
         from services.queue_management_service import QueueManagementService

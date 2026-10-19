@@ -30,6 +30,8 @@ What execution established:
 
 from __future__ import annotations
 
+import uuid
+
 import pytest
 from flask import g
 from sqlalchemy import select
@@ -64,12 +66,61 @@ def er(app, test_tenant):
     db.session.add(patient)
     db.session.commit()
 
+    # convert_emergency_case resolves a target department by matching
+    # Department.get_type() against the department's NAME - the table has no
+    # type column. Without these rows the route answers 404 "department not
+    # found" before it ever reaches the transfer, so the case-status assertions
+    # below could never be reached. Seeded inside the tenant's RLS scope:
+    # departments carries a WITH CHECK policy.
+    from models.department import Department
+    from tests.tenant_context import create_scoped
+
+    tag = uuid.uuid4().hex[:6]
+    doctor = ensure_test_user(db, test_tenant, username=f'e2e_er_doc_{tag}', role='doctor')
+    emergency_dept = create_scoped(
+        app,
+        test_tenant,
+        Department(
+            tenant_id=test_tenant.id,
+            name=f'Emergency-{tag}',
+            name_ar=f'OUUU>-{tag}',
+            is_active=True,
+            location='ER 1',
+        ),
+    )
+    lab_dept = create_scoped(
+        app,
+        test_tenant,
+        Department(
+            tenant_id=test_tenant.id,
+            name=f'Lab-{tag}',
+            name_ar=f'O?O?-{tag}',
+            is_active=True,
+            location='Lab 1',
+        ),
+    )
+    general_dept = create_scoped(
+        app,
+        test_tenant,
+        Department(
+            tenant_id=test_tenant.id,
+            name=f'General-{tag}',
+            name_ar=f'O>?U>-{tag}',
+            is_active=True,
+            location='Ward 1',
+        ),
+    )
+
     return {
         'app': app,
         'client': client,
         'tenant': test_tenant,
         'doctor': user,
+        'ward_doctor': doctor,
         'patient': patient,
+        'emergency_dept': emergency_dept,
+        'lab_dept': lab_dept,
+        'general_dept': general_dept,
     }
 
 
@@ -182,15 +233,6 @@ class TestResolutionIsRecorded:
 class TestTheCaseAndVisitDriftOnConvert:
     """Converting an emergency transfers the visit but leaves the case behind."""
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: convert_emergency_case transfers the visit via the queue '
-            'service but does not update the emergency case status or write a history '
-            'row, so the case still says WAITING while the visit has moved to another '
-            'department'
-        ),
-    )
     def test_converting_to_lab_updates_the_case_status(self, er):
         """A conversion to lab should move the case to TRANSFERRED and write history."""
         from models.emergency_status_history import EmergencyStatusHistory
@@ -221,15 +263,6 @@ class TestTheCaseAndVisitDriftOnConvert:
             'no history row records the transfer; the case and the visit drift apart'
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: convert_emergency_case transfers the visit via the queue '
-            'service but does not update the emergency case status or write a history '
-            'row, so the case still says WAITING while the visit has moved to another '
-            'department'
-        ),
-    )
     def test_converting_to_inpatient_updates_the_case_status(self, er):
         """A conversion to inpatient (doctor) should move the case to TRANSFERRED."""
         from models.emergency_status_history import EmergencyStatusHistory
