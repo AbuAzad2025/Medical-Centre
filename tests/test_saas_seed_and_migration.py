@@ -111,16 +111,28 @@ class TestLegacyTenantMigration:
 
         assert line.tenant_id == tenant.id
         assert line.line_type == 'base'
-        assert (
-            db.session.execute(
+
+        # The count is read as the tenant that owns the line. subscription_lines
+        # carries a WITH CHECK policy, so a query made under any other tenant
+        # sees no rows - and a count of zero here would say nothing about
+        # whether the migration wrote one.
+        from app.core.tenant.middleware import bound_tenant_scope
+
+        with bound_tenant_scope(tenant):
+            line_count = db.session.execute(
                 select(func.count()).select_from(SubscriptionLine).filter_by(tenant_id=tenant.id)
             ).scalar()
-            == 1
+        assert line_count == 1, (
+            f'the migration left {line_count} subscription line(s) for the tenant; '
+            f'it should have left exactly one'
         )
 
         capabilities = {e.capability_key for e in version.entitlements}
-        for cap in capabilities:
-            assert EntitlementResolver.is_entitled(tenant.id, cap) is True
+        # The entitlement check reads the tenant's active modules, which are
+        # RLS-scoped, so it is asked as the tenant that owns them.
+        with bound_tenant_scope(tenant):
+            for cap in capabilities:
+                assert EntitlementResolver.is_entitled(tenant.id, cap) is True
 
     def test_migrate_fails_if_active_lines_exist(self, app):
         if db.session.execute(select(func.count()).select_from(ProductBundle)).scalar() == 0:

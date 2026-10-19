@@ -408,6 +408,7 @@ def tenant_test_context(app: Flask, tenant=None, *, bypass: bool = False):
     with app.test_request_context():
         if bypass:
             g._tenant_filter_bypass = True
+            yield g
         elif tenant is not None:
             previous_tenant_id = db.session.info.get('_tenant_id')
             try:
