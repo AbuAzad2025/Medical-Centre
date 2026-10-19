@@ -202,13 +202,6 @@ class TestTerminatingOtherSessions:
         assert row.terminated_by, 'the closed session does not say who closed it'
         assert row.logout_at is not None
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: terminate-others writes no AuditTrail or SecurityEvent '
-            'row, so a revocation leaves no record that anyone asked for it'
-        ),
-    )
     def test_terminating_other_sessions_is_recorded_as_an_action(self, operator):
         """A forced lock-out should say so, not merely make sessions expire.
 
@@ -275,15 +268,6 @@ class TestImpersonationIsRecorded:
 
         client.post('/auth/impersonate/exit', follow_redirects=False)
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: the IMPERSONATE audit row is the only record, and it '
-            'carries no marker that later rows were written under impersonation, so '
-            'a record created during an impersonated session cannot be found from '
-            'the record itself'
-        ),
-    )
     def test_a_record_written_under_impersonation_says_so(self, operator):
         """Work done as somebody else must be findable from the work itself.
 
@@ -320,15 +304,6 @@ class TestImpersonationIsRecorded:
 
 @covers('IDENTITY_PASSWORD_LIFECYCLE')
 class TestStaffLifecycleIsDistinct:
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: change_password reads request.get_json() with no fallback, '
-            'so a form-encoded post reaches None.get and raises. The endpoint answers '
-            '500 where the caller sent a well-formed form and the mistake is in the '
-            'request shape rather than in the credentials'
-        ),
-    )
     def test_a_form_posted_password_change_is_refused_cleanly(self, operator):
         """A form post should be a 400, not a 500.
 

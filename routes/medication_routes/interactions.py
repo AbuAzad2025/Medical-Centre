@@ -103,15 +103,6 @@ def interactions():
         .scalars()
         .all()
     )
-    import logging
-
-    logging.warning(f'INTERACTIONS: tenant_id={tenant_id}, rows={len(rows)}')
-    for r in rows[:5]:
-        ma = db.session.get(Medication, r.medication_a_id)
-        mb = db.session.get(Medication, r.medication_b_id)
-        logging.warning(
-            f'  DI {r.id}: a={r.medication_a_id}(t={ma.tenant_id if ma else None}) b={r.medication_b_id}(t={mb.tenant_id if mb else None})'
-        )
     return render_template('medication/interactions.html', medications=meds, interactions=rows)
 
 

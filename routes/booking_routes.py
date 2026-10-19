@@ -263,10 +263,7 @@ def cancel_booking(booking_id):
     try:
         from services.notification_service import NotificationService
 
-        if is_staff:
-            actor_desc = f'بواسطة {current_user.role}'
-        else:
-            actor_desc = 'بواسطة المريض'
+        actor_desc = f'بواسطة {current_user.role}' if is_staff else 'بواسطة المريض'
 
         NotificationService.send_notification(
             recipient_role='reception',

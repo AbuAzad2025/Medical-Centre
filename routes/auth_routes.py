@@ -12,6 +12,7 @@ from flask import (
     Blueprint,
     current_app,
     flash,
+    g,
     jsonify,
     redirect,
     render_template,
@@ -588,13 +589,30 @@ def profile():
 def change_password():
     """تغيير كلمة المرور"""
     try:
-        data = request.get_json()
+        # The body has to be JSON. A form-encoded post used to leave data as
+        # None, the first data.get raised AttributeError, and the generic
+        # handler turned that into a 500 - telling the caller the server was
+        # broken when the only problem was the request shape. The form is read
+        # as a fallback so the fields can be inspected, and anything that is
+        # not JSON is refused with 400.
+        if not request.is_json:
+            return jsonify({'success': False, 'message': 'يجب إرسال الطلب بصيغة JSON'}), 400
+        data = request.get_json(silent=True) or request.form
+        if not data:
+            return jsonify({'success': False, 'message': 'طلب غير صالح: أرسل JSON أو نموذج'}), 400
+
         current_password = data.get('current_password')
         new_password = data.get('new_password')
 
         if not current_password or not new_password:
             return jsonify(
                 {'success': False, 'message': 'كلمة المرور الحالية والجديدة مطلوبتان'}
+            ), 400
+
+        confirm_password = data.get('confirm_password')
+        if confirm_password and confirm_password != new_password:
+            return jsonify(
+                {'success': False, 'message': 'كلمة المرور الجديدة وتأكيدها غير متطابقين'}
             ), 400
 
         # التحقق من كلمة المرور الحالية
@@ -605,6 +623,31 @@ def change_password():
         current_user.password_hash = generate_password_hash(new_password)
         current_user.session_version = (current_user.session_version or 0) + 1
         safe_commit(db.session, error_message='database commit failed', reraise=True)
+
+        # A credential change is the row an investigator looks for. Without it
+        # the only trace is the hash changing, which leaves no record of who
+        # asked for it or when.
+        try:
+            from models.audit_trail import AuditTrail
+
+            db.session.add(
+                AuditTrail(
+                    entity_type='user',
+                    entity_id=current_user.id,
+                    tenant_id=getattr(g, 'tenant_id', None) or current_user.tenant_id,
+                    action='PASSWORD_CHANGE',
+                    user_id=current_user.id,
+                    user_ip=request.remote_addr,
+                    user_agent=request.headers.get('User-Agent'),
+                    description='تغيير كلمة المرور بواسطة المستخدم',
+                )
+            )
+            safe_commit(db.session, error_message='audit commit failed', reraise=True)
+        except Exception:
+            # The password is already changed and committed. An audit failure
+            # must not be reported to the caller as a failed change, or they
+            # will retry against a hash that no longer matches.
+            logging.exception('Password change audit write failed')
 
         return jsonify({'success': True, 'message': 'تم تغيير كلمة المرور بنجاح'})
 
@@ -955,6 +998,16 @@ def impersonate(user_id):
     session['impersonator_id'] = current_user.id
     session['impersonator_role'] = current_user.role
 
+    # Kept on g so audit rows written under impersonation can name the operator
+    # without a second lookup: the only link between an impersonated row and the
+    # person actually acting is the separate IMPERSONATE row.
+    g.impersonator_username = getattr(current_user, 'username', None)
+    # Also on the scoped session, because a row may be written outside a request
+    # - a background job, or a caller that holds the session but not the
+    # request. The audit listener reads this when there is no request context.
+    db.session.info['impersonator_id'] = current_user.id
+    db.session.info['impersonator_username'] = getattr(current_user, 'username', None)
+
     from models.audit_trail import AuditTrail
 
     db.session.add(
@@ -991,6 +1044,10 @@ def impersonate_exit():
     """Exit impersonation and return to owner session"""
     impersonator_id = session.pop('impersonator_id', None)
     session.pop('impersonator_role', None)
+    # Clear the scoped-session copy too. Leaving it set would stamp every
+    # later audit row with an impersonation that has already ended.
+    db.session.info.pop('impersonator_id', None)
+    db.session.info.pop('impersonator_username', None)
     if not impersonator_id:
         return jsonify({'success': False, 'message': 'لا توجد جلسة انتحال'}), 400
     owner = db.session.get(User, impersonator_id)

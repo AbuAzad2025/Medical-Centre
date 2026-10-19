@@ -277,10 +277,23 @@ class PrescriptionService:
 
             prescription.calculate_total_cost()
             if not safe_commit(db.session, error_message='Failed to create prescription'):
+                # The commit failed, so the transaction is aborted. Leaving it
+                # that way poisons every later statement in the session: the
+                # next call raises PendingRollbackError, or the tenant filter's
+                # SET LOCAL re-assertion fails on the dead transaction and the
+                # real cause is replaced by a tenant isolation error. Roll back
+                # here so the session is usable and the caller sees the truth.
+                from utils.db_safety import safe_rollback
+
+                safe_rollback(db.session, error_message='Prescription write failed, rolling back')
                 return False, 'database_error'
             return True, prescription
         except Exception as e:
             logging.exception('Error creating prescription: %s')
+            from utils.db_safety import safe_rollback
+
+            # Same reason: a failed write must not leave the session aborted.
+            safe_rollback(db.session, error_message='Prescription write failed, rolling back')
             return False, str(e)
 
     @staticmethod

@@ -45,11 +45,11 @@ class AuditTrail(TenantMixin, db.Model):
     # Constraints and Indexes
     __table_args__ = (
         CheckConstraint(
-            "entity_type IN ('system', 'user', 'patient', 'visit', 'appointment', 'payment', 'invoice', 'lab_test', 'radiology_test', 'notification', 'role', 'department', 'service')",
+            "entity_type IN ('system', 'user', 'patient', 'visit', 'appointment', 'payment', 'invoice', 'lab_test', 'radiology_test', 'notification', 'role', 'department', 'service', 'user_session')",
             name='chk_entity_type',
         ),
         CheckConstraint(
-            "action IN ('create', 'update', 'delete', 'view', 'login', 'logout', 'export', 'import', 'backup', 'restore', 'security', 'login_failed', 'login_blocked', 'force_logout', 'permission_denied', 'unauthorized_access', 'APPROVE', 'REJECT', 'IMPERSONATE')",
+            "action IN ('create', 'update', 'delete', 'view', 'login', 'logout', 'export', 'import', 'backup', 'restore', 'security', 'login_failed', 'login_blocked', 'force_logout', 'permission_denied', 'unauthorized_access', 'APPROVE', 'REJECT', 'IMPERSONATE', 'PASSWORD_CHANGE', 'TERMINATE_OTHER_SESSIONS')",
             name='chk_action',
         ),
         Index('idx_audit_entity', 'entity_type', 'entity_id'),
@@ -305,3 +305,58 @@ class LoginAttempt(TenantMixin, db.Model):
             'user_agent': self.user_agent,
             'created_at': self.created_at.isoformat(),
         }
+
+
+# ---------------------------------------------------------------------------
+# Impersonation provenance
+# ---------------------------------------------------------------------------
+# While an owner is impersonating another user, current_user IS the impersonated
+# user, so every audit row written during that window names them as the actor and
+# the separate IMPERSONATE row is the only link back to the real operator.
+# Answering "who really did this" then means correlating two tables by time.
+#
+# Stamp the operator onto any row flushed during an impersonated session. Doing
+# it here rather than at each call site means every writer gets it, including
+# ones that do not know impersonation exists.
+
+
+@db.event.listens_for(db.session, 'before_flush')
+def _stamp_impersonator_on_audit_rows(session, flush_context, instances):
+    """Record who is really acting when the session is impersonating."""
+    from flask import g, has_request_context
+    from flask import session as flask_session
+
+    impersonator_id = None
+    impersonator_username = None
+
+    if has_request_context():
+        try:
+            impersonator_id = flask_session.get('impersonator_id')
+        except Exception:
+            impersonator_id = None
+        if impersonator_id is None:
+            # The impersonating request has already finished by the time a later
+            # row is flushed, so the request-scoped session no longer carries
+            # it. The scoped session does.
+            impersonator_id = session.info.get('impersonator_id')
+            impersonator_username = session.info.get('impersonator_username')
+        else:
+            impersonator_username = getattr(g, 'impersonator_username', None)
+    else:
+        # No request at all - a background writer, or a caller that holds the
+        # session but not the request. The scoped session is the only place
+        # the impersonation is still recorded.
+        impersonator_id = session.info.get('impersonator_id')
+        impersonator_username = session.info.get('impersonator_username')
+
+    if not impersonator_id:
+        return
+
+    for obj in session.new:
+        if not isinstance(obj, AuditTrail):
+            continue
+        stamp = f'impersonated_by={impersonator_id}'
+        if impersonator_username:
+            stamp += f' ({impersonator_username})'
+        existing = (obj.notes or '').strip()
+        obj.notes = f'{existing}; {stamp}' if existing else stamp

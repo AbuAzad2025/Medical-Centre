@@ -3,6 +3,7 @@ Advanced Security Routes
 Digital signatures, password policy, session management, encryption
 """
 
+import logging
 from datetime import UTC, datetime
 
 from flask import Blueprint, abort, jsonify, render_template, request, session
@@ -79,6 +80,34 @@ def terminate_other_sessions():
                 s.logout_at = datetime.now(UTC)
                 terminated += 1
         safe_commit(db.session)
+
+        # The SessionLog rows record that each session ended, but nothing
+        # recorded that the user ended it. A revocation and an expiry then look
+        # identical, which is exactly the distinction an investigator is
+        # looking for after a suspected compromise.
+        try:
+            from models.audit_trail import AuditTrail
+
+            db.session.add(
+                AuditTrail(
+                    entity_type='user_session',
+                    entity_id=current_user.id,
+                    tenant_id=getattr(current_user, 'tenant_id', None),
+                    action='TERMINATE_OTHER_SESSIONS',
+                    user_id=current_user.id,
+                    user_ip=request.remote_addr,
+                    user_agent=request.headers.get('User-Agent'),
+                    description=f'إنهاء {terminated} جلسة نشطة',
+                    new_values=str(terminated),
+                )
+            )
+            safe_commit(db.session, error_message='audit commit failed', reraise=True)
+        except Exception:
+            # The sessions are already terminated and committed. Report that
+            # failure to the log rather than to the caller, who would otherwise
+            # retry a lock-out that already happened.
+            logging.exception('Terminate-sessions audit write failed')
+
         return jsonify({'success': True, 'terminated': terminated})
     except Exception as e:
         safe_rollback(db.session)

@@ -468,12 +468,6 @@ class TestTheReceptionHandOff:
             f'collides. It needs a per-row discriminator rather than a timestamp.'
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: the failed insert is never rolled back, so the aborted transaction poisons every later statement in the session'
-        ),
-    )
     def test_a_rejected_prescription_leaves_the_session_usable(self, clinic):
         """A refused write must not poison the session for whatever comes next.
 
@@ -489,6 +483,11 @@ class TestTheReceptionHandOff:
         raises TenantIsolationError -- a PermissionError, not a SQLAlchemy one --
         so a duplicate prescription number comes back looking like a tenant
         isolation failure, which is a misleading thing to show an operator.
+
+        The duplicate is forced by pinning the number generator, not by freezing
+        the clock. prescription_number is uuid-derived now, so a frozen clock no
+        longer collides - the case this used to rest on had quietly become
+        unreachable, and the second write simply succeeded.
         """
         from unittest import mock
 
@@ -500,7 +499,10 @@ class TestTheReceptionHandOff:
 
         poisoned = None
         try:
-            with mock.patch('routes.doctor.prescriptions.datetime', _frozen(1_700_000_000.0)):
+            with mock.patch(
+                'routes.doctor.prescriptions.uuid4',
+                return_value=mock.Mock(hex='duplicate0000'),
+            ):
                 _write_prescription(client, visit.id, clinic['drug_a'].id)
                 try:
                     _write_prescription(client, visit.id, clinic['drug_b'].id)

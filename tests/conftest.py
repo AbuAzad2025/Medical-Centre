@@ -429,7 +429,21 @@ def app():
                     "(action IN ('create', 'update', 'delete', 'view', 'login', 'logout', "
                     "'export', 'import', 'backup', 'restore', 'security', 'login_failed', "
                     "'login_blocked', 'force_logout', 'permission_denied', 'unauthorized_access', "
-                    "'APPROVE', 'REJECT', 'IMPERSONATE'))"
+                    "'APPROVE', 'REJECT', 'IMPERSONATE', 'PASSWORD_CHANGE', "
+                    "'TERMINATE_OTHER_SESSIONS'))"
+                )
+            )
+            # Same for entity_type: 'user_session' was added for the session
+            # revocation audit row, and the live table still forbids it.
+            _db.session.execute(
+                text('ALTER TABLE audit_trails DROP CONSTRAINT IF EXISTS chk_entity_type')
+            )
+            _db.session.execute(
+                text(
+                    'ALTER TABLE audit_trails ADD CONSTRAINT chk_entity_type CHECK '
+                    "(entity_type IN ('system', 'user', 'patient', 'visit', 'appointment', "
+                    "'payment', 'invoice', 'lab_test', 'radiology_test', 'notification', "
+                    "'role', 'department', 'service', 'user_session'))"
                 )
             )
             _db.session.commit()

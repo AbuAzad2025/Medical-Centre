@@ -563,6 +563,19 @@ def reassert_set_local(orm_execute_state):
             db.text(f"SET LOCAL app.tenant_id = '{tid}'"),
         )
     except Exception as exc:
+        # A statement that ran after a failed flush is the interesting case:
+        # the transaction is already aborted, so PostgreSQL refuses the SET LOCAL
+        # and this handler would replace the real cause - a uniqueness
+        # violation, say - with a tenant isolation error. That is how a
+        # refused prescription ended up looking like a permissions problem.
+        # When the session is in a failed state, let the original error stand.
+        if getattr(orm_execute_state.session, 'is_active', True) is False:
+            logger.exception(
+                'SET LOCAL app.tenant_id = %s failed on an already-aborted '
+                'transaction; the original error is the real cause',
+                tid,
+            )
+            raise
         logger.exception(
             'SET LOCAL app.tenant_id = %s failed in reassert_set_local',
             tid,

@@ -541,8 +541,22 @@ def prescription(visit_id):
                         ),
                     )
                 )
-                safe_commit(db.session, error_message='database commit failed', reraise=True)
+                # Roll back at the point of failure, not only in the outer handler.
+                # After a failed flush the transaction is aborted, so the next
+                # statement - the follow-up read, or the tenant filter re-asserting
+                # SET LOCAL - fails too, and the operator is shown a tenant
+                # isolation error instead of the uniqueness violation that actually
+                # happened. Rolling back here restores a usable session and lets
+                # the real cause propagate.
+                try:
+                    safe_commit(db.session, error_message='database commit failed', reraise=True)
+                except Exception:
+                    db.session.rollback()
+                    raise
             except Exception as e:
+                # The audit row is a record of the write, not a precondition for
+                # it. If it fails the prescription is still saved, so the failure
+                # is logged rather than raised.
                 logging.warning(f'Error in {__name__}: {e}')
             flash('تم حفظ الوصفة بنجاح', 'success')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
