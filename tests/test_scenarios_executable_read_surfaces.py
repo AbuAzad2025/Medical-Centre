@@ -82,6 +82,7 @@ def two_tenants(app, test_tenant):
 
     # A second tenant, with a patient whose name matches the search fragment.
     from app.core.tenant.models import Tenant
+    from tests.tenant_context import tenant_test_context
 
     other = Tenant(
         slug='e2e-read-other',
@@ -93,15 +94,34 @@ def two_tenants(app, test_tenant):
     db.session.add(other)
     db.session.flush()
 
-    theirs = Patient(
-        tenant_id=other.id,
-        first_name='Belongs',
-        last_name='Elsewhere',
-        national_id='E2E-READ-THEIRS',
-        phone='0550000002',
-    )
-    db.session.add(theirs)
-    db.session.commit()
+    # The other tenant's patient is written inside that tenant's scope.
+    # `patients` carries a WITH CHECK policy, so a row naming a tenant other
+    # than the bound one is rejected with InsufficientPrivilege - the write
+    # cannot be made from the first tenant's session, however the row is
+    # labelled.
+    #
+    # The PHI audit row written for it has to name the same tenant, so the
+    # audit context follows the scope. It is a ContextVar and still held the
+    # first tenant otherwise, which made the audit row itself the thing RLS
+    # rejected.
+    from app.core.audit.audit_context import set_audit_context
+
+    with tenant_test_context(app, other):
+        set_audit_context(tenant_id=other.id)
+        theirs = Patient(
+            tenant_id=other.id,
+            first_name='Belongs',
+            last_name='Elsewhere',
+            national_id='E2E-READ-THEIRS',
+            phone='0550000002',
+        )
+        db.session.add(theirs)
+        db.session.commit()
+        # Read the values while the scope still names that tenant. After the
+        # context restores the first tenant, the row is invisible to this
+        # session and touching an expired attribute raises ObjectDeletedError
+        # on a row that is present.
+        theirs_id, theirs_national_id = theirs.id, theirs.national_id
 
     return {
         'app': app,
@@ -111,8 +131,8 @@ def two_tenants(app, test_tenant):
         'doctor': doctor,
         'mine_id': mine_id,
         'mine_national_id': mine_national_id,
-        'theirs_id': theirs.id,
-        'theirs_national_id': theirs.national_id,
+        'theirs_id': theirs_id,
+        'theirs_national_id': theirs_national_id,
     }
 
 
@@ -198,22 +218,48 @@ class TestWhereTheIsolationActuallyLives:
     """
 
     def test_a_bare_orm_select_is_scoped_while_raw_sql_is_not(self, two_tenants):
-        """One connection, one transaction, two answers — and the ORM one is right."""
+        """One connection, two layers, and neither one lets the other tenant through.
+
+        This case was written to measure a difference that no longer exists. It
+        used to assert that raw SQL of the same table, on the same connection,
+        in the same test, returned both patients while the ORM select returned
+        one - which pinned the ORM listener as the thing holding the line.
+
+        RLS is now enforced on the application role, and the role owns the
+        tables, so the raw read is filtered by the database too. The difference
+        the case was built on is gone, and it is gone in the right direction.
+
+        So this asserts the stronger property instead, and asserts it twice
+        over: the ORM select returns only this tenant's patients, and a raw
+        read cannot see the other tenant's patient either. Isolation living in
+        two independent layers is a better answer than isolation living in one,
+        and the case that measured the weaker one no longer describes the
+        system.
+        """
         from sqlalchemy import select as sa_select
         from sqlalchemy import text as sql_text
-
-        raw_count = db.session.execute(sql_text('SELECT count(*) FROM patients')).scalar()
-        assert raw_count >= 2, (
-            f'the fixture staged {raw_count} patient row(s); this comparison only '
-            f'means anything with a patient in each of two tenants'
-        )
 
         scoped = db.session.execute(sa_select(Patient)).scalars().all()
         assert all(p.tenant_id == two_tenants['tenant'].id for p in scoped), (
             'a bare ORM select returned a patient outside this tenant: '
             f'{[(p.id, p.tenant_id) for p in scoped]}. Tenant isolation for ORM '
-            f'selects is supplied by the do_orm_execute listener in '
-            f'app/shared/tenant_filter.py, not by the individual queries.'
+            'selects is supplied by the do_orm_execute listener in '
+            'app/shared/tenant_filter.py, not by the individual queries.'
+        )
+        assert len(scoped) >= 1, 'the fixture staged no patient in this tenant'
+
+        # The raw read is the one that used to leak. It must not: the other
+        # tenant's patient is named by a national id this tenant does not own,
+        # and a raw query for it returns nothing.
+        leaked = db.session.execute(
+            sql_text('SELECT count(*) FROM patients WHERE national_id = :nid'),
+            {'nid': two_tenants['theirs_national_id']},
+        ).scalar()
+        assert leaked == 0, (
+            f"a raw SQL read returned {leaked} row(s) for another tenant's "
+            'patient. RLS is the second independent layer under the ORM '
+            'listener, and it did not hold: the row was visible to a query that '
+            'names no tenant at all.'
         )
 
     def test_the_search_handler_still_states_no_tenant_of_its_own(self, two_tenants):

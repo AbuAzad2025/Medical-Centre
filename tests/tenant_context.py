@@ -392,7 +392,15 @@ def bind_platform_tenant(app: Flask):
 
 @contextmanager
 def tenant_test_context(app: Flask, tenant=None, *, bypass: bool = False):
-    """Establish tenant context for DB operations in SaaS mode tests."""
+    """Establish tenant context for DB operations in SaaS mode tests.
+
+    The binding is restored on exit. ``bind_tenant_on_g`` writes
+    ``db.session.info['_tenant_id']``, and that is the FIRST source
+    ``_current_tenant_id()`` consults - so entering this context for a second
+    tenant repointed the session at it, and the caller was left running as that
+    tenant for every statement afterwards. A helper that changes the session's
+    tenant has to put it back.
+    """
     from flask import g
 
     from app.extensions import db
@@ -401,15 +409,27 @@ def tenant_test_context(app: Flask, tenant=None, *, bypass: bool = False):
         if bypass:
             g._tenant_filter_bypass = True
         elif tenant is not None:
-            bind_tenant_on_g(tenant, db_session=db.session)
-            # Pin the GUC for the connection, not just the transaction. A
-            # request-scoped helper (the layout's entitlement banner snapshots
-            # usage) commits mid-request, and SET LOCAL dies with that commit;
-            # the next ORM statement is then re-asserted from a cleared
-            # context, RESETs the GUC, and every tenant-scoped refresh fails
-            # with ObjectDeletedError on a row that is present.
-            _pin_tenant_guc(getattr(tenant, 'id', tenant))
-        yield g
+            previous_tenant_id = db.session.info.get('_tenant_id')
+            try:
+                bind_tenant_on_g(tenant, db_session=db.session)
+                # Pin the GUC for the connection, not just the transaction. A
+                # request-scoped helper (the layout's entitlement banner snapshots
+                # usage) commits mid-request, and SET LOCAL dies with that commit;
+                # the next ORM statement is then re-asserted from a cleared
+                # context, RESETs the GUC, and every tenant-scoped refresh fails
+                # with ObjectDeletedError on a row that is present.
+                _pin_tenant_guc(getattr(tenant, 'id', tenant))
+                yield g
+            finally:
+                # Restore the session's tenant. SET LOCAL in the restore is
+                # transaction-scoped and takes precedence over the pinned
+                # session-level SET for the rest of this transaction.
+                if previous_tenant_id is not None:
+                    bind_tenant_on_g(previous_tenant_id, db_session=db.session)
+                else:
+                    db.session.info.pop('_tenant_id', None)
+        else:
+            yield g
 
 
 def activate_tenant_modules(app: Flask, tenant, module_names) -> None:
@@ -453,8 +473,15 @@ def refresh_scoped(app: Flask, tenant, obj):
     whatever tenant is currently bound. For a row belonging to another tenant
     that returns nothing, and SQLAlchemy reports it as "could not refresh" or
     raises ObjectDeletedError on a row that is present. Read it where it lives.
+
+    A detached instance is re-attached rather than merged. Merging would
+    refresh a copy and leave the caller's object holding stale values, so an
+    assertion about that object would pass without ever reading the row - the
+    check would stop proving anything.
     """
     with tenant_test_context(app, tenant):
+        if obj not in db.session:
+            db.session.add(obj)
         db.session.expire(obj)
         db.session.refresh(obj)
     return obj
@@ -469,9 +496,21 @@ def create_scoped(app: Flask, tenant, obj):
     InsufficientPrivilege — and whether it was accepted used to depend on which
     test ran before it, because the pooled connection keeps whatever tenant GUC
     it last carried.
+
+    The object is returned detached, with its values loaded. The commit
+    expires every attribute, and the caller holds the object after the scope
+    has closed - so under the caller's tenant the row is invisible to this
+    session and touching an expired attribute raises ObjectDeletedError on a
+    row that is present. Loading the values here, while the scope still names
+    the tenant that owns the row, means the caller can read them without a
+    refresh.
     """
     with tenant_test_context(app, tenant):
         _pin_tenant_guc(getattr(tenant, 'id', tenant))
         db.session.add(obj)
         db.session.commit()
+        # Load the values while the scope still names that tenant, then
+        # detach so no later access can trigger a refresh under the wrong one.
+        db.session.refresh(obj)
+        db.session.expunge(obj)
     return obj
