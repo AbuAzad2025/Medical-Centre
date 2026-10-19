@@ -107,14 +107,6 @@ def _beds_from(resp):
 
 @covers('INPATIENT_PLACEMENT_BY_WARD_AND_BED')
 class TestTheAvailableBedsList:
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: available-beds selects every Bed with no status predicate '
-            'and returns no status field, so an occupied or out-of-order bed is '
-            'presented exactly like a free one'
-        ),
-    )
     def test_the_available_beds_endpoint_returns_only_available_beds(self, house):
         """Beds that cannot take a patient must not look like beds that can.
 
@@ -166,14 +158,6 @@ class TestTheAvailableBedsList:
 
 @covers('INPATIENT_ADMIT_TRANSFER_DISCHARGE')
 class TestBedsAreUnpriced:
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: nothing prices a bed. Bed carries bed_type and no money, '
-            'and ServicePrice covers services and doctors only, so an ICU bed and a '
-            'standard bed in the same ward bill identically'
-        ),
-    )
     def test_a_critical_care_bed_costs_more_than_a_standard_one(self, house):
         """Two beds, same ward, different acuity, and both cost nothing.
 
@@ -263,14 +247,6 @@ class TestAdmissionGuardsStillHold:
 
 @covers('INPATIENT_SURGERY_SCHEDULING')
 class TestTheOperatingRoomCannotBeWritten:
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: the OR blueprint has two GET routes and no writer, so a '
-            'surgery can never be booked. SurgerySchedule exists with required '
-            'columns and nothing can write it'
-        ),
-    )
     def test_an_operation_can_be_scheduled(self, house):
         """Booking a list for theatre is the whole of this journey, and it cannot run.
 
@@ -288,7 +264,9 @@ class TestTheOperatingRoomCannotBeWritten:
         from routes import or_management_routes as or_module
 
         source = inspect.getsource(or_module)
-        write_methods = ("method=['POST'", 'method="POST"', "method='POST'")
+        # 'method=' never matches real Flask - the decorator keyword is
+        # 'methods='. The three spellings below are all forms of that keyword.
+        write_methods = ("methods=['POST']", 'methods="POST"', "methods='POST'")
         assert any(m in source for m in write_methods), (
             'no POST route exists in the OR blueprint. SurgerySchedule has required '
             'columns (procedure_name, scheduled_date) and nothing can write it, so '
@@ -297,8 +275,27 @@ class TestTheOperatingRoomCannotBeWritten:
 
         from models.or_management import SurgerySchedule
 
+        # Book through the route, not just through the source text above. A grep
+        # proves a writer is declared; only a request proves it writes.
+        client = house['client']
+        patient = house['visit'].patient
+        resp = client.post(
+            '/or/schedule',
+            data={
+                'patient_id': str(patient.id),
+                'procedure_name': 'Laparoscopic cholecystectomy',
+                'scheduled_date': '2026-12-01',
+                'or_room': 'Theatre 1',
+                'surgery_type': 'ELECTIVE',
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code in (200, 302), f'booking a surgery answered {resp.status_code}'
+
         rows = db.session.execute(select(SurgerySchedule)).scalars().all()
         assert len(rows) == 1, (
             f'expected one scheduled operation after booking, found {len(rows)}. '
-            f'There is no route that creates a SurgerySchedule'
+            f'The POST route is declared but wrote no SurgerySchedule'
         )
+        assert rows[0].procedure_name == 'Laparoscopic cholecystectomy'
+        assert str(rows[0].scheduled_date) == '2026-12-01'

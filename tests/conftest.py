@@ -666,6 +666,48 @@ def test_tenant(app, rollback_db):
     return t
 
 
+@pytest.fixture(scope='session', autouse=True)
+def _seed_bed_rates(app):
+    """Seed the bed rate card once per session, outside any test transaction.
+
+    Beds were unpriced: ``Bed`` carries a descriptive ``bed_type`` and no money,
+    so an ICU bed billed exactly like the standard bed beside it and a ward had
+    no way to charge for acuity at all.
+
+    Session-scoped on purpose. ``rollback_db`` rolls the test transaction back on
+    teardown, so a rate card seeded from the function-scoped ``test_tenant``
+    fixture is discarded every time and never persists.
+
+    ``service_prices`` is RLS-scoped by a strict
+    ``tenant_id = current_setting('app.tenant_id')`` policy with no global rows,
+    so each rate must name the tenant: a NULL tenant_id is rejected with
+    InsufficientPrivilege, and the platform scope cannot write them either.
+    """
+    from seeds.production_baseline import seed_bed_rates
+    from tests.tenant_context import ensure_default_test_tenant
+
+    with app.app_context():
+        tenant = ensure_default_test_tenant(app)
+        tenant_id = tenant.id
+    # Seed on a connection of our own. rollback_db binds the shared scoped
+    # session to a connection it rolls back at teardown, so anything written
+    # through that session afterwards is discarded - the seeder reports
+    # created=7 and the table is still empty. This engine connection commits for
+    # real.
+    with _db.engine.begin() as conn:
+        conn.execute(sa_text(f"SELECT set_config('app.tenant_id', '{tenant_id}', false)"))
+        created = seed_bed_rates(tenant_id=tenant_id, connection=conn)
+        total = conn.execute(
+            sa_text("SELECT count(*) FROM service_prices WHERE service_code LIKE 'BED%'")
+        ).scalar()
+    if not total:
+        raise RuntimeError(
+            f'bed rate seeding produced no rows for the test tenant '
+            f'(created={created}, total={total}): a bed cannot be priced at all'
+        )
+    return total
+
+
 @pytest.fixture(scope='function')
 def db(app):
     """Shared SQLAlchemy database handle (same scoped session as the app).

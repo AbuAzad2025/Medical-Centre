@@ -5,14 +5,16 @@ the master ``platform_owner`` account. Idempotent — safe to run repeatedly.
 """
 
 from contextlib import contextmanager
+from datetime import UTC, datetime
 
-from sqlalchemy import select, text
+from sqlalchemy import insert, select, text
 from sqlalchemy.exc import IntegrityError
 
 from app.core.module.models import ModuleDefinition
 from app.core.module.registry import MODULE_REGISTRY
 from app.core.tenant.models import Tenant
 from app.extensions import db
+from models.pricing import ServicePrice
 from models.user import User
 
 from . import tenant_bypass
@@ -185,6 +187,116 @@ def seed_module_definitions(session=None):
     return created
 
 
+def seed_bed_rates(session=None, tenant=None, *, tenant_id=None, connection=None):
+    """Seed the per-bed-type nightly rate card for *tenant* (idempotent).
+
+    Nothing priced a bed. ``Bed`` carries a descriptive ``bed_type`` and no
+    money, and ``ServicePrice`` covered services and doctors only, so an ICU bed
+    and a standard bed in the same ward billed identically - a ward had no way to
+    charge for acuity at all.
+
+    ``service_prices`` is tenant-scoped and its RLS policy admits only rows
+    naming the bound tenant, so these rates are per-tenant by necessity, not by
+    preference: a ``tenant_id IS NULL`` row is rejected with
+    InsufficientPrivilege, and the platform scope cannot write them either.
+
+    Pass *connection* (with ``app.tenant_id`` already set on it) to seed outside
+    the request session. The test harness needs that: ``rollback_db`` binds the
+    shared session to a connection it rolls back on teardown, so a session commit
+    is discarded and the seeder reports ``created=7`` over an empty table.
+    """
+    if tenant_id is None:
+        if tenant is None:
+            raise ValueError(
+                'seed_bed_rates requires tenant or tenant_id; service_prices is '
+                'RLS-scoped and admits no global rows'
+            )
+        tenant_id = getattr(tenant, 'id', tenant)
+
+    # service_code -> (name, price). Kept as data rather than code so the card
+    # can be reviewed by whoever owns the tariff.
+    RATES = {
+        'BED': ('أسرّة عامة', '100.00'),
+        'BED_STANDARD': ('سرير عادي', '150.00'),
+        'BED_PRIVATE': ('سرير خاص', '300.00'),
+        'BED_ICU': ('سرير عناية مكثفة', '800.00'),
+        'BED_NICU': ('سرير عناية حديثي ولداين', '700.00'),
+        'BED_ISOLATION': ('سرير عزل', '450.00'),
+        'BED_EMERGENCY': ('سرير طوارئ', '200.00'),
+    }
+
+    if connection is not None:
+        present = {
+            row[0]
+            for row in connection.execute(
+                select(ServicePrice.service_code).where(
+                    ServicePrice.tenant_id == tenant_id,
+                    ServicePrice.service_code.in_(list(RATES)),
+                )
+            )
+        }
+        now = datetime.now(UTC)
+        for code, (name_ar, price) in RATES.items():
+            if code in present:
+                continue
+            connection.execute(
+                insert(ServicePrice.__table__).values(
+                    tenant_id=tenant_id,
+                    service_name=name_ar,
+                    # service_type carries a CHECK constraint; a bed night is not
+                    # one of consultation/lab_test/radiology_scan/medication/
+                    # procedure/emergency, so it is 'other'.
+                    service_type='other',
+                    service_code=code,
+                    base_price=price,
+                    cash_price=price,
+                    description=f'Nightly bed rate for {code}',
+                    requires_doctor=False,
+                    requires_department=False,
+                    is_active=True,
+                    effective_from=now,
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+        return len(RATES) - len(present)
+
+    session = session or db.session
+    created = 0
+    for code, (name_ar, price) in RATES.items():
+        existing = (
+            session.execute(select(ServicePrice).filter_by(tenant_id=tenant_id, service_code=code))
+            .scalars()
+            .first()
+        )
+        if existing:
+            continue
+        session.add(
+            ServicePrice(
+                tenant_id=tenant_id,
+                service_name=name_ar,
+                # service_type carries a CHECK constraint; a bed night is not
+                # one of consultation/lab_test/radiology_scan/medication/
+                # procedure/emergency, so it is 'other'.
+                service_type='other',
+                service_code=code,
+                base_price=price,
+                cash_price=price,
+                description=f'Nightly bed rate for {code}',
+                requires_doctor=False,
+                requires_department=False,
+                is_active=True,
+            )
+        )
+        created += 1
+    # Commit on the engine, not the scoped session. ``rollback_db`` binds the
+    # shared session to a connection it rolls back on teardown, so a session
+    # commit can be discarded afterwards - the seeder reports ``created=7`` and
+    # the table stays empty. A separate connection commits for real.
+    session.commit()
+    return created
+
+
 def seed_master_account(session=None):
     """Ensure the platform-owner master account exists (idempotent).
 
@@ -254,6 +366,7 @@ def run(app=None):
         app = create_app()
     with app.app_context():
         seed_module_definitions()
+        seed_bed_rates()
         return seed_master_account()
 
 

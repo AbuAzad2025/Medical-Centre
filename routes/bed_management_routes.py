@@ -113,13 +113,24 @@ def admission_detail(admission_id):
 @handle_route_errors
 def api_available_beds():
     ward_id = request.args.get('ward_id', type=int)
-    query = select(Bed)
+    # Only beds that can actually take a patient. Selecting every Bed and
+    # returning no status presented an occupied, CLEANING or OUT_OF_ORDER bed
+    # exactly like a free one, so the mistake only surfaced at the admit - after
+    # a nurse had chosen the bed and opened a visit against it.
+    query = select(Bed).filter(Bed.status == 'AVAILABLE', Bed.is_active.is_(True))
     if ward_id:
         query = query.join(Room).filter(Room.ward_id == ward_id)
     beds = db.session.execute(query).scalars().all()
     return jsonify(
         [
-            {'id': b.id, 'bed_number': b.bed_number, 'room': b.room.name, 'ward': b.room.ward.name}
+            {
+                'id': b.id,
+                'bed_number': b.bed_number,
+                'room': b.room.name,
+                'ward': b.room.ward.name,
+                'status': b.status,
+                'bed_type': b.bed_type,
+            }
             for b in beds
         ]
     )
