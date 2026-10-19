@@ -248,18 +248,24 @@ class TestWhereTheIsolationActuallyLives:
         )
         assert len(scoped) >= 1, 'the fixture staged no patient in this tenant'
 
-        # The raw read is the one that used to leak. It must not: the other
-        # tenant's patient is named by a national id this tenant does not own,
-        # and a raw query for it returns nothing.
-        leaked = db.session.execute(
-            sql_text('SELECT count(*) FROM patients WHERE national_id = :nid'),
-            {'nid': two_tenants['theirs_national_id']},
-        ).scalar()
+        # The raw read is the one that used to leak. Bind it explicitly to the
+        # other tenant and ask for THIS tenant's patient: it must not be
+        # visible. The binding is set rather than inherited, so the result
+        # does not depend on what the ambient GUC happened to be when the
+        # query ran - an inherited one made this case pass locally and fail
+        # in CI, where the ordering left the connection bound elsewhere.
+        from app.core.tenant.middleware import bound_tenant_scope
+
+        with bound_tenant_scope(two_tenants['other']):
+            leaked = db.session.execute(
+                sql_text('SELECT count(*) FROM patients WHERE national_id = :nid'),
+                {'nid': two_tenants['mine_national_id']},
+            ).scalar()
         assert leaked == 0, (
-            f"a raw SQL read returned {leaked} row(s) for another tenant's "
-            'patient. RLS is the second independent layer under the ORM '
-            'listener, and it did not hold: the row was visible to a query that '
-            'names no tenant at all.'
+            f'a raw SQL read bound to one tenant returned {leaked} row(s) for '
+            "another tenant's patient. RLS is the second independent layer under "
+            'the ORM listener, and it did not hold: the row was visible to a '
+            'query that names no tenant at all.'
         )
 
     def test_the_search_handler_still_states_no_tenant_of_its_own(self, two_tenants):
