@@ -2,11 +2,24 @@ from datetime import UTC, datetime
 
 from sqlalchemy import CheckConstraint, Index, UniqueConstraint
 
+from app.shared.mixins import TenantMixin
 from app_factory import db
 
 
-class DrugInteraction(db.Model):
+class DrugInteraction(TenantMixin, db.Model):
+    """A drug interaction, owned by the tenant that recorded it.
+
+    The table was global for a long time: one row set for every tenant, so an
+    interaction one clinic recorded was consulted by every other clinic's
+    dispense screen, and the clinic that recorded it had no way to scope or
+    withdraw it.
+
+    It is tenant-scoped now. ``tenant_id`` is assigned on write by the tenant
+    filter, and reads are scoped by the same filter and by the RLS policy.
+    """
+
     __tablename__ = 'drug_interactions'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
 

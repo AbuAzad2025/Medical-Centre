@@ -178,14 +178,6 @@ class TestTheCatalogueNormalises:
 
 @covers('MEDICATION_CATALOG_AND_INTERACTIONS')
 class TestTheCatalogueBelongsToEveryone:
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'known defect: DrugInteraction has no tenant_id and no RLS, so an '
-            'interaction one tenant records blocks dispensing in every other tenant '
-            'and cannot be scoped back by the clinic that added it'
-        ),
-    )
     def test_an_interaction_recorded_by_one_tenant_is_scoped_to_that_tenant(self, two_pharmacies):
         """A clinic's own clinical decision must not become a global rule.
 
