@@ -104,24 +104,32 @@ def two_tenants(app, test_tenant):
     # audit context follows the scope. It is a ContextVar and still held the
     # first tenant otherwise, which made the audit row itself the thing RLS
     # rejected.
-    from app.core.audit.audit_context import set_audit_context
+    from app.core.audit.audit_context import audit_tenant_scope
 
     with tenant_test_context(app, other):
-        set_audit_context(tenant_id=other.id)
-        theirs = Patient(
-            tenant_id=other.id,
-            first_name='Belongs',
-            last_name='Elsewhere',
-            national_id='E2E-READ-THEIRS',
-            phone='0550000002',
-        )
-        db.session.add(theirs)
-        db.session.commit()
-        # Read the values while the scope still names that tenant. After the
-        # context restores the first tenant, the row is invisible to this
-        # session and touching an expired attribute raises ObjectDeletedError
-        # on a row that is present.
-        theirs_id, theirs_national_id = theirs.id, theirs.national_id
+        with audit_tenant_scope(other.id):
+            theirs = Patient(
+                tenant_id=other.id,
+                first_name='Belongs',
+                last_name='Elsewhere',
+                national_id='E2E-READ-THEIRS',
+                phone='0550000002',
+            )
+            db.session.add(theirs)
+            db.session.commit()
+            # The PHI audit row is added in an after_flush hook, so the commit
+            # above did not include it - it is still pending. Flushing it here,
+            # while the scope still names the tenant that owns both rows, is
+            # what keeps it out of the next flush. Left pending, it is written
+            # under whichever tenant is bound by then, the WITH CHECK policy
+            # rejects it, and the session is left in a failed state that every
+            # later statement inherits.
+            db.session.commit()
+            # Read the values while the scope still names that tenant. After the
+            # context restores the first tenant, the row is invisible to this
+            # session and touching an expired attribute raises ObjectDeletedError
+            # on a row that is present.
+            theirs_id, theirs_national_id = theirs.id, theirs.national_id
 
     return {
         'app': app,
@@ -257,6 +265,14 @@ class TestWhereTheIsolationActuallyLives:
         from app.core.tenant.middleware import bound_tenant_scope
 
         with bound_tenant_scope(two_tenants['other']):
+            bound = db.session.execute(
+                sql_text("SELECT current_setting('app.tenant_id', true)")
+            ).scalar()
+            assert bound == str(two_tenants['other'].id), (
+                f'the raw read ran with app.tenant_id={bound!r} instead of the '
+                f"other tenant's id {two_tenants['other'].id}. The binding did not "
+                'take, so the count below would say nothing about isolation.'
+            )
             leaked = db.session.execute(
                 sql_text('SELECT count(*) FROM patients WHERE national_id = :nid'),
                 {'nid': two_tenants['mine_national_id']},
