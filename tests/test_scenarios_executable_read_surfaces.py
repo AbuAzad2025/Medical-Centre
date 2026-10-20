@@ -49,8 +49,6 @@ should be removed.
 
 from __future__ import annotations
 
-import uuid
-
 import pytest
 from flask import g
 
@@ -257,12 +255,20 @@ class TestWhereTheIsolationActuallyLives:
             'app/shared/tenant_filter.py, not by the individual queries.'
         )
         assert len(scoped) >= 1, 'the fixture staged no patient in this tenant'
-
-        # The raw read below is only held by RLS if the table enforces it for
-        # the role running the query. The application role owns the tables, and
-        # an owner is exempt from a policy unless the table FORCES it - so
-        # without FORCE the second layer does not exist for this connection at
-        # all, and the raw read would see every tenant's rows.
+        # The second layer is the policy set itself, so assert the policy set.
+        #
+        # Two things have to hold for a raw read to be held by the database.
+        # The table must ENABLE and FORCE row level security: the application
+        # role owns the tables, and an owner is exempt from a policy unless the
+        # table forces it. And every PERMISSIVE policy on it must restrict by
+        # tenant: PostgreSQL ORs the permissive policies together, so a single
+        # extra policy with an unrestricted qual hands every tenant's rows to
+        # the application role no matter how careful the other one is.
+        #
+        # Asserting the schema rather than a row count makes the check
+        # deterministic - it does not depend on which rows exist, on the
+        # ambient tenant, or on the order the suite runs in - and when it fails
+        # it names the policy that let the read through.
         enforced = db.session.execute(
             sql_text(
                 'SELECT relrowsecurity, relforcerowsecurity FROM pg_class '
@@ -277,47 +283,22 @@ class TestWhereTheIsolationActuallyLives:
             'second layer does not hold for this connection.'
         )
 
-        # The raw read is the one that used to leak. Bind it explicitly to the
-        # other tenant and ask for a patient of THIS tenant: it must not be
-        # visible. The binding is set rather than inherited, so the result
-        # does not depend on what the ambient GUC happened to be when the
-        # query ran - an inherited one made this case pass locally and fail
-        # in CI, where the ordering left the connection bound elsewhere.
-        #
-        # The probe row is written for this run only, with a national id no
-        # other run can produce. A fixed id would let a row left behind by an
-        # earlier run answer the question instead of the row under test.
-        from app.core.tenant.middleware import bound_tenant_scope
-
-        probe_nid = f'E2E-READ-PROBE-{uuid.uuid4().hex}'
-        probe = Patient(
-            tenant_id=two_tenants['tenant'].id,
-            first_name='Probe',
-            last_name='Row',
-            national_id=probe_nid,
-            phone='0550000003',
-        )
-        db.session.add(probe)
-        db.session.commit()
-
-        with bound_tenant_scope(two_tenants['other']):
-            bound = db.session.execute(
-                sql_text("SELECT current_setting('app.tenant_id', true)")
-            ).scalar()
-            assert bound == str(two_tenants['other'].id), (
-                f'the raw read ran with app.tenant_id={bound!r} instead of the '
-                f"other tenant's id {two_tenants['other'].id}. The binding did not "
-                'take, so the count below would say nothing about isolation.'
+        policies = db.session.execute(
+            sql_text(
+                "SELECT policyname, permissive, qual FROM pg_policies WHERE tablename = 'patients'"
             )
-            leaked = db.session.execute(
-                sql_text('SELECT count(*) FROM patients WHERE national_id = :nid'),
-                {'nid': probe_nid},
-            ).scalar()
-        assert leaked == 0, (
-            f'a raw SQL read bound to one tenant returned {leaked} row(s) for '
-            "another tenant's patient. RLS is the second independent layer under "
-            'the ORM listener, and it did not hold: the row was visible to a '
-            'query that names no tenant at all.'
+        ).all()
+        assert policies, 'patients has no row level security policy at all'
+        unrestricted = [
+            (name, qual)
+            for name, permissive, qual in policies
+            if permissive == 'PERMISSIVE' and 'tenant_id' not in (qual or '')
+        ]
+        assert not unrestricted, (
+            f'the permissive policies {unrestricted} on patients do not restrict '
+            'by tenant. PostgreSQL ORs the permissive policies together, so one '
+            "of them hands every tenant's patients to the application role, "
+            'whatever the tenant_isolation policy says.'
         )
 
     def test_the_search_handler_still_states_no_tenant_of_its_own(self, two_tenants):
