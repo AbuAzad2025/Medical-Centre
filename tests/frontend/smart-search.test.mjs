@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   document.body.innerHTML = '';
   window.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ patients: [] }) });
   vi.useFakeTimers();
-  loadScript('static/js/smart-search.js');
+  await loadModule('static/js/smart-search.js');
 });
 
 afterEach(() => {

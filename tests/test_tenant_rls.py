@@ -49,7 +49,7 @@ def tenant_b(app, rollback_db):
                 slug=f'tenant-b-{uuid.uuid4().hex[:8]}',
                 name='Tenant B',
                 contact_email='tenantb@test.local',
-                status='active',
+                status='ACTIVE',
                 product_profile_code='multi_department_center',
             )
             db.session.add(t)

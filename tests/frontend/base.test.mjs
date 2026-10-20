@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   document.body.innerHTML = '';
-  loadScript('static/js/base.js');
+  await loadModule('static/js/base.js');
 });
 
 describe('base.js', () => {

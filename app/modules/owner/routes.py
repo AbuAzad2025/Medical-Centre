@@ -3645,7 +3645,7 @@ def owner_system_stats():
     stats = {
         'total_tenants': db.session.execute(select(func.count()).select_from(Tenant)).scalar(),
         'active_tenants': db.session.execute(
-            select(func.count()).select_from(Tenant).filter_by(status='active')
+            select(func.count()).select_from(Tenant).filter_by(status='ACTIVE')
         ).scalar(),
         'total_users': db.session.execute(select(func.count()).select_from(User)).scalar(),
         'active_users': db.session.execute(
@@ -3681,13 +3681,13 @@ def owner_reports():
     tenant_stats = {
         'total': db.session.execute(select(func.count()).select_from(Tenant)).scalar(),
         'active': db.session.execute(
-            select(func.count()).select_from(Tenant).filter_by(status='active')
+            select(func.count()).select_from(Tenant).filter_by(status='ACTIVE')
         ).scalar(),
         'trial': db.session.execute(
-            select(func.count()).select_from(Tenant).filter_by(status='trial')
+            select(func.count()).select_from(Tenant).filter_by(status='TRIAL')
         ).scalar(),
         'suspended': db.session.execute(
-            select(func.count()).select_from(Tenant).filter_by(status='suspended')
+            select(func.count()).select_from(Tenant).filter_by(status='SUSPENDED')
         ).scalar(),
     }
 

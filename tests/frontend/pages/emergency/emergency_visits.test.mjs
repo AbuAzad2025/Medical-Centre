@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = '<div id="app"></div>';
@@ -15,16 +15,16 @@ beforeEach(() => {
 
 describe('emergency/emergency_visits.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/emergency/emergency_visits.js');
+    await loadModule('static/js/pages/emergency/emergency_visits.js');
   });
 
   test('startTreatment is a function', async () => {
-    await loadScript('static/js/pages/emergency/emergency_visits.js');
+    await loadModule('static/js/pages/emergency/emergency_visits.js');
     expect(typeof startTreatment).toBe('function');
   });
 
   test('completeVisit is a function', async () => {
-    await loadScript('static/js/pages/emergency/emergency_visits.js');
+    await loadModule('static/js/pages/emergency/emergency_visits.js');
     expect(typeof completeVisit).toBe('function');
   });
 });

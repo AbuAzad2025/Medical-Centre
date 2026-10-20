@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -19,21 +19,21 @@ beforeEach(() => {
 
 describe('super_admin/security_logs.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/super_admin/security_logs.js');
+    await loadModule('static/js/pages/super_admin/security_logs.js');
   });
 
   test('filterLogs is a function', async () => {
-    await loadScript('static/js/pages/super_admin/security_logs.js');
+    await loadModule('static/js/pages/super_admin/security_logs.js');
     expect(typeof filterLogs).toBe('function');
   });
 
   test('exportLogs is a function', async () => {
-    await loadScript('static/js/pages/super_admin/security_logs.js');
+    await loadModule('static/js/pages/super_admin/security_logs.js');
     expect(typeof exportLogs).toBe('function');
   });
 
   test('filterLogs with event parameter', async () => {
-    await loadScript('static/js/pages/super_admin/security_logs.js');
+    await loadModule('static/js/pages/super_admin/security_logs.js');
     const btn = document.querySelector('.btn-outline-primary');
     const event = { target: btn };
     filterLogs('all', event);
@@ -41,7 +41,7 @@ describe('super_admin/security_logs.js', () => {
   });
 
   test('filterLogs filters by level', async () => {
-    await loadScript('static/js/pages/super_admin/security_logs.js');
+    await loadModule('static/js/pages/super_admin/security_logs.js');
     filterLogs('CRITICAL');
     const rows = document.querySelectorAll('#securityLogsTable tbody tr');
     expect(rows[0].style.display).toBe('');

@@ -39,7 +39,7 @@ def tenant_a(app):
                 slug='tenant-a',
                 name='Tenant A',
                 contact_email='a@example.com',
-                status='active',
+                status='ACTIVE',
                 product_profile_code=ProductProfile.STANDALONE_PHARMACY,
             )
             _db.session.add(t)
@@ -71,7 +71,7 @@ def tenant_b(app):
                 slug='tenant-b',
                 name='Tenant B',
                 contact_email='b@example.com',
-                status='active',
+                status='ACTIVE',
                 product_profile_code=ProductProfile.STANDALONE_PHARMACY,
             )
             _db.session.add(t)

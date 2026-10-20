@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -23,11 +23,11 @@ beforeEach(() => {
 
 describe('emergency/edit.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/emergency/edit.js');
+    await loadModule('static/js/pages/emergency/edit.js');
   });
 
   test('form submit validates required fields', async () => {
-    await loadScript('static/js/pages/emergency/edit.js');
+    await loadModule('static/js/pages/emergency/edit.js');
     const form = document.getElementById('emergencyForm');
     const input = form.querySelector('[name="chief_complaint"]');
     input.value = '';

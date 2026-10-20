@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -39,38 +39,38 @@ beforeEach(() => {
 
 describe('manager/pricing.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/manager/pricing.js');
+    await loadModule('static/js/pages/manager/pricing.js');
   });
 
   test('filterServices is a function', async () => {
-    await loadScript('static/js/pages/manager/pricing.js');
+    await loadModule('static/js/pages/manager/pricing.js');
     expect(typeof filterServices).toBe('function');
   });
 
   test('openAddModal is a function', async () => {
-    await loadScript('static/js/pages/manager/pricing.js');
+    await loadModule('static/js/pages/manager/pricing.js');
     expect(typeof openAddModal).toBe('function');
   });
 
   test('saveService is a function', async () => {
-    await loadScript('static/js/pages/manager/pricing.js');
+    await loadModule('static/js/pages/manager/pricing.js');
     expect(typeof saveService).toBe('function');
   });
 
   test('deleteService is a function', async () => {
-    await loadScript('static/js/pages/manager/pricing.js');
+    await loadModule('static/js/pages/manager/pricing.js');
     expect(typeof deleteService).toBe('function');
   });
 
   test('filterServices shows all when category is all', async () => {
-    await loadScript('static/js/pages/manager/pricing.js');
+    await loadModule('static/js/pages/manager/pricing.js');
     filterServices('all');
     const rows = document.querySelectorAll('#pricingTable tbody tr');
     rows.forEach(r => expect(r.style.display).toBe(''));
   });
 
   test('filterServices filters by category', async () => {
-    await loadScript('static/js/pages/manager/pricing.js');
+    await loadModule('static/js/pages/manager/pricing.js');
     filterServices('lab');
     const rows = document.querySelectorAll('#pricingTable tbody tr');
     expect(rows[0].style.display).toBe('none');

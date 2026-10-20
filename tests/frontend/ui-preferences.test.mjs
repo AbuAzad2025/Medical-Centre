@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   document.body.innerHTML = '';
   document.documentElement.removeAttribute('data-density');
   document.documentElement.removeAttribute('data-radius');
@@ -9,7 +9,7 @@ beforeEach(() => {
   window.__USER_PREFS__ = {};
   window.fetch = vi.fn().mockResolvedValue({ ok: true });
   window.showToast = vi.fn();
-  loadScript('static/js/ui-preferences.js');
+  await loadModule('static/js/ui-preferences.js');
 });
 
 describe('ui-preferences.js', () => {

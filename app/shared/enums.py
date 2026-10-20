@@ -8,28 +8,38 @@ from enum import Enum, StrEnum
 # =============================================================================
 # Subscription & Tenant
 # =============================================================================
+#
+# The values of the enums below are UPPERCASE because the PostgreSQL enum
+# types behind them are created by the migrations with UPPERCASE labels
+# (migrations/versions/prod_baseline_20260622.py): tenantstatus, storagemode,
+# permissioncategory, permissionlevel and subscriptiontype.
+#
+# A column read back from the database hands the LABEL, so a lowercase member
+# here would never compare equal to the stored value, and assigning one would
+# be rejected by PostgreSQL as an invalid label. The enums and the schema have
+# to agree on the spelling, and the schema is the one that was migrated.
 
 
 class SubscriptionType(StrEnum):
-    PERPETUAL = 'perpetual'
-    MONTHLY = 'monthly'
-    YEARLY = 'yearly'
+    PERPETUAL = 'PERPETUAL'
+    MONTHLY = 'MONTHLY'
+    YEARLY = 'YEARLY'
 
 
 class TenantStatus(StrEnum):
-    ACTIVE = 'active'
-    SUSPENDED = 'suspended'
-    PENDING = 'pending'
-    TRIAL = 'trial'
-    EXPIRED = 'expired'
-    CANCELLED = 'cancelled'
-    DELETED = 'deleted'
+    ACTIVE = 'ACTIVE'
+    SUSPENDED = 'SUSPENDED'
+    PENDING = 'PENDING'
+    TRIAL = 'TRIAL'
+    EXPIRED = 'EXPIRED'
+    CANCELLED = 'CANCELLED'
+    DELETED = 'DELETED'
 
 
 class StorageMode(StrEnum):
-    CLOUD = 'cloud'
-    LOCAL = 'local'
-    HYBRID = 'hybrid'
+    CLOUD = 'CLOUD'
+    LOCAL = 'LOCAL'
+    HYBRID = 'HYBRID'
 
 
 class ProductProfile(StrEnum):
@@ -603,11 +613,11 @@ class SecuritySeverity(StrEnum):
 class PermissionLevel(Enum):
     """مستويات الصلاحيات"""
 
-    READ = 'read'
-    WRITE = 'write'
-    DELETE = 'delete'
-    ADMIN = 'admin'
-    SUPER_ADMIN = 'super_admin'
+    READ = 'READ'
+    WRITE = 'WRITE'
+    DELETE = 'DELETE'
+    ADMIN = 'ADMIN'
+    SUPER_ADMIN = 'SUPER_ADMIN'
 
     @property
     def label_ar(self):
@@ -623,16 +633,16 @@ class PermissionLevel(Enum):
 class PermissionCategory(Enum):
     """فئات الصلاحيات"""
 
-    USER_MANAGEMENT = 'user_management'
-    PATIENT_MANAGEMENT = 'patient_management'
-    MEDICAL_RECORDS = 'medical_records'
-    FINANCIAL = 'financial'
-    SYSTEM_ADMIN = 'system_admin'
-    BACKUP_RESTORE = 'backup_restore'
-    REPORTS = 'reports'
-    SETTINGS = 'settings'
-    SECURITY = 'security'
-    AUDIT = 'audit'
+    USER_MANAGEMENT = 'USER_MANAGEMENT'
+    PATIENT_MANAGEMENT = 'PATIENT_MANAGEMENT'
+    MEDICAL_RECORDS = 'MEDICAL_RECORDS'
+    FINANCIAL = 'FINANCIAL'
+    SYSTEM_ADMIN = 'SYSTEM_ADMIN'
+    BACKUP_RESTORE = 'BACKUP_RESTORE'
+    REPORTS = 'REPORTS'
+    SETTINGS = 'SETTINGS'
+    SECURITY = 'SECURITY'
+    AUDIT = 'AUDIT'
 
     @property
     def label_ar(self):

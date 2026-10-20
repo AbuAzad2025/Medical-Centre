@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -21,21 +21,21 @@ beforeEach(() => {
 
 describe('super_admin/departments.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/super_admin/departments.js');
+    await loadModule('static/js/pages/super_admin/departments.js');
   });
 
   test('activateDepartment is a function', async () => {
-    await loadScript('static/js/pages/super_admin/departments.js');
+    await loadModule('static/js/pages/super_admin/departments.js');
     expect(typeof activateDepartment).toBe('function');
   });
 
   test('deactivateDepartment is a function', async () => {
-    await loadScript('static/js/pages/super_admin/departments.js');
+    await loadModule('static/js/pages/super_admin/departments.js');
     expect(typeof deactivateDepartment).toBe('function');
   });
 
   test('exportDepartments is a function', async () => {
-    await loadScript('static/js/pages/super_admin/departments.js');
+    await loadModule('static/js/pages/super_admin/departments.js');
     expect(typeof exportDepartments).toBe('function');
   });
 });

@@ -46,7 +46,7 @@ def _create_tenant(slug: str | None = None) -> Tenant:
             slug=slug,
             name=f'MC-005 Tenant {slug}',
             contact_email='mc005@test.local',
-            status='active',
+            status='ACTIVE',
             product_profile_code='multi_department_center',
         )
         db.session.add(t)

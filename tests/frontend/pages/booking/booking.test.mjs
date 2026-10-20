@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -21,21 +21,21 @@ beforeEach(() => {
 
 describe('booking/booking.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/booking/index.js');
+    await loadModule('static/js/pages/booking/index.js');
   });
 
   test('loadDoctors is a function', async () => {
-    await loadScript('static/js/pages/booking/index.js');
+    await loadModule('static/js/pages/booking/index.js');
     expect(typeof loadDoctors).toBe('function');
   });
 
   test('loadTimes is a function', async () => {
-    await loadScript('static/js/pages/booking/index.js');
+    await loadModule('static/js/pages/booking/index.js');
     expect(typeof loadTimes).toBe('function');
   });
 
   test('r.ok checks exist in loadDoctors fetch', async () => {
-    await loadScript('static/js/pages/booking/index.js');
+    await loadModule('static/js/pages/booking/index.js');
     const code = await import('fs').then(fs => fs.default.readFileSync('static/js/pages/booking/index.js', 'utf-8'));
     expect(code).toContain('r.ok');
   });

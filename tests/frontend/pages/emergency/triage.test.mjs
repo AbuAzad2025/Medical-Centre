@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -25,11 +25,11 @@ beforeEach(() => {
 
 describe('emergency/triage.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/emergency/triage.js');
+    await loadModule('static/js/pages/emergency/triage.js');
   });
 
   test('triageForm submit listener registered', async () => {
-    await loadScript('static/js/pages/emergency/triage.js');
+    await loadModule('static/js/pages/emergency/triage.js');
     expect(document.getElementById('triageForm')).not.toBeNull();
   });
 });

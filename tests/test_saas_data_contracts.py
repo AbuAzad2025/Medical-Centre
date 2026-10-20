@@ -34,7 +34,7 @@ def saas_tenant(app, rollback_db):
         slug=f'saas-{uuid.uuid4().hex[:8]}',
         name='SaaS Test Tenant',
         contact_email='saas-tenant@test.local',
-        status='active',
+        status='ACTIVE',
         product_profile_code='standalone_clinic',
     )
     _db.session.add(t)

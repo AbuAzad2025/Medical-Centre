@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   window.ENUMS = {};
-  loadScript('static/js/enums.js');
+  await loadModule('static/js/enums.js');
 });
 
 describe('enums.js', () => {

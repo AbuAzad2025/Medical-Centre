@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -27,26 +27,26 @@ beforeEach(() => {
 
 describe('reception/appointments.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/reception/appointments.js');
+    await loadModule('static/js/pages/reception/appointments.js');
   });
 
   test('filterAppointments is a function', async () => {
-    await loadScript('static/js/pages/reception/appointments.js');
+    await loadModule('static/js/pages/reception/appointments.js');
     expect(typeof filterAppointments).toBe('function');
   });
 
   test('clearFilters is a function', async () => {
-    await loadScript('static/js/pages/reception/appointments.js');
+    await loadModule('static/js/pages/reception/appointments.js');
     expect(typeof clearFilters).toBe('function');
   });
 
   test('exportAppointments is a function', async () => {
-    await loadScript('static/js/pages/reception/appointments.js');
+    await loadModule('static/js/pages/reception/appointments.js');
     expect(typeof exportAppointments).toBe('function');
   });
 
   test('filterAppointments filters by today', async () => {
-    await loadScript('static/js/pages/reception/appointments.js');
+    await loadModule('static/js/pages/reception/appointments.js');
     const today = new Date().toISOString().split('T')[0];
     document.querySelector('#appointmentsTable tbody tr:first-child').dataset.date = today;
     filterAppointments('today');
@@ -55,7 +55,7 @@ describe('reception/appointments.js', () => {
   });
 
   test('filterAppointments filters by pending', async () => {
-    await loadScript('static/js/pages/reception/appointments.js');
+    await loadModule('static/js/pages/reception/appointments.js');
     filterAppointments('pending');
     const rows = document.querySelectorAll('#appointmentsTable tbody tr');
     expect(rows[0].style.display).toBe('');
@@ -63,7 +63,7 @@ describe('reception/appointments.js', () => {
   });
 
   test('filterAppointments all shows all', async () => {
-    await loadScript('static/js/pages/reception/appointments.js');
+    await loadModule('static/js/pages/reception/appointments.js');
     filterAppointments('all');
     const rows = document.querySelectorAll('#appointmentsTable tbody tr');
     rows.forEach(r => expect(r.style.display).toBe(''));

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   document.body.innerHTML = '';
   vi.useFakeTimers();
-  loadScript('static/js/flash.js');
+  await loadModule('static/js/flash.js');
 });
 
 afterEach(() => {

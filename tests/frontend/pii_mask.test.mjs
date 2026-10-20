@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   document.body.innerHTML = '';
-  loadScript('static/js/utils/pii_mask.js');
+  await loadModule('static/js/utils/pii_mask.js');
 });
 
 const PiiMask = () => window.PiiMask;

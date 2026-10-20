@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   window.__ENV = 'testing';
   window.notify = { error: vi.fn(), warning: vi.fn() };
   window.fetch = vi.fn().mockResolvedValue({ ok: true });
@@ -11,7 +11,7 @@ beforeEach(() => {
     if (v === null || v === undefined) return '';
     return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   };
-  loadScript('static/js/global-errors.js');
+  await loadModule('static/js/global-errors.js');
 });
 
 describe('global-errors.js', () => {

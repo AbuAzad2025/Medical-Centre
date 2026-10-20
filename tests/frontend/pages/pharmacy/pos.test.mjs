@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -30,26 +30,26 @@ beforeEach(() => {
 
 describe('pharmacy/pos.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/pharmacy/pos.js');
+    await loadModule('static/js/pages/pharmacy/pos.js');
   });
 
   test('checkout button starts disabled', async () => {
-    await loadScript('static/js/pages/pharmacy/pos.js');
+    await loadModule('static/js/pages/pharmacy/pos.js');
     expect(document.getElementById('checkoutBtn').disabled).toBe(true);
   });
 
   test('empty cart message shown initially', async () => {
-    await loadScript('static/js/pages/pharmacy/pos.js');
+    await loadModule('static/js/pages/pharmacy/pos.js');
     expect(document.getElementById('emptyCart')).not.toBeNull();
   });
 
   test('medSearch input exists', async () => {
-    await loadScript('static/js/pages/pharmacy/pos.js');
+    await loadModule('static/js/pages/pharmacy/pos.js');
     expect(document.getElementById('medSearch')).not.toBeNull();
   });
 
   test('card charge block is hidden by default', async () => {
-    await loadScript('static/js/pages/pharmacy/pos.js');
+    await loadModule('static/js/pages/pharmacy/pos.js');
     expect(document.getElementById('cardChargeBlock').classList.contains('d-none')).toBe(true);
   });
 });

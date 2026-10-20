@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -24,28 +24,28 @@ beforeEach(() => {
 
 describe('reception/create_appointment.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/reception/create_appointment.js');
+    await loadModule('static/js/pages/reception/create_appointment.js');
   });
 
   test('saveAppointment is a function', async () => {
-    await loadScript('static/js/pages/reception/create_appointment.js');
+    await loadModule('static/js/pages/reception/create_appointment.js');
     expect(typeof saveAppointment).toBe('function');
   });
 
   test('selectPatient is a function', async () => {
-    await loadScript('static/js/pages/reception/create_appointment.js');
+    await loadModule('static/js/pages/reception/create_appointment.js');
     expect(typeof selectPatient).toBe('function');
   });
 
   test('selectPatient sets patient_id and search value', async () => {
-    await loadScript('static/js/pages/reception/create_appointment.js');
+    await loadModule('static/js/pages/reception/create_appointment.js');
     selectPatient('123', 'John Doe');
     expect(document.getElementById('patient_id').value).toBe('123');
     expect(document.getElementById('patient_search').value).toBe('John Doe');
   });
 
   test('saveAppointment validates required fields', async () => {
-    await loadScript('static/js/pages/reception/create_appointment.js');
+    await loadModule('static/js/pages/reception/create_appointment.js');
     saveAppointment();
     expect(window.Swal.fire).toHaveBeenCalled();
   });

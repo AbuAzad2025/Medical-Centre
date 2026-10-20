@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -12,11 +12,11 @@ beforeEach(() => {
 
 describe('emergency/patient_queue.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/emergency/patient_queue.js');
+    await loadModule('static/js/pages/emergency/patient_queue.js');
   });
 
   test('refreshQueue is a function', async () => {
-    await loadScript('static/js/pages/emergency/patient_queue.js');
+    await loadModule('static/js/pages/emergency/patient_queue.js');
     expect(typeof refreshQueue).toBe('function');
   });
 });

@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   document.body.innerHTML = '';
   window.__VALIDATION_RULES__ = {
     email: { pattern: '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$', message_ar: 'البريد الإلكتروني غير صالح' },
     phone: { pattern: '^[\\+]?[1-9][\\d]{0,15}$', message_ar: 'رقم الهاتف غير صالح' },
     name: { min_length: 2, max_length: 50, message_ar: 'الاسم غير صالح' },
   };
-  loadScript('static/js/form-validation.js');
+  await loadModule('static/js/form-validation.js');
 });
 
 describe('form-validation.js', () => {

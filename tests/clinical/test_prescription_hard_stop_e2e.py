@@ -84,7 +84,7 @@ def app():
                 slug='test-tenant',
                 name='Test Tenant',
                 contact_email='test@test.local',
-                status='active',
+                status='ACTIVE',
                 product_profile_code='multi_department_center',
             )
             db.session.add(tenant)

@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -17,6 +17,6 @@ beforeEach(() => {
 
 describe('reception/waiting_display.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/reception/waiting_display.js');
+    await loadModule('static/js/pages/reception/waiting_display.js');
   });
 });

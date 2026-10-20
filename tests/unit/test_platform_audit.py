@@ -87,8 +87,14 @@ class TestPlatformAuditWrite:
                 entity_id=1,
             )
             db.session.add(row)
+            # Capture the id before the commit. The commit expires every
+            # attribute, and the session teardown detaches the instance, so
+            # reading row.id afterwards tries to refresh a detached instance and
+            # raises DetachedInstanceError on a row that was written fine.
+            db.session.flush()
+            row_id = row.id
             db.session.commit()
-            return row.id
+            return row_id
 
     def test_write_under_platform_scope_succeeds(self, app):
         """The whole point: a platform audit row must actually be written.

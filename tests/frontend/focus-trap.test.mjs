@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = '';
 });
 
 describe('focus-trap.js', () => {
-  it('registers trapFocus on shown.bs.modal event', () => {
-    loadScript('static/js/focus-trap.js');
+  it('registers trapFocus on shown.bs.modal event', async () => {
+    await loadModule('static/js/focus-trap.js');
     document.body.innerHTML = `
       <div class="modal" id="testModal">
         <input type="text" id="first" />
@@ -24,8 +24,8 @@ describe('focus-trap.js', () => {
     expect(keydownSpy).toHaveBeenCalled();
   });
 
-  it('cleanup removes handler on hidden.bs.modal', () => {
-    loadScript('static/js/focus-trap.js');
+  it('cleanup removes handler on hidden.bs.modal', async () => {
+    await loadModule('static/js/focus-trap.js');
     document.body.innerHTML = `
       <div class="modal" id="testModal">
         <input type="text" id="input1" />

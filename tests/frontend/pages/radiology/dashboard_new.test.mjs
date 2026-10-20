@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -21,6 +21,6 @@ beforeEach(() => {
 
 describe('radiology/dashboard_new.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/radiology/dashboard_new.js');
+    await loadModule('static/js/pages/radiology/dashboard_new.js');
   });
 });

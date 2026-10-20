@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -23,21 +23,21 @@ beforeEach(() => {
 
 describe('manager/monitoring.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/manager/monitoring.js');
+    await loadModule('static/js/pages/manager/monitoring.js');
   });
 
   test('exportMonitoringReport is a function', async () => {
-    await loadScript('static/js/pages/manager/monitoring.js');
+    await loadModule('static/js/pages/manager/monitoring.js');
     expect(typeof exportMonitoringReport).toBe('function');
   });
 
   test('updateUnitStatus is a function', async () => {
-    await loadScript('static/js/pages/manager/monitoring.js');
+    await loadModule('static/js/pages/manager/monitoring.js');
     expect(typeof updateUnitStatus).toBe('function');
   });
 
   test('viewUnitDetails is a function', async () => {
-    await loadScript('static/js/pages/manager/monitoring.js');
+    await loadModule('static/js/pages/manager/monitoring.js');
     expect(typeof viewUnitDetails).toBe('function');
   });
 });

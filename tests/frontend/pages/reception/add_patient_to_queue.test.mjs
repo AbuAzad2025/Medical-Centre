@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -30,21 +30,21 @@ beforeEach(() => {
 
 describe('reception/add_patient_to_queue.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/reception/add_patient_to_queue.js');
+    await loadModule('static/js/pages/reception/add_patient_to_queue.js');
   });
 
   test('showConfirmModal is a function', async () => {
-    await loadScript('static/js/pages/reception/add_patient_to_queue.js');
+    await loadModule('static/js/pages/reception/add_patient_to_queue.js');
     expect(typeof showConfirmModal).toBe('function');
   });
 
   test('submitForm is a function', async () => {
-    await loadScript('static/js/pages/reception/add_patient_to_queue.js');
+    await loadModule('static/js/pages/reception/add_patient_to_queue.js');
     expect(typeof submitForm).toBe('function');
   });
 
   test('emergency checkbox toggle shows reason group', async () => {
-    await loadScript('static/js/pages/reception/add_patient_to_queue.js');
+    await loadModule('static/js/pages/reception/add_patient_to_queue.js');
     const chk = document.getElementById('is_emergency');
     chk.checked = true;
     chk.dispatchEvent(new Event('change'));
@@ -53,7 +53,7 @@ describe('reception/add_patient_to_queue.js', () => {
   });
 
   test('emergency checkbox uncheck hides reason group', async () => {
-    await loadScript('static/js/pages/reception/add_patient_to_queue.js');
+    await loadModule('static/js/pages/reception/add_patient_to_queue.js');
     const chk = document.getElementById('is_emergency');
     chk.checked = false;
     chk.dispatchEvent(new Event('change'));

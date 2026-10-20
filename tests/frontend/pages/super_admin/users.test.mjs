@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -24,16 +24,16 @@ beforeEach(() => {
 
 describe('super_admin/users.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/super_admin/users.js');
+    await loadModule('static/js/pages/super_admin/users.js');
   });
 
   test('filterUsers is a function', async () => {
-    await loadScript('static/js/pages/super_admin/users.js');
+    await loadModule('static/js/pages/super_admin/users.js');
     expect(typeof window.filterUsers).toBe('function');
   });
 
   test('filterUsers with event parameter', async () => {
-    await loadScript('static/js/pages/super_admin/users.js');
+    await loadModule('static/js/pages/super_admin/users.js');
     const btn = document.querySelector('.btn-outline-primary');
     const event = { target: btn };
     window.filterUsers('all', event);
@@ -41,7 +41,7 @@ describe('super_admin/users.js', () => {
   });
 
   test('filterUsers filters by status', async () => {
-    await loadScript('static/js/pages/super_admin/users.js');
+    await loadModule('static/js/pages/super_admin/users.js');
     window.filterUsers('active');
     const rows = document.querySelectorAll('#usersTable tbody tr');
     expect(rows[0].style.display).toBe('');
@@ -49,7 +49,7 @@ describe('super_admin/users.js', () => {
   });
 
   test('deleteUser is a function', async () => {
-    await loadScript('static/js/pages/super_admin/users.js');
+    await loadModule('static/js/pages/super_admin/users.js');
     expect(typeof window.deleteUser).toBe('function');
   });
 });

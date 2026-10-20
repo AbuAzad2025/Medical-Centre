@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -21,16 +21,16 @@ beforeEach(() => {
 
 describe('manager/user_management.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/manager/user_management.js');
+    await loadModule('static/js/pages/manager/user_management.js');
   });
 
   test('filterUsers is a function', async () => {
-    await loadScript('static/js/pages/manager/user_management.js');
+    await loadModule('static/js/pages/manager/user_management.js');
     expect(typeof filterUsers).toBe('function');
   });
 
   test('filterUsers with event parameter', async () => {
-    await loadScript('static/js/pages/manager/user_management.js');
+    await loadModule('static/js/pages/manager/user_management.js');
     const btn = document.querySelector('.btn-outline-primary');
     const event = { target: btn };
     filterUsers('all', event);
@@ -38,7 +38,7 @@ describe('manager/user_management.js', () => {
   });
 
   test('exportUsers is a function', async () => {
-    await loadScript('static/js/pages/manager/user_management.js');
+    await loadModule('static/js/pages/manager/user_management.js');
     expect(typeof exportUsers).toBe('function');
   });
 });

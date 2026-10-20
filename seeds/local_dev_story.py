@@ -69,7 +69,7 @@ def seed_dev_tenant(session=None):
                 slug=DEV_TENANT_SLUG,
                 name=DEV_TENANT_NAME,
                 contact_email='dev@azad.local',
-                status='active',
+                status='ACTIVE',
                 product_profile_code='doctor_clinic_full',
             )
             session.add(tenant)
@@ -187,7 +187,7 @@ def seed_clinical_flow(tenant, staff, session=None):
                 doctor_id=doctor.id,
                 visit_id=visit.id,
                 prescription_number=f'RX-{uuid.uuid4().hex[:8]}',
-                status='active',
+                status='ACTIVE',
             )
             session.add(prescription)
             session.flush()

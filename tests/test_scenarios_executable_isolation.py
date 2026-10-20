@@ -330,7 +330,7 @@ class TestTenantIsolationIsExecuted:
             # built to satisfy the same constraints a real tenant would.
             contact_email='probe@example.invalid',
             contact_phone='0500000000',
-            status='active',
+            status='ACTIVE',
         )
         db.session.add(other)
         db.session.commit()

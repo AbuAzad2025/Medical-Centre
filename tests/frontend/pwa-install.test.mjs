@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   document.body.innerHTML = '';
   localStorage.clear();
-  loadScript('static/js/pwa-install.js');
+  await loadModule('static/js/pwa-install.js');
 });
 
 describe('pwa-install.js', () => {

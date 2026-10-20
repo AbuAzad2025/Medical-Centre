@@ -48,7 +48,7 @@ class TestAutoAssignFailClosed:
                 name='Global Test Tenant',
                 slug='global-test-t5',
                 contact_email='global@test.local',
-                status='active',
+                status='ACTIVE',
             )
             _db.session.add(t)
             _db.session.flush()

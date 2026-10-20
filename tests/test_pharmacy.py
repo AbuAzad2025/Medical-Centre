@@ -284,7 +284,7 @@ class TestTenantIsolation:
             other = Tenant(
                 slug='other-test',
                 name='Other Test',
-                status='active',
+                status='ACTIVE',
                 contact_email='other@test.com',
             )
             db.session.add(other)

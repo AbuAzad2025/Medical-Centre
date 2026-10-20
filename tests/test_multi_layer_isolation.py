@@ -30,7 +30,7 @@ def _tenant_with_bundle(bundle_slug, app):
         slug=slug,
         name=f'Test {bundle_slug}',
         contact_email=f'{slug}@test.local',
-        status='active',
+        status='ACTIVE',
         product_profile_code=bundle_slug,
     )
     db.session.add(t)

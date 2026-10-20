@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   document.body.innerHTML = '';
   document.documentElement.removeAttribute('data-theme');
   localStorage.clear();
   window.fetch = vi.fn().mockResolvedValue({ ok: true });
   window.showToast = vi.fn();
   document.body.innerHTML = '<meta name="csrf-token" content="test">';
-  loadScript('static/js/theme-toggle.js');
+  await loadModule('static/js/theme-toggle.js');
 });
 
 describe('theme-toggle.js', () => {

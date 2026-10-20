@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -19,7 +19,7 @@ beforeEach(() => {
 
 describe('quality_compliance/dashboard.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/quality_compliance/dashboard.js');
+    await loadModule('static/js/pages/quality_compliance/dashboard.js');
   });
 
   test('r.ok check exists in fetch call', async () => {

@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -24,11 +24,11 @@ beforeEach(() => {
 
 describe('manager/dashboard.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/manager/dashboard.js');
+    await loadModule('static/js/pages/manager/dashboard.js');
   });
 
   test('runWhatIf button exists', async () => {
-    await loadScript('static/js/pages/manager/dashboard.js');
+    await loadModule('static/js/pages/manager/dashboard.js');
     expect(document.getElementById('runWhatIf')).not.toBeNull();
   });
 });

@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -62,25 +62,25 @@ beforeEach(() => {
 
 describe('radiology/process.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/radiology/process.js');
+    await loadModule('static/js/pages/radiology/process.js');
   });
 
   test('initializes template form elements', async () => {
-    await loadScript('static/js/pages/radiology/process.js');
+    await loadModule('static/js/pages/radiology/process.js');
     expect(document.getElementById('radiologyTemplateForm')).not.toBeNull();
     expect(document.getElementById('tpl_id')).not.toBeNull();
     expect(document.getElementById('tpl_name')).not.toBeNull();
   });
 
   test('initializes macro form elements', async () => {
-    await loadScript('static/js/pages/radiology/process.js');
+    await loadModule('static/js/pages/radiology/process.js');
     expect(document.getElementById('radiologyMacroForm')).not.toBeNull();
     expect(document.getElementById('macro_id')).not.toBeNull();
     expect(document.getElementById('macro_name')).not.toBeNull();
   });
 
   test('test_name input exists for auto-guess', async () => {
-    await loadScript('static/js/pages/radiology/process.js');
+    await loadModule('static/js/pages/radiology/process.js');
     expect(document.getElementById('test_name')).not.toBeNull();
   });
 });

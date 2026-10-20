@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   document.body.innerHTML = '';
-  loadScript('static/js/ux-enhance.js');
+  await loadModule('static/js/ux-enhance.js');
 });
 
 describe('ux-enhance.js', () => {

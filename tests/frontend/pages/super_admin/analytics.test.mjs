@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -20,16 +20,16 @@ beforeEach(() => {
 
 describe('super_admin/analytics.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/super_admin/analytics.js');
+    await loadModule('static/js/pages/super_admin/analytics.js');
   });
 
   test('exportAnalytics is a function', async () => {
-    await loadScript('static/js/pages/super_admin/analytics.js');
+    await loadModule('static/js/pages/super_admin/analytics.js');
     expect(typeof exportAnalytics).toBe('function');
   });
 
   test('refreshAnalytics is a function', async () => {
-    await loadScript('static/js/pages/super_admin/analytics.js');
+    await loadModule('static/js/pages/super_admin/analytics.js');
     expect(typeof refreshAnalytics).toBe('function');
   });
 });

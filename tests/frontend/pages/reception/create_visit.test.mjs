@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 function baseDom() {
   document.body.innerHTML = `
@@ -77,26 +77,26 @@ beforeEach(() => {
 
 describe('reception/create_visit.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/reception/create_visit.js');
+    await loadModule('static/js/pages/reception/create_visit.js');
   });
 
   test('paymentFields element exists', async () => {
-    await loadScript('static/js/pages/reception/create_visit.js');
+    await loadModule('static/js/pages/reception/create_visit.js');
     expect(document.getElementById('paymentFields')).not.toBeNull();
   });
 
   test('custom_services_container exists', async () => {
-    await loadScript('static/js/pages/reception/create_visit.js');
+    await loadModule('static/js/pages/reception/create_visit.js');
     expect(document.getElementById('custom_services_container')).not.toBeNull();
   });
 
   test('quickEmergencyBtn is present', async () => {
-    await loadScript('static/js/pages/reception/create_visit.js');
+    await loadModule('static/js/pages/reception/create_visit.js');
     expect(document.getElementById('quickEmergencyBtn')).not.toBeNull();
   });
 
   test('saveAndPrintBtn is present', async () => {
-    await loadScript('static/js/pages/reception/create_visit.js');
+    await loadModule('static/js/pages/reception/create_visit.js');
     expect(document.getElementById('saveAndPrintBtn')).not.toBeNull();
   });
 });

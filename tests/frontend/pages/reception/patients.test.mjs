@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -31,31 +31,31 @@ beforeEach(() => {
 
 describe('reception/patients.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/reception/patients.js');
+    await loadModule('static/js/pages/reception/patients.js');
   });
 
   test('calcAgeModal is a function', async () => {
-    await loadScript('static/js/pages/reception/patients.js');
+    await loadModule('static/js/pages/reception/patients.js');
     expect(typeof calcAgeModal).toBe('function');
   });
 
   test('togglePregnancyModal is a function', async () => {
-    await loadScript('static/js/pages/reception/patients.js');
+    await loadModule('static/js/pages/reception/patients.js');
     expect(typeof togglePregnancyModal).toBe('function');
   });
 
   test('calcPregnancyWeeksModal is a function', async () => {
-    await loadScript('static/js/pages/reception/patients.js');
+    await loadModule('static/js/pages/reception/patients.js');
     expect(typeof calcPregnancyWeeksModal).toBe('function');
   });
 
   test('confirmDeletePatient is a function', async () => {
-    await loadScript('static/js/pages/reception/patients.js');
+    await loadModule('static/js/pages/reception/patients.js');
     expect(typeof confirmDeletePatient).toBe('function');
   });
 
   test('calcAgeModal calculates age from birth date', async () => {
-    await loadScript('static/js/pages/reception/patients.js');
+    await loadModule('static/js/pages/reception/patients.js');
     const input = document.getElementById('birth_date_modal');
     const today = new Date();
     input.value = `${today.getFullYear() - 25}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -64,14 +64,14 @@ describe('reception/patients.js', () => {
   });
 
   test('calcAgeModal clears age when empty', async () => {
-    await loadScript('static/js/pages/reception/patients.js');
+    await loadModule('static/js/pages/reception/patients.js');
     document.getElementById('birth_date_modal').value = '';
     calcAgeModal();
     expect(document.getElementById('age_modal').value).toBe('');
   });
 
   test('togglePregnancyModal shows section for married female', async () => {
-    await loadScript('static/js/pages/reception/patients.js');
+    await loadModule('static/js/pages/reception/patients.js');
     document.getElementById('gender_modal').value = 'F';
     document.getElementById('marital_status_modal').value = 'married';
     togglePregnancyModal();
@@ -79,7 +79,7 @@ describe('reception/patients.js', () => {
   });
 
   test('togglePregnancyModal hides section for male', async () => {
-    await loadScript('static/js/pages/reception/patients.js');
+    await loadModule('static/js/pages/reception/patients.js');
     document.getElementById('gender_modal').value = 'M';
     document.getElementById('marital_status_modal').value = 'married';
     togglePregnancyModal();
@@ -87,7 +87,7 @@ describe('reception/patients.js', () => {
   });
 
   test('confirmDeletePatient shows confirmation dialog', async () => {
-    await loadScript('static/js/pages/reception/patients.js');
+    await loadModule('static/js/pages/reception/patients.js');
     const form = document.createElement('form');
     document.body.appendChild(form);
     const btn = document.createElement('button');

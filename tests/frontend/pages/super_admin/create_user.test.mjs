@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -18,47 +18,47 @@ beforeEach(() => {
 
 describe('super_admin/create_user.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/super_admin/create_user.js');
+    await loadModule('static/js/pages/super_admin/create_user.js');
   });
 
   test('togglePassword is a function', async () => {
-    await loadScript('static/js/pages/super_admin/create_user.js');
+    await loadModule('static/js/pages/super_admin/create_user.js');
     expect(typeof togglePassword).toBe('function');
   });
 
   test('checkPasswordStrength is a function', async () => {
-    await loadScript('static/js/pages/super_admin/create_user.js');
+    await loadModule('static/js/pages/super_admin/create_user.js');
     expect(typeof checkPasswordStrength).toBe('function');
   });
 
   test('toggleDoctorPricing is a function', async () => {
-    await loadScript('static/js/pages/super_admin/create_user.js');
+    await loadModule('static/js/pages/super_admin/create_user.js');
     expect(typeof toggleDoctorPricing).toBe('function');
   });
 
   test('checkPasswordStrength rates strong password', async () => {
-    await loadScript('static/js/pages/super_admin/create_user.js');
+    await loadModule('static/js/pages/super_admin/create_user.js');
     const result = checkPasswordStrength('StrongP@ss1');
     expect(result.percentage).toBe(100);
     expect(result.color).toBe('success');
   });
 
   test('checkPasswordStrength rates weak password', async () => {
-    await loadScript('static/js/pages/super_admin/create_user.js');
+    await loadModule('static/js/pages/super_admin/create_user.js');
     const result = checkPasswordStrength('abc');
     expect(result.percentage).toBe(25);
     expect(result.color).toBe('danger');
   });
 
   test('toggleDoctorPricing shows section for doctor role', async () => {
-    await loadScript('static/js/pages/super_admin/create_user.js');
+    await loadModule('static/js/pages/super_admin/create_user.js');
     document.getElementById('role').value = 'doctor';
     toggleDoctorPricing();
     expect(document.getElementById('doctorPricingSection').style.display).toBe('');
   });
 
   test('toggleDoctorPricing hides section for non-doctor role', async () => {
-    await loadScript('static/js/pages/super_admin/create_user.js');
+    await loadModule('static/js/pages/super_admin/create_user.js');
     document.getElementById('role').value = 'reception';
     toggleDoctorPricing();
     expect(document.getElementById('doctorPricingSection').style.display).toBe('none');

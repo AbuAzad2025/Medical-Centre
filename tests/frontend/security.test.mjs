@@ -1,150 +1,101 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+/**
+ * These cases used to define the logic they asserted on:
+ *
+ *   const InputValidator = window.inputValidator?.constructor || class InputValidator {
+ *     validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+ *   };
+ *
+ * The fallback meant the suite passed whether or not static/js/security.js
+ * existed, worked, or was the file under test at all - 465 lines of production
+ * code with no coverage and no way to fail. The script is loaded here instead,
+ * and the assertions run against it.
+ */
+beforeEach(async () => {
   document.body.innerHTML = '';
   vi.clearAllMocks();
+  await loadModule('static/js/security.js');
 });
 
 describe('security.js', () => {
   describe('InputValidator', () => {
-    it('validateEmail accepts valid email', () => {
-      const InputValidator = window.inputValidator?.constructor || class InputValidator {
-        validateEmail(email) {
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
-      };
-      const v = new InputValidator();
+    it('is exposed', () => {
+      expect(typeof window.InputValidator).toBe('function');
+    });
+
+    it('validateEmail accepts a valid email', () => {
+      const v = new window.InputValidator();
       expect(v.validateEmail('test@example.com')).toBe(true);
     });
-    it('validateEmail rejects invalid email', () => {
-      const InputValidator = window.inputValidator?.constructor || class InputValidator {
-        validateEmail(email) {
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
-      };
-      const v = new InputValidator();
+
+    it('validateEmail rejects an invalid email', () => {
+      const v = new window.InputValidator();
       expect(v.validateEmail('notanemail')).toBe(false);
     });
-    it('validatePhone accepts valid phone', () => {
-      const InputValidator = window.inputValidator?.constructor || class InputValidator {
-        validatePhone(phone) {
-          return /^\+?[\d\s-]{10,}$/.test(phone);
-        }
-      };
-      const v = new InputValidator();
-      expect(v.validatePhone('+971501234567')).toBe(true);
+
+    it('validateEmail rejects an email with a space', () => {
+      const v = new window.InputValidator();
+      expect(v.validateEmail('a b@example.com')).toBe(false);
     });
-    it('validatePhone rejects invalid phone', () => {
-      const InputValidator = window.inputValidator?.constructor || class InputValidator {
-        validatePhone(phone) {
-          return /^\+?[\d\s-]{10,}$/.test(phone);
-        }
-      };
-      const v = new InputValidator();
+
+    it('validatePhone accepts an international phone', () => {
+      const v = new window.InputValidator();
+      expect(v.validatePhone('+966501234567')).toBe(true);
+    });
+
+    it('validatePhone rejects letters', () => {
+      const v = new window.InputValidator();
       expect(v.validatePhone('abc')).toBe(false);
     });
-    it('sanitizeString escapes HTML', () => {
-      const InputValidator = window.inputValidator?.constructor || class InputValidator {
-        sanitizeString(str) {
-          const div = document.createElement('div');
-          div.textContent = str;
-          return div.innerHTML;
-        }
-      };
-      const v = new InputValidator();
-      expect(v.sanitizeString('<b>test</b>')).toBe('&lt;b&gt;test&lt;/b&gt;');
+
+    it('validateDate accepts a YYYY-MM-DD date', () => {
+      const v = new window.InputValidator();
+      expect(v.validateDate('2026-11-30')).toBe(true);
+    });
+
+    it('validateDate rejects an impossible date', () => {
+      const v = new window.InputValidator();
+      expect(v.validateDate('2026-13-45')).toBe(false);
+    });
+
+    it('validateTime accepts a 24-hour time', () => {
+      const v = new window.InputValidator();
+      expect(v.validateTime('23:59')).toBe(true);
+    });
+
+    it('validateTime rejects minutes above 59', () => {
+      const v = new window.InputValidator();
+      expect(v.validateTime('12:75')).toBe(false);
+    });
+
+    it('sanitizeString escapes the characters that break out of markup', () => {
+      const v = new window.InputValidator();
+      const out = v.sanitizeString('<script>"x"&\'y\'</script>');
+      expect(out).not.toContain('<');
+      expect(out).not.toContain('>');
+      expect(out).not.toContain('"');
+      expect(out).toContain('&lt;');
+      expect(out).toContain('&amp;');
     });
   });
 
-  describe('SecurityManager', () => {
-    it('checkPasswordStrength returns score 5 for strong password', () => {
-      const SecurityManager = window.securityManager?.constructor || class SecurityManager {
-        checkPasswordStrength(password) {
-          let score = 0;
-          if (password.length >= 8) score++;
-          if (/[a-z]/.test(password)) score++;
-          if (/[A-Z]/.test(password)) score++;
-          if (/[0-9]/.test(password)) score++;
-          if (/[^a-zA-Z0-9]/.test(password)) score++;
-          return { score, feedback: [] };
-        }
-      };
-      const m = new SecurityManager();
-      const r = m.checkPasswordStrength('Strong@Pass1');
-      expect(r.score).toBe(5);
+  describe('the other classes are exposed', () => {
+    it('SecurityManager', () => {
+      expect(typeof window.SecurityManager).toBe('function');
     });
-    it('checkPasswordStrength returns score 0 for empty password', () => {
-      const SecurityManager = window.securityManager?.constructor || class SecurityManager {
-        checkPasswordStrength(password) {
-          return { score: 0, feedback: [] };
-        }
-      };
-      const m = new SecurityManager();
-      const r = m.checkPasswordStrength('');
-      expect(r.score).toBe(0);
+
+    it('SecureFileUpload', () => {
+      expect(typeof window.SecureFileUpload).toBe('function');
     });
-    it('checkPasswordStrength provides feedback for weak password', () => {
-      const SecurityManager = window.securityManager?.constructor || class SecurityManager {
-        checkPasswordStrength(password) {
-          const feedback = [];
-          if (password.length < 8) feedback.push('Too short');
-          return { score: password.length >= 8 ? 1 : 0, feedback };
-        }
-      };
-      const m = new SecurityManager();
-      const r = m.checkPasswordStrength('abc');
-      expect(r.feedback.length).toBeGreaterThan(0);
+
+    it('SessionManager', () => {
+      expect(typeof window.SessionManager).toBe('function');
     });
-    it('sanitizeInput removes script tags', () => {
-      const SecurityManager = window.securityManager?.constructor || class SecurityManager {
-        sanitizeInput(input) {
-          if (typeof input === 'string') {
-            return input.replace(/<script[^>]*>.*?<\/script>/gi, '');
-          }
-          const value = input.value;
-          input.value = value.replace(/<script[^>]*>.*?<\/script>/gi, '');
-          return input;
-        }
-      };
-      const m = new SecurityManager();
-      const input = document.createElement('input');
-      input.value = '<script>alert("xss")</script>';
-      m.sanitizeInput(input);
-      expect(input.value).not.toContain('<script>');
-    });
-    it('sanitizeInput removes javascript: protocol', () => {
-      const SecurityManager = window.securityManager?.constructor || class SecurityManager {
-        sanitizeInput(input) {
-          if (typeof input === 'string') {
-            return input.replace(/javascript:/gi, '');
-          }
-          const value = input.value;
-          input.value = value.replace(/javascript:/gi, '');
-          return input;
-        }
-      };
-      const m = new SecurityManager();
-      const input = document.createElement('input');
-      input.value = 'javascript:alert(1)';
-      m.sanitizeInput(input);
-      expect(input.value).not.toContain('javascript:');
-    });
-    it('sanitizeInput removes onerror handler', () => {
-      const SecurityManager = window.securityManager?.constructor || class SecurityManager {
-        sanitizeInput(input) {
-          if (typeof input === 'string') {
-            return input.replace(/onerror\s*=/gi, 'data-error=');
-          }
-          const value = input.value;
-          input.value = value.replace(/onerror\s*=/gi, 'data-error=');
-          return input;
-        }
-      };
-      const m = new SecurityManager();
-      const input = document.createElement('input');
-      input.value = 'x onerror=alert(1)';
-      m.sanitizeInput(input);
-      expect(input.value).not.toContain('onerror=');
+
+    it('AuditLogger', () => {
+      expect(typeof window.AuditLogger).toBe('function');
     });
   });
 });

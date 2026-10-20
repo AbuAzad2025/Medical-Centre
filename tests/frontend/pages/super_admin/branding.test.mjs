@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -37,31 +37,31 @@ beforeEach(() => {
 
 describe('super_admin/branding.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/super_admin/branding.js');
+    await loadModule('static/js/pages/super_admin/branding.js');
   });
 
   test('saveBranding is a function', async () => {
-    await loadScript('static/js/pages/super_admin/branding.js');
+    await loadModule('static/js/pages/super_admin/branding.js');
     expect(typeof saveBranding).toBe('function');
   });
 
   test('resetBranding is a function', async () => {
-    await loadScript('static/js/pages/super_admin/branding.js');
+    await loadModule('static/js/pages/super_admin/branding.js');
     expect(typeof resetBranding).toBe('function');
   });
 
   test('selectTheme is a function', async () => {
-    await loadScript('static/js/pages/super_admin/branding.js');
+    await loadModule('static/js/pages/super_admin/branding.js');
     expect(typeof selectTheme).toBe('function');
   });
 
   test('showDocFields is a function', async () => {
-    await loadScript('static/js/pages/super_admin/branding.js');
+    await loadModule('static/js/pages/super_admin/branding.js');
     expect(typeof showDocFields).toBe('function');
   });
 
   test('showDocFields toggles visibility', async () => {
-    await loadScript('static/js/pages/super_admin/branding.js');
+    await loadModule('static/js/pages/super_admin/branding.js');
     showDocFields('invoice');
     const invoiceEl = document.querySelector('.doc-fields[data-doc="invoice"]');
     const receiptEl = document.querySelector('.doc-fields[data-doc="receipt"]');
@@ -70,7 +70,7 @@ describe('super_admin/branding.js', () => {
   });
 
   test('primary color preview updates on change', async () => {
-    await loadScript('static/js/pages/super_admin/branding.js');
+    await loadModule('static/js/pages/super_admin/branding.js');
     const input = document.getElementById('primary_color');
     input.value = '#ff0000';
     input.dispatchEvent(new Event('change'));

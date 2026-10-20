@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -15,16 +15,16 @@ beforeEach(() => {
 
 describe('reception/calls_display.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/reception/calls_display.js');
+    await loadModule('static/js/pages/reception/calls_display.js');
   });
 
   test('live-clock element is referenced', async () => {
-    await loadScript('static/js/pages/reception/calls_display.js');
+    await loadModule('static/js/pages/reception/calls_display.js');
     expect(document.getElementById('live-clock')).not.toBeNull();
   });
 
   test('calls-grid element is referenced', async () => {
-    await loadScript('static/js/pages/reception/calls_display.js');
+    await loadModule('static/js/pages/reception/calls_display.js');
     expect(document.getElementById('calls-grid')).not.toBeNull();
   });
 });

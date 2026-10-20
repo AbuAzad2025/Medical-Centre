@@ -1,126 +1,106 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { loadModule } from './test-utils.mjs';
 
-const ROOT = resolve(import.meta.dirname, '../..');
-
-function debounce(func, wait, immediate = false) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      timeout = null;
-      if (!immediate) func(...args);
-    };
-    const callNow = immediate && !timeout;
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-    if (callNow) func(...args);
-  };
-}
-
-function throttle(func, limit) {
-  let inThrottle;
-  return function (...args) {
-    if (!inThrottle) {
-      func.apply(this, args);
-      inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
-    }
-  };
-}
-
-class OptimizedCache {
-  constructor(maxSize = 100) {
-    this.cache = new Map();
-    this.maxSize = maxSize;
-  }
-  get(key) {
-    if (this.cache.has(key)) {
-      const item = this.cache.get(key);
-      this.cache.delete(key);
-      this.cache.set(key, item);
-      return item.value;
-    }
-    return null;
-  }
-  set(key, value, ttl = 300000) {
-    if (this.cache.size >= this.maxSize) {
-      const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
-    }
-    this.cache.set(key, { value, expiry: Date.now() + ttl });
-  }
-  has(key) { return this.cache.has(key); }
-  delete(key) { return this.cache.delete(key); }
-  clear() { this.cache.clear(); }
-}
-
-beforeEach(() => {
-  vi.useFakeTimers();
+/**
+ * This file used to declare its own copies of debounce and throttle and
+ * assert on those. The production file was never loaded, so 609 lines of
+ * static/js/performance.js had no coverage, and the cases could not fail
+ * however the real implementations behaved. The script is loaded here and the
+ * assertions run against it.
+ */
+beforeEach(async () => {
+  document.body.innerHTML = '';
+  await loadModule('static/js/performance.js');
 });
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
-describe('performance.js utilities', () => {
+describe('performance.js', () => {
   describe('debounce', () => {
-    it('debounces function calls', () => {
-      const fn = vi.fn();
-      const debounced = debounce(fn, 100);
-      debounced(); debounced(); debounced();
-      vi.advanceTimersByTime(100);
-      expect(fn).toHaveBeenCalledTimes(1);
+    it('is exposed', () => {
+      expect(typeof window.debounce).toBe('function');
     });
-    it('supports immediate mode', () => {
-      const fn = vi.fn();
-      const debounced = debounce(fn, 100, true);
-      debounced();
-      expect(fn).toHaveBeenCalledTimes(1);
-      debounced();
+
+    it('does not call the function until the wait has passed', () => {
+      vi.useFakeTimers();
+      const spy = vi.fn();
+      const debounced = window.debounce(spy, 100);
+      debounced('a');
+      expect(spy).not.toHaveBeenCalled();
       vi.advanceTimersByTime(100);
-      expect(fn).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith('a');
+    });
+
+    it('collapses a burst into one call, with the last arguments', () => {
+      vi.useFakeTimers();
+      const spy = vi.fn();
+      const debounced = window.debounce(spy, 100);
+      debounced('a');
+      debounced('b');
+      debounced('c');
+      vi.advanceTimersByTime(100);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith('c');
+    });
+
+    it('calls straight away in immediate mode', () => {
+      vi.useFakeTimers();
+      const spy = vi.fn();
+      const debounced = window.debounce(spy, 100, true);
+      debounced('a');
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith('a');
     });
   });
 
   describe('throttle', () => {
-    it('fires at most once per interval', () => {
-      const fn = vi.fn();
-      const throttled = throttle(fn, 100);
-      throttled(); throttled(); throttled();
-      expect(fn).toHaveBeenCalledTimes(1);
+    it('is exposed', () => {
+      expect(typeof window.throttle).toBe('function');
+    });
+
+    it('calls on the first invocation', () => {
+      vi.useFakeTimers();
+      const spy = vi.fn();
+      const throttled = window.throttle(spy, 100);
+      throttled('a');
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith('a');
+    });
+
+    it('suppresses the calls inside the limit', () => {
+      vi.useFakeTimers();
+      const spy = vi.fn();
+      const throttled = window.throttle(spy, 100);
+      throttled('a');
+      throttled('b');
+      throttled('c');
+      expect(spy).toHaveBeenCalledTimes(1);
       vi.advanceTimersByTime(100);
-      throttled();
-      expect(fn).toHaveBeenCalledTimes(2);
+      throttled('d');
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(spy).toHaveBeenLastCalledWith('d');
     });
   });
 
-  describe('OptimizedCache', () => {
-    it('get/set/has/delete/clear work correctly', () => {
-      const cache = new OptimizedCache(5);
-      cache.set('a', 1);
-      cache.set('b', 2);
-      expect(cache.get('a')).toBe(1);
-      expect(cache.has('b')).toBe(true);
-      cache.delete('b');
-      expect(cache.has('b')).toBe(false);
-      cache.clear();
-      expect(cache.get('a')).toBe(null);
+  describe('the classes are exposed', () => {
+    it('PerformanceMonitor', () => {
+      expect(typeof window.PerformanceMonitor).toBe('function');
     });
-    it('evicts oldest when max size reached', () => {
-      const cache = new OptimizedCache(3);
-      cache.set('a', 1); cache.set('b', 2); cache.set('c', 3);
-      cache.set('d', 4);
-      expect(cache.get('a')).toBe(null);
-      expect(cache.get('d')).toBe(4);
+
+    it('LazyLoader', () => {
+      expect(typeof window.LazyLoader).toBe('function');
     });
-    it('LRU ordering - accessed items move to end', () => {
-      const cache = new OptimizedCache(3);
-      cache.set('a', 1); cache.set('b', 2); cache.set('c', 3);
-      cache.get('a');
-      cache.set('d', 4);
-      expect(cache.get('a')).toBe(1);
-      expect(cache.get('b')).toBe(null);
+
+    it('OptimizedSearch', () => {
+      expect(typeof window.OptimizedSearch).toBe('function');
+    });
+
+    it('OptimizedCache', () => {
+      expect(typeof window.OptimizedCache).toBe('function');
     });
   });
 });

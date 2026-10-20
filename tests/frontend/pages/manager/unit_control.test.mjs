@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -23,16 +23,16 @@ beforeEach(() => {
 
 describe('manager/unit_control.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/manager/unit_control.js');
+    await loadModule('static/js/pages/manager/unit_control.js');
   });
 
   test('filterUnits is a function', async () => {
-    await loadScript('static/js/pages/manager/unit_control.js');
+    await loadModule('static/js/pages/manager/unit_control.js');
     expect(typeof filterUnits).toBe('function');
   });
 
   test('filterUnits with event parameter adds active class', async () => {
-    await loadScript('static/js/pages/manager/unit_control.js');
+    await loadModule('static/js/pages/manager/unit_control.js');
     const btn = document.querySelector('.btn-outline-primary');
     const event = { target: btn };
     filterUnits('all', event);
@@ -40,7 +40,7 @@ describe('manager/unit_control.js', () => {
   });
 
   test('filterUnits filters active rows', async () => {
-    await loadScript('static/js/pages/manager/unit_control.js');
+    await loadModule('static/js/pages/manager/unit_control.js');
     filterUnits('active');
     const rows = document.querySelectorAll('#unitsTable tbody tr');
     expect(rows[0].style.display).toBe('');
@@ -48,7 +48,7 @@ describe('manager/unit_control.js', () => {
   });
 
   test('exportUnitsReport is a function', async () => {
-    await loadScript('static/js/pages/manager/unit_control.js');
+    await loadModule('static/js/pages/manager/unit_control.js');
     expect(typeof exportUnitsReport).toBe('function');
   });
 });

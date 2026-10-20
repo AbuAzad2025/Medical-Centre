@@ -94,7 +94,13 @@ class EntitlementResolver:
 
         status_raw = getattr(tenant.status, 'value', tenant.status)
         status_norm = str(status_raw or '').lower()
-        if status_norm not in (TenantStatus.ACTIVE.value, TenantStatus.TRIAL.value):
+        # Compared against the enum's own values, lower-cased to match. The
+        # stored label and the enum member have to be compared the same way
+        # round, or a tenant that is plainly active reads as anything but.
+        if status_norm not in (
+            TenantStatus.ACTIVE.value.lower(),
+            TenantStatus.TRIAL.value.lower(),
+        ):
             return False, f'tenant_status_{status_norm}'
 
         if not tenant.is_active_and_paid():

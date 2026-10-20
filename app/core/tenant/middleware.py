@@ -79,7 +79,7 @@ def _auto_create_default_tenant() -> Tenant | None:
         return None
     existing = db.session.execute(select(func.count()).select_from(Tenant)).scalar()
     if existing > 0:
-        return db.session.execute(select(Tenant).filter_by(status='active')).scalars().first()
+        return db.session.execute(select(Tenant).filter_by(status='ACTIVE')).scalars().first()
     slug = cfg.get('TENANT_DEFAULT_SLUG', 'default')
     name = slug.replace('-', ' ').title()
     contact_email = cfg.get('DEFAULT_ADMIN_EMAIL') or 'admin@localhost'
@@ -87,7 +87,7 @@ def _auto_create_default_tenant() -> Tenant | None:
         slug=slug,
         name=name,
         contact_email=contact_email,
-        status='active',
+        status='ACTIVE',
     )
     db.session.add(tenant)
     db.session.flush()
@@ -187,7 +187,7 @@ def resolve_tenant() -> Tenant | None:
     if 'subdomain' in modes and base_domain and host.endswith(f'.{base_domain}'):
         slug = host.replace(f'.{base_domain}', '')
         tenant = (
-            db.session.execute(select(Tenant).filter_by(subdomain=slug, status='active'))
+            db.session.execute(select(Tenant).filter_by(subdomain=slug, status='ACTIVE'))
             .scalars()
             .first()
         )
@@ -197,7 +197,7 @@ def resolve_tenant() -> Tenant | None:
     # 3. Dedicated domain
     if 'domain' in modes and host:
         tenant = (
-            db.session.execute(select(Tenant).filter_by(domain=host, status='active'))
+            db.session.execute(select(Tenant).filter_by(domain=host, status='ACTIVE'))
             .scalars()
             .first()
         )

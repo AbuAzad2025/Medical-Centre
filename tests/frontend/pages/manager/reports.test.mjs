@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -23,21 +23,21 @@ beforeEach(() => {
 
 describe('manager/reports.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/manager/reports.js');
+    await loadModule('static/js/pages/manager/reports.js');
   });
 
   test('filterReports is a function', async () => {
-    await loadScript('static/js/pages/manager/reports.js');
+    await loadModule('static/js/pages/manager/reports.js');
     expect(typeof filterReports).toBe('function');
   });
 
   test('generateReport is a function', async () => {
-    await loadScript('static/js/pages/manager/reports.js');
+    await loadModule('static/js/pages/manager/reports.js');
     expect(typeof generateReport).toBe('function');
   });
 
   test('filterReports with event parameter', async () => {
-    await loadScript('static/js/pages/manager/reports.js');
+    await loadModule('static/js/pages/manager/reports.js');
     const btn = document.querySelector('.btn-outline-primary');
     const event = { target: btn };
     filterReports('all', event);

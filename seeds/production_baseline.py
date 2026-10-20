@@ -154,7 +154,7 @@ def _resolve_platform_tenant():
         slug=PLATFORM_TENANT_SLUG,
         name=PLATFORM_TENANT_NAME,
         contact_email='platform@medical.system',
-        status='active',
+        status='ACTIVE',
         product_profile_code='multi_department_center',
     )
     db.session.add(tenant)

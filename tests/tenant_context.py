@@ -98,7 +98,7 @@ def ensure_default_test_tenant(app: Flask):
                     slug=DEFAULT_TEST_TENANT_SLUG,
                     name='صيدلية الشفاء',
                     contact_email='pharmacy@test.local',
-                    status='active',
+                    status='ACTIVE',
                     product_profile_code='multi_department_center',
                 )
                 db.session.add(tenant)
@@ -117,7 +117,7 @@ def ensure_default_test_tenant(app: Flask):
                             slug=DEFAULT_TEST_TENANT_SLUG,
                             name='صيدلية الشفاء',
                             contact_email='pharmacy@test.local',
-                            status='active',
+                            status='ACTIVE',
                             product_profile_code='multi_department_center',
                         )
                         db.session.add(tenant)

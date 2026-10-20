@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -32,26 +32,26 @@ beforeEach(() => {
 
 describe('report_builder/builder.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/report_builder/builder.js');
+    await loadModule('static/js/pages/report_builder/builder.js');
   });
 
   test('renderFieldsForEntity is a function', async () => {
-    await loadScript('static/js/pages/report_builder/builder.js');
+    await loadModule('static/js/pages/report_builder/builder.js');
     expect(typeof renderFieldsForEntity).toBe('function');
   });
 
   test('collectPayload is a function', async () => {
-    await loadScript('static/js/pages/report_builder/builder.js');
+    await loadModule('static/js/pages/report_builder/builder.js');
     expect(typeof collectPayload).toBe('function');
   });
 
   test('generateReport is a function', async () => {
-    await loadScript('static/js/pages/report_builder/builder.js');
+    await loadModule('static/js/pages/report_builder/builder.js');
     expect(typeof generateReport).toBe('function');
   });
 
   test('renderFieldsForEntity renders checkboxes', async () => {
-    await loadScript('static/js/pages/report_builder/builder.js');
+    await loadModule('static/js/pages/report_builder/builder.js');
     renderFieldsForEntity('patients', ['id']);
     const container = document.getElementById('fieldsContainer');
     expect(container.innerHTML).toContain('id');
@@ -59,7 +59,7 @@ describe('report_builder/builder.js', () => {
   });
 
   test('collectPayload returns expected structure', async () => {
-    await loadScript('static/js/pages/report_builder/builder.js');
+    await loadModule('static/js/pages/report_builder/builder.js');
     const payload = collectPayload();
     expect(payload).toHaveProperty('entity');
     expect(payload).toHaveProperty('fields');

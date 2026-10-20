@@ -99,7 +99,7 @@ class TestSearchIds:
         other = Tenant(
             name='Search Other',
             slug=f'search-{p.id}-{test_tenant.id}',
-            status='active',
+            status='ACTIVE',
             contact_email='search-other@example.test',
         )
         db.session.add(other)

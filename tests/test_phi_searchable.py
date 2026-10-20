@@ -444,7 +444,7 @@ class TestSubstringSearch:
         other = Tenant(
             name='Ngram Other',
             slug=f'ngram-{uuid.uuid4().hex[:8]}',
-            status='active',
+            status='ACTIVE',
             contact_email='ngram@example.test',
         )
         db.session.add(other)

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loadScript } from './test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
-beforeEach(() => {
+beforeEach(async () => {
   document.body.innerHTML = '';
   window.__USER_PREFS__ = { ui: {} };
   window.matchMedia = vi.fn().mockReturnValue({ matches: false });
-  loadScript('static/js/motion.js');
+  await loadModule('static/js/motion.js');
 });
 
 describe('motion.js', () => {
@@ -13,22 +13,22 @@ describe('motion.js', () => {
     expect(typeof window.__MOTION_ENABLED__).toBe('function');
   });
 
-  it('returns true when no reduced motion preference', () => {
+  it('returns true when no reduced motion preference', async () => {
     window.matchMedia = vi.fn().mockReturnValue({ matches: false });
-    loadScript('static/js/motion.js');
+    await loadModule('static/js/motion.js');
     expect(window.__MOTION_ENABLED__()).toBe(true);
   });
 
-  it('returns false when reduced motion is preferred', () => {
+  it('returns false when reduced motion is preferred', async () => {
     window.matchMedia = vi.fn().mockReturnValue({ matches: true });
-    loadScript('static/js/motion.js');
+    await loadModule('static/js/motion.js');
     expect(window.__MOTION_ENABLED__()).toBe(false);
   });
 
-  it('returns false when user pref is reduced', () => {
+  it('returns false when user pref is reduced', async () => {
     window.__USER_PREFS__ = { ui: { motion: 'reduced' } };
     window.matchMedia = vi.fn().mockReturnValue({ matches: false });
-    loadScript('static/js/motion.js');
+    await loadModule('static/js/motion.js');
     expect(window.__MOTION_ENABLED__()).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -27,21 +27,21 @@ beforeEach(() => {
 
 describe('super_admin/system_backup.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/super_admin/system_backup.js');
+    await loadModule('static/js/pages/super_admin/system_backup.js');
   });
 
   test('createBackup is a function', async () => {
-    await loadScript('static/js/pages/super_admin/system_backup.js');
+    await loadModule('static/js/pages/super_admin/system_backup.js');
     expect(typeof createBackup).toBe('function');
   });
 
   test('filterBackups is a function', async () => {
-    await loadScript('static/js/pages/super_admin/system_backup.js');
+    await loadModule('static/js/pages/super_admin/system_backup.js');
     expect(typeof filterBackups).toBe('function');
   });
 
   test('filterBackups with event parameter', async () => {
-    await loadScript('static/js/pages/super_admin/system_backup.js');
+    await loadModule('static/js/pages/super_admin/system_backup.js');
     const btn = document.querySelector('.btn-outline-primary');
     const event = { target: btn };
     filterBackups('all', event);
@@ -49,12 +49,12 @@ describe('super_admin/system_backup.js', () => {
   });
 
   test('restoreBackup is a function', async () => {
-    await loadScript('static/js/pages/super_admin/system_backup.js');
+    await loadModule('static/js/pages/super_admin/system_backup.js');
     expect(typeof restoreBackup).toBe('function');
   });
 
   test('deleteBackup is a function', async () => {
-    await loadScript('static/js/pages/super_admin/system_backup.js');
+    await loadModule('static/js/pages/super_admin/system_backup.js');
     expect(typeof deleteBackup).toBe('function');
   });
 });

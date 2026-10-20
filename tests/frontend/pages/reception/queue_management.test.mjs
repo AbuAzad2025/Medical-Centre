@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { loadScript } from '../../test-utils.mjs';
+import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -41,33 +41,33 @@ beforeEach(() => {
 
 describe('reception/queue_management.js', () => {
   test('loads without critical errors', async () => {
-    await loadScript('static/js/pages/reception/queue_management.js');
+    await loadModule('static/js/pages/reception/queue_management.js');
   });
 
   test('updateQueueStatus is a function', async () => {
-    await loadScript('static/js/pages/reception/queue_management.js');
+    await loadModule('static/js/pages/reception/queue_management.js');
     expect(typeof updateQueueStatus).toBe('function');
   });
 
   test('displayQueueStatusAll is a function', async () => {
-    await loadScript('static/js/pages/reception/queue_management.js');
+    await loadModule('static/js/pages/reception/queue_management.js');
     expect(typeof displayQueueStatusAll).toBe('function');
   });
 
   test('callNextPatient is a function', async () => {
-    await loadScript('static/js/pages/reception/queue_management.js');
+    await loadModule('static/js/pages/reception/queue_management.js');
     expect(typeof callNextPatient).toBe('function');
   });
 
   test('displayQueueStatusAll renders empty state', async () => {
-    await loadScript('static/js/pages/reception/queue_management.js');
+    await loadModule('static/js/pages/reception/queue_management.js');
     displayQueueStatusAll({ tickets: [] });
     const tbody = document.querySelector('#queue-status-all tbody');
     expect(tbody.innerHTML).toContain('لا مرضى في الطابور');
   });
 
   test('displayQueueStatusAll renders ticket rows', async () => {
-    await loadScript('static/js/pages/reception/queue_management.js');
+    await loadModule('static/js/pages/reception/queue_management.js');
     displayQueueStatusAll({
       tickets: [{
         ticket_id: 1,
@@ -91,7 +91,7 @@ describe('reception/queue_management.js', () => {
   });
 
   test('getCsrfToken reads meta tag', async () => {
-    await loadScript('static/js/pages/reception/queue_management.js');
+    await loadModule('static/js/pages/reception/queue_management.js');
     expect(typeof getCsrfToken).toBe('function');
     const token = getCsrfToken();
     expect(typeof token).toBe('string');
