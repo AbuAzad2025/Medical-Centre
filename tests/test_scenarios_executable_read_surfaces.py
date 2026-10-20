@@ -49,6 +49,8 @@ should be removed.
 
 from __future__ import annotations
 
+import uuid
+
 import pytest
 from flask import g
 
@@ -256,13 +258,47 @@ class TestWhereTheIsolationActuallyLives:
         )
         assert len(scoped) >= 1, 'the fixture staged no patient in this tenant'
 
+        # The raw read below is only held by RLS if the table enforces it for
+        # the role running the query. The application role owns the tables, and
+        # an owner is exempt from a policy unless the table FORCES it - so
+        # without FORCE the second layer does not exist for this connection at
+        # all, and the raw read would see every tenant's rows.
+        enforced = db.session.execute(
+            sql_text(
+                'SELECT relrowsecurity, relforcerowsecurity FROM pg_class '
+                "WHERE relname = 'patients'"
+            )
+        ).first()
+        assert enforced is not None, 'the patients table is not in the schema'
+        assert enforced[0], 'row level security is not enabled on patients'
+        assert enforced[1], (
+            'row level security is not FORCED on patients, so the table owner - '
+            'the role the application runs as - is exempt from the policy. The '
+            'second layer does not hold for this connection.'
+        )
+
         # The raw read is the one that used to leak. Bind it explicitly to the
-        # other tenant and ask for THIS tenant's patient: it must not be
+        # other tenant and ask for a patient of THIS tenant: it must not be
         # visible. The binding is set rather than inherited, so the result
         # does not depend on what the ambient GUC happened to be when the
         # query ran - an inherited one made this case pass locally and fail
         # in CI, where the ordering left the connection bound elsewhere.
+        #
+        # The probe row is written for this run only, with a national id no
+        # other run can produce. A fixed id would let a row left behind by an
+        # earlier run answer the question instead of the row under test.
         from app.core.tenant.middleware import bound_tenant_scope
+
+        probe_nid = f'E2E-READ-PROBE-{uuid.uuid4().hex}'
+        probe = Patient(
+            tenant_id=two_tenants['tenant'].id,
+            first_name='Probe',
+            last_name='Row',
+            national_id=probe_nid,
+            phone='0550000003',
+        )
+        db.session.add(probe)
+        db.session.commit()
 
         with bound_tenant_scope(two_tenants['other']):
             bound = db.session.execute(
@@ -275,7 +311,7 @@ class TestWhereTheIsolationActuallyLives:
             )
             leaked = db.session.execute(
                 sql_text('SELECT count(*) FROM patients WHERE national_id = :nid'),
-                {'nid': two_tenants['mine_national_id']},
+                {'nid': probe_nid},
             ).scalar()
         assert leaked == 0, (
             f'a raw SQL read bound to one tenant returned {leaked} row(s) for '
