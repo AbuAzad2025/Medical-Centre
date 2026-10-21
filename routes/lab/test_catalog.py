@@ -7,11 +7,12 @@ from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
 
+from app.shared.user_role_policy import CLINICAL_STAFF_ROLES
 from app_factory import db
 from models.lab_test_catalog import LabTestCatalog, LabTestPanel, LabTestPanelItem
 from routes.lab import lab_bp
 from utils.db_safety import safe_commit, safe_rollback
-from utils.decorators import role_required
+from utils.decorators import role_required, role_required_json
 
 logger = logging.getLogger(__name__)
 
@@ -291,6 +292,7 @@ def test_panels_delete(id):
 
 @lab_bp.route('/api/test-catalog')
 @login_required
+@role_required_json(*CLINICAL_STAFF_ROLES)
 def api_test_catalog():
     stmt = select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.is_active)
     stmt = stmt.order_by(LabTestCatalog.sort_order, LabTestCatalog.code)
@@ -315,6 +317,7 @@ def api_test_catalog():
 
 @lab_bp.route('/api/test-catalog/<int:id>')
 @login_required
+@role_required_json(*CLINICAL_STAFF_ROLES)
 def api_test_catalog_item(id):
     test = (
         db.session.execute(select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.id == id))

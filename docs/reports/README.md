@@ -9,23 +9,23 @@ the generators are in `tools/reports/`.
 | measure | current | detail |
 |---|---|---|
 | Backend Python statements | not measured here | `docs/reports/backend-coverage.md` |
-| Frontend JavaScript statements | 0.5% | `docs/reports/frontend-coverage.md` — narrow measurement, see that file |
+| Frontend JavaScript statements | 28.7% | `docs/reports/frontend-coverage.md` — narrow measurement, see that file |
 | State-changing routes reached by the scenario matrix | 100.0% | `docs/scenarios/generated/README.md` |
 
 ## Frontend — biggest gaps (by statement coverage)
 
 | script | covered/total | percent |
 |---|---|---|
-| `D:/recovers/data/medical/static/js/base.js` | 0/354 | 0.0% |
-| `D:/recovers/data/medical/static/js/pages/radiology/process.js` | 0/342 | 0.0% |
-| `D:/recovers/data/medical/static/js/pages/reception/create_visit.js` | 0/315 | 0.0% |
-| `D:/recovers/data/medical/static/js/performance.js` | 0/289 | 0.0% |
-| `D:/recovers/data/medical/static/js/pages/reception/queue_management.js` | 0/271 | 0.0% |
-| `D:/recovers/data/medical/static/js/pages/super_admin/system_backup.js` | 0/245 | 0.0% |
-| `D:/recovers/data/medical/static/js/security.js` | 0/209 | 0.0% |
-| `D:/recovers/data/medical/static/js/pages/reception/patients.js` | 0/207 | 0.0% |
-| `D:/recovers/data/medical/static/js/pages/pharmacy/pos.js` | 0/161 | 0.0% |
-| `D:/recovers/data/medical/static/js/pages/doctor/prescription.js` | 0/158 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/super_admin/system_config.js` | 0/139 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/super_admin/queue_settings.js` | 0/92 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/booking/create.js` | 0/83 | 0.0% |
+| `D:/recovers/data/medical/static/js/components/pos-charge.js` | 0/62 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/kiosk/check_in.js` | 0/46 | 0.0% |
+| `D:/recovers/data/medical/static/js/login.js` | 0/44 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/super_admin/system_maintenance.js` | 0/41 | 0.0% |
+| `D:/recovers/data/medical/static/js/pages/super_admin/department_staff.js` | 0/37 | 0.0% |
+| `D:/recovers/data/medical/static/js/form-stepper.js` | 0/34 | 0.0% |
+| `D:/recovers/data/medical/static/js/app.js` | 0/33 | 0.0% |
 
 ## Frontend-Backend Template Matching
 
@@ -46,7 +46,7 @@ See `docs/reports/frontend-backend-matching.md` for detailed cross-reference.
 | total | 2,531 |
 | templates | 212 |
 | code-derived axes | 84 |
-| state-changing routes reached | 326/326 |
+| state-changing routes reached | 331/331 |
 
 Families:
 

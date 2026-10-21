@@ -24,6 +24,32 @@ ASSIGNABLE_ROLES: frozenset[str] = frozenset(
     }
 )
 
+# Roles that work inside the clinical system and may read its reference data:
+# the catalogues, the code lists and the education material. A reference list
+# is not patient data, but it is not public either - the lab catalogue carries
+# prices, and the coding lists carry the services the clinic bills for. The
+# roles that cannot read them are the ones that are not staff: a generic
+# account and a patient.
+CLINICAL_STAFF_ROLES: frozenset[str] = frozenset(
+    {
+        'super_admin',
+        'owner',
+        'admin',
+        'manager',
+        'doctor',
+        'er_doctor',
+        'nurse',
+        'reception',
+        'accountant',
+        'pharmacist',
+        'lab',
+        'radiology',
+        'emergency',
+        'technician',
+    }
+)
+
+
 # Only these operators may create users or change role fields.
 PRIVILEGED_ROLE_MANAGERS: frozenset[str] = frozenset({'super_admin', 'owner'})
 

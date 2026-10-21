@@ -93,31 +93,51 @@ def upgrade() -> None:
         if _constraint_exists(table, constraint):
             op.drop_constraint(constraint, table, type_='foreignkey')
 
-    # 2. Close the general audit trail the way the PHI access log already is.
-    #    The grants are revoked from the application role, not from the owner,
-    #    so the role that owns the schema can still administer it.
+    # 2. The general audit trail is closed to edits. UPDATE is withheld from
+    #    the application role outright: nothing in the application edits an
+    #    audit row, and the row that records what happened must not be the
+    #    row that gets rewritten.
     app_user = _get_app_user()
     if app_user:
-        for table in APPEND_ONLY_TABLES:
-            for stmt in (
-                f'REVOKE UPDATE ON {table} FROM "{app_user}"',
-                f'REVOKE DELETE ON {table} FROM "{app_user}"',
-            ):
-                op.execute(stmt)
+        op.execute(f'REVOKE UPDATE ON audit_trails FROM "{app_user}"')
+        op.execute(f'REVOKE UPDATE ON phi_audit_logs FROM "{app_user}"')
+        # DELETE stays, because the retention job has to be able to remove
+        # the rows the retention window has passed. What it may not do is
+        # remove anything else, and that is the job of the restrictive
+        # policy below: the delete only reaches a row when the session has
+        # said, deliberately, that it is the retention job.
+        op.execute(f'GRANT DELETE ON audit_trails TO "{app_user}"')
 
-    # 3. The row-level half of the guarantee. The grants are the database's
-    #    answer; these policies are the application's. Without them a
-    #    connection that bypasses the grants can still edit the history, and
-    #    the retention purge - which runs with a privileged connection on
-    #    purpose - can still do the one deletion that is allowed.
+    # 3. The row-level half of the guarantee. A permissive policy that says
+    #    USING (false) does not block anything - permissive policies are
+    #    combined with OR, so the tenant policy beside it would allow the
+    #    write. A restrictive policy is combined with AND, so this one is
+    #    what actually holds the line.
+    #
+    #    The condition is a setting the session has to turn on, and the
+    #    application never turns it on. The retention job does, and it turns
+    #    it on for the one statement that prunes rows past the retention
+    #    window. So the trail is append-only for everything the application
+    #    does, and the retention window still means something.
     for table in APPEND_ONLY_TABLES:
         for action in ('update', 'delete'):
             policy = f'{table}_no_{action}'
-            if not _policy_exists(table, policy):
-                op.execute(
-                    sa.text(f'CREATE POLICY {policy} ON {table} '
-                            f'FOR {action.upper()} USING (false)')
-                )
+            if _policy_exists(table, policy):
+                op.execute(sa.text(f'DROP POLICY IF EXISTS {policy} ON {table}'))
+
+    op.execute(
+        sa.text(
+            'CREATE POLICY audit_trails_no_update ON audit_trails '
+            'AS RESTRICTIVE FOR UPDATE USING (false)'
+        )
+    )
+    op.execute(
+        sa.text(
+            'CREATE POLICY audit_trails_no_delete ON audit_trails '
+            'AS RESTRICTIVE FOR DELETE '
+            "USING (current_setting('app.audit_purge', true) = 'on')"
+        )
+    )
 
 
 def _policy_exists(table: str, policy: str) -> bool:
@@ -150,6 +170,13 @@ def downgrade() -> None:
                 f'GRANT DELETE ON {table} TO "{app_user}"',
             ):
                 op.execute(stmt)
+
+    for table in APPEND_ONLY_TABLES:
+        for action in ('update', 'delete'):
+            policy = f'{table}_no_{action}'
+            op.execute(
+                sa.text(f'CREATE POLICY {policy} ON {table} FOR {action.upper()} USING (false)')
+            )
 
     for table, constraint in USER_REFERENCE_CONSTRAINTS:
         if not _constraint_exists(table, constraint):

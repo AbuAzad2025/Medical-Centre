@@ -7,9 +7,14 @@ from flask_login import login_required
 from sqlalchemy import select
 
 from app.extensions import db
+from app.shared.user_role_policy import CLINICAL_STAFF_ROLES
 from models.icd_coding import CodedDiagnosis, CodedProcedure, CPTCode, DRGCode, ICD10Code
 from models.patient import Patient
-from utils.decorators import handle_route_errors, role_required
+from utils.decorators import (
+    handle_route_errors,
+    role_required,
+    role_required_json,
+)
 from utils.tenant_query import TenantContextError, get_tenant_record
 
 clinical_coding_bp = Blueprint('clinical_coding', __name__)
@@ -122,6 +127,7 @@ def patient_procedures(patient_id):
 @clinical_coding_bp.route('/api/icd10/search')
 @login_required
 @handle_route_errors
+@role_required_json(*CLINICAL_STAFF_ROLES)
 def api_icd10_search():
     q = request.args.get('q', '').strip()
     if len(q) < 2:
@@ -146,6 +152,7 @@ def api_icd10_search():
 @clinical_coding_bp.route('/api/cpt/search')
 @login_required
 @handle_route_errors
+@role_required_json(*CLINICAL_STAFF_ROLES)
 def api_cpt_search():
     q = request.args.get('q', '').strip()
     if len(q) < 2:

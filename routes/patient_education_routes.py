@@ -11,6 +11,7 @@ from sqlalchemy import select
 from werkzeug.utils import secure_filename
 
 from app.extensions import db
+from app.shared.user_role_policy import CLINICAL_STAFF_ROLES
 from models import Patient, PatientEducationAssignment, PatientEducationMaterial
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import handle_route_errors, role_required
@@ -33,6 +34,7 @@ def allowed_file(filename):
 @patient_education_bp.route('/')
 @login_required
 @handle_route_errors
+@role_required(*CLINICAL_STAFF_ROLES)
 def index():
     category = request.args.get('category', '')
     query = PatientEducationMaterial.query
@@ -55,6 +57,7 @@ def index():
 @patient_education_bp.route('/material/<int:material_id>')
 @login_required
 @handle_route_errors
+@role_required(*CLINICAL_STAFF_ROLES)
 def view_material(material_id):
     material = db.get_or_404(PatientEducationMaterial, material_id)
     try:
@@ -169,6 +172,7 @@ def assign_material():
 @patient_education_bp.route('/patient/<int:patient_id>')
 @login_required
 @handle_route_errors
+@role_required(*CLINICAL_STAFF_ROLES)
 def patient_materials(patient_id):
     patient = db.get_or_404(Patient, patient_id)
     assignments = (

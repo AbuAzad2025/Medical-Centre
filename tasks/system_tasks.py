@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import delete as sa_delete
+from sqlalchemy import delete as sa_delete, text as sa_text
 
 from celery_app import get_celery_app
 from services.backup_automation_service import BackupAutomationError
@@ -54,6 +54,12 @@ def _purge_old_audit_logs() -> dict:
     cutoff = datetime.now(UTC) - timedelta(days=retention_days)
 
     g._tenant_filter_bypass = True
+    # The audit trail is append-only: the row-level policy on it refuses a
+    # delete unless the session has declared itself the retention job. This
+    # is that declaration, and it is made for this one statement - the rows
+    # past the retention window and nothing else. The application never
+    # makes it, so nothing it does can remove a row from the trail.
+    db.session.execute(sa_text("SET app.audit_purge = 'on'"))
     try:
         deleted = (
             sa_delete(AuditTrail)

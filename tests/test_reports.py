@@ -214,6 +214,7 @@ def test_known_defects_are_declared_strict_xfail():
     from scenario_execution_registry import EXECUTED_TEMPLATES  # noqa: PLC0415
 
     modules = sorted({mod for mod, _ in EXECUTED_TEMPLATES.values()})
+    scanned = 0
     checked = 0
     problems: list[str] = []
 
@@ -221,6 +222,7 @@ def test_known_defects_are_declared_strict_xfail():
         path = pathlib.Path(__file__).parent / f'{module}.py'
         if not path.exists():
             continue
+        scanned += 1
         tree = ast.parse(path.read_text(encoding='utf-8'))
         for node in ast.walk(tree):
             if not isinstance(node, ast.FunctionDef):
@@ -239,7 +241,15 @@ def test_known_defects_are_declared_strict_xfail():
                 if 'reason' not in kwargs:
                     problems.append(f'{module}.{node.name}: xfail without a reason')
 
-    assert checked > 0, 'no xfail markers found; the scenario modules changed shape?'
+    # The scenario modules must have been found and read, whether or not they
+    # declare a defect. The check used to require at least one xfail marker,
+    # which meant it could not tell "the known defects are all fixed" from
+    # "the scan is looking in the wrong place" - and the first is the good
+    # state, arrived at by fixing every defect the suite was carrying.
+    assert scanned > 0, (
+        'the scenario modules were not found; the scan is looking in the wrong '
+        'place and the xfail rules below are not being checked at all'
+    )
     assert not problems, 'xfail markers that will not survive a fix:\n' + '\n'.join(problems)
 
 

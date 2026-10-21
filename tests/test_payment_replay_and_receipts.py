@@ -64,6 +64,11 @@ class TestPaymentReplaySingleCredit:
             'paid_amount': '50',
             'payment_method': 'cash',
             'payment_currency': 'ILS',
+            # The key of a payment attempt is its per-attempt id, so a retry
+            # of one request carries the same one. Without it the two posts
+            # are two payments of the same amount, which is a different thing
+            # and is covered in tests/test_payment_idempotency.py.
+            'payment_request_id': 'replay-same-key',
         }
         resp1 = client.post(
             f'/payment/process/{v.id}', data=data, headers={'Accept': 'application/json'}

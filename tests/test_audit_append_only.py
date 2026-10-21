@@ -68,17 +68,23 @@ def test_an_audit_row_cannot_be_edited(app, test_tenant):
 
 
 def test_an_audit_row_cannot_be_removed(app, test_tenant):
-    """A row cannot be deleted either."""
+    """A row cannot be deleted either.
+
+    The trail is closed to edits at two levels: the application role has no
+    UPDATE privilege, and the row-level policy refuses an UPDATE outright.
+    DELETE is the one operation the retention job needs, so it is allowed
+    only when the session has declared itself the retention job - and the
+    application never does. Without that declaration the delete matches
+    nothing, which is the guarantee: the row is simply not removable.
+    """
     row_id = _write_row(test_tenant.id)
 
-    with pytest.raises(Exception) as excinfo:
-        db.session.execute(text('DELETE FROM audit_trails WHERE id = :i'), {'i': row_id})
-        db.session.commit()
-    db.session.rollback()
+    result = db.session.execute(text('DELETE FROM audit_trails WHERE id = :i'), {'i': row_id})
+    db.session.commit()
 
-    assert 'permission denied' in str(excinfo.value).lower(), (
-        'the audit row could be deleted, so the trail could be made to say '
-        'that something never happened'
+    assert result.rowcount == 0, (
+        'the audit row could be deleted, so the trail could be made to say that '
+        'something never happened'
     )
     still_there = db.session.execute(
         text('SELECT count(*) FROM audit_trails WHERE id = :i'), {'i': row_id}

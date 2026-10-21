@@ -7,6 +7,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import select
 
 from app.extensions import db
+from app.shared.user_role_policy import CLINICAL_STAFF_ROLES
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
@@ -17,6 +18,7 @@ ALLOWED_TYPES = {'text', 'number', 'date', 'select', 'checkbox', 'textarea'}
 
 @specialty_forms_bp.route('/specialty-forms')
 @login_required
+@role_required(*CLINICAL_STAFF_ROLES)
 def list_forms():
     from models.specialty_form import SpecialtyForm
 
@@ -81,6 +83,7 @@ def new_form():
 
 @specialty_forms_bp.route('/specialty-forms/<int:form_id>')
 @login_required
+@role_required(*CLINICAL_STAFF_ROLES)
 def view_form(form_id):
     from models.specialty_form import SpecialtyForm
 
