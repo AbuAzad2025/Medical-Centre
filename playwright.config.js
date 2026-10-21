@@ -9,6 +9,10 @@ const BASE_URL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8080';
 
 module.exports = defineConfig({
   testDir: './e2e/specs',
+  // The suite logs in as three accounts in a tenant with its modules
+  // activated. Seeding them by hand meant the suite failed for reasons that
+  // had nothing to do with what it tests.
+  globalSetup: './e2e/global-setup.js',
   timeout: 90_000,
   expect: { timeout: 15_000 },
   fullyParallel: false, // clinical flow is stateful — run serially

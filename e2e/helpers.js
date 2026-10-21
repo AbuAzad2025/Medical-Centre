@@ -36,14 +36,15 @@ async function selectTenant(page) {
   const option = select.locator(`option[value="${TENANT_SLUG}"]`);
   try {
     await option.first().waitFor({ state: 'attached', timeout: 15_000 });
-    await option.first().selectOption();
-    return;
   } catch (e) {
-    // The list did not arrive, or the tenant is not in it.
+    // The list did not arrive. It is handled the same way either way.
   }
   // A <select> only accepts the values it has options for: assigning a value
   // that is not among them leaves the selection empty, and the form then
   // submits no tenant at all. So the option is added first, then selected.
+  // The page fills the list in by script, and it replaces the options when it
+  // does - which resets a selection made before the list arrived. So the
+  // selection is made after the list settles rather than before it.
   const added = await select.evaluate(
     (el, slug) => {
       let opt = el.querySelector(`option[value="${slug}"]`);
@@ -96,18 +97,42 @@ async function uiLogin(page, role) {
   if (page.url().includes('/auth/login')) {
     // The form did not navigate away. The tenant list on the login page is
     // filled in by script, and a form submitted without a tenant resolves no
-    // tenant at all, so the account is invisible to the lookup and the page
-    // just comes back. The API posts the same fields and establishes the same
-    // session, so use it rather than leaving the suite stuck here.
-    const target = await apiLogin(page, role);
+    // tenant at all: the user lookup is tenant-scoped and fail-closed, so the
+    // account is invisible to it and the page simply comes back.
+    //
+    // The request is made through the browser rather than through
+    // page.request, so the session the login page established is the session
+    // the POST carries. A request made outside the page does not carry it,
+    // the tenant is never resolved, and the login cannot succeed.
+    const target = await submitLoginForm(page, role);
     if (!target) {
-      throw new Error(`login failed for ${role}: the form did not navigate and the API login gave no redirect`);
+      throw new Error(
+        `login failed for ${role}: the form did not navigate away from the login page`,
+      );
     }
-    // The API login sets the session but does not move the page, so the URL is
-    // still the login page. Go to the dashboard the server itself chose.
-    await page.goto(lastLoginTarget || `/t/${TENANT_SLUG}/`);
+    await page.goto(target);
     await page.waitForLoadState('networkidle');
   }
+}
+
+/**
+ * Submit the login form in the browser and return the dashboard the server
+ * redirected to, or null if it stayed on the login page.
+ */
+async function submitLoginForm(page, role) {
+  const { user, pass } = CREDS[role];
+  await page.goto('/auth/login');
+  await page
+    .locator('input[name="username"]')
+    .first()
+    .fill(user);
+  await page.locator('input[name="password"]').first().fill(pass);
+  await selectTenant(page);
+  await Promise.all([
+    page.waitForURL((url) => !url.pathname.endsWith('/auth/login'), { timeout: 20_000 }),
+    page.locator('button[type="submit"], input[type="submit"]').first().click(),
+  ]).catch(() => {});
+  return page.url().includes('/auth/login') ? null : new URL(page.url()).pathname;
 }
 
 /**
@@ -120,45 +145,16 @@ async function uiLogin(page, role) {
  * session but does not move the page.
  */
 async function apiLogin(page, role) {
-  const { user, pass } = CREDS[role];
-  // The endpoint requires a CSRF token, so the login page is fetched first to
-  // get the cookie and the token out of it.
-  await page.goto('/auth/login');
-  const token = await page
-    .locator('meta[name="csrf-token"]')
-    .getAttribute('content')
-    .catch(() => null);
-  const resp = await page.request.post('/auth/login', {
-    form: {
-      username: user,
-      password: pass,
-      tenant_slug: TENANT_SLUG,
-      csrf_token: token || '',
-    },
-    headers: token ? { 'X-CSRFToken': token } : {},
-    maxRedirects: 0,
-  });
-  if (resp.status() >= 400 || (resp.status() < 300 && resp.status() !== 201)) {
-    // Say what the server answered. "the login failed" is not a diagnosis -
-    // the body carries the reason, and the reason is usually a tenant, a CSRF
-    // token or a lockout rather than the credentials. A refused login
-    // re-renders the login page with a 200, so a 200 here is a failure too:
-    // a successful login always redirects.
-    const html = await resp.text();
-    const flash =
-      html.match(/class="[^"]*alert[^"]*"[^>]*>([^<]{3,200})</i) ||
-      html.match(/<p[^>]*>([^<]{5,200})<\/p>/i);
-    throw new Error(
-      `login failed for ${role}: HTTP ${resp.status()} ${
-        flash ? flash[1].trim() : html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200)
-      }`,
-    );
+  // The login is submitted through the browser rather than through
+  // page.request. The request has to carry the session the login page
+  // established: the user lookup is tenant-scoped and fail-closed, so a request
+  // that arrives without that session resolves no tenant and cannot see the
+  // account at all. A request made outside the page does not carry it.
+  const target = await submitLoginForm(page, role);
+  if (!target) {
+    throw new Error(`login failed for ${role}: the form stayed on the login page`);
   }
-  // The server answers with the dashboard the role belongs to, tenant-prefixed.
-  const location = resp.headers()['location'];
-  lastLoginTarget = location
-    ? new URL(location, 'http://127.0.0.1:8080').pathname
-    : null;
+  lastLoginTarget = target;
   return true;
 }
 
