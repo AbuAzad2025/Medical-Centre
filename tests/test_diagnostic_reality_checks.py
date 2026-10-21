@@ -27,14 +27,18 @@ from models.appointment import Appointment
 def appointment_factory(app, test_tenant):
     """An appointment in this tenant, at a chosen time and status."""
 
-    def make(starts_at, status='SCHEDULED', reference='e2e-appt'):
+    def make(starts_at, status='SCHEDULED', reference='e2e-appt', patient_id=None):
         from models.patient import Patient
 
-        patient = (
-            db.session.execute(select(Patient).filter_by(tenant_id=test_tenant.id).limit(1))
-            .scalars()
-            .first()
-        )
+        patient = None
+        if patient_id is not None:
+            patient = db.session.get(Patient, patient_id)
+        else:
+            patient = (
+                db.session.execute(select(Patient).filter_by(tenant_id=test_tenant.id).limit(1))
+                .scalars()
+                .first()
+            )
         if patient is None:
             patient = Patient(
                 tenant_id=test_tenant.id,
@@ -88,7 +92,9 @@ def test_the_readiness_probe_fails_when_redis_is_down(app, monkeypatch):
     assert body['checks'].get('redis_degraded') is True
 
 
-def test_the_reminder_job_only_looks_at_the_next_day(app, appointment_factory, monkeypatch):
+def test_the_reminder_job_only_looks_at_the_next_day(
+    app, test_tenant, appointment_factory, monkeypatch
+):
     """A reminder is for an appointment in the next 24 hours.
 
     The window was computed and thrown away, so the query had no time bound
@@ -96,13 +102,45 @@ def test_the_reminder_job_only_looks_at_the_next_day(app, appointment_factory, m
     the system had ever held - including cancelled ones and ones from last
     year - got a fresh notification row, and an SMS, every minute.
     """
+    # A patient of this test's own. The reminder for an appointment whose
+    # patient has no phone names the patient id, and the reminders are
+    # counted by that. The appointments of other tests are in the table too,
+    # and matching on the date or on the minute counted theirs.
+    from models.patient import Patient
     from services.notification_service import NotificationService
 
+    patient = Patient(
+        tenant_id=test_tenant.id,
+        first_name='Reminder',
+        last_name='Scope',
+        national_id='E2E-REMINDER-SCOPE',
+    )
+    db.session.add(patient)
+    db.session.flush()
+
     now = datetime.now(UTC)
-    soon = appointment_factory(now + timedelta(hours=2), status='SCHEDULED')
-    far = appointment_factory(now + timedelta(days=30), status='SCHEDULED')
-    past = appointment_factory(now - timedelta(days=30), status='SCHEDULED')
-    cancelled = appointment_factory(now + timedelta(hours=3), status='CANCELLED')
+    # Each appointment is placed on a distinct minute, and the reminder
+    # message carries the appointment time to the minute.
+    soon = appointment_factory(
+        (now + timedelta(hours=2)).replace(minute=7, second=0, microsecond=0),
+        status='SCHEDULED',
+        patient_id=patient.id,
+    )
+    far = appointment_factory(
+        (now + timedelta(days=30)).replace(minute=11, second=0, microsecond=0),
+        status='SCHEDULED',
+        patient_id=patient.id,
+    )
+    past = appointment_factory(
+        (now - timedelta(days=30)).replace(minute=13, second=0, microsecond=0),
+        status='SCHEDULED',
+        patient_id=patient.id,
+    )
+    cancelled = appointment_factory(
+        (now + timedelta(hours=3)).replace(minute=17, second=0, microsecond=0),
+        status='CANCELLED',
+        patient_id=patient.id,
+    )
 
     seen: list[str] = []
     original = NotificationService.send_notification
@@ -116,9 +154,14 @@ def test_the_reminder_job_only_looks_at_the_next_day(app, appointment_factory, m
     NotificationService.send_appointment_reminders()
 
     # The appointments this test made. Other tests leave appointments behind,
-    # so the count is about these four and not about the whole table.
-    mine = {soon.starts_at.strftime('%Y-%m-%d'), far.starts_at.strftime('%Y-%m-%d')}
-    about_mine = [m for m in seen if any(d in m for d in mine)]
+    # so the count is about these four and not about the whole table: the
+    # reminder for an appointment whose patient has no phone names the
+    # patient id, and these four belong to a patient of this test's own.
+    def stamp(appointment):
+        return appointment.starts_at.strftime('%Y-%m-%d %H:%M')
+
+    mine = f'ID={patient.id}'
+    about_mine = [m for m in seen if mine in m]
 
     # Exactly one of the four is inside the window, so exactly one reminder.
     assert len(about_mine) == 1, (
@@ -126,8 +169,13 @@ def test_the_reminder_job_only_looks_at_the_next_day(app, appointment_factory, m
         '24 hours; the query had no time window and no status filter, so every '
         'appointment the system had ever held was reminded too'
     )
-    assert soon.starts_at.strftime('%Y-%m-%d') in about_mine[0], (
+    assert stamp(soon) in about_mine[0], (
         'the reminder that was queued was not for the appointment in the window'
+    )
+    assert stamp(far) not in ' '.join(seen), 'an appointment a month away was reminded'
+    assert stamp(past) not in ' '.join(seen), 'an appointment in the past was reminded'
+    assert stamp(cancelled) not in ' '.join(seen), (
+        'a cancelled appointment was reminded; the query had no status filter'
     )
 
 
