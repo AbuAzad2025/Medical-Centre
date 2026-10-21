@@ -634,8 +634,17 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
                 checks['checks']['redis'] = 'skipped (no REDIS_URL)'
         except Exception as e:
             checks['checks']['redis'] = f'fail: {e.__class__.__name__}'
-            # Redis failure degrades but does not hard-fail liveness; mark degraded
+            # Redis is not optional here. It is the Celery broker, so the
+            # background jobs do not run, and it backs the payment
+            # idempotency lock, which silently degrades to a per-process lock
+            # and breaks the serialisation of two concurrent payments.
+            #
+            # This used to set redis_degraded and leave overall_ok alone, so
+            # the endpoint answered 200 with status 'ok' while the system was
+            # not able to take a payment. A readiness probe that says ok
+            # while a dependency is down is worse than no probe.
             checks['checks']['redis_degraded'] = True
+            overall_ok = False
 
         # Stripe probe (best-effort, no secret leak)
         try:

@@ -13,9 +13,46 @@ class SMSProvider:
 
 
 class LogSMSProvider(SMSProvider):
+    """Writes the message to the log instead of sending it.
+
+    This is the provider used when SMS is deliberately switched off, which is
+    what a development or test environment wants. The message is not delivered,
+    and the result says so: ``delivered`` is False. Reporting a plain success
+    hides the fact from any caller that needs to know the message went
+    nowhere.
+    """
+
     def send(self, phone: str, message: str) -> dict:
         logger.info(f'[SMS] To: {phone} | Message: {message}')
-        return {'success': True, 'provider': 'log', 'message': 'تم تسجيل الرسالة في السجل'}
+        return {
+            'success': True,
+            'provider': 'log',
+            'delivered': False,
+            'message': 'تم تسجيل الرسالة في السجل',
+        }
+
+
+class UnconfiguredSMSProvider(SMSProvider):
+    """Used when a live SMS provider was selected but its configuration is broken.
+
+    Reporting success here is a lie with consequences: the operator asked for
+    Twilio, the credentials are missing or incomplete, and every message -
+    OTP codes, appointment reminders, lab-result notices - vanishes while the
+    system reports it as sent. The notification queue then marks those rows
+    SENT, so the record of a delivery that never happened is all that is left.
+    """
+
+    def send(self, phone: str, message: str) -> dict:
+        logger.error(
+            '[SMS] the configured SMS provider is incomplete; the message to %s was not delivered',
+            phone,
+        )
+        return {
+            'success': False,
+            'provider': 'unconfigured',
+            'delivered': False,
+            'message': 'إعداد مزود الرسائل غير مكتمل، لم تُرسل الرسالة',
+        }
 
 
 class TwilioSMSProvider(SMSProvider):
@@ -60,8 +97,10 @@ def get_sms_provider(tenant=None):
             sender = sms_cfg.get('twilio_phone_number', '')
             if sid and token and sender:
                 return TwilioSMSProvider(sid, token, sender)
-            logger.warning('[SMS] Tenant Twilio config incomplete, falling back to LogSMSProvider')
-            return LogSMSProvider()
+            logger.warning(
+                '[SMS] Tenant Twilio config incomplete; the message will not be delivered'
+            )
+            return UnconfiguredSMSProvider()
         return LogSMSProvider()
 
     # Fallback to global SystemConfig (super-admin configured)
@@ -105,6 +144,6 @@ def get_sms_provider(tenant=None):
             and sender.get_value()
         ):
             return TwilioSMSProvider(sid.get_value(), token.get_value(), sender.get_value())
-        logger.warning('[SMS] Global Twilio config incomplete, falling back to LogSMSProvider')
-        return LogSMSProvider()
+        logger.warning('[SMS] Global Twilio config incomplete; the message will not be delivered')
+        return UnconfiguredSMSProvider()
     return LogSMSProvider()

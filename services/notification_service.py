@@ -1031,11 +1031,23 @@ class NotificationService:
             from models.user import User
 
             now = datetime.now()
-            now + timedelta(hours=24)
+            # The window this is supposed to cover. The expression that
+            # computed it was discarded, so the query below had no time bound
+            # and no status filter - every appointment the system had ever
+            # held, including cancelled and past ones. This runs once a minute,
+            # so each of those got a fresh notification row (and an SMS) every
+            # minute, forever.
+            window_end = now + timedelta(hours=24)
 
             query = select(Appointment)
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
+            query = query.filter(
+                Appointment.starts_at.isnot(None),
+                Appointment.starts_at >= now,
+                Appointment.starts_at <= window_end,
+                Appointment.status.in_(('SCHEDULED', 'CONFIRMED')),
+            )
 
             appts = db.session.execute(query).scalars().all()
 
