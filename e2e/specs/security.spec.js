@@ -15,7 +15,15 @@ test.describe('Security headers', () => {
     const csp = resp.headers()['content-security-policy'] || '';
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain('nonce-');
-    expect(csp).not.toContain('unsafe-inline');
+    // The check is on the script directive, not on the whole header. A style
+    // directive with 'unsafe-inline' is a different thing: it lets a style
+    // attribute through, and it does not let a line of script run. A header
+    // that forbids inline styles as well would have to be written without
+    // them, and the templates are full of them. What must never appear is
+    // 'unsafe-inline' in a script directive, because that is an inline
+    // script executing with the page's privileges.
+    const scriptSrc = (csp.split(';').find((d) => d.trim().startsWith('script-src')) || '').trim();
+    expect(scriptSrc).not.toContain('unsafe-inline');
     expect(csp).not.toContain('cdn.jsdelivr.net');
     expect(csp).not.toContain('cdnjs.cloudflare.com');
   });

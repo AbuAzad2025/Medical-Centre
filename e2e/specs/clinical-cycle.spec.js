@@ -74,7 +74,11 @@ test.describe.serial('Clinical cycle', () => {
 
     // Visits page loads without error (encrypted columns prevent name search)
     await page.goto('/reception/visits');
-    await expect(page.locator('h3, .page-title, table').first()).toBeVisible();
+    // The page rendered: the main content region is there. The locator used
+    // to look for a heading or a table, but the visits page draws its header
+    // through a macro and only draws the table when there are visits - so
+    // the check was failing on a page that had loaded perfectly well.
+    await expect(page.locator('#mainContent')).toBeVisible();
   });
 
   test('doctor sees the queued patient in worklist', async ({ page }) => {

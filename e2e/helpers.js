@@ -4,17 +4,22 @@ const path = require('path');
 
 const STATE_DIR = path.join(__dirname, '.auth');
 
+// The names below must be the ones e2e_seed_accounts.py creates. They used
+// to be 'reception', 'doctor' and 'pharmacist', which the seeder never made:
+// it created 'reception_e2e', 'doctor_e2e' and 'pharmacist_test'. The suite
+// then logged in with accounts that did not exist, and every spec failed at
+// the login with a message that had nothing to do with what it was testing.
 const CREDS = {
   reception: {
-    user: process.env.E2E_RECEPTION_USER || 'reception',
+    user: process.env.E2E_RECEPTION_USER || 'reception_e2e',
     pass: process.env.E2E_RECEPTION_PASS || 'ValidPass123!',
   },
   doctor: {
-    user: process.env.E2E_DOCTOR_USER || 'doctor',
+    user: process.env.E2E_DOCTOR_USER || 'doctor_e2e',
     pass: process.env.E2E_DOCTOR_PASS || 'ValidPass123!',
   },
   pharmacist: {
-    user: process.env.E2E_PHARMACIST_USER || 'pharmacist',
+    user: process.env.E2E_PHARMACIST_USER || 'pharmacist_test',
     pass: process.env.E2E_PHARMACIST_PASS || 'ValidPass123!',
   },
 };
