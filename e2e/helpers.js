@@ -24,6 +24,9 @@ const CREDS = {
 // finds nothing: the request is unbound and the account is invisible to it.
 const TENANT_SLUG = process.env.E2E_TENANT_SLUG || 'pharmacy-shifa';
 
+// The dashboard the last API login was redirected to.
+let lastLoginTarget = null;
+
 /** Select the tenant on the login form, waiting for its options to load. */
 async function selectTenant(page) {
   const select = page.locator('select[name="tenant_slug"]');
@@ -96,7 +99,14 @@ async function uiLogin(page, role) {
     // tenant at all, so the account is invisible to the lookup and the page
     // just comes back. The API posts the same fields and establishes the same
     // session, so use it rather than leaving the suite stuck here.
-    await apiLogin(page, role);
+    const target = await apiLogin(page, role);
+    if (!target) {
+      throw new Error(`login failed for ${role}: the form did not navigate and the API login gave no redirect`);
+    }
+    // The API login sets the session but does not move the page, so the URL is
+    // still the login page. Go to the dashboard the server itself chose.
+    await page.goto(lastLoginTarget || `/t/${TENANT_SLUG}/`);
+    await page.waitForLoadState('networkidle');
   }
 }
 
@@ -104,6 +114,10 @@ async function uiLogin(page, role) {
  * Login via the JSON API using page.request - cookies are shared with the
  * page context, so subsequent navigations are authenticated.  Avoids the
  * login-form rate limiter when many functional tests run back-to-back.
+ *
+ * Returns true on success. The dashboard the server chose is left in
+ * `lastLoginTarget` for callers that need to go there - the API login sets the
+ * session but does not move the page.
  */
 async function apiLogin(page, role) {
   const { user, pass } = CREDS[role];
@@ -124,7 +138,28 @@ async function apiLogin(page, role) {
     headers: token ? { 'X-CSRFToken': token } : {},
     maxRedirects: 0,
   });
-  return resp.status() < 400;
+  if (resp.status() >= 400 || (resp.status() < 300 && resp.status() !== 201)) {
+    // Say what the server answered. "the login failed" is not a diagnosis -
+    // the body carries the reason, and the reason is usually a tenant, a CSRF
+    // token or a lockout rather than the credentials. A refused login
+    // re-renders the login page with a 200, so a 200 here is a failure too:
+    // a successful login always redirects.
+    const html = await resp.text();
+    const flash =
+      html.match(/class="[^"]*alert[^"]*"[^>]*>([^<]{3,200})</i) ||
+      html.match(/<p[^>]*>([^<]{5,200})<\/p>/i);
+    throw new Error(
+      `login failed for ${role}: HTTP ${resp.status()} ${
+        flash ? flash[1].trim() : html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200)
+      }`,
+    );
+  }
+  // The server answers with the dashboard the role belongs to, tenant-prefixed.
+  const location = resp.headers()['location'];
+  lastLoginTarget = location
+    ? new URL(location, 'http://127.0.0.1:8080').pathname
+    : null;
+  return true;
 }
 
 module.exports = { CREDS, TENANT_SLUG, stateFile, loginAs, uiLogin, apiLogin, selectTenant };

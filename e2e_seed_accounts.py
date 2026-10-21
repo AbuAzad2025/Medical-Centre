@@ -100,6 +100,30 @@ def main() -> int:
         with bound_tenant_scope(tenant):
             activate_tenant_modules(app, tenant, MODULES)
         print(f'  modules activated: {", ".join(MODULES)}')
+
+        # Clear the failed login attempts. The lockout counts them, so a handful
+        # of harness runs - each one a login that could not find the account -
+        # locks the account out for 15 minutes and every later run fails with
+        # "too many attempts" instead of the real reason.
+        try:
+            from models.audit_trail import LoginAttempt
+
+            cleared = (
+                db.session.execute(
+                    db.delete(LoginAttempt).filter(
+                        db.or_(
+                            *[LoginAttempt.username == u for u, _ in ACCOUNTS],
+                        )
+                    )
+                ).rowcount
+                or 0
+            )
+            db.session.commit()
+            print(f'  cleared {cleared} failed login attempt(s)')
+        except Exception as exc:  # noqa: BLE001
+            db.session.rollback()
+            print(f'  could not clear failed login attempts: {exc}')
+
         print(f'created {created} account(s)')
     return 0
 
