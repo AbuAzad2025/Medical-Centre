@@ -25,6 +25,18 @@ ACCOUNTS = [
     ('doctor_e2e', 'doctor'),
     ('pharmacist_test', 'pharmacist'),
 ]
+MODULES = [
+    'reception',
+    'doctor',
+    'pharmacy',
+    'lab',
+    'radiology',
+    'emergency',
+    'accounting',
+    'manager',
+    'admin',
+    'nursing',
+]
 
 
 def main() -> int:
@@ -79,6 +91,15 @@ def main() -> int:
                     user.set_password(PASSWORD)
                 print(f'  {username} ({role}) ready')
             db.session.commit()
+
+        # The module guards are per tenant, and a tenant with no modules
+        # activated answers 403 for every clinical route. The accounts exist but
+        # cannot reach anything without them.
+        from tests.tenant_context import activate_tenant_modules
+
+        with bound_tenant_scope(tenant):
+            activate_tenant_modules(app, tenant, MODULES)
+        print(f'  modules activated: {", ".join(MODULES)}')
         print(f'created {created} account(s)')
     return 0
 
