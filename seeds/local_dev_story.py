@@ -18,6 +18,7 @@ from app.core.module.models import TenantModule
 from app.core.module.registry import MODULE_REGISTRY
 from app.core.tenant.models import Tenant
 from app.extensions import db
+from app.shared.enums import PrescriptionState
 from models.invoice import Invoice
 from models.lab_request import LabRequest
 from models.medication import Prescription
@@ -187,7 +188,11 @@ def seed_clinical_flow(tenant, staff, session=None):
                 doctor_id=doctor.id,
                 visit_id=visit.id,
                 prescription_number=f'RX-{uuid.uuid4().hex[:8]}',
-                status='ACTIVE',
+                # The column accepts the lower-case prescription states, and
+                # the lookup just above looks for 'active' - writing the
+                # upper-case spelling here made every seed fail its own
+                # check constraint.
+                status=PrescriptionState.ACTIVE,
             )
             session.add(prescription)
             session.flush()

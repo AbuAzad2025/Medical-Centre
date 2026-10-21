@@ -221,9 +221,28 @@ class TestSSOConfiguration:
     def _sso_on(self, monkeypatch):
         monkeypatch.setenv('PLATFORM_CAP_SSO', 'true')
 
-    def test_sso_config_accepts_and_stores_ldap_provider(self, staff):
+    @pytest.fixture
+    def platform_owner(self, app, test_tenant):
+        """A platform owner, which is who may write the SSO configuration.
+
+        `sso_configurations` carries no tenant, so the provider it holds is
+        the one every tenant logs in through, and it decides the role an
+        auto-provisioned account is granted. Writing it is therefore
+        restricted to the platform owners, and the tenant doctor the staff
+        fixture provides is refused - correctly.
+        """
+        from tests.tenant_context import ensure_test_user, login_test_client
+
+        user = ensure_test_user(db, test_tenant, username='e2e_sso_owner', role='super_admin')
+        client = app.test_client()
+        with app.test_request_context():
+            g.tenant_id = test_tenant.id
+            login_test_client(client, user, test_tenant)
+        return client
+
+    def test_sso_config_accepts_and_stores_ldap_provider(self, platform_owner):
         """POST /sso/config stores an LDAP provider configuration."""
-        client = staff['client']
+        client = platform_owner
 
         resp = client.post(
             '/sso/config',
@@ -256,9 +275,9 @@ class TestSSOConfiguration:
         assert cfg.base_dn == 'dc=example,dc=com'
         assert cfg.bind_dn == 'cn=admin,dc=example,dc=com'
 
-    def test_sso_config_does_not_populate_saml_fields(self, staff):
+    def test_sso_config_does_not_populate_saml_fields(self, platform_owner):
         """SAML-specific fields exist in the model but the route does not populate them."""
-        client = staff['client']
+        client = platform_owner
 
         # The route only reads LDAP fields; SAML fields are ignored
         resp = client.post(
