@@ -5,7 +5,8 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import delete as sa_delete, text as sa_text
+from sqlalchemy import delete as sa_delete
+from sqlalchemy import text as sa_text
 
 from celery_app import get_celery_app
 from services.backup_automation_service import BackupAutomationError
@@ -59,7 +60,7 @@ def _purge_old_audit_logs() -> dict:
     # is that declaration, and it is made for this one statement - the rows
     # past the retention window and nothing else. The application never
     # makes it, so nothing it does can remove a row from the trail.
-    db.session.execute(sa_text("SET app.audit_purge = 'on'"))
+    db.session.execute(sa_text("SET LOCAL app.audit_purge = 'on'"))
     try:
         deleted = (
             sa_delete(AuditTrail)
@@ -75,6 +76,14 @@ def _purge_old_audit_logs() -> dict:
         logger.exception('Failed to purge old audit logs')
         raise
     finally:
+        # The flag is cleared here and not only at the end of the
+        # transaction: the transaction the pruning runs in may stay open for
+        # longer than the pruning, and a flag that is still set is a session
+        # that is still the retention job.
+        try:
+            db.session.execute(sa_text('RESET app.audit_purge'))
+        except Exception:  # noqa: BLE001 - the session may be unusable
+            db.session.rollback()
         g.pop('_tenant_filter_bypass', None)
 
 

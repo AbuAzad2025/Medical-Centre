@@ -3,7 +3,7 @@
 import logging
 
 # Imports
-from flask import abort, flash, redirect, render_template, request, url_for
+from flask import abort, flash, g, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
 
@@ -457,6 +457,11 @@ def create_permission():
             category=request.form.get('category'),
             level=request.form.get('level'),
             is_active=True,
+            # permissions is tenant-scoped, and the row level security
+            # policy rejects an insert whose tenant_id is null - so the
+            # permission could not be created at all. The tenant is the one
+            # the session is bound to.
+            tenant_id=getattr(g, 'tenant_id', None),
         )
 
         db.session.add(permission)
@@ -577,6 +582,9 @@ def create_permission_simple():
             description=request.form.get('description'),
             category=PermissionCategory.SYSTEM_ADMIN,
             level=PermissionLevel.ADMIN,
+            # The same reason as the other create route: the insert needs the
+            # tenant the security policy checks against.
+            tenant_id=getattr(g, 'tenant_id', None),
         )
 
         db.session.add(permission)

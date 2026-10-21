@@ -143,7 +143,6 @@ def test_the_reminder_job_only_looks_at_the_next_day(
     )
 
     seen: list[str] = []
-    original = NotificationService.send_notification
 
     def record(recipient_id=None, message=None, **kwargs):
         seen.append(message or '')
@@ -151,7 +150,7 @@ def test_the_reminder_job_only_looks_at_the_next_day(
 
     monkeypatch.setattr(NotificationService, 'send_notification', staticmethod(record))
 
-    NotificationService.send_appointment_reminders()
+    NotificationService.send_appointment_reminders(tenant_id=test_tenant.id)
 
     # The appointments this test made. Other tests leave appointments behind,
     # so the count is about these four and not about the whole table: the

@@ -112,20 +112,25 @@ class TestPermissionMatrixIsExecuted:
             'the level enum no longer overlaps the database enum; this finding is stale'
         )
 
-    def test_no_permission_can_be_created_from_the_values_the_form_posts(self, platform):
-        """The second of two independent defects: the route never sets tenant_id.
+    def test_a_permission_can_be_created_from_the_values_the_form_posts(self, platform):
+        """The catalogue is writable: the form's values reach the table.
 
-        permissions carries a row-level security policy, so an insert whose tenant_id
-        is null is rejected with InsufficientPrivilege whatever the enums say. The
-        create route never assigns tenant_id, so it cannot insert.
+        This used to be a finding, and it was two independent defects at once.
+        The values the form posted failed the enum check, because the
+        application spelled the categories and levels in lower case and the
+        column accepted upper case. And the create route never assigned a
+        tenant id, so the insert was refused by the row level security
+        policy whatever the enums said.
 
-        Either defect alone prevents a permission being created. Together they mean
-        the catalogue is unwritable: the values the form posts fail the enum check,
-        and the values the column accepts fail the security check. A deployment
-        therefore cannot add a permission through the interface at all.
+        Either defect alone made the catalogue unwritable, so a deployment
+        could not add a permission through the interface at all. Both are
+        fixed: the enums agree with the column, and the route sets the
+        tenant. The check is now that the permission is really written,
+        because a catalogue that cannot be extended quietly stops matching
+        what the application does.
 
-        Asserted over HTTP because the route catches everything and flashes a generic
-        message, so the row is the only evidence.
+        Asserted over HTTP because the route catches everything and flashes a
+        generic message, so the row is the only evidence.
         """
         app, client, tenant = platform['app'], platform['client'], platform['tenant']
         from app.shared.enums import PermissionCategory, PermissionLevel
@@ -144,9 +149,10 @@ class TestPermissionMatrixIsExecuted:
             f'failure, so this finding needs re-reading'
         )
         db.session.expire_all()
-        assert _count_permissions(app, 'e2e_template_probe') == before, (
-            'a permission was created from the values the form posts; the enum case '
-            'mismatch has been fixed elsewhere and this finding is stale'
+        assert _count_permissions(app, 'e2e_template_probe') == before + 1, (
+            'the permission was not created from the values the form posts; the '
+            'enum case and the missing tenant id are both fixed, so the '
+            'catalogue has to be writable again'
         )
 
     def test_a_permission_row_carries_a_tenant_because_the_policy_needs_one(self):

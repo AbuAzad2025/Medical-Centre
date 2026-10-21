@@ -115,7 +115,7 @@ class AuditCleanupService:
         # a delete unless the session has said it is the retention job. The
         # application never says that, so nothing it does can remove a row
         # from the trail - and the retention window still means something.
-        db.session.execute(text("SET app.audit_purge = 'on'"))
+        db.session.execute(text("SET LOCAL app.audit_purge = 'on'"))
         try:
             return AuditCleanupService._delete_rows(table_name, column, cutoff, batch_size)
         finally:

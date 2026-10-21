@@ -159,6 +159,11 @@ ignore = [
 unfixable = ["E711", "E712"]
 
 [tool.ruff.lint.per-file-ignores]
+# The e2e account seeder is a command-line tool: it is run by the Playwright
+# global setup, and the setup reads what it printed to tell which accounts
+# were created. Its output is the interface, so it prints.
+"e2e_seed_accounts.py" = ["T201"]
+
 "tests/*" = [
     "S101",   # assert
     "S106",   # hardcoded password
