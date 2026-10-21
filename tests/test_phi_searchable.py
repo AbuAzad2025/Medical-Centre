@@ -303,7 +303,7 @@ class TestPatientBlindIndex:
         other = Tenant(
             name='Other Clinic',
             slug=f'other-{uuid.uuid4().hex[:8]}',
-            status='active',
+            status='ACTIVE',
             contact_email='other@example.test',
         )
         db.session.add(other)

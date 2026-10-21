@@ -188,7 +188,7 @@ class TestC4CrossTenantProbing:
             name='Other Center',
             contact_email='c4@test.local',
             product_profile_code='multi_department_center',
-            status='active',
+            status='ACTIVE',
         )
         db.session.add(other)
         db.session.flush()

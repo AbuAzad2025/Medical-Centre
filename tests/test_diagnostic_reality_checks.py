@@ -115,13 +115,18 @@ def test_the_reminder_job_only_looks_at_the_next_day(app, appointment_factory, m
 
     NotificationService.send_appointment_reminders()
 
-    # Exactly one appointment is inside the window, so exactly one reminder.
-    assert len(seen) == 1, (
-        f'{len(seen)} reminders were queued for one appointment in the next 24 '
-        'hours; the query had no time window and no status filter, so every '
+    # The appointments this test made. Other tests leave appointments behind,
+    # so the count is about these four and not about the whole table.
+    mine = {soon.starts_at.strftime('%Y-%m-%d'), far.starts_at.strftime('%Y-%m-%d')}
+    about_mine = [m for m in seen if any(d in m for d in mine)]
+
+    # Exactly one of the four is inside the window, so exactly one reminder.
+    assert len(about_mine) == 1, (
+        f'{len(about_mine)} reminders were queued for one appointment in the next '
+        '24 hours; the query had no time window and no status filter, so every '
         'appointment the system had ever held was reminded too'
     )
-    assert soon.starts_at.strftime('%Y-%m-%d') in seen[0], (
+    assert soon.starts_at.strftime('%Y-%m-%d') in about_mine[0], (
         'the reminder that was queued was not for the appointment in the window'
     )
 
