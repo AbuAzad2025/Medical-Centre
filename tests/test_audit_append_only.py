@@ -112,7 +112,9 @@ def test_deleting_a_user_leaves_their_audit_rows_alone(app, test_tenant):
     ).scalar()
     assert still_there == 1, 'the audit row was removed when its user was deleted'
 
-    gone = db.session.execute(text('SELECT count(*) FROM users WHERE id = :i'), {'i': user_id}).scalar()
+    gone = db.session.execute(
+        text('SELECT count(*) FROM users WHERE id = :i'), {'i': user_id}
+    ).scalar()
     assert gone == 0, 'the user was not deleted'
 
     # The row still names the user id it was written with.

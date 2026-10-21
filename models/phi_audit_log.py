@@ -48,9 +48,7 @@ class PHIAuditLog(TenantMixin, db.Model):
     # PHI access log is append-only, and deleting a user must not rewrite the
     # rows that name them. The foreign key to users was dropped, so the
     # database leaves the column alone too.
-    actor = db.relationship(
-        'User', foreign_keys=[actor_id], lazy='selectin', passive_deletes=True
-    )
+    actor = db.relationship('User', foreign_keys=[actor_id], lazy='selectin', passive_deletes=True)
 
 
 def _redact_changes(model_name: str, changes: dict) -> dict:
