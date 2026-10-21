@@ -44,7 +44,13 @@ class PHIAuditLog(TenantMixin, db.Model):
         db.CheckConstraint("action IN ('CREATE', 'UPDATE', 'DELETE')", name='ck_phi_audit_action'),
     )
 
-    actor = db.relationship('User', foreign_keys=[actor_id], lazy='selectin')
+    # passive_deletes for the same reason as the general audit trail: the
+    # PHI access log is append-only, and deleting a user must not rewrite the
+    # rows that name them. The foreign key to users was dropped, so the
+    # database leaves the column alone too.
+    actor = db.relationship(
+        'User', foreign_keys=[actor_id], lazy='selectin', passive_deletes=True
+    )
 
 
 def _redact_changes(model_name: str, changes: dict) -> dict:

@@ -23,7 +23,7 @@ from app.core.saas.models import (
 )
 from app.core.tenant.models import PlatformAuditLog, Tenant
 from app.extensions import db
-from app.shared.enums import TenantStatus
+from app.shared.enums import SubscriptionType, TenantStatus
 from models.user import User
 from utils.db_safety import safe_commit
 
@@ -238,7 +238,7 @@ class SaasRegistrationService:
         admin_password: str,
         admin_full_name: str,
         package_version_id: int | None = None,
-        billing_type: str = 'monthly',
+        billing_type: str = SubscriptionType.MONTHLY.value.lower(),
         product_profile_code: str | None = None,
         honeypot: str | None = None,
         captcha_token: str | None = None,
@@ -247,6 +247,17 @@ class SaasRegistrationService:
         cls._validate_bot_fields(honeypot)
         cls._verify_captcha(captcha_token)
         email = (contact_email or '').strip().lower()
+
+        # The billing type travels to the subscription line and to the pricing
+        # row, and both are strings with a lower-case check constraint, so the
+        # canonical form is the lower-case one. Callers may send it in any
+        # case; the public form and the documentation both send it lower-case.
+        billing_type = str(billing_type).strip().lower()
+        if billing_type not in (
+            SubscriptionType.MONTHLY.value.lower(),
+            SubscriptionType.YEARLY.value.lower(),
+        ):
+            raise SaasRegistrationError('invalid_billing_type')
         cls._check_signup_flood(email, client_ip)
 
         slug = cls._normalize_slug(slug)

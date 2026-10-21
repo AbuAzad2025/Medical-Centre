@@ -59,9 +59,11 @@ class AuditTrail(TenantMixin, db.Model):
     )
 
     # العلاقات
-    user = db.relationship(
-        'User', foreign_keys=[user_id], back_populates='audit_trails', lazy='selectin'
-    )
+    # viewonly: the audit trail is append-only, and the ORM must not write to
+    # it through this relationship either. The user_id column is set
+    # explicitly by whoever writes the row; the relationship exists to read
+    # the name of the actor, and nothing more.
+    user = db.relationship('User', foreign_keys=[user_id], lazy='selectin', viewonly=True)
 
     def __repr__(self):
         return f'<AuditTrail {self.entity_type}:{self.entity_id} - {self.action}>'

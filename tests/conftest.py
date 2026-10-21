@@ -67,6 +67,16 @@ os.environ['RLS_BYPASS_ALLOWED'] = '1'
 os.environ['ENABLE_SAAS_MODE'] = 'true'
 os.environ.pop('FIELD_ENCRYPTION_KEY', None)
 
+# Match the CI test environment (.github/workflows/ci.yml) for the task queue
+# as well. Several endpoints - the backup create among them - offer two paths:
+# a queued one that answers 202 and a synchronous one that does the work
+# inline. Which one runs is decided by these two variables, and the tests
+# assert the queued path. Without them the local suite silently took the
+# synchronous path and reported a 500 from a missing pg_dump binary, which is
+# an environment difference, not the behaviour the test is about.
+os.environ.setdefault('CELERY_ENABLED', 'true')
+os.environ.setdefault('CELERY_TASK_ALWAYS_EAGER', 'true')
+
 # Captured here, at conftest import, which happens before any test module is
 # imported. Reading os.environ later is not safe: a test module that assigns to it
 # at module scope changes it for the whole process, and one already did --

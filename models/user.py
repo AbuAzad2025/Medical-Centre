@@ -86,8 +86,17 @@ class User(TenantMixin, UserMixin, db.Model):
     )
 
     # علاقات التدقيق
+    # viewonly: the audit trail is append-only. The ORM must never write to
+    # it through this relationship - deleting a user used to null the
+    # user_id of every row that named them, which is an UPDATE on the
+    # history, and the database refuses it because the trail may no longer be
+    # edited. The foreign key to users was dropped for the same reason, so
+    # the identifier stays in the row as the historical fact it is.
     audit_trails = db.relationship(
-        'AuditTrail', foreign_keys='AuditTrail.user_id', back_populates='user', lazy='selectin'
+        'AuditTrail',
+        foreign_keys='AuditTrail.user_id',
+        lazy='selectin',
+        viewonly=True,
     )
 
     # علاقات سجلات النظام

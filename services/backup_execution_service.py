@@ -10,7 +10,11 @@ from datetime import UTC, datetime
 from app.extensions import db
 from app.shared.enums import BackupStatus
 from models.backup import Backup
-from services.backup_automation_service import BackupAutomationError, BackupAutomationService
+from services.backup_automation_service import (
+    BackupAutomationError,
+    BackupAutomationService,
+    BackupExecutionError,
+)
 from services.pg_backup_service import PgBackupError, run_pg_dump_sql_gz
 from utils.db_safety import safe_commit
 from utils.tenant_query import TenantContextError, get_tenant_record
@@ -47,5 +51,7 @@ def execute_backup_by_id(backup_id: int) -> Backup:
             with contextlib.suppress(OSError):
                 os.remove(backup.backup_path)
         safe_commit(db.session, error_message='Failed to save backup failure status')
-        logger.exception('Backup failed id=%s: %s')
-        raise BackupAutomationError(str(exc)) from exc
+        logger.exception('Backup failed id=%s', backup_id)
+        # The status and the error are on the row now, so this is a recorded
+        # failure and not a lost one.
+        raise BackupExecutionError(str(exc)) from exc

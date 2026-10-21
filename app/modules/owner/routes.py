@@ -1224,7 +1224,10 @@ def owner_create_plan():
         plan = SubscriptionPlan(
             name=data.get('name', '').strip(),
             name_ar=data.get('name_ar', '').strip() or None,
-            billing_type=SubscriptionType(data.get('billing_type', 'monthly')),
+            # The plan's billing type is a native enum whose labels are
+            # UPPERCASE, while the form posts the lower-case name. Without the
+            # conversion this raises ValueError and the plan cannot be created.
+            billing_type=SubscriptionType(str(data.get('billing_type', 'monthly')).strip().upper()),
             base_price=Decimal(str(data.get('base_price', 0) or 0)),
             currency=data.get('currency', 'SAR'),
             is_active=data.get('is_active') == '1',

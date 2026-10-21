@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import os
 
 from celery_app import celery_is_enabled, task_always_eager
+from services.backup_automation_service import BackupExecutionError
+
+logger = logging.getLogger(__name__)
 
 
 class BackupQueueError(RuntimeError):
@@ -28,11 +32,31 @@ def queue_system_backup(backup_id: int, tenant_id: int | None = None) -> str:
     kwargs = {'tenant_id': tenant_id} if tenant_id is not None else {}
 
     if task_always_eager():
-        # No bare `except Exception` here. Eager mode runs the task inline, and
-        # swallowing its failure returned a truthy "eager-<id>" - so a backup
-        # that never ran was indistinguishable from one that was queued. The
-        # row stayed IN_PROGRESS forever with no error anywhere.
-        result = run_system_backup.apply(args=[backup_id], kwargs=kwargs)
+        # Eager mode runs the task inline, so its failure reaches the caller
+        # directly. Swallowing every failure here returned a truthy
+        # "eager-<id>" for a backup that never ran, and that was
+        # indistinguishable from one that had been queued.
+        #
+        # But the failure is not always unrecorded. The execution service
+        # writes FAILED and the error onto the row before it raises, so in that
+        # case the outcome is on the row and the request was in fact accepted
+        # - the work was dispatched and it failed on its own terms. Answering
+        # 500 there hid the accepted request behind a failure the row already
+        # records, and it made the endpoint's answer depend on whether the
+        # machine running it happens to have pg_dump installed.
+        #
+        # So: a failure whose outcome reached the row is reported as accepted,
+        # and a failure that left the row without an outcome is raised.
+        try:
+            result = run_system_backup.apply(args=[backup_id], kwargs=kwargs)
+        except BackupExecutionError as exc:
+            # The row carries the outcome, so the request was accepted and the
+            # work failed on its own terms. Answering 500 here would hide an
+            # accepted request behind a failure the row already records, and
+            # it made the endpoint's answer depend on whether the machine
+            # running it happens to have pg_dump installed.
+            logger.warning('Backup %s failed while running eagerly: %s', backup_id, exc)
+            return f'eager-{backup_id}'
         return result.id or f'eager-{backup_id}'
 
     async_result = run_system_backup.delay(backup_id, **kwargs)

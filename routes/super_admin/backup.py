@@ -163,7 +163,7 @@ def create_backup():
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error creating backup: %s')
+        logging.exception('Error creating backup')
         return jsonify({'success': False, 'message': 'تعذر إنشاء النسخة الاحتياطية حالياً'}), 500
 
 

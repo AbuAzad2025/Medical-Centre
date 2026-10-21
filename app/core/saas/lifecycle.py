@@ -32,11 +32,27 @@ from app.core.tenant.models import (
     TenantSubscriptionHistory,
 )
 from app.extensions import db
+from app.shared.enums import SubscriptionType
 from utils.db_safety import safe_commit
 
 
 class ProvisioningError(Exception):
     """Raised when a provisioning action cannot be completed."""
+
+
+def _normalise_billing_type(billing_type: str) -> str:
+    """Return the lower-case spelling the billing columns store.
+
+    ``subscription_lines.billing_type`` and ``package_version_pricing.billing_type``
+    are strings with a lower-case check constraint; the plan table's own
+    column is a native enum with UPPERCASE labels. The lower-case form is the
+    one that travels between the services, so it is the canonical form here and
+    the plan column is converted where it is written.
+    """
+    value = str(billing_type).strip().lower()
+    if value not in (SubscriptionType.MONTHLY.value.lower(), SubscriptionType.YEARLY.value.lower()):
+        raise ProvisioningError(f"Invalid billing_type '{billing_type}'; must be monthly or yearly")
+    return value
 
 
 class TenantProvisioningService:
@@ -58,11 +74,11 @@ class TenantProvisioningService:
         **tenant_kwargs,
     ) -> Tenant:
         """Create a new tenant with an active base subscription line — atomic."""
-        # Validate billing_type strictly
-        if billing_type not in ('monthly', 'yearly'):
-            raise ProvisioningError(
-                f"Invalid billing_type '{billing_type}'; must be monthly or yearly"
-            )
+        # Validate billing_type strictly. The column is a native PostgreSQL
+        # enum whose labels are UPPERCASE, so the lower-case spelling that the
+        # public forms and the documentation use has to be normalised before it
+        # is compared or written.
+        billing_type = _normalise_billing_type(billing_type)
         # Validate slug format (same as saas_registration)
         import re as _re
 
@@ -156,6 +172,7 @@ class TenantProvisioningService:
         performed_by_user_id: int | None = None,
     ) -> SubscriptionLine:
         """End current base line and create a new base line for the new package."""
+        billing_type = _normalise_billing_type(billing_type)
         tenant = cls._require_tenant(tenant_id)
         new_version = cls._require_available_package_version(new_package_version_id)
 
@@ -194,6 +211,7 @@ class TenantProvisioningService:
         performed_by_user_id: int | None = None,
     ) -> SubscriptionLine:
         """End current base line and create a new restricted base line."""
+        billing_type = _normalise_billing_type(billing_type)
         tenant = cls._require_tenant(tenant_id)
         new_version = cls._require_available_package_version(new_package_version_id)
 
@@ -233,6 +251,7 @@ class TenantProvisioningService:
         performed_by_user_id: int | None = None,
     ) -> SubscriptionLine:
         """Add an add-on subscription line to an active tenant."""
+        billing_type = _normalise_billing_type(billing_type)
         tenant = cls._require_tenant(tenant_id)
         version = cls._require_available_package_version(package_version_id)
 
@@ -443,7 +462,7 @@ class TenantProvisioningService:
 
     @classmethod
     def _billing_delta(cls, billing_type: str, periods: int = 1) -> relativedelta:
-        if billing_type == 'yearly':
+        if billing_type == SubscriptionType.YEARLY.value.lower():
             return relativedelta(years=periods)
         return relativedelta(months=periods)
 

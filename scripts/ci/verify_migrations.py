@@ -17,7 +17,7 @@ TARGET_URL = os.environ['MIGRATE_DATABASE_URL']
 # Exactly one head must exist. Bump this set whenever a revision is appended:
 # s3_017_rbac_catalogue_readable splits the RBAC catalogue policies by command
 # so every tenant can read the platform catalogue while writes stay scoped.
-EXPECTED_HEADS = {'s3_017_rbac_catalogue_readable'}
+EXPECTED_HEADS = {'s3_020_append_only_audit_trails'}
 
 
 def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:

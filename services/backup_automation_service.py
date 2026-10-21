@@ -21,6 +21,18 @@ class BackupAutomationError(RuntimeError):
     """Raised when automated backup or cloud upload fails."""
 
 
+class BackupExecutionError(BackupAutomationError):
+    """Raised when a backup ran and failed, and the failure was recorded.
+
+    The distinction matters to the caller. A failure of this kind has already
+    been written onto the backup row - the status is FAILED and the error is
+    in the notes - so the request that asked for the backup was accepted and
+    the work failed on its own terms. A failure that was *not* recorded, such
+    as the record not being found, is a different thing entirely: nothing
+    knows what happened to it, and it must not be reported as accepted.
+    """
+
+
 class BackupAutomationService:
     """Run pg_dump backups on a schedule and optionally upload to object storage."""
 

@@ -5,17 +5,31 @@ Flow: reception creates visit -> transfers to doctor -> doctor prescribes ->
 reception prints invoice. No module removed from other bundles.
 """
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
-from app.core.tenant.models import ProductBundle
+from app.core.tenant.models import ProductBundle, seed_default_bundles
 from app.extensions import db
 from models.invoice import Invoice
 from models.patient import Patient
 from models.visit import Visit
 
 
+def _seed_bundles_if_empty():
+    """Seed the product bundles if the catalogue is empty.
+
+    The bundle catalogue is seeded, not migrated, and the platform bootstrap
+    does not always have it in place when this file runs first. The other bundle
+    tests seed it themselves; this one was reading a table that had never been
+    populated, so the lookup found nothing and the case failed for a reason
+    that had nothing to do with the bundle it was checking.
+    """
+    if db.session.execute(select(func.count()).select_from(ProductBundle)).scalar() == 0:
+        seed_default_bundles()
+
+
 def test_reception_clinic_bundle_includes_billing(app):
     with app.app_context():
+        _seed_bundles_if_empty()
         bundle = (
             db.session.execute(select(ProductBundle).filter_by(slug='doctor_clinic_reception'))
             .scalars()
@@ -28,6 +42,7 @@ def test_reception_clinic_bundle_includes_billing(app):
 
 def test_private_doctor_bundle_untouched(app):
     with app.app_context():
+        _seed_bundles_if_empty()
         bundle = (
             db.session.execute(select(ProductBundle).filter_by(slug='private_doctor_clinic'))
             .scalars()

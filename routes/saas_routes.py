@@ -1,5 +1,6 @@
 """Public SaaS onboarding API routes."""
 
+import logging
 import os
 
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
@@ -9,6 +10,8 @@ from app.core.rate_limiter import RateLimiter, rate_limit
 from app.extensions import db
 from services.saas_registration_service import SaasRegistrationError, SaasRegistrationService
 from utils.api_security import limit_payload_size
+
+logger = logging.getLogger(__name__)
 
 saas_bp = Blueprint('saas', __name__)
 
@@ -96,6 +99,7 @@ def signup_organization():
         flash(f'تعذر إكمال التسجيل: {exc}', 'error')
         return render_template('saas/signup.html', **_signup_template_context(packages)), 400
     except Exception:
+        logger.exception('SaaS registration failed')
         flash('تعذر إكمال التسجيل حالياً. حاول لاحقاً.', 'error')
         return render_template('saas/signup.html', **_signup_template_context(packages)), 500
 
@@ -134,4 +138,5 @@ def register_organization():
     except SaasRegistrationError as exc:
         return jsonify({'error': str(exc)}), 400
     except Exception:
+        logger.exception('SaaS registration failed')
         return jsonify({'error': 'registration_failed'}), 500

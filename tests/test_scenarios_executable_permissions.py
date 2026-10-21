@@ -78,12 +78,16 @@ class TestPermissionMatrixIsExecuted:
     """The permission catalogue is not writable at all, and this is the evidence."""
 
     def test_the_enums_the_application_posts_are_not_the_ones_the_column_accepts(self):
-        """The first of two independent defects, stated as data.
+        """The application posts the values the column accepts.
 
-        Read rather than executed because the two conventions are visible side by
-        side here, and the value of the finding is precisely that they disagree: the
-        application side is consistent with itself and only the column is out of
-        step. Knowing which side is wrong is what decides the fix.
+        This used to be a finding: the two conventions were visible side by
+        side and they disagreed. The application spelled the categories and
+        levels in lower case and the column accepted upper case, so the
+        values the form posted failed the enum check.
+
+        The enums were corrected to match the column, so the finding is
+        resolved: the values the application posts are the values the column
+        accepts, and the two sides now overlap by design.
         """
         from app.shared.enums import PermissionCategory, PermissionLevel
 
@@ -92,20 +96,20 @@ class TestPermissionMatrixIsExecuted:
         py_categories = {m.value for m in PermissionCategory}
         py_levels = {m.value for m in PermissionLevel}
 
-        assert py_categories == {c.lower() for c in db_categories}, (
+        assert py_categories == db_categories, (
             f'the category enum changed shape: application {sorted(py_categories)} '
             f'against database {sorted(db_categories)}'
         )
-        assert py_levels == {lvl.lower() for lvl in db_levels}, (
+        assert py_levels == db_levels, (
             f'the level enum changed shape: application {sorted(py_levels)} against '
             f'database {sorted(db_levels)}'
         )
-        assert not (py_categories & db_categories), (
-            'the category enum now overlaps the database enum; the posted values are '
-            'accepted and this finding needs re-checking'
+        assert py_categories & db_categories, (
+            'the category enum no longer overlaps the database enum; the posted values '
+            'are accepted and this finding needs re-checking'
         )
-        assert not (py_levels & db_levels), (
-            'the level enum now overlaps the database enum; this finding is stale'
+        assert py_levels & db_levels, (
+            'the level enum no longer overlaps the database enum; this finding is stale'
         )
 
     def test_no_permission_can_be_created_from_the_values_the_form_posts(self, platform):

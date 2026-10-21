@@ -43,7 +43,16 @@ class TestGetSMSProviderWithTenant:
         provider = get_sms_provider(tenant=test_tenant)
         assert isinstance(provider, LogSMSProvider)
 
-    def test_returns_log_when_twilio_config_incomplete(self, app, test_tenant):
+    def test_returns_unconfigured_provider_when_twilio_config_incomplete(self, app, test_tenant):
+        """A live provider that is selected but not configured is not a log.
+
+        The operator asked for Twilio and Twilio cannot work. Falling back to
+        the log provider there made the two cases indistinguishable: the
+        message went nowhere, but the call was reported as successful, so the
+        notification queue marked OTP codes and appointment reminders as
+        SENT. The record of a delivery that never happened was all that was
+        left. The provider that is returned says so instead.
+        """
         test_tenant.settings = {
             'sms': {
                 'enabled': True,
@@ -53,10 +62,14 @@ class TestGetSMSProviderWithTenant:
                 'twilio_phone_number': '',
             }
         }
-        from app.integrations.sms import LogSMSProvider, get_sms_provider
+        from app.integrations.sms import get_sms_provider
+        from app.integrations.sms.provider import UnconfiguredSMSProvider
 
         provider = get_sms_provider(tenant=test_tenant)
-        assert isinstance(provider, LogSMSProvider)
+        assert isinstance(provider, UnconfiguredSMSProvider)
+        result = provider.send('+966500000000', 'a message that cannot be sent')
+        assert result['success'] is False
+        assert result['delivered'] is False
 
     def test_returns_twilio_when_config_complete(self, app, test_tenant):
         test_tenant.settings = {
