@@ -105,9 +105,12 @@
                                 </form>
 
                                 {% if t.status.value == 'suspended' %}
-                                    <a href="{{ url_for('owner.owner_activate_tenant', tenant_id=t.id) }}" class="owner-btn owner-btn-sm owner-btn-outline-success" title="تفعيل">
-                                        <i class="fas fa-play"></i>
-                                    </a>
+                                    <form method="post" action="{{ url_for('owner.owner_activate_tenant', tenant_id=t.id) }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-success" title="تفعيل">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                    </form>
                                 {% else %}
                                     <button class="owner-btn owner-btn-sm owner-btn-outline-warning" data-bs-toggle="modal" data-bs-target="#suspendModal{{ t.id }}" title="إيقاف">
                                         <i class="fas fa-pause"></i>

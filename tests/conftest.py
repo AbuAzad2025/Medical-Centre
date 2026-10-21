@@ -454,33 +454,19 @@ def app():
                     ") WHERE (line_type = 'base' AND status IN ('scheduled', 'active'))"
                 )
             )
-            # Ghost Mode: permit the 'IMPERSONATE' audit action on existing DBs
-            _db.session.execute(
-                text('ALTER TABLE audit_trails DROP CONSTRAINT IF EXISTS chk_action')
-            )
-            _db.session.execute(
-                text(
-                    'ALTER TABLE audit_trails ADD CONSTRAINT chk_action CHECK '
-                    "(action IN ('create', 'update', 'delete', 'view', 'login', 'logout', "
-                    "'export', 'import', 'backup', 'restore', 'security', 'login_failed', "
-                    "'login_blocked', 'force_logout', 'permission_denied', 'unauthorized_access', "
-                    "'APPROVE', 'REJECT', 'IMPERSONATE', 'PASSWORD_CHANGE', "
-                    "'TERMINATE_OTHER_SESSIONS'))"
-                )
-            )
-            # Same for entity_type: 'user_session' was added for the session
-            # revocation audit row, and the live table still forbids it.
-            _db.session.execute(
-                text('ALTER TABLE audit_trails DROP CONSTRAINT IF EXISTS chk_entity_type')
-            )
-            _db.session.execute(
-                text(
-                    'ALTER TABLE audit_trails ADD CONSTRAINT chk_entity_type CHECK '
-                    "(entity_type IN ('system', 'user', 'patient', 'visit', 'appointment', "
-                    "'payment', 'invoice', 'lab_test', 'radiology_test', 'notification', "
-                    "'role', 'department', 'service', 'user_session'))"
-                )
-            )
+            # The audit action and entity_type constraints are NOT patched here.
+            # They used to be, because the migrations stopped at 'IMPERSONATE' and
+            # the application also writes 'PASSWORD_CHANGE' and
+            # 'TERMINATE_OTHER_SESSIONS' over a 'user_session' entity. Every one
+            # of those writes was refused by the database and swallowed by the
+            # handler around it, so a password change left no audit row at all.
+            #
+            # Patching the constraint in the harness hid that: the tests passed
+            # against a schema production would have rejected. The migration
+            # s3_019_audit_credential_actions brings the database in line with
+            # the model, and the harness now builds the schema from the
+            # migrations alone, so a test here exercises the constraint a
+            # deployment would actually have.
             _db.session.commit()
         except Exception:
             _db.session.rollback()

@@ -247,25 +247,34 @@
                                             {% if user.role != 'super_admin' %}
                                                 <!-- حظر/إلغاء حظر -->
                                                 {% if user.is_active %}
-                                                    <a href="{{ url_for('super_admin.ban_user', user_id=user.id) }}" 
-                                                       class="btn btn-warning" title="حظر المستخدم"
-                                                       data-action="confirm-navigate" data-message="هل تريد حظر هذا المستخدم؟">
-                                                        <i class="fas fa-ban"></i> <span class="btn-label">منع</span>
-                                                    </a>
+                                                    <form method="post" action="{{ url_for('super_admin.ban_user', user_id=user.id) }}" class="d-inline"
+                                                          data-action="confirm-submit" data-message="هل تريد حظر هذا المستخدم؟">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-warning" title="حظر المستخدم">
+                                                            <i class="fas fa-ban"></i>
+                                                            <span class="btn-label">منع</span>
+                                                        </button>
+                                                    </form>
                                                 {% else %}
-                                                    <a href="{{ url_for('super_admin.unban_user', user_id=user.id) }}" 
-                                                       class="btn btn-success" title="إلغاء الحظر"
-                                                       data-action="confirm-navigate" data-message="هل تريد إلغاء حظر هذا المستخدم؟">
-                                                        <i class="fas fa-check-circle"></i> <span class="btn-label">تأكيد</span>
-                                                    </a>
+                                                    <form method="post" action="{{ url_for('super_admin.unban_user', user_id=user.id) }}" class="d-inline"
+                                                          data-action="confirm-submit" data-message="هل تريد إلغاء حظر هذا المستخدم؟">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-success" title="إلغاء الحظر">
+                                                            <i class="fas fa-check-circle"></i>
+                                                            <span class="btn-label">تأكيد</span>
+                                                        </button>
+                                                    </form>
                                                 {% endif %}
                                                 
                                                 <!-- فرض تسجيل خروج -->
-                                                <a href="{{ url_for('super_admin.force_logout_user', user_id=user.id) }}" 
-                                                   class="btn btn-info" title="فرض تسجيل الخروج"
-                                                   data-action="confirm-navigate" data-message="هل تريد إجبار هذا المستخدم على تسجيل الخروج؟">
-                                                    <i class="fas fa-sign-out-alt"></i> <span class="btn-label">خروج</span>
-                                                </a>
+                                                <form method="post" action="{{ url_for('super_admin.force_logout_user', user_id=user.id) }}" class="d-inline"
+                                                      data-action="confirm-submit" data-message="هل تريد إجبار هذا المستخدم على تسجيل الخروج؟">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-info" title="فرض تسجيل الخروج">
+                                                        <i class="fas fa-sign-out-alt"></i>
+                                                        <span class="btn-label">خروج</span>
+                                                    </button>
+                                                </form>
                                                 
                                                 <!-- حذف -->
                                                 <button type="button" class="btn btn-danger" title="حذف نهائي"

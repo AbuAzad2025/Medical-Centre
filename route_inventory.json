@@ -1,5 +1,5 @@
 {
-  "total_routes": 761,
+  "total_routes": 762,
   "routes": [
     {
       "endpoint": "main.index",
@@ -3656,6 +3656,15 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "or.schedule_create",
+      "path": "/or/schedule",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "or.surgery_detail",
       "path": "/or/surgery/<int:surgery_id>",
       "methods": [
@@ -4378,8 +4387,6 @@
       "endpoint": "owner.owner_activate_tenant",
       "path": "/owner/tenants/<int:tenant_id>/activate",
       "methods": [
-        "GET",
-        "HEAD",
         "OPTIONS",
         "POST"
       ],
@@ -4389,8 +4396,6 @@
       "endpoint": "owner.owner_activate_default_modules",
       "path": "/owner/tenants/<int:tenant_id>/activate-modules",
       "methods": [
-        "GET",
-        "HEAD",
         "OPTIONS",
         "POST"
       ],
@@ -4418,9 +4423,8 @@
       "endpoint": "owner.owner_renew_tenant",
       "path": "/owner/tenants/<int:tenant_id>/renew",
       "methods": [
-        "GET",
-        "HEAD",
-        "OPTIONS"
+        "OPTIONS",
+        "POST"
       ],
       "classification": "authenticated"
     },
@@ -4428,8 +4432,6 @@
       "endpoint": "owner.owner_suspend_tenant",
       "path": "/owner/tenants/<int:tenant_id>/suspend",
       "methods": [
-        "GET",
-        "HEAD",
         "OPTIONS",
         "POST"
       ],
@@ -7183,9 +7185,8 @@
       "endpoint": "super_admin.ban_user",
       "path": "/super-admin/users/ban/<int:user_id>",
       "methods": [
-        "GET",
-        "HEAD",
-        "OPTIONS"
+        "OPTIONS",
+        "POST"
       ],
       "classification": "super-admin"
     },
@@ -7204,9 +7205,8 @@
       "endpoint": "super_admin.force_logout_user",
       "path": "/super-admin/users/force-logout/<int:user_id>",
       "methods": [
-        "GET",
-        "HEAD",
-        "OPTIONS"
+        "OPTIONS",
+        "POST"
       ],
       "classification": "super-admin"
     },
@@ -7214,9 +7214,8 @@
       "endpoint": "super_admin.unban_user",
       "path": "/super-admin/users/unban/<int:user_id>",
       "methods": [
-        "GET",
-        "HEAD",
-        "OPTIONS"
+        "OPTIONS",
+        "POST"
       ],
       "classification": "super-admin"
     },

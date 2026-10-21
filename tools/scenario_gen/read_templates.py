@@ -1075,13 +1075,13 @@ READ_TEMPLATES: tuple[Template, ...] = (
         axes=('tenant_status',),
         observed={
             'tenant_status': (
-                'active',
-                'suspended',
-                'pending',
-                'trial',
-                'expired',
-                'cancelled',
-                'deleted',
+                'ACTIVE',
+                'SUSPENDED',
+                'PENDING',
+                'TRIAL',
+                'EXPIRED',
+                'CANCELLED',
+                'DELETED',
             )
         },
         rule=(
@@ -1128,7 +1128,7 @@ READ_TEMPLATES: tuple[Template, ...] = (
         key='READ_OWNER_BILLING_AND_VAULT',
         family='platform',
         axes=('subscription_type',),
-        observed={'subscription_type': ('perpetual', 'monthly', 'yearly')},
+        observed={'subscription_type': ('PERPETUAL', 'MONTHLY', 'YEARLY')},
         rule=(
             'The billing page, the payment vault and the cards vault are three reads of '
             'the platform side of money, and they are tenant revenue rather than '
@@ -2151,7 +2151,7 @@ READ_TEMPLATES: tuple[Template, ...] = (
         key='READ_SUBSCRIPTION_RENEWAL_IS_A_WRITE_ON_GET',
         family='platform',
         axes=('subscription_type',),
-        observed={'subscription_type': ('perpetual', 'monthly', 'yearly')},
+        observed={'subscription_type': ('PERPETUAL', 'MONTHLY', 'YEARLY')},
         rule=(
             'This route is registered for GET and it renews the subscription: it '
             'advances tenant.subscription_end by a month or a year and commits. A link '

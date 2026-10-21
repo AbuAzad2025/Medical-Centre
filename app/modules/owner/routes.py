@@ -551,7 +551,7 @@ def owner_tenant_detail(tenant_id):
     )
 
 
-@owner_bp.route('/tenants/<int:tenant_id>/activate-modules', methods=['POST', 'GET'])
+@owner_bp.route('/tenants/<int:tenant_id>/activate-modules', methods=['POST'])
 @login_required
 @owner_required
 def owner_activate_default_modules(tenant_id):
@@ -1107,7 +1107,7 @@ def owner_toggle_module_global(module_name):
     return redirect(url_for('owner.owner_modules'))
 
 
-@owner_bp.route('/tenants/<int:tenant_id>/renew')
+@owner_bp.route('/tenants/<int:tenant_id>/renew', methods=['POST'])
 @login_required
 @owner_required
 def owner_renew_tenant(tenant_id):
@@ -1155,7 +1155,7 @@ def owner_renew_tenant(tenant_id):
     return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
 
 
-@owner_bp.route('/tenants/<int:tenant_id>/suspend', methods=['POST', 'GET'])
+@owner_bp.route('/tenants/<int:tenant_id>/suspend', methods=['POST'])
 @login_required
 @owner_required
 def owner_suspend_tenant(tenant_id):
@@ -1176,7 +1176,7 @@ def owner_suspend_tenant(tenant_id):
     return redirect(url_for('owner.owner_dashboard'))
 
 
-@owner_bp.route('/tenants/<int:tenant_id>/activate', methods=['POST', 'GET'])
+@owner_bp.route('/tenants/<int:tenant_id>/activate', methods=['POST'])
 @login_required
 @owner_required
 def owner_activate_tenant(tenant_id):

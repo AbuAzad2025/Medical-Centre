@@ -236,8 +236,13 @@ class TestMutationOnGetIsExecuted:
     the test should be rewritten to assert the refusal instead.
     """
 
-    def test_owner_renew_tenant_mutates_on_get(self, app, login_as, test_tenant):
-        """GET /owner/tenants/<id>/renew advances subscription_end."""
+    def test_owner_renew_tenant_refuses_get(self, app, login_as, test_tenant):
+        """A renewal is a financial write, so a GET must not do it.
+
+        The route advanced subscription_end on a GET, with no CSRF token: a
+        link preview, a crawler or an <img src> embedded in any page the owner
+        opened would silently extend a tenant's paid subscription.
+        """
 
         _user(app, test_tenant, 'e2e_renew_owner', 'owner')
         tenant = db.session.get(Tenant, test_tenant.id)
@@ -267,21 +272,25 @@ class TestMutationOnGetIsExecuted:
         login_as(client, 'e2e_renew_owner', 'owner')
         with app.test_request_context():
             g.tenant_id = test_tenant.id
-            client.get(f'/owner/tenants/{tenant.id}/renew', follow_redirects=False)
+            resp = client.get(f'/owner/tenants/{tenant.id}/renew', follow_redirects=False)
 
+        assert resp.status_code in (404, 405), (
+            f'GET /owner/tenants/<id>/renew answered {resp.status_code}; a financial '
+            'write has to be refused on a GET'
+        )
         db.session.expire_all()
         after = db.session.get(Tenant, test_tenant.id).subscription_end
-        assert after != before, (
-            'GET /owner/tenants/<id>/renew no longer advances subscription_end; if this '
-            'was fixed, rewrite this test to assert that a GET is refused'
+        assert after == before, (
+            'a GET advanced subscription_end; the renewal must be a POST with a CSRF token'
         )
 
-    def test_superadmin_ban_and_force_logout_are_get_requests(self, app, test_tenant):
-        """The ban, unban and force-logout routes are registered for GET.
+    def test_superadmin_ban_and_force_logout_refuse_get(self, app, test_tenant):
+        """Banning a user is a write, so a GET must not do it.
 
-        Asserted against the route table rather than by executing them: banning a
-        user is a real account change and there is no way to undo it inside a test
-        without leaving the shared tenant in a state other tests inherit.
+        These were registered for GET and the interface wired them as plain
+        anchors, so a link preview, a crawler or an <img src> embedded in any
+        page a super-admin opened would disable a colleague's account or kill
+        their sessions - with no CSRF token and no confirmation on the server.
         """
         import json
 
@@ -297,11 +306,12 @@ class TestMutationOnGetIsExecuted:
             route = by_endpoint.get(endpoint)
             assert route is not None, f'{endpoint} is gone from the route table'
             mutating = {'POST', 'PUT', 'DELETE', 'PATCH'} & set(route['methods'])
-            assert not mutating, (
-                f'{endpoint} ({route["path"]}) changed to a mutating method; this '
-                f'scenario documented the defect and should now be rewritten to '
-                f'assert the refusal'
+            assert mutating, (
+                f'{endpoint} ({route["path"]}) is still reachable on a GET; a '
+                f'write that disables an account or ends sessions has to be a '
+                f'POST with a CSRF token'
             )
+            assert 'GET' not in route['methods'], f'{endpoint} ({route["path"]}) still answers GET'
 
 
 class TestUnauthenticatedDisclosureIsExecuted:

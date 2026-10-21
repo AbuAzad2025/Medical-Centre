@@ -3125,16 +3125,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "perpetual",
-      "tenant_status": "active"
+      "subscription_type": "PERPETUAL",
+      "tenant_status": "ACTIVE"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills perpetual",
-      "tenant_status": "the tenant is active when the subscription changes"
+      "subscription_type": "the subscription bills PERPETUAL",
+      "tenant_status": "the tenant is ACTIVE when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3177,16 +3177,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "perpetual",
-      "tenant_status": "suspended"
+      "subscription_type": "PERPETUAL",
+      "tenant_status": "SUSPENDED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills perpetual",
-      "tenant_status": "the tenant is suspended when the subscription changes"
+      "subscription_type": "the subscription bills PERPETUAL",
+      "tenant_status": "the tenant is SUSPENDED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3229,16 +3229,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "perpetual",
-      "tenant_status": "pending"
+      "subscription_type": "PERPETUAL",
+      "tenant_status": "PENDING"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills perpetual",
-      "tenant_status": "the tenant is pending when the subscription changes"
+      "subscription_type": "the subscription bills PERPETUAL",
+      "tenant_status": "the tenant is PENDING when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3281,16 +3281,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "perpetual",
-      "tenant_status": "trial"
+      "subscription_type": "PERPETUAL",
+      "tenant_status": "TRIAL"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills perpetual",
-      "tenant_status": "the tenant is trial when the subscription changes"
+      "subscription_type": "the subscription bills PERPETUAL",
+      "tenant_status": "the tenant is TRIAL when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3333,16 +3333,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "perpetual",
-      "tenant_status": "expired"
+      "subscription_type": "PERPETUAL",
+      "tenant_status": "EXPIRED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills perpetual",
-      "tenant_status": "the tenant is expired when the subscription changes"
+      "subscription_type": "the subscription bills PERPETUAL",
+      "tenant_status": "the tenant is EXPIRED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3385,16 +3385,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "perpetual",
-      "tenant_status": "cancelled"
+      "subscription_type": "PERPETUAL",
+      "tenant_status": "CANCELLED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills perpetual",
-      "tenant_status": "the tenant is cancelled when the subscription changes"
+      "subscription_type": "the subscription bills PERPETUAL",
+      "tenant_status": "the tenant is CANCELLED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3437,16 +3437,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "perpetual",
-      "tenant_status": "deleted"
+      "subscription_type": "PERPETUAL",
+      "tenant_status": "DELETED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills perpetual",
-      "tenant_status": "the tenant is deleted when the subscription changes"
+      "subscription_type": "the subscription bills PERPETUAL",
+      "tenant_status": "the tenant is DELETED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3489,16 +3489,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "monthly",
-      "tenant_status": "active"
+      "subscription_type": "MONTHLY",
+      "tenant_status": "ACTIVE"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills monthly",
-      "tenant_status": "the tenant is active when the subscription changes"
+      "subscription_type": "the subscription bills MONTHLY",
+      "tenant_status": "the tenant is ACTIVE when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3541,16 +3541,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "monthly",
-      "tenant_status": "suspended"
+      "subscription_type": "MONTHLY",
+      "tenant_status": "SUSPENDED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills monthly",
-      "tenant_status": "the tenant is suspended when the subscription changes"
+      "subscription_type": "the subscription bills MONTHLY",
+      "tenant_status": "the tenant is SUSPENDED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3593,16 +3593,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "monthly",
-      "tenant_status": "pending"
+      "subscription_type": "MONTHLY",
+      "tenant_status": "PENDING"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills monthly",
-      "tenant_status": "the tenant is pending when the subscription changes"
+      "subscription_type": "the subscription bills MONTHLY",
+      "tenant_status": "the tenant is PENDING when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3645,16 +3645,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "monthly",
-      "tenant_status": "trial"
+      "subscription_type": "MONTHLY",
+      "tenant_status": "TRIAL"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills monthly",
-      "tenant_status": "the tenant is trial when the subscription changes"
+      "subscription_type": "the subscription bills MONTHLY",
+      "tenant_status": "the tenant is TRIAL when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3697,16 +3697,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "monthly",
-      "tenant_status": "expired"
+      "subscription_type": "MONTHLY",
+      "tenant_status": "EXPIRED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills monthly",
-      "tenant_status": "the tenant is expired when the subscription changes"
+      "subscription_type": "the subscription bills MONTHLY",
+      "tenant_status": "the tenant is EXPIRED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3749,16 +3749,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "monthly",
-      "tenant_status": "cancelled"
+      "subscription_type": "MONTHLY",
+      "tenant_status": "CANCELLED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills monthly",
-      "tenant_status": "the tenant is cancelled when the subscription changes"
+      "subscription_type": "the subscription bills MONTHLY",
+      "tenant_status": "the tenant is CANCELLED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3801,16 +3801,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "monthly",
-      "tenant_status": "deleted"
+      "subscription_type": "MONTHLY",
+      "tenant_status": "DELETED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills monthly",
-      "tenant_status": "the tenant is deleted when the subscription changes"
+      "subscription_type": "the subscription bills MONTHLY",
+      "tenant_status": "the tenant is DELETED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3853,16 +3853,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "yearly",
-      "tenant_status": "active"
+      "subscription_type": "YEARLY",
+      "tenant_status": "ACTIVE"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills yearly",
-      "tenant_status": "the tenant is active when the subscription changes"
+      "subscription_type": "the subscription bills YEARLY",
+      "tenant_status": "the tenant is ACTIVE when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3905,16 +3905,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "yearly",
-      "tenant_status": "suspended"
+      "subscription_type": "YEARLY",
+      "tenant_status": "SUSPENDED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills yearly",
-      "tenant_status": "the tenant is suspended when the subscription changes"
+      "subscription_type": "the subscription bills YEARLY",
+      "tenant_status": "the tenant is SUSPENDED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -3957,16 +3957,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "yearly",
-      "tenant_status": "pending"
+      "subscription_type": "YEARLY",
+      "tenant_status": "PENDING"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills yearly",
-      "tenant_status": "the tenant is pending when the subscription changes"
+      "subscription_type": "the subscription bills YEARLY",
+      "tenant_status": "the tenant is PENDING when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -4009,16 +4009,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "yearly",
-      "tenant_status": "trial"
+      "subscription_type": "YEARLY",
+      "tenant_status": "TRIAL"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills yearly",
-      "tenant_status": "the tenant is trial when the subscription changes"
+      "subscription_type": "the subscription bills YEARLY",
+      "tenant_status": "the tenant is TRIAL when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -4061,16 +4061,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "yearly",
-      "tenant_status": "expired"
+      "subscription_type": "YEARLY",
+      "tenant_status": "EXPIRED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills yearly",
-      "tenant_status": "the tenant is expired when the subscription changes"
+      "subscription_type": "the subscription bills YEARLY",
+      "tenant_status": "the tenant is EXPIRED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -4113,16 +4113,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "yearly",
-      "tenant_status": "cancelled"
+      "subscription_type": "YEARLY",
+      "tenant_status": "CANCELLED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills yearly",
-      "tenant_status": "the tenant is cancelled when the subscription changes"
+      "subscription_type": "the subscription bills YEARLY",
+      "tenant_status": "the tenant is CANCELLED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -4165,16 +4165,16 @@
     "template": "PLATFORM_SUBSCRIPTION_LIFECYCLE",
     "family": "platform",
     "axes": {
-      "subscription_type": "yearly",
-      "tenant_status": "deleted"
+      "subscription_type": "YEARLY",
+      "tenant_status": "DELETED"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing.",
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills yearly",
-      "tenant_status": "the tenant is deleted when the subscription changes"
+      "subscription_type": "the subscription bills YEARLY",
+      "tenant_status": "the tenant is DELETED when the subscription changes"
     },
     "rule": "A tenant subscription runs through PackageVersion and SubscriptionLine. line_type is base or addon, billing_type is monthly or yearly, and effective_from and effective_to are separate from the trial and grace windows on the version. SubscriptionLine is one of the few models that carries tenant_id, so a subscription belongs to a tenant while the PackageVersion it points at does not.",
     "expected_payment_status": "PAID",
@@ -6083,13 +6083,13 @@
     "template": "PLATFORM_BILLING_SUBSCRIPTION_PORTAL",
     "family": "platform",
     "axes": {
-      "subscription_type": "perpetual"
+      "subscription_type": "PERPETUAL"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills perpetual"
+      "subscription_type": "the subscription bills PERPETUAL"
     },
     "rule": "Stripe checkout, the billing portal and plan changes all go through StripeBillingService, and the webhook is idempotent on event_id. The change_plan path validates the package family, so a tenant cannot move between unrelated families. The platform bills tenants; it does not bill patients, which is a separate and completely disconnected code path.",
     "expected_payment_status": "PAID",
@@ -6132,13 +6132,13 @@
     "template": "PLATFORM_BILLING_SUBSCRIPTION_PORTAL",
     "family": "platform",
     "axes": {
-      "subscription_type": "monthly"
+      "subscription_type": "MONTHLY"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills monthly"
+      "subscription_type": "the subscription bills MONTHLY"
     },
     "rule": "Stripe checkout, the billing portal and plan changes all go through StripeBillingService, and the webhook is idempotent on event_id. The change_plan path validates the package family, so a tenant cannot move between unrelated families. The platform bills tenants; it does not bill patients, which is a separate and completely disconnected code path.",
     "expected_payment_status": "PAID",
@@ -6181,13 +6181,13 @@
     "template": "PLATFORM_BILLING_SUBSCRIPTION_PORTAL",
     "family": "platform",
     "axes": {
-      "subscription_type": "yearly"
+      "subscription_type": "YEARLY"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills yearly"
+      "subscription_type": "the subscription bills YEARLY"
     },
     "rule": "Stripe checkout, the billing portal and plan changes all go through StripeBillingService, and the webhook is idempotent on event_id. The change_plan path validates the package family, so a tenant cannot move between unrelated families. The platform bills tenants; it does not bill patients, which is a separate and completely disconnected code path.",
     "expected_payment_status": "PAID",

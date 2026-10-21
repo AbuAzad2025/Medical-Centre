@@ -707,12 +707,18 @@ def execute_refund(refund_id):
 
 @payment_bp.route('/api/pos/prescriptions/<int:prescription_id>/lookup', methods=['GET'])
 @login_required
+@role_required('pharmacist', 'doctor', 'accountant', 'manager', 'admin', 'super_admin')
 def lookup_prescription_for_pos(prescription_id):
     """
     Optional prescription lookup for POS checkout (Pull Model).
 
     Returns a cart payload with medication details, prices, and stock info.
     Does NOT modify prescription status or inventory.
+
+    The response carries the patient name and every prescribed item, so it is
+    prescription PHI. Every other prescription read in the application is
+    role-gated; this one was the exception, and it was reachable by any
+    authenticated account including a portal patient.
     """
     try:
         tenant_id = current_user.tenant_id

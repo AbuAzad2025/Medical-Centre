@@ -12647,13 +12647,13 @@
     "template": "READ_OWNER_TENANT_DIRECTORY",
     "family": "platform",
     "axes": {
-      "tenant_status": "active"
+      "tenant_status": "ACTIVE"
     },
     "axes_note": {
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "tenant_status": "the tenant is active, which is the value every feature gate and subscription check reads"
+      "tenant_status": "the tenant is ACTIVE, which is the value every feature gate and subscription check reads"
     },
     "rule": "The owner console reads tenants three ways: the human list, the API list, and the per-tenant usage page. The limits and modules endpoints are reads too, which is unusual: they return the same rows the entitlement write touches, so a limit displayed here is a live configuration value and not a derived one.",
     "expected_payment_status": "PAID",
@@ -12708,13 +12708,13 @@
     "template": "READ_OWNER_TENANT_DIRECTORY",
     "family": "platform",
     "axes": {
-      "tenant_status": "suspended"
+      "tenant_status": "SUSPENDED"
     },
     "axes_note": {
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "tenant_status": "the tenant is suspended, which is the value every feature gate and subscription check reads"
+      "tenant_status": "the tenant is SUSPENDED, which is the value every feature gate and subscription check reads"
     },
     "rule": "The owner console reads tenants three ways: the human list, the API list, and the per-tenant usage page. The limits and modules endpoints are reads too, which is unusual: they return the same rows the entitlement write touches, so a limit displayed here is a live configuration value and not a derived one.",
     "expected_payment_status": "PAID",
@@ -12769,13 +12769,13 @@
     "template": "READ_OWNER_TENANT_DIRECTORY",
     "family": "platform",
     "axes": {
-      "tenant_status": "pending"
+      "tenant_status": "PENDING"
     },
     "axes_note": {
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "tenant_status": "the tenant is pending, which is the value every feature gate and subscription check reads"
+      "tenant_status": "the tenant is PENDING, which is the value every feature gate and subscription check reads"
     },
     "rule": "The owner console reads tenants three ways: the human list, the API list, and the per-tenant usage page. The limits and modules endpoints are reads too, which is unusual: they return the same rows the entitlement write touches, so a limit displayed here is a live configuration value and not a derived one.",
     "expected_payment_status": "PAID",
@@ -12830,13 +12830,13 @@
     "template": "READ_OWNER_TENANT_DIRECTORY",
     "family": "platform",
     "axes": {
-      "tenant_status": "trial"
+      "tenant_status": "TRIAL"
     },
     "axes_note": {
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "tenant_status": "the tenant is trial, which is the value every feature gate and subscription check reads"
+      "tenant_status": "the tenant is TRIAL, which is the value every feature gate and subscription check reads"
     },
     "rule": "The owner console reads tenants three ways: the human list, the API list, and the per-tenant usage page. The limits and modules endpoints are reads too, which is unusual: they return the same rows the entitlement write touches, so a limit displayed here is a live configuration value and not a derived one.",
     "expected_payment_status": "PAID",
@@ -12891,13 +12891,13 @@
     "template": "READ_OWNER_TENANT_DIRECTORY",
     "family": "platform",
     "axes": {
-      "tenant_status": "expired"
+      "tenant_status": "EXPIRED"
     },
     "axes_note": {
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "tenant_status": "the tenant is expired, which is the value every feature gate and subscription check reads"
+      "tenant_status": "the tenant is EXPIRED, which is the value every feature gate and subscription check reads"
     },
     "rule": "The owner console reads tenants three ways: the human list, the API list, and the per-tenant usage page. The limits and modules endpoints are reads too, which is unusual: they return the same rows the entitlement write touches, so a limit displayed here is a live configuration value and not a derived one.",
     "expected_payment_status": "PAID",
@@ -12952,13 +12952,13 @@
     "template": "READ_OWNER_TENANT_DIRECTORY",
     "family": "platform",
     "axes": {
-      "tenant_status": "cancelled"
+      "tenant_status": "CANCELLED"
     },
     "axes_note": {
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "tenant_status": "the tenant is cancelled, which is the value every feature gate and subscription check reads"
+      "tenant_status": "the tenant is CANCELLED, which is the value every feature gate and subscription check reads"
     },
     "rule": "The owner console reads tenants three ways: the human list, the API list, and the per-tenant usage page. The limits and modules endpoints are reads too, which is unusual: they return the same rows the entitlement write touches, so a limit displayed here is a live configuration value and not a derived one.",
     "expected_payment_status": "PAID",
@@ -13013,13 +13013,13 @@
     "template": "READ_OWNER_TENANT_DIRECTORY",
     "family": "platform",
     "axes": {
-      "tenant_status": "deleted"
+      "tenant_status": "DELETED"
     },
     "axes_note": {
       "tenant_status": "Tenant.status."
     },
     "axes_effect": {
-      "tenant_status": "the tenant is deleted, which is the value every feature gate and subscription check reads"
+      "tenant_status": "the tenant is DELETED, which is the value every feature gate and subscription check reads"
     },
     "rule": "The owner console reads tenants three ways: the human list, the API list, and the per-tenant usage page. The limits and modules endpoints are reads too, which is unusual: they return the same rows the entitlement write touches, so a limit displayed here is a live configuration value and not a derived one.",
     "expected_payment_status": "PAID",
@@ -13409,13 +13409,13 @@
     "template": "READ_OWNER_BILLING_AND_VAULT",
     "family": "platform",
     "axes": {
-      "subscription_type": "perpetual"
+      "subscription_type": "PERPETUAL"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills perpetual; this is tenant revenue and is entirely disconnected from patient billing"
+      "subscription_type": "the subscription bills PERPETUAL; this is tenant revenue and is entirely disconnected from patient billing"
     },
     "rule": "The billing page, the payment vault and the cards vault are three reads of the platform side of money, and they are tenant revenue rather than patient money. The cards vault is a GET that returns stored payment instruments, which makes it the single highest-value read on this console and the one whose audit is only the list it appears in.",
     "expected_payment_status": "PAID",
@@ -13458,13 +13458,13 @@
     "template": "READ_OWNER_BILLING_AND_VAULT",
     "family": "platform",
     "axes": {
-      "subscription_type": "monthly"
+      "subscription_type": "MONTHLY"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills monthly; this is tenant revenue and is entirely disconnected from patient billing"
+      "subscription_type": "the subscription bills MONTHLY; this is tenant revenue and is entirely disconnected from patient billing"
     },
     "rule": "The billing page, the payment vault and the cards vault are three reads of the platform side of money, and they are tenant revenue rather than patient money. The cards vault is a GET that returns stored payment instruments, which makes it the single highest-value read on this console and the one whose audit is only the list it appears in.",
     "expected_payment_status": "PAID",
@@ -13507,13 +13507,13 @@
     "template": "READ_OWNER_BILLING_AND_VAULT",
     "family": "platform",
     "axes": {
-      "subscription_type": "yearly"
+      "subscription_type": "YEARLY"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills yearly; this is tenant revenue and is entirely disconnected from patient billing"
+      "subscription_type": "the subscription bills YEARLY; this is tenant revenue and is entirely disconnected from patient billing"
     },
     "rule": "The billing page, the payment vault and the cards vault are three reads of the platform side of money, and they are tenant revenue rather than patient money. The cards vault is a GET that returns stored payment instruments, which makes it the single highest-value read on this console and the one whose audit is only the list it appears in.",
     "expected_payment_status": "PAID",
@@ -30406,13 +30406,13 @@
     "template": "READ_SUBSCRIPTION_RENEWAL_IS_A_WRITE_ON_GET",
     "family": "platform",
     "axes": {
-      "subscription_type": "perpetual"
+      "subscription_type": "PERPETUAL"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills perpetual; this is tenant revenue and is entirely disconnected from patient billing"
+      "subscription_type": "the subscription bills PERPETUAL; this is tenant revenue and is entirely disconnected from patient billing"
     },
     "rule": "This route is registered for GET and it renews the subscription: it advances tenant.subscription_end by a month or a year and commits. A link preview, a crawler or a browser prefetch therefore bills a tenant. It is the only renewal path in the owner console, so moving it to POST is the whole fix, and until then every GET here is a mutation.",
     "expected_payment_status": "PAID",
@@ -30455,13 +30455,13 @@
     "template": "READ_SUBSCRIPTION_RENEWAL_IS_A_WRITE_ON_GET",
     "family": "platform",
     "axes": {
-      "subscription_type": "monthly"
+      "subscription_type": "MONTHLY"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills monthly; this is tenant revenue and is entirely disconnected from patient billing"
+      "subscription_type": "the subscription bills MONTHLY; this is tenant revenue and is entirely disconnected from patient billing"
     },
     "rule": "This route is registered for GET and it renews the subscription: it advances tenant.subscription_end by a month or a year and commits. A link preview, a crawler or a browser prefetch therefore bills a tenant. It is the only renewal path in the owner console, so moving it to POST is the whole fix, and until then every GET here is a mutation.",
     "expected_payment_status": "PAID",
@@ -30504,13 +30504,13 @@
     "template": "READ_SUBSCRIPTION_RENEWAL_IS_A_WRITE_ON_GET",
     "family": "platform",
     "axes": {
-      "subscription_type": "yearly"
+      "subscription_type": "YEARLY"
     },
     "axes_note": {
       "subscription_type": "SaaS subscription billing period. The platform bills tenants with this; it has nothing to do with patient billing."
     },
     "axes_effect": {
-      "subscription_type": "the subscription bills yearly; this is tenant revenue and is entirely disconnected from patient billing"
+      "subscription_type": "the subscription bills YEARLY; this is tenant revenue and is entirely disconnected from patient billing"
     },
     "rule": "This route is registered for GET and it renews the subscription: it advances tenant.subscription_end by a month or a year and commits. A link preview, a crawler or a browser prefetch therefore bills a tenant. It is the only renewal path in the owner console, so moving it to POST is the whole fix, and until then every GET here is a mutation.",
     "expected_payment_status": "PAID",

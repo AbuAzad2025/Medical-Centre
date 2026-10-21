@@ -31,13 +31,13 @@ PLATFORM_ADMIN_TEMPLATES: tuple[Template, ...] = (
         axes=('tenant_status', 'product_profile'),
         observed={
             'tenant_status': (
-                'active',
-                'suspended',
-                'pending',
-                'trial',
-                'expired',
-                'cancelled',
-                'deleted',
+                'ACTIVE',
+                'SUSPENDED',
+                'PENDING',
+                'TRIAL',
+                'EXPIRED',
+                'CANCELLED',
+                'DELETED',
             ),
             'product_profile': (
                 'private_doctor_clinic',
@@ -72,13 +72,13 @@ PLATFORM_ADMIN_TEMPLATES: tuple[Template, ...] = (
         axes=('tenant_status',),
         observed={
             'tenant_status': (
-                'active',
-                'suspended',
-                'pending',
-                'trial',
-                'expired',
-                'cancelled',
-                'deleted',
+                'ACTIVE',
+                'SUSPENDED',
+                'PENDING',
+                'TRIAL',
+                'EXPIRED',
+                'CANCELLED',
+                'DELETED',
             )
         },
         rule=(
@@ -156,7 +156,7 @@ PLATFORM_ADMIN_TEMPLATES: tuple[Template, ...] = (
         key='OWNER_SUBSCRIPTION_BILLING_CYCLE',
         family='platform',
         axes=('subscription_type',),
-        observed={'subscription_type': ('perpetual', 'monthly', 'yearly')},
+        observed={'subscription_type': ('PERPETUAL', 'MONTHLY', 'YEARLY')},
         rule=(
             'The platform bills tenants and nothing else: renew, upgrade, addon '
             'and cancel all act on a tenant subscription, and none of them touch '
@@ -184,7 +184,7 @@ PLATFORM_ADMIN_TEMPLATES: tuple[Template, ...] = (
         family='platform',
         axes=('subscription_type', 'bundle_kind'),
         observed={
-            'subscription_type': ('perpetual', 'monthly', 'yearly'),
+            'subscription_type': ('PERPETUAL', 'MONTHLY', 'YEARLY'),
             'bundle_kind': ('custom', 'polyclinic', 'hospital', 'urgent_care'),
         },
         rule=(
@@ -345,7 +345,7 @@ PLATFORM_ADMIN_TEMPLATES: tuple[Template, ...] = (
         family='platform',
         axes=('storage_mode',),
         observed={
-            'storage_mode': ('cloud', 'local', 'hybrid'),
+            'storage_mode': ('CLOUD', 'LOCAL', 'HYBRID'),
         },
         rule=(
             'Themes are per tenant and one can be made the default, which is a '
@@ -408,13 +408,13 @@ PLATFORM_ADMIN_TEMPLATES: tuple[Template, ...] = (
                 'custom',
             ),
             'tenant_status': (
-                'active',
-                'suspended',
-                'pending',
-                'trial',
-                'expired',
-                'cancelled',
-                'deleted',
+                'ACTIVE',
+                'SUSPENDED',
+                'PENDING',
+                'TRIAL',
+                'EXPIRED',
+                'CANCELLED',
+                'DELETED',
             ),
         },
         rule=(
@@ -572,7 +572,7 @@ PLATFORM_ADMIN_TEMPLATES: tuple[Template, ...] = (
         key='SUPERADMIN_SIMPLE_ROLE_AND_PERMISSION_WIZARDS',
         family='platform',
         axes=('permission_level',),
-        observed={'permission_level': ('read', 'write', 'delete', 'admin', 'super_admin')},
+        observed={'permission_level': ('READ', 'WRITE', 'DELETE', 'ADMIN', 'SUPER_ADMIN')},
         rule=(
             'create-role-simple and create-permission-simple are wizards beside the '
             'full routes, so there are two ways to make the same object and they do '
@@ -598,7 +598,7 @@ PLATFORM_ADMIN_TEMPLATES: tuple[Template, ...] = (
         key='SUPERADMIN_PLAN_CHANGE_FROM_PLATFORM',
         family='platform',
         axes=('subscription_type',),
-        observed={'subscription_type': ('perpetual', 'monthly', 'yearly')},
+        observed={'subscription_type': ('PERPETUAL', 'MONTHLY', 'YEARLY')},
         rule=(
             'change-plan validates the package family, so a tenant cannot move '
             'between unrelated families, but the same change is also reachable '

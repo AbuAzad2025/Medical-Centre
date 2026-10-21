@@ -126,7 +126,13 @@ class ClinicalSafetyService:
             logger.exception('Duplicate therapy check failed for patient %s', patient_id)
 
         has_hard_stop = any(a.severity == SafetyCheckSeverity.HARD_STOP for a in alerts)
-        return (not has_hard_stop, alerts)
+        # A check that could not be performed is not a clean result. The
+        # CRITICAL alerts above say "unable to verify", and a caller that only
+        # looks for HARD_STOP treats them as an advisory - so the prescription is
+        # written with no allergy or interaction check having happened, and the
+        # only sign of it is a log line. Unable to verify is not safe.
+        unverifiable = any(a.severity == SafetyCheckSeverity.CRITICAL for a in alerts)
+        return (not has_hard_stop and not unverifiable, alerts)
 
     @staticmethod
     def _check_allergies(
@@ -157,26 +163,46 @@ class ClinicalSafetyService:
             if not medication:
                 continue
 
-            # Check direct medication name match
+            # Check direct medication name match.
+            #
+            # Every name the medication answers to is compared, not just the
+            # trade name. A patient recorded as allergic to "penicillin" is not
+            # allergic to a product called "Amoxil" whose generic name is
+            # "amoxicillin" - the allergen and the drug are the same substance
+            # and a trade-name-only comparison misses it. The same applies to a
+            # drug class recorded against a generic.
             for allergy in allergies:
-                allergen = (allergy.allergen or '').lower()
+                allergen = (allergy.allergen or '').lower().strip()
                 if not allergen:
                     continue
-                med_name = (medication.name or '').lower()
-                if allergen in med_name or med_name in allergen:
-                    alerts.append(
-                        SafetyAlert(
-                            check_type='allergy',
-                            severity=SafetyCheckSeverity.HARD_STOP,
-                            message=f"HARD STOP: Patient is allergic to '{allergy.allergen}' — matches prescribed medication '{medication.name}'",
-                            details={
-                                'allergen': allergy.allergen,
-                                'medication': medication.name,
-                                'severity': allergy.severity,
-                            },
-                            override_requires='head_physician',
-                        )
+                matched_field = None
+                for field, value in (
+                    ('trade_name', medication.trade_name),
+                    ('generic_name', medication.generic_name),
+                    ('scientific_name', medication.scientific_name),
+                ):
+                    med_name = (value or '').lower().strip()
+                    if not med_name:
+                        continue
+                    if allergen in med_name or med_name in allergen:
+                        matched_field = field
+                        break
+                if matched_field is None:
+                    continue
+                alerts.append(
+                    SafetyAlert(
+                        check_type='allergy',
+                        severity=SafetyCheckSeverity.HARD_STOP,
+                        message=f"HARD STOP: Patient is allergic to '{allergy.allergen}' — matches prescribed medication '{medication.trade_name}'",
+                        details={
+                            'allergen': allergy.allergen,
+                            'medication': medication.trade_name,
+                            'matched_on': matched_field,
+                            'severity': allergy.severity,
+                        },
+                        override_requires='head_physician',
                     )
+                )
 
             # Check ingredient-level matches (gracefully skip if DrugIngredient model missing)
             try:
@@ -222,7 +248,9 @@ class ClinicalSafetyService:
         # Get active prescription items for patient
         active_prescriptions = (
             db.session.execute(
-                select(Prescription).filter_by(patient_id=patient_id, tenant_id=tenant_id)
+                select(Prescription)
+                .filter_by(patient_id=patient_id, tenant_id=tenant_id)
+                .filter(Prescription.status.in_(('active', 'issued')))
             )
             .scalars()
             .all()
@@ -239,72 +267,87 @@ class ClinicalSafetyService:
         }
         proposed_drug_ids.discard(None)
 
-        # Check interactions between proposed and current
-        current_drug_ids | proposed_drug_ids
+        # The pairs to check.
+        #
+        # Both sets are needed, not just proposed-vs-current. Two drugs written
+        # in the SAME prescription interact with each other just as much as a
+        # new drug interacts with what the patient already takes, and a
+        # prescription of warfarin and clarithromycin written together was
+        # never checked against the interaction table at all. The discarded
+        # expression at this point was the whole of that check.
+        pairs: set[tuple[int, int]] = set()
         for drug_a in proposed_drug_ids:
             for drug_b in current_drug_ids:
-                if drug_a == drug_b:
-                    continue
-                interactions = (
-                    db.session.execute(
-                        select(DrugInteraction).filter(
-                            db.or_(
-                                db.and_(
-                                    DrugInteraction.medication_a_id == drug_a,
-                                    DrugInteraction.medication_b_id == drug_b,
-                                ),
-                                db.and_(
-                                    DrugInteraction.medication_a_id == drug_b,
-                                    DrugInteraction.medication_b_id == drug_a,
-                                ),
-                            )
+                if drug_a != drug_b:
+                    pairs.add((min(drug_a, drug_b), max(drug_a, drug_b)))
+        for drug_a in proposed_drug_ids:
+            for drug_b in proposed_drug_ids:
+                if drug_a != drug_b:
+                    pairs.add((min(drug_a, drug_b), max(drug_a, drug_b)))
+
+        for drug_a, drug_b in sorted(pairs):
+            if drug_a == drug_b:
+                continue
+            interactions = (
+                db.session.execute(
+                    select(DrugInteraction).filter(
+                        db.or_(
+                            db.and_(
+                                DrugInteraction.medication_a_id == drug_a,
+                                DrugInteraction.medication_b_id == drug_b,
+                            ),
+                            db.and_(
+                                DrugInteraction.medication_a_id == drug_b,
+                                DrugInteraction.medication_b_id == drug_a,
+                            ),
                         )
                     )
-                    .scalars()
-                    .all()
                 )
-                for interaction in interactions:
-                    if interaction.severity in ('HIGH',):
-                        alerts.append(
-                            SafetyAlert(
-                                check_type='drug_interaction',
-                                severity=SafetyCheckSeverity.HARD_STOP,
-                                message=f'HARD STOP: Major drug interaction detected — {interaction.description}',
-                                details={
-                                    'drug_a_id': drug_a,
-                                    'drug_b_id': drug_b,
-                                    'severity': interaction.severity,
-                                    'mechanism': getattr(interaction, 'mechanism', None),
-                                },
-                                override_requires='head_physician',
-                            )
+                .scalars()
+                .all()
+            )
+            for interaction in interactions:
+                if interaction.severity in ('HIGH',):
+                    alerts.append(
+                        SafetyAlert(
+                            check_type='drug_interaction',
+                            severity=SafetyCheckSeverity.HARD_STOP,
+                            message=f'HARD STOP: Major drug interaction detected — {interaction.description}',
+                            details={
+                                'drug_a_id': drug_a,
+                                'drug_b_id': drug_b,
+                                'severity': interaction.severity,
+                                'mechanism': getattr(interaction, 'mechanism', None),
+                            },
+                            override_requires='head_physician',
                         )
-                    elif interaction.severity in ('MODERATE',):
-                        alerts.append(
-                            SafetyAlert(
-                                check_type='drug_interaction',
-                                severity=SafetyCheckSeverity.WARNING,
-                                message=f'WARNING: Moderate drug interaction — {interaction.description}',
-                                details={
-                                    'drug_a_id': drug_a,
-                                    'drug_b_id': drug_b,
-                                    'severity': interaction.severity,
-                                },
-                            )
+                    )
+                elif interaction.severity in ('MODERATE',):
+                    alerts.append(
+                        SafetyAlert(
+                            check_type='drug_interaction',
+                            severity=SafetyCheckSeverity.WARNING,
+                            message=f'WARNING: Moderate drug interaction — {interaction.description}',
+                            details={
+                                'drug_a_id': drug_a,
+                                'drug_b_id': drug_b,
+                                'severity': interaction.severity,
+                            },
                         )
-                    else:
-                        alerts.append(
-                            SafetyAlert(
-                                check_type='drug_interaction',
-                                severity=SafetyCheckSeverity.INFO,
-                                message=f'INFO: Minor drug interaction — {interaction.description}',
-                                details={
-                                    'drug_a_id': drug_a,
-                                    'drug_b_id': drug_b,
-                                    'severity': interaction.severity,
-                                },
-                            )
+                    )
+                else:
+                    alerts.append(
+                        SafetyAlert(
+                            check_type='drug_interaction',
+                            severity=SafetyCheckSeverity.INFO,
+                            message=f'INFO: Minor drug interaction — {interaction.description}',
+                            details={
+                                'drug_a_id': drug_a,
+                                'drug_b_id': drug_b,
+                                'severity': interaction.severity,
+                            },
                         )
+                    )
         return alerts
 
     @staticmethod
@@ -447,7 +490,9 @@ class ClinicalSafetyService:
 
         active_prescriptions = (
             db.session.execute(
-                select(Prescription).filter_by(patient_id=patient_id, tenant_id=tenant_id)
+                select(Prescription)
+                .filter_by(patient_id=patient_id, tenant_id=tenant_id)
+                .filter(Prescription.status.in_(('active', 'issued')))
             )
             .scalars()
             .all()
@@ -461,7 +506,10 @@ class ClinicalSafetyService:
         current_drug_ids = set()
         for pres in active_prescriptions:
             for item in pres.items:
-                if item.drug_id:
+                # The column is medication_id. Reading drug_id raised
+                # AttributeError, which the caller swallowed, so the
+                # duplicate-therapy check never produced an alert at all.
+                if getattr(item, 'medication_id', None):
                     current_drug_ids.add(item.drug_id)
 
         duplicates = proposed_drug_ids & current_drug_ids

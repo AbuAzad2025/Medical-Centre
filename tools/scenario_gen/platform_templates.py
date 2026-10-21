@@ -22,8 +22,8 @@ PLATFORM_TEMPLATES: tuple[Template, ...] = (
         family='platform',
         axes=('subscription_type', 'tenant_status'),
         observed={
-            'subscription_type': ('monthly', 'yearly'),
-            'tenant_status': ('active', 'suspended', 'expired', 'cancelled'),
+            'subscription_type': ('MONTHLY', 'YEARLY'),
+            'tenant_status': ('ACTIVE', 'SUSPENDED', 'EXPIRED', 'CANCELLED'),
         },
         rule=(
             'A tenant subscription runs through PackageVersion and SubscriptionLine. '
@@ -144,7 +144,7 @@ PLATFORM_TEMPLATES: tuple[Template, ...] = (
         key='PLATFORM_BILLING_SUBSCRIPTION_PORTAL',
         family='platform',
         axes=('subscription_type',),
-        observed={'subscription_type': ('monthly', 'yearly')},
+        observed={'subscription_type': ('MONTHLY', 'YEARLY')},
         rule=(
             'Stripe checkout, the billing portal and plan changes all go through '
             'StripeBillingService, and the webhook is idempotent on event_id. The '

@@ -189,9 +189,15 @@ class PrescriptionService:
                     tenant_id=resolved_tenant_id,
                 )
                 if not is_safe:
-                    hard_stops = [a for a in safety_alerts if a.severity.value == 'hard_stop']
-                    if hard_stops:
-                        msgs = '; '.join(a.message for a in hard_stops)
+                    # Both hard stops and "unable to verify" are blocking. A
+                    # check that could not be performed is not a pass, and
+                    # letting it through writes the prescription with no
+                    # allergy or interaction check having happened.
+                    blocking = [
+                        a for a in safety_alerts if a.severity.value in ('hard_stop', 'critical')
+                    ]
+                    if blocking:
+                        msgs = '; '.join(a.message for a in blocking)
                         return False, msgs
 
         if not isinstance(patient_id, int) or patient_id <= 0:

@@ -372,6 +372,45 @@ def worklist_complete(request_id):
                 is_critical=bool(result_payload.get('is_critical') or False),
             )
             db.session.add(res)
+        # The order cannot be closed as finished with nothing to report.
+        #
+        # The panel route refuses to finalise a request with no results, or with
+        # any result that has no value. This sibling route did not, so a
+        # troponin or a potassium order was closed as DONE with no result row
+        # at all, and the ordering doctor was told the result was ready - and
+        # then opened a finished report to find nothing there.
+        results = (
+            db.session.execute(select(LabResult).filter(LabResult.request_id == req.id))
+            .scalars()
+            .all()
+        )
+        if not results:
+            return (
+                jsonify(
+                    {
+                        'success': False,
+                        'message': 'لا يمكن إنهاء طلب المختبر: لا توجد نتائج مسجلة على اللوحة',
+                    }
+                ),
+                400,
+            )
+        missing = [res for res in results if not (res.value or '').strip()]
+        if missing:
+            return (
+                jsonify(
+                    {
+                        'success': False,
+                        'message': (
+                            f'لا يمكن إنهاء طلب المختبر: {len(missing)} نتيجة غير مكتملة '
+                            'ولا يمكن إعلان التقرير جاهزاً قبل إدخالها جميعاً'
+                        ),
+                    }
+                ),
+                400,
+            )
+        for res in results:
+            res.status = LabResultStatus.VALIDATED
+            res.performed_by = current_user.id
         req.status = OrderState.DONE
         req.completed_at = datetime.now(UTC)
         req.updated_at = datetime.now(UTC)

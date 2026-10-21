@@ -343,7 +343,7 @@ def reset_user_password(user_id):
 
 
 # إدارة المستخدمين المتقدمة
-@super_admin_bp.route('/users/ban/<int:user_id>')
+@super_admin_bp.route('/users/ban/<int:user_id>', methods=['POST'])
 @login_required
 @super_admin_required
 def ban_user(user_id):
@@ -372,7 +372,7 @@ def ban_user(user_id):
         return redirect(url_for('super_admin.users'))
 
 
-@super_admin_bp.route('/users/unban/<int:user_id>')
+@super_admin_bp.route('/users/unban/<int:user_id>', methods=['POST'])
 @login_required
 @super_admin_required
 def unban_user(user_id):
@@ -397,7 +397,7 @@ def unban_user(user_id):
         return redirect(url_for('super_admin.users'))
 
 
-@super_admin_bp.route('/users/force-logout/<int:user_id>')
+@super_admin_bp.route('/users/force-logout/<int:user_id>', methods=['POST'])
 @login_required
 @super_admin_required
 def force_logout_user(user_id):
