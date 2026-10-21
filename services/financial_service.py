@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import UTC, date, datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from sqlalchemy import func, select
@@ -81,7 +81,6 @@ class FinancialService:
         order, and updates invoice status (PAID/PARTIAL/ISSUED). The caller is
         responsible for committing the transaction.
         """
-        from decimal import Decimal
 
         from models.invoice import Invoice
         from models.payment import Payment
@@ -383,6 +382,26 @@ class FinancialService:
                 return {
                     'ok': False,
                     'error': f'Invoice status "{invoice.status}" is not ISSUED',
+                }
+
+            # An invoice the patient has already paid must not be claimed from
+            # the insurer as well.
+            #
+            # The only gate was the invoice's status, and the payment path sets
+            # paid_amount without moving the status off ISSUED - so a fully paid
+            # invoice still looked claimable. The centre then billed the
+            # insurer for the whole invoice on top of the amount already
+            # collected from the patient: double recovery.
+            already_paid = Decimal(str(invoice.paid_amount or 0)).quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
+            if already_paid > 0:
+                return {
+                    'ok': False,
+                    'error': (
+                        f'Invoice {invoice.id} already has {already_paid} paid; '
+                        'refund it before raising an insurance claim'
+                    ),
                 }
 
             visit = (

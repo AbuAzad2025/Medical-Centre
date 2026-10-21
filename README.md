@@ -39,7 +39,7 @@
 
 **أدوار المستخدم:** استقبال · طبيب · ممرض · مختبر · أشعة · محاسب · مدير · مشرف · صاحب مركز (مالك SaaS).
 
-**15 وحدة مسجلة في `MODULE_REGISTRY`:**
+**22 وحدة مسجلة في `MODULE_REGISTRY`:**
 
 | الوحدة | التصنيف | الوصف |
 |--------|---------|-------|
@@ -58,6 +58,13 @@
 | `portal` | سريري | بوابة المريض الإلكترونية (نتائج/مواعيد/فواتير) |
 | `ai_imaging` | سريري | تحليل الصور الطبية بالذكاء الاصطناعي |
 | `integration` | تكامل | FHIR · SSO · DICOM listener |
+| `clinic_intake` | استقبال العيادة |
+| `lab_intake` | استقبال المختبر |
+| `radiology_intake` | استقبال الأشعة |
+| `pharmacy_pos` | نقطة بيع الصيدلية |
+| `pharmacy_customer_intake` | تسجيل عميل الصيدلية |
+| `standalone_intake` | استقبال مستقل |
+| `inpatient` | الإقامة الداخلية |
 
 ---
 
@@ -105,7 +112,7 @@ python scripts/ops/bootstrap_platform.py
 python -m pytest -q --tb=short
 ```
 
-- **139 ملف** اختبار موزعة على `unit/` · `integration/` · `clinical/` · ملفات الجذر.
+- **253 ملف** اختبار موزعة على `unit/` · `integration/` · `clinical/` · ملفات الجذر.
 - CI يدير 15 وظيفة على PostgreSQL 16 مع مصفوفة 15/16/17 لاختبارات المسارات.
 
 ---

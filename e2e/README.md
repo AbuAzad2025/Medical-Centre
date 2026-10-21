@@ -20,9 +20,10 @@ npm run e2e:ui         # واجهة تفاعلية
 | المتغير | الافتراضي | الوصف |
 |---------|-----------|-------|
 | `E2E_BASE_URL` | `http://127.0.0.1:8080` | عنوان التطبيق |
-| `E2E_RECEPTION_USER/_PASS` | `reception_e2e` / `ValidPass123!` | حساب الاستقبال |
-| `E2E_DOCTOR_USER/_PASS` | `doctor_e2e` / `ValidPass123!` | حساب الطبيب |
-| `E2E_PHARMACIST_USER/_PASS` | `pharmacist_test` / `ValidPass123!` | حساب الصيدلي |
+| `E2E_RECEPTION_USER/_PASS` | `reception` / `ValidPass123!` | حساب الاستقبال |
+| `E2E_DOCTOR_USER/_PASS` | `doctor` / `ValidPass123!` | حساب الطبيب |
+| `E2E_PHARMACIST_USER/_PASS` | `pharmacist` / `ValidPass123!` | حساب الصيدلي |
+| `E2E_TENANT_SLUG` | `pharmacy-shifa` | المستأجر الذي يُحلّه تسجيل الدخول؛ البحث عن المستخدم محدود بالمستأجر، فبدونه لا يُعثر على الحساب |
 
 ## المواصفات (Specs)
 
@@ -31,6 +32,8 @@ npm run e2e:ui         # واجهة تفاعلية
 | `specs/auth.spec.js` | تسجيل الدخول/الخروج، كلمة مرور خاطئة، صفحة استعادة الحساب |
 | `specs/clinical-cycle.spec.js` | **الدورة السريرية الكاملة**: مريض ← زيارة ← طابور ← طبيب ← وصفة ← فاتورة |
 | `specs/security.spec.js` | CSP بدون unsafe-inline، nonce فعّال، صفر طلبات CDN خارجية |
+| `specs/adt-claim-cycle.spec.js` | دورة ADT: إنشاء زيارة، مطالبة، ودفع |
+| `specs/rbac-and-race.spec.js` | عزل الأدوار حسب الواجهة، وسباق الإرسال المزدوج |
 
 ## التقارير والآثار
 

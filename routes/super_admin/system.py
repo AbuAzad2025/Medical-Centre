@@ -378,14 +378,47 @@ def system_cleanup():
         cleanup_type = request.form.get('cleanup_type')
 
         if cleanup_type == 'logs':
-            # تنظيف السجلات القديمة
+            # Clean up the old audit rows, by the retention policy.
+            #
+            # This used to be `select(AuditTrail).delete()` - a DELETE with no
+            # WHERE clause, so it removed every audit row in the platform, on
+            # every tenant, with no record that it had happened. An auditor
+            # could not prove who touched a record, nor prove the trail had
+            # not been tampered with.
+            #
+            # The retention-scoped service deletes in batches, honours the
+            # tables that are append-only, and reports what it removed. The
+            # removal is itself recorded, so the trail shows that a purge
+            # happened and how much it took.
+            from services.audit_cleanup_service import AuditCleanupService
 
-            from models.audit_trail import AuditTrail
+            results = AuditCleanupService.run_all()
+            removed = sum(int(r.get('deleted') or 0) for r in results)
+            for result in results:
+                if result.get('error'):
+                    logging.warning(
+                        'Audit cleanup error for %s: %s', result.get('table'), result['error']
+                    )
 
-            old_logs = select(AuditTrail).delete()
+            try:
+                from models.audit_trail import AuditTrail
 
-            safe_commit(db.session, error_message='database commit failed', reraise=True)
-            flash(f'تم حذف {old_logs} سجل قديم', 'success')
+                db.session.add(
+                    AuditTrail(
+                        entity_type='system',
+                        entity_id=0,
+                        tenant_id=getattr(current_user, 'tenant_id', None),
+                        action='security',
+                        user_id=current_user.id,
+                        description=f'حذف {removed} سجل تدقيق قديم',
+                        new_values=str(removed),
+                    )
+                )
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
+            except Exception as e:
+                logging.warning('Could not record the audit cleanup: %s', e)
+
+            flash(f'تم حذف {removed} سجل قديم', 'success')
 
         elif cleanup_type == 'sessions':
             # تنظيف الجلسات المنتهية الصلاحية
