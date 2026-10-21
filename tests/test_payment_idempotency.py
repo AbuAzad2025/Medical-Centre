@@ -172,6 +172,8 @@ class TestPaymentRouteIdempotency:
             'paid_amount': '50',
             'payment_method': 'cash',
             'payment_currency': 'ILS',
+            # A retry of one request carries one id, so it collapses.
+            'payment_request_id': 'e2e-retry-of-one-request',
         }
         resp1 = client.post(f'/payment/process/{pay_visit.id}', data=data)
         assert resp1.status_code in (200, 302)
@@ -184,6 +186,48 @@ class TestPaymentRouteIdempotency:
         )
         assert len(payments) == 1
         assert float(payments[0].amount) == 50
+
+    def test_two_payments_of_the_same_amount_are_two_payments(
+        self, app, client, pay_visit, pay_accountant, test_tenant
+    ):
+        """The same amount twice is not a retry.
+
+        The idempotency key was derived from the content alone - tenant, visit,
+        amount, method, reference, currency - so two separate payments of the
+        same amount with no reference hashed to the same key. The second was
+        treated as a replay: the patient was charged twice at the counter and
+        the second was recorded nowhere, and the visit stayed part-paid.
+        """
+        from app.core.rate_limiter import _shared_store
+
+        _shared_store.clear()
+        client.post(
+            '/auth/login',
+            data={
+                'username': 'pay_accountant',
+                'password': 'test123',
+                'tenant_slug': test_tenant.slug,
+            },
+        )
+        data = {
+            'paid_amount': '50',
+            'payment_method': 'cash',
+            'payment_currency': 'ILS',
+        }
+        resp1 = client.post(f'/payment/process/{pay_visit.id}', data=data)
+        assert resp1.status_code in (200, 302)
+
+        resp2 = client.post(f'/payment/process/{pay_visit.id}', data=data)
+        assert resp2.status_code in (200, 302)
+
+        payments = (
+            db.session.execute(select(Payment).filter_by(visit_id=pay_visit.id)).scalars().all()
+        )
+        assert len(payments) == 2, (
+            f'{len(payments)} payment(s) recorded for two separate payments of 50; '
+            'the second was dropped as a replay of the first, so the money taken '
+            'at the counter appears nowhere'
+        )
 
 
 class TestPaymentConcurrentIdempotency:

@@ -182,10 +182,10 @@ class TestRefundService:
         assert req.status == RefundStatus.APPROVED
         assert req.approved_by == refund_manager.id
 
-    def test_execute_refund_reverses_allocation_and_voids_receipt(
+    def test_a_partial_refund_keeps_the_money_that_was_not_returned(
         self, test_tenant, refund_payment, refund_accountant, refund_manager, refund_invoice
     ):
-        # Create a receipt for the payment.
+        # A receipt for the payment.
         from services.billing_state_service import ReceiptService
 
         ReceiptService.issue_receipt(refund_payment.visit, refund_payment)
@@ -201,18 +201,67 @@ class TestRefundService:
         ok, req = RefundService.approve_refund(req.id, approved_by=refund_manager.id)
         assert ok is True
 
+        # The visit's paid amount comes down by what was returned. Nothing else
+        # adjusts it: the allocation service moves money between the visit's
+        # invoices, not the visit's total.
+        #
+        # The fixture pays the invoice directly, so the visit's total is set
+        # here to what the patient actually paid - otherwise there is nothing
+        # to come down.
+        _db.session.refresh(refund_payment.visit)
+        refund_payment.visit.paid_amount = 100.0
+        refund_payment.visit.total_amount = 100.0
+        refund_payment.visit.payment_status = 'PAID'
+        _db.session.commit()
+
         ok, req = RefundService.execute_refund(req.id, executed_by=refund_manager.id)
         assert ok is True
         _db.session.commit()
 
         _db.session.refresh(refund_payment)
         _db.session.refresh(refund_invoice)
-        assert refund_payment.status == PaymentStatus.REFUNDED
+        _db.session.refresh(refund_payment.visit)
+
         assert req.status == RefundStatus.EXECUTED
+        # The 70 that was kept is still a confirmed payment, for 70.
+        #
+        # The whole payment used to be marked REFUNDED whatever the amount, and
+        # the reconciliation re-derives each invoice's paid amount from the
+        # confirmed payments - so the refunded payment dropped out and the 70
+        # that had been kept was written off as well.
+        assert refund_payment.status == PaymentStatus.CONFIRMED
+        assert float(refund_payment.amount) == 70
+
+        # The 30 that was returned is still on the record, as a refunded row.
+        refunded = (
+            db.session.execute(
+                select(Payment).filter_by(
+                    visit_id=refund_payment.visit_id, status=PaymentStatus.REFUNDED
+                )
+            )
+            .scalars()
+            .all()
+        )
+        assert len(refunded) == 1, (
+            'the money that was returned is not on the record; a partial refund '
+            'has to leave the returned amount visible'
+        )
+        assert float(refunded[0].amount) == 30
+
         assert float(refund_invoice.paid_amount) == 70
         assert refund_invoice.status == 'PARTIAL'
 
+        assert float(refund_payment.visit.paid_amount or 0) == 70, (
+            'the visit still shows what the patient paid in full; a refund has to '
+            'come down by what was returned'
+        )
+
+        # The receipt stands: the goods for the 70 were provided, so the
+        # receipt for them is not voided.
         receipt = db.session.execute(
             select(Receipt).filter_by(payment_id=refund_payment.id)
         ).scalar()
-        assert receipt.status == 'voided'
+        assert receipt.status != 'voided', (
+            'the receipt was voided for a partial refund; the receipt for the '
+            'goods that were kept is still owed to the patient'
+        )

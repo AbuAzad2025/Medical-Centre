@@ -21,6 +21,11 @@
         <div class="card-body">
           <form method="post" action="{{ url_for('payment.process_payment', visit_id=visit.id) }}">
             {{ forms.csrf() }}
+            {# One id for this rendering of the form. It travels with the form, so
+               a retry of the same request collapses into one payment while a
+               second payment of the same amount is a separate one. Without it the
+               two hashed to the same key and the second was dropped as a replay. #}
+            <input type="hidden" name="payment_request_id" value="{{ payment_request_id }}">
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label class="form-label" for="paymentMethodSelect">طريقة الدفع</label>

@@ -13,6 +13,7 @@ from typing import Any
 from sqlalchemy import func, select
 
 from app.extensions import db
+from models.visit import Visit
 from utils.db_safety import safe_rollback
 from utils.tenant_query import TenantContextError, get_tenant_record
 
@@ -237,17 +238,78 @@ class RefundService:
                     else:
                         inv.status = 'ISSUED'
 
-            payment.status = PaymentStatus.REFUNDED
-            payment.cancelled_by = executed_by
-            payment.cancelled_at = datetime.now(UTC)
-            payment.cancellation_reason = f'Refund executed: {request.reason}'
+            # A partial refund leaves the payment partly in place, so the
+            # payment cannot simply become REFUNDED.
+            #
+            # It used to. The whole payment was marked REFUNDED whatever the
+            # amount, and the visit's paid_amount was never reduced, so after a
+            # 30 refund on a 100 payment the visit still showed 100 paid while
+            # the payment was no longer CONFIRMED. The reconciliation resets
+            # each invoice's paid_amount and re-derives it from the CONFIRMED
+            # payments, so the refunded payment dropped out and the 70 that had
+            # been kept was written off as well.
+            #
+            # The money that was actually returned is now a payment row of its
+            # own, marked REFUNDED, and the payment that was kept stays
+            # CONFIRMED for the amount that was kept.
+            net_kept = payment_amount - refund_amount
+            if net_kept > 0:
+                payment.amount = net_kept
+                refunded_row = Payment(
+                    tenant_id=payment.tenant_id,
+                    patient_id=payment.patient_id,
+                    visit_id=payment.visit_id,
+                    invoice_id=payment.invoice_id,
+                    amount=refund_amount,
+                    currency=payment.currency,
+                    status=PaymentStatus.REFUNDED,
+                    method=payment.method,
+                    reference=payment.reference,
+                    receipt_number=payment.receipt_number,
+                    idempotency_key=f'refund:{payment.id}:{request.id}',
+                    operation_type='refund',
+                    received_by=payment.received_by,
+                    cancelled_by=executed_by,
+                    cancelled_at=datetime.now(UTC),
+                    cancellation_reason=f'Refund executed: {request.reason}',
+                )
+                db.session.add(refunded_row)
+                payment.cancelled_by = executed_by
+                payment.cancelled_at = datetime.now(UTC)
+                payment.cancellation_reason = f'Partly refunded: {request.reason}'
+            else:
+                payment.status = PaymentStatus.REFUNDED
+                payment.cancelled_by = executed_by
+                payment.cancelled_at = datetime.now(UTC)
+                payment.cancellation_reason = f'Refund executed: {request.reason}'
+
+            # The visit's paid amount has to come down by what was returned.
+            # Nothing else adjusts it: the allocation service moves money
+            # between the visit's invoices, not the visit's total.
+            if payment.visit_id:
+                try:
+                    _visit = get_tenant_record(Visit, payment.visit_id)
+                except TenantContextError:
+                    _visit = None
+                if _visit is not None:
+                    _visit_paid = Decimal(str(_visit.paid_amount or 0)).quantize(
+                        Decimal('0.01'), rounding=ROUND_HALF_UP
+                    )
+                    _new_visit_paid = _visit_paid - refund_amount
+                    if _new_visit_paid < 0:
+                        _new_visit_paid = Decimal('0.00')
+                    _visit.paid_amount = float(_new_visit_paid)
+                    if _new_visit_paid <= 0:
+                        _visit.payment_status = 'UNPAID'
+                    elif _new_visit_paid < Decimal(str(_visit.total_amount or 0)):
+                        _visit.payment_status = 'PARTIAL'
 
             receipt = (
                 db.session.execute(select(Receipt).filter_by(payment_id=payment.id))
                 .scalars()
                 .first()
             )
-            if receipt:
+            if receipt and net_kept <= 0:
                 receipt.status = 'voided'
                 receipt.void_reason = request.reason
 

@@ -5,6 +5,7 @@ Medical System Payment Routes
 
 import hashlib
 import logging
+import uuid
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
@@ -348,6 +349,21 @@ def process_payment(visit_id):
                 return redirect(url_for('reception.print_receipt', visit_id=visit_id))
 
             # P3-001: deterministic idempotency fingerprint for this payment attempt.
+            #
+            # The seed carries a per-attempt id, not just the content. With the
+            # content alone, two separate payments of the same amount, by the
+            # same method, to the same visit, with no reference, hashed to the
+            # same key - so the second was treated as a replay of the first.
+            # The patient was charged twice and recorded once: the money was
+            # taken at the counter and appears nowhere, and the visit stayed
+            # part-paid for good.
+            #
+            # The id comes from the form, so a genuine retry of one request
+            # carries the same one and still collapses. A request without one
+            # gets a fresh id rather than colliding with anything.
+            payment_request_id = (request.form.get('payment_request_id') or '').strip()
+            if not payment_request_id:
+                payment_request_id = uuid.uuid4().hex
             idempotency_seed = '|'.join(
                 [
                     str(getattr(current_user, 'tenant_id', None) or ''),
@@ -356,6 +372,7 @@ def process_payment(visit_id):
                     str(method_value),
                     str(payment_reference or ''),
                     str(payment_currency),
+                    payment_request_id,
                 ]
             )
             idempotency_key = hashlib.sha256(idempotency_seed.encode()).hexdigest()[:32]
@@ -509,6 +526,11 @@ def process_payment(visit_id):
         insurance_companies=insurance_companies,
         currencies=CurrencySettings.get_all(),
         base_currency='ILS',
+        # One id for this rendering of the form. It is posted back with the
+        # form, so a resubmission - a retry after a timeout, a double submit of
+        # the same request - carries the same id and collapses into one payment,
+        # while a second, separate payment of the same amount gets its own.
+        payment_request_id=uuid.uuid4().hex,
     )
 
 
