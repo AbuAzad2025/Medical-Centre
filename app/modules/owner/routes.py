@@ -566,9 +566,16 @@ def owner_activate_default_modules(tenant_id):
         return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
     default_modules = get_default_modules_for_profile(profile_code)
     if not default_modules:
-        from app.core.module.registry import get_all_module_names
-
-        default_modules = get_all_module_names()
+        # There is no bundle for this profile, so there is nothing to
+        # activate. The fallback used to activate every module in the
+        # registry, which is how a customer who bought one bundle ended up
+        # with the whole hospital catalogue.
+        flash(
+            'There is no bundle for this profile, so there are no default modules '
+            'to activate. Choose a bundle for the profile first.',
+            'error',
+        )
+        return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
     activated = 0
     for m in default_modules:
         tm = (
@@ -640,9 +647,11 @@ def owner_edit_tenant(tenant_id):
 
             default_modules = get_default_modules_for_profile(tenant.product_profile_code)
             if not default_modules:
-                from app.core.module.registry import get_all_module_names
-
-                default_modules = get_all_module_names()
+                # No bundle for the new profile: there is nothing to activate
+                # and nothing to deactivate against. The fallback used to be
+                # every module in the registry, which made the deactivation
+                # below a no-op.
+                default_modules = []
             # Deactivate modules not in the new profile
             active_tms = (
                 db.session.execute(
@@ -2930,26 +2939,13 @@ def owner_provision():
             )
             db.session.add(admin)
             # Activate default modules for this tenant's profile
-            from app.core.module.models import TenantModule
-            from app.core.tenant.models import get_default_modules_for_profile
 
-            mods = (
-                get_default_modules_for_profile(product_profile_code)
-                if product_profile_code
-                else []
-            )
-            if not mods:
-                from app.core.module.registry import get_all_module_names
-
-                mods = get_all_module_names()
-            for m in mods:
-                tm = TenantModule(
-                    tenant_id=tenant.id,
-                    module_name=m,
-                    is_active=True,
-                    activated_at=datetime.now(UTC),
-                )
-                db.session.add(tm)
+            # The modules are NOT activated here. provision_tenant activated
+            # the ones the tenant bought, from the package entitlements, and
+            # committed them. Adding them a second time broke the unique
+            # constraint on (tenant_id, module_name), and the failure rolled
+            # back the admin account below - so the tenant was left with its
+            # modules active and nobody able to sign in to it.
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             _log_action('PROVISION_TENANT', 'tenant', tenant.id, f'slug={slug}')
             flash(

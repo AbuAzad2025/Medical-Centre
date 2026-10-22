@@ -23,17 +23,110 @@ def get_active_modules_for_tenant(tenant_id: int) -> set:
     return {r.module_name for r in rows}
 
 
-def _get_bundle_for_tenant(tenant_id: int) -> list[str] | None:
-    """Return allowed module names from the tenant's ProductBundle, or None if unrestricted."""
-    from app.core.tenant.models import Tenant, get_bundle_for_profile
+def get_purchased_modules_for_tenant(tenant_id: int) -> set[str] | None:
+    """The modules this tenant has bought, or None when it is unrestricted.
+
+    This is the commercial boundary, and it is the question "what is this
+    tenant paying for?". It is answered from what the tenant actually
+    bought, in the order of authority:
+
+      1. the entitlements of the package on its active subscription - this
+         is the purchase, and it is what the customer paid for;
+      2. the modules on the tenant's plan, for the older plans that carry
+         their module list themselves;
+      3. the modules of the tenant's product bundle, for a tenant that was
+         provisioned from a bundle.
+
+    None means "no boundary": the tenant has no subscription and no bundle
+    and no plan, so there is nothing to be inside of. That is the state of a
+    single-install clinic that never opted into the module system, and it
+    must not be confused with a tenant that bought a small bundle.
+
+    The previous answer to this question read only
+    ``tenant.product_profile_code``, which is NULL for every tenant that
+    signed itself up - the signup form posts a package version and no
+    profile. So the boundary did not exist for exactly the tenants that
+    chose their own package, and the self-service module switch could turn
+    on anything in the registry.
+    """
+    from app.core.saas.models import PackageVersionEntitlement, SubscriptionLine
+    from app.core.tenant.models import Tenant
 
     tenant = db.session.get(Tenant, tenant_id)
-    if not tenant or not tenant.product_profile_code:
-        return None  # No bundle restriction
-    bundle = get_bundle_for_profile(tenant.product_profile_code)
-    if bundle:
-        return bundle.get_modules()
+    if not tenant:
+        return None
+
+    # 1. The package on the active subscription.
+    try:
+        line = (
+            db.session.execute(
+                select(SubscriptionLine)
+                .filter_by(tenant_id=tenant_id)
+                .order_by(SubscriptionLine.id.desc())
+            )
+            .scalars()
+            .first()
+        )
+        if line is not None and line.package_version_id:
+            rows = (
+                db.session.execute(
+                    select(PackageVersionEntitlement).filter_by(
+                        package_version_id=line.package_version_id
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            if rows:
+                return {r.module_name for r in rows if r.module_name}
+    except Exception as exc:  # noqa: BLE001
+        import logging
+
+        logging.getLogger(__name__).warning('purchase boundary: %s', exc)
+
+    # 2. The tenant's own plan.
+    try:
+        import json
+
+        from app.core.tenant.models import SubscriptionPlan
+
+        plan_id = getattr(tenant, 'plan_id', None)
+        if plan_id:
+            plan = db.session.get(SubscriptionPlan, plan_id)
+            raw = getattr(plan, 'modules_included', None) if plan else None
+            if raw:
+                mods = json.loads(raw) if isinstance(raw, str) else raw
+                if isinstance(mods, list) and mods:
+                    return {m for m in mods if m}
+    except Exception as exc:  # noqa: BLE001
+        import logging
+
+        logging.getLogger(__name__).warning('purchase boundary: %s', exc)
+
+    # 3. The product bundle the tenant was provisioned from.
+    from app.core.tenant.models import get_bundle_for_profile
+
+    profile = getattr(tenant, 'product_profile_code', None)
+    if profile:
+        bundle = get_bundle_for_profile(profile)
+        if bundle:
+            return set(bundle.get_modules())
+
     return None
+
+
+def _get_bundle_for_tenant(tenant_id: int) -> list[str] | None:
+    """The modules the tenant has bought, as a list, or None if unrestricted.
+
+    The seam the module validators go through. It is answered from what the
+    tenant paid for, not only from its product profile: the profile code is
+    NULL for every tenant that signed itself up, so reading only that left
+    the boundary open for exactly the tenants that chose their own package.
+    """
+    purchased = get_purchased_modules_for_tenant(tenant_id)
+    if purchased is None:
+        return None
+    return sorted(purchased)
 
 
 def can_activate_module(
@@ -58,13 +151,17 @@ def can_activate_module(
         if req not in active:
             return False, f"Module '{module_name}' requires '{req}' to be active first."
 
-    # Dynamic bundle boundary enforcement
+    # The commercial boundary: the module has to be one the tenant bought.
+    # This is read from what the tenant paid for, not only from the profile
+    # code - the profile code is NULL for every tenant that signed itself
+    # up, so reading only that left the boundary open for exactly the
+    # tenants that picked their own package.
     allowed = _get_bundle_for_tenant(tenant_id)
     if allowed is not None and module_name not in allowed:
         return (
             False,
             f"Module '{module_name}' is not included in the tenant's bundle. "
-            f'Allowed modules: {", ".join(allowed)}.',
+            f'Allowed modules: {", ".join(sorted(allowed))}.',
         )
 
     return True, None

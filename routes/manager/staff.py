@@ -114,17 +114,22 @@ def unit_toggle():
             .first()
         )
 
-        # Bundle entitlement check: block activation if module not in tenant's subscription
+        # Bundle entitlement check: block activation if module not in tenant's subscription.
+        #
+        # The boundary used to be read only from the tenant's product profile,
+        # and the profile is NULL for every tenant that signed itself up - so
+        # the check did not run for them, and a manager could switch on any
+        # module in the registry, including the whole hospital catalogue,
+        # without paying for it. The boundary is now read from what the
+        # tenant bought, and a tenant with no purchase at all is
+        # unrestricted - which is the single-install clinic that never
+        # opted into the module system.
         if tm is None or not tm.is_active:
-            from app.core.tenant.models import Tenant, get_bundle_for_profile
+            from app.core.module.validators import can_activate_module
 
-            tenant_obj = db.session.get(Tenant, tenant_id)
-            if tenant_obj and tenant_obj.product_profile_code:
-                bundle = get_bundle_for_profile(tenant_obj.product_profile_code)
-                if bundle and module_name not in bundle.get_modules():
-                    return jsonify(
-                        {'error': 'Module not included in your current subscription bundle'}
-                    ), 403
+            ok, err = can_activate_module(tenant_id, module_name)
+            if not ok:
+                return jsonify({'error': err or 'Module is not included in your subscription'}), 403
 
         if not tm:
             tm = TenantModule(

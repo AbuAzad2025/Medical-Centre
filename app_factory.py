@@ -1008,7 +1008,15 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
                     return jsonify({'error': 'module_not_activated', 'module': module_name}), 403
                 return abort(403, description=description)
 
-            if not app.config.get('ENABLE_SAAS_MODE', False):
+            # The guard is enforced whenever the tenant has a module set at
+            # all, not only in SaaS mode. It used to be skipped outside SaaS
+            # mode, which is the default configuration and the one the
+            # project's own .env ships - so switching a module off in a
+            # single install changed nothing except that the menu item
+            # disappeared.
+            from services.feature_gate_service import module_gate_active
+
+            if not module_gate_active():
                 return None
 
             # Admin bypass: global admins pass through all module guards

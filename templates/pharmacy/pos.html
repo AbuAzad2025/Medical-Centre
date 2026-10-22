@@ -61,7 +61,7 @@
                     {{ payment_method_radios(show_card=pos_enabled) }}
                 </div>
                 {% if pos_enabled %}
-                {% if is_entitled('pos_terminal') %}
+                {% if is_entitled('pos_sale') %}
                 <div class="mb-3 d-none" id="cardChargeBlock">
                     <button type="button" class="btn btn-outline-primary w-100" id="pharmacyPosChargeBtn"
                         data-charge-url="{{ url_for('medication.pharmacy_pos_charge') }}">

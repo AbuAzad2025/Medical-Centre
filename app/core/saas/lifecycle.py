@@ -223,7 +223,13 @@ class TenantProvisioningService:
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 
         EntitlementProjectionService.calculate(tenant.id)
-        # Historical data remains readable; creation is restricted via entitlement resolver.
+        # The modules the tenant no longer pays for are switched off. Without
+        # this a downgrade took nothing away: the modules stayed active and
+        # the capabilities stayed entitled, so the tenant kept the whole
+        # clinical platform at the price of the small package. The historical
+        # data remains readable - it is the access that is withdrawn.
+        cls._ensure_modules_for_package(tenant.id, new_version)
+        cls._deactivate_modules_not_in_package(tenant.id, new_version)
         cls._record_history(
             tenant.id,
             'DOWNGRADE',
@@ -604,6 +610,44 @@ class TenantProvisioningService:
             )
             db.session.add(tm)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
+
+    @classmethod
+    def _deactivate_modules_not_in_package(
+        cls, tenant_id: int, package_version: PackageVersion
+    ) -> list[str]:
+        """Switch off the modules the tenant's new package does not include.
+
+        A downgrade has to take something away, or it is not a downgrade. The
+        upgrade path activated the new package's modules, and the downgrade
+        path did nothing to the old ones - so a tenant that downgraded from
+        the hospital package to a billing package kept the whole clinical
+        platform, modules active and capabilities entitled, at the price of
+        the small package.
+
+        The rows are kept, deactivated, so the history of what the tenant
+        had is still there and re-activating is a flag flip.
+        """
+        wanted = {
+            ent.module_name
+            for ent in db.session.execute(
+                select(PackageVersionEntitlement).filter_by(package_version_id=package_version.id)
+            )
+            .scalars()
+            .all()
+        }
+        deactivated: list[str] = []
+        for tm in (
+            db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True))
+            .scalars()
+            .all()
+        ):
+            if tm.module_name not in wanted:
+                tm.is_active = False
+                tm.deactivated_at = datetime.now(UTC)
+                deactivated.append(tm.module_name)
+        if deactivated:
+            safe_commit(db.session, error_message='database commit failed', reraise=True)
+        return deactivated
 
     @classmethod
     def _record_history(

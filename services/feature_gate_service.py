@@ -14,15 +14,13 @@ from app.core.module.validators import get_active_modules_for_tenant
 from app.extensions import db
 from app.shared.enums import TenantStatus
 from app.shared.user_role_policy import normalize_role
+from utils.exceptions import ModuleNotEnabledError
 
-
-class ModuleNotEnabledError(Exception):
-    """Raised when a service method requires a module that is not enabled for the tenant."""
-
-    def __init__(self, module_name: str, message: str | None = None):
-        self.module_name = module_name
-        self.message = message or f"Module '{module_name}' is not enabled for this tenant"
-        super().__init__(self.message)
+# The exception is the one in utils/exceptions.py, not a second class with
+# the same name. The application registers a handler for the canonical class
+# that answers 403 - and that handler was dead code, because the class the
+# service raised was a different one, so a service-level module refusal
+# escaped as an unhandled 500 instead of the 403 it was meant to be.
 
 
 class FeatureNotEnabledError(Exception):
@@ -99,6 +97,39 @@ class FeatureGateService:
         return _check_tenant_payment_status(tenant)
 
 
+def module_gate_active(tenant=None) -> bool:
+    """Should the module gate be enforced for this request?
+
+    The gate used to be switched on only in SaaS mode, so in a single
+    install - which is the default configuration, and the one the project's
+    own .env ships - switching a module off changed nothing at all except
+    that the menu item disappeared. The switch was cosmetic in exactly the
+    deployments where it was most likely to be used.
+
+    The gate is now enforced whenever the tenant has opted into the module
+    system at all, which is to say when it has rows in ``tenant_modules``.
+    A tenant with no rows has never chosen a module set, so there is
+    nothing to enforce and every module stays available - that is the
+    single-install clinic that was never configured for modules, and
+    locking it out of the features it has always had would be worse than
+    the cosmetic switch was.
+    """
+    if current_app.config.get('ENABLE_SAAS_MODE', False):
+        return True
+    tenant = tenant if tenant is not None else getattr(g, 'current_tenant', None)
+    if tenant is None:
+        return False
+    try:
+        from app.core.module.models import TenantModule
+
+        rows = (
+            db.session.execute(select(TenantModule).filter_by(tenant_id=tenant.id)).scalars().all()
+        )
+        return bool(rows)
+    except Exception:  # noqa: BLE001 - the gate must not break the request
+        return False
+
+
 def require_module(module: str):
     """
     Decorator for service methods that require a module to be enabled.
@@ -110,7 +141,7 @@ def require_module(module: str):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            if not current_app.config.get('ENABLE_SAAS_MODE', False):
+            if not module_gate_active():
                 return f(*args, **kwargs)
             if _is_admin_user() and module in ('reporting', 'billing', 'appointments', 'inventory'):
                 return f(*args, **kwargs)
@@ -138,7 +169,7 @@ def require_module_route(module: str):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            if not current_app.config.get('ENABLE_SAAS_MODE', False):
+            if not module_gate_active():
                 return f(*args, **kwargs)
             if _is_admin_user() and module in ('reporting', 'billing', 'appointments', 'inventory'):
                 return f(*args, **kwargs)
@@ -158,10 +189,14 @@ def require_module_route(module: str):
 
 def guard_module(module_name: str):
     """Blueprint before_request guard: 403 if module not enabled for tenant.
-    Skips check when ENABLE_SAAS_MODE is False (standalone mode).
+
+    The guard is enforced whenever the tenant has a module set at all, not
+    only in SaaS mode - see ``module_gate_active``. A single install that
+    switched a module off meant to have it off.
+
     Admin and super_admin bypass only non-clinical guards.
     """
-    if not current_app.config.get('ENABLE_SAAS_MODE', False):
+    if not module_gate_active():
         return
     if _is_admin_user() and module_name in ('reporting', 'billing', 'appointments', 'inventory'):
         return
@@ -178,7 +213,7 @@ def require_feature(feature: str):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            if not current_app.config.get('ENABLE_SAAS_MODE', False):
+            if not module_gate_active():
                 return f(*args, **kwargs)
             if _is_admin_user() and feature in ('reporting', 'billing'):
                 return f(*args, **kwargs)
@@ -203,7 +238,7 @@ def require_feature_service(feature: str):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            if not current_app.config.get('ENABLE_SAAS_MODE', False):
+            if not module_gate_active():
                 return f(*args, **kwargs)
             if _is_admin_user():
                 return f(*args, **kwargs)

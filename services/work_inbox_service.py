@@ -13,8 +13,12 @@ from app.shared.enums import AppointmentState, InvoiceStatus, VisitState
 _INBOX_ENTITLEMENTS: dict[str, str] = {
     'lab': 'lab_order',
     'radiology': 'radiology_order',
-    'invoice': 'billing',
-    'visit': 'reception',
+    # Capability keys, not module names. 'billing' and 'reception' are
+    # modules; no module declares them as capabilities, so is_entitled()
+    # answered False for every tenant on every plan and the inbox showed
+    # every visit and every invoice as locked behind a higher package.
+    'invoice': 'invoice',
+    'visit': 'visit_create',
 }
 
 _ROLE_VISIBLE_TYPES: dict[str, set[str]] = {
