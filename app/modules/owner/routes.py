@@ -2292,6 +2292,24 @@ def api_update_bundle(bundle_id):
         b.currency = data.get('currency', b.currency)
         if 'modules' in data:
             b.set_modules(data.get('modules'))
+            # The entitlements a package sells have to agree with the bundle.
+            # They were frozen at first seed, so editing the bundle used to
+            # leave the package selling the old module set: a customer who
+            # bought the edited bundle got the old set, and a dropped module
+            # was still activated. The reconciliation is live, not deferred
+            # to the next boot.
+            try:
+                from app.core.saas.seed import sync_package_entitlements_for_bundle
+
+                package = (
+                    db.session.execute(select(Package).filter_by(slug=b.slug)).scalars().first()
+                )
+                if package is not None:
+                    sync_package_entitlements_for_bundle(b, package)
+                    db.session.commit()
+            except Exception:  # noqa: BLE001
+                db.session.rollback()
+                return jsonify({'error': 'bundle sync failed'}), 500
         b.max_users = int(data.get('max_users')) if data.get('max_users') else None
         b.max_patients = int(data.get('max_patients')) if data.get('max_patients') else None
         b.storage_gb = int(data.get('storage_gb')) if data.get('storage_gb') else None

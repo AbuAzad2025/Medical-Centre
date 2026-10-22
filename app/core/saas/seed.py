@@ -55,6 +55,10 @@ def seed_packages_from_product_bundles(
         if existing:
             if created_package_ids is not None:
                 created_package_ids.append(existing.id)
+            # A bundle edited after the package was first created used to
+            # leave the package selling the old module set. The entitlements
+            # now follow the bundle.
+            sync_package_entitlements_for_bundle(bundle, existing)
             continue
 
         package = Package(
@@ -144,6 +148,122 @@ def seed_packages_from_product_bundles(
             created_package_ids.append(package.id)
 
     return created_ids
+
+
+def _sync_package_entitlements_for_bundle(bundle, package) -> None:
+    """Bring a package's entitlements into line with its bundle.
+
+    A bundle is the commercial truth: it names the modules a customer buys
+    and the price they pay. ``package_version_entitlements`` is the
+    activation truth: it is what a tenant actually gets when it buys the
+    package. They are supposed to agree, and they did not, because the
+    entitlements were written once, when the package was first created, and
+    never again.
+
+    So a bundle that was edited - a module added, a module dropped, a name
+    corrected - left the package selling the old set. A customer who bought
+    the edited bundle got the old set. A customer who bought the bundle
+    after a module was dropped from it still got the module. And a bundle
+    module whose name was absent from ``MODULE_REGISTRY`` was accepted at
+    edit time, produced no entitlement, and was reported as sold at the
+    price - a sold module that activated nothing.
+
+    This function makes the entitlements agree with the bundle. It is called
+    on every boot (so a bundle edited in the database is reconciled) and
+    immediately after a bundle is edited (so the change is live at once).
+    Unknown module names are rejected here rather than dropped silently:
+    a bundle may not name a module the registry does not know about.
+    """
+    from app.core.module.registry import MODULE_REGISTRY
+    from app.core.tenant.models import ProductBundle
+
+    if not isinstance(bundle, ProductBundle):
+        raise SeedError('sync_package_entitlements_for_bundle expects a ProductBundle')
+
+    versions = (
+        db.session.execute(select(PackageVersion).filter_by(package_id=package.id)).scalars().all()
+    )
+    if not versions:
+        return
+
+    desired = set(bundle.get_modules())
+    unknown = desired - set(MODULE_REGISTRY)
+    if unknown:
+        raise SeedError(
+            f"bundle '{bundle.slug}' names modules that are not in MODULE_REGISTRY: "
+            f'{", ".join(sorted(unknown))}'
+        )
+
+    for version in versions:
+        current = (
+            db.session.execute(
+                select(PackageVersionEntitlement).filter_by(package_version_id=version.id)
+            )
+            .scalars()
+            .all()
+        )
+        current_by_module = {}
+        for row in current:
+            current_by_module.setdefault(row.module_name, []).append(row)
+
+        for module_name in desired:
+            meta = MODULE_REGISTRY.get(module_name)
+            if meta is None:
+                continue
+            existing = current_by_module.get(module_name, [])
+            if existing:
+                # Keep one row; correct the capability keys if the registry
+                # changed them. Drop the surplus rows.
+                keeper = existing[0]
+                keeper.capability_key = meta.capabilities[0] if meta.capabilities else module_name
+                for row in existing[1:]:
+                    db.session.delete(row)
+            else:
+                db.session.add(
+                    PackageVersionEntitlement(
+                        package_version_id=version.id,
+                        module_name=module_name,
+                        capability_key=meta.capabilities[0] if meta.capabilities else module_name,
+                    )
+                )
+
+        for module_name in list(current_by_module):
+            if module_name not in desired:
+                for row in current_by_module[module_name]:
+                    db.session.delete(row)
+
+        # A bundle's entitlements are one capability per module today. If a
+        # module declares more than one capability, every one of them is a
+        # separate entitlement row - otherwise the projection undercounts.
+        for module_name in desired:
+            meta = MODULE_REGISTRY.get(module_name)
+            if meta is None or len(meta.capabilities) <= 1:
+                continue
+            existing = (
+                db.session.execute(
+                    select(PackageVersionEntitlement).filter_by(
+                        package_version_id=version.id, module_name=module_name
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            have = {r.capability_key for r in existing}
+            for capability_key in meta.capabilities[1:]:
+                if capability_key not in have:
+                    db.session.add(
+                        PackageVersionEntitlement(
+                            package_version_id=version.id,
+                            module_name=module_name,
+                            capability_key=capability_key,
+                        )
+                    )
+
+
+def sync_package_entitlements_for_bundle(bundle, package) -> None:
+    """Reconcile a package's entitlements with its bundle. See the
+    definition further down."""
+    return _sync_package_entitlements_for_bundle(bundle, package)
 
 
 def _category_for_bundle(bundle) -> str:
