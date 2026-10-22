@@ -125,8 +125,28 @@ class EntitlementResolver:
         )
 
         if projection is None:
-            if LegacyEntitlementAdapter.is_entitled(tenant, capability_key):
-                return True, ''
+            # A tenant that has never been migrated - no subscription line,
+            # no projection - is still entitled the old way, from its modules.
+            # That is the single-install clinic that never opted into the
+            # module system, and it must not be locked out of the features
+            # it has always had.
+            #
+            # A tenant that has a subscription has a projection, even if the
+            # projection is empty, because EntitlementProjectionService.
+            # calculate() writes the rows. So 'projection is None' means
+            # "never migrated", and only that case falls through to the
+            # legacy adapter. A migrated tenant with an empty projection is
+            # entitled to nothing - which is what a revoked entitlement or a
+            # downgrade to a smaller package has to mean.
+            from app.core.saas.models import SubscriptionLine
+
+            has_subscription = db.session.execute(
+                select(SubscriptionLine).filter_by(tenant_id=tenant.id).limit(1)
+            ).scalars().first() is not None
+            if not has_subscription:
+                if LegacyEntitlementAdapter.is_entitled(tenant, capability_key):
+                    return True, ''
+                return False, 'capability_not_entitled'
             return False, 'capability_not_entitled'
 
         return True, ''
