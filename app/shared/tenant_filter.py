@@ -13,10 +13,11 @@ AuthorizationError is raised to prevent data leaks.
 """
 
 import logging
+from contextlib import suppress
 from typing import Any
 
 from flask import current_app, g
-from sqlalchemy import event
+from sqlalchemy import event, false
 from sqlalchemy.orm import Query
 from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.sql.elements import TextClause
@@ -202,6 +203,78 @@ def _is_tenant_bypass() -> bool:
 
 
 # ---------------------------------------------------------------------------
+# MODULE SCOPE — a table no active module touches is out of the tenant's reach
+#
+# The route guard (services/feature_gate_service.guard_module) already stops a
+# module's own routes when the module is switched off. What it does not stop is
+# the same data being reached through another module's route: a doctor reading
+# the clinic's lab results after the lab module was switched off, or a report
+# counting rows the clinic no longer pays for.
+#
+# The question is not "which module owns this table" but "is any module that
+# touches it switched on". The table lists in the registry are not exclusive -
+# the doctor writes the prescriptions the pharmacy dispenses, every clinical
+# module writes the visit - so a table is only out of reach when NO active
+# module touches it.
+# ---------------------------------------------------------------------------
+
+_MODULE_SCOPE_CACHE_KEY = '_module_scope_cache'
+
+
+def _module_scope(tenant_id: int) -> tuple[bool, frozenset[str]]:
+    """(inside a module boundary, the modules that are switched on).
+
+    Cached on the session, because the filter asks on every statement and the
+    answer changes only when a module is switched on or off. The cache is
+    dropped when the module set changes - see ``invalidate_module_scope``.
+    """
+    cache = db.session.info.get(_MODULE_SCOPE_CACHE_KEY)
+    if cache is not None and cache[0] == tenant_id:
+        return cache[1], cache[2]
+
+    from app.core.module.validators import get_module_scope_for_tenant
+
+    restricted, active = get_module_scope_for_tenant(tenant_id)
+    db.session.info[_MODULE_SCOPE_CACHE_KEY] = (tenant_id, restricted, active)
+    return restricted, active
+
+
+def invalidate_module_scope() -> None:
+    """Forget the cached module scope.
+
+    Called wherever the module set changes - the manager's switch and the
+    provisioning lifecycle - so the next statement sees the new set rather
+    than the one that was true before the switch.
+    """
+    with suppress(Exception):
+        db.session.info.pop(_MODULE_SCOPE_CACHE_KEY, None)
+
+
+def _table_out_of_scope(entity, tenant_id: int) -> bool:
+    """Is this table out of the tenant's reach?
+
+    A table no module touches at all is a cross-cutting table - the audit
+    trail, the notifications, the users - and is never restricted.
+    """
+    table = getattr(entity, '__tablename__', None)
+    if not table:
+        return False
+
+    from app.core.module.registry import get_modules_for_table
+
+    owners = get_modules_for_table(table)
+    if not owners:
+        return False
+
+    restricted, active = _module_scope(tenant_id)
+    if not restricted:
+        # The tenant never opted into the module system. It is the
+        # single-install clinic, and it keeps everything it has always had.
+        return False
+    return not (owners & active)
+
+
+# ---------------------------------------------------------------------------
 # 1a. SOFT-DELETE FILTER — every SELECT gets WHERE deleted_at IS NULL
 # ---------------------------------------------------------------------------
 
@@ -365,6 +438,28 @@ def _check_bundle_limits_on_create(instance, tenant_id):
             raise ValueError(f'تم تجاوز الحد الأقصى للحزمة: يُسمح بـ {cap} مريض كحد أقصى')
 
 
+def _assert_table_writable(instance, tenant_id: int) -> None:
+    """Refuse a write to a table no active module touches.
+
+    A read of an out-of-scope table answers with no rows, so that a dashboard
+    counting a module the clinic does not have answers zero. A write cannot be
+    made to answer that way - silently dropping the row would lose the write -
+    so it is refused, and the refusal says which table and which modules.
+    """
+    if not _table_out_of_scope(instance.__class__, tenant_id):
+        return
+
+    from app.core.module.registry import get_modules_for_table
+    from utils.exceptions import ModuleNotEnabledError
+
+    table = getattr(instance, '__tablename__', '?')
+    owners = ', '.join(sorted(get_modules_for_table(table))) or table
+    raise ModuleNotEnabledError(
+        owners,
+        f'لا يمكن الكتابة في جدول [{table}]: لا توجد وحدة مفعلة تتعامل معه',
+    )
+
+
 # ---------------------------------------------------------------------------
 # 1. AUTO-FILTER — every SELECT gets WHERE tenant_id = :tenant_id
 # ---------------------------------------------------------------------------
@@ -401,12 +496,20 @@ def tenant_filter_query(query):
     if limit_clause is not None or offset_clause is not None:
         query = query.limit(None).offset(None)
 
+    out_of_scope = False
     for desc in query.column_descriptions:
         entity = desc.get('entity')
         if entity is None or not isinstance(entity, type):
             continue
         if _skip_table(entity):
             continue
+        if _table_out_of_scope(entity, tid):
+            # The rows are not the tenant's to read: no active module touches
+            # this table. The statement answers with no rows rather than an
+            # error, so a dashboard that counts a module the clinic does not
+            # have answers zero instead of taking the page down.
+            out_of_scope = True
+            break
         if _model_has_tenant_column(entity):
             query = query.filter(entity.tenant_id == tid)
         # Soft-delete filter: exclude soft-deleted records
@@ -422,6 +525,9 @@ def tenant_filter_query(query):
                     query = query.filter(not soft_col)
                 else:
                     query = query.filter(soft_col.is_(None))
+
+    if out_of_scope:
+        query = query.filter(false())
 
     if limit_clause is not None:
         query = query.limit(limit_clause)
@@ -496,6 +602,14 @@ def tenant_filter_select(orm_execute_state):
     for entity in _entities_from_statement(statement):
         if _skip_table(entity):
             continue
+        if _table_out_of_scope(entity, tid):
+            # The rows are not the tenant's to read: no active module touches
+            # this table. The statement answers with no rows rather than an
+            # error, so a dashboard that counts a module the clinic does not
+            # have answers zero instead of taking the page down.
+            statement = statement.filter(false())
+            modified = True
+            break
         if _model_has_tenant_column(entity):
             # Skip double-filtering when the caller already scoped tenant_id
             # (e.g. dashboard queries that filter by an explicit tenant param).
@@ -644,6 +758,8 @@ def auto_assign_tenant(session, flush_context, instances):
             continue
         if _skip_table(instance.__class__):
             continue
+        if not _is_tenant_bypass():
+            _assert_table_writable(instance, tid)
         if getattr(instance, 'tenant_id', None) is None:
             instance.tenant_id = tid
         # Enforce bundle limits after tenant_id assignment (skip if bypass)
@@ -673,6 +789,7 @@ def _cross_tenant_check(session, is_delete=False):
             continue
         if _skip_table(instance.__class__):
             continue
+        _assert_table_writable(instance, tid)
         instance_tid = getattr(instance, 'tenant_id', None)
         if instance_tid is not None and instance_tid != tid:
             raise PermissionError(

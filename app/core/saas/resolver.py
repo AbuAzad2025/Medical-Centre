@@ -140,9 +140,12 @@ class EntitlementResolver:
             # downgrade to a smaller package has to mean.
             from app.core.saas.models import SubscriptionLine
 
-            has_subscription = db.session.execute(
-                select(SubscriptionLine).filter_by(tenant_id=tenant.id).limit(1)
-            ).scalars().first() is not None
+            has_subscription = (
+                db.session.execute(select(SubscriptionLine).filter_by(tenant_id=tenant.id).limit(1))
+                .scalars()
+                .first()
+                is not None
+            )
             if not has_subscription:
                 if LegacyEntitlementAdapter.is_entitled(tenant, capability_key):
                     return True, ''

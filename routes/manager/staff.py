@@ -156,6 +156,13 @@ def unit_toggle():
         if hasattr(g, '_tenant_enabled_modules'):
             g.pop('_tenant_enabled_modules')
 
+        # The module scope the tenant filter caches is stale now: the module
+        # that was just switched off is one whose rows must stop being served,
+        # and the one that was just switched on is one whose rows may be.
+        from app.shared.tenant_filter import invalidate_module_scope
+
+        invalidate_module_scope()
+
         meta = MODULE_REGISTRY[module_name]
         return jsonify(
             {

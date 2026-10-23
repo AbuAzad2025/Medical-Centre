@@ -23,6 +23,33 @@ def get_active_modules_for_tenant(tenant_id: int) -> set:
     return {r.module_name for r in rows}
 
 
+def get_module_scope_for_tenant(tenant_id: int) -> tuple[bool, frozenset[str]]:
+    """The tenant's module boundary: is it inside one, and what is switched on.
+
+    The first value is True when the tenant has rows in ``tenant_modules`` at
+    all. That is the same rule the route guard uses (``module_gate_active``):
+    a tenant that never opted into the module system has no boundary to
+    enforce, and every module stays available to it. That is the single-install
+    clinic, and a boundary that failed closed there would lock it out of the
+    features it has always had.
+
+    The second value is what is switched on, not what was bought. A module the
+    tenant bought and then switched off is off, and the rows it touches are
+    not the tenant's to reach through another module's route.
+
+    One query answers both. The two facts were read separately elsewhere, and
+    the second one alone cannot tell "no module set" from "every module
+    switched off" - the difference between an unrestricted clinic and a
+    restricted one.
+    """
+    rows = db.session.execute(
+        select(TenantModule.module_name, TenantModule.is_active).filter_by(tenant_id=tenant_id)
+    ).all()
+    if not rows:
+        return False, frozenset()
+    return True, frozenset(name for name, is_active in rows if is_active)
+
+
 def get_purchased_modules_for_tenant(tenant_id: int) -> set[str] | None:
     """The modules this tenant has bought, or None when it is unrestricted.
 

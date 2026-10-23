@@ -610,6 +610,11 @@ class TenantProvisioningService:
             )
             db.session.add(tm)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
+        # The module scope the tenant filter caches has changed: the modules
+        # that were just switched on are the ones whose rows it may serve.
+        from app.shared.tenant_filter import invalidate_module_scope
+
+        invalidate_module_scope()
 
     @classmethod
     def _deactivate_modules_not_in_package(
@@ -647,6 +652,12 @@ class TenantProvisioningService:
                 deactivated.append(tm.module_name)
         if deactivated:
             safe_commit(db.session, error_message='database commit failed', reraise=True)
+            # The module scope the tenant filter caches is now stale: the
+            # modules that were just switched off are the ones whose rows it
+            # has to stop serving.
+            from app.shared.tenant_filter import invalidate_module_scope
+
+            invalidate_module_scope()
         return deactivated
 
     @classmethod
