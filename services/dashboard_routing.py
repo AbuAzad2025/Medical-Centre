@@ -9,6 +9,7 @@ from app.core.module.registry import MODULE_REGISTRY
 
 ROLE_TO_MODULE_MAP = {
     'doctor': 'doctor',
+    'er_doctor': 'emergency',
     'pharmacist': 'pharmacy',
     'reception': 'reception',
     'receptionist': 'reception',
