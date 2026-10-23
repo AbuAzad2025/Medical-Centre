@@ -87,7 +87,7 @@ def duty(app, test_tenant):
 
 @covers('STAFF_SCHEDULE_AND_ABSENCE')
 class TestShiftHandover:
-    """The shift handover lifecycle: open -> close (acknowledge is xfail)."""
+    """The shift handover lifecycle: open -> close -> acknowledge."""
 
     def test_opening_a_shift_creates_a_handover_record(self, duty):
         """A nurse opens a shift, creating a ShiftHandover row."""
