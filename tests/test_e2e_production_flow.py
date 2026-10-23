@@ -86,13 +86,25 @@ def _seed_starter_package():
             currency='USD',
         )
     )
-    db.session.add(
-        PackageVersionEntitlement(
-            package_version_id=version.id,
-            module_name='lab',
-            capability_key='lab.order',
+    # The chain this test walks - intake, clinical encounter, lab, dispensing,
+    # invoicing - spans five modules, so the package must sell all five. A
+    # tenant granted the lab module alone gets no-rows answers (and a refused
+    # write) on every table only the reception and the doctor touch, which is
+    # the module floor working, not the test failing.
+    for module_name, capability_key in (
+        ('reception', 'visit_create'),
+        ('doctor', 'clinical_encounter'),
+        ('lab', 'lab.order'),
+        ('pharmacy', 'dispense'),
+        ('billing', 'invoice'),
+    ):
+        db.session.add(
+            PackageVersionEntitlement(
+                package_version_id=version.id,
+                module_name=module_name,
+                capability_key=capability_key,
+            )
         )
-    )
     db.session.add(
         PackageVersionAvailability(
             package_version_id=version.id,
