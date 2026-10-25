@@ -1,0 +1,5896 @@
+{
+  "static": {
+    "params": [
+      {
+        "name": "kw",
+        "kind": "VAR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "__health": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "health": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "favicon": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "main.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الصفحة الرئيسية — عرض المنصة والحزم"
+  },
+  "main.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة التحكم الرئيسية - إعادة توجيه صارمة حسب الدور والحزمة النشطة"
+  },
+  "main.package_restricted": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "صفحة رفض الوصول - الدور لا يتطابق مع الحزمة النشطة"
+  },
+  "main.appointments_redirect": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إعادة توجيه المواعيد حسب الدور"
+  },
+  "main.settings": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الإعدادات"
+  },
+  "main.health": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "نقطة فحص الصحة"
+  },
+  "main.api_search": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "البحث في النظام"
+  },
+  "main.api_search_tenants": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "البحث عن المستأجرين (Public - لا يتطلب تسجيل دخول)"
+  },
+  "main.privacy_policy": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "سياسة الخصوصية"
+  },
+  "main.terms_of_use": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "شروط الاستخدام"
+  },
+  "main.technical_support": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الدعم الفني"
+  },
+  "main.about_system": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "حول النظام"
+  },
+  "api_search.search_patients": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "api_dashboard.dashboard_snapshot": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Poll-friendly metrics for [data-widget-id] cards."
+  },
+  "api_user.user_preferences": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "api_lab.cancel_lab_request": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "api_lab.amend_lab_result": {
+    "params": [
+      {
+        "name": "result_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "api_radiology.cancel_radiology_request": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "api_radiology.amend_radiology_result": {
+    "params": [
+      {
+        "name": "result_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "pwa.manifest": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Dynamic manifest with tenant branding when available."
+  },
+  "pwa.offline": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "kiosk.check_in": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "kiosk.api_check_in": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم المنصة — SaaS metrics"
+  },
+  "owner.owner_create_tenant": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Legacy route — redirect to unified SaaS provisioning."
+  },
+  "owner.owner_tenant_detail": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_activate_default_modules": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Activate default modules for a tenant based on their bundle/profile."
+  },
+  "owner.owner_edit_tenant": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Update core tenant details + sync bundle modules if profile changed."
+  },
+  "owner.owner_toggle_tenant_feature": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      },
+      {
+        "name": "feature_key",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Toggle a feature flag for a tenant."
+  },
+  "owner.owner_users": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Cross-tenant user management for platform owners."
+  },
+  "owner.owner_edit_user": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Edit a user across tenants."
+  },
+  "owner.owner_reset_user_password": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_delete_user": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Delete a user."
+  },
+  "owner.owner_toggle_user_active": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Toggle user active/suspended status."
+  },
+  "owner.owner_reveal_user_password": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Restricted password reset-reveal — super_admin only, mandatory security audit."
+  },
+  "owner.owner_modules": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Global module management — view registry and toggle global activation."
+  },
+  "owner.owner_toggle_module_global": {
+    "params": [
+      {
+        "name": "module_name",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Toggle global activation of a module."
+  },
+  "owner.owner_renew_tenant": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_suspend_tenant": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_activate_tenant": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_plans": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_create_plan": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Create a new subscription plan."
+  },
+  "owner.owner_edit_plan": {
+    "params": [
+      {
+        "name": "plan_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Edit a subscription plan."
+  },
+  "owner.owner_delete_plan": {
+    "params": [
+      {
+        "name": "plan_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Delete a subscription plan if no tenants are using it."
+  },
+  "owner.owner_announcements": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_delete_announcement": {
+    "params": [
+      {
+        "name": "announcement_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Delete an announcement by id."
+  },
+  "owner.owner_support_tickets": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_update_ticket": {
+    "params": [
+      {
+        "name": "ticket_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_audit_logs": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_resource_usage": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_notifications": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_create_notification": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_delete_notification": {
+    "params": [
+      {
+        "name": "rule_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Delete a notification rule."
+  },
+  "owner.owner_toggle_notification": {
+    "params": [
+      {
+        "name": "rule_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Toggle is_active on a notification rule."
+  },
+  "owner.owner_branding": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_webhooks": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_delete_webhook": {
+    "params": [
+      {
+        "name": "webhook_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Delete a webhook by id."
+  },
+  "owner.owner_api_keys_page": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة API Keys — صفحة مستقلة (G-141)."
+  },
+  "owner.owner_delete_api_key": {
+    "params": [
+      {
+        "name": "key_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Delete an API key by id."
+  },
+  "owner.owner_themes": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة ثيمات النظام (SystemTheme)."
+  },
+  "owner.owner_delete_theme": {
+    "params": [
+      {
+        "name": "theme_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Delete a theme."
+  },
+  "owner.owner_set_default_theme": {
+    "params": [
+      {
+        "name": "theme_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Set a theme as the default (unset others)."
+  },
+  "owner.owner_billing": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "ملخص الفوترة والإيرادات المتكررة."
+  },
+  "owner.api_tenants": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.api_tenant_modules": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.api_activate_module": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      },
+      {
+        "name": "module_name",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.api_deactivate_module": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      },
+      {
+        "name": "module_name",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.api_update_profile": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.api_toggle_feature": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      },
+      {
+        "name": "feature_key",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_bundles": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الباقات (HTML)"
+  },
+  "owner.api_list_bundles": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "List all product bundles."
+  },
+  "owner.api_get_bundle": {
+    "params": [
+      {
+        "name": "bundle_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Get a single bundle detail."
+  },
+  "owner.api_create_bundle": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Create a new product bundle."
+  },
+  "owner.api_update_bundle": {
+    "params": [
+      {
+        "name": "bundle_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Update a product bundle."
+  },
+  "owner.api_delete_bundle": {
+    "params": [
+      {
+        "name": "bundle_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Delete (deactivate) a product bundle."
+  },
+  "owner.api_provision_tenant": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Create a new tenant via TenantProvisioningService (bundle_slug → PackageVersion)."
+  },
+  "owner.api_tenant_limits": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Get tenant's current resource usage vs bundle limits."
+  },
+  "owner.api_record_usage": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Manually trigger a resource usage snapshot for a tenant."
+  },
+  "owner.owner_packages": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Package Manager UI (UX0-001)."
+  },
+  "owner.owner_create_package": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "owner.owner_create_package_version": {
+    "params": [
+      {
+        "name": "package_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Create a new version of an existing package."
+  },
+  "owner.owner_deprecate_package_version": {
+    "params": [
+      {
+        "name": "version_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Deprecate a package version."
+  },
+  "owner.owner_edit_package": {
+    "params": [
+      {
+        "name": "package_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Edit a package."
+  },
+  "owner.owner_delete_package": {
+    "params": [
+      {
+        "name": "package_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Delete a package if no versions or tenants use it."
+  },
+  "owner.owner_edit_package_version": {
+    "params": [
+      {
+        "name": "version_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Edit a package version."
+  },
+  "owner.owner_delete_package_version": {
+    "params": [
+      {
+        "name": "version_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Delete a package version if no subscriptions use it."
+  },
+  "owner.owner_subscriptions": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Subscription Manager UI (UX0-002)."
+  },
+  "owner.owner_upgrade_subscription": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Upgrade tenant to a new base package version."
+  },
+  "owner.owner_add_addon": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Add an add-on subscription line to a tenant."
+  },
+  "owner.owner_renew_subscription": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Renew the active base line for a tenant."
+  },
+  "owner.owner_cancel_subscription": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Cancel a tenant subscription."
+  },
+  "owner.owner_provision": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Tenant Provisioning UI (UX0-003)."
+  },
+  "owner.owner_tenant_usage": {
+    "params": [
+      {
+        "name": "tenant_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "UX0-006: owner view of a tenant's resource usage dashboard."
+  },
+  "owner.owner_tasks": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Owner task & project overview across tenants."
+  },
+  "owner.owner_monitoring": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Platform health & monitoring dashboard."
+  },
+  "owner.owner_system_config": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Manage arbitrary system configuration keys."
+  },
+  "owner.owner_save_system_config": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Save multiple system config values."
+  },
+  "owner.owner_delete_system_config": {
+    "params": [
+      {
+        "name": "config_key",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Delete a system config key."
+  },
+  "owner.owner_control": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Owner control panel for platform switches and configuration."
+  },
+  "owner.owner_control_toggle": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Toggle a platform-level switch."
+  },
+  "owner.owner_emergency_switches": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Emergency system switches (kill-switches)."
+  },
+  "owner.owner_emergency_toggle": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Toggle an emergency switch."
+  },
+  "owner.owner_backups": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Owner view of platform-wide backups."
+  },
+  "owner.owner_list_assumptions": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "List active tenant assumptions."
+  },
+  "owner.owner_create_assumption": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Create a new tenant assumption for a platform user."
+  },
+  "owner.owner_revoke_assumption": {
+    "params": [
+      {
+        "name": "assumption_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Revoke an active tenant assumption."
+  },
+  "owner.owner_tenant_list": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Tenant list — redirects from /owner/tenants to proper route."
+  },
+  "owner.owner_users_list": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Users list — alias for /owner/users"
+  },
+  "owner.owner_error_audit_logs": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Error audit logs page."
+  },
+  "owner.owner_company_info": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Platform company info page."
+  },
+  "owner.owner_integrations": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Platform integrations management."
+  },
+  "owner.owner_cards_vault": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Payment cards vault management."
+  },
+  "owner.owner_system_stats": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Platform system statistics."
+  },
+  "owner.owner_reports": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Platform-wide reports for owner."
+  },
+  "owner.owner_payment_vault": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Payment vault - alias for cards vault."
+  },
+  "owner.owner_error_logs": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Error logs - alias for error-audit-logs."
+  },
+  "auth.api_tenants_list": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "\n    إرجاع قائمة التينانتس النشطة لاختيار المنشأة في صفحة الدخول.\n    يستخدمها Owner/SuperAdmin فقط، أو عند الدخول بدون سياق تينانت.\n    "
+  },
+  "auth.login": {
+    "params": [],
+    "return_annotation": "typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], typing.Union[ForwardRef('Headers'), typing.Mapping[str, typing.Union[str, list[str], tuple[str, ...]]], typing.Sequence[tuple[str, typing.Union[str, list[str], tuple[str, ...]]]]]], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], int], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], int, typing.Union[ForwardRef('Headers'), typing.Mapping[str, typing.Union[str, list[str], tuple[str, ...]]], typing.Sequence[tuple[str, typing.Union[str, list[str], tuple[str, ...]]]]]], ForwardRef('WSGIApplication')]",
+    "docstring": "تسجيل الدخول"
+  },
+  "auth.logout": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تسجيل الخروج"
+  },
+  "auth.profile": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "ملف المستخدم الشخصي"
+  },
+  "auth.change_password": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تغيير كلمة المرور"
+  },
+  "auth.forgot_password": {
+    "params": [],
+    "return_annotation": "typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], typing.Union[ForwardRef('Headers'), typing.Mapping[str, typing.Union[str, list[str], tuple[str, ...]]], typing.Sequence[tuple[str, typing.Union[str, list[str], tuple[str, ...]]]]]], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], int], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], int, typing.Union[ForwardRef('Headers'), typing.Mapping[str, typing.Union[str, list[str], tuple[str, ...]]], typing.Sequence[tuple[str, typing.Union[str, list[str], tuple[str, ...]]]]]], ForwardRef('WSGIApplication')]",
+    "docstring": "طلب إعادة تعيين كلمة المرور - يرسل رمزاً بالبريد الإلكتروني أو واتساب"
+  },
+  "auth.reset_password": {
+    "params": [
+      {
+        "name": "token",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'str'>"
+      },
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], typing.Union[ForwardRef('Headers'), typing.Mapping[str, typing.Union[str, list[str], tuple[str, ...]]], typing.Sequence[tuple[str, typing.Union[str, list[str], tuple[str, ...]]]]]], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], int], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], int, typing.Union[ForwardRef('Headers'), typing.Mapping[str, typing.Union[str, list[str], tuple[str, ...]]], typing.Sequence[tuple[str, typing.Union[str, list[str], tuple[str, ...]]]]]], ForwardRef('WSGIApplication')]",
+    "docstring": "صفحة إعادة تعيين كلمة المرور برمز مؤقت"
+  },
+  "auth.impersonate": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Owner impersonates another user for visual inspection"
+  },
+  "auth.impersonate_exit": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Exit impersonation and return to owner session"
+  },
+  "auth.register": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Register - redirects to SaaS signup for public registration"
+  },
+  "super_admin.performance": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "مراقبة الأداء"
+  },
+  "super_admin.reports": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "مركز التقارير الموحد"
+  },
+  "super_admin.analytics": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "\n    التحليلات المتقدمة - Cross-tenant queries for super_admin dashboard.\n\n    NOTE: These queries intentionally run across all tenants for the super_admin\n    dashboard. Access is restricted to super_admin role only.\n    "
+  },
+  "super_admin.system_monitor": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "مراقب النظام المتقدم"
+  },
+  "super_admin.api_audit_log": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API لتسجيل الأحداث"
+  },
+  "super_admin.api_recent_activities": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API للحصول على النشاطات الأخيرة"
+  },
+  "super_admin.api_ai_assistant": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API للمساعد الذكي المتطور - محرك واحد موحد"
+  },
+  "super_admin.backup": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "النسخ الاحتياطي - عرض القائمة والإحصائيات"
+  },
+  "super_admin.create_backup": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء نسخة احتياطية PostgreSQL عبر pg_dump"
+  },
+  "super_admin.restore_backup": {
+    "params": [
+      {
+        "name": "backup_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "استعادة نسخة احتياطية"
+  },
+  "super_admin.delete_backup": {
+    "params": [
+      {
+        "name": "backup_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "حذف نسخة احتياطية"
+  },
+  "super_admin.cancel_backup": {
+    "params": [
+      {
+        "name": "backup_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إلغاء (أو تحديث حالة) نسخة احتياطية عالقة"
+  },
+  "super_admin.backup_schedule": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة جدولة النسخ الاحتياطي"
+  },
+  "super_admin.backup_report": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "عرض تقرير النسخ الاحتياطي"
+  },
+  "super_admin.export_backup_logs": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تصدير سجلات النسخ الاحتياطي CSV"
+  },
+  "super_admin.backup_history": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API للحصول على تاريخ النسخ الاحتياطي"
+  },
+  "super_admin.branding": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة العلامة التجارية والشعارات"
+  },
+  "super_admin.branding_print_preview": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "iframe معاينة ترويسة المستندات (Gate 5)."
+  },
+  "super_admin.apply_branding_theme": {
+    "params": [
+      {
+        "name": "theme_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تطبيق ألوان ثيم على إعدادات العلامة التجارية."
+  },
+  "super_admin.update_branding": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تحديث إعدادات العلامة التجارية"
+  },
+  "super_admin.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة السوبر أدمن الذكية المتقدمة"
+  },
+  "super_admin.branch_templates": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.data_warehouse": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.data_warehouse_export": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.export_system_data": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تصدير بيانات النظام"
+  },
+  "super_admin.download_export": {
+    "params": [
+      {
+        "name": "filename",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تحميل ملف التصدير"
+  },
+  "super_admin.departments": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الأقسام"
+  },
+  "super_admin.create_department": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء قسم جديد"
+  },
+  "super_admin.view_department": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "عرض تفاصيل قسم"
+  },
+  "super_admin.edit_department": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تعديل قسم"
+  },
+  "super_admin.department_staff": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إدارة موظفي القسم"
+  },
+  "super_admin.add_staff_to_department": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إضافة موظف للقسم"
+  },
+  "super_admin.remove_staff_from_department": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إزالة موظف من القسم"
+  },
+  "super_admin.activate_department": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تفعيل قسم"
+  },
+  "super_admin.deactivate_department": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إلغاء تفعيل قسم"
+  },
+  "super_admin.export_departments": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تصدير الأقسام"
+  },
+  "super_admin.roles": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "عرض جميع الأدوار"
+  },
+  "super_admin.create_role": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء دور جديد"
+  },
+  "super_admin.edit_role": {
+    "params": [
+      {
+        "name": "role_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تعديل دور"
+  },
+  "super_admin.manage_role_permissions": {
+    "params": [
+      {
+        "name": "role_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إدارة صلاحيات الدور"
+  },
+  "super_admin.manage_role_department_permissions": {
+    "params": [
+      {
+        "name": "role_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.permissions_matrix": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.delete_role": {
+    "params": [
+      {
+        "name": "role_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "حذف دور"
+  },
+  "super_admin.permissions": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الصلاحيات"
+  },
+  "super_admin.create_permission": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء صلاحية جديدة"
+  },
+  "super_admin.edit_permission": {
+    "params": [
+      {
+        "name": "permission_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تعديل صلاحية"
+  },
+  "super_admin.delete_permission": {
+    "params": [
+      {
+        "name": "permission_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "حذف صلاحية"
+  },
+  "super_admin.create_role_simple": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء دور جديد (مبسط)"
+  },
+  "super_admin.create_permission_simple": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء صلاحية جديدة (مبسط)"
+  },
+  "super_admin.security_logs": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "سجلات الأمان"
+  },
+  "super_admin.audit_trail": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "سجل التدقيق - PHI Audit Log Viewer"
+  },
+  "super_admin.security_center": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.list_security_logs": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Paginated, filtered security event feed (AuditTrail ∪ LoginAttempt).\n\n    Query params: page, page_size, action, user_id, severity,\n                  date_from, date_to, q (free text on username/description/notes).\n    "
+  },
+  "super_admin.security_summary": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "KPI tiles for the top of the console."
+  },
+  "super_admin.pricing": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الأسعار المركزية (واجهة متطورة)"
+  },
+  "super_admin.services": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الخدمات"
+  },
+  "super_admin.create_service": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء خدمة جديدة"
+  },
+  "super_admin.view_service": {
+    "params": [
+      {
+        "name": "service_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "عرض تفاصيل خدمة"
+  },
+  "super_admin.edit_service": {
+    "params": [
+      {
+        "name": "service_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تعديل خدمة"
+  },
+  "super_admin.service_pricing": {
+    "params": [
+      {
+        "name": "service_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إدارة تسعير الخدمة"
+  },
+  "super_admin.activate_service": {
+    "params": [
+      {
+        "name": "service_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تفعيل خدمة"
+  },
+  "super_admin.deactivate_service": {
+    "params": [
+      {
+        "name": "service_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إلغاء تفعيل خدمة"
+  },
+  "super_admin.export_services": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تصدير الخدمات"
+  },
+  "super_admin.subscription_status": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "UX0-004: widget showing subscription status for tenant users."
+  },
+  "super_admin.change_plan": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "UX0-005: self-service upgrade/downgrade for tenant admin."
+  },
+  "super_admin.system_config": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إعدادات النظام"
+  },
+  "super_admin.queue_settings": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.system_backup": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "النسخ الاحتياطية"
+  },
+  "super_admin.system_maintenance": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "صيانة النظام"
+  },
+  "super_admin.system_cleanup": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تنظيف النظام"
+  },
+  "super_admin.test_sms": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إرسال رسالة SMS تجريبية"
+  },
+  "super_admin.process_notification_queue_route": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "معالجة طابور الإشعارات المعلق"
+  },
+  "super_admin.run_notifications": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.init_notification_templates": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.system": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إعدادات النظام"
+  },
+  "super_admin.save_backup_settings": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "حفظ إعدادات النسخ الاحتياطي العامة"
+  },
+  "super_admin.maintenance_automation": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.tenant_usage": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "UX0-006: tenant admin view of resource usage."
+  },
+  "super_admin.users": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.create_user": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء مستخدم جديد"
+  },
+  "super_admin.edit_user": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تعديل مستخدم"
+  },
+  "super_admin.delete_user": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "حذف مستخدم"
+  },
+  "super_admin.seed_users": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.reset_user_password": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "super_admin.ban_user": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "حظر مستخدم"
+  },
+  "super_admin.unban_user": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إلغاء حظر مستخدم"
+  },
+  "super_admin.force_logout_user": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إجبار مستخدم على تسجيل الخروج"
+  },
+  "reception.waiting_display": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.calls_display": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.queue_management": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الطابور الموحد - الوحدة المركزية"
+  },
+  "reception.add_patient_to_queue": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إضافة مريض إلى الطابور - الوحدة المركزية"
+  },
+  "reception.call_next_patient": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "استدعاء المريض التالي"
+  },
+  "reception.start_treatment": {
+    "params": [
+      {
+        "name": "ticket_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "بدء العلاج"
+  },
+  "reception.complete_treatment": {
+    "params": [
+      {
+        "name": "ticket_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إكمال العلاج"
+  },
+  "reception.skip_patient": {
+    "params": [
+      {
+        "name": "ticket_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تخطي المريض"
+  },
+  "reception.return_to_queue": {
+    "params": [
+      {
+        "name": "ticket_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إرجاع المريض للطابور"
+  },
+  "reception.cancel_ticket": {
+    "params": [
+      {
+        "name": "ticket_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إلغاء التذكرة"
+  },
+  "reception.approve_emergency_debt": {
+    "params": [
+      {
+        "name": "ticket_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "الموافقة على دين الطوارئ"
+  },
+  "reception.approve_force_entry": {
+    "params": [
+      {
+        "name": "ticket_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "الموافقة على الدخول القوي"
+  },
+  "reception.get_smart_queue_management": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "None",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إدارة الطابور الذكية"
+  },
+  "reception.save_queue_settings": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "حفظ إعدادات الطابور للقسم"
+  },
+  "reception.api_doctors": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API لجلب الأطباء"
+  },
+  "reception.api_department_staff": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API لجلب موظفي القسم المناسبين"
+  },
+  "reception.api_department_services": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.api_queue_status": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "API لحالة الطابور"
+  },
+  "reception.api_queue_status_all": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.api_queue_wait_metrics": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.api_fhir_patient": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تصدير بيانات المريض بصيغة FHIR Patient (مبسطة)"
+  },
+  "reception.api_fhir_encounter": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.api_fhir_appointment": {
+    "params": [
+      {
+        "name": "appointment_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.api_fhir_practitioner": {
+    "params": [
+      {
+        "name": "user_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.api_fhir_organization": {
+    "params": [
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.api_patient_queue_position": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      },
+      {
+        "name": "department_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "API لموقع المريض في الطابور"
+  },
+  "reception.api_queue_snapshot": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.api_display_waiting": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.api_display_calls": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.checkin_online_booking": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.checkin_appointment": {
+    "params": [
+      {
+        "name": "appointment_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.appointments": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "قائمة المواعيد - الوحدة المركزية"
+  },
+  "reception.follow_ups": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.confirm_appointment": {
+    "params": [
+      {
+        "name": "appointment_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.cancel_appointment": {
+    "params": [
+      {
+        "name": "appointment_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.no_show_appointment": {
+    "params": [
+      {
+        "name": "appointment_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.create_appointment": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء موعد جديد - الوحدة المركزية"
+  },
+  "reception.view_appointment": {
+    "params": [
+      {
+        "name": "appointment_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "عرض تفاصيل الموعد - الوحدة المركزية"
+  },
+  "reception.edit_appointment": {
+    "params": [
+      {
+        "name": "appointment_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تعديل الموعد - الوحدة المركزية"
+  },
+  "reception.api_available_times": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API لجلب الأوقات المتاحة"
+  },
+  "reception.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "توجيه تلقائي إلى لوحة التحكم"
+  },
+  "reception.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة قيادة الاستقبال — Command Center"
+  },
+  "reception.reception_staff_schedule": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.reception_staff_absence": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.survey": {
+    "params": [
+      {
+        "name": "token",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.patients": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "قائمة المرضى - الوحدة المركزية"
+  },
+  "reception.add_patient": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إضافة مريض جديد - الوحدة المركزية"
+  },
+  "reception.view_patient": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "عرض تفاصيل المريض - الوحدة المركزية"
+  },
+  "reception.edit_patient": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تعديل بيانات المريض - الوحدة المركزية"
+  },
+  "reception.delete_patient": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.api_smart_patient_search": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API للبحث الذكي عن المرضى — يفوّض إلى SearchService الموحّد."
+  },
+  "reception.add_patient_allergy": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Add an allergy record for a patient."
+  },
+  "reception.add_patient_problem": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Add a problem/diagnosis record for a patient."
+  },
+  "reception.toggle_problem_status": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      },
+      {
+        "name": "problem_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Toggle a problem between ACTIVE and RESOLVED."
+  },
+  "reception.pos_charge": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.process_payment": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.print_receipt": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة سند القبض - الوحدة المركزية"
+  },
+  "reception.print_invoice": {
+    "params": [
+      {
+        "name": "invoice_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة الفاتورة"
+  },
+  "reception.print_prescription": {
+    "params": [
+      {
+        "name": "prescription_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة الروشتة الطبية"
+  },
+  "reception.payments": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "المدفوعات"
+  },
+  "reception.cash_register": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "سجل الصندوق اليومي"
+  },
+  "reception.daily_close": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إغلاق اليومية"
+  },
+  "reception.visits": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "قائمة الزيارات - الوحدة المركزية"
+  },
+  "reception.archive_visit": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.end_visit": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.export_visits": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.transfer_visit": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.create_visit": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء زيارة جديدة - الوحدة المركزية المحسّنة"
+  },
+  "reception.view_visit": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "عرض تفاصيل الزيارة - الوحدة المركزية"
+  },
+  "reception.api_visit_pricing": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API لحساب تكلفة الزيارة حسب إعدادات المدير"
+  },
+  "reception.edit_visit": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "reception.add_service_to_visit": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إضافة خدمة إلى زيارة بدون إعادة فتح العلاج (Ticket 7)."
+  },
+  "reception.reception_return_to_treatment": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إعادة فتح زيارة منتهية للعلاج — استقبال فقط، COMPLETED → OPEN، مع تدقيق."
+  },
+  "doctor.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.appointments": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "المواعيد — مع إحصائيات وتصفح"
+  },
+  "doctor.dashboard_new": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم الطبيب البسيطة — الإصدار المُحسّن"
+  },
+  "doctor.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة قيادة الطبيب — Command Center"
+  },
+  "doctor.dashboard_for_doctor": {
+    "params": [
+      {
+        "name": "doctor_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم لطبيب محدد (عرض إداري)"
+  },
+  "doctor.api_dashboard_stats": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إحصائيات حية للوحة التحكم"
+  },
+  "doctor.api_today_visits": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "قائمة زيارات اليوم للوحة التحكم الحية"
+  },
+  "doctor.diagnosis": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إدخال التشخيص"
+  },
+  "doctor.lab_request": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.lab_results": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "عرض نتائج المختبر للطبيب — للإطلاع فقط"
+  },
+  "doctor.lab_requests": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.notes": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "كتابة الملاحظات الطبية"
+  },
+  "doctor.api_note_templates": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.api_dashboard_layout": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.upsert_note_template": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.delete_note_template": {
+    "params": [
+      {
+        "name": "template_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'str'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.medical_history": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "السجل الطبي للمريض"
+  },
+  "doctor.prescriptions_history": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تاريخ الوصفات الطبية للمريض"
+  },
+  "doctor.print_medical_report": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة التقرير الطبي"
+  },
+  "doctor.patients": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "بحث المرضى للطبيب (قراءة فقط)"
+  },
+  "doctor.patient_timeline": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.medical_records": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "السجلات الطبية — تُحوِّل لقائمة المرضى لاختيار مريض (لا قالب تفاصيل بلا بيانات)."
+  },
+  "doctor.api_patient_search": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.dental_chart": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "خريطة الأسنان التفاعلية"
+  },
+  "doctor.save_dental_chart": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "حفظ خريطة الأسنان"
+  },
+  "doctor.prescription": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "كتابة الوصفة الطبية"
+  },
+  "doctor.print_prescription": {
+    "params": [
+      {
+        "name": "prescription_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة الوصفة الطبية\n    Solo doctors print their own prescriptions without requiring the pharmacy\n    module; ownership is enforced so doctors cannot print each other's work.\n    "
+  },
+  "doctor.prescriptions": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الوصفات الطبية — قائمة الوصفات الخاصة بالطبيب"
+  },
+  "doctor.print_invoice": {
+    "params": [
+      {
+        "name": "invoice_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة الفاتورة للطبيب المنفرد (مريضه فقط، تتطلب billing)."
+  },
+  "doctor.print_receipt": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة الإيصال للطبيب المنفرد (مريضه فقط، تتطلب billing)."
+  },
+  "doctor.patient_queue": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "طابور المرضى للطبيب - إدارة متقدمة"
+  },
+  "doctor.call_patient": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "استدعاء مريض محدد للعلاج"
+  },
+  "doctor.radiology_request": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.radiology_results": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "عرض نتائج الأشعة للطبيب — للإطلاع فقط"
+  },
+  "doctor.radiology_requests": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.start_treatment": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "بدء علاج المريض"
+  },
+  "doctor.patient_details": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تفاصيل المريض والزيارة للطبيب"
+  },
+  "doctor.view_patient": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "doctor.visit_summary": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "ملخص الزيارة"
+  },
+  "doctor.save_visit_summary": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "حفظ ملخص الزيارة (تشخيص، خطة علاج، متابعة)"
+  },
+  "doctor.end_treatment": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إنهاء العلاج"
+  },
+  "doctor.visits": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "قائمة الزيارات — تُحوِّل لطابور المرضى لاختيار زيارة (لا قالب تفاصيل بلا بيانات)."
+  },
+  "emergency.api_ems_intake": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emergency.list_emergency_cases": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "حالات الطوارئ"
+  },
+  "emergency.view_emergency_case": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emergency.edit_emergency_case": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emergency.resolve_emergency_case": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emergency.create_emergency_case": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emergency.convert_emergency_case": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emergency.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emergency.reports": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emergency.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم الطوارئ الاحترافية"
+  },
+  "emergency.prescription": {
+    "params": [
+      {
+        "name": "emergency_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "وصفة طبية للطوارئ"
+  },
+  "emergency.lab_request": {
+    "params": [
+      {
+        "name": "emergency_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طلب فحوصات للطوارئ"
+  },
+  "emergency.radiology_request": {
+    "params": [
+      {
+        "name": "emergency_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طلب أشعة للطوارئ"
+  },
+  "emergency.print_prescription": {
+    "params": [
+      {
+        "name": "prescription_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة الوصفة الطبية للطوارئ"
+  },
+  "emergency.patient_details": {
+    "params": [
+      {
+        "name": "emergency_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تفاصيل حالة الطوارئ"
+  },
+  "emergency.medical_history": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "السجل الطبي للمريض في الطوارئ"
+  },
+  "emergency.prescriptions_history": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تاريخ الوصفات الطبية للمريض في الطوارئ"
+  },
+  "emergency.lab_results": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "نتائج المختبر للمريض في الطوارئ"
+  },
+  "emergency.radiology_results": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "نتائج الأشعة للمريض في الطوارئ"
+  },
+  "emergency.patient_queue": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "طابور المرضى في الطوارئ - إدارة متقدمة"
+  },
+  "emergency.triage_list": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "قائمة الفرز"
+  },
+  "emergency.triage": {
+    "params": [
+      {
+        "name": "emergency_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تقييم حالة المريض (Triage)"
+  },
+  "emergency.patients": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "مرضى الطوارئ — تُحوِّل لطابور المرضى الكامل (يبني queue_stats)."
+  },
+  "emergency.queue": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "طابور الطوارئ — تُحوِّل لطابور المرضى الكامل (يبني queue_stats)."
+  },
+  "emergency.emergency_report": {
+    "params": [
+      {
+        "name": "emergency_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تقرير الطوارئ"
+  },
+  "emergency.print_emergency_report": {
+    "params": [
+      {
+        "name": "emergency_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة تقرير الطوارئ"
+  },
+  "emergency.treatment": {
+    "params": [
+      {
+        "name": "emergency_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "علاج الطوارئ"
+  },
+  "emergency.end_treatment": {
+    "params": [
+      {
+        "name": "emergency_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "إنهاء العلاج في الطوارئ"
+  },
+  "emergency.start_treatment": {
+    "params": [
+      {
+        "name": "emergency_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "بدء علاج حالة الطوارئ"
+  },
+  "emergency.emergency_visits": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emergency.emergency_treatment": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emergency.complete_visit": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.barcode_scan": {
+    "params": [
+      {
+        "name": "barcode",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Scan a barcode — lookup LabRequest, log scan, optionally update status."
+  },
+  "lab.barcode_print": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Show a print page with the barcode QR image."
+  },
+  "lab.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم المختبر الذكية"
+  },
+  "lab.api_worklist": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.api_fhir_lab_service_request": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.api_fhir_lab_observation_import": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.api_hl7_import": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.api_fhir_lab_observation": {
+    "params": [
+      {
+        "name": "result_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تصدير نتيجة مختبر بصيغة FHIR Observation وربطها بـ Encounter"
+  },
+  "lab.api_fhir_lab_diagnostic_report": {
+    "params": [
+      {
+        "name": "result_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تصدير تقرير مختبر بصيغة FHIR DiagnosticReport وربطه بـ Encounter"
+  },
+  "lab.lis_preview": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.lis_confirm": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.quality": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.quality_control": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.reagents": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.add_reagent": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.edit_reagent": {
+    "params": [
+      {
+        "name": "reagent_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.reports": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تقارير المختبر"
+  },
+  "lab.print_request": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة تقرير طلب المختبر"
+  },
+  "lab.print_request_pdf": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تنزيل تقرير طلب المختبر كـ PDF"
+  },
+  "lab.test_catalog": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.test_catalog_add": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.test_catalog_edit": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.test_catalog_delete": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.test_panels": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.test_panels_add": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.test_panels_edit": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.test_panels_delete": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.api_test_catalog": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.api_test_catalog_item": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.requests": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "طلبات المختبر"
+  },
+  "lab.results": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "نتائج المختبر"
+  },
+  "lab.tests": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الفحوصات"
+  },
+  "lab.worklist": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.worklist_request": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.worklist_claim": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "lab.worklist_complete": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم الأشعة الذكية"
+  },
+  "radiology.api_worklist": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.api_fhir_radiology_observation": {
+    "params": [
+      {
+        "name": "result_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.api_fhir_radiology_diagnostic_report": {
+    "params": [
+      {
+        "name": "result_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تصدير تقرير أشعة بصيغة FHIR DiagnosticReport وربطه بـ Encounter"
+  },
+  "radiology.api_fhir_imaging_study": {
+    "params": [
+      {
+        "name": "result_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تصدير دراسة تصويرية بصيغة FHIR ImagingStudy وربطها بـ Encounter"
+  },
+  "radiology.images": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "صور الأشعة — تُحوِّل لقائمة عمل الأشعة (لا قالب تفاصيل بلا بيانات)."
+  },
+  "radiology.download_file": {
+    "params": [
+      {
+        "name": "file_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.quality": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.api_ai_assist": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.second_review_result": {
+    "params": [
+      {
+        "name": "result_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.reports": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تقارير الأشعة"
+  },
+  "radiology.print_report": {
+    "params": [
+      {
+        "name": "radiology_scan_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "None",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة تقرير الأشعة"
+  },
+  "radiology.print_report_pdf": {
+    "params": [
+      {
+        "name": "radiology_scan_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "None",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تنزيل تقرير الأشعة كـ PDF"
+  },
+  "radiology.requests": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "طلبات الأشعة"
+  },
+  "radiology.tests": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "فحوصات الأشعة"
+  },
+  "radiology.add_scan_post": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إضافة فحص أشعة (نقطة إرسال الفورم)"
+  },
+  "radiology.results": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "نتائج الأشعة"
+  },
+  "radiology.api_report_templates": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.upsert_report_template": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.delete_report_template": {
+    "params": [
+      {
+        "name": "template_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'str'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.api_report_macros": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.upsert_report_macro": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.delete_report_macro": {
+    "params": [
+      {
+        "name": "macro_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'str'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.worklist": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.worklist_request": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.worklist_claim": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "radiology.worklist_complete": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "finance.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "finance.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم المالية"
+  },
+  "finance.post_gl": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الترحيل المالي - Finance فقط"
+  },
+  "finance.archive_visit": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "أرشفة الزيارة - Finance route disabled for admin/manager.\n\n    Ticket 1: Reception alone controls the administrative archive decision.\n    Accountant/admin/manager may process payment/GL but must not archive visits.\n    Use routes/reception/visits.py for reception-initiated archive.\n    "
+  },
+  "finance.payments": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "عرض المدفوعات"
+  },
+  "finance.invoices": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "عرض الفواتير"
+  },
+  "finance.audit": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "عرض التدقيق المالي"
+  },
+  "finance.slow_queries": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "finance.slow_queries_weekly": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "finance.slow_queries_weekly_detail": {
+    "params": [
+      {
+        "name": "report_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "finance.capture_slow_queries_weekly": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "accountant.daily_audit_report": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تقرير التدقيق اليومي"
+  },
+  "accountant.monthly_audit_report": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تقرير التدقيق الشهري"
+  },
+  "accountant.debt_tracking_report": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تقرير تتبع الديون"
+  },
+  "accountant.export_audit_report": {
+    "params": [
+      {
+        "name": "report_type",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تصدير تقرير التدقيق"
+  },
+  "accountant.index": {
+    "params": [],
+    "return_annotation": "str",
+    "docstring": "توجيه تلقائي إلى لوحة التحكم."
+  },
+  "accountant.dashboard": {
+    "params": [],
+    "return_annotation": "str",
+    "docstring": "لوحة تحكم المحاسب — Command Center tenant-isolated."
+  },
+  "accountant.api_erp_export": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "accountant.financial_report": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "التقرير المالي"
+  },
+  "accountant.daily_summary": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الملخص اليومي"
+  },
+  "accountant.reports": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "التقارير المالية"
+  },
+  "accountant.accounts": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "دليل الحسابات"
+  },
+  "accountant.journals": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الدفتر اليومي"
+  },
+  "accountant.trial_balance": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الميزانية المرجعية"
+  },
+  "accountant.account_ledger": {
+    "params": [
+      {
+        "name": "account_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "الدفتر التفصيلي للحساب"
+  },
+  "accountant.close_period": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إغلاق فترة مالية"
+  },
+  "accountant.refund_requests": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "قائمة طلبات الاسترداد"
+  },
+  "accountant.refund_approve": {
+    "params": [
+      {
+        "name": "refund_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "accountant.refund_reject": {
+    "params": [
+      {
+        "name": "refund_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "accountant.refund_execute": {
+    "params": [
+      {
+        "name": "refund_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "accountant.patient_accounts": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "سجل حسابات المرضى / الأرصدة"
+  },
+  "accountant.invoices": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الفواتير"
+  },
+  "accountant.financial": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الإدارة المالية"
+  },
+  "accountant.open_invoices": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الفواتير المفتوحة"
+  },
+  "accountant.payments": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "سجل المدفوعات"
+  },
+  "accountant.payment_documentation": {
+    "params": [
+      {
+        "name": "payment_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "توثيق الدفع"
+  },
+  "accountant.receipt": {
+    "params": [
+      {
+        "name": "payment_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "طباعة وصل القبض"
+  },
+  "backup.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم النسخ الاحتياطي"
+  },
+  "backup.create_backup": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء نسخة احتياطية جديدة"
+  },
+  "backup.list_backups": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "backup.restore_backup": {
+    "params": [
+      {
+        "name": "backup_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "backup.download_backup": {
+    "params": [
+      {
+        "name": "backup_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "backup.delete_backup": {
+    "params": [
+      {
+        "name": "backup_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "manager.api_what_if": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "manager.force_payment_approvals": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "صفحة موافقات الدفع القسري"
+  },
+  "manager.approve_force_payment": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "الموافقة على دفع قسري"
+  },
+  "manager.reject_force_payment": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "رفض دفع قسري"
+  },
+  "manager.custom_service_approvals": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "صفحة موافقات الخدمات المخصصة"
+  },
+  "manager.approve_custom_service": {
+    "params": [
+      {
+        "name": "service_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "الموافقة على خدمة مخصصة وتحويلها إلى كتالوج قابل لإعادة الاستخدام"
+  },
+  "manager.reject_custom_service": {
+    "params": [
+      {
+        "name": "service_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "رفض خدمة مخصصة (تبقى غير نشطة ولا تُستخدم في الكتالوج)"
+  },
+  "manager.manager_branding": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Tenant-level branding settings — header/footer HTML, colors, logo, tax/license."
+  },
+  "manager.manager_branding_preview": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Preview print template with current tenant branding."
+  },
+  "manager.dashboard": {
+    "params": [],
+    "return_annotation": "typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], typing.Union[ForwardRef('Headers'), typing.Mapping[str, typing.Union[str, list[str], tuple[str, ...]]], typing.Sequence[tuple[str, typing.Union[str, list[str], tuple[str, ...]]]]]], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], int], tuple[typing.Union[ForwardRef('Response'), str, bytes, list[typing.Any], typing.Mapping[str, typing.Any], typing.Iterator[str], typing.Iterator[bytes], collections.abc.AsyncIterable[str], collections.abc.AsyncIterable[bytes]], int, typing.Union[ForwardRef('Headers'), typing.Mapping[str, typing.Union[str, list[str], tuple[str, ...]]], typing.Sequence[tuple[str, typing.Union[str, list[str], tuple[str, ...]]]]]], ForwardRef('WSGIApplication')]",
+    "docstring": "لوحة تحكم المدير — Command Center"
+  },
+  "manager.departments": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الأقسام"
+  },
+  "manager.settlements": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تسويات شهرية/فترية حسب القسم أو الطبيب"
+  },
+  "manager.settlements_export": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تصدير التسوية CSV طبقاً للفلاتر"
+  },
+  "manager.financial_reports": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "التقارير المالية"
+  },
+  "manager.budget_dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الميزانية - Budget vs Actual"
+  },
+  "manager.monthly_comparison": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "مقارنة شهرية - MoM / YoY"
+  },
+  "manager.exchange_rates": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة أسعار الصرف"
+  },
+  "manager.fetch_api_exchange_rates": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "جلب أسعار الصرف من API خارجي"
+  },
+  "manager.deactivate_exchange_rate": {
+    "params": [
+      {
+        "name": "rate_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تعطيل سعر صرف"
+  },
+  "manager.pricing": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الأسعار"
+  },
+  "manager.get_services_api": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API لجلب كافة الخدمات"
+  },
+  "manager.add_service_api": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API لإضافة خدمة جديدة"
+  },
+  "manager.update_service_api": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "API لتحديث خدمة"
+  },
+  "manager.delete_service_api": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "API لحذف خدمة"
+  },
+  "manager.seed_pricing": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إضافة مجموعة أسعار مقترحة"
+  },
+  "manager.reports": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "التقارير"
+  },
+  "manager.reports_center": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "manager.analytics": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "التحليلات"
+  },
+  "manager.self_service": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "manager.kpi_dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة مؤشرات الأداء"
+  },
+  "manager.drill_down": {
+    "params": [
+      {
+        "name": "report_type",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تقارير drill-down"
+  },
+  "manager.patient_satisfaction_dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة رضا المرضى"
+  },
+  "manager.manager_settings": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "manager.manager_test_sms": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "manager.unit_control": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "التحكم في الوحدات — real data from TenantModule + MODULE_REGISTRY"
+  },
+  "manager.unit_toggle": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Toggle module is_active for the current tenant."
+  },
+  "manager.user_management": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة المستخدمين"
+  },
+  "manager.staff_schedule": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "manager.staff_absence": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "manager.staff_capacity": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "manager.staff": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الموظفين"
+  },
+  "booking.register": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "booking.dashboard_portal": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "booking.cancel_booking": {
+    "params": [
+      {
+        "name": "booking_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "booking.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "صفحة الحجز الرئيسية"
+  },
+  "booking.create_booking": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إنشاء حجز جديد"
+  },
+  "booking.confirmation": {
+    "params": [
+      {
+        "name": "booking_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تأكيد الحجز"
+  },
+  "booking.telemedicine_room": {
+    "params": [
+      {
+        "name": "booking_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "booking.payment": {
+    "params": [
+      {
+        "name": "booking_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "دفع رسوم الحجز"
+  },
+  "booking.api_available_doctors": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API لجلب الأطباء المتاحين مع تصفية حسب القسم ونوع الموعد (اختياري)"
+  },
+  "booking.api_available_times": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API لجلب الأوقات المتاحة"
+  },
+  "booking.api_smart_slots": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.list_medications": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "قائمة الأدوية"
+  },
+  "medication.add_medication": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إضافة دواء جديد"
+  },
+  "medication.edit_medication": {
+    "params": [
+      {
+        "name": "medication_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تعديل دواء"
+  },
+  "medication.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم الأدوية"
+  },
+  "medication.api_external_drug_import": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.api_external_drug_search": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.consumption_report": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.interactions": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.toggle_interaction": {
+    "params": [
+      {
+        "name": "interaction_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.stock_alerts": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تنبيهات المخزون"
+  },
+  "medication.supply_requests": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.create_supply_request": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.view_supply_request": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.approve_supply_request": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.fulfill_supply_request": {
+    "params": [
+      {
+        "name": "request_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.pos": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Point of Sale interface"
+  },
+  "medication.pharmacy_pos_charge": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Charge card via local POS terminal (same device as reception)."
+  },
+  "medication.api_medications_search": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.pos_sell": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Process a POS sale (no patient required)"
+  },
+  "medication.sales_history": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.sale_detail": {
+    "params": [
+      {
+        "name": "sale_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.print_sale_receipt": {
+    "params": [
+      {
+        "name": "sale_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Printable pharmacy sale receipt on print_base (G-114)."
+  },
+  "medication.api_sales_list": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.api_sales_totals": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.api_sales_report": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.sale_receipt": {
+    "params": [
+      {
+        "name": "sale_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.prescriptions": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الروشتات"
+  },
+  "medication.api_prescriptions": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.dispense_prescription": {
+    "params": [
+      {
+        "name": "prescription_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.suppliers": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.add_supplier": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.edit_supplier": {
+    "params": [
+      {
+        "name": "supplier_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.delete_supplier": {
+    "params": [
+      {
+        "name": "supplier_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.purchases": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "medication.add_purchase": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "procurement.list_purchases": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "PO list — every MedicationPurchase row is a PO line item."
+  },
+  "procurement.new_po_form": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "procurement.create_po": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "procurement.receive_po": {
+    "params": [
+      {
+        "name": "purchase_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Receive a PO line → stock increment.\n\n    Idempotency: the service rejects lines already fully received\n    (remaining_quantity == 0), so double submission cannot double-stock.\n    "
+  },
+  "procurement.supplier_summary": {
+    "params": [
+      {
+        "name": "supplier_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "payment.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "payment.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم الدفع"
+  },
+  "payment.process_payment": {
+    "params": [
+      {
+        "name": "visit_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "معالجة دفع"
+  },
+  "payment.payment_history": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تاريخ المدفوعات"
+  },
+  "payment.payment_methods": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "طرق الدفع"
+  },
+  "payment.payment_reports": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "تقارير الدفع"
+  },
+  "payment.request_refund": {
+    "params": [
+      {
+        "name": "payment_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Create a refund request for a payment."
+  },
+  "payment.approve_refund": {
+    "params": [
+      {
+        "name": "refund_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Approve a pending refund request."
+  },
+  "payment.execute_refund": {
+    "params": [
+      {
+        "name": "refund_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Execute an approved refund request."
+  },
+  "payment.lookup_prescription_for_pos": {
+    "params": [
+      {
+        "name": "prescription_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "\n    Optional prescription lookup for POS checkout (Pull Model).\n\n    Returns a cart payload with medication details, prices, and stock info.\n    Does NOT modify prescription status or inventory.\n\n    The response carries the patient name and every prescribed item, so it is\n    prescription PHI. Every other prescription read in the application is\n    role-gated; this one was the exception, and it was reachable by any\n    authenticated account including a portal patient.\n    "
+  },
+  "payment.process_pharmacy_return": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Process a pharmacy return (restock or discard)."
+  },
+  "payment.generate_insurance_claim": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Generate an insurance claim from an issued invoice."
+  },
+  "payment.get_insurance_claim": {
+    "params": [
+      {
+        "name": "claim_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Return claim status and details."
+  },
+  "payment.adjudicate_insurance_claim": {
+    "params": [
+      {
+        "name": "claim_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Update claim approval/rejection state and amounts."
+  },
+  "nurse.patient_care": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "رعاية المرضى"
+  },
+  "nurse.patient_monitoring": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "مراقبة المرضى"
+  },
+  "nurse.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "nurse.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم الممرضة"
+  },
+  "nurse.medication_administration": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الأدوية"
+  },
+  "nurse.administer_medication": {
+    "params": [
+      {
+        "name": "prescription_item_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "nurse.medications": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الأدوية"
+  },
+  "nurse.api_nursing_protocols": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "nurse.reports": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "nurse.tasks": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "مهام التمريض"
+  },
+  "nurse.create_task": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "nurse.update_task_status": {
+    "params": [
+      {
+        "name": "task_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "nurse.vital_signs": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "العلامات الحيوية"
+  },
+  "nurse.record_vital_signs": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "تسجيل العلامات الحيوية"
+  },
+  "nurse.vitals": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "العلامات الحيوية"
+  },
+  "nurse.patients": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "مرضى التمريض"
+  },
+  "nurse.wards": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "الأجنحة"
+  },
+  "clinical_coding.icd10_list": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "clinical_coding.icd10_detail": {
+    "params": [
+      {
+        "name": "id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "clinical_coding.cpt_list": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "clinical_coding.drg_list": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "clinical_coding.patient_diagnoses": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "clinical_coding.patient_procedures": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "clinical_coding.api_icd10_search": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "clinical_coding.api_cpt_search": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "bed.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "bed.wards": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "bed.ward_detail": {
+    "params": [
+      {
+        "name": "ward_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "bed.room_detail": {
+    "params": [
+      {
+        "name": "room_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "bed.admissions": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "bed.admission_detail": {
+    "params": [
+      {
+        "name": "admission_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "bed.api_available_beds": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "bed.api_bed_status": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "bed.api_admit": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "bed.api_discharge": {
+    "params": [
+      {
+        "name": "admission_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "bed.api_transfer": {
+    "params": [
+      {
+        "name": "admission_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "or.schedule": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "or.surgery_detail": {
+    "params": [
+      {
+        "name": "surgery_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "or.schedule_create": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Book a patient onto the theatre list.\n\n    The blueprint previously exposed two GET routes and no writer, so\n    SurgerySchedule - which has NOT NULL patient_id, procedure_name and\n    scheduled_date - was populated by nothing. No surgery could be booked\n    through this application at all.\n\n    Only clinical roles may book; reception cannot, and a patient_id from another\n    tenant is rejected rather than written.\n    "
+  },
+  "emar.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emar.patient_mar": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "emar.administer": {
+    "params": [
+      {
+        "name": "admin_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "vaccination.vaccines": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "vaccination.patient_immunizations": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "referral.list_referrals": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "referral.detail": {
+    "params": [
+      {
+        "name": "referral_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "pathway.pathways": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "pathway.pathway_detail": {
+    "params": [
+      {
+        "name": "pathway_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "pathway.patient_care_plans": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "cds.rules": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "cds.alerts": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "cds.patient_alerts": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "barcode.scan_page": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "barcode.api_scan": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "barcode.registry": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "fhir.fhir_patients": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "fhir.fhir_patient": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "fhir.fhir_encounters": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "fhir.fhir_observations": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "dicom.studies": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "dicom.study_detail": {
+    "params": [
+      {
+        "name": "study_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "dicom.viewer": {
+    "params": [
+      {
+        "name": "study_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "dicom.api_worklist": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "DICOM Modality Worklist — JSON MWL for modalities (also serves HL7/DICOM MWL SCP fallback)."
+  },
+  "dicom.api_worklist_patient": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "dicom.api_patient_studies": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.link_account": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.appointments": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.book_appointment": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Redirect to public booking flow (prefilled for logged-in patient)."
+  },
+  "portal.medical_records": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.prescriptions": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.lab_results": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.radiology_results": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.bills": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.vaccinations": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.documents": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.download_document": {
+    "params": [
+      {
+        "name": "file_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.settings": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "portal.feedback": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "pop_health.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "pop_health.disease_registry": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "pop_health.quality_measures": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "report_builder.builder": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "report_builder.preview": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "report_builder.templates_list": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "report_builder.templates_save": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "report_builder.templates_get": {
+    "params": [
+      {
+        "name": "template_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "report_builder.templates_run": {
+    "params": [
+      {
+        "name": "template_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "security.signatures": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "security.sessions": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "security.terminate_other_sessions": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Terminate all active sessions for the current user except the current one."
+  },
+  "security.password_policy": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "mfa.setup": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "mfa.verify": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "mfa.status": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "mfa.disable": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "mfa.api_check": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API endpoint for 2FA verification during login flow"
+  },
+  "nursing_assessment.patient_assessments": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "nursing_assessment.new_assessment": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "nursing_assessment.view_assessment": {
+    "params": [
+      {
+        "name": "assessment_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "nursing_assessment.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Dashboard showing recent assessments across all patients"
+  },
+  "specialty_forms.list_forms": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "specialty_forms.new_form": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "specialty_forms.view_form": {
+    "params": [
+      {
+        "name": "form_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "specialty_forms.edit_version": {
+    "params": [
+      {
+        "name": "form_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      },
+      {
+        "name": "version_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "specialty_forms.publish_version": {
+    "params": [
+      {
+        "name": "form_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      },
+      {
+        "name": "version_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "specialty_forms.fill_form": {
+    "params": [
+      {
+        "name": "form_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "specialty_forms.view_submission": {
+    "params": [
+      {
+        "name": "submission_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "specialty_forms.list_submissions": {
+    "params": [
+      {
+        "name": "form_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "patient_education.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "patient_education.view_material": {
+    "params": [
+      {
+        "name": "material_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "patient_education.new_material": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "patient_education.edit_material": {
+    "params": [
+      {
+        "name": "material_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "patient_education.assign_material": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "patient_education.patient_materials": {
+    "params": [
+      {
+        "name": "patient_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "backup_restore.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "telemedicine.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "telemedicine.new_appointment": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "telemedicine.view_appointment": {
+    "params": [
+      {
+        "name": "tm_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "telemedicine.create_consultation": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Doctor creates a tele-consultation for an existing visit."
+  },
+  "telemedicine.consult_room": {
+    "params": [
+      {
+        "name": "consultation_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": "Embedded Jitsi room — requires a valid per-room token."
+  },
+  "telemedicine.start_consult": {
+    "params": [
+      {
+        "name": "cid",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "telemedicine.end_consult": {
+    "params": [
+      {
+        "name": "cid",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "telemedicine.cancel_consult": {
+    "params": [
+      {
+        "name": "cid",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "telemedicine.no_show_consult": {
+    "params": [
+      {
+        "name": "cid",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "sso.config": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Identity-provider configuration.\n\n    Writing this registers an identity provider, stores a bind credential and\n    can set ``default_role`` to ``super_admin`` with ``auto_create_user`` on.\n    That is a standing privilege-escalation primitive once the SSO login flow\n    is enabled, so it is restricted to the platform owners rather than to\n    anybody who is signed in.\n    "
+  },
+  "sso.toggle": {
+    "params": [
+      {
+        "name": "config_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "ai_imaging.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "ai_imaging.request_analysis": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "ai_imaging.review": {
+    "params": [
+      {
+        "name": "ai_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "biometric.status": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "biometric.register_challenge": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "biometric.register_complete": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "biometric.authenticate_challenge": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "biometric.remove_credential": {
+    "params": [
+      {
+        "name": "cred_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "data_warehouse.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "data_warehouse.sync": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "what_if.index": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "what_if.new_scenario": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "what_if.view_scenario": {
+    "params": [
+      {
+        "name": "scenario_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "quality.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة تحكم الجودة والامتثال المركزية"
+  },
+  "quality.audits": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "سجل التدقيق المركزي"
+  },
+  "quality.incidents": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "إدارة الحوادث والأحداث السلبية (incidents placeholder)"
+  },
+  "quality.api_quality_metrics": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "API لبيانات الجودة (للاستخدام في Charts)"
+  },
+  "reception_currency.save_manual_rate": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "O-U?O, O3O1O� O�O�U? USO_U^US U.U+ O,U,U^O_O,U,"
+  },
+  "reception_currency.check_rate": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "التحقق مما إذا كان سعر الصرف متوفراً"
+  },
+  "handover.handover_dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "handover.handover_open": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "handover.handover_close": {
+    "params": [
+      {
+        "name": "shift_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "handover.handover_acknowledge": {
+    "params": [
+      {
+        "name": "shift_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "<class 'int'>"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "inbox.dashboard": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "لوحة العمل الموحدة — تجمع المهام المعلّقة حسب الدور وحالة الزيارة."
+  },
+  "saas.signup_organization": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Public self-service signup for new healthcare organizations."
+  },
+  "saas.register_organization": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Self-service tenant provisioning for new healthcare organizations."
+  },
+  "saas_billing.stripe_webhook": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Ingest Stripe subscription lifecycle events."
+  },
+  "saas_billing.create_checkout": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Start a Stripe Checkout session for subscription purchase."
+  },
+  "saas_billing.billing_portal": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Open Stripe customer portal for card updates."
+  },
+  "saas_billing.cancel_subscription": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Cancel the tenant's Stripe subscription."
+  },
+  "saas_billing.change_plan": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Upgrade or downgrade the active subscription package."
+  },
+  "monitoring.metrics": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "Prometheus metrics endpoint — unauthenticated, read-only."
+  },
+  "hl7.hl7_status": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "hl7.hl7_ingest": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": "HTTP test ingest — POST raw ER7 body, returns ACK (useful without TCP MLLP client)."
+  },
+  "hl7.hl7_control": {
+    "params": [
+      {
+        "name": "action",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "ihe.pix_query": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "ihe.pdq_query": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "ihe.atna_audit": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "insurance.list_claims": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "insurance.create_claim": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "insurance.submit_claim": {
+    "params": [
+      {
+        "name": "claim_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "insurance.adjudicate_claim": {
+    "params": [
+      {
+        "name": "claim_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "insurance.settle_claim": {
+    "params": [
+      {
+        "name": "claim_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "insurance.payout_claim": {
+    "params": [
+      {
+        "name": "claim_id",
+        "kind": "POSITIONAL_OR_KEYWORD",
+        "default": "required",
+        "annotation": "Any"
+      }
+    ],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "_ghost_whoami": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "_root_patients": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "_root_visits": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  },
+  "_root_medications": {
+    "params": [],
+    "return_annotation": "Any",
+    "docstring": null
+  }
+}

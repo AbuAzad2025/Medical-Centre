@@ -227,6 +227,31 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     csrf.init_app(app)
     socketio.init_app(app)
 
+    # Flask-Babel for internationalization
+    from flask_babel import Babel
+    babel = Babel()
+
+    def get_locale():
+        from flask import request, g, session
+        from flask_login import current_user
+
+        # 1. Check if language is forced in session
+        if 'lang' in session:
+            return session['lang']
+
+        # 2. Check if user has a preferred language
+        if current_user.is_authenticated and getattr(current_user, 'locale', None):
+            return current_user.locale
+
+        # 3. Check tenant's default language
+        if hasattr(g, 'current_tenant') and g.current_tenant and getattr(g.current_tenant, 'locale', None):
+            return g.current_tenant.locale
+
+        # 4. Fall back to request Accept-Language header
+        return request.accept_languages.best_match(['ar', 'en']) or 'ar'
+
+    babel.init_app(app, locale_selector=get_locale)
+
     # Flask-Session (Redis filesystem)
     try:
         sess.init_app(app)
