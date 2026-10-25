@@ -1,0 +1,19 @@
+{% extends "print/print_base.html" %}
+
+{% block doc_title %}معاينة — {{ doc_type_label }}{% endblock %}
+{% block doc_heading %}معاينة: {{ doc_type_label }}{% endblock %}
+{% block doc_meta %}{{ ui.organization_name }} — {{ now().strftime('%Y-%m-%d') if now is defined else '' }}{% endblock %}
+{% block body %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> هذه معاينة لرأس وتذييل المطبوع ({{ doc_type_label }}).
+    لا تحتوي على بيانات فعلية — فقط التنسيق والعلامة التجارية.
+</div>
+<div class="print-preview-content">
+    <p><strong>اللون الأساسي:</strong> <span style="color: {{ ui.primary_color }}">{{ ui.primary_color }}</span></p>
+    <p><strong>الوحدات النشطة:</strong> {{ branding.active_modules if branding.active_modules is defined else 'N/A' }}</p>
+    <p><strong>رأس المطبوع:</strong></p>
+    <div class="border p-3 mb-3">{{ print_header_html|safe if print_header_html else '(افتراضي)' }}</div>
+    <p><strong>تذييل المطبوع:</strong></p>
+    <div class="border p-3">{{ print_footer_html|safe if print_footer_html else '(افتراضي)' }}</div>
+</div>
+{% endblock %}

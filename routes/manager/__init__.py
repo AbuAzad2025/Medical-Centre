@@ -890,6 +890,7 @@ def get_bi_insights():
 
 from . import api as api
 from . import approvals as approvals
+from . import branding as branding
 from . import dashboard as dashboard
 from . import departments as departments
 from . import financial as financial
