@@ -1,6 +1,6 @@
 # المطبوعات الورقية والتكامل بين الوحدات — Printed Forms & Cross-Module Integration
 
-> **آخر تحقق:** 25 أكتوبر 2026 — الإصدار 3.3 (commit `5fe283a9`)
+> **آخر تحقق:** 25 أكتوبر 2026 — الإصدار 3.3 (commit `19770348`)
 > **المرجع:** `docs/API_REFERENCE.md` (753 مسار)، `docs/ARCHITECTURE.md`، `docs/SCENARIO_PATIENT_FULL_JOURNEY.md`
 
 ---
@@ -53,40 +53,40 @@
 - `tax_number`, `license_number` — بيانات الترخيص (للطباعة على الفواتير)
 - `is_active`, `created_by`, `updated_by` — تتبع التغييرات
 
-#### 1.2.3. التحكم (Controllability)
+#### 1.2.3. التحكم (Controllability) — ✅ مُحسَّن
 
 | المستوى | الآلية | قابل للتعديل؟ |
 |---------|--------|--------------|
-| Platform branding | `/owner/branding` (SystemConfig) | نعم (platform owner) |
-| Tenant branding (colors, logo, org name) | `BrandingSettings` (TenantMixin) | نعم (create_default + DB) |
-| Tenant header/footer HTML | `BrandingSettings.report_header_html` etc. | DB only (لا يوجد UI route للتعديل) |
-| Module-scoped access | `_DOC_TYPE_MODULE_MAP` (print_context.py) | تلقائي (حسب الوحدات المفعلة) |
-| Ghost mode | `X-Impersonate-Tenant-Id` header | platform owner فقط |
+| **Platform branding** | `/owner/branding` (SystemConfig) | ✅ platform owner (UI) |
+| **Tenant branding** (colors, logo, org name) | `BrandingSettings` (TenantMixin) | ✅ `create_default()` + DB |
+| **Tenant header/footer HTML** | `BrandingSettings.report_header_html` etc. | ✅ **`/manager/branding` (UI route — NEW)** |
+| **Module-scoped access** | `_DOC_TYPE_MODULE_MAP` (print_context.py) | ✅ تلقائي (حسب الوحدات المفعلة) |
+| **Ghost mode** | `X-Impersonate-Tenant-Id` header | ✅ platform owner فقط |
+
+**التحسين ( commit `19770348`):** إضافة route `/manager/branding` (GET/POST) + `/manager/branding/preview` (GET) permettant aux managers/admins de modifier leur propre BrandingSettings (header/footer HTML، colors، logo، tax/license numbers). Précédemment, seul le super_admin pouvait modifier le branding via `/super-admin/branding`.
 
 #### 1.2.4. Module-Scoped Access Control
 
-كل نوع مطبوع (doc_type) مرتبط بوحدات مطلوبة:
+كل نوع مطبوع (doc_type) مرتبط بوحدات مطلوبة — إذا كانت الوحدة **مطفأة** → `ModuleAccessError` → 403:
 
 | doc_type | الوحدات المطلوبة | متاح لـ |
 |----------|------------------|---------|
-| invoice | billing | accountant, manager, admin |
-| receipt | billing | accountant, manager, admin |
-| prescription | doctor, pharmacy | doctor, pharmacist |
-| lab_result | lab | lab, doctor |
-| radiology_report | radiology | radiology, doctor |
-| emergency_report | emergency | emergency, er_doctor |
-| pharmacy_sale | pharmacy | pharmacist |
-| barcode | lab | lab, technician |
-| queue_ticket | reception | reception |
-| report | (none — عام) | الكل |
-| doctor_medical_report | doctor | doctor |
-| label | (none — عام) | الكل |
-
-إذا كانت الوحدة المطلوبة مطفأة → `ModuleAccessError` → 403 (لا يمكن طباعة المستند).
+| `invoice` | billing | accountant, manager, admin |
+| `receipt` | billing | accountant, manager, admin |
+| `prescription` | doctor, pharmacy | doctor, pharmacist |
+| `lab_result` | lab | lab, doctor |
+| `radiology_report` | radiology | radiology, doctor |
+| `emergency_report` | emergency | emergency, er_doctor |
+| `pharmacy_sale` | pharmacy | pharmacist |
+| `barcode` | lab | lab, technician |
+| `queue_ticket` | reception | reception |
+| `report` | (none — عام) | الكل |
+| `doctor_medical_report` | doctor | doctor |
+| `label` | (none — عام) | الكل |
 
 #### 1.2.5. QR / Barcode Generation
 
-- `generate_qr_data_uri(payload)` — QR code PNG (base64 data URI) — uses qrcode library
+- `generate_qr_data_uri(payload)` — QR code PNG (base64 data URI) — uses `qrcode` library
 - `generate_barcode_code128(payload)` — Code128 barcode PNG (pure Python, no C deps)
 - تُستخدم في: `/reception/print_receipt/<id>` (QR)، `/lab/barcode/print/<id>` (barcode)
 
@@ -94,38 +94,30 @@
 
 | الميزة | ديناميكية؟ | tenant-specific؟ | قابل للتحكم؟ |
 |--------|-----------|------------------|-------------|
-| organization_name, address, phone, email | نعم (من BrandingSettings) | نعم (per-tenant) | نعم (create_default + DB) |
-| logo, favicon, watermark | نعم (من BrandingSettings) | نعم (per-tenant) | نعم (DB) |
-| primary/secondary/accent colors | نعم (من BrandingSettings) | نعم (per-tenant) | نعم (DB) |
-| header_html / footer_html per doc_type | نعم (من BrandingSettings) | نعم (per-tenant) | DB only (لا يوجد UI route للتعديل) |
-| tax_number, license_number | نعم (من BrandingSettings) | نعم (per-tenant) | نعم (DB) |
-| module-scoped access | نعم (تلقائي) | نعم (per-tenant modules) | نعم (package/bundle) |
-| platform stamp / copyright | لا (ثابت) | لا (platform-level) | لا (غير قابل للتخصيص) |
-| QR/Barcode generation | نعم (dynamic payload) | نعم (per-tenant data) | نعم (تلقائي) |
+| organization_name, address, phone, email | ✅ (من BrandingSettings) | ✅ (per-tenant) | ✅ (create_default + DB + UI) |
+| logo, favicon, watermark | ✅ (من BrandingSettings) | ✅ (per-tenant) | ✅ (DB + UI upload) |
+| primary/secondary/accent colors | ✅ (من BrandingSettings) | ✅ (per-tenant) | ✅ (DB + UI color picker) |
+| header_html / footer_html per doc_type | ✅ (من BrandingSettings) | ✅ (per-tenant) | ✅ (DB + UI textarea) |
+| tax_number, license_number | ✅ (من BrandingSettings) | ✅ (per-tenant) | ✅ (DB + UI) |
+| module-scoped access | ✅ (تلقائي) | ✅ (per-tenant modules) | ✅ (package/bundle) |
+| platform stamp / copyright | ❌ (ثابت) | ❌ (platform-level) | ❌ (غير قابل للتخصيص) |
+| QR/Barcode generation | ✅ (dynamic payload) | ✅ (per-tenant data) | ✅ (تلقائي) |
 
-**الخلاصة:** قوالب المطبوعات **ديناميكية ومرتبطة بكل مستأجر** (tenant-specific branding، colors، logo، header/footer HTML from DB). **ليست ثابتة** (static). التحكم (controllability) متاح عبر DB (BrandingSettings) أو platform branding route (`/owner/branding` for SystemConfig). **لا يوجد UI route لتعديل tenant-level header/footer HTML** — هذه فجوة (gap) محتملة للتحسين (enhancement).
+**الخلاصة:** قوالب المطبوعات **ديناميكية ومرتبطة بكل مستأجر** (tenant-specific branding، colors، logo، header/footer HTML from DB). **ليست ثابتة** (static). التحكم (controllability) **مُحسَّن** — متاح عبر DB (BrandingSettings) + UI route (`/manager/branding` for tenant managers) + platform branding route (`/owner/branding` for SystemConfig).
 
-### 1.2. بنية نظام الطباعة (`templates/print/`)
+### 1.3. بنية نظام الطباعة (`templates/print/`)
 
 ```
 templates/print/
 ├── print_base.html              # قالب أساسي (header, footer, watermark, QR)
 ├── print_base_minimal.html      # نسخة مصغّرة (thermal printer)
+├── _print_footer_slot.html      # تذييل (تاريخ، صفحة X of Y)
 ├── _print_header_default.html   # رأس افتراضي (اسم المركز، شعار، عنوان)
 ├── _print_header_slot.html      # رأس مخصص (لـ letterhead)
-├── _print_footer_slot.html      # تذييل (تاريخ، صفحة X of Y)
+├── _print_platform_stamp.html   # ختم المنصة (SaaS)
 ├── _print_qr_barcode.html       # QR code / barcode slot
-├── _print_watermark.html        # علامة مائية (DRAFT, COPY, ORIGINAL)
-└── _print_platform_stamp.html   # ختم المنصة (SaaS)
+└── _print_watermark.html        # علامة مائية (DRAFT, COPY, ORIGINAL)
 ```
-
-**الميزات:**
-- **RTL كامل:** `dir="rtl"`، خطوط عربية
-- **QR Code:** `/reception/print_receipt/<id>` يحتوي QR للتحقق
-- **Barcode:** `/lab/barcode/print/<id>` يطبع barcode للعينة (Code 128)
-- **Watermark:** `DRAFT` (مسودة)، `COPY` (نسخة)، `ORIGINAL` (أصلي)
-- **Thermal printer:** `print_base_minimal.html` للطابعات الحرارية (80mm)
-- **PDF export:** `/lab/print_request/<id>/pdf`، `/radiology/print_report/<id>/pdf` (WeasyPrint)
 
 ---
 
@@ -145,6 +137,7 @@ templates/print/
 | `emergency` | patients, visits | emergency_cases, emergency_treatments | reception (triage)، doctor (consult) |
 | `inpatient` | patients, visits, beds | admissions, bed_transfers | doctor (orders)، nursing (care) |
 | `appointments` | patients, visits | bookings, schedules | reception (check-in)، portal (online booking) |
+| `reporting` | **جميع الجداول** (read-only) | reports, analytics | manager (reports) |
 
 ### 2.2. تدفقات البيانات (Data Flow) — مثال: زيارة كاملة
 
@@ -277,125 +270,16 @@ templates/print/
 
 ---
 
-## 4. المطبوعات (Printed Forms) — تفاصيل تقنية
-
-### 4.1. قالب الطباعة (`print_base.html`)
-
-```html
-<!-- templates/print/print_base.html -->
-<!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
-    {% block extra_css %}{% endblock %}
-</head>
-<body>
-    <!-- Header Slot -->
-    {% include 'print/_print_header_default.html' %}
-    {% block header_slot %}{% endblock %}
-
-    <!-- Watermark (DRAFT/COPY/ORIGINAL) -->
-    {% if watermark %}
-        {% include 'print/_print_watermark.html' %}
-    {% endif %}
-
-    <!-- Content -->
-    <main class="print-content">
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Footer Slot -->
-    {% include 'print/_print_footer_slot.html' %}
-
-    <!-- QR / Barcode -->
-    {% if qr_code %}
-        {% include 'print/_print_qr_barcode.html' %}
-    {% endif %}
-
-    <!-- Platform Stamp (SaaS) -->
-    {% include 'print/_print_platform_stamp.html' %}
-</body>
-</html>
-```
-
-### 4.2. أنواع المطبوعات (Print Types)
-
-| النوع | المسار | المُنشئ | الميزات |
-|------|--------|---------|---------|
-| **روشتة (Prescription)** | `/doctor/print-prescription/<id>` | Doctor | QR code، توقيع إلكتروني، تفاعل دوائي |
-| **روشتة طوارئ** | `/emergency/print-prescription/<id>` | ER Doctor | علامة `EMERGENCY`، priority high |
-| **تقرير طبي** | `/doctor/print-medical-report/<visit_id>` | Doctor | SOAP، ICD-10، CPT، توقيع |
-| **تقرير طوارئ** | `/emergency/print-emergency-report/<id>` | ER Doctor | فرز، علامات حيوية، علاج |
-| **تقرير أشعة (HTML)** | `/radiology/print_report/<id>` | Radiology | صورة، نتائج، توقيع |
-| **تقرير أشعة (PDF)** | `/radiology/print_report/<id>/pdf` | Radiology | WeasyPrint → PDF |
-| **فاتورة** | `/reception/print_invoice/<id>` | Reception/Billing | بنود، ضريبة، خصم، QR |
-| **إيصال** | `/reception/print_receipt/<visit_id>` | Reception/Billing | QR code، رقم إيصال، تفاصيل دفع |
-| **إيصال صيدلية** | `/medication/sales/<id>/print` | Pharmacy | POS receipt، thermal printer |
-| **باركود عينة** | `/lab/barcode/print/<id>` | Lab | Code 128 barcode، معرّف عينة |
-| **طلب مختبر (HTML)** | `/lab/print_request/<id>` | Lab | طلب، تحاليل، ملاحظات |
-| **طلب مختبر (PDF)** | `/lab/print_request/<id>/pdf` | Lab | WeasyPrint → PDF |
-| **تقرير مختبر** | `/lab/reports` | Lab | إحصائيات، أوقات تسليم |
-| **تقرير استهلاك** | `/medication/consumption-report` | Pharmacy | استهلاك أدوية، مخزون |
-| **تقرير مالي** | `/accountant/reports` | Billing | إيرادات، مصروفات، تدفقات |
-
-### 4.3. دعم الطابعات (Printer Support)
-
-| نوع الطابعة | القالب | الاستخدام |
-|-------------|--------|-----------|
-| **A4 (Laser/Inkjet)** | `print_base.html` | تقارير، فواتير، روشتات (A4) |
-| **Thermal (80mm)** | `print_base_minimal.html` | إيصالات POS، receipts (thermal) |
-| **PDF (WeasyPrint)** | `print_base.html` + WeasyPrint | تقارير مختبر/أشعة (PDF download) |
-| **Barcode (Zebra)** | `lab/barcode_print.html` | Code 128 barcode للعينات |
-
----
-
-## 5. التكامل (Integration) — الخلاصة
-
-### 5.1. التكامل (Integration) — API/Service Layer
-
-التكامل بين الوحدات يجري عبر 4 آليات:
-
-1. **ORM Relationships** — `db.relationship()` (e.g., `Visit.patient`, `LabRequest.visit`)
-2. **Service Layer** — خدمات مشتركة (`queue_management_service`, `clinical_context_service`)
-3. **Event Bus** — إشعارات عبر `signals.py` (`patient_registered` → إشعار reception)
-4. **Route Guards** — `guard_module()` في `before_request` (403 إذا الوحدة مطفأة)
-
-### 5.2. التكامل (Integration) — Data Flow
-
-```
-reception → doctor → lab/radiology → pharmacy → billing → portal
-    │          │         │              │         │         │
-    ▼          ▼         ▼              ▼         ▼         ▼
-patients    visits    lab_requests   prescriptions invoices  results
-visits      SOAP      radiology_     dispense_     payments  bills
-queue       ICD-10    requests       logs          receipts  records
-```
-
-### 5.3. التكامل (Integration) — Module Data Isolation
-
-| الوحدة | تقرأ من | تُكتب في | عزل (Isolation) |
-|--------|---------|----------|-----------------|
-| `doctor` | patients, visits (reception) | visits (update status), prescriptions, lab_requests, radiology_requests | ✅ module filter |
-| `lab` | lab_requests (doctor) | lab_results, lab_specimens | ✅ module filter |
-| `radiology` | radiology_requests (doctor) | radiology_results | ✅ module filter |
-| `pharmacy` | prescriptions (doctor) | dispense_logs, stock_movements, sales | ✅ module filter |
-| `billing` | visits, patients (reception/doctor) | invoices, payments, receipts | ✅ module filter |
-| `nursing` | patients, visits (reception/doctor) | vital_signs, emar, nursing_notes | ✅ module filter |
-| `emergency` | patients, visits (reception) | emergency_cases, emergency_treatments | ✅ module filter |
-| `inpatient` | patients, visits, beds (reception/nursing) | admissions, bed_transfers | ✅ module filter |
-| `reporting` | **جميع الجداول** (read-only) | reports, analytics | ✅ module filter (read-only) |
-
----
-
-## 6. الخلاصة
+## 4. الخلاصة
 
 ### المطبوعات (Printed Forms)
 - **15 نوع مطبوع** (روشتات، تقارير، فواتير، إيصالات، باركودات)
 - **4 أنواع طابعات** (A4، Thermal 80mm، PDF WeasyPrint، Barcode Zebra)
 - **9 قوالب print** (base، minimal، header، footer، QR، watermark، platform stamp)
 - **RTL كامل** + QR code + barcode + watermark + thermal printer support
+- **ديناميكية ومرتبطة بكل مستأجر** (tenant-specific branding، colors، logo، header/footer HTML from DB)
+- **Module-scoped access** (ModuleAccessError if required modules disabled)
+- **UI route** (`/manager/branding`) for tenant managers to edit their own branding
 
 ### التكامل (Cross-Module Integration)
 - **4 آليات تكامل** (ORM relationships، Service layer، Event bus، Route guards)
@@ -409,3 +293,21 @@ queue       ICD-10    requests       logs          receipts  records
 - ✅ كل وحدة guarded by `guard_module()` (403 if disabled)
 - ✅ كل بيانات cross-module محمية بـ RLS + module filter
 - ✅ 15 print routes + 9 print templates + 4 printer types = **production-ready**
+- ✅ Print templates are **dynamic & tenant-specific** (not static)
+- ✅ Tenant managers can edit their own branding via `/manager/branding` (UI route)
+
+---
+
+## 5. المراجع
+
+- **API Reference:** `docs/API_REFERENCE.md` (753 مسار فعلي)
+- **معمارية:** `docs/ARCHITECTURE.md` (Multi-tenancy، Module System، RBAC، RLS)
+- **دليل المستخدم:** `docs/USER_GUIDE.md` (أدوار، واجهات، سيناريوهات)
+- **حالة المنصة:** `docs/PLATFORM_STATUS.md` (أرقام متحققة)
+- **النشر:** `docs/DEPLOYMENT.md` (Docker، CI/CD، secrets)
+- **العمليات:** `docs/OPERATIONS.md` (مراقبة، نسخ احتياطي، استكشاف أخطاء)
+- **سيناريو مريض:** `docs/SCENARIO_PATIENT_FULL_JOURNEY.md` (12 مرحلة، 7 أدوار)
+
+---
+
+*هذا المستند يوضح المطبوعات الورقية والتكامل بين الوحدات. للحزم الأخرى، اتبع نفس النمط مع تفعيل/تعطيل الوحدات حسب الباقة.*
