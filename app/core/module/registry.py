@@ -69,6 +69,10 @@ MODULE_REGISTRY: dict[str, ModuleMeta] = {
             'visit_workflow_events',
             'request_workflows',
             'department_workflows',
+            # Claimed from orphan list (used by booking_routes, queue_management_service):
+            'staff_absences',
+            'staff_work_schedules',
+            'visit_transfer_logs',
         ),
     ),
     'doctor': ModuleMeta(
@@ -273,6 +277,11 @@ MODULE_REGISTRY: dict[str, ModuleMeta] = {
             'medication_schedules',
             'medical_records',
             'visits',
+            # Claimed from orphan list (used by nursing_service, task management):
+            'nurses',
+            'tasks',
+            'task_comments',
+            'task_attachments',
         ),
     ),
     'billing': ModuleMeta(
