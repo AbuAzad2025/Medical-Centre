@@ -29,6 +29,82 @@
 | 14 | **تقرير تدقيق يومي/شهري** | `/accountant/audit/daily`، `/monthly` | billing | `accountant/daily_audit_report.html` |
 | 15 | **تقرير طوارئ (Emergency Report)** | `/emergency/reports` | emergency | `emergency/emergency_report.html` |
 
+### 1.2. ديناميكية قوالب المطبوعات (Dynamic & Tenant-Specific)
+
+**القوالب ديناميكية ومرتبطة بكل مستأجر (tenant-specific) — ليست ثابتة (static).**
+
+#### 1.2.1. محلل سياق الطباعة (resolve_print_context)
+`app/shared/print_context.py` — `resolve_print_context(doc_type, branding)` يرجع:
+- `header_html` / `footer_html` — من `BrandingSettings` (per-tenant، قابل للتخصيص)
+- `primary_color` — من `BrandingSettings` (per-tenant)
+- `active_modules` — قائمة الوحدات النشطة (module-scoped access control)
+- `is_ghost_mode` — دعم انتحال الشخصية (platform owner)
+- `platform_copyright_name` / `platform_watermark` — platform-level (غير قابل للتخصيص)
+
+#### 1.2.2. نموذج BrandingSettings (TenantMixin)
+`models/branding.py` — جدول `branding_settings` (tenant-scoped، RLS-protected):
+- `organization_name`, `organization_name_en`, `organization_address`, `organization_phone`, `organization_email`, `organization_website`
+- `logo_path`, `favicon_path`, `watermark_path`
+- `primary_color`, `secondary_color`, `accent_color`
+- `report_header_html`, `report_footer_html` — HTML مخصص للتقارير
+- `invoice_header_html`, `invoice_footer_html` — HTML مخصص للفواتير
+- `receipt_header_html` — HTML مخصص للإيصالات
+- `prescription_header_html`, `prescription_footer_html` — HTML مخصص للروشتات
+- `tax_number`, `license_number` — بيانات الترخيص (للطباعة على الفواتير)
+- `is_active`, `created_by`, `updated_by` — تتبع التغييرات
+
+#### 1.2.3. التحكم (Controllability)
+
+| المستوى | الآلية | قابل للتعديل؟ |
+|---------|--------|--------------|
+| Platform branding | `/owner/branding` (SystemConfig) | نعم (platform owner) |
+| Tenant branding (colors, logo, org name) | `BrandingSettings` (TenantMixin) | نعم (create_default + DB) |
+| Tenant header/footer HTML | `BrandingSettings.report_header_html` etc. | DB only (لا يوجد UI route للتعديل) |
+| Module-scoped access | `_DOC_TYPE_MODULE_MAP` (print_context.py) | تلقائي (حسب الوحدات المفعلة) |
+| Ghost mode | `X-Impersonate-Tenant-Id` header | platform owner فقط |
+
+#### 1.2.4. Module-Scoped Access Control
+
+كل نوع مطبوع (doc_type) مرتبط بوحدات مطلوبة:
+
+| doc_type | الوحدات المطلوبة | متاح لـ |
+|----------|------------------|---------|
+| invoice | billing | accountant, manager, admin |
+| receipt | billing | accountant, manager, admin |
+| prescription | doctor, pharmacy | doctor, pharmacist |
+| lab_result | lab | lab, doctor |
+| radiology_report | radiology | radiology, doctor |
+| emergency_report | emergency | emergency, er_doctor |
+| pharmacy_sale | pharmacy | pharmacist |
+| barcode | lab | lab, technician |
+| queue_ticket | reception | reception |
+| report | (none — عام) | الكل |
+| doctor_medical_report | doctor | doctor |
+| label | (none — عام) | الكل |
+
+إذا كانت الوحدة المطلوبة مطفأة → `ModuleAccessError` → 403 (لا يمكن طباعة المستند).
+
+#### 1.2.5. QR / Barcode Generation
+
+- `generate_qr_data_uri(payload)` — QR code PNG (base64 data URI) — uses qrcode library
+- `generate_barcode_code128(payload)` — Code128 barcode PNG (pure Python, no C deps)
+- تُستخدم في: `/reception/print_receipt/<id>` (QR)، `/lab/barcode/print/<id>` (barcode)
+
+#### 1.2.6. الخلاصة: ديناميكية vs ثبات
+
+| الميزة | ديناميكية؟ | tenant-specific؟ | قابل للتحكم؟ |
+|--------|-----------|------------------|-------------|
+| organization_name, address, phone, email | نعم (من BrandingSettings) | نعم (per-tenant) | نعم (create_default + DB) |
+| logo, favicon, watermark | نعم (من BrandingSettings) | نعم (per-tenant) | نعم (DB) |
+| primary/secondary/accent colors | نعم (من BrandingSettings) | نعم (per-tenant) | نعم (DB) |
+| header_html / footer_html per doc_type | نعم (من BrandingSettings) | نعم (per-tenant) | DB only (لا يوجد UI route للتعديل) |
+| tax_number, license_number | نعم (من BrandingSettings) | نعم (per-tenant) | نعم (DB) |
+| module-scoped access | نعم (تلقائي) | نعم (per-tenant modules) | نعم (package/bundle) |
+| platform stamp / copyright | لا (ثابت) | لا (platform-level) | لا (غير قابل للتخصيص) |
+| QR/Barcode generation | نعم (dynamic payload) | نعم (per-tenant data) | نعم (تلقائي) |
+
+**الخلاصة:** قوالب المطبوعات **ديناميكية ومرتبطة بكل مستأجر** (tenant-specific branding، colors، logo، header/footer HTML from DB). **ليست ثابتة** (static). التحكم (controllability) متاح عبر DB (BrandingSettings) أو platform branding route (`/owner/branding` for SystemConfig). **لا يوجد UI route لتعديل tenant-level header/footer HTML** — هذه فجوة (gap) محتملة للتحسين (enhancement).
+
 ### 1.2. بنية نظام الطباعة (`templates/print/`)
 
 ```
