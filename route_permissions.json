@@ -1,0 +1,2313 @@
+{
+  "/": [
+    "authenticated"
+  ],
+  "/request": [
+    "doctor",
+    "radiology",
+    "admin",
+    "manager"
+  ],
+  "/<int:ai_id>/review": [
+    "doctor",
+    "radiology",
+    "admin",
+    "manager"
+  ],
+  "/snapshot": [
+    "admin",
+    "manager",
+    "doctor",
+    "nurse",
+    "reception",
+    "super_admin"
+  ],
+  "/requests/<int:request_id>/cancel": [
+    "*_API_ROLES"
+  ],
+  "/results/<int:result_id>/amend": [
+    "*_API_ROLES"
+  ],
+  "/patients": [
+    "reception",
+    "super_admin",
+    "manager"
+  ],
+  "/preferences": [
+    "authenticated"
+  ],
+  "/api/tenants-list": [
+    "authenticated"
+  ],
+  "/login": [
+    "authenticated"
+  ],
+  "/logout": [
+    "authenticated"
+  ],
+  "/profile": [
+    "authenticated"
+  ],
+  "/change-password": [
+    "authenticated"
+  ],
+  "/forgot-password": [
+    "authenticated"
+  ],
+  "/reset-password/<token>/<int:user_id>": [
+    "authenticated"
+  ],
+  "/impersonate/<int:user_id>": [
+    "super_admin",
+    "owner"
+  ],
+  "/impersonate/exit": [
+    "authenticated"
+  ],
+  "/register": [
+    "authenticated"
+  ],
+  "/backup/dashboard": [
+    "authenticated"
+  ],
+  "/create": [
+    "authenticated"
+  ],
+  "/list": [
+    "doctor",
+    "nurse",
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/restore/<int:backup_id>": [
+    "authenticated"
+  ],
+  "/download/<int:backup_id>": [
+    "authenticated"
+  ],
+  "/delete/<int:backup_id>": [
+    "authenticated"
+  ],
+  "/scan": [
+    "nurse",
+    "pharmacist",
+    "lab_tech",
+    "admin"
+  ],
+  "/api/scan": [
+    "nurse",
+    "reception",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/registry": [
+    "admin",
+    "manager"
+  ],
+  "/dashboard": [
+    "authenticated"
+  ],
+  "/wards": [
+    "nurse",
+    "manager"
+  ],
+  "/ward/<int:ward_id>": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/room/<int:room_id>": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/admissions": [
+    "nurse",
+    "admin",
+    "manager",
+    "receptionist"
+  ],
+  "/admission/<int:admission_id>": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/api/available-beds": [
+    "nurse",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/bed-status": [
+    "nurse",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/admissions/admit": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/api/admissions/<int:admission_id>/discharge": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/api/admissions/<int:admission_id>/transfer": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/register-challenge": [
+    "authenticated"
+  ],
+  "/register-complete": [
+    "authenticated"
+  ],
+  "/authenticate-challenge": [
+    "authenticated"
+  ],
+  "/remove/<int:cred_id>": [
+    "authenticated"
+  ],
+  "/cancel/<int:booking_id>": [
+    "authenticated"
+  ],
+  "/confirmation/<int:booking_id>": [
+    "authenticated"
+  ],
+  "/telemedicine/<int:booking_id>": [
+    "authenticated"
+  ],
+  "/payment/<int:booking_id>": [
+    "authenticated"
+  ],
+  "/api/available-doctors": [
+    "authenticated"
+  ],
+  "/api/available-times": [
+    "reception",
+    "manager"
+  ],
+  "/api/smart-slots": [
+    "authenticated"
+  ],
+  "/rules": [
+    "admin",
+    "manager"
+  ],
+  "/alerts": [
+    "doctor",
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/patient/<int:patient_id>/alerts": [
+    "doctor",
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/icd10": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/icd10/<int:id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/cpt": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/drg": [
+    "admin",
+    "manager",
+    "accountant"
+  ],
+  "/patient/<int:patient_id>/diagnoses": [
+    "doctor",
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/patient/<int:patient_id>/procedures": [
+    "doctor",
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/api/icd10/search": [
+    "*CLINICAL_STAFF_ROLES"
+  ],
+  "/api/cpt/search": [
+    "*CLINICAL_STAFF_ROLES"
+  ],
+  "/pathways": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/pathway/<int:pathway_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/patient/<int:patient_id>/care-plans": [
+    "doctor",
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/preview": [
+    "admin",
+    "manager",
+    "accountant",
+    "doctor"
+  ],
+  "/templates": [
+    "admin",
+    "manager",
+    "accountant",
+    "doctor"
+  ],
+  "/templates/<int:template_id>": [
+    "admin",
+    "manager",
+    "accountant",
+    "doctor"
+  ],
+  "/templates/<int:template_id>/run": [
+    "admin",
+    "manager",
+    "accountant",
+    "doctor"
+  ],
+  "/sync": [
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/studies": [
+    "radiology",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/study/<int:study_id>": [
+    "radiology",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/viewer/<int:study_id>": [
+    "radiology",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/worklist": [
+    "radiology",
+    "technician",
+    "admin",
+    "manager",
+    "doctor",
+    "super_admin"
+  ],
+  "/api/worklist/patient/<int:patient_id>": [
+    "radiology",
+    "doctor",
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/api/studies/patient/<int:patient_id>": [
+    "radiology",
+    "doctor",
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/patient/<int:patient_id>": [
+    "nurse",
+    "doctor",
+    "admin",
+    "receptionist"
+  ],
+  "/administer/<int:admin_id>": [
+    "nurse",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/Patient": [
+    "admin",
+    "manager",
+    "doctor"
+  ],
+  "/Patient/<int:patient_id>": [
+    "admin",
+    "manager",
+    "doctor"
+  ],
+  "/Encounter": [
+    "admin",
+    "manager",
+    "doctor"
+  ],
+  "/Observation": [
+    "admin",
+    "manager",
+    "doctor"
+  ],
+  "/post": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/visits/<int:visit_id>/archive": [
+    "reception"
+  ],
+  "/payments": [
+    "reception",
+    "super_admin",
+    "manager"
+  ],
+  "/invoices": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/audit": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/slow-queries": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/slow-queries/weekly": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/slow-queries/weekly/<int:report_id>": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/slow-queries/capture": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/open": [
+    "authenticated"
+  ],
+  "/<int:shift_id>/close": [
+    "authenticated"
+  ],
+  "/<int:shift_id>/acknowledge": [
+    "authenticated"
+  ],
+  "/status": [
+    "authenticated"
+  ],
+  "/ingest": [
+    "super_admin",
+    "admin",
+    "lab"
+  ],
+  "/control/<action>": [
+    "super_admin"
+  ],
+  "/pix/query": [
+    "doctor",
+    "nurse",
+    "admin",
+    "manager",
+    "super_admin",
+    "reception"
+  ],
+  "/pdq/query": [
+    "doctor",
+    "nurse",
+    "admin",
+    "manager",
+    "super_admin",
+    "reception"
+  ],
+  "/atna/audit": [
+    "super_admin",
+    "admin"
+  ],
+  "/inbox": [
+    "authenticated"
+  ],
+  "/api/claims": [
+    "admin",
+    "manager",
+    "doctor",
+    "accountant",
+    "super_admin"
+  ],
+  "/api/claims/<int:claim_id>/submit": [
+    "admin",
+    "manager",
+    "accountant",
+    "super_admin"
+  ],
+  "/api/claims/<int:claim_id>/adjudicate": [
+    "admin",
+    "manager",
+    "accountant",
+    "super_admin"
+  ],
+  "/api/claims/<int:claim_id>/settle": [
+    "admin",
+    "manager",
+    "accountant",
+    "super_admin"
+  ],
+  "/api/claims/<int:claim_id>/payout": [
+    "admin",
+    "manager",
+    "accountant",
+    "super_admin"
+  ],
+  "/check-in": [
+    "authenticated"
+  ],
+  "/api/check-in": [
+    "authenticated"
+  ],
+  "/package-restricted": [
+    "authenticated"
+  ],
+  "/appointments": [
+    "reception",
+    "manager"
+  ],
+  "/settings": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/health": [
+    "authenticated"
+  ],
+  "/api/search": [
+    "authenticated"
+  ],
+  "/api/tenants/search": [
+    "authenticated"
+  ],
+  "/privacy-policy": [
+    "authenticated"
+  ],
+  "/terms-of-use": [
+    "authenticated"
+  ],
+  "/technical-support": [
+    "authenticated"
+  ],
+  "/about-system": [
+    "authenticated"
+  ],
+  "/setup": [
+    "authenticated"
+  ],
+  "/verify": [
+    "authenticated"
+  ],
+  "/disable": [
+    "authenticated"
+  ],
+  "/api/check": [
+    "authenticated"
+  ],
+  "/metrics": [
+    "authenticated"
+  ],
+  "/new/<int:patient_id>": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/view/<int:assessment_id>": [
+    "nurse",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/schedule": [
+    "doctor",
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/surgery/<int:surgery_id>": [
+    "doctor",
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/material/<int:material_id>": [
+    "*CLINICAL_STAFF_ROLES"
+  ],
+  "/new": [
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/edit/<int:material_id>": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/assign": [
+    "manager",
+    "admin",
+    "super_admin",
+    "doctor"
+  ],
+  "/link-account": [
+    "patient"
+  ],
+  "/book-appointment": [
+    "patient"
+  ],
+  "/medical-records": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/prescriptions": [
+    "pharmacist",
+    "admin",
+    "manager",
+    "doctor"
+  ],
+  "/lab-results": [
+    "patient"
+  ],
+  "/radiology-results": [
+    "patient"
+  ],
+  "/bills": [
+    "patient"
+  ],
+  "/vaccinations": [
+    "patient"
+  ],
+  "/documents": [
+    "patient"
+  ],
+  "/documents/<int:file_id>": [
+    "patient"
+  ],
+  "/feedback": [
+    "patient"
+  ],
+  "/process/<int:visit_id>": [
+    "accountant"
+  ],
+  "/history": [
+    "accountant"
+  ],
+  "/methods": [
+    "admin",
+    "manager"
+  ],
+  "/reports": [
+    "authenticated"
+  ],
+  "/payments/<int:payment_id>/refund": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/refund-requests/<int:refund_id>/approve": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/refund-requests/<int:refund_id>/execute": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/api/pos/prescriptions/<int:prescription_id>/lookup": [
+    "pharmacist",
+    "doctor",
+    "accountant",
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/api/pharmacy/returns": [
+    "pharmacist",
+    "manager",
+    "admin"
+  ],
+  "/api/insurance/claims/generate": [
+    "accountant",
+    "manager",
+    "admin"
+  ],
+  "/api/insurance/claims/<int:claim_id>": [
+    "accountant",
+    "manager",
+    "admin"
+  ],
+  "/api/insurance/claims/<int:claim_id>/adjudicate": [
+    "accountant",
+    "manager",
+    "admin"
+  ],
+  "/disease-registry": [
+    "admin",
+    "manager",
+    "doctor"
+  ],
+  "/quality-measures": [
+    "admin",
+    "manager"
+  ],
+  "/receive/<int:purchase_id>": [
+    "manager",
+    "admin",
+    "owner",
+    "super_admin",
+    "pharmacist"
+  ],
+  "/supplier/<int:supplier_id>/summary": [
+    "manager",
+    "admin",
+    "owner",
+    "super_admin"
+  ],
+  "/manifest.webmanifest": [
+    "authenticated"
+  ],
+  "/offline": [
+    "authenticated"
+  ],
+  "/audits": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/incidents": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/api/quality-metrics": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/api/save-manual-rate": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/api/check-rate": [
+    "authenticated"
+  ],
+  "/detail/<int:referral_id>": [
+    "doctor",
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/api/billing/stripe/webhook": [
+    "authenticated"
+  ],
+  "/api/billing/checkout": [
+    "authenticated"
+  ],
+  "/api/billing/portal": [
+    "authenticated"
+  ],
+  "/api/billing/subscription/cancel": [
+    "authenticated"
+  ],
+  "/api/billing/subscription/change-plan": [
+    "authenticated"
+  ],
+  "/saas/signup": [
+    "authenticated"
+  ],
+  "/api/saas/register": [
+    "authenticated"
+  ],
+  "/signatures": [
+    "admin",
+    "manager",
+    "doctor"
+  ],
+  "/sessions": [
+    "admin",
+    "manager"
+  ],
+  "/sessions/terminate-others": [
+    "authenticated"
+  ],
+  "/password-policy": [
+    "admin"
+  ],
+  "/specialty-forms": [
+    "*CLINICAL_STAFF_ROLES"
+  ],
+  "/specialty-forms/new": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/specialty-forms/<int:form_id>": [
+    "*CLINICAL_STAFF_ROLES"
+  ],
+  "/specialty-forms/<int:form_id>/fill": [
+    "authenticated"
+  ],
+  "/specialty-forms/submissions/<int:submission_id>": [
+    "authenticated"
+  ],
+  "/specialty-forms/<int:form_id>/submissions": [
+    "authenticated"
+  ],
+  "/config": [
+    "super_admin",
+    "owner"
+  ],
+  "/toggle/<int:config_id>": [
+    "super_admin",
+    "owner"
+  ],
+  "/consultations": [
+    "authenticated"
+  ],
+  "/consult/<int:consultation_id>": [
+    "authenticated"
+  ],
+  "/consult/<int:cid>/start": [
+    "authenticated"
+  ],
+  "/consult/<int:cid>/end": [
+    "authenticated"
+  ],
+  "/consult/<int:cid>/cancel": [
+    "authenticated"
+  ],
+  "/consult/<int:cid>/no-show": [
+    "authenticated"
+  ],
+  "/<int:tm_id>": [
+    "admin",
+    "manager",
+    "super_admin",
+    "doctor",
+    "reception"
+  ],
+  "/vaccines": [
+    "nurse",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/<int:scenario_id>": [
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/audit/daily": [
+    "authenticated"
+  ],
+  "/audit/monthly": [
+    "authenticated"
+  ],
+  "/audit/debts": [
+    "authenticated"
+  ],
+  "/audit/export/<report_type>": [
+    "authenticated"
+  ],
+  "/api/erp/export": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/financial-report": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/daily-summary": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/accounts": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/journals": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/trial-balance": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/accounts/<int:account_id>": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/periods/close": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/refunds": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/refunds/<int:refund_id>/approve": [
+    "admin",
+    "manager"
+  ],
+  "/refunds/<int:refund_id>/reject": [
+    "admin",
+    "manager"
+  ],
+  "/refunds/<int:refund_id>/execute": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/patient-accounts": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/financial": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/open-invoices": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/payment-documentation/<int:payment_id>": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/receipt/<int:payment_id>": [
+    "accountant",
+    "admin",
+    "manager"
+  ],
+  "/dashboard-new": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/dashboard/<int:doctor_id>": [
+    "manager",
+    "super_admin",
+    "accountant"
+  ],
+  "/api/dashboard-stats": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/today-visits": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/diagnosis/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/lab-request/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/lab-results/<int:patient_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/lab-requests": [
+    "authenticated"
+  ],
+  "/notes/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/note-templates": [
+    "doctor",
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/api/dashboard-layout": [
+    "doctor",
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/api/note-templates/<string:template_id>/delete": [
+    "doctor",
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/medical-history/<int:patient_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/prescriptions-history/<int:patient_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/print-medical-report/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/patient-timeline/<int:patient_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/patient-search": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/dental-chart/<int:patient_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/dental-chart/save": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/prescription/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/print-prescription/<int:prescription_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/print-invoice/<int:invoice_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/print-receipt/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/patient-queue": [
+    "emergency",
+    "manager"
+  ],
+  "/call-patient/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/radiology-request/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/radiology-results/<int:patient_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/radiology-requests": [
+    "authenticated"
+  ],
+  "/start-treatment/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/patient-details/<int:visit_id>": [
+    "doctor",
+    "manager"
+  ],
+  "/view_patient/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/visit-summary/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/save-visit-summary/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/end-treatment/<int:visit_id>": [
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/visits": [
+    "reception",
+    "super_admin",
+    "manager",
+    "owner"
+  ],
+  "/api/ems/intake": [
+    "emergency",
+    "admin",
+    "manager"
+  ],
+  "/cases": [
+    "emergency",
+    "manager"
+  ],
+  "/cases/<int:id>": [
+    "emergency",
+    "manager"
+  ],
+  "/cases/<int:id>/edit": [
+    "emergency",
+    "manager"
+  ],
+  "/cases/<int:id>/resolve": [
+    "emergency",
+    "manager"
+  ],
+  "/cases/create": [
+    "emergency",
+    "manager"
+  ],
+  "/cases/<int:id>/convert": [
+    "reception",
+    "emergency"
+  ],
+  "/prescription/<int:emergency_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/lab-request/<int:emergency_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/radiology-request/<int:emergency_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/patient-details/<int:emergency_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/triage": [
+    "emergency",
+    "doctor",
+    "manager"
+  ],
+  "/triage/<int:emergency_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/queue": [
+    "reception",
+    "manager"
+  ],
+  "/emergency-report/<int:emergency_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/print-emergency-report/<int:emergency_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/treatment/<int:emergency_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/end-treatment/<int:emergency_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/start-treatment/<int:emergency_id>": [
+    "emergency",
+    "manager"
+  ],
+  "/emergency-visits": [
+    "emergency",
+    "manager"
+  ],
+  "/emergency-treatment/<int:visit_id>": [
+    "emergency",
+    "doctor",
+    "manager"
+  ],
+  "/emergency-visits/<int:visit_id>/complete": [
+    "emergency",
+    "manager"
+  ],
+  "/barcode/scan/<barcode>": [
+    "lab",
+    "technician",
+    "nurse",
+    "admin"
+  ],
+  "/barcode/print/<int:request_id>": [
+    "lab",
+    "technician",
+    "nurse",
+    "admin"
+  ],
+  "/api/fhir/servicerequest": [
+    "lab",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/fhir/observation": [
+    "lab",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/hl7/import": [
+    "lab",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/fhir/observation/lab/<int:result_id>": [
+    "lab",
+    "radiology",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/fhir/diagnosticreport/lab/<int:result_id>": [
+    "lab",
+    "radiology",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/lis/preview": [
+    "lab",
+    "admin",
+    "super_admin",
+    "manager"
+  ],
+  "/lis/confirm": [
+    "lab",
+    "admin",
+    "super_admin",
+    "manager"
+  ],
+  "/quality": [
+    "radiology",
+    "admin",
+    "manager"
+  ],
+  "/quality-control": [
+    "lab",
+    "technician",
+    "admin",
+    "manager"
+  ],
+  "/reagents": [
+    "lab",
+    "admin",
+    "manager"
+  ],
+  "/reagents/add": [
+    "lab",
+    "admin",
+    "manager"
+  ],
+  "/reagents/<int:reagent_id>/edit": [
+    "lab",
+    "admin",
+    "manager"
+  ],
+  "/print_request/<int:id>": [
+    "lab",
+    "admin",
+    "manager"
+  ],
+  "/print_request/<int:id>/pdf": [
+    "lab",
+    "admin",
+    "manager"
+  ],
+  "/test-catalog/": [
+    "lab",
+    "manager",
+    "admin"
+  ],
+  "/test-catalog/add": [
+    "lab",
+    "manager",
+    "admin"
+  ],
+  "/test-catalog/<int:id>/edit": [
+    "lab",
+    "manager",
+    "admin"
+  ],
+  "/test-catalog/<int:id>/delete": [
+    "lab",
+    "manager",
+    "admin"
+  ],
+  "/test-panels/": [
+    "lab",
+    "manager",
+    "admin"
+  ],
+  "/test-panels/add": [
+    "lab",
+    "manager",
+    "admin"
+  ],
+  "/test-panels/<int:id>/edit": [
+    "lab",
+    "manager",
+    "admin"
+  ],
+  "/test-panels/<int:id>/delete": [
+    "lab",
+    "manager",
+    "admin"
+  ],
+  "/api/test-catalog": [
+    "*CLINICAL_STAFF_ROLES"
+  ],
+  "/api/test-catalog/<int:id>": [
+    "*CLINICAL_STAFF_ROLES"
+  ],
+  "/requests": [
+    "radiology",
+    "manager"
+  ],
+  "/results": [
+    "radiology",
+    "manager"
+  ],
+  "/tests": [
+    "radiology",
+    "manager"
+  ],
+  "/worklist": [
+    "radiology",
+    "technician",
+    "admin",
+    "manager"
+  ],
+  "/worklist/request/<int:request_id>": [
+    "radiology",
+    "technician",
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/worklist/claim/<int:request_id>": [
+    "radiology",
+    "technician",
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/worklist/complete/<int:request_id>": [
+    "radiology",
+    "technician",
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/api/what-if": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/force-payment-approvals": [
+    "authenticated"
+  ],
+  "/approve-force-payment/<int:visit_id>": [
+    "authenticated"
+  ],
+  "/reject-force-payment/<int:visit_id>": [
+    "authenticated"
+  ],
+  "/custom-service-approvals": [
+    "authenticated"
+  ],
+  "/approve-custom-service/<int:service_id>": [
+    "authenticated"
+  ],
+  "/reject-custom-service/<int:service_id>": [
+    "authenticated"
+  ],
+  "/branding": [
+    "authenticated"
+  ],
+  "/branding/preview": [
+    "authenticated"
+  ],
+  "/departments": [
+    "authenticated"
+  ],
+  "/settlements": [
+    "manager",
+    "admin",
+    "super_admin",
+    "accountant"
+  ],
+  "/settlements/export": [
+    "manager",
+    "admin",
+    "super_admin",
+    "accountant"
+  ],
+  "/financial-reports": [
+    "manager",
+    "admin"
+  ],
+  "/budget": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/monthly-comparison": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/exchange-rates": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/exchange-rates/fetch-api": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/exchange-rates/deactivate/<int:rate_id>": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/pricing": [
+    "authenticated"
+  ],
+  "/api/pricing/services": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/api/pricing/services/<int:id>": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/seed-pricing": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/reports-center": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/analytics": [
+    "authenticated"
+  ],
+  "/self-service": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/kpi-dashboard": [
+    "authenticated"
+  ],
+  "/drill-down/<report_type>": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/patient-satisfaction": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/settings/test-sms": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/unit-control": [
+    "manager",
+    "admin"
+  ],
+  "/api/units/toggle": [
+    "manager",
+    "admin"
+  ],
+  "/user-management": [
+    "manager",
+    "admin"
+  ],
+  "/staff/schedule": [
+    "reception",
+    "manager"
+  ],
+  "/staff/absence": [
+    "reception",
+    "manager"
+  ],
+  "/staff/capacity": [
+    "manager",
+    "admin",
+    "super_admin"
+  ],
+  "/staff": [
+    "manager",
+    "admin"
+  ],
+  "/add": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/edit/<int:medication_id>": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/api/external-drug-import": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/api/external-drug-search": [
+    "pharmacist",
+    "admin",
+    "manager",
+    "doctor",
+    "nurse"
+  ],
+  "/consumption-report": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/interactions": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/interactions/<int:interaction_id>/toggle": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/stock-alerts": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/supply-requests": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/supply-requests/create": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/supply-requests/<int:request_id>": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/supply-requests/<int:request_id>/approve": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/supply-requests/<int:request_id>/fulfill": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/pos": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/pos/charge": [
+    "reception",
+    "accountant",
+    "manager"
+  ],
+  "/api/medications/search": [
+    "authenticated"
+  ],
+  "/pos/sell": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/sales-history": [
+    "pharmacist",
+    "admin",
+    "manager",
+    "accountant"
+  ],
+  "/sales/<int:sale_id>": [
+    "pharmacist",
+    "admin",
+    "manager",
+    "accountant"
+  ],
+  "/sales/<int:sale_id>/print": [
+    "pharmacist",
+    "admin",
+    "manager",
+    "accountant"
+  ],
+  "/sales/api/list": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/sales/api/totals": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/sales/api/report": [
+    "pharmacist",
+    "admin",
+    "manager",
+    "accountant"
+  ],
+  "/sales/<int:sale_id>/receipt": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/api/prescriptions": [
+    "pharmacist",
+    "admin",
+    "manager",
+    "doctor"
+  ],
+  "/prescriptions/dispense/<int:prescription_id>": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/suppliers": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/suppliers/add": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/suppliers/<int:supplier_id>/edit": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/suppliers/<int:supplier_id>/delete": [
+    "admin",
+    "manager"
+  ],
+  "/purchases": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/purchases/add": [
+    "pharmacist",
+    "admin",
+    "manager"
+  ],
+  "/patient-care": [
+    "nurse",
+    "manager"
+  ],
+  "/patient-monitoring": [
+    "nurse",
+    "manager"
+  ],
+  "/medication-administration": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/administer-medication/<int:prescription_item_id>": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/medications": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/api/protocols": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/tasks": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/tasks/create": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/tasks/<int:task_id>/status": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/vital-signs": [
+    "nurse",
+    "manager"
+  ],
+  "/record-vital-signs/<int:patient_id>": [
+    "nurse",
+    "manager"
+  ],
+  "/vitals": [
+    "nurse",
+    "admin",
+    "manager"
+  ],
+  "/api/fhir/observation/radiology/<int:result_id>": [
+    "radiology",
+    "lab",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/fhir/diagnosticreport/radiology/<int:result_id>": [
+    "radiology",
+    "lab",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/api/fhir/imagingstudy/<int:result_id>": [
+    "radiology",
+    "lab",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/images": [
+    "radiology",
+    "manager"
+  ],
+  "/files/<int:file_id>": [
+    "radiology",
+    "doctor",
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/api/ai-assist": [
+    "radiology",
+    "doctor",
+    "admin",
+    "manager"
+  ],
+  "/results/<int:result_id>/second-review": [
+    "radiology",
+    "admin",
+    "manager",
+    "super_admin"
+  ],
+  "/print_report/<int:radiology_scan_id>": [
+    "radiology",
+    "manager"
+  ],
+  "/print_report/<int:radiology_scan_id>/pdf": [
+    "radiology",
+    "manager"
+  ],
+  "/tests/add": [
+    "radiology",
+    "manager"
+  ],
+  "/api/report-templates": [
+    "radiology",
+    "manager",
+    "super_admin"
+  ],
+  "/api/report-templates/<string:template_id>/delete": [
+    "radiology",
+    "manager",
+    "super_admin"
+  ],
+  "/api/report-macros": [
+    "radiology",
+    "manager",
+    "super_admin"
+  ],
+  "/api/report-macros/<string:macro_id>/delete": [
+    "radiology",
+    "manager",
+    "super_admin"
+  ],
+  "/api/doctors": [
+    "reception",
+    "manager"
+  ],
+  "/api/department-staff": [
+    "reception",
+    "manager"
+  ],
+  "/api/department-services": [
+    "reception",
+    "manager"
+  ],
+  "/api/queue-department-status/<int:department_id>": [
+    "reception",
+    "manager",
+    "lab",
+    "radiology",
+    "doctor"
+  ],
+  "/api/queue-status-all": [
+    "reception",
+    "manager",
+    "lab",
+    "radiology",
+    "doctor"
+  ],
+  "/api/queue-wait-metrics": [
+    "reception",
+    "manager",
+    "lab",
+    "radiology",
+    "doctor"
+  ],
+  "/api/fhir/patient/<int:patient_id>": [
+    "reception",
+    "manager",
+    "doctor",
+    "admin",
+    "super_admin"
+  ],
+  "/api/fhir/encounter/<int:visit_id>": [
+    "reception",
+    "manager",
+    "doctor",
+    "admin",
+    "super_admin"
+  ],
+  "/api/fhir/appointment/<int:appointment_id>": [
+    "reception",
+    "manager",
+    "doctor",
+    "admin",
+    "super_admin"
+  ],
+  "/api/fhir/practitioner/<int:user_id>": [
+    "reception",
+    "manager",
+    "doctor",
+    "admin",
+    "super_admin"
+  ],
+  "/api/fhir/organization/<int:department_id>": [
+    "reception",
+    "manager",
+    "doctor",
+    "admin",
+    "super_admin"
+  ],
+  "/api/patient-queue-position/<int:patient_id>/<int:department_id>": [
+    "reception"
+  ],
+  "/api/queue-snapshot": [
+    "reception",
+    "manager"
+  ],
+  "/api/display/waiting": [
+    "reception",
+    "manager"
+  ],
+  "/api/display/calls": [
+    "reception",
+    "manager"
+  ],
+  "/online-bookings/checkin": [
+    "reception",
+    "super_admin",
+    "manager"
+  ],
+  "/appointments/<int:appointment_id>/checkin": [
+    "reception",
+    "super_admin",
+    "manager"
+  ],
+  "/follow-ups": [
+    "reception",
+    "super_admin",
+    "manager"
+  ],
+  "/appointments/<int:appointment_id>/confirm": [
+    "reception",
+    "super_admin",
+    "manager"
+  ],
+  "/appointments/<int:appointment_id>/cancel": [
+    "reception",
+    "super_admin",
+    "manager"
+  ],
+  "/appointments/<int:appointment_id>/no-show": [
+    "reception",
+    "super_admin",
+    "manager"
+  ],
+  "/create_appointment": [
+    "reception",
+    "manager"
+  ],
+  "/view_appointment/<int:appointment_id>": [
+    "reception",
+    "manager"
+  ],
+  "/edit_appointment/<int:appointment_id>": [
+    "reception",
+    "manager"
+  ],
+  "/survey/<token>": [
+    "authenticated"
+  ],
+  "/add_patient": [
+    "reception"
+  ],
+  "/view_patient/<int:patient_id>": [
+    "reception",
+    "manager"
+  ],
+  "/edit_patient/<int:patient_id>": [
+    "authenticated"
+  ],
+  "/delete_patient/<int:patient_id>": [
+    "authenticated"
+  ],
+  "/api/smart-patient-search": [
+    "reception",
+    "manager",
+    "admin",
+    "doctor"
+  ],
+  "/api/patients/<int:patient_id>/allergies/add": [
+    "reception",
+    "doctor",
+    "manager",
+    "admin"
+  ],
+  "/api/patients/<int:patient_id>/problems/add": [
+    "reception",
+    "doctor",
+    "manager",
+    "admin"
+  ],
+  "/visits/<int:visit_id>/send-to-accounting": [
+    "reception",
+    "manager"
+  ],
+  "/print_receipt/<int:visit_id>": [
+    "reception",
+    "manager"
+  ],
+  "/print_invoice/<int:invoice_id>": [
+    "reception",
+    "manager",
+    "accountant"
+  ],
+  "/print_prescription/<int:prescription_id>": [
+    "doctor",
+    "manager"
+  ],
+  "/cash-register": [
+    "reception",
+    "manager"
+  ],
+  "/daily-close": [
+    "reception",
+    "super_admin",
+    "manager"
+  ],
+  "/display/waiting": [
+    "authenticated"
+  ],
+  "/display/calls": [
+    "reception",
+    "super_admin",
+    "manager"
+  ],
+  "/queue/add-patient": [
+    "reception"
+  ],
+  "/queue/call-next/<int:department_id>": [
+    "reception"
+  ],
+  "/queue/start-treatment/<int:ticket_id>": [
+    "reception"
+  ],
+  "/queue/complete-treatment/<int:ticket_id>": [
+    "reception"
+  ],
+  "/queue/skip-patient/<int:ticket_id>": [
+    "reception"
+  ],
+  "/queue/return-to-queue/<int:ticket_id>": [
+    "reception"
+  ],
+  "/queue/cancel-ticket/<int:ticket_id>": [
+    "reception"
+  ],
+  "/queue/approve-emergency-debt/<int:ticket_id>": [
+    "reception"
+  ],
+  "/queue/approve-force-entry/<int:ticket_id>": [
+    "reception"
+  ],
+  "/api/queue-status/<int:department_id>": [
+    "authenticated"
+  ],
+  "/queue/save-settings/<int:department_id>": [
+    "authenticated"
+  ],
+  "/visits/<int:visit_id>/end": [
+    "reception"
+  ],
+  "/export/visits": [
+    "reception",
+    "manager",
+    "accountant"
+  ],
+  "/visits/<int:visit_id>/transfer": [
+    "reception"
+  ],
+  "/visits/create": [
+    "authenticated"
+  ],
+  "/view_visit/<int:visit_id>": [
+    "reception",
+    "manager"
+  ],
+  "/api/visit-pricing": [
+    "reception",
+    "manager"
+  ],
+  "/edit_visit/<int:visit_id>": [
+    "reception",
+    "manager"
+  ],
+  "/visits/<int:visit_id>/add-service": [
+    "reception",
+    "super_admin",
+    "use_hierarchy=False"
+  ],
+  "/visits/<int:visit_id>/return-to-treatment": [
+    "authenticated"
+  ],
+  "/performance": [
+    "authenticated"
+  ],
+  "/system-monitor": [
+    "authenticated"
+  ],
+  "/api/audit-log": [
+    "authenticated"
+  ],
+  "/api/recent-activities": [
+    "authenticated"
+  ],
+  "/api/ai-assistant": [
+    "authenticated"
+  ],
+  "/backup": [
+    "authenticated"
+  ],
+  "/backup/create": [
+    "authenticated"
+  ],
+  "/backup/restore/<int:backup_id>": [
+    "authenticated"
+  ],
+  "/backup/delete/<int:backup_id>": [
+    "authenticated"
+  ],
+  "/backup/cancel/<int:backup_id>": [
+    "authenticated"
+  ],
+  "/backup/schedule": [
+    "authenticated"
+  ],
+  "/backup/report": [
+    "authenticated"
+  ],
+  "/backup/export-logs": [
+    "authenticated"
+  ],
+  "/backup/history": [
+    "authenticated"
+  ],
+  "/branding/apply-theme/<int:theme_id>": [
+    "authenticated"
+  ],
+  "/branding/update": [
+    "authenticated"
+  ],
+  "/branch-templates": [
+    "authenticated"
+  ],
+  "/data-warehouse": [
+    "authenticated"
+  ],
+  "/data-warehouse/export": [
+    "authenticated"
+  ],
+  "/export-data": [
+    "authenticated"
+  ],
+  "/download-export/<filename>": [
+    "authenticated"
+  ],
+  "/departments/create": [
+    "authenticated"
+  ],
+  "/department/<int:department_id>": [
+    "authenticated"
+  ],
+  "/edit-department/<int:department_id>": [
+    "authenticated"
+  ],
+  "/department-staff/<int:department_id>": [
+    "authenticated"
+  ],
+  "/department-staff/<int:department_id>/add": [
+    "authenticated"
+  ],
+  "/department-staff/<int:department_id>/remove": [
+    "authenticated"
+  ],
+  "/activate-department/<int:department_id>": [
+    "authenticated"
+  ],
+  "/deactivate-department/<int:department_id>": [
+    "authenticated"
+  ],
+  "/export-departments": [
+    "authenticated"
+  ],
+  "/roles": [
+    "authenticated"
+  ],
+  "/roles/create": [
+    "authenticated"
+  ],
+  "/roles/<int:role_id>/edit": [
+    "authenticated"
+  ],
+  "/roles/<int:role_id>/permissions": [
+    "authenticated"
+  ],
+  "/roles/<int:role_id>/department-permissions": [
+    "authenticated"
+  ],
+  "/permissions-matrix": [
+    "authenticated"
+  ],
+  "/roles/<int:role_id>/delete": [
+    "authenticated"
+  ],
+  "/permissions": [
+    "authenticated"
+  ],
+  "/permissions/create": [
+    "authenticated"
+  ],
+  "/permissions/<int:permission_id>/edit": [
+    "authenticated"
+  ],
+  "/permissions/<int:permission_id>/delete": [
+    "authenticated"
+  ],
+  "/create-role-simple": [
+    "authenticated"
+  ],
+  "/create-permission-simple": [
+    "authenticated"
+  ],
+  "/security-logs": [
+    "authenticated"
+  ],
+  "/audit-trail": [
+    "authenticated"
+  ],
+  "/security-center": [
+    "authenticated"
+  ],
+  "/api/security-logs": [
+    "super_admin",
+    "owner"
+  ],
+  "/api/security-logs/summary": [
+    "super_admin",
+    "owner"
+  ],
+  "/services": [
+    "authenticated"
+  ],
+  "/services/create": [
+    "authenticated"
+  ],
+  "/service/<int:service_id>": [
+    "authenticated"
+  ],
+  "/edit-service/<int:service_id>": [
+    "authenticated"
+  ],
+  "/service-pricing/<int:service_id>": [
+    "authenticated"
+  ],
+  "/activate-service/<int:service_id>": [
+    "authenticated"
+  ],
+  "/deactivate-service/<int:service_id>": [
+    "authenticated"
+  ],
+  "/export-services": [
+    "authenticated"
+  ],
+  "/subscription-status": [
+    "authenticated"
+  ],
+  "/change-plan": [
+    "authenticated"
+  ],
+  "/system-config": [
+    "authenticated"
+  ],
+  "/queue-settings": [
+    "authenticated"
+  ],
+  "/system-backup": [
+    "authenticated"
+  ],
+  "/system/maintenance": [
+    "authenticated"
+  ],
+  "/system/cleanup": [
+    "authenticated"
+  ],
+  "/system/sms/test": [
+    "authenticated"
+  ],
+  "/system/notifications/queue/process": [
+    "authenticated"
+  ],
+  "/system/notifications/run": [
+    "authenticated"
+  ],
+  "/system/notifications/init-templates": [
+    "authenticated"
+  ],
+  "/system": [
+    "authenticated"
+  ],
+  "/backup/settings": [
+    "authenticated"
+  ],
+  "/maintenance/automation": [
+    "authenticated"
+  ],
+  "/usage": [
+    "authenticated"
+  ],
+  "/users": [
+    "authenticated"
+  ],
+  "/users/create": [
+    "authenticated"
+  ],
+  "/users/<int:user_id>/edit": [
+    "authenticated"
+  ],
+  "/users/<int:user_id>/delete": [
+    "authenticated"
+  ],
+  "/seed/users": [
+    "authenticated"
+  ],
+  "/users/<int:user_id>/reset-password": [
+    "authenticated"
+  ],
+  "/users/ban/<int:user_id>": [
+    "authenticated"
+  ],
+  "/users/unban/<int:user_id>": [
+    "authenticated"
+  ],
+  "/users/force-logout/<int:user_id>": [
+    "authenticated"
+  ]
+}
