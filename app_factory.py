@@ -229,10 +229,11 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
 
     # Flask-Babel for internationalization
     from flask_babel import Babel
+
     babel = Babel()
 
     def get_locale():
-        from flask import request, g, session
+        from flask import g, request, session
         from flask_login import current_user
 
         # 1. Check if language is forced in session
@@ -244,7 +245,11 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
             return current_user.locale
 
         # 3. Check tenant's default language
-        if hasattr(g, 'current_tenant') and g.current_tenant and getattr(g.current_tenant, 'locale', None):
+        if (
+            hasattr(g, 'current_tenant')
+            and g.current_tenant
+            and getattr(g.current_tenant, 'locale', None)
+        ):
             return g.current_tenant.locale
 
         # 4. Fall back to request Accept-Language header

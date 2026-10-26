@@ -5,7 +5,16 @@ Medical System Main Routes
 
 from datetime import UTC
 
-from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    current_app,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from flask_login import current_user, login_required
 from sqlalchemy import select
 
@@ -276,3 +285,11 @@ def technical_support():
 def about_system():
     """حول النظام"""
     return render_template('main/about.html')
+
+
+@main_bp.route('/set-language/<lang_code>')
+def set_language(lang_code):
+    """تغيير لغة الواجهة ديناميكياً (عربي / إنجليزي)."""
+    if lang_code in ('ar', 'en'):
+        session['lang'] = lang_code
+    return redirect(request.referrer or url_for('main.index'))

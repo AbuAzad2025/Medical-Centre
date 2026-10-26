@@ -42,6 +42,18 @@
                 <i class="far fa-clock me-1"></i> --:--
             </span>
 
+            <!-- Language Switcher -->
+            <div class="dropdown">
+                <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="تغيير اللغة / Language">
+                    <i class="fas fa-globe"></i>
+                    <span class="d-none d-sm-inline">{{ 'العربية' if session.get('lang', 'ar') == 'ar' else 'English' }}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size: 0.85rem;">
+                    <li><a class="dropdown-item {% if session.get('lang', 'ar') == 'ar' %}active{% endif %}" href="{{ url_for('main.set_language', lang_code='ar') }}">🇸🇦 العربية</a></li>
+                    <li><a class="dropdown-item {% if session.get('lang') == 'en' %}active{% endif %}" href="{{ url_for('main.set_language', lang_code='en') }}">🇬🇧 English</a></li>
+                </ul>
+            </div>
+
             {% if current_user.is_authenticated %}
             <!-- Notification bell with count badge -->
             <div class="dropdown" id="notificationDropdown">
