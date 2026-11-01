@@ -3,6 +3,7 @@
 Verify Alembic migrations can be applied to a fresh database.
 This script is used in CI to ensure migrations are valid.
 """
+
 import os
 import subprocess
 import sys
@@ -18,12 +19,23 @@ ALEMBIC_INI = MIGRATIONS_DIR / 'alembic.ini'
 
 def run_cmd(cmd, cwd=None, env=None):
     """Run command and return (success, output)"""
+    # Ensure PYTHONPATH is passed to subprocess
+    merged_env = os.environ.copy()
+    if env:
+        merged_env.update(env)
+    # Ensure migrations directory is in PYTHONPATH for migration scripts
+    migrations_path = str(PROJECT_ROOT / 'migrations')
+    if 'PYTHONPATH' in merged_env:
+        merged_env['PYTHONPATH'] = migrations_path + os.pathsep + merged_env['PYTHONPATH']
+    else:
+        merged_env['PYTHONPATH'] = migrations_path
+    
     try:
         result = subprocess.run(
             cmd,
             shell=True,
             cwd=cwd or PROJECT_ROOT,
-            env=env or os.environ,
+            env=merged_env,
             capture_output=True,
             text=True,
             timeout=300,
@@ -61,16 +73,21 @@ def main():
     else:
         print(f'Found {len(migration_files)} migration files')
 
-    # Set up environment for Flask app with test database
-    os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
+    # Use DATABASE_URL from environment (PostgreSQL in CI) or default to SQLite for local
+    database_url = os.environ.get('DATABASE_URL', 'sqlite:///:memory:')
+    os.environ['DATABASE_URL'] = database_url
     os.environ['FLASK_ENV'] = 'testing'
     os.environ['SECRET_KEY'] = 'test-secret-key-for-ci-testing-32bytes-minimum-length'
     os.environ['FLASK_ENV'] = 'testing'
+
+    # Add migrations directory to PYTHONPATH so migration scripts can import from migrations.*
+    os.environ['PYTHONPATH'] = str(PROJECT_ROOT / 'migrations') + os.pathsep + os.environ.get('PYTHONPATH', '')
 
     # Import and create the actual Flask app with test database
     print('Creating Flask app with test database...')
     try:
         from app_factory import create_app
+
         app = create_app('testing')
     except Exception as e:
         print(f'ERROR: Failed to create Flask app: {e}')
@@ -80,7 +97,10 @@ def main():
     with app.app_context():
         # Try to run alembic check (dry run) - run from project root with -c flag
         print('Running alembic check...')
-        success, output = run_cmd(f'alembic -c {ALEMBIC_INI} check')
+        # Use -x to pass the sqlalchemy.url for offline mode
+        success, output = run_cmd(
+            f'alembic -c {ALEMBIC_INI} -x sqlalchemy.url={database_url} check'
+        )
         if not success:
             print(f'alembic check failed: {output}')
             # Don't fail on check - it might be expected to fail if DB not present
@@ -88,7 +108,9 @@ def main():
 
         # Try to run alembic upgrade head --sql (dry run SQL generation)
         print('Generating migration SQL (dry run)...')
-        success, output = run_cmd(f'alembic -c {ALEMBIC_INI} upgrade head --sql')
+        success, output = run_cmd(
+            f'alembic -c {ALEMBIC_INI} -x sqlalchemy.url={database_url} upgrade head --sql'
+        )
         if not success:
             print(f'ERROR: alembic upgrade head --sql failed: {output}')
             return 1

@@ -81,7 +81,15 @@ def run_migrations_offline():
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    # In offline mode, get URL from -x flag or config
+    url = None
+    if config.cmd_opts and hasattr(config.cmd_opts, 'x') and config.cmd_opts.x:
+        for x in config.cmd_opts.x:
+            if x.startswith('sqlalchemy.url='):
+                url = x.split('=', 1)[1]
+                break
+    if not url:
+        url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url, target_metadata=get_metadata(), literal_binds=True
     )
