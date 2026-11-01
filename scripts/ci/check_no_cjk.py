@@ -14,15 +14,40 @@ CJK_PATTERN = re.compile(
     r'\uf900-\ufaff\uff65-\uff9f]'
 )
 
-# Files to skip (allowlist)
-SKIP_PATTERNS = [
+# Only scan these source directories (skip .venv, node_modules, backups, etc.)
+SCAN_DIRS = [
+    'app',
+    'routes',
+    'templates',
+    'static',
+    'scripts',
+    'tests',
+    'utils',
+    'models',
+    'services',
+    'config',
+    'migrations',
+]
+
+# File extensions to check
+CHECK_EXTENSIONS = {
+    '.py',
+    '.html',
+    '.js',
+    '.ts',
+    '.css',
+    '.scss',
+    '.json',
+    '.yml',
+    '.yaml',
+    '.md',
+    '.txt',
+}
+
+# File patterns to skip
+SKIP_FILE_PATTERNS = [
     r'.*\.po$',  # Translation files
     r'.*\.mo$',  # Compiled translation files
-    r'.*/migrations/.*',  # Migration files
-    r'.*/tests/.*',  # Test files (may contain test data)
-    r'.*/node_modules/.*',
-    r'.*/.venv/.*',
-    r'.*/__pycache__/.*',
     r'.*\.png$',
     r'.*\.jpg$',
     r'.*\.jpeg$',
@@ -35,10 +60,14 @@ SKIP_PATTERNS = [
 ]
 
 
-def should_skip(filepath: Path) -> bool:
+def should_skip_file(filepath: Path) -> bool:
     """Check if file should be skipped"""
+    name = filepath.name
     rel_path = str(filepath)
-    return any(re.search(pattern, rel_path) for pattern in SKIP_PATTERNS)
+    for pattern in SKIP_FILE_PATTERNS:
+        if re.search(pattern, rel_path):
+            return True
+    return False
 
 
 def check_file(filepath: Path) -> list:
@@ -57,48 +86,44 @@ def check_file(filepath: Path) -> list:
 def main():
     root = Path(__file__).resolve().parents[2]
 
-    # Collect all files to check
-    files_to_check = []
-    for ext in [
-        '*.py',
-        '*.html',
-        '*.js',
-        '*.ts',
-        '*.css',
-        '*.scss',
-        '*.json',
-        '*.yml',
-        '*.yaml',
-        '*.md',
-        '*.txt',
-    ]:
-        files_to_check.extend(root.rglob(ext))
-
     total_violations = 0
     files_with_violations = 0
 
-    for filepath in files_to_check:
-        if should_skip(filepath):
+    # Only scan relevant source directories
+    for scan_dir in SCAN_DIRS:
+        dir_path = root / scan_dir
+        if not dir_path.exists():
             continue
 
-        violations = check_file(filepath)
-        if violations:
-            files_with_violations += 1
-            total_violations += len(violations)
-            rel_path = filepath.relative_to(Path.cwd())
-            print(f'\n{rel_path}:')
-            for line_num, line in violations[:5]:  # Show first 5 violations per file
-                print(f'  Line {line_num}: {line[:100]}')
-            if len(violations) > 5:
-                print(f'  ... and {len(violations) - 5} more violations')
+        for filepath in dir_path.rglob('*'):
+            if not filepath.is_file():
+                continue
+
+            if filepath.suffix not in CHECK_EXTENSIONS:
+                continue
+
+            if should_skip_file(filepath):
+                continue
+
+            violations = check_file(filepath)
+            if violations:
+                files_with_violations += 1
+                total_violations += len(violations)
+                rel_path = filepath.relative_to(Path.cwd())
+                print(f'\n{rel_path}:')
+                for line_num, line in violations[:5]:
+                    safe_line = line[:100].encode('ascii', errors='replace').decode('ascii')
+                    print(f'  Line {line_num}: {safe_line}')
+                if len(violations) > 5:
+                    print(f'  ... and {len(violations) - 5} more violations')
 
     if total_violations > 0:
         print(
-            f'\n❌ FAILED: Found {total_violations} CJK character violations in {files_with_violations} files'
+            f'\n[FAILED] Found {total_violations} CJK character violations in {files_with_violations} files'
         )
         print('Please move CJK text to translation files (.po) or add files to skip list.')
         return 1
-    print('✅ PASSED: No CJK characters found in source code')
+    print('[PASSED] No CJK characters found in source code')
     return 0
 
 

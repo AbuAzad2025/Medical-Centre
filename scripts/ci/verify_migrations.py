@@ -23,12 +23,12 @@ def run_cmd(cmd, cwd=None, env=None):
     merged_env = os.environ.copy()
     if env:
         merged_env.update(env)
-    # Ensure migrations directory is in PYTHONPATH for migration scripts
-    migrations_path = str(PROJECT_ROOT / 'migrations')
+    # Ensure project root is in PYTHONPATH so 'migrations' module can be imported
+    project_root = str(PROJECT_ROOT)
     if 'PYTHONPATH' in merged_env:
-        merged_env['PYTHONPATH'] = migrations_path + os.pathsep + merged_env['PYTHONPATH']
+        merged_env['PYTHONPATH'] = project_root + os.pathsep + merged_env['PYTHONPATH']
     else:
-        merged_env['PYTHONPATH'] = migrations_path
+        merged_env['PYTHONPATH'] = project_root
 
     try:
         result = subprocess.run(
@@ -80,15 +80,13 @@ def main():
     os.environ['SECRET_KEY'] = 'test-secret-key-for-ci-testing-32bytes-minimum-length'
     os.environ['FLASK_ENV'] = 'testing'
 
-    # Add migrations directory to PYTHONPATH so migration scripts can import from migrations.*
-    os.environ['PYTHONPATH'] = str(PROJECT_ROOT / 'migrations') + os.pathsep + os.environ.get('PYTHONPATH', '')
+    # Add project root to PYTHONPATH so migration scripts can import from migrations.*
+    os.environ['PYTHONPATH'] = str(PROJECT_ROOT) + os.pathsep + os.environ.get('PYTHONPATH', '')
 
     # Run alembic commands - they don't need Flask app context for SQL generation
     # The -x flag provides the database URL for offline mode
     print('Running alembic check...')
-    success, output = run_cmd(
-        f'alembic -c {ALEMBIC_INI} -x sqlalchemy.url={database_url} check'
-    )
+    success, output = run_cmd(f'alembic -c {ALEMBIC_INI} -x sqlalchemy.url={database_url} check')
     if not success:
         print(f'alembic check failed: {output}')
         # Don't fail on check - it might be expected to fail if DB not present
