@@ -35,23 +35,6 @@ def run_cmd(cmd, cwd=None, env=None):
         return False, str(e)
 
 
-def create_minimal_app():
-    """Create a minimal Flask app for alembic operations"""
-    from flask import Flask
-    from flask_sqlalchemy import SQLAlchemy
-    from flask_migrate import Migrate
-    
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = 'test-secret-key-for-ci'
-    
-    db = SQLAlchemy(app)
-    migrate = Migrate(app, db, directory=str(Path(__file__).resolve().parents[2] / 'migrations'))
-    
-    return app
-
-
 def main():
     """Verify Alembic migrations can be applied to a fresh database"""
     print('Verifying Alembic migrations...')
@@ -78,9 +61,20 @@ def main():
     else:
         print(f'Found {len(migration_files)} migration files')
 
-    # Create a minimal Flask app for alembic operations
-    print('Creating minimal Flask app for alembic operations...')
-    app = create_minimal_app()
+    # Set up environment for Flask app with test database
+    os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
+    os.environ['FLASK_ENV'] = 'testing'
+    os.environ['SECRET_KEY'] = 'test-secret-key-for-ci'
+    os.environ['FLASK_ENV'] = 'testing'
+
+    # Import and create the actual Flask app with test database
+    print('Creating Flask app with test database...')
+    try:
+        from app_factory import create_app
+        app = create_app('testing')
+    except Exception as e:
+        print(f'ERROR: Failed to create Flask app: {e}')
+        return 1
 
     # Run alembic commands within Flask app context
     with app.app_context():
