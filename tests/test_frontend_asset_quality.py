@@ -147,6 +147,9 @@ ORPHAN_KNOWN_LEGACY = {
     'js/digits-ar.ts',
     'js/document_ocr.ts',
     'js/enums.ts',
+    'js/events.ts',
+    'js/flash.ts',
+    'js/focus-trap.ts',
     'js/form-stepper.ts',
     'js/form-validation.ts',
     'js/global-errors.ts',
@@ -156,6 +159,7 @@ ORPHAN_KNOWN_LEGACY = {
     'js/pwa-install.ts',
     'js/security.ts',
     'js/sidebar-toggle.ts',
+    'js/sidebar-toggle.js',  # legacy JS version kept for compatibility
     'js/smart-search.ts',
     'js/smart-select.ts',
     'js/theme-toggle.ts',
