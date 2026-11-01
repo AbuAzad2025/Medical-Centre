@@ -62,12 +62,8 @@ SKIP_FILE_PATTERNS = [
 
 def should_skip_file(filepath: Path) -> bool:
     """Check if file should be skipped"""
-    name = filepath.name
     rel_path = str(filepath)
-    for pattern in SKIP_FILE_PATTERNS:
-        if re.search(pattern, rel_path):
-            return True
-    return False
+    return any(re.search(pattern, rel_path) for pattern in SKIP_FILE_PATTERNS)
 
 
 def check_file(filepath: Path) -> list:

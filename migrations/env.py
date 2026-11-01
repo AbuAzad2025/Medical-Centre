@@ -6,8 +6,6 @@ from logging.config import fileConfig
 # Allow version modules to import shared helpers from migrations/
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from flask import current_app
-
 from alembic import context
 
 # this is the Alembic Config object, which provides
@@ -20,53 +18,23 @@ fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 
 
-def get_engine():
-    try:
-        # this works with Flask-SQLAlchemy<3 and Alchemical
-        return current_app.extensions['migrate'].db.get_engine()
-    except (TypeError, AttributeError):
-        # this works with Flask-SQLAlchemy>=3
-        return current_app.extensions['migrate'].db.engine
-
-
-def get_engine_url():
-    try:
-        return get_engine().url.render_as_string(hide_password=False).replace(
-            '%', '%%')
-    except AttributeError:
-        return str(get_engine().url).replace('%', '%%')
-
-
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-
-# Only access Flask app context when in online mode.
-# For offline mode (alembic check, upgrade --sql), we don't need a real engine.
-if not context.is_offline_mode():
-    config.set_main_option('sqlalchemy.url', get_engine_url())
-    target_db = current_app.extensions['migrate'].db
-else:
-    # In offline mode, use the URL from config or a dummy value
-    target_db = None
-
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+def get_engine_url_from_config():
+    """Get database URL from config (set via -x flag or alembic.ini)"""
+    # First try to get URL from -x flag (passed by verify_migrations.py)
+    if config.cmd_opts and hasattr(config.cmd_opts, 'x') and config.cmd_opts.x:
+        for x in config.cmd_opts.x:
+            if x.startswith('sqlalchemy.url='):
+                return x.split('=', 1)[1]
+    # Fall back to config file
+    return config.get_main_option("sqlalchemy.url")
 
 
 def get_metadata():
-    if target_db is None:
-        # In offline mode without a real DB, we can't get metadata
-        # Return empty metadata for offline operations
-        from sqlalchemy import MetaData
-        return MetaData()
-    if hasattr(target_db, 'metadatas'):
-        return target_db.metadatas[None]
-    return target_db.metadata
+    """Get metadata for migrations - in offline mode we return empty metadata"""
+    # In offline mode, we don't have access to Flask app, so return empty metadata
+    # The actual migrations don't need metadata for SQL generation
+    from sqlalchemy import MetaData
+    return MetaData()
 
 
 def run_migrations_offline():
@@ -81,15 +49,7 @@ def run_migrations_offline():
     script output.
 
     """
-    # In offline mode, get URL from -x flag or config
-    url = None
-    if config.cmd_opts and hasattr(config.cmd_opts, 'x') and config.cmd_opts.x:
-        for x in config.cmd_opts.x:
-            if x.startswith('sqlalchemy.url='):
-                url = x.split('=', 1)[1]
-                break
-    if not url:
-        url = config.get_main_option("sqlalchemy.url")
+    url = get_engine_url_from_config()
     context.configure(
         url=url, target_metadata=get_metadata(), literal_binds=True
     )
@@ -105,10 +65,26 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
+    # Import Flask only when running online (with actual database)
+    from flask import current_app
+
+    def get_engine():
+        try:
+            # this works with Flask-SQLAlchemy<3 and Alchemical
+            return current_app.extensions['migrate'].db.get_engine()
+        except (TypeError, AttributeError):
+            # this works with Flask-SQLAlchemy>=3
+            return current_app.extensions['migrate'].db.engine
+
+    def get_engine_url():
+        try:
+            return get_engine().url.render_as_string(hide_password=False).replace(
+                '%', '%%')
+        except AttributeError:
+            return str(get_engine().url).replace('%', '%%')
 
     # this callback is used to prevent an auto-migration from being generated
     # when there are no changes to the schema
-    # reference: http://alembic.zzzcomputing.com/en/latest/cookbook.html
     def process_revision_directives(context, revision, directives):
         if getattr(config.cmd_opts, 'autogenerate', False):
             script = directives[0]
