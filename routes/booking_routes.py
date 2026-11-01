@@ -787,6 +787,8 @@ def api_smart_slots():
     except Exception:
         logging.exception('Error getting smart slots: %s')
         return jsonify({'success': False, 'message': 'تعذر اقتراح الأوقات'}), 500
+
+
 # --- Scheduling enhancements (booking) ---
 
 from datetime import timedelta
@@ -819,7 +821,9 @@ def booking_recurring_appointments():
         except (TypeError, ValueError):
             return jsonify({'success': False, 'error': 'patient_id required'}), 400
         patient = db.session.get(Patient, patient_id)
-        if patient is None or (tenant_id is not None and getattr(patient, 'tenant_id', None) != tenant_id):
+        if patient is None or (
+            tenant_id is not None and getattr(patient, 'tenant_id', None) != tenant_id
+        ):
             return jsonify({'success': False, 'error': 'Patient not found'}), 404
         try:
             starts_at = datetime.fromisoformat(str(data.get('starts_at')).replace('Z', '+00:00'))
@@ -836,8 +840,12 @@ def booking_recurring_appointments():
                 ap = Appointment(
                     tenant_id=tenant_id,
                     patient_id=patient_id,
-                    doctor_id=int(data.get('doctor_id')) if data.get('doctor_id') not in (None, '') else None,
-                    department_id=int(data.get('department_id')) if data.get('department_id') not in (None, '') else None,
+                    doctor_id=int(data.get('doctor_id'))
+                    if data.get('doctor_id') not in (None, '')
+                    else None,
+                    department_id=int(data.get('department_id'))
+                    if data.get('department_id') not in (None, '')
+                    else None,
                     starts_at=starts_at + timedelta(days=i * interval_days),
                     status='SCHEDULED',
                     notes=data.get('notes'),
@@ -916,4 +924,6 @@ def booking_no_show_list():
     if tenant_id is not None:
         q = q.filter(Appointment.tenant_id == tenant_id)
     items = db.session.execute(q.order_by(Appointment.starts_at.desc()).limit(100)).scalars().all()
-    return jsonify({'success': True, 'appointments': [a.to_dict() for a in items], 'count': len(items)})
+    return jsonify(
+        {'success': True, 'appointments': [a.to_dict() for a in items], 'count': len(items)}
+    )

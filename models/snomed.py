@@ -1,4 +1,5 @@
 """SNOMED CT terminology model for clinical concepts."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime

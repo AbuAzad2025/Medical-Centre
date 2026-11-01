@@ -14,7 +14,9 @@ from utils.decorators import role_required
 
 @medication_bp.route('/api/interactions/check', methods=['GET', 'POST'])
 @medication_bp.route('/interactions/check', methods=['GET', 'POST'])
-@medication_bp.route('/interactions/check/<int:medication_a_id>/<int:medication_b_id>', methods=['GET'])
+@medication_bp.route(
+    '/interactions/check/<int:medication_a_id>/<int:medication_b_id>', methods=['GET']
+)
 @login_required
 @role_required('pharmacist', 'admin', 'manager', 'doctor')
 def check_drug_interactions(medication_a_id=None, medication_b_id=None):
@@ -31,7 +33,9 @@ def check_drug_interactions(medication_a_id=None, medication_b_id=None):
             b_id = request.args.get('medication_b_id', type=int)
 
         q = select(DrugInteraction)
-        tenant_med_ids = select(Medication.id).filter(Medication.tenant_id == current_user.tenant_id)
+        tenant_med_ids = select(Medication.id).filter(
+            Medication.tenant_id == current_user.tenant_id
+        )
         q = q.filter(
             DrugInteraction.medication_a_id.in_(tenant_med_ids),
             DrugInteraction.medication_b_id.in_(tenant_med_ids),
@@ -131,7 +135,9 @@ def stock_alerts_api():
                 'trade_name': getattr(m, 'trade_name', None),
                 'stock_quantity': getattr(m, 'stock_quantity', None),
                 'minimum_stock': getattr(m, 'minimum_stock', None),
-                'expiry_date': m.expiry_date.isoformat() if getattr(m, 'expiry_date', None) else None,
+                'expiry_date': m.expiry_date.isoformat()
+                if getattr(m, 'expiry_date', None)
+                else None,
             }
 
         return jsonify(
@@ -184,9 +190,13 @@ def expiry_tracking():
                 {
                     'id': m.id,
                     'trade_name': getattr(m, 'trade_name', None),
-                    'expiry_date': m.expiry_date.isoformat() if getattr(m, 'expiry_date', None) else None,
+                    'expiry_date': m.expiry_date.isoformat()
+                    if getattr(m, 'expiry_date', None)
+                    else None,
                     'stock_quantity': getattr(m, 'stock_quantity', None),
-                    'expired': bool(getattr(m, 'expiry_date', None) and m.expiry_date < datetime.now().date()),
+                    'expired': bool(
+                        getattr(m, 'expiry_date', None) and m.expiry_date < datetime.now().date()
+                    ),
                 }
             )
         return jsonify({'success': True, 'medications': out, 'count': len(out)})

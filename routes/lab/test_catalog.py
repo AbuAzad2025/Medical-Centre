@@ -1,4 +1,4 @@
-﻿"""Test catalog and panel CRUD routes"""
+"""Test catalog and panel CRUD routes"""
 
 import logging
 from datetime import UTC, datetime

@@ -322,6 +322,8 @@ def capture_slow_queries_weekly():
         logging.exception('Error capturing weekly slow queries: %s')
         flash('حدث خطأ في إنشاء التقرير الأسبوعي', 'error')
         return redirect(url_for('finance.slow_queries'))
+
+
 # --- Enhanced billing features ---
 
 
@@ -365,8 +367,8 @@ def invoice_pdf(invoice_id: int):
         lines = []
         for svc in getattr(invoice, 'lines', None) or []:
             lines.append(
-                f"{getattr(svc, 'service_name', '')} x{getattr(svc, 'quantity', 1)} "
-                f"= {getattr(svc, 'total_price', 0)}"
+                f'{getattr(svc, "service_name", "")} x{getattr(svc, "quantity", 1)} '
+                f'= {getattr(svc, "total_price", 0)}'
             )
         if not lines:
             lines = ['No line items']
@@ -380,12 +382,10 @@ def invoice_pdf(invoice_id: int):
             'currency': invoice.currency,
         }
         pdf = printer.generate_report(
-            f"Invoice {invoice.invoice_number or invoice.id}", patient_info, sections
+            f'Invoice {invoice.invoice_number or invoice.id}', patient_info, sections
         )
         response = Response(pdf, mimetype='application/pdf')
-        response.headers['Content-Disposition'] = (
-            f'attachment; filename=invoice-{invoice.id}.pdf'
-        )
+        response.headers['Content-Disposition'] = f'attachment; filename=invoice-{invoice.id}.pdf'
         return response
     except Exception:
         import logging
@@ -427,9 +427,7 @@ def payment_plans():
         }
         per = round(total_amount / installments, 2) if installments else total_amount
         for i in range(installments):
-            plan['schedule'].append(
-                {'installment': i + 1, 'amount': per, 'status': 'PENDING'}
-            )
+            plan['schedule'].append({'installment': i + 1, 'amount': per, 'status': 'PENDING'})
         _PAYMENT_PLANS[plan['id']] = plan
         return jsonify({'success': True, 'data': plan}), 201
     plans = [p for p in _PAYMENT_PLANS.values() if p.get('tenant_id') == tenant_id]
@@ -498,7 +496,9 @@ def finance_insurance_claims():
                     else 0.0,
                     'invoice_id': getattr(c, 'invoice_id', None),
                     'visit_id': getattr(c, 'visit_id', None),
-                    'created_at': c.created_at.isoformat() if getattr(c, 'created_at', None) else None,
+                    'created_at': c.created_at.isoformat()
+                    if getattr(c, 'created_at', None)
+                    else None,
                 }
             )
         return jsonify({'success': True, 'claims': data})
@@ -517,7 +517,9 @@ def finance_insurance_claim_status(claim_id: int):
     tenant_id = getattr(g, 'tenant_id', None)
     try:
         claim = db.session.get(InsuranceClaim, claim_id)
-        if claim is None or (tenant_id is not None and getattr(claim, 'tenant_id', None) != tenant_id):
+        if claim is None or (
+            tenant_id is not None and getattr(claim, 'tenant_id', None) != tenant_id
+        ):
             return jsonify({'success': False, 'error': 'Claim not found'}), 404
         return jsonify(
             {

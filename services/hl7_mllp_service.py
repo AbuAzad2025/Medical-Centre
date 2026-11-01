@@ -243,7 +243,11 @@ def _default_siu_handler(segs: dict, raw: str) -> str | None:
     try:
         sch = segs.get('SCH', [[]])[0] if segs.get('SCH') else []
         pid = segs.get('PID', [[]])[0] if segs.get('PID') else []
-        logger.info('HL7 SIU scheduling sch=%s pid=%s', (sch[0] if sch else '')[:40], (pid[3] if len(pid) > 3 else '')[:20])
+        logger.info(
+            'HL7 SIU scheduling sch=%s pid=%s',
+            (sch[0] if sch else '')[:40],
+            (pid[3] if len(pid) > 3 else '')[:20],
+        )
     except Exception as exc:  # noqa: BLE001
         logger.warning('SIU handler parse skipped: %s', exc)
     return 'SIU logged'
@@ -253,7 +257,11 @@ def _default_rde_handler(segs: dict, raw: str) -> str | None:
     try:
         pid = segs.get('PID', [[]])[0] if segs.get('PID') else []
         rxe = segs.get('RXE', [[]])[0] if segs.get('RXE') else []
-        logger.info('HL7 RDE pharmacy order pid=%s rxe=%s', (pid[3] if len(pid) > 3 else '')[:20], (rxe[0] if rxe else '')[:40])
+        logger.info(
+            'HL7 RDE pharmacy order pid=%s rxe=%s',
+            (pid[3] if len(pid) > 3 else '')[:20],
+            (rxe[0] if rxe else '')[:40],
+        )
     except Exception as exc:  # noqa: BLE001
         logger.warning('RDE handler parse skipped: %s', exc)
     return 'RDE logged'
@@ -263,7 +271,11 @@ def _default_rds_handler(segs: dict, raw: str) -> str | None:
     try:
         pid = segs.get('PID', [[]])[0] if segs.get('PID') else []
         rxd = segs.get('RXD', [[]])[0] if segs.get('RXD') else []
-        logger.info('HL7 RDS pharmacy dispense pid=%s rxd=%s', (pid[3] if len(pid) > 3 else '')[:20], (rxd[0] if rxd else '')[:40])
+        logger.info(
+            'HL7 RDS pharmacy dispense pid=%s rxd=%s',
+            (pid[3] if len(pid) > 3 else '')[:20],
+            (rxd[0] if rxd else '')[:40],
+        )
     except Exception as exc:  # noqa: BLE001
         logger.warning('RDS handler parse skipped: %s', exc)
     return 'RDS logged'
@@ -273,7 +285,11 @@ def _default_mdm_handler(segs: dict, raw: str) -> str | None:
     try:
         pid = segs.get('PID', [[]])[0] if segs.get('PID') else []
         txa = segs.get('TXA', [[]])[0] if segs.get('TXA') else []
-        logger.info('HL7 MDM document pid=%s txa=%s', (pid[3] if len(pid) > 3 else '')[:20], (txa[0] if txa else '')[:40])
+        logger.info(
+            'HL7 MDM document pid=%s txa=%s',
+            (pid[3] if len(pid) > 3 else '')[:20],
+            (txa[0] if txa else '')[:40],
+        )
     except Exception as exc:  # noqa: BLE001
         logger.warning('MDM handler parse skipped: %s', exc)
     return 'MDM logged'

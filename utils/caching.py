@@ -1,4 +1,5 @@
 """Caching configuration for the medical platform."""
+
 from __future__ import annotations
 
 import os

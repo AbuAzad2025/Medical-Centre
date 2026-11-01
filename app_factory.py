@@ -234,7 +234,10 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
 
         from flask import g, request, session
         from flask_login import current_user
-        logging.info(f'get_locale: session_lang={session.get("lang")}, accept_lang={request.accept_languages.best_match(["ar", "en"])}')
+
+        logging.info(
+            f'get_locale: session_lang={session.get("lang")}, accept_lang={request.accept_languages.best_match(["ar", "en"])}'
+        )
 
         # 1. Check if language is forced in session
         if 'lang' in session:
@@ -260,6 +263,7 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     # Initialize caching (SimpleCache for dev, RedisCache for prod)
     try:
         from utils.caching import init_cache
+
         init_cache(app)
     except Exception:
         app.logger.warning('Cache initialization failed, continuing without cache')
@@ -1240,16 +1244,19 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     app.register_blueprint(fhir_bp, url_prefix='/api/fhir')
     try:
         from routes.fhir_extended_routes import fhir_bp2
+
         app.register_blueprint(fhir_bp2, url_prefix='/api/fhir')
     except Exception:
         pass
     try:
         from routes.fhir_extended2_routes import fhir_bp3
+
         app.register_blueprint(fhir_bp3, url_prefix='/api/fhir')
     except Exception:
         pass
     try:
         from routes.fhir_crud_routes import fhir_crud_bp
+
         app.register_blueprint(fhir_crud_bp, url_prefix='/api/fhir')
     except Exception:
         pass
@@ -1265,6 +1272,7 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     app.register_blueprint(backup_restore_bp, url_prefix='/backup-restore')
     try:
         from routes.compliance_routes import compliance_bp
+
         app.register_blueprint(compliance_bp, url_prefix='/compliance')
     except Exception:
         pass
@@ -1418,10 +1426,12 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     @app.context_processor
     def inject_locale():
         from flask_babel import get_locale as _get_locale
+
         loc = _get_locale()
         loc_str = str(loc) if loc else 'ar'
         # Debug
         import logging
+
         logging.info(f'inject_locale: loc={loc}, loc_str={loc_str}')
         return {'current_locale': loc_str}
 

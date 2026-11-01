@@ -223,7 +223,7 @@ def build_oru(
             [
                 '1',
                 'NM' if _is_number(r.get('value')) else 'ST',
-                f"{r.get('code', '')}^{r.get('name', '')}",
+                f'{r.get("code", "")}^{r.get("name", "")}',
                 '',
                 _str(r.get('value')),
                 r.get('unit', ''),
@@ -576,6 +576,7 @@ MessageGenerator = HL7MessageGenerator
 try:
     from services.hl7_mllp_service import validate_hl7_message
 except Exception:  # pragma: no cover
+
     def validate_hl7_message(raw: str) -> tuple[bool, str]:  # type: ignore[misc]
         return ('MSH' in (raw or ''), '' if 'MSH' in (raw or '') else 'Missing MSH')
 

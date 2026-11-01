@@ -313,6 +313,7 @@ class TestRunPlatformBootstrap:
             raise RuntimeError('simulated failure')
 
         monkeypatch.setattr(pb, 'ensure_module_definitions', boom)
+
         def _record_bundles():
             calls.append('bundles')
             return 1

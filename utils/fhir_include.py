@@ -1,4 +1,5 @@
 """FHIR _include and _revinclude support utilities."""
+
 from __future__ import annotations
 
 
@@ -46,11 +47,13 @@ def resolve_include(entries, include_params, model_lookup):
                             try:
                                 obj = model.query.get(int(ref_id))
                                 if obj:
-                                    included_resources.append({
-                                        'resourceType': ref_type,
-                                        'id': str(ref_id),
-                                        'included': True,
-                                    })
+                                    included_resources.append(
+                                        {
+                                            'resourceType': ref_type,
+                                            'id': str(ref_id),
+                                            'included': True,
+                                        }
+                                    )
                             except (ValueError, Exception):
                                 pass
             elif isinstance(ref, list):

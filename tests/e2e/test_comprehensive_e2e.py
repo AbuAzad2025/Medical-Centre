@@ -1,4 +1,4 @@
-﻿"""Comprehensive E2E tests (pytest + Flask test client).
+"""Comprehensive E2E tests (pytest + Flask test client).
 
 Covers major route surfaces, CRUD operations, multi-tenant isolation, and
 error handling (404/403/500).  Runs against the real PostgreSQL test database
@@ -64,13 +64,25 @@ class TestMajorRoutes:
 
     def test_lab_routes(self, login_as, client, ctx):
         _make_role(login_as, client, ctx, 'lab')
-        for path in ['/lab/', '/lab/dashboard', '/lab/requests', '/lab/results', '/lab/tests', '/lab/worklist']:
+        for path in [
+            '/lab/',
+            '/lab/dashboard',
+            '/lab/requests',
+            '/lab/results',
+            '/lab/tests',
+            '/lab/worklist',
+        ]:
             resp = client.get(path)
             assert resp.status_code in (200, 302, 404), (path, resp.status_code)
 
     def test_radiology_routes(self, login_as, client, ctx):
         _make_role(login_as, client, ctx, 'radiology')
-        for path in ['/radiology/', '/radiology/dashboard', '/radiology/requests', '/radiology/results']:
+        for path in [
+            '/radiology/',
+            '/radiology/dashboard',
+            '/radiology/requests',
+            '/radiology/results',
+        ]:
             resp = client.get(path)
             assert resp.status_code in (200, 302, 404), (path, resp.status_code)
 
@@ -119,7 +131,6 @@ class TestCRUDOperations:
         # reuse the shared ctx pattern
         import types
         import uuid
-
 
         tenant_id = test_tenant.id
 
@@ -250,7 +261,9 @@ class TestMultiTenantIsolation:
                 db.session.add(t2)
                 db.session.commit()
             activate_tenant_modules(app, t2, ['reception', 'doctor'])
-            user_b = ensure_test_user(db, t2, username='reception_b', role='reception', password='test123')
+            user_b = ensure_test_user(
+                db, t2, username='reception_b', role='reception', password='test123'
+            )
         finally:
             g.pop('_tenant_filter_bypass', None)
 
@@ -283,15 +296,20 @@ class TestErrorHandling:
 
     def test_500_error_handler(self, app, test_tenant):
         from tests.tenant_context import ensure_test_user, login_test_client
-        u = ensure_test_user(db, test_tenant, username='boom_user', role='reception', password='test123')
+
+        u = ensure_test_user(
+            db, test_tenant, username='boom_user', role='reception', password='test123'
+        )
         prev_propagate = app.config.get('PROPAGATE_EXCEPTIONS')
         app.config['PROPAGATE_EXCEPTIONS'] = False
         c = app.test_client()
         login_test_client(c, u, test_tenant, password='test123')
         endpoint = 'reception.patients'
         original = app.view_functions.get(endpoint)
+
         def _boom(*a, **k):
             raise RuntimeError('boom')
+
         app.view_functions[endpoint] = _boom
         try:
             resp = c.get('/reception/patients')
@@ -347,4 +365,6 @@ def ctx(app, db, test_tenant):
         db.session.commit()
         return u
 
-    return types.SimpleNamespace(db=db, tenant_id=tenant_id, patient=_patient, department=_department, user=_user)
+    return types.SimpleNamespace(
+        db=db, tenant_id=tenant_id, patient=_patient, department=_department, user=_user
+    )

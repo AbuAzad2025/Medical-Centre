@@ -9,21 +9,24 @@ def _login(client, db, tenant, username, role):
     return u
 
 
-@pytest.mark.parametrize('path', [
-    '/finance/payment-plans',
-    '/finance/billing-summary',
-    '/finance/insurance-claims',
-    '/medication/api/stock/alerts',
-    '/medication/api/expiry',
-    '/medication/refills',
-    '/reception/appointments/waitlist',
-    '/reception/appointments/reminders',
-    '/reception/appointments/no-shows',
-    '/booking/waitlist',
-    '/booking/appointment-reminders',
-    '/lab/result-templates',
-    '/lab/critical-alerts',
-])
+@pytest.mark.parametrize(
+    'path',
+    [
+        '/finance/payment-plans',
+        '/finance/billing-summary',
+        '/finance/insurance-claims',
+        '/medication/api/stock/alerts',
+        '/medication/api/expiry',
+        '/medication/refills',
+        '/reception/appointments/waitlist',
+        '/reception/appointments/reminders',
+        '/reception/appointments/no-shows',
+        '/booking/waitlist',
+        '/booking/appointment-reminders',
+        '/lab/result-templates',
+        '/lab/critical-alerts',
+    ],
+)
 def test_get_endpoints(app, client, db, test_tenant, path):
     role = 'accountant'
     if path.startswith('/medication'):
@@ -48,7 +51,10 @@ def test_post_endpoints(app, client, db, test_tenant):
     # prescription may not exist -> 404 acceptable
     assert r.status_code < 500
     _login(client, db, test_tenant, 'smoke_rc2', 'reception')
-    r = client.post('/reception/appointments/recurring', json={'patient_id': 1, 'starts_at': '2026-01-01T10:00:00'})
+    r = client.post(
+        '/reception/appointments/recurring',
+        json={'patient_id': 1, 'starts_at': '2026-01-01T10:00:00'},
+    )
     assert r.status_code < 500
     r = client.post('/reception/appointments/waitlist', json={'patient_id': 1})
     assert r.status_code < 500
@@ -57,7 +63,9 @@ def test_post_endpoints(app, client, db, test_tenant):
     _login(client, db, test_tenant, 'smoke_lab2', 'lab')
     r = client.post('/lab/result-templates', json={'name': 't', 'test_code': 'CBC'})
     assert r.status_code < 500
-    r = client.post('/lab/derived-values', json={'formula': 'bmi', 'values': {'weight': 70, 'height': 175}})
+    r = client.post(
+        '/lab/derived-values', json={'formula': 'bmi', 'values': {'weight': 70, 'height': 175}}
+    )
     assert r.status_code < 500
     r = client.post('/lab/results/1/history', json={'value': '5'})
     assert r.status_code < 500

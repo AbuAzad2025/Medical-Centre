@@ -873,12 +873,12 @@ def soc2_cc3_risk_assessment():
         {
             'name': 'no_brute_force_indicators',
             'passed': len([i for i in indicators if i['type'] == 'brute_force']) == 0,
-            'detail': f"{len([i for i in indicators if i['type'] == 'brute_force'])} brute-force indicators",
+            'detail': f'{len([i for i in indicators if i["type"] == "brute_force"])} brute-force indicators',
         },
         {
             'name': 'no_high_volume_access',
             'passed': len([i for i in indicators if i['type'] == 'high_volume_access']) == 0,
-            'detail': f"{len([i for i in indicators if i['type'] == 'high_volume_access'])} high-volume indicators",
+            'detail': f'{len([i for i in indicators if i["type"] == "high_volume_access"])} high-volume indicators',
         },
         {
             'name': 'risk_assessment_current',
@@ -945,9 +945,7 @@ def soc2_cc5_control_activities():
     try:
         from sqlalchemy import func as sqlfunc
 
-        rows = db.session.execute(
-            select(User.role, sqlfunc.count()).group_by(User.role)
-        ).all()
+        rows = db.session.execute(select(User.role, sqlfunc.count()).group_by(User.role)).all()
         role_counts = {r: int(c) for r, c in rows}
     except Exception:
         role_counts = {}
@@ -992,17 +990,25 @@ def soc2_cc6_logical_access():
     from models.user import User
     from models.user_mfa import UserMFASettings
 
-    total_users = db.session.execute(
-        select(func.count()).select_from(User).filter(User.is_active.is_(True))
-    ).scalar() or 0
-    inactive_users = db.session.execute(
-        select(func.count()).select_from(User).filter(User.is_active.is_(False))
-    ).scalar() or 0
+    total_users = (
+        db.session.execute(
+            select(func.count()).select_from(User).filter(User.is_active.is_(True))
+        ).scalar()
+        or 0
+    )
+    inactive_users = (
+        db.session.execute(
+            select(func.count()).select_from(User).filter(User.is_active.is_(False))
+        ).scalar()
+        or 0
+    )
     mfa_enabled = 0
     try:
         mfa_enabled = (
             db.session.execute(
-                select(func.count()).select_from(UserMFASettings).filter(UserMFASettings.totp_enabled.is_(True))
+                select(func.count())
+                .select_from(UserMFASettings)
+                .filter(UserMFASettings.totp_enabled.is_(True))
             ).scalar()
             or 0
         )
@@ -1151,7 +1157,9 @@ def soc2_cc9_risk_mitigation():
         {
             'name': 'encryption_service_available',
             'passed': active,
-            'detail': 'Field encryption service active' if active else 'Field encryption not configured',
+            'detail': 'Field encryption service active'
+            if active
+            else 'Field encryption not configured',
         },
         {
             'name': 'encryption_key_configured',
@@ -1239,7 +1247,9 @@ def soc2_score():
 
     migration_version = None
     try:
-        migration_version = db.session.execute(sqltext('SELECT version_num FROM alembic_version')).scalar()
+        migration_version = db.session.execute(
+            sqltext('SELECT version_num FROM alembic_version')
+        ).scalar()
     except Exception:
         migration_version = None
     cc8_checks = [migration_version is not None, migration_version is not None, True, True]

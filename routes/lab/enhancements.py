@@ -102,14 +102,21 @@ def derived_values():
             creatinine = _to_float(values.get('creatinine'))
             age = _to_float(values.get('age'))
             if creatinine and age:
-                result = 141 * min(creatinine / 0.9, 1) ** -0.411 * max(creatinine / 0.9, 1) ** -1.209 * 0.993 ** age
+                result = (
+                    141
+                    * min(creatinine / 0.9, 1) ** -0.411
+                    * max(creatinine / 0.9, 1) ** -1.209
+                    * 0.993**age
+                )
         elif formula == 'ratio':
             a = _to_float(values.get('a'))
             b = _to_float(values.get('b'))
             if a is not None and b not in (None, 0):
                 result = a / b
         elif formula == 'sum':
-            result = sum(_to_float(v) or 0 for v in (values.values() if isinstance(values, dict) else []))
+            result = sum(
+                _to_float(v) or 0 for v in (values.values() if isinstance(values, dict) else [])
+            )
         elif formula == 'difference':
             nums = [_to_float(v) for v in (values.values() if isinstance(values, dict) else [])]
             nums = [n for n in nums if n is not None]
@@ -164,7 +171,9 @@ def critical_value_alerts():
         q = select(LabResult).filter(LabResult.is_critical.is_(True))
         if tenant_id is not None:
             q = q.filter(LabResult.tenant_id == tenant_id)
-        items = db.session.execute(q.order_by(LabResult.created_at.desc()).limit(100)).scalars().all()
+        items = (
+            db.session.execute(q.order_by(LabResult.created_at.desc()).limit(100)).scalars().all()
+        )
         out = []
         for r in items:
             out.append(
@@ -197,7 +206,9 @@ def result_history(result_id: int):
     tenant_id = getattr(g, 'tenant_id', None)
     try:
         result = db.session.get(LabResult, result_id)
-        if result is None or (tenant_id is not None and getattr(result, 'tenant_id', None) != tenant_id):
+        if result is None or (
+            tenant_id is not None and getattr(result, 'tenant_id', None) != tenant_id
+        ):
             return jsonify({'success': False, 'error': 'Result not found'}), 404
         history = _RESULT_HISTORY.get(result_id, [])
         # seed with current result if empty
@@ -210,7 +221,9 @@ def result_history(result_id: int):
                 }
             ]
             _RESULT_HISTORY[result_id] = history
-        return jsonify({'success': True, 'result_id': result_id, 'history': history, 'count': len(history)})
+        return jsonify(
+            {'success': True, 'result_id': result_id, 'history': history, 'count': len(history)}
+        )
     except Exception:
         logging.exception('Error loading result history')
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
@@ -223,7 +236,9 @@ def append_result_history(result_id: int):
     tenant_id = getattr(g, 'tenant_id', None)
     try:
         result = db.session.get(LabResult, result_id)
-        if result is None or (tenant_id is not None and getattr(result, 'tenant_id', None) != tenant_id):
+        if result is None or (
+            tenant_id is not None and getattr(result, 'tenant_id', None) != tenant_id
+        ):
             return jsonify({'success': False, 'error': 'Result not found'}), 404
         data = request.get_json(silent=True) or {}
         entry = {

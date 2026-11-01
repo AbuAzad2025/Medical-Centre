@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Create a demo tenant with sample data for buyer evaluation."""
+
 from __future__ import annotations
 
 import os
@@ -38,7 +39,9 @@ with app.app_context():
 
     # Enable all modules for demo tenant
     for module_name in MODULE_REGISTRY.keys():
-        existing = TenantModule.query.filter_by(tenant_id=tenant_id, module_name=module_name).first()
+        existing = TenantModule.query.filter_by(
+            tenant_id=tenant_id, module_name=module_name
+        ).first()
         if not existing:
             tm = TenantModule(
                 tenant_id=tenant_id,

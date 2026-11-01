@@ -1,4 +1,5 @@
 """FHIR search and pagination utilities."""
+
 from __future__ import annotations
 
 from sqlalchemy import asc, desc

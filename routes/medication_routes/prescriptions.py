@@ -288,6 +288,8 @@ def dispense_prescription(prescription_id):
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error dispensing prescription: %s')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
+
+
 # --- Prescription refill tracking ---
 
 _REFILLS: list = []
@@ -298,7 +300,6 @@ def _next_refill_id() -> int:
     global _REFILL_COUNTER
     _REFILL_COUNTER += 1
     return _REFILL_COUNTER
-
 
 
 from flask_login import login_required
@@ -315,12 +316,16 @@ from utils.decorators import role_required
 def refill_prescription(prescription_id: int):
     try:
         tenant_id = current_user.tenant_id
-        prescription = db.session.execute(
-            select(Prescription).filter(
-                Prescription.id == prescription_id,
-                Prescription.tenant_id == tenant_id,
+        prescription = (
+            db.session.execute(
+                select(Prescription).filter(
+                    Prescription.id == prescription_id,
+                    Prescription.tenant_id == tenant_id,
+                )
             )
-        ).scalars().first()
+            .scalars()
+            .first()
+        )
         if prescription is None:
             return jsonify({'success': False, 'error': 'Prescription not found'}), 404
         data = request.get_json(silent=True) or {}

@@ -853,6 +853,8 @@ def api_available_times():
                 available_times.append(slot_str)
 
     return jsonify({'success': True, 'available_times': available_times})
+
+
 # --- Scheduling enhancements ---
 
 from datetime import timedelta
@@ -888,7 +890,9 @@ def recurring_appointments():
         except (TypeError, ValueError):
             return jsonify({'success': False, 'error': 'patient_id required'}), 400
         patient = db.session.get(Patient, patient_id)
-        if patient is None or (tenant_id is not None and getattr(patient, 'tenant_id', None) != tenant_id):
+        if patient is None or (
+            tenant_id is not None and getattr(patient, 'tenant_id', None) != tenant_id
+        ):
             return jsonify({'success': False, 'error': 'Patient not found'}), 404
         try:
             starts_at = datetime.fromisoformat(str(data.get('starts_at')).replace('Z', '+00:00'))
@@ -1016,4 +1020,6 @@ def no_show_list():
     if tenant_id is not None:
         q = q.filter(Appointment.tenant_id == tenant_id)
     items = db.session.execute(q.order_by(Appointment.starts_at.desc()).limit(100)).scalars().all()
-    return jsonify({'success': True, 'appointments': [a.to_dict() for a in items], 'count': len(items)})
+    return jsonify(
+        {'success': True, 'appointments': [a.to_dict() for a in items], 'count': len(items)}
+    )
