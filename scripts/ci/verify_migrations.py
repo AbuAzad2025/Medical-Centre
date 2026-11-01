@@ -35,6 +35,23 @@ def run_cmd(cmd, cwd=None, env=None):
         return False, str(e)
 
 
+def create_minimal_app():
+    """Create a minimal Flask app for alembic operations"""
+    from flask import Flask
+    from flask_sqlalchemy import SQLAlchemy
+    from flask_migrate import Migrate
+    
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = 'test-secret-key-for-ci'
+    
+    db = SQLAlchemy(app)
+    migrate = Migrate(app, db, directory=str(Path(__file__).resolve().parents[2] / 'migrations'))
+    
+    return app
+
+
 def main():
     """Verify Alembic migrations can be applied to a fresh database"""
     print('Verifying Alembic migrations...')
@@ -61,20 +78,26 @@ def main():
     else:
         print(f'Found {len(migration_files)} migration files')
 
-    # Try to run alembic check (dry run) - run from project root with -c flag
-    print('Running alembic check...')
-    success, output = run_cmd(f'alembic -c {ALEMBIC_INI} check')
-    if not success:
-        print(f'alembic check failed: {output}')
-        # Don't fail on check - it might be expected to fail if DB not present
-        print('Continuing...')
+    # Create a minimal Flask app for alembic operations
+    print('Creating minimal Flask app for alembic operations...')
+    app = create_minimal_app()
 
-    # Try to run alembic upgrade head --sql (dry run SQL generation)
-    print('Generating migration SQL (dry run)...')
-    success, output = run_cmd(f'alembic -c {ALEMBIC_INI} upgrade head --sql')
-    if not success:
-        print(f'ERROR: alembic upgrade head --sql failed: {output}')
-        return 1
+    # Run alembic commands within Flask app context
+    with app.app_context():
+        # Try to run alembic check (dry run) - run from project root with -c flag
+        print('Running alembic check...')
+        success, output = run_cmd(f'alembic -c {ALEMBIC_INI} check')
+        if not success:
+            print(f'alembic check failed: {output}')
+            # Don't fail on check - it might be expected to fail if DB not present
+            print('Continuing...')
+
+        # Try to run alembic upgrade head --sql (dry run SQL generation)
+        print('Generating migration SQL (dry run)...')
+        success, output = run_cmd(f'alembic -c {ALEMBIC_INI} upgrade head --sql')
+        if not success:
+            print(f'ERROR: alembic upgrade head --sql failed: {output}')
+            return 1
 
     print('Migration SQL generated successfully')
     print('All migration checks passed!')

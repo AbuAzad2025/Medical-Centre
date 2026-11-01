@@ -41,8 +41,16 @@ def get_engine_url():
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-config.set_main_option('sqlalchemy.url', get_engine_url())
-target_db = current_app.extensions['migrate'].db
+
+# Only access Flask app context when in online mode.
+# For offline mode (alembic check, upgrade --sql), we don't need a real engine.
+if not context.is_offline_mode():
+    config.set_main_option('sqlalchemy.url', get_engine_url())
+    target_db = current_app.extensions['migrate'].db
+else:
+    # In offline mode, use the URL from config or a dummy value
+    target_db = None
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -51,6 +59,11 @@ target_db = current_app.extensions['migrate'].db
 
 
 def get_metadata():
+    if target_db is None:
+        # In offline mode without a real DB, we can't get metadata
+        # Return empty metadata for offline operations
+        from sqlalchemy import MetaData
+        return MetaData()
     if hasattr(target_db, 'metadatas'):
         return target_db.metadatas[None]
     return target_db.metadata
