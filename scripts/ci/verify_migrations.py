@@ -4,8 +4,8 @@ Verify Alembic migrations can be applied to a fresh database.
 This script is used in CI to ensure migrations are valid.
 """
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 # Add project root to path
@@ -64,7 +64,7 @@ def main():
     # Set up environment for Flask app with test database
     os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
     os.environ['FLASK_ENV'] = 'testing'
-    os.environ['SECRET_KEY'] = 'test-secret-key-for-ci'
+    os.environ['SECRET_KEY'] = 'test-secret-key-for-ci-testing-32bytes-minimum-length'
     os.environ['FLASK_ENV'] = 'testing'
 
     # Import and create the actual Flask app with test database
