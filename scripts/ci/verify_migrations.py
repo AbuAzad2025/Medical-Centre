@@ -86,6 +86,22 @@ def create_postgres_database(database_url: str) -> bool:
         return False
 
 
+def run_alembic_upgrade_with_context(app):
+    """Run alembic upgrade head using Flask-Migrate's API within app context"""
+    from alembic import command
+    from alembic.config import Config
+    from flask_migrate import upgrade
+
+    # Use Flask-Migrate's upgrade function which properly handles app context
+    with app.app_context():
+        upgrade(directory=str(MIGRATIONS_DIR), revision='head')
+
+    # Also run alembic check to verify
+
+    alembic_cfg = Config(str(ALEMBIC_INI))
+    command.check(alembic_cfg)
+
+
 def main():
     """Verify Alembic migrations can be applied to a fresh database"""
     print('Verifying Alembic migrations...')
@@ -139,25 +155,30 @@ def main():
         print(f'ERROR: Failed to create Flask app: {e}')
         return 1
 
-    # Run alembic commands within Flask app context
-    with app.app_context():
-        # Run alembic upgrade head (online mode - applies migrations to real DB)
-        print('Running alembic upgrade head (online mode)...')
-        success, output = run_cmd(f'alembic -c {ALEMBIC_INI} upgrade head')
-        if not success:
-            print(f'ERROR: alembic upgrade head failed: {output}')
-            return 1
+    # Run alembic upgrade head using Flask-Migrate API within app context
+    print('Running alembic upgrade head (online mode)...')
+    try:
+        run_alembic_upgrade_with_context(app)
+    except Exception as e:
+        print(f'ERROR: alembic upgrade head failed: {e}')
+        return 1
 
-        print('Migrations applied successfully!')
+    print('Migrations applied successfully!')
 
-        # Run alembic check to verify current state matches head
-        print('Running alembic check...')
-        success, output = run_cmd(f'alembic -c {ALEMBIC_INI} check')
-        if not success:
-            print(f'alembic check failed: {output}')
-            return 1
+    # Run alembic check to verify current state matches head
+    print('Running alembic check...')
+    try:
+        with app.app_context():
+            from alembic import command
+            from alembic.config import Config
 
-        print('Migration check passed!')
+            alembic_cfg = Config(str(ALEMBIC_INI))
+            command.check(alembic_cfg)
+    except Exception as e:
+        print(f'alembic check failed: {e}')
+        return 1
+
+    print('Migration check passed!')
 
     print('All migration checks passed!')
     return 0
