@@ -135,6 +135,35 @@ ORPHAN_KNOWN_LEGACY = {
     'js/pages/partials/_navbar.js',
     'js/pages/super_admin/security_logs.js',
     'js/utils/pii_mask.js',  # used via security.js pii_mask, not direct url_for
+    # TypeScript source files (compiled by Vite, not directly url_for'd)
+    'js/accessibility.ts',
+    'js/api-feedback.ts',
+    'js/app.ts',
+    'js/csrf.ts',
+    'js/dark-mode.ts',
+    'js/dashboard-customize.ts',
+    'js/dashboard-live.ts',
+    'js/datatables-init.ts',
+    'js/digits-ar.ts',
+    'js/document_ocr.ts',
+    'js/enums.ts',
+    'js/form-stepper.ts',
+    'js/form-validation.ts',
+    'js/global-errors.ts',
+    'js/lazy-load.ts',
+    'js/login.ts',
+    'js/motion.ts',
+    'js/pwa-install.ts',
+    'js/security.ts',
+    'js/sidebar-toggle.ts',
+    'js/smart-search.ts',
+    'js/smart-select.ts',
+    'js/theme-toggle.ts',
+    'js/touch-mode.ts',
+    'js/ui-preferences.ts',
+    'js/ux-enhance.ts',
+    # CSS files not directly url_for'd (included via base templates or Vite)
+    'css/sidebar-toggle.css',
 }
 
 # JS import patterns for orphan resolution (dynamic imports like import('./csrf.js'))
