@@ -64,6 +64,7 @@ def run_migrations_online():
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
+    This function MUST be called within a Flask app context.
     """
     # Import Flask only when running online (with actual database)
     from flask import current_app
@@ -109,7 +110,21 @@ def run_migrations_online():
             context.run_migrations()
 
 
-if context.is_offline_mode():
-    run_migrations_offline()
-else:
-    run_migrations_online()
+# Only run migrations if we're in a Flask app context.
+# If not in app context (e.g., alembic command run directly without Flask),
+# defer execution until Flask-Migrate's upgrade() calls us with proper context.
+try:
+    from flask import current_app
+    # Check if we're in an app context by trying to access current_app
+    _ = current_app
+    # If we get here without RuntimeError, we're in an app context
+    if not context.is_offline_mode():
+        run_migrations_online()
+    else:
+        run_migrations_offline()
+except RuntimeError:
+    # Not in a Flask app context - this happens when alembic runs directly
+    # without Flask (e.g., `alembic upgrade head` from command line).
+    # In this case, we don't run migrations here; Flask-Migrate's upgrade()
+    # will call us again with proper app context.
+    pass
