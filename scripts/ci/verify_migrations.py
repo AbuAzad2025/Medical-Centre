@@ -47,23 +47,6 @@ def run_cmd(cmd, cwd=None, env=None):
         return False, str(e)
 
 
-def create_test_app():
-    """Create a minimal Flask app for alembic operations"""
-    from flask import Flask
-    from flask_sqlalchemy import SQLAlchemy
-    from flask_migrate import Migrate
-
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///:memory:')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'test-secret-key-for-ci-testing-32bytes-minimum-length')
-
-    db = SQLAlchemy(app)
-    migrate = Migrate(app, db, directory=str(MIGRATIONS_DIR))
-
-    return app
-
-
 def main():
     """Verify Alembic migrations can be applied to a fresh database"""
     print('Verifying Alembic migrations...')
@@ -100,9 +83,14 @@ def main():
     # Add project root to PYTHONPATH so migration scripts can import from migrations.*
     os.environ['PYTHONPATH'] = str(PROJECT_ROOT) + os.pathsep + os.environ.get('PYTHONPATH', '')
 
-    # Create Flask app for alembic operations
-    print('Creating Flask app for alembic operations...')
-    app = create_test_app()
+    # Import and create the actual Flask app with test database
+    print('Creating Flask app with test database...')
+    try:
+        from app_factory import create_app
+        app = create_app('testing')
+    except Exception as e:
+        print(f'ERROR: Failed to create Flask app: {e}')
+        return 1
 
     # Run alembic commands within Flask app context
     with app.app_context():
