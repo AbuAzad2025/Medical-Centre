@@ -36,10 +36,7 @@ SKIP_PATTERNS = [
 def should_skip(filepath: Path) -> bool:
     """Check if file should be skipped"""
     rel_path = str(filepath)
-    for pattern in SKIP_PATTERNS:
-        if re.search(pattern, rel_path):
-            return True
-    return False
+    return any(re.search(pattern, rel_path) for pattern in SKIP_PATTERNS)
 
 def check_file(filepath: Path) -> list:
     """Check a file for CJK characters, return list of (line_num, line) tuples"""
@@ -55,19 +52,19 @@ def check_file(filepath: Path) -> list:
 
 def main():
     root = Path(__file__).resolve().parents[2]
-    
+
     # Collect all files to check
     files_to_check = []
     for ext in ['*.py', '*.html', '*.js', '*.ts', '*.css', '*.scss', '*.json', '*.yml', '*.yaml', '*.md', '*.txt']:
         files_to_check.extend(root.rglob(ext))
-    
+
     total_violations = 0
     files_with_violations = 0
-    
+
     for filepath in files_to_check:
         if should_skip(filepath):
             continue
-        
+
         violations = check_file(filepath)
         if violations:
             files_with_violations += 1
@@ -78,14 +75,13 @@ def main():
                 print(f"  Line {line_num}: {line[:100]}")
             if len(violations) > 5:
                 print(f"  ... and {len(violations) - 5} more violations")
-    
+
     if total_violations > 0:
         print(f"\n❌ FAILED: Found {total_violations} CJK character violations in {files_with_violations} files")
         print("Please move CJK text to translation files (.po) or add files to skip list.")
         return 1
-    else:
-        print("✅ PASSED: No CJK characters found in source code")
-        return 0
+    print("✅ PASSED: No CJK characters found in source code")
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())

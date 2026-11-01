@@ -22,7 +22,7 @@ def run_cmd(cmd, cwd=None, env=None):
         result = subprocess.run(
             cmd,
             shell=True,
-            cwd=cwd or MIGRATIONS_DIR,
+            cwd=cwd or PROJECT_ROOT,
             env=env or os.environ,
             capture_output=True,
             text=True,
@@ -61,9 +61,9 @@ def main():
     else:
         print(f'Found {len(migration_files)} migration files')
 
-    # Try to run alembic check (dry run)
+    # Try to run alembic check (dry run) - run from project root with -c flag
     print('Running alembic check...')
-    success, output = run_cmd('alembic check')
+    success, output = run_cmd(f'alembic -c {ALEMBIC_INI} check')
     if not success:
         print(f'alembic check failed: {output}')
         # Don't fail on check - it might be expected to fail if DB not present
@@ -71,7 +71,7 @@ def main():
 
     # Try to run alembic upgrade head --sql (dry run SQL generation)
     print('Generating migration SQL (dry run)...')
-    success, output = run_cmd('alembic upgrade head --sql')
+    success, output = run_cmd(f'alembic -c {ALEMBIC_INI} upgrade head --sql')
     if not success:
         print(f'ERROR: alembic upgrade head --sql failed: {output}')
         return 1
