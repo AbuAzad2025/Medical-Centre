@@ -47,6 +47,23 @@ def run_cmd(cmd, cwd=None, env=None):
         return False, str(e)
 
 
+def create_test_app():
+    """Create a minimal Flask app for alembic operations"""
+    from flask import Flask
+    from flask_sqlalchemy import SQLAlchemy
+    from flask_migrate import Migrate
+
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///:memory:')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'test-secret-key-for-ci-testing-32bytes-minimum-length')
+
+    db = SQLAlchemy(app)
+    migrate = Migrate(app, db, directory=str(MIGRATIONS_DIR))
+
+    return app
+
+
 def main():
     """Verify Alembic migrations can be applied to a fresh database"""
     print('Verifying Alembic migrations...')
@@ -83,25 +100,30 @@ def main():
     # Add project root to PYTHONPATH so migration scripts can import from migrations.*
     os.environ['PYTHONPATH'] = str(PROJECT_ROOT) + os.pathsep + os.environ.get('PYTHONPATH', '')
 
-    # Run alembic commands - they don't need Flask app context for SQL generation
-    # The -x flag provides the database URL for offline mode
-    print('Running alembic check...')
-    success, output = run_cmd(f'alembic -c {ALEMBIC_INI} -x sqlalchemy.url={database_url} check')
-    if not success:
-        print(f'alembic check failed: {output}')
-        # Don't fail on check - it might be expected to fail if DB not present
-        print('Continuing...')
+    # Create Flask app for alembic operations
+    print('Creating Flask app for alembic operations...')
+    app = create_test_app()
 
-    # Try to run alembic upgrade head --sql (dry run SQL generation)
-    print('Generating migration SQL (dry run)...')
-    success, output = run_cmd(
-        f'alembic -c {ALEMBIC_INI} -x sqlalchemy.url={database_url} upgrade head --sql'
-    )
-    if not success:
-        print(f'ERROR: alembic upgrade head --sql failed: {output}')
-        return 1
+    # Run alembic commands within Flask app context
+    with app.app_context():
+        # Run alembic upgrade head (online mode - applies migrations to real DB)
+        print('Running alembic upgrade head (online mode)...')
+        success, output = run_cmd(f'alembic -c {ALEMBIC_INI} upgrade head')
+        if not success:
+            print(f'ERROR: alembic upgrade head failed: {output}')
+            return 1
 
-    print('Migration SQL generated successfully')
+        print('Migrations applied successfully!')
+
+        # Run alembic check to verify current state matches head
+        print('Running alembic check...')
+        success, output = run_cmd(f'alembic -c {ALEMBIC_INI} check')
+        if not success:
+            print(f'alembic check failed: {output}')
+            return 1
+
+        print('Migration check passed!')
+
     print('All migration checks passed!')
     return 0
 
