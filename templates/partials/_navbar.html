@@ -12,7 +12,7 @@
             <img src="{{ url_for('static', filename='img/medical_logo.png') }}" alt="logo" height="36">
             {% endif %}
             <span class="brand-text">
-                {{ ui.organization_name if ui else (current_tenant.name if current_tenant else (branding.organization_name if branding else 'نظام آزاد الطبي')) }}
+                {{ ui.organization_name if ui else (current_tenant.name if current_tenant else (branding.organization_name if branding else '_("_(" _(" _(" _(" _(" _("نظام آزاد الطبي")")")")")")")')) }}
             </span>
         </a>
 
@@ -24,8 +24,8 @@
                         <i class="fas fa-search text-muted"></i>
                     </span>
                     <input type="text" class="form-control border-start-0" id="globalSearchInput"
-                           placeholder="ابحث عن مريض، موعد، وصفة..."
-                           aria-label="البحث في النظام"
+                           placeholder="_(" _(" _(" _(" _(" _("ابحث عن مريض، موعد، وصفة...")")")")")")"
+                           aria-label="_(" _(" _(" _(" _(" _("البحث في النظام")")")")")")"
                            style="border-color:var(--color-border);border-radius:50px 0 0 50px;background:var(--color-bg);font-size:0.8rem;"
                            autocomplete="off">
                     <div class="search-results-dropdown d-none position-absolute w-100 bg-white border rounded shadow-lg p-0"
@@ -44,12 +44,12 @@
 
             <!-- Language Switcher -->
             <div class="dropdown">
-                <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="تغيير اللغة / Language">
+                <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="_(" _(" _(" _(" _(" _("تغيير اللغة / Language")")")")")")">
                     <i class="fas fa-globe"></i>
-                    <span class="d-none d-sm-inline">{{ 'العربية' if session.get('lang', 'ar') == 'ar' else 'English' }}</span>
+                    <span class="d-none d-sm-inline">{{ '_("_(" _(" _(" _(" _(" _("العربية")")")")")")")' if session.get('lang', 'ar') == 'ar' else 'English' }}</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size: 0.85rem;">
-                    <li><a class="dropdown-item {% if session.get('lang', 'ar') == 'ar' %}active{% endif %}" href="{{ url_for('main.set_language', lang_code='ar') }}">🇸🇦 العربية</a></li>
+                    <li><a class="dropdown-item {% if session.get('lang', 'ar') == 'ar' %}active{% endif %}" href="{{ url_for('main.set_language', lang_code='ar') }}">{{ _('_("_(" _(" _(" _(" _(" _("🇸🇦 العربية")")")")")")")') }}</a></li>
                     <li><a class="dropdown-item {% if session.get('lang') == 'en' %}active{% endif %}" href="{{ url_for('main.set_language', lang_code='en') }}">🇬🇧 English</a></li>
                 </ul>
             </div>
@@ -57,7 +57,7 @@
             {% if current_user.is_authenticated %}
             <!-- Notification bell with count badge -->
             <div class="dropdown" id="notificationDropdown">
-                <button type="button" class="btn btn-light btn-sm position-relative" data-bs-toggle="dropdown" aria-expanded="false" aria-label="الإشعارات" title="الإشعارات">
+                <button type="button" class="btn btn-light btn-sm position-relative" data-bs-toggle="dropdown" aria-expanded="false" aria-label="_(" _(" _(" _(" _(" _("الإشعارات")")")")")")" title="_(" _(" _(" _(" _(" _("الإشعارات")")")")")")">
                     <i class="fas fa-bell"></i>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationCount" style="font-size: 0.6rem; display: none;">
                         0
@@ -65,47 +65,47 @@
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-0" style="min-width: 320px; max-height: 400px; overflow-y: auto;">
                     <div class="dropdown-header px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
-                        <span class="fw-bold">الإشعارات</span>
+                        <span class="fw-bold">{{ _('الإشعارات') }}</span>
                         <small class="text-muted" id="notificationBadge" style="display:none;"></small>
                     </div>
                     <div id="notificationList" class="p-3 text-center text-muted small">
                         <i class="fas fa-bell-slash fa-2x mb-2 d-block opacity-25"></i>
-                        لا توجد إشعارات جديدة
+                        {{ _('_("_(" _(" _(" _(" _(" _("لا توجد إشعارات جديدة")")")")")")")') }}
                     </div>
                 </div>
             </div>
-            <button type="button" class="btn btn-light btn-sm" id="themeToggleBtn" aria-label="تبديل الوضع الليلي" title="وضع ليلي / نهاري">
+            <button type="button" class="btn btn-light btn-sm" id="themeToggleBtn" aria-label="_(" _(" _(" _(" _(" _("تبديل الوضع الليلي")")")")")")" title="_(" _(" _(" _(" _(" _("وضع ليلي / نهاري")")")")")")">
                 <i class="fas fa-moon" data-theme-icon></i>
             </button>
             <div class="dropdown">
-                <button type="button" class="btn btn-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="مظهر الواجهة" aria-label="إعدادات الواجهة">
+                <button type="button" class="btn btn-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="_(" _(" _(" _(" _(" _("مظهر الواجهة")")")")")")" aria-label="_(" _(" _(" _(" _(" _("إعدادات الواجهة")")")")")")">
                     <i class="fas fa-sliders-h"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-3 ui-prefs-menu" style="min-width: 220px;">
-                    <label class="form-label small mb-1" for="uiDensitySelect">الكثافة</label>
-                    <select class="form-select form-select-sm mb-2" id="uiDensitySelect" title="كثافة الواجهة">
-                        <option value="compact">مضغوط</option>
-                        <option value="normal">عادي</option>
-                        <option value="comfortable">مريح</option>
+                    <label class="form-label small mb-1" for="uiDensitySelect">{{ _('_("_(" _(" _(" _(" _(" _("الكثافة")")")")")")")') }}</label>
+                    <select class="form-select form-select-sm mb-2" id="uiDensitySelect" title="_(" _(" _(" _(" _(" _("كثافة الواجهة")")")")")")">
+                        <option value="compact">{{ _('_("_(" _(" _(" _(" _(" _("مضغوط")")")")")")")') }}</option>
+                        <option value="normal">{{ _('_("_(" _(" _(" _(" _(" _("عادي")")")")")")")') }}</option>
+                        <option value="comfortable">{{ _('_("_(" _(" _(" _(" _(" _("مريح")")")")")")")') }}</option>
                     </select>
-                    <label class="form-label small mb-1" for="uiRadiusSelect">انحناء الحواف</label>
-                    <select class="form-select form-select-sm" id="uiRadiusSelect" title="انحناء الحواف">
-                        <option value="sm">صغير</option>
-                        <option value="md">متوسط</option>
-                        <option value="lg">كبير</option>
+                    <label class="form-label small mb-1" for="uiRadiusSelect">{{ _('_("_(" _(" _(" _(" _(" _("انحناء الحواف")")")")")")")') }}</label>
+                    <select class="form-select form-select-sm" id="uiRadiusSelect" title="_(" _(" _(" _(" _(" _("انحناء الحواف")")")")")")">
+                        <option value="sm">{{ _('_("_(" _(" _(" _(" _(" _("صغير")")")")")")")') }}</option>
+                        <option value="md">{{ _('_("_(" _(" _(" _(" _(" _("متوسط")")")")")")")') }}</option>
+                        <option value="lg">{{ _('_("_(" _(" _(" _(" _(" _("كبير")")")")")")")') }}</option>
                     </select>
                 </div>
             </div>
             <div class="dropdown">
-                <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="قائمة المستخدم">
+                <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="_(" _(" _(" _(" _(" _("قائمة المستخدم")")")")")")">
                     <i class="fas fa-user-circle"></i>
                     <span class="d-none d-md-inline">{{ current_user.full_name or current_user.username }}</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><span class="dropdown-item-text text-muted small">{{ current_user.role }}</span></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-user me-2"></i>الملف الشخصي</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-user me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الملف الشخصي")")")")")")")') }}</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تسجيل الخروج")")")")")")")') }}</a></li>
                 </ul>
             </div>
             {% endif %}

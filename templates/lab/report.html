@@ -7,22 +7,22 @@
 <div class="container-fluid">
     {% set hdr_actions = [] %}
     {% if lab_request %}
-        {% set _ = hdr_actions.append({'label': 'طباعة التقرير', 'icon': 'fas fa-print', 'url': url_for('lab.print_request', id=lab_request.id), 'style': 'primary'}) %}
+        {% set _ = hdr_actions.append({'label': '_("_(" _(" _(" _(" _(" _("طباعة التقرير")")")")")")")', 'icon': 'fas fa-print', 'url': url_for('lab.print_request', id=lab_request.id), 'style': 'primary'}) %}
     {% endif %}
-    {{ page_header('تقرير التحليل', subtitle='عرض نتائج المختبر وطباعة التقارير', icon='fas fa-file-medical', actions=hdr_actions) }}
+    {{ page_header('_("_(" _(" _(" _(" _(" _("تقرير التحليل")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("عرض نتائج المختبر وطباعة التقارير")")")")")")")', icon='fas fa-file-medical', actions=hdr_actions) }}
 
     <div class="row mb-4">
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header">
-                    <h6 class="m-0 fw-bold text-primary">اختيار الطلب</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("اختيار الطلب")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <form method="GET">
                         <div class="mb-3">
-                            <label class="form-label">طلب حديث</label>
+                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("طلب حديث")")")")")")")') }}</label>
                             <select class="form-select" name="request_id">
-                                <option value="">آخر طلب</option>
+                                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("آخر طلب")")")")")")")') }}</option>
                                 {% for r in recent_requests or [] %}
                                 <option value="{{ r.id }}" {% if lab_request and r.id == lab_request.id %}selected{% endif %}>
                                     #{{ r.request_number or r.id }} - {{ r.patient.full_name if r.patient else r.patient_id }} - {{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '' }}
@@ -30,7 +30,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <button class="btn btn-outline-primary w-100" type="submit">عرض</button>
+                        <button class="btn btn-outline-primary w-100" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</button>
                     </form>
                 </div>
             </div>
@@ -39,40 +39,40 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header">
-                    <h6 class="m-0 fw-bold text-primary">تفاصيل التقرير</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل التقرير")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     {% if lab_request %}
                     <div class="mb-3">
-                        <strong>رقم الطلب:</strong> {{ lab_request.request_number or lab_request.id }}
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم الطلب:")")")")")")")') }}</strong> {{ lab_request.request_number or lab_request.id }}
                     </div>
                     <div class="mb-3">
-                        <strong>المريض:</strong> {{ lab_request.patient.full_name if lab_request.patient else lab_request.patient_id }}
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("المريض:")")")")")")")') }}</strong> {{ lab_request.patient.full_name if lab_request.patient else lab_request.patient_id }}
                     </div>
                     <div class="mb-3">
-                        <strong>تاريخ الطلب:</strong> {{ lab_request.created_at.strftime('%Y-%m-%d') if lab_request.created_at else today }}
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الطلب:")")")")")")")') }}</strong> {{ lab_request.created_at.strftime('%Y-%m-%d') if lab_request.created_at else today }}
                     </div>
                     <div class="mb-3">
-                        <strong>تاريخ الإكمال:</strong> {{ lab_request.completed_at.strftime('%Y-%m-%d') if lab_request.completed_at else '-' }}
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإكمال:")")")")")")")') }}</strong> {{ lab_request.completed_at.strftime('%Y-%m-%d') if lab_request.completed_at else '-' }}
                     </div>
                     <div class="mb-3">
-                        <strong>الطالب:</strong> {{ lab_request.requester.full_name if lab_request.requester else 'غير محدد' }}
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("الطالب:")")")")")")")') }}</strong> {{ lab_request.requester.full_name if lab_request.requester else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}
                     </div>
                     <div class="mb-3">
-                        <strong>الحالة:</strong>
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong>
                         <span class="badge bg-info">{{ lab_request.status | enum_label('OrderState') }}</span>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>الكود</th>
-                                    <th>التحليل</th>
-                                    <th>القيمة</th>
-                                    <th>الوحدة</th>
-                                    <th>المدى المرجعي</th>
-                                    <th>الحالة</th>
-                                    <th>حرج</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الكود")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التحليل")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("القيمة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الوحدة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المدى المرجعي")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("حرج")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -84,16 +84,16 @@
                                     <td>{{ r.unit or '-' }}</td>
                                     <td>{{ r.reference_range or '-' }}</td>
                                     <td>{{ r.status | enum_label('LabResultStatus') }}</td>
-                                    <td>{{ 'نعم' if r.is_critical else 'لا' }}</td>
+                                    <td>{{ '_("_(" _(" _(" _(" _(" _("نعم")")")")")")")' if r.is_critical else '_("_(" _(" _(" _(" _(" _("لا")")")")")")")' }}</td>
                                 </tr>
                                 {% else %}
-                                <tr><td colspan="7" class="text-center text-muted">لا توجد نتائج</td></tr>
+                                <tr><td colspan="7" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد نتائج")")")")")")")') }}</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                     {% else %}
-                    <div class="text-center text-muted">لا توجد طلبات لعرضها</div>
+                    <div class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد طلبات لعرضها")")")")")")")') }}</div>
                     {% endif %}
                 </div>
             </div>

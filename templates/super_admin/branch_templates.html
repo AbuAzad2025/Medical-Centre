@@ -3,13 +3,13 @@
 {% block title %}قوالب الفروع{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('قوالب إعدادات الفروع', subtitle='تجميع قوالب جاهزة لتطبيقها على الفروع', icon='fas fa-code-branch', actions=[{'label': 'العودة', 'url': url_for('super_admin.dashboard'), 'style': 'secondary'}]) }}
+  {{ page_header('_("_(" _(" _(" _(" _(" _("قوالب إعدادات الفروع")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("تجميع قوالب جاهزة لتطبيقها على الفروع")")")")")")")', icon='fas fa-code-branch', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'url': url_for('super_admin.dashboard'), 'style': 'secondary'}]) }}
 
   <div class="card shadow-sm">
     <div class="card-body">
-      <label class="form-label">القوالب (JSON)</label>
+      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القوالب (JSON)")")")")")")")') }}</label>
       <textarea id="templatesJson" class="form-control" rows="10">{{ items | tojson }}</textarea>
-      <button class="btn btn-primary mt-3" id="saveTemplates">حفظ القوالب</button>
+      <button class="btn btn-primary mt-3" id="saveTemplates">{{ _('_("_(" _(" _(" _(" _(" _("حفظ القوالب")")")")")")")') }}</button>
     </div>
   </div>
 </div>

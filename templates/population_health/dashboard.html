@@ -2,16 +2,16 @@
 {% block title %}صحة المجتمع{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">لوحة صحة المجتمع</h2>
+  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("لوحة صحة المجتمع")")")")")")")') }}</h2>
   <div class="row g-3 mb-4">
-    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ indicators|length }}</h5><span class="text-muted">المؤشرات</span></div></div>
-    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ quality_measures|length }}</h5><span class="text-muted">مقاييس الجودة</span></div></div>
+    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ indicators|length }}</h5><span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("المؤشرات")")")")")")")') }}</span></div></div>
+    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ quality_measures|length }}</h5><span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مقاييس الجودة")")")")")")")') }}</span></div></div>
   </div>
   <div class="card">
-    <div class="card-header">مقاييس الجودة</div>
+    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("مقاييس الجودة")")")")")")")') }}</div>
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>الكود</th><th>المقياس</th><th>الهدف</th><th>القيمة الحالية</th><th>النوع</th></tr></thead>
+        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الكود")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المقياس")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الهدف")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("القيمة الحالية")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th></tr></thead>
         <tbody>
         {% for m in quality_measures %}
           <tr>
@@ -22,7 +22,7 @@
             <td><span class="badge bg-info">{{ m.measure_type }}</span></td>
           </tr>
         {% else %}
-          <tr><td colspan="5" class="text-muted text-center">لا يوجد مقاييس</td></tr>
+          <tr><td colspan="5" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد مقاييس")")")")")")")') }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

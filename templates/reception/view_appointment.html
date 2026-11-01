@@ -5,54 +5,54 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('تفاصيل الموعد', subtitle='#' ~ appointment.id, icon='fas fa-calendar-alt', actions=[
-        {'label': 'رجوع', 'icon': 'fas fa-arrow-right', 'url': url_for('reception.appointments'), 'style': 'secondary'},
-        {'label': 'تعديل', 'icon': 'fas fa-edit', 'url': url_for('reception.edit_appointment', appointment_id=appointment.id), 'style': 'warning'},
-        {'type': 'form', 'label': 'تحويل إلى زيارة', 'icon': 'fas fa-sign-in-alt', 'url': url_for('reception.checkin_appointment', appointment_id=appointment.id), 'style': 'info'}
+    {{ page_header('_("_(" _(" _(" _(" _(" _("تفاصيل الموعد")")")")")")")', subtitle='#' ~ appointment.id, icon='fas fa-calendar-alt', actions=[
+        {'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'icon': 'fas fa-arrow-right', 'url': url_for('reception.appointments'), 'style': 'secondary'},
+        {'label': '_("_(" _(" _(" _(" _(" _("تعديل")")")")")")")', 'icon': 'fas fa-edit', 'url': url_for('reception.edit_appointment', appointment_id=appointment.id), 'style': 'warning'},
+        {'type': 'form', 'label': '_("_(" _(" _(" _(" _(" _("تحويل إلى زيارة")")")")")")")', 'icon': 'fas fa-sign-in-alt', 'url': url_for('reception.checkin_appointment', appointment_id=appointment.id), 'style': 'info'}
     ]) }}
 
     <div class="row">
         <div class="col-lg-8">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">معلومات الموعد</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("معلومات الموعد")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <div class="text-muted small">المريض</div>
-                            <div class="fw-bold">{{ appointment.patient.full_name if appointment.patient else 'غير محدد' }}</div>
+                            <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</div>
+                            <div class="fw-bold">{{ appointment.patient.full_name if appointment.patient else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</div>
                         </div>
                         <div class="col-md-6">
-                            <div class="text-muted small">الهاتف</div>
+                            <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</div>
                             <div class="fw-bold">{{ appointment.patient.phone if appointment.patient and appointment.patient.phone else '-' }}</div>
                         </div>
                         <div class="col-md-6">
-                            <div class="text-muted small">القسم</div>
+                            <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</div>
                             <div class="fw-bold">{{ appointment.department.name_ar if appointment.department and appointment.department.name_ar else (appointment.department.name if appointment.department else '-') }}</div>
                         </div>
                         <div class="col-md-6">
-                            <div class="text-muted small">الطبيب</div>
+                            <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</div>
                             <div class="fw-bold">{{ appointment.doctor.full_name if appointment.doctor else '-' }}</div>
                         </div>
                         <div class="col-md-6">
-                            <div class="text-muted small">التاريخ والوقت</div>
+                            <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("التاريخ والوقت")")")")")")")') }}</div>
                             <div class="fw-bold">{{ appointment.starts_at.strftime('%Y-%m-%d %H:%M') if appointment.starts_at else '-' }}</div>
                         </div>
                         <div class="col-md-6">
-                            <div class="text-muted small">الحالة</div>
+                            <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</div>
                             <div class="fw-bold">{{ appointment.status | enum_label('AppointmentState') }}</div>
                         </div>
                         <div class="col-md-6">
-                            <div class="text-muted small">نوع الموعد</div>
+                            <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("نوع الموعد")")")")")")")') }}</div>
                             <div class="fw-bold">{{ appt_type or '-' }}</div>
                         </div>
                         <div class="col-12">
-                            <div class="text-muted small">الأعراض</div>
+                            <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("الأعراض")")")")")")")') }}</div>
                             <div class="fw-bold">{{ symptoms or '-' }}</div>
                         </div>
                         <div class="col-12">
-                            <div class="text-muted small">ملاحظات</div>
+                            <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</div>
                             <div class="fw-bold text-pre-line">{{ base_notes or '-' }}</div>
                         </div>
                     </div>
@@ -63,12 +63,12 @@
         <div class="col-lg-4">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">إجراءات</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إجراءات")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body d-grid gap-2">
-                    <button class="btn btn-success" type="button" data-action="confirmAppointment" data-appointment-id="appointment.id">تأكيد الموعد</button>
-                    <button class="btn btn-outline-secondary" type="button" data-action="noShowAppointment" data-appointment-id="appointment.id">لم يحضر</button>
-                    <button class="btn btn-danger" type="button" data-action="cancelAppointment" data-appointment-id="appointment.id">إلغاء الموعد</button>
+                    <button class="btn btn-success" type="button" data-action="confirmAppointment" data-appointment-id="appointment.id">{{ _('_("_(" _(" _(" _(" _(" _("تأكيد الموعد")")")")")")")') }}</button>
+                    <button class="btn btn-outline-secondary" type="button" data-action="noShowAppointment" data-appointment-id="appointment.id">{{ _('_("_(" _(" _(" _(" _(" _("لم يحضر")")")")")")")') }}</button>
+                    <button class="btn btn-danger" type="button" data-action="cancelAppointment" data-appointment-id="appointment.id">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء الموعد")")")")")")")') }}</button>
                 </div>
             </div>
         </div>

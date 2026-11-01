@@ -15,9 +15,7 @@ from routes.super_admin import super_admin_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import super_admin_required
 
-# =============================================
 # BACKUP ROUTES
-# =============================================
 
 
 @super_admin_bp.route('/backup')

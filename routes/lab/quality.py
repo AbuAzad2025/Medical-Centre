@@ -22,9 +22,7 @@ from routes.lab import lab_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
-# =============================================
 # QUALITY ROUTES
-# =============================================
 
 
 @lab_bp.route('/quality')

@@ -7,15 +7,15 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0 text-gray-800 fw-bold">لوحة تحكم المحاسب</h1>
-            <p class="text-muted">نظرة شاملة على الأداء المالي والعمليات المحاسبية</p>
+            <h1 class="h3 mb-0 text-gray-800 fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("لوحة تحكم المحاسب")")")")")")")') }}</h1>
+            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("نظرة شاملة على الأداء المالي والعمليات المحاسبية")")")")")")")') }}</p>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-primary shadow-sm">
-                <i class="fas fa-download me-2"></i>تصدير تقرير
+                <i class="fas fa-download me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تصدير تقرير")")")")")")")') }}
             </button>
             <button class="btn btn-primary shadow-sm">
-                <i class="fas fa-plus me-2"></i>فاتورة جديدة
+                <i class="fas fa-plus me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("فاتورة جديدة")")")")")")")') }}
             </button>
         </div>
     </div>
@@ -24,17 +24,17 @@
     <ul class="nav nav-pills mb-4" id="accountantTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
-                <i class="fas fa-home me-2"></i> نظرة عامة
+                <i class="fas fa-home me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("نظرة عامة")")")")")")")') }}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button" role="tab" aria-controls="analysis" aria-selected="false">
-                <i class="fas fa-chart-pie me-2"></i> التحليل المالي
+                <i class="fas fa-chart-pie me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("التحليل المالي")")")")")")")') }}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="operations-tab" data-bs-toggle="tab" data-bs-target="#operations" type="button" role="tab" aria-controls="operations" aria-selected="false">
-                <i class="fas fa-cogs me-2"></i> العمليات
+                <i class="fas fa-cogs me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("العمليات")")")")")")")') }}
             </button>
         </li>
     </ul>
@@ -51,7 +51,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">مدفوعات اليوم</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("مدفوعات اليوم")")")")")")")') }}</div>
                                      <div class="h2 mb-0 fw-bold gradient-text">{{ stats.today_payments }}</div>
                                      <small class="text-muted">{{ stats.today_payments_yoy or 0 }}% من أمس</small>
                                 </div>
@@ -68,7 +68,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">إيرادات الشهر</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("إيرادات الشهر")")")")")")")') }}</div>
                                      <div class="h2 mb-0 fw-bold gradient-text">{{ stats.monthly_revenue }}</div>
                                      <small class="text-success fw-bold"><i class="fas fa-arrow-up me-1"></i>{{ stats.monthly_revenue_yoy or 0 }}%</small>
                                 </div>
@@ -85,7 +85,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">صافي الربح</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("صافي الربح")")")")")")")') }}</div>
                                      <div class="h2 mb-0 fw-bold gradient-text">{{ stats.net_profit }}</div>
                                      <small class="text-info fw-bold">هامش {{ stats.profit_margin or 0 }}%</small>
                                 </div>
@@ -102,9 +102,9 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">فواتير معلقة</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("فواتير معلقة")")")")")")")') }}</div>
                                     <div class="h2 mb-0 fw-bold gradient-text">{{ stats.pending_invoices }}</div>
-                                    <small class="text-warning fw-bold">تستحق قريباً</small>
+                                    <small class="text-warning fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("تستحق قريباً")")")")")")")') }}</small>
                                 </div>
                                 <div class="icon-circle bg-warning bg-opacity-10 text-warning">
                                     <i class="fas fa-clock fa-2x"></i>
@@ -118,21 +118,21 @@
             {% if debt_alerts and (debt_alerts.overdue_60_count or debt_alerts.large_debts_count) %}
             <div class="card card-modern mb-4">
                 <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-hand-holding-usd me-2 text-danger"></i>تنبيهات الديون</h5>
-                    <a class="btn btn-sm btn-outline-danger" href="{{ url_for('accountant.debt_tracking_report') }}">عرض تقرير الديون</a>
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-hand-holding-usd me-2 text-danger"></i>{{ _('_("_(" _(" _(" _(" _(" _("تنبيهات الديون")")")")")")")') }}</h5>
+                    <a class="btn btn-sm btn-outline-danger" href="{{ url_for('accountant.debt_tracking_report') }}">{{ _('_("_(" _(" _(" _(" _(" _("عرض تقرير الديون")")")")")")")') }}</a>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="p-3 border rounded bg-light">
                                 <div class="d-flex justify-content-between">
-                                    <div class="fw-bold">ديون 60+ يوم</div>
+                                    <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("ديون 60+ يوم")")")")")")")') }}</div>
                                     <div class="fw-bold text-danger">{{ debt_alerts.overdue_60_count | default(0) }}</div>
                                 </div>
                                 <div class="table-responsive mt-2">
                                     <table class="table table-sm mb-0">
                                         <thead>
-                                            <tr><th>زيارة</th><th>المريض</th><th class="text-end">المتبقي</th></tr>
+                                            <tr><th>{{ _('_("_(" _(" _(" _(" _(" _("زيارة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("المتبقي")")")")")")")') }}</th></tr>
                                         </thead>
                                         <tbody>
                                             {% for d in (debt_alerts.top_overdue | default([])) %}
@@ -142,7 +142,7 @@
                                                 <td class="text-end">{{ "%.2f"|format(d.remaining_amount) }}</td>
                                             </tr>
                                             {% else %}
-                                            <tr><td colspan="3" class="text-center text-muted small">لا توجد ديون متأخرة</td></tr>
+                                            <tr><td colspan="3" class="text-center text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد ديون متأخرة")")")")")")")') }}</td></tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>
@@ -152,13 +152,13 @@
                         <div class="col-md-6">
                             <div class="p-3 border rounded bg-light">
                                 <div class="d-flex justify-content-between">
-                                    <div class="fw-bold">ديون كبيرة (>= 500)</div>
-                                    <div class="fw-bold text-warning">{{ debt_alerts.large_debts_count | default(0) }}</div>
+                                    <div class="fw-bold"_(" _(" _(" _(" _(" _(">ديون كبيرة (>= 500)</div>
+                                    <div class=")")")")")")"fw-bold text-warning">{{ debt_alerts.large_debts_count | default(0) }}</div>
                                 </div>
                                 <div class="table-responsive mt-2">
                                     <table class="table table-sm mb-0">
                                         <thead>
-                                            <tr><th>زيارة</th><th>المريض</th><th class="text-end">المتبقي</th></tr>
+                                            <tr><th>{{ _('_("_(" _(" _(" _(" _(" _("زيارة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("المتبقي")")")")")")")') }}</th></tr>
                                         </thead>
                                         <tbody>
                                             {% for d in (debt_alerts.top_large | default([])) %}
@@ -168,7 +168,7 @@
                                                 <td class="text-end">{{ "%.2f"|format(d.remaining_amount) }}</td>
                                             </tr>
                                             {% else %}
-                                            <tr><td colspan="3" class="text-center text-muted small">لا توجد ديون كبيرة</td></tr>
+                                            <tr><td colspan="3" class="text-center text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد ديون كبيرة")")")")")")")') }}</td></tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>
@@ -183,20 +183,20 @@
             <!-- Recent Transactions -->
             <div class="card card-modern mb-4">
                 <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>أحدث المعاملات</h5>
-                    <button class="btn btn-sm btn-link text-decoration-none">عرض الكل</button>
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("أحدث المعاملات")")")")")")")') }}</h5>
+                    <button class="btn btn-sm btn-link text-decoration-none">{{ _('_("_(" _(" _(" _(" _(" _("عرض الكل")")")")")")")') }}</button>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead class="bg-light">
                                 <tr>
-                                    <th class="border-0 ps-4">رقم المعاملة</th>
-                                    <th class="border-0">النوع</th>
-                                    <th class="border-0">المبلغ</th>
-                                    <th class="border-0">التاريخ</th>
-                                    <th class="border-0">الحالة</th>
-                                    <th class="border-0">الإجراءات</th>
+                                    <th class="border-0 ps-4">{{ _('_("_(" _(" _(" _(" _(" _("رقم المعاملة")")")")")")")') }}</th>
+                                    <th class="border-0">{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
+                                    <th class="border-0">{{ _('_("_(" _(" _(" _(" _(" _("المبلغ")")")")")")")') }}</th>
+                                    <th class="border-0">{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+                                    <th class="border-0">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                    <th class="border-0">{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -212,12 +212,12 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-light text-primary rounded-circle" title="عرض" aria-label="عرض التفاصيل"><i class="fas fa-eye"></i> <span class="btn-label">عرض</span></button>
-                                        <button class="btn btn-sm btn-light text-secondary rounded-circle" title="طباعة" aria-label="طباعة الفاتورة"><i class="fas fa-print"></i> <span class="btn-label">طباعة</span></button>
+                                        <button class="btn btn-sm btn-light text-primary rounded-circle" title="_(" _(" _(" _(" _(" _("عرض")")")")")")" aria-label="_(" _(" _(" _(" _(" _("عرض التفاصيل")")")")")")"><i class="fas fa-eye"></i> <span class="btn-label">{{ _('عرض') }}</span></button>
+                                        <button class="btn btn-sm btn-light text-secondary rounded-circle" title="_(" _(" _(" _(" _(" _("طباعة")")")")")")" aria-label="_(" _(" _(" _(" _(" _("طباعة الفاتورة")")")")")")"><i class="fas fa-print"></i> <span class="btn-label">{{ _('طباعة') }}</span></button>
                                     </td>
                                 </tr>
                                 {% else %}
-                                <tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-inbox me-2"></i>لا توجد معاملات</td></tr>
+                                <tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-inbox me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد معاملات")")")")")")")') }}</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -233,17 +233,17 @@
                 <div class="col-lg-8 mb-4">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2 text-primary"></i>تحليل الإيرادات والمصروفات</h5>
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("تحليل الإيرادات والمصروفات")")")")")")")') }}</h5>
                         </div>
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <div class="p-3 border rounded bg-light">
-                                        <h6 class="text-muted mb-2">توزيع الإيرادات</h6>
+                                        <h6 class="text-muted mb-2">{{ _('_("_(" _(" _(" _(" _(" _("توزيع الإيرادات")")")")")")")') }}</h6>
                                         <div class="d-flex align-items-center mb-2">
                                             <div class="flex-grow-1">
                                                 <div class="d-flex justify-content-between mb-1">
-                                                    <span>العيادات</span>
+                                                    <span>{{ _('_("_(" _(" _(" _(" _(" _("العيادات")")")")")")")') }}</span>
                                                     <span class="fw-bold">45%</span>
                                                 </div>
                                                 <div class="progress h-6">
@@ -254,7 +254,7 @@
                                         <div class="d-flex align-items-center">
                                             <div class="flex-grow-1">
                                                 <div class="d-flex justify-content-between mb-1">
-                                                    <span>الصيدلية</span>
+                                                    <span>{{ _('_("_(" _(" _(" _(" _(" _("الصيدلية")")")")")")")') }}</span>
                                                     <span class="fw-bold">30%</span>
                                                 </div>
                                                 <div class="progress h-6">
@@ -266,11 +266,11 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <div class="p-3 border rounded bg-light">
-                                        <h6 class="text-muted mb-2">توزيع المصروفات</h6>
+                                        <h6 class="text-muted mb-2">{{ _('_("_(" _(" _(" _(" _(" _("توزيع المصروفات")")")")")")")') }}</h6>
                                         <div class="d-flex align-items-center mb-2">
                                             <div class="flex-grow-1">
                                                 <div class="d-flex justify-content-between mb-1">
-                                                    <span>الرواتب</span>
+                                                    <span>{{ _('_("_(" _(" _(" _(" _(" _("الرواتب")")")")")")")') }}</span>
                                                     <span class="fw-bold">60%</span>
                                                 </div>
                                                 <div class="progress h-6">
@@ -281,7 +281,7 @@
                                         <div class="d-flex align-items-center">
                                             <div class="flex-grow-1">
                                                 <div class="d-flex justify-content-between mb-1">
-                                                    <span>المستلزمات</span>
+                                                    <span>{{ _('_("_(" _(" _(" _(" _(" _("المستلزمات")")")")")")")') }}</span>
                                                     <span class="fw-bold">25%</span>
                                                 </div>
                                                 <div class="progress h-6">
@@ -300,13 +300,13 @@
                 <div class="col-lg-4 mb-4">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-heartbeat me-2 text-danger"></i>الصحة المالية</h5>
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-heartbeat me-2 text-danger"></i>{{ _('_("_(" _(" _(" _(" _(" _("الصحة المالية")")")")")")")') }}</h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-4">
                                 <div class="d-flex justify-content-between mb-1">
-                                    <span class="text-muted">السيولة النقدية</span>
-                                    <span class="text-success fw-bold">ممتاز</span>
+                                    <span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("السيولة النقدية")")")")")")")') }}</span>
+                                    <span class="text-success fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("ممتاز")")")")")")")') }}</span>
                                 </div>
                                 <div class="progress h-8">
                                     <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
@@ -314,8 +314,8 @@
                             </div>
                             <div class="mb-4">
                                 <div class="d-flex justify-content-between mb-1">
-                                    <span class="text-muted">نسبة الديون</span>
-                                    <span class="text-primary fw-bold">منخفضة</span>
+                                    <span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("نسبة الديون")")")")")")")') }}</span>
+                                    <span class="text-primary fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("منخفضة")")")")")")")') }}</span>
                                 </div>
                                 <div class="progress h-8">
                                     <div class="progress-bar bg-primary" role="progressbar" style="width: 15%"></div>
@@ -323,8 +323,8 @@
                             </div>
                             <div>
                                 <div class="d-flex justify-content-between mb-1">
-                                    <span class="text-muted">معدل التحصيل</span>
-                                    <span class="text-info fw-bold">جيد جداً</span>
+                                    <span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("معدل التحصيل")")")")")")")') }}</span>
+                                    <span class="text-info fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("جيد جداً")")")")")")")') }}</span>
                                 </div>
                                 <div class="progress h-8">
                                     <div class="progress-bar bg-info" role="progressbar" style="width: 78%"></div>
@@ -339,38 +339,38 @@
                 <div class="col-lg-4 mb-4">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-sync-alt me-2 text-primary"></i>دورة الإيراد</h5>
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-sync-alt me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("دورة الإيراد")")")")")")")') }}</h5>
                         </div>
                         <div class="card-body">
-                            <div class="d-flex justify-content-between mb-2"><span>مطالبات</span><strong>{{ stats.revenue_cycle.total_claims or 0 }}</strong></div>
-                            <div class="d-flex justify-content-between mb-2"><span>مقبولة</span><strong>{{ stats.revenue_cycle.approved or 0 }}</strong></div>
-                            <div class="d-flex justify-content-between mb-2"><span>مرفوضة</span><strong>{{ stats.revenue_cycle.rejected or 0 }}</strong></div>
-                            <div class="d-flex justify-content-between"><span>مستحقات</span><strong>{{ stats.revenue_cycle.outstanding_amount or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("مطالبات")")")")")")")') }}</span><strong>{{ stats.revenue_cycle.total_claims or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("مقبولة")")")")")")")') }}</span><strong>{{ stats.revenue_cycle.approved or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("مرفوضة")")")")")")")') }}</span><strong>{{ stats.revenue_cycle.rejected or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("مستحقات")")")")")")")') }}</span><strong>{{ stats.revenue_cycle.outstanding_amount or 0 }}</strong></div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-4 mb-4">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-percentage me-2 text-success"></i>هوامش وتحصيل</h5>
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-percentage me-2 text-success"></i>{{ _('_("_(" _(" _(" _(" _(" _("هوامش وتحصيل")")")")")")")') }}</h5>
                         </div>
                         <div class="card-body">
-                            <div class="d-flex justify-content-between mb-2"><span>إجمالي الفواتير</span><strong>{{ stats.margin_analytics.total_invoiced or 0 }}</strong></div>
-                            <div class="d-flex justify-content-between mb-2"><span>الإيراد المحصل</span><strong>{{ stats.margin_analytics.total_revenue or 0 }}</strong></div>
-                            <div class="d-flex justify-content-between mb-2"><span>معدل التحصيل</span><strong>{{ stats.margin_analytics.collection_rate or 0 }}%</strong></div>
-                            <div class="d-flex justify-content-between"><span>هامش تقديري</span><strong>{{ stats.margin_analytics.gross_margin or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("إجمالي الفواتير")")")")")")")') }}</span><strong>{{ stats.margin_analytics.total_invoiced or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("الإيراد المحصل")")")")")")")') }}</span><strong>{{ stats.margin_analytics.total_revenue or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("معدل التحصيل")")")")")")")') }}</span><strong>{{ stats.margin_analytics.collection_rate or 0 }}%</strong></div>
+                            <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("هامش تقديري")")")")")")")') }}</span><strong>{{ stats.margin_analytics.gross_margin or 0 }}</strong></div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-4 mb-4">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-plug me-2 text-warning"></i>تكامل ERP</h5>
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-plug me-2 text-warning"></i>{{ _('_("_(" _(" _(" _(" _(" _("تكامل ERP")")")")")")")') }}</h5>
                         </div>
                         <div class="card-body">
-                            <div class="d-flex justify-content-between mb-2"><span>الحالة</span><strong>{{ stats.erp_integration.status or 'idle' }}</strong></div>
-                            <div class="d-flex justify-content-between mb-3"><span>آخر مزامنة</span><strong>{{ stats.erp_integration.last_sync or '-' }}</strong></div>
-                            <a class="btn btn-outline-primary w-100" href="{{ url_for('accountant.api_erp_export') }}">تصدير ERP</a>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</span><strong>{{ stats.erp_integration.status or 'idle' }}</strong></div>
+                            <div class="d-flex justify-content-between mb-3"><span>{{ _('_("_(" _(" _(" _(" _(" _("آخر مزامنة")")")")")")")') }}</span><strong>{{ stats.erp_integration.last_sync or '-' }}</strong></div>
+                            <a class="btn btn-outline-primary w-100" href="{{ url_for('accountant.api_erp_export') }}">{{ _('_("_(" _(" _(" _(" _(" _("تصدير ERP")")")")")")")') }}</a>
                         </div>
                     </div>
                 </div>
@@ -385,38 +385,38 @@
                 <div class="col-md-6 mb-4">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-bolt me-2 text-warning"></i>إجراءات سريعة</h5>
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-bolt me-2 text-warning"></i>{{ _('_("_(" _(" _(" _(" _(" _("إجراءات سريعة")")")")")")")') }}</h5>
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
                                 <div class="col-6">
                                     <button class="btn btn-outline-primary w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2">
                                         <i class="fas fa-file-invoice fa-2x"></i>
-                                        <span>إضافة فاتورة</span>
+                                        <span>{{ _('_("_(" _(" _(" _(" _(" _("إضافة فاتورة")")")")")")")') }}</span>
                                     </button>
                                 </div>
                                 <div class="col-6">
                                     <button class="btn btn-outline-success w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2">
                                         <i class="fas fa-money-bill-wave fa-2x"></i>
-                                        <span>تسجيل مصروف</span>
+                                        <span>{{ _('_("_(" _(" _(" _(" _(" _("تسجيل مصروف")")")")")")")') }}</span>
                                     </button>
                                 </div>
                                 <div class="col-6">
                                     <a class="btn btn-outline-info w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2" href="{{ url_for('accountant.accounts') }}">
                                         <i class="fas fa-book fa-2x"></i>
-                                        <span>دليل الحسابات</span>
+                                        <span>{{ _('_("_(" _(" _(" _(" _(" _("دليل الحسابات")")")")")")")') }}</span>
                                     </a>
                                 </div>
                                 <div class="col-6">
                                     <a class="btn btn-outline-secondary w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2" href="{{ url_for('accountant.journals') }}">
                                         <i class="fas fa-file-alt fa-2x"></i>
-                                        <span>الدفتر اليومي</span>
+                                        <span>{{ _('_("_(" _(" _(" _(" _(" _("الدفتر اليومي")")")")")")")') }}</span>
                                     </a>
                                 </div>
                                 <div class="col-6">
                                     <a class="btn btn-outline-success w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2" href="{{ url_for('accountant.trial_balance') }}">
                                         <i class="fas fa-balance-scale fa-2x"></i>
-                                        <span>الميزانية المرجعية</span>
+                                        <span>{{ _('_("_(" _(" _(" _(" _(" _("الميزانية المرجعية")")")")")")")') }}</span>
                                     </a>
                                 </div>
                             </div>
@@ -428,7 +428,7 @@
                 <div class="col-md-6 mb-4">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-lightbulb me-2 text-warning"></i>توصيات ذكية</h5>
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-lightbulb me-2 text-warning"></i>{{ _('_("_(" _(" _(" _(" _(" _("توصيات ذكية")")")")")")")') }}</h5>
                         </div>
                         <div class="card-body">
                             <div class="d-flex align-items-start mb-3">
@@ -436,8 +436,8 @@
                                     <i class="fas fa-exclamation-triangle"></i>
                                 </div>
                                 <div>
-                                    <h6 class="fw-bold mb-1">تحسين التدفق النقدي</h6>
-                                    <p class="text-muted small mb-0">يُوصى بمتابعة الفواتير المعلقة لزيادة السيولة النقدية بنسبة 10%.</p>
+                                    <h6 class="fw-bold mb-1">{{ _('_("_(" _(" _(" _(" _(" _("تحسين التدفق النقدي")")")")")")")') }}</h6>
+                                    <p class="text-muted small mb-0">{{ _('_("_(" _(" _(" _(" _(" _("يُوصى بمتابعة الفواتير المعلقة لزيادة السيولة النقدية بنسبة 10%.")")")")")")")') }}</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start">
@@ -445,8 +445,8 @@
                                     <i class="fas fa-check-circle"></i>
                                 </div>
                                 <div>
-                                    <h6 class="fw-bold mb-1">فرصة استثمار</h6>
-                                    <p class="text-muted small mb-0">الفائض المالي الحالي يسمح بتحديث معدات المعمل دون التأثير على السيولة.</p>
+                                    <h6 class="fw-bold mb-1">{{ _('_("_(" _(" _(" _(" _(" _("فرصة استثمار")")")")")")")') }}</h6>
+                                    <p class="text-muted small mb-0">{{ _('_("_(" _(" _(" _(" _(" _("الفائض المالي الحالي يسمح بتحديث معدات المعمل دون التأثير على السيولة.")")")")")")")') }}</p>
                                 </div>
                             </div>
                         </div>

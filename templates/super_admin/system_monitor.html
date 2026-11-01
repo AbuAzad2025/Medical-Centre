@@ -10,9 +10,9 @@
                 <div class="card-body bg-gradient-primary text-white">
                     <h1 class="mb-2">
                         <i class="fas fa-chart-line me-3"></i>
-                        مراقب النظام المتقدم
+                        {{ _('_("_(" _(" _(" _(" _(" _("مراقب النظام المتقدم")")")")")")")') }}
                     </h1>
-                    <p class="mb-0">مراقبة شاملة لأداء النظام والموارد</p>
+                    <p class="mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مراقبة شاملة لأداء النظام والموارد")")")")")")")') }}</p>
                 </div>
             </div>
         </div>
@@ -25,7 +25,7 @@
                 <div class="card-body text-center">
                     <i class="fas fa-microchip fa-3x mb-3"></i>
                     <h3>{{ system_info.cpu_usage or '0' }}%</h3>
-                    <p>استخدام المعالج</p>
+                    <p>{{ _('_("_(" _(" _(" _(" _(" _("استخدام المعالج")")")")")")")') }}</p>
                 </div>
             </div>
         </div>
@@ -34,7 +34,7 @@
                 <div class="card-body text-center">
                     <i class="fas fa-memory fa-3x mb-3"></i>
                     <h3>{{ system_info.memory_usage or '0' }}%</h3>
-                    <p>استخدام الذاكرة</p>
+                    <p>{{ _('_("_(" _(" _(" _(" _(" _("استخدام الذاكرة")")")")")")")') }}</p>
                 </div>
             </div>
         </div>
@@ -43,7 +43,7 @@
                 <div class="card-body text-center">
                     <i class="fas fa-hdd fa-3x mb-3"></i>
                     <h3>{{ system_info.disk_usage or '0' }}%</h3>
-                    <p>استخدام القرص</p>
+                    <p>{{ _('_("_(" _(" _(" _(" _(" _("استخدام القرص")")")")")")")') }}</p>
                 </div>
             </div>
         </div>
@@ -51,8 +51,8 @@
             <div class="card border-0 shadow-lg bg-gradient-info text-white">
                 <div class="card-body text-center">
                     <i class="fas fa-network-wired fa-3x mb-3"></i>
-                    <h3>{{ system_info.network_status or 'نشط' }}</h3>
-                    <p>حالة الشبكة</p>
+                    <h3>{{ system_info.network_status or '_("_(" _(" _(" _(" _(" _("نشط")")")")")")")' }}</h3>
+                    <p>{{ _('_("_(" _(" _(" _(" _(" _("حالة الشبكة")")")")")")")') }}</p>
                 </div>
             </div>
         </div>
@@ -63,10 +63,10 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header">
-                    <h5><i class="fas fa-users me-2"></i>المستخدمين النشطين</h5>
+                    <h5><i class="fas fa-users me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("المستخدمين النشطين")")")")")")")') }}</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-center">عدد المستخدمين النشطين: <strong>{{ system_info.active_users or 0 }}</strong></p>
+                    <p class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("عدد المستخدمين النشطين:")")")")")")")') }} <strong>{{ system_info.active_users or 0 }}</strong></p>
                 </div>
             </div>
         </div>
@@ -76,7 +76,7 @@
         <div class="col-12 text-center">
             <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-primary btn-lg">
                 <i class="fas fa-arrow-right me-2"></i>
-                العودة للوحة التحكم
+                {{ _('_("_(" _(" _(" _(" _(" _("العودة للوحة التحكم")")")")")")")') }}
             </a>
         </div>
     </div>

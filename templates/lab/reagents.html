@@ -3,35 +3,35 @@
 {% block title %}مواد المختبر{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('مواد المختبر', subtitle='إدارة المواد والمحاليل مع التنبيهات', icon='fas fa-boxes', actions=[
-      {'label': 'إضافة', 'icon': 'fas fa-plus', 'url': url_for('lab.add_reagent'), 'style': 'primary'},
-      {'label': 'العودة', 'icon': 'fas fa-arrow-left', 'url': url_for('lab.dashboard'), 'style': 'secondary'}
+  {{ page_header('_("_(" _(" _(" _(" _(" _("مواد المختبر")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة المواد والمحاليل مع التنبيهات")")")")")")")', icon='fas fa-boxes', actions=[
+      {'label': '_("_(" _(" _(" _(" _(" _("إضافة")")")")")")")', 'icon': 'fas fa-plus', 'url': url_for('lab.add_reagent'), 'style': 'primary'},
+      {'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('lab.dashboard'), 'style': 'secondary'}
   ]) }}
 
   <form method="GET" class="row g-3 mb-3">
     <div class="col-md-4">
-      <label class="form-label">بحث</label>
-      <input class="form-control" name="search" value="{{ search or '' }}" placeholder="اسم/شركة/رقم التشغيلة">
+      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("بحث")")")")")")")') }}</label>
+      <input class="form-control" name="search" value="{{ search or '' }}" placeholder="_(" _(" _(" _(" _(" _("اسم/شركة/رقم التشغيلة")")")")")")">
     </div>
     <div class="col-md-3">
-      <label class="form-label">المخزون</label>
+      <label class="form-label">{{ _('المخزون') }}</label>
       <select class="form-select" name="stock">
-        <option value="" {% if not stock %}selected{% endif %}>الكل</option>
-        <option value="low" {% if stock == 'low' %}selected{% endif %}>منخفض</option>
-        <option value="out" {% if stock == 'out' %}selected{% endif %}>نفد</option>
-        <option value="normal" {% if stock == 'normal' %}selected{% endif %}>طبيعي</option>
+        <option value="" {% if not stock %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</option>
+        <option value="low" {% if stock == 'low' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("منخفض")")")")")")")') }}</option>
+        <option value="out" {% if stock == 'out' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("نفد")")")")")")")') }}</option>
+        <option value="normal" {% if stock == 'normal' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("طبيعي")")")")")")")') }}</option>
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">الصلاحية</label>
+      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الصلاحية")")")")")")")') }}</label>
       <select class="form-select" name="expiry">
-        <option value="" {% if not expiry %}selected{% endif %}>الكل</option>
-        <option value="soon" {% if expiry == 'soon' %}selected{% endif %}>قريباً</option>
-        <option value="expired" {% if expiry == 'expired' %}selected{% endif %}>منتهي</option>
+        <option value="" {% if not expiry %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</option>
+        <option value="soon" {% if expiry == 'soon' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("قريباً")")")")")")")') }}</option>
+        <option value="expired" {% if expiry == 'expired' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("منتهي")")")")")")")') }}</option>
       </select>
     </div>
     <div class="col-md-2 d-flex align-items-end">
-      <button class="btn btn-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>فلترة</button>
+      <button class="btn btn-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("فلترة")")")")")")")') }}</button>
     </div>
   </form>
 
@@ -41,13 +41,13 @@
         <table class="table table-striped align-middle">
           <thead>
             <tr>
-              <th>الاسم</th>
-              <th>المورد</th>
-              <th>التشغيلة</th>
-              <th class="w-120">المخزون</th>
-              <th class="w-120">الحد الأدنى</th>
-              <th class="w-140">الصلاحية</th>
-              <th style="width: 100px;">الحالة</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("المورد")")")")")")")') }}</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("التشغيلة")")")")")")")') }}</th>
+              <th class="w-120">{{ _('_("_(" _(" _(" _(" _(" _("المخزون")")")")")")")') }}</th>
+              <th class="w-120">{{ _('_("_(" _(" _(" _(" _(" _("الحد الأدنى")")")")")")")') }}</th>
+              <th class="w-140">{{ _('_("_(" _(" _(" _(" _(" _("الصلاحية")")")")")")")') }}</th>
+              <th style="width: 100px;">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
               <th class="text-end w-120"></th>
             </tr>
           </thead>
@@ -73,17 +73,17 @@
                 </td>
                 <td>
                   {% if r.is_active %}
-                    <span class="badge bg-success">مفعل</span>
+                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مفعل")")")")")")")') }}</span>
                   {% else %}
-                    <span class="badge bg-secondary">غير مفعل</span>
+                    <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("غير مفعل")")")")")")")') }}</span>
                   {% endif %}
                 </td>
                 <td class="text-end">
-                  <a class="btn btn-sm btn-outline-primary" href="{{ url_for('lab.edit_reagent', reagent_id=r.id) }}"><i class="fas fa-edit"></i> <span class="btn-label">تعديل</span></a>
+                  <a class="btn btn-sm btn-outline-primary" href="{{ url_for('lab.edit_reagent', reagent_id=r.id) }}"><i class="fas fa-edit"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تعديل")")")")")")")') }}</span></a>
                 </td>
               </tr>
             {% else %}
-              <tr><td colspan="8" class="text-center text-muted">لا توجد مواد</td></tr>
+              <tr><td colspan="8" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مواد")")")")")")")') }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

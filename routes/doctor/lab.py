@@ -17,9 +17,7 @@ from routes.doctor import doctor_bp
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
 
-# =============================================
 # LAB ROUTES
-# =============================================
 
 
 @doctor_bp.route('/lab-request/<int:visit_id>', methods=['GET', 'POST'])

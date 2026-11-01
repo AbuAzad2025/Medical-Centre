@@ -2,22 +2,22 @@
 {% block title %}سجل الأمراض{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">سجل الأمراض والأوبئة</h2>
+  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("سجل الأمراض والأوبئة")")")")")")")') }}</h2>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>المريض</th><th>المرض</th><th>تاريخ البداية</th><th>النتيجة</th><th>إخطار</th></tr></thead>
+        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المرض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ البداية")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النتيجة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("إخطار")")")")")")")') }}</th></tr></thead>
         <tbody>
         {% for d in diseases %}
           <tr>
             <td>{{ d.patient.full_name if d.patient else '-' }}</td>
             <td>{{ d.disease_name }}</td>
             <td>{{ d.onset_date or '-' }}</td>
-            <td><span class="badge bg-secondary">{{ d.outcome or 'غير معروف' }}</span></td>
-            <td>{% if d.notification_sent %}<span class="badge bg-success">تم</span>{% else %}<span class="badge bg-warning">لم يتم</span>{% endif %}</td>
+            <td><span class="badge bg-secondary">{{ d.outcome or '_("_(" _(" _(" _(" _(" _("غير معروف")")")")")")")' }}</span></td>
+            <td>{% if d.notification_sent %}<span class="badge bg-success">تم</span>{% else %}<span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("لم يتم")")")")")")")') }}</span>{% endif %}</td>
           </tr>
         {% else %}
-          <tr><td colspan="5" class="text-muted text-center">لا يوجد سجل</td></tr>
+          <tr><td colspan="5" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد سجل")")")")")")")') }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

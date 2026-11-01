@@ -4,7 +4,7 @@
   <img src="{{ url_for('static', filename='img/medical-stamp.svg') }}" alt="" width="40" height="40" class="print-platform-stamp__logo">
   <div class="print-platform-stamp__text">
     <span class="print-platform-stamp__name">{{ pc.platform_copyright_name }}</span>
-    <span class="print-platform-stamp__copyright">© {{ pc.copyright_year }} جميع الحقوق محفوظة</span>
+    <span class="print-platform-stamp__copyright">© {{ pc.copyright_year }} {{ _('جميع الحقوق محفوظة') }}</span>
   </div>
 </div>
 {% endif %}

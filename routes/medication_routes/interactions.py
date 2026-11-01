@@ -15,9 +15,7 @@ from routes.medication_routes import medication_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
-# =============================================
 # INTERACTIONS ROUTES
-# =============================================
 
 
 @medication_bp.route('/interactions', methods=['GET', 'POST'])

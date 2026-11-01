@@ -12,9 +12,7 @@ from models.visit import Visit
 from routes.accountant import accountant_bp
 from utils.decorators import role_required
 
-# =============================================
 # PATIENT ROUTES
-# =============================================
 
 
 @accountant_bp.route('/invoices')

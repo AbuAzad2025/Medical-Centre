@@ -19,9 +19,7 @@ from routes.lab import _log_lab_workflow, lab_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
-# =============================================
 # FHIR ROUTES
-# =============================================
 
 
 @lab_bp.route('/api/worklist')

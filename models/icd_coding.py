@@ -69,6 +69,28 @@ class CPTCode(db.Model):
         return f'<CPTCode {self.code}>'
 
 
+class LOINCCode(db.Model):
+    """Logical Observation Identifiers Names and Codes for lab tests"""
+
+    __tablename__ = 'loinc_codes'
+    __table_args__ = {'extend_existing': True}
+
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(20), nullable=False, unique=True, index=True)
+    description = db.Column(db.Text, nullable=False)
+    description_ar = db.Column(db.Text, nullable=True)
+    category = db.Column(db.String(100), nullable=True)
+    unit = db.Column(db.String(40), nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
+    def __repr__(self):
+        return f'<LOINCCode {self.code}>'
+
+
 class DRGCode(db.Model):
     """Diagnosis-Related Group codes for inpatient billing"""
 

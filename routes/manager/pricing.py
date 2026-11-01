@@ -15,9 +15,7 @@ from utils.decorators import (
     role_required_json,
 )
 
-# =============================================
 # PRICING ROUTES
-# =============================================
 
 
 @manager_bp.route('/pricing')

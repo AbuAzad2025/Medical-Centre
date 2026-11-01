@@ -23,9 +23,7 @@ from services.prescription_service import prescription_service
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
 
-# =============================================
 # PRESCRIPTIONS ROUTES
-# =============================================
 
 
 def _check_drug_interaction_warnings(used_med_ids):

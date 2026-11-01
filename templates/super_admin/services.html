@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}إدارة الخدمات - السوبر أدمن{% endblock %}
+{% block title %}{{ _('إدارة الخدمات') }} - {{ _('السوبر أدمن') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('إدارة الخدمات', subtitle='إدارة وتنظيم جميع خدمات المركز الصحي', icon='fas fa-cogs', actions=[
-        {'type': 'button', 'label': 'إضافة خدمة جديدة', 'icon': 'fas fa-plus', 'data_bs_toggle': 'modal', 'data_bs_target': '#addServiceModal', 'style': 'primary'},
-        {'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-download', 'data_action': 'export-services', 'style': 'success'}
+    {{ page_header(_('إدارة الخدمات'), subtitle=_('إدارة وتنظيم جميع خدمات المركز الصحي'), icon='fas fa-cogs', actions=[
+        {'type': 'button', 'label': _('إضافة خدمة جديدة'), 'icon': 'fas fa-plus', 'data_bs_toggle': 'modal', 'data_bs_target': '#addServiceModal', 'style': 'primary'},
+        {'type': 'button', 'label': _('تصدير'), 'icon': 'fas fa-download', 'data_action': 'export-services', 'style': 'success'}
     ]) }}
 
     <!-- Statistics Cards -->
@@ -18,7 +18,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                                إجمالي الخدمات
+                                {{ _('إجمالي الخدمات') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ services|length }}</div>
                         </div>
@@ -36,7 +36,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                                الخدمات النشطة
+                                {{ _('الخدمات النشطة') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">
                                 {{ services|selectattr('is_active', 'equalto', true)|list|length }}

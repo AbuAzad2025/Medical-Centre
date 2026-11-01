@@ -3,21 +3,21 @@
 <div class="container py-4">
   <h4><i class="bi bi-database-gear me-2"></i>Data Warehouse / Analytics</h4>
   <div class="card shadow-sm mb-4">
-    <div class="card-header bg-primary text-white">مزامنة يدوية</div>
+    <div class="card-header bg-primary text-white">{{ _('_("_(" _(" _(" _(" _(" _("مزامنة يدوية")")")")")")")') }}</div>
     <div class="card-body">
 <form method="post" action="{{ url_for('data_warehouse.sync') }}">
             {{ forms.csrf() }}
             <div class="row g-3 align-items-end">
           <div class="col-md-6">
-            <label for="sync_name" class="form-label">نوع المزامنة</label>
+            <label for="sync_name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع المزامنة")")")")")")")') }}</label>
             <select class="form-select" id="sync_name" name="sync_name">
-              <option value="daily_visits_summary">ملخص الزيارات اليومية</option>
-              <option value="monthly_finance_summary">ملخص المالية الشهرية</option>
-              <option value="department_performance_summary">أداء الأقسام</option>
+              <option value="daily_visits_summary">{{ _('_("_(" _(" _(" _(" _(" _("ملخص الزيارات اليومية")")")")")")")') }}</option>
+              <option value="monthly_finance_summary">{{ _('_("_(" _(" _(" _(" _(" _("ملخص المالية الشهرية")")")")")")")') }}</option>
+              <option value="department_performance_summary">{{ _('_("_(" _(" _(" _(" _(" _("أداء الأقسام")")")")")")")') }}</option>
             </select>
           </div>
           <div class="col-md-6">
-            <button type="submit" class="btn btn-success"><i class="bi bi-arrow-repeat me-1"></i> بدء المزامنة</button>
+            <button type="submit" class="btn btn-success"><i class="bi bi-arrow-repeat me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("بدء المزامنة")")")")")")")') }}</button>
           </div>
         </div>
       </form>
@@ -26,10 +26,10 @@
 
   <div class="row g-4 mb-4">
     <div class="col-md-6">
-      <h5>ملخص يومي (آخر 30 يوم)</h5>
+      <h5>{{ _('_("_(" _(" _(" _(" _(" _("ملخص يومي (آخر 30 يوم)")")")")")")")') }}</h5>
       <div class="table-responsive table-scroll-300">
         <table class="table table-sm table-striped">
-          <thead><tr><th>التاريخ</th><th>الزيارات</th><th>الإيرادات</th></tr></thead>
+          <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإيرادات")")")")")")")') }}</th></tr></thead>
           <tbody>
             {% for d in daily %}
             <tr><td>{{ d.date }}</td><td>{{ d.total_visits }}</td><td>{{ d.revenue_total }}</td></tr>
@@ -39,10 +39,10 @@
       </div>
     </div>
     <div class="col-md-6">
-      <h5>ملخص شهري</h5>
+      <h5>{{ _('_("_(" _(" _(" _(" _(" _("ملخص شهري")")")")")")")') }}</h5>
       <div class="table-responsive table-scroll-300">
         <table class="table table-sm table-striped">
-          <thead><tr><th>السنة/الشهر</th><th>الفواتير</th><th>المدفوع</th><th>المتبقي</th></tr></thead>
+          <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("السنة/الشهر")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الفواتير")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المدفوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المتبقي")")")")")")")') }}</th></tr></thead>
           <tbody>
             {% for m in monthly %}
             <tr><td>{{ m.year }}-{{ m.month }}</td><td>{{ m.total_invoices }}</td><td>{{ m.total_paid }}</td><td>{{ m.total_outstanding }}</td></tr>
@@ -53,18 +53,18 @@
     </div>
   </div>
 
-  <h5>سجل المزامنات</h5>
+  <h5>{{ _('_("_(" _(" _(" _(" _(" _("سجل المزامنات")")")")")")")') }}</h5>
   <div class="table-responsive">
     <table class="table table-sm table-striped">
-      <thead><tr><th>الاسم</th><th>الحالة</th><th>البداية</th><th>النهاية</th></tr></thead>
+      <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("البداية")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النهاية")")")")")")")') }}</th></tr></thead>
       <tbody>
         {% for s in syncs %}
         <tr>
           <td>{{ s.sync_name }}</td>
           <td>
-            {% if s.status == 'success' %}<span class="badge bg-success">نجاح</span>{% endif %}
-            {% if s.status == 'running' %}<span class="badge bg-warning">جارٍ</span>{% endif %}
-            {% if s.status == 'failed' %}<span class="badge bg-danger">فشل</span>{% endif %}
+            {% if s.status == 'success' %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نجاح")")")")")")")') }}</span>{% endif %}
+            {% if s.status == 'running' %}<span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("جارٍ")")")")")")")') }}</span>{% endif %}
+            {% if s.status == 'failed' %}<span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("فشل")")")")")")")') }}</span>{% endif %}
           </td>
           <td>{{ s.started_at.strftime('%Y-%m-%d %H:%M') if s.started_at else '—' }}</td>
           <td>{{ s.completed_at.strftime('%Y-%m-%d %H:%M') if s.completed_at else '—' }}</td>

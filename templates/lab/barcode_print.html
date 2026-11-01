@@ -1,8 +1,8 @@
 {% extends 'print/print_base_minimal.html' %}
 {% set doc_type = 'barcode' %}
 
-{% block doc_title %}باركود طلب مختبر — <bdi>{{ lab_request.patient.full_name }}</bdi>{% endblock %}
-{% block print_button_label %}طباعة{% endblock %}
+{% block doc_title %}{{ _('باركود طلب مختبر') }} — <bdi>{{ lab_request.patient.full_name }}</bdi>{% endblock %}
+{% block print_button_label %}{{ _('طباعة') }}{% endblock %}
 
 {% block extra_print_head %}
 <style>

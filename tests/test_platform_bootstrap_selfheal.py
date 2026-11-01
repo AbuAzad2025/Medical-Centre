@@ -313,7 +313,11 @@ class TestRunPlatformBootstrap:
             raise RuntimeError('simulated failure')
 
         monkeypatch.setattr(pb, 'ensure_module_definitions', boom)
-        monkeypatch.setattr(pb, 'ensure_product_bundles', lambda: (calls.append('bundles'), 1)[1])
+        def _record_bundles():
+            calls.append('bundles')
+            return 1
+
+        monkeypatch.setattr(pb, 'ensure_product_bundles', _record_bundles)
         summary = pb.run_platform_bootstrap()
         assert 'simulated failure' in str(summary.get('module_definitions_added_error'))
         assert 'bundles' in calls, 'later steps must still run'

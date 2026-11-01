@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('إدارة العلامة التجارية', subtitle='تخصيص مظهر النظام والعلامة التجارية', icon='fas fa-palette', actions=[
-        {'type': 'button', 'label': 'حفظ التغييرات', 'icon': 'fas fa-save', 'data_action': 'saveBranding', 'style': 'primary'},
-        {'type': 'button', 'label': 'إعادة تعيين', 'icon': 'fas fa-undo', 'data_action': 'resetBranding', 'style': 'secondary'}
+    {{ page_header('_("_(" _(" _(" _(" _(" _("إدارة العلامة التجارية")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("تخصيص مظهر النظام والعلامة التجارية")")")")")")")', icon='fas fa-palette', actions=[
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("حفظ التغييرات")")")")")")")', 'icon': 'fas fa-save', 'data_action': 'saveBranding', 'style': 'primary'},
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("إعادة تعيين")")")")")")")', 'icon': 'fas fa-undo', 'data_action': 'resetBranding', 'style': 'secondary'}
     ]) }}
 
     <!-- Branding Overview -->
@@ -18,9 +18,9 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                                اسم المؤسسة
+                                {{ _('_("_(" _(" _(" _(" _(" _("اسم المؤسسة")")")")")")")') }}
                             </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">{{ branding.organization_name or 'غير محدد' }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ branding.organization_name or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-building fa-2x text-gray-300"></i>
@@ -36,7 +36,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                                اللون الأساسي
+                                {{ _('_("_(" _(" _(" _(" _(" _("اللون الأساسي")")")")")")")') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ branding.primary_color or '#4e73df' }}</div>
                         </div>
@@ -54,9 +54,9 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-info text-uppercase mb-1">
-                                الشعار
+                                {{ _('_("_(" _(" _(" _(" _(" _("الشعار")")")")")")")') }}
                             </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">{{ 'محدد' if branding.logo_url else 'غير محدد' }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ '_("_(" _(" _(" _(" _(" _("محدد")")")")")")")' if branding.logo_url else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-image fa-2x text-gray-300"></i>
@@ -72,7 +72,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                                الثيم
+                                {{ _('_("_(" _(" _(" _(" _(" _("الثيم")")")")")")")') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ themes|length }} ثيم</div>
                         </div>
@@ -90,13 +90,13 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 fw-bold text-primary">استوديو العلامة التجارية</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("استوديو العلامة التجارية")")")")")")")') }}</h6>
                     <ul class="nav nav-pills card-header-pills" id="brandingMainTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="tab-appearance" data-bs-toggle="pill" data-bs-target="#pane-appearance" type="button" role="tab">المظهر</button>
+                            <button class="nav-link active" id="tab-appearance" data-bs-toggle="pill" data-bs-target="#pane-appearance" type="button" role="tab">{{ _('_("_(" _(" _(" _(" _(" _("المظهر")")")")")")")') }}</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-documents" data-bs-toggle="pill" data-bs-target="#pane-documents" type="button" role="tab">مستندات الطباعة</button>
+                            <button class="nav-link" id="tab-documents" data-bs-toggle="pill" data-bs-target="#pane-documents" type="button" role="tab">{{ _('_("_(" _(" _(" _(" _(" _("مستندات الطباعة")")")")")")")') }}</button>
                         </li>
                     </ul>
                 </div>
@@ -108,23 +108,23 @@
                         <!-- Organization Information -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">معلومات المؤسسة</h6>
+                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("معلومات المؤسسة")")")")")")")') }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="organization_name" class="form-label">اسم المؤسسة (عربي)</label>
+                                    <label for="organization_name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم المؤسسة (عربي)")")")")")")")') }}</label>
                                     <input type="text" class="form-control" id="organization_name" name="organization_name" 
-                                           value="{{ branding.organization_name or '' }}" placeholder="أدخل اسم المؤسسة">
+                                           value="{{ branding.organization_name or '' }}" placeholder="_(" _(" _(" _(" _(" _("أدخل اسم المؤسسة")")")")")")">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="organization_name_en" class="form-label">اسم المؤسسة (إنجليزي)</label>
+                                    <label for="organization_name_en" class="form-label">{{ _('اسم المؤسسة (إنجليزي)') }}</label>
                                     <input type="text" class="form-control" id="organization_name_en" name="organization_name_en" 
-                                           value="{{ branding.organization_name_en or '' }}" placeholder="أدخل اسم المؤسسة">
+                                           value="{{ branding.organization_name_en or '' }}" placeholder="_(" _(" _(" _(" _(" _("أدخل اسم المؤسسة")")")")")")">
                                 </div>
                             </div>
                         </div>
@@ -132,16 +132,16 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="organization_address" class="form-label">العنوان</label>
+                                    <label for="organization_address" class="form-label">{{ _('العنوان') }}</label>
                                     <textarea class="form-control" id="organization_address" name="organization_address" 
-                                              rows="3" placeholder="أدخل عنوان المؤسسة">{{ branding.organization_address or '' }}</textarea>
+                                              rows="3" placeholder="_(" _(" _(" _(" _(" _("أدخل عنوان المؤسسة")")")")")")">{{ branding.organization_address or '' }}</textarea>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="organization_phone" class="form-label">رقم الهاتف</label>
+                                    <label for="organization_phone" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رقم الهاتف")")")")")")")') }}</label>
                                     <input type="tel" class="form-control" id="organization_phone" name="organization_phone" 
-                                           value="{{ branding.organization_phone or '' }}" placeholder="أدخل رقم الهاتف">
+                                           value="{{ branding.organization_phone or '' }}" placeholder="_(" _(" _(" _(" _(" _("أدخل رقم الهاتف")")")")")")">
                                 </div>
                             </div>
                         </div>
@@ -149,16 +149,16 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="organization_email" class="form-label">البريد الإلكتروني</label>
+                                    <label for="organization_email" class="form-label">{{ _('البريد الإلكتروني') }}</label>
                                     <input type="email" class="form-control" id="organization_email" name="organization_email" 
-                                           value="{{ branding.organization_email or '' }}" placeholder="أدخل البريد الإلكتروني">
+                                           value="{{ branding.organization_email or '' }}" placeholder="_(" _(" _(" _(" _(" _("أدخل البريد الإلكتروني")")")")")")">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="organization_website" class="form-label">الموقع الإلكتروني</label>
+                                    <label for="organization_website" class="form-label">{{ _('الموقع الإلكتروني') }}</label>
                                     <input type="url" class="form-control" id="organization_website" name="organization_website" 
-                                           value="{{ branding.organization_website or '' }}" placeholder="أدخل الموقع الإلكتروني">
+                                           value="{{ branding.organization_website or '' }}" placeholder="_(" _(" _(" _(" _(" _("أدخل الموقع الإلكتروني")")")")")")">
                                 </div>
                             </div>
                         </div>
@@ -166,28 +166,28 @@
                         <!-- Color Scheme -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">نظام الألوان</h6>
+                                <h6 class="text-primary mb-3">{{ _('نظام الألوان') }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="primary_color" class="form-label">اللون الأساسي</label>
+                                    <label for="primary_color" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اللون الأساسي")")")")")")")') }}</label>
                                     <input type="color" class="form-control" id="primary_color" name="primary_color" 
                                            value="{{ branding.primary_color or '#4e73df' }}">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="secondary_color" class="form-label">اللون الثانوي</label>
+                                    <label for="secondary_color" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اللون الثانوي")")")")")")")') }}</label>
                                     <input type="color" class="form-control" id="secondary_color" name="secondary_color" 
                                            value="{{ branding.secondary_color or '#1cc88a' }}">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="accent_color" class="form-label">لون التمييز</label>
+                                    <label for="accent_color" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("لون التمييز")")")")")")")') }}</label>
                                     <input type="color" class="form-control" id="accent_color" name="accent_color" 
                                            value="{{ branding.accent_color or '#f6c23e' }}">
                                 </div>
@@ -197,27 +197,27 @@
                         <!-- Logo Upload -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">الشعار</h6>
+                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("الشعار")")")")")")")') }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="logo_file" class="form-label">رفع شعار جديد</label>
+                                    <label for="logo_file" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رفع شعار جديد")")")")")")")') }}</label>
                                     <input type="file" class="form-control" id="logo_file" name="logo_file" 
                                            accept="image/*">
-                                    <div class="form-text">الصيغ المدعومة: JPG, PNG, SVG. الحد الأقصى: 2MB</div>
+                                    <div class="form-text">{{ _('_("_(" _(" _(" _(" _(" _("الصيغ المدعومة: JPG, PNG, SVG. الحد الأقصى: 2MB")")")")")")")') }}</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">الشعار الحالي</label>
+                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الشعار الحالي")")")")")")")') }}</label>
                                     <div class="logo-preview">
                                         {% if branding.logo_url %}
-                                            <img src="{{ branding.logo_url }}" alt="الشعار" class="img-thumbnail" style="max-height: 100px;">
+                                            <img src="{{ branding.logo_url }}" alt="_(" _(" _(" _(" _(" _("الشعار")")")")")")" class="img-thumbnail" style="max-height: 100px;">
                                         {% else %}
-                                            <div class="text-muted">لا يوجد شعار</div>
+                                            <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد شعار")")")")")")")') }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -229,7 +229,7 @@
                         <!-- Theme Selection -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">اختيار الثيم</h6>
+                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("اختيار الثيم")")")")")")")') }}</h6>
                             </div>
                         </div>
 
@@ -246,10 +246,10 @@
                                     </div>
                                     <div class="theme-info">
                                         <h6>{{ theme.name }}</h6>
-                                        <p class="text-muted">{{ theme.description or 'لا يوجد وصف' }}</p>
+                                        <p class="text-muted">{{ theme.description or '_("_(" _(" _(" _(" _(" _("لا يوجد وصف")")")")")")")' }}</p>
                                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectTheme('{{ theme.id }}')">
                                             <i class="fas fa-check me-1"></i>
-                                            اختيار
+                                            {{ _('_("_(" _(" _(" _(" _(" _("اختيار")")")")")")")') }}
                                         </button>
                                     </div>
                                 </div>
@@ -264,74 +264,74 @@
                                     <ul class="nav nav-tabs mb-3" id="docTypeTabs" role="tablist">
                                         {% if module_active('billing') or not current_tenant %}
                                         <li class="nav-item" role="presentation">
-                                            <button class="nav-link active" data-doc-type="invoice" type="button">فاتورة</button>
+                                            <button class="nav-link active" data-doc-type="invoice" type="button">{{ _('_("_(" _(" _(" _(" _(" _("فاتورة")")")")")")")') }}</button>
                                         </li>
                                         {% endif %}
                                         {% if module_active('billing') or not current_tenant %}
                                         <li class="nav-item" role="presentation">
-                                            <button class="nav-link" data-doc-type="receipt" type="button">إيصال</button>
+                                            <button class="nav-link" data-doc-type="receipt" type="button">{{ _('_("_(" _(" _(" _(" _(" _("إيصال")")")")")")")') }}</button>
                                         </li>
                                         {% endif %}
                                         {% if module_active('doctor') or module_active('pharmacy') or not current_tenant %}
                                         <li class="nav-item" role="presentation">
-                                            <button class="nav-link" data-doc-type="prescription" type="button">روشتة</button>
+                                            <button class="nav-link" data-doc-type="prescription" type="button">{{ _('_("_(" _(" _(" _(" _(" _("روشتة")")")")")")")') }}</button>
                                         </li>
                                         {% endif %}
                                         <li class="nav-item" role="presentation">
-                                            <button class="nav-link" data-doc-type="report" type="button">تقرير طبي</button>
+                                            <button class="nav-link" data-doc-type="report" type="button">{{ _('_("_(" _(" _(" _(" _(" _("تقرير طبي")")")")")")")') }}</button>
                                         </li>
                                     </ul>
-                                    <iframe id="printPreviewFrame" title="معاينة الترويسة"
+                                    <iframe id="printPreviewFrame" title="_(" _(" _(" _(" _(" _("معاينة الترويسة")")")")")")"
                                             src="{{ url_for('super_admin.branding_print_preview', doc_type='invoice') }}"
                                             style="width:100%;height:280px;border:1px solid #e2e8f0;border-radius:0.35rem;background:#fff;"></iframe>
-                                    <p class="form-text mt-2">تُحدَّث المعاينة بعد الحفظ. الترويسة الفارغة تستخدم القالب الافتراضي.</p>
+                                    <p class="form-text mt-2">{{ _('_("_(" _(" _(" _(" _(" _("تُحدَّث المعاينة بعد الحفظ. الترويسة الفارغة تستخدم القالب الافتراضي.")")")")")")")') }}</p>
                                 </div>
                                 <div class="col-lg-5">
                                     <div class="doc-fields" data-doc="invoice">
-                                        <h6 class="text-primary mb-3">فاتورة</h6>
+                                        <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("فاتورة")")")")")")")') }}</h6>
                                         <div class="mb-3">
-                                            <label for="tax_number" class="form-label">الرقم الضريبي</label>
+                                            <label for="tax_number" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الرقم الضريبي")")")")")")")') }}</label>
                                             <input type="text" class="form-control" id="tax_number" name="tax_number" value="{{ branding.tax_number or '' }}">
                                         </div>
                                         <div class="mb-3">
-                                            <label for="license_number" class="form-label">رقم الترخيص</label>
+                                            <label for="license_number" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رقم الترخيص")")")")")")")') }}</label>
                                             <input type="text" class="form-control" id="license_number" name="license_number" value="{{ branding.license_number or '' }}">
                                         </div>
                                         <div class="mb-3">
-                                            <label for="invoice_header_html" class="form-label">ترويسة الفاتورة (HTML)</label>
+                                            <label for="invoice_header_html" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ترويسة الفاتورة (HTML)")")")")")")")') }}</label>
                                             <textarea class="form-control" id="invoice_header_html" name="invoice_header_html" rows="3">{{ branding.invoice_header_html or '' }}</textarea>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="invoice_footer_html" class="form-label">تذييل الفاتورة (HTML)</label>
+                                            <label for="invoice_footer_html" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تذييل الفاتورة (HTML)")")")")")")")') }}</label>
                                             <textarea class="form-control" id="invoice_footer_html" name="invoice_footer_html" rows="3">{{ branding.invoice_footer_html or '' }}</textarea>
                                         </div>
                                     </div>
                                     <div class="doc-fields d-none" data-doc="receipt">
-                                        <h6 class="text-primary mb-3">إيصال</h6>
+                                        <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("إيصال")")")")")")")') }}</h6>
                                         <div class="mb-3">
-                                            <label for="receipt_header_html" class="form-label">ترويسة الإيصال (HTML)</label>
+                                            <label for="receipt_header_html" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ترويسة الإيصال (HTML)")")")")")")")') }}</label>
                                             <textarea class="form-control" id="receipt_header_html" name="receipt_header_html" rows="4">{{ branding.receipt_header_html or '' }}</textarea>
                                         </div>
                                     </div>
                                     <div class="doc-fields d-none" data-doc="prescription">
-                                        <h6 class="text-primary mb-3">روشتة</h6>
+                                        <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("روشتة")")")")")")")') }}</h6>
                                         <div class="mb-3">
-                                            <label for="prescription_header_html" class="form-label">ترويسة الروشتة (HTML)</label>
+                                            <label for="prescription_header_html" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ترويسة الروشتة (HTML)")")")")")")")') }}</label>
                                             <textarea class="form-control" id="prescription_header_html" name="prescription_header_html" rows="3">{{ branding.prescription_header_html or '' }}</textarea>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="prescription_footer_html" class="form-label">تذييل الروشتة (HTML)</label>
+                                            <label for="prescription_footer_html" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تذييل الروشتة (HTML)")")")")")")")') }}</label>
                                             <textarea class="form-control" id="prescription_footer_html" name="prescription_footer_html" rows="3">{{ branding.prescription_footer_html or '' }}</textarea>
                                         </div>
                                     </div>
                                     <div class="doc-fields d-none" data-doc="report">
-                                        <h6 class="text-primary mb-3">تقرير طبي</h6>
+                                        <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("تقرير طبي")")")")")")")') }}</h6>
                                         <div class="mb-3">
-                                            <label for="report_header_html" class="form-label">ترويسة التقارير (HTML)</label>
+                                            <label for="report_header_html" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ترويسة التقارير (HTML)")")")")")")")') }}</label>
                                             <textarea class="form-control" id="report_header_html" name="report_header_html" rows="3">{{ branding.report_header_html or '' }}</textarea>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="report_footer_html" class="form-label">تذييل التقارير (HTML)</label>
+                                            <label for="report_footer_html" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تذييل التقارير (HTML)")")")")")")")') }}</label>
                                             <textarea class="form-control" id="report_footer_html" name="report_footer_html" rows="3">{{ branding.report_footer_html or '' }}</textarea>
                                         </div>
                                     </div>
@@ -345,7 +345,7 @@
                             <div class="col-12">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save me-2"></i>
-                                    حفظ إعدادات العلامة التجارية
+                                    {{ _('_("_(" _(" _(" _(" _(" _("حفظ إعدادات العلامة التجارية")")")")")")")') }}
                                 </button>
                             </div>
                         </div>
@@ -360,13 +360,13 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">معاينة التغييرات</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("معاينة التغييرات")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="preview-item">
-                                <h6>معاينة الألوان</h6>
+                                <h6>{{ _('_("_(" _(" _(" _(" _(" _("معاينة الألوان")")")")")")")') }}</h6>
                                 <div class="color-preview">
                                     <div class="color-box" id="primary-preview" style="background-color: {{ branding.primary_color or '#4e73df' }};"></div>
                                     <div class="color-box" id="secondary-preview" style="background-color: {{ branding.secondary_color or '#1cc88a' }};"></div>
@@ -376,12 +376,12 @@
                         </div>
                         <div class="col-md-6">
                             <div class="preview-item">
-                                <h6>معاينة الشعار</h6>
+                                <h6>{{ _('_("_(" _(" _(" _(" _(" _("معاينة الشعار")")")")")")")') }}</h6>
                                 <div class="logo-preview-large">
                                     {% if branding.logo_url %}
-                                        <img src="{{ branding.logo_url }}" alt="الشعار" class="img-fluid" style="max-height: 100px;">
+                                        <img src="{{ branding.logo_url }}" alt="_(" _(" _(" _(" _(" _("الشعار")")")")")")" class="img-fluid" style="max-height: 100px;">
                                     {% else %}
-                                        <div class="text-muted">لا يوجد شعار</div>
+                                        <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد شعار")")")")")")")') }}</div>
                                     {% endif %}
                                 </div>
                             </div>

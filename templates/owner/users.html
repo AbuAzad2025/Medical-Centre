@@ -5,7 +5,7 @@
 {% block header_actions %}
 <div class="d-flex gap-2">
     <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
-        <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+        <i class="fas fa-arrow-right"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة للوحة التحكم")")")")")")")') }}
     </a>
 </div>
 {% endblock %}
@@ -14,24 +14,24 @@
 <!-- Filter & Search Card -->
 <div class="owner-card animate-fadeInUp delay-1 owner-card-glass">
     <div class="owner-card-header">
-        <h6 class="owner-card-title"><i class="fas fa-filter text-primary"></i> تصفية البحث</h6>
+        <h6 class="owner-card-title"><i class="fas fa-filter text-primary"></i> {{ _('_("_(" _(" _(" _(" _(" _("تصفية البحث")")")")")")")') }}</h6>
     </div>
     <div class="owner-card-body">
         <form method="get" action="{{ url_for('owner.owner_users') }}" class="row g-3 align-items-end">
             <div class="col-lg-4 col-md-6">
                 <div class="owner-form-group mb-0">
-                    <label class="owner-form-label">البحث عن مستخدم</label>
+                    <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("البحث عن مستخدم")")")")")")")') }}</label>
                     <div class="input-group">
                         <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
-                        <input type="text" name="q" class="owner-input border-start-0" placeholder="الاسم، البريد، أو اسم المستخدم..." value="{{ search }}">
+                        <input type="text" name="q" class="owner-input border-start-0" placeholder="_(" _(" _(" _(" _(" _("الاسم، البريد، أو اسم المستخدم...")")")")")")" value="{{ search }}">
                     </div>
                 </div>
             </div>
             <div class="col-lg-2 col-md-3">
                 <div class="owner-form-group mb-0">
-                    <label class="owner-form-label">الدور</label>
+                    <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</label>
                     <select name="role" class="owner-select">
-                        <option value="">كل الأدوار</option>
+                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("كل الأدوار")")")")")")")') }}</option>
                         {% for r in roles %}
                         <option value="{{ r }}" {{ 'selected' if role_filter == r else '' }}>{{ r }}</option>
                         {% endfor %}
@@ -40,9 +40,9 @@
             </div>
             <div class="col-lg-3 col-md-3">
                 <div class="owner-form-group mb-0">
-                    <label class="owner-form-label">المنشأة</label>
+                    <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("المنشأة")")")")")")")') }}</label>
                     <select name="tenant_id" class="owner-select">
-                        <option value="">كل المنشآت</option>
+                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("كل المنشآت")")")")")")")') }}</option>
                         {% for t in tenants %}
                         <option value="{{ t.id }}" {{ 'selected' if tenant_filter == t.id else '' }}>{{ t.name }}</option>
                         {% endfor %}
@@ -51,7 +51,7 @@
             </div>
             <div class="col-lg-3 col-md-6">
                 <button type="submit" class="owner-btn owner-btn-primary w-100">
-                    <i class="fas fa-search"></i> تطبيق الفلاتر
+                    <i class="fas fa-search"></i> {{ _('_("_(" _(" _(" _(" _(" _("تطبيق الفلاتر")")")")")")")') }}
                 </button>
             </div>
         </form>
@@ -63,12 +63,12 @@
     <div class="owner-card-header">
         <h6 class="owner-card-title">
             <i class="fas fa-users text-primary"></i> 
-            قائمة المستخدمين 
+            {{ _('_("_(" _(" _(" _(" _(" _("قائمة المستخدمين")")")")")")")') }} 
             <span class="ms-2 badge bg-primary-light text-primary fs-6">{{ users|length }}</span>
         </h6>
         <div class="d-flex gap-2">
             <button class="owner-btn owner-btn-sm owner-btn-outline" onclick="location.reload()">
-                <i class="fas fa-sync-alt"></i> تحديث
+                <i class="fas fa-sync-alt"></i> {{ _('_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")') }}
             </button>
         </div>
     </div>
@@ -78,12 +78,12 @@
             <thead>
                 <tr>
                     <th class="text-center">#</th>
-                    <th>المستخدم</th>
-                    <th>الدور</th>
-                    <th>المنشأة</th>
-                    <th>الحالة</th>
-                    <th>آخر دخول</th>
-                    <th class="text-end">الإجراءات</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المستخدم")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المنشأة")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("آخر دخول")")")")")")")') }}</th>
+                    <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -105,7 +105,7 @@
                         <div class="d-flex flex-column gap-1">
                             <span class="badge bg-light text-dark border">{{ u.role }}</span>
                             {% if u.is_admin %}
-                            <span class="badge bg-warning-light text-warning x-small"><i class="fas fa-shield-alt"></i> أدمن</span>
+                            <span class="badge bg-warning-light text-warning x-small"><i class="fas fa-shield-alt"></i> {{ _('_("_(" _(" _(" _(" _(" _("أدمن")")")")")")")') }}</span>
                             {% endif %}
                         </div>
                     </td>
@@ -116,16 +116,16 @@
                     <td>
                         {% if u.is_active %}
                         <span class="owner-badge owner-badge-live">
-                            <i class="fas fa-check-circle"></i> نشط
+                            <i class="fas fa-check-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}
                         </span>
                         {% else %}
                         <span class="owner-badge owner-badge-suspended">
-                            <i class="fas fa-pause-circle"></i> معطل
+                            <i class="fas fa-pause-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}
                         </span>
                         {% endif %}
                     </td>
                     <td class="small text-muted">
-                        {{ u.last_login.strftime('%Y-%m-%d %H:%M') if u.last_login else 'لم يسجل دخول' }}
+                        {{ u.last_login.strftime('%Y-%m-%d %H:%M') if u.last_login else '_("_(" _(" _(" _(" _(" _("لم يسجل دخول")")")")")")")' }}
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
@@ -139,16 +139,16 @@
                                     data-active="{{ '1' if u.is_active else '0' }}"
                                     data-admin="{{ '1' if u.is_admin else '0' }}"
                                     data-username="{{ u.username }}"
-                                    title="تعديل"
+                                    title="_(" _(" _(" _(" _(" _("تعديل")")")")")")"
                                     data-bs-toggle="modal" data-bs-target="#editUserModal">
                                 <i class="fas fa-edit"></i>
                             </button>
                             
                             {% if u.role not in ('super_admin', 'owner') %}
                             <!-- Toggle Active -->
-                            <form method="post" action="{{ url_for('owner.owner_toggle_user_active', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من تغيير حالة هذا المستخدم؟');">
+                            <form method="post" action="{{ url_for('owner.owner_toggle_user_active', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("هل أنت متأكد من تغيير حالة هذا المستخدم؟")")")")")")")');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="owner-btn owner-btn-sm {{ 'owner-btn-outline-warning' if u.is_active else 'owner-btn-outline-success' }}" title="{{ 'إيقاف' if u.is_active else 'تفعيل' }}">
+                                <button type="submit" class="owner-btn owner-btn-sm {{ 'owner-btn-outline-warning' if u.is_active else 'owner-btn-outline-success' }}" title="{{ '_("_(" _(" _(" _(" _(" _("إيقاف")")")")")")")' if u.is_active else '_("_(" _(" _(" _(" _(" _("تفعيل")")")")")")")' }}">
                                     <i class="fas {{ 'fa-pause' if u.is_active else 'fa-play' }}"></i>
                                 </button>
                             </form>
@@ -157,28 +157,28 @@
                             <button class="owner-btn owner-btn-sm owner-btn-outline reset-pwd-btn"
                                     data-id="{{ u.id }}"
                                     data-username="{{ u.username }}"
-                                    title="إعادة تعيين كلمة المرور"
+                                    title="_(" _(" _(" _(" _(" _("إعادة تعيين كلمة المرور")")")")")")"
                                     data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
                                 <i class="fas fa-key"></i>
                             </button>
                             
                             <!-- Reveal Password -->
-                            <form method="post" action="{{ url_for('owner.owner_reveal_user_password', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('سيتم إعادة تعيين كلمة المرور وعرضها. هل أنت متأكد؟');">
+                            <form method="post" action="{{ url_for('owner.owner_reveal_user_password', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("سيتم إعادة تعيين كلمة المرور وعرضها. هل أنت متأكد؟")")")")")")")');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-info" title="كشف كلمة المرور"><i class="fas fa-eye"></i></button>
+                                <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-info" title="_(" _(" _(" _(" _(" _("كشف كلمة المرور")")")")")")"><i class="fas fa-eye"></i></button>
                             </form>
                             
                             <!-- Delete -->
                             <form method="post" action="{{ url_for('owner.owner_delete_user', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف {{ u.username }} نهائياً؟');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="حذف"><i class="fas fa-trash"></i></button>
+                                <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="_(" _(" _(" _(" _(" _("حذف")")")")")")"><i class="fas fa-trash"></i></button>
                             </form
                             {% endif %}
                         </div>
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="7" class="owner-empty py-5">لا يوجد مستخدمون تطابق مع بحثك</td></tr>
+                <tr><td colspan="7" class="owner-empty py-5">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد مستخدمون تطابق مع بحثك")")")")")")")') }}</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -187,18 +187,18 @@
     {% if pagination.pages > 1 %}
     <div class="owner-card-footer d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
         <div class="text-muted small">
-            عرض <span class="fw-bold text-primary">{{ pagination.items|length }}</span> من أصل <span class="fw-bold">{{ pagination.total }}</span> مستخدم
+            {{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }} <span class="fw-bold text-primary">{{ pagination.items|length }}</span> {{ _('_("_(" _(" _(" _(" _(" _("من أصل")")")")")")")') }} <span class="fw-bold">{{ pagination.total }}</span> {{ _('_("_(" _(" _(" _(" _(" _("مستخدم")")")")")")")') }}
         </div>
         <nav aria-label="Page navigation">
             <ul class="pagination pagination-sm mb-0">
                 {% if pagination.has_prev %}
                 <li class="page-item">
                     <a class="page-link" href="{{ url_for('owner.owner_users', page=pagination.prev_num, q=search, role=role_filter, tenant_id=tenant_filter) }}">
-                        <i class="fas fa-chevron-right"></i> السابق
+                        <i class="fas fa-chevron-right"></i> {{ _('_("_(" _(" _(" _(" _(" _("السابق")")")")")")")') }}
                     </a>
                 </li>
                 {% else %}
-                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i> السابق</span></li>
+                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i> {{ _('_("_(" _(" _(" _(" _(" _("السابق")")")")")")")') }}</span></li>
                 {% endif %}
 
                 {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
@@ -214,11 +214,11 @@
                 {% if pagination.has_next %}
                 <li class="page-item">
                     <a class="page-link" href="{{ url_for('owner.owner_users', page=pagination.next_num, q=search, role=role_filter, tenant_id=tenant_filter) }}">
-                        التالي <i class="fas fa-chevron-left"></i>
+                        {{ _('_("_(" _(" _(" _(" _(" _("التالي")")")")")")")') }} <i class="fas fa-chevron-left"></i>
                     </a>
                 </li>
                 {% else %}
-                <li class="page-item disabled"><span class="page-link">التالي <i class="fas fa-chevron-left"></i></span></li>
+                <li class="page-item disabled"><span class="page-link">{{ _('_("_(" _(" _(" _(" _(" _("التالي")")")")")")")') }} <i class="fas fa-chevron-left"></i></span></li>
                 {% endif %}
             </ul>
         </nav>
@@ -233,32 +233,32 @@
             <form method="post" id="editUserForm" action="">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-user-edit me-2 text-primary"></i>تعديل بيانات المستخدم</h5>
+                    <h5 class="modal-title"><i class="fas fa-user-edit me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("تعديل بيانات المستخدم")")")")")")")') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12">
                             <div class="owner-form-group">
-                                <label class="owner-form-label">الاسم الكامل</label>
+                                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم الكامل")")")")")")")') }}</label>
                                 <input type="text" name="full_name" id="editUserFullName" class="owner-input" required>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="owner-form-group">
-                                <label class="owner-form-label">البريد الإلكتروني</label>
+                                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("البريد الإلكتروني")")")")")")")') }}</label>
                                 <input type="email" name="email" id="editUserEmail" class="owner-input" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="owner-form-group">
-                                <label class="owner-form-label">الدور</label>
+                                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</label>
                                 <input type="text" name="role" id="editUserRole" class="owner-input" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="owner-form-group">
-                                <label class="owner-form-label">المنشأة</label>
+                                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("المنشأة")")")")")")")') }}</label>
                                 <select name="tenant_id" id="editUserTenant" class="owner-select" required>
                                     {% for t in tenants %}
                                     <option value="{{ t.id }}">{{ t.name }}</option>
@@ -268,28 +268,28 @@
                         </div>
                         <div class="col-md-6">
                             <div class="owner-form-group">
-                                <label class="owner-form-label">الحالة</label>
+                                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</label>
                                 <select name="is_active" id="editUserActive" class="owner-select">
-                                    <option value="1">نشط</option>
-                                    <option value="0">معطل</option>
+                                    <option value="1">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</option>
+                                    <option value="0">{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="owner-form-group">
-                                <label class="owner-form-label">صلاحيات الأدمن</label>
+                                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("صلاحيات الأدمن")")")")")")")') }}</label>
                                 <select name="is_admin" id="editUserAdmin" class="owner-select">
-                                    <option value="1">نعم</option>
-                                    <option value="0">لا</option>
+                                    <option value="1">{{ _('_("_(" _(" _(" _(" _(" _("نعم")")")")")")")') }}</option>
+                                    <option value="0"_(" _(" _(" _(" _(" _(">لا</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="owner-btn owner-btn-outline" data-bs-dismiss="modal">إلغاء</button>
+                <div class=")")")")")")"modal-footer">
+                    <button type="button" class="owner-btn owner-btn-outline" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
                     <button type="submit" class="owner-btn owner-btn-primary">
-                        <i class="fas fa-save me-1"></i> حفظ التغييرات
+                        <i class="fas fa-save me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("حفظ التغييرات")")")")")")")') }}
                     </button>
                 </div>
             </form>
@@ -305,7 +305,7 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="user_id" id="resetUserId" value="">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-key me-2 text-warning"></i>تعيين كلمة مرور جديدة</h5>
+                    <h5 class="modal-title"><i class="fas fa-key me-2 text-warning"></i>{{ _('_("_(" _(" _(" _(" _(" _("تعيين كلمة مرور جديدة")")")")")")")') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -314,18 +314,18 @@
                         <span id="resetPwdUserLabel" class="small fw-bold"></span>
                     </div>
                     <div class="owner-form-group">
-                        <label class="owner-form-label">كلمة المرور الجديدة</label>
-                        <input type="text" name="password" id="resetPwdInput" class="owner-input minlength="6" placeholder="اترك الحقل فارغاً لتوليد كلمة مرور عشوائية">
+                        <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("كلمة المرور الجديدة")")")")")")")') }}</label>
+                        <input type="text" name="password" id="resetPwdInput" class="owner-input minlength="6" placeholder="_(" _(" _(" _(" _(" _("اترك الحقل فارغاً لتوليد كلمة مرور عشوائية")")")")")")">
                         <div class="mt-2 d-flex align-items-center gap-2 text-muted">
                             <i class="fas fa-lightbulb text-warning"></i>
-                            <span class="x-small">سيتم إنشاء كلمة مرور قوية وعشوائية في حال تركت الحقل فارغاً.</span>
+                            <span class="x-small">{{ _('_("_(" _(" _(" _(" _(" _("سيتم إنشاء كلمة مرور قوية وعشوائية في حال تركت الحقل فارغاً.")")")")")")")') }}</span>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="owner-btn owner-btn-outline" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="owner-btn owner-btn-outline" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
                     <button type="submit" class="owner-btn owner-btn-warning">
-                        <i class="fas fa-lock me-1"></i> تحديث كلمة المرور
+                        <i class="fas fa-lock me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("تحديث كلمة المرور")")")")")")")') }}
                     </button>
                 </div>
             </form>

@@ -1,13 +1,13 @@
 {# Dynamic sidebar — nav_sections from app/shared/nav_resolver.py #}
 <aside class="clinical-sidebar" id="appSidebar">
     <div class="sidebar-header d-lg-none p-3 border-bottom d-flex justify-content-between align-items-center">
-        <strong>القائمة</strong>
-        <button type="button" class="btn btn-sm btn-light" id="closeSidebarBtn" aria-label="إغلاق القائمة">
+        <strong>{{ _('_("_(" _(" _(" _(" _(" _("القائمة")")")")")")")') }}</strong>
+        <button type="button" class="btn btn-sm btn-light" id="closeSidebarBtn" aria-label="_(" _(" _(" _(" _(" _("إغلاق القائمة")")")")")")">
             <i class="fas fa-times"></i>
         </button>
     </div>
 
-    <nav class="sidebar-nav p-2" aria-label="التنقل الرئيسي">
+    <nav class="sidebar-nav p-2" aria-label="_(" _(" _(" _(" _(" _("التنقل الرئيسي")")")")")")">
         <ul class="nav flex-column">
             {% for section in nav_sections %}
                 {% if section.title_ar %}

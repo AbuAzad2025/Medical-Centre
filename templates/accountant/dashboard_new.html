@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
-{% block title %}لوحة تحكم المحاسب{% endblock %}
+{% block title %}{{ _('لوحة تحكم المحاسب') }}{% endblock %}
 {% block content %}
 <style>
 .acc-gradient { background: linear-gradient(135deg, #1a2a3a 0%, #2d4a5a 50%, #3a6a7a 100%); }
 </style>
 <div class="container-fluid py-3">
-  {{ page_header('قسم المحاسبة', subtitle='الإيرادات والفواتير والمدفوعات والتحليل المالي', icon='fas fa-calculator', hero_class='acc-gradient', actions=[
-      {'label': 'الفواتير', 'icon': 'fas fa-file-invoice', 'url': url_for('accountant.open_invoices'), 'style': 'light'},
-      {'label': 'المدفوعات', 'icon': 'fas fa-money-bill', 'url': url_for('accountant.payments'), 'style': 'outline-light'},
-      {'label': 'التقارير', 'icon': 'fas fa-chart-line', 'url': url_for('accountant.financial_report'), 'style': 'outline-light'}
+  {{ page_header(_('قسم المحاسبة'), subtitle=_('الإيرادات والفواتير والمدفوعات والتحليل المالي'), icon='fas fa-calculator', hero_class='acc-gradient', actions=[
+      {'label': _('الفواتير'), 'icon': 'fas fa-file-invoice', 'url': url_for('accountant.open_invoices'), 'style': 'light'},
+      {'label': _('المدفوعات'), 'icon': 'fas fa-money-bill', 'url': url_for('accountant.payments'), 'style': 'outline-light'},
+      {'label': _('التقارير'), 'icon': 'fas fa-chart-line', 'url': url_for('accountant.financial_report'), 'style': 'outline-light'}
   ]) }}
 
   <div class="row g-3 mb-4">
@@ -18,12 +18,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">مدفوعات اليوم</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _('مدفوعات اليوم') }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.today_payments or 0 }}</h3>
             </div>
             <div class="bg-primary bg-opacity-10 p-3 rounded"><i class="fas fa-calendar-day text-primary fa-lg"></i></div>
           </div>
-          <div class="small text-muted">الإجمالي: <strong>{{ "%.2f"|format(stats.today_total or 0) }} ر.س</strong></div>
+          <div class="small text-muted">{{ _('الإجمالي:') }} <strong>{{ "%.2f"|format(stats.today_total or 0) }} {{ _('ر.س') }}</strong></div>
           <canvas id="sparkToday" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -33,12 +33,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">إيرادات الشهر</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _('إيرادات الشهر') }}</h6>
               <h3 class="mb-0 fw-bold">{{ "%.2f"|format(stats.monthly_revenue or 0) }}</h3>
             </div>
             <div class="bg-success bg-opacity-10 p-3 rounded"><i class="fas fa-coins text-success fa-lg"></i></div>
           </div>
-          <div class="small text-muted">صافي ربح: <strong class="text-success">{{ "%.2f"|format(stats.net_profit or 0) }} ر.س</strong></div>
+          <div class="small text-muted">{{ _('صافي ربح:') }} <strong class="text-success">{{ "%.2f"|format(stats.net_profit or 0) }} {{ _('ر.س') }}</strong></div>
           <canvas id="sparkMonth" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -48,12 +48,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">فواتير معلقة</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _('فواتير معلقة') }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.pending_invoices or 0 }}</h3>
             </div>
             <div class="bg-warning bg-opacity-10 p-3 rounded"><i class="fas fa-file-invoice text-warning fa-lg"></i></div>
           </div>
-          <div class="small text-muted">مستحق: <strong class="text-danger">{{ "%.2f"|format(stats.pending_amount or 0) }} ر.س</strong></div>
+          <div class="small text-muted">{{ _('مستحق:') }} <strong class="text-danger">{{ "%.2f"|format(stats.pending_amount or 0) }} {{ _('ر.س') }}</strong></div>
           <canvas id="sparkPending" height="40" class="mt-2"></canvas>
         </div>
       </div>

@@ -25,7 +25,7 @@ class PrescriptionService:
     # ==================== DRUG INTERACTIONS ====================
 
     @staticmethod
-    def check_interactions(medication_ids: list[int]) -> list[dict]:
+    def check_interactions(medication_ids: list[int | None]) -> list[dict]:
         from models.drug_interaction import DrugInteraction
         from models.medication import Medication
 

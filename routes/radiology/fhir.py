@@ -18,9 +18,7 @@ from models.radiology_result import RadiologyResult
 from routes.radiology import radiology_bp
 from utils.decorators import role_required
 
-# =============================================
 # FHIR ROUTES
-# =============================================
 
 
 @radiology_bp.route('/api/worklist')

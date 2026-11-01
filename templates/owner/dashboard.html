@@ -6,15 +6,15 @@
 <div class="d-flex gap-2">
     <a href="{{ url_for('owner.owner_create_tenant') }}" class="owner-btn owner-btn-primary">
         <i class="fas fa-plus"></i>
-        عميل جديد
+        {{ _('_("_(" _(" _(" _(" _(" _("عميل جديد")")")")")")")') }}
     </a>
     <a href="{{ url_for('owner.owner_plans') }}" class="owner-btn owner-btn-outline">
         <i class="fas fa-tags"></i>
-        الخطط
+        {{ _('_("_(" _(" _(" _(" _(" _("الخطط")")")")")")")') }}
     </a>
     <a href="{{ url_for('owner.owner_support_tickets') }}" class="owner-btn owner-btn-outline">
         <i class="fas fa-headset"></i>
-        الدعم
+        {{ _('_("_(" _(" _(" _(" _(" _("الدعم")")")")")")")') }}
     </a>
 </div>
 {% endblock %}
@@ -26,7 +26,7 @@
     <div class="owner-kpi owner-kpi-primary animate-fadeInUp delay-1">
         <div class="owner-kpi-icon"><i class="fas fa-building"></i></div>
         <div class="owner-kpi-value">{{ tenant_count }}</div>
-        <div class="owner-kpi-label">إجمالي العملاء</div>
+        <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي العملاء")")")")")")")') }}</div>
         <div class="owner-kpi-change text-success">
             <i class="fas fa-arrow-up"></i> {{ active_today }} نشط
         </div>
@@ -36,7 +36,7 @@
     <div class="owner-kpi owner-kpi-success animate-fadeInUp delay-2">
         <div class="owner-kpi-icon"><i class="fas fa-coins"></i></div>
         <div class="owner-kpi-value">{{ "%.0f"|format(mrr) }} <small class="fs-6">{{ currency }}</small></div>
-        <div class="owner-kpi-label">MRR (شهري)</div>
+        <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("MRR (شهري)")")")")")")")') }}</div>
         <div class="owner-kpi-change text-muted">
             ARR: {{ "%.0f"|format(arr) }} {{ currency }}
         </div>
@@ -46,7 +46,7 @@
     <div class="owner-kpi {% if churn_rate < 5 %}owner-kpi-success{% elif churn_rate < 10 %}owner-kpi-warning{% else %}owner-kpi-danger{% endif %} animate-fadeInUp delay-3">
         <div class="owner-kpi-icon"><i class="fas fa-chart-pie"></i></div>
         <div class="owner-kpi-value">{{ churn_rate }}%</div>
-        <div class="owner-kpi-label">نسبة الاستبقاء</div>
+        <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("نسبة الاستبقاء")")")")")")")') }}</div>
         <div class="owner-kpi-change text-muted">
             منتهي: {{ expired_count }}
         </div>
@@ -56,7 +56,7 @@
     <div class="owner-kpi owner-kpi-info animate-fadeInUp delay-4">
         <div class="owner-kpi-icon"><i class="fas fa-users"></i></div>
         <div class="owner-kpi-value">{{ total_users_all }}</div>
-        <div class="owner-kpi-label">إجمالي المستخدمين</div>
+        <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المستخدمين")")")")")")")') }}</div>
         <div class="owner-kpi-change text-muted">
             متوسط: {{ avg_users_per_tenant|round(1) }}
         </div>
@@ -68,8 +68,8 @@
     <div class="col-lg-8 animate-fadeInUp delay-5">
         <div class="owner-card h-100">
             <div class="owner-card-header">
-                <h6 class="owner-card-title"><i class="fas fa-chart-line text-primary"></i> نمو المنصة</h6>
-                <span class="badge bg-light text-dark border">آخر 6 أشهر</span>
+                <h6 class="owner-card-title"><i class="fas fa-chart-line text-primary"></i> {{ _('_("_(" _(" _(" _(" _(" _("نمو المنصة")")")")")")")') }}</h6>
+                <span class="badge bg-light text-dark border">{{ _('_("_(" _(" _(" _(" _(" _("آخر 6 أشهر")")")")")")")') }}</span>
             </div>
             <div class="owner-card-body">
                 <canvas id="mainChart" height="320"></canvas>
@@ -83,7 +83,7 @@
             <div class="col-12">
                 <div class="owner-card">
                     <div class="owner-card-header">
-                        <h6 class="owner-card-title"><i class="fas fa-chart-pie text-success"></i> توزيع حالة العملاء</h6>
+                        <h6 class="owner-card-title"><i class="fas fa-chart-pie text-success"></i> {{ _('_("_(" _(" _(" _(" _(" _("توزيع حالة العملاء")")")")")")")') }}</h6>
                     </div>
                     <div class="owner-card-body">
                         <canvas id="statusChart" height="200"></canvas>
@@ -93,7 +93,7 @@
             <div class="col-12">
                 <div class="owner-card">
                     <div class="owner-card-header">
-                        <h6 class="owner-card-title"><i class="fas fa-headset text-info"></i> تذاكر الدعم</h6>
+                        <h6 class="owner-card-title"><i class="fas fa-headset text-info"></i> {{ _('_("_(" _(" _(" _(" _(" _("تذاكر الدعم")")")")")")")') }}</h6>
                     </div>
                     <div class="owner-card-body">
                         <canvas id="ticketChart" height="150"></canvas>
@@ -109,7 +109,7 @@
     <div class="col-lg-6 animate-fadeInUp delay-6">
         <div class="owner-card h-100">
             <div class="owner-card-header">
-                <h6 class="owner-card-title"><i class="fas fa-bell text-warning"></i> تنبيهات النظام</h6>
+                <h6 class="owner-card-title"><i class="fas fa-bell text-warning"></i> {{ _('_("_(" _(" _(" _(" _(" _("تنبيهات النظام")")")")")")")') }}</h6>
                 <span class="badge bg-danger">{{ alerts|length }}</span>
             </div>
             <div class="owner-card-body p-0">
@@ -123,7 +123,7 @@
                             </div>
                             <div class="flex-grow-1">
                                 <div class="fw-bold small">{{ alert.message }}</div>
-                                <div class="text-muted x-small">{{ alert.tenant or 'عام' }}</div>
+                                <div class="text-muted x-small">{{ alert.tenant or '_("_(" _(" _(" _(" _(" _("عام")")")")")")")' }}</div>
                             </div>
                         </div>
                     </div>
@@ -132,8 +132,8 @@
                 {% else %}
                 <div class="owner-empty py-5">
                     <i class="fas fa-check-circle"></i>
-                    <h5>لا توجد تنبيهات</h5>
-                    <p class="small text-muted">كل شيء يعمل بسلاسة</p>
+                    <h5>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد تنبيهات")")")")")")")') }}</h5>
+                    <p class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("كل شيء يعمل بسلاسة")")")")")")")') }}</p>
                 </div>
                 {% endif %}
             </div>
@@ -146,18 +146,18 @@
             <div class="col-md-7">
                 <div class="owner-card h-100">
                     <div class="owner-card-header">
-                        <h6 class="owner-card-title"><i class="fas fa-bolt text-primary"></i> الوصول السريع</h6>
+                        <h6 class="owner-card-title"><i class="fas fa-bolt text-primary"></i> {{ _('_("_(" _(" _(" _(" _(" _("الوصول السريع")")")")")")")') }}</h6>
                     </div>
                     <div class="owner-card-body">
                         <div class="d-grid gap-2">
                             <a href="{{ url_for('owner.owner_announcements') }}" class="owner-btn owner-btn-outline text-start">
-                                <i class="fas fa-bullhorn"></i> إعلان جديد
+                                <i class="fas fa-bullhorn"></i> {{ _('_("_(" _(" _(" _(" _(" _("إعلان جديد")")")")")")")') }}
                             </a>
                             <a href="{{ url_for('owner.owner_audit_logs') }}" class="owner-btn owner-btn-outline text-start">
-                                <i class="fas fa-clipboard-list"></i> سجل التدقيق
+                                <i class="fas fa-clipboard-list"></i> {{ _('_("_(" _(" _(" _(" _(" _("سجل التدقيق")")")")")")")') }}
                             </a>
                             <a href="{{ url_for('owner.owner_resource_usage') }}" class="owner-btn owner-btn-outline text-start">
-                                <i class="fas fa-server"></i> استهلاك الموارد
+                                <i class="fas fa-server"></i> {{ _('_("_(" _(" _(" _(" _(" _("استهلاك الموارد")")")")")")")') }}
                             </a>
                         </div>
                     </div>
@@ -166,17 +166,17 @@
             <div class="col-md-5">
                 <div class="owner-card h-100">
                     <div class="owner-card-header">
-                        <h6 class="owner-card-title"><i class="fas fa-flask text-info"></i> التجارب</h6>
+                        <h6 class="owner-card-title"><i class="fas fa-flask text-info"></i> {{ _('_("_(" _(" _(" _(" _(" _("التجارب")")")")")")")') }}</h6>
                     </div>
                     <div class="owner-card-body text-center py-4">
                         <div class="h2 fw-bold text-primary mb-0">{{ trial_count }}</div>
-                        <div class="small text-muted">عميل في فترة تجريبية</div>
+                        <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("عميل في فترة تجريبية")")")")")")")') }}</div>
                         <hr class="my-3">
                         <div class="d-flex justify-content-between small mb-1">
-                            <span>تحويل</span><span class="fw-bold">{{ conversion_rate }}%</span>
+                            <span>{{ _('_("_(" _(" _(" _(" _(" _("تحويل")")")")")")")') }}</span><span class="fw-bold">{{ conversion_rate }}%</span>
                         </div>
                         <div class="d-flex justify-content-between small text-warning">
-                            <span>تنتهي قريباً</span><span class="fw-bold">{{ expiring_trials }}</span>
+                            <span>{{ _('_("_(" _(" _(" _(" _(" _("تنتهي قريباً")")")")")")")') }}</span><span class="fw-bold">{{ expiring_trials }}</span>
                         </div>
                     </div>
                 </div>
@@ -188,15 +188,15 @@
 <!-- Tenants Table -->
 <div class="owner-card animate-fadeInUp delay-7">
     <div class="owner-card-header">
-        <h6 class="owner-card-title"><i class="fas fa-list text-primary"></i> قائمة العملاء</h6>
+        <h6 class="owner-card-title"><i class="fas fa-list text-primary"></i> {{ _('_("_(" _(" _(" _(" _(" _("قائمة العملاء")")")")")")")') }}</h6>
         <div class="d-flex gap-2">
             <select class="owner-select owner-select-sm w-auto" onchange="location.href='?status='+this.value">
-                <option value="">كل الحالات</option>
-                <option value="active" {% if filter_status == 'active' %}selected{% endif %}>نشط</option>
-                <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>معلق</option>
-                <option value="expired" {% if filter_status == 'expired' %}selected{% endif %}>منتهي</option>
-                <option value="suspended" {% if filter_status == 'suspended' %}selected{% endif %}>موقوف</option>
-                <option value="trial" {% if filter_status == 'trial' %}selected{% endif %}>تجريبي</option>
+                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("كل الحالات")")")")")")")') }}</option>
+                <option value="active" {% if filter_status == 'active' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</option>
+                <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("معلق")")")")")")")') }}</option>
+                <option value="expired" {% if filter_status == 'expired' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("منتهي")")")")")")")') }}</option>
+                <option value="suspended" {% if filter_status == 'suspended' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("موقوف")")")")")")")') }}</option>
+                <option value="trial" {% if filter_status == 'trial' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("تجريبي")")")")")")")') }}</option>
             </select>
         </div>
     </div>
@@ -205,12 +205,12 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>الاسم</th>
-                    <th>الخطة</th>
-                    <th>المستخدمون</th>
-                    <th>الحالة</th>
-                    <th>الاشتراك</th>
-                    <th class="text-end">الإجراءات</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الخطة")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المستخدمون")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الاشتراك")")")")")")")') }}</th>
+                    <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -230,28 +230,28 @@
                         </span>
                     </td>
                     <td>
-                        {% if t.subscription_end %}<div class="small">{{ t.subscription_end.strftime('%Y-%m-%d') }}</div>{% else %}<span class="text-muted">غير محدد</span>{% endif %}
+                        {% if t.subscription_end %}<div class="small">{{ t.subscription_end.strftime('%Y-%m-%d') }}</div>{% else %}<span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")') }}</span>{% endif %}
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
-                            <a href="{{ url_for('owner.owner_tenant_detail', tenant_id=t.id) }}" class="btn btn-sm btn-outline-primary" title="تفاصيل"><i class="fas fa-eye"></i></a>
+                            <a href="{{ url_for('owner.owner_tenant_detail', tenant_id=t.id) }}" class="btn btn-sm btn-outline-primary" title="_(" _(" _(" _(" _(" _("تفاصيل")")")")")")"><i class="fas fa-eye"></i></a>
                             <form method="post" action="{{ url_for('owner.owner_renew_tenant', tenant_id=t.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-sm btn-outline-success" title="تجديد">
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="_(" _(" _(" _(" _(" _("تجديد")")")")")")">
                                     <i class="fas fa-redo"></i>
                                 </button>
                             </form>
                             {% if t.status.value != 'suspended' %}
                             <form method="post" action="{{ url_for('owner.owner_suspend_tenant', tenant_id=t.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-sm btn-outline-warning" title="إيقاف">
+                                <button type="submit" class="btn btn-sm btn-outline-warning" title="_(" _(" _(" _(" _(" _("إيقاف")")")")")")">
                                     <i class="fas fa-pause"></i>
                                 </button>
                             </form>
                             {% else %}
                             <form method="post" action="{{ url_for('owner.owner_activate_tenant', tenant_id=t.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-sm btn-outline-success" title="تفعيل">
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="_(" _(" _(" _(" _(" _("تفعيل")")")")")")">
                                     <i class="fas fa-play"></i>
                                 </button>
                             </form>
@@ -265,18 +265,18 @@
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content owner-modal">
                             <div class="modal-header">
-                                <h5 class="modal-title">تأكيد إيقاف العميل</h5>
+                                <h5 class="modal-title">{{ _('_("_(" _(" _(" _(" _(" _("تأكيد إيقاف العميل")")")")")")")') }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                هل أنت متأكد من رغبتك في إيقاف اشتراك <strong>{{ t.name }}</strong>؟ لن يتمكن العميل من الوصول إلى المنصة بعد هذه الخطوة.
+                                {{ _('_("_(" _(" _(" _(" _(" _("هل أنت متأكد من رغبتك في إيقاف اشتراك")")")")")")")') }} <strong>{{ t.name }}</strong>{{ _('_("_(" _(" _(" _(" _(" _("؟ لن يتمكن العميل من الوصول إلى المنصة بعد هذه الخطوة.")")")")")")")') }}
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
                                 <form method="post" action="{{ url_for('owner.owner_suspend_tenant', tenant_id=t.id) }}" class="d-inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-danger" title="">
-                                        تأكيد الإيقاف
+                                        {{ _('_("_(" _(" _(" _(" _(" _("تأكيد الإيقاف")")")")")")")') }}
                                     </button>
                                 </form>
                             </div>
@@ -285,7 +285,7 @@
                 </div>
                 {% endif %}
                 {% else %}
-                <tr><td colspan="7" class="owner-empty py-5">لا يوجد عملاء حالياً</td></tr>
+                <tr><td colspan="7" class="owner-empty py-5">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد عملاء حالياً")")")")")")")') }}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

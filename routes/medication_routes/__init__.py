@@ -715,6 +715,7 @@ def calculate_demand_forecast_accuracy():
 
 from . import catalog as catalog
 from . import dashboard as dashboard
+from . import enhancements as enhancements
 from . import external as external
 from . import interactions as interactions
 from . import inventory as inventory

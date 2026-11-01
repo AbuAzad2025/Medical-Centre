@@ -16,9 +16,7 @@ from models.payment import Payment
 from routes.accountant import accountant_bp
 from utils.decorators import role_required
 
-# =============================================
 # PAYMENTS ROUTES
-# =============================================
 
 
 @accountant_bp.route('/open-invoices')

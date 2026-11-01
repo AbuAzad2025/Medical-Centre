@@ -292,4 +292,5 @@ def set_language(lang_code):
     """تغيير لغة الواجهة ديناميكياً (عربي / إنجليزي)."""
     if lang_code in ('ar', 'en'):
         session['lang'] = lang_code
+        session.modified = True
     return redirect(request.referrer or url_for('main.index'))

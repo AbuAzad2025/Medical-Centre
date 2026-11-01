@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('مصفوفة الصلاحيات', subtitle='إدارة الصلاحيات لكل دور بشكل مركزي', icon='fas fa-th', actions=[
-    {'label': 'الأدوار', 'url': url_for('super_admin.roles'), 'style': 'outline-secondary'},
-    {'label': 'رجوع', 'url': url_for('super_admin.dashboard'), 'style': 'secondary'}
+  {{ page_header('_("_(" _(" _(" _(" _(" _("مصفوفة الصلاحيات")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة الصلاحيات لكل دور بشكل مركزي")")")")")")")', icon='fas fa-th', actions=[
+    {'label': '_("_(" _(" _(" _(" _(" _("الأدوار")")")")")")")', 'url': url_for('super_admin.roles'), 'style': 'outline-secondary'},
+    {'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'url': url_for('super_admin.dashboard'), 'style': 'secondary'}
   ]) }}
 
   <form method="POST" class="card border-0 shadow-sm">
@@ -17,7 +17,7 @@
         <table class="table table-bordered align-middle mb-0">
           <thead class="table-light">
             <tr>
-              <th class="min-w-320">الصلاحية</th>
+              <th class="min-w-320">{{ _('_("_(" _(" _(" _(" _(" _("الصلاحية")")")")")")")') }}</th>
               {% for r in roles %}
                 <th class="text-center min-w-140">{{ r.display_name or r.name_ar or r.name }}</th>
               {% endfor %}
@@ -55,8 +55,8 @@
       </div>
 
       <div class="d-flex gap-2 mt-3">
-        <button type="submit" class="btn btn-primary">حفظ</button>
-        <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-outline-secondary">إلغاء</a>
+        <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+        <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-outline-secondary">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</a>
       </div>
     </div>
   </form>

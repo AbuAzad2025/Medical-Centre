@@ -4,83 +4,83 @@
 
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-bell me-2 text-warning"></i>قواعد الإشعارات</h4></div>
+        <div class="col"><h4><i class="fas fa-bell me-2 text-warning"></i>{{ _('_("_(" _(" _(" _(" _(" _("قواعد الإشعارات")")")")")")")') }}</h4></div>
         <div class="col-auto">
-            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
         </div>
     </div>
     <div class="row g-3">
         <div class="col-md-4">
             <div class="card">
-                <div class="card-header fw-bold">قاعدة جديدة</div>
+                <div class="card-header fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("قاعدة جديدة")")")")")")")') }}</div>
                 <div class="card-body">
                     <form method="post" action="{{ url_for('owner.owner_create_notification') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
-                            <label class="form-label">الحدث</label>
-                            <select name="event_type" class="form-select" title="نوع الحدث">
-                                <option value="subscription_expiry">انتهاء الاشتراك</option>
-                                <option value="trial_ending">انتهاء التجربة</option>
-                                <option value="high_resource">استهلاك عالي</option>
-                                <option value="ticket_new">تذكرة جديدة</option>
+                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحدث")")")")")")")') }}</label>
+                            <select name="event_type" class="form-select" title="_(" _(" _(" _(" _(" _("نوع الحدث")")")")")")">
+                                <option value="subscription_expiry">{{ _('_("_(" _(" _(" _(" _(" _("انتهاء الاشتراك")")")")")")")') }}</option>
+                                <option value="trial_ending">{{ _('_("_(" _(" _(" _(" _(" _("انتهاء التجربة")")")")")")")') }}</option>
+                                <option value="high_resource">{{ _('_("_(" _(" _(" _(" _(" _("استهلاك عالي")")")")")")")') }}</option>
+                                <option value="ticket_new">{{ _('_("_(" _(" _(" _(" _(" _("تذكرة جديدة")")")")")")")') }}</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">القناة</label>
-                            <select name="channel" class="form-select" title="قناة الإشعار">
-                                <option value="email">بريد إلكتروني</option>
+                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القناة")")")")")")")') }}</label>
+                            <select name="channel" class="form-select" title="_(" _(" _(" _(" _(" _("قناة الإشعار")")")")")")">
+                                <option value="email">{{ _('_("_(" _(" _(" _(" _(" _("بريد إلكتروني")")")")")")")') }}</option>
                                 <option value="webhook">Webhook</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">الوجهة</label>
-                            <input type="text" name="target" class="form-control" placeholder="email@domain.com أو URL" required>
+                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوجهة")")")")")")")') }}</label>
+                            <input type="text" name="target" class="form-control" placeholder="_(" _(" _(" _(" _(" _("email@domain.com أو URL")")")")")")" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">العنوان (اختياري)</label>
-                            <input type="text" name="template_subject" class="form-control" title="عنوان الرسالة" placeholder="عنوان الرسالة">
+                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("العنوان (اختياري)")")")")")")")') }}</label>
+                            <input type="text" name="template_subject" class="form-control" title="_(" _(" _(" _(" _(" _("عنوان الرسالة")")")")")")" placeholder="_(" _(" _(" _(" _(" _("عنوان الرسالة")")")")")")">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">المحتوى (اختياري)</label>
-                            <textarea name="template_body" class="form-control" rows="3" title="محتوى الرسالة" placeholder="محتوى الرسالة"></textarea>
+                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المحتوى (اختياري)")")")")")")")') }}</label>
+                            <textarea name="template_body" class="form-control" rows="3" title="_(" _(" _(" _(" _(" _("محتوى الرسالة")")")")")")" placeholder="_(" _(" _(" _(" _(" _("محتوى الرسالة")")")")")")"></textarea>
                         </div>
                         <div class="mb-3 form-check">
-                            <input type="checkbox" name="is_active" class="form-check-input" title="تفعيل القاعدة" checked>
-                            <label class="form-check-label">نشط</label>
+                            <input type="checkbox" name="is_active" class="form-check-input" title="_(" _(" _(" _(" _(" _("تفعيل القاعدة")")")")")")" checked>
+                            <label class="form-check-label">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</label>
                         </div>
-                        <button type="submit" class="btn btn-success w-100">إضافة</button>
+                        <button type="submit" class="btn btn-success w-100">{{ _('_("_(" _(" _(" _(" _(" _("إضافة")")")")")")")') }}</button>
                     </form>
                 </div>
             </div>
         </div>
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header fw-bold">القواعد الحالية</div>
+                <div class="card-header fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("القواعد الحالية")")")")")")")') }}</div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
-                        <thead><tr><th>الحدث</th><th>القناة</th><th>الوجهة</th><th>الحالة</th><th>تاريخ الإنشاء</th><th>الإجراءات</th></tr></thead>
+                        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الحدث")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("القناة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوجهة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإنشاء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th></tr></thead>
                         <tbody>
                         {% for r in rules %}
                         <tr>
                             <td class="small">{{ r.event_type }}</td>
                             <td class="small">{{ r.channel }}</td>
                             <td class="small text-truncate cell-truncate-sm">{{ r.target }}</td>
-                            <td><span class="badge bg-{{ 'success' if r.is_active else 'secondary' }}">{{ 'نشط' if r.is_active else 'معطل' }}</span></td>
+                            <td><span class="badge bg-{{ 'success' if r.is_active else 'secondary' }}">{{ '_("_(" _(" _(" _(" _(" _("نشط")")")")")")")' if r.is_active else '_("_(" _(" _(" _(" _(" _("معطل")")")")")")")' }}</span></td>
                             <td class="small text-muted">{{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '-' }}</td>
                             <td>
                                 <form method="post" action="{{ url_for('owner.owner_delete_notification', rule_id=r.id) }}" style="display:inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف القاعدة؟')"><i class="fas fa-trash"></i></button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('_("_(" _(" _(" _(" _(" _("حذف القاعدة؟")")")")")")")')"><i class="fas fa-trash"></i></button>
                                 </form>
                                 <form method="post" action="{{ url_for('owner.owner_toggle_notification', rule_id=r.id) }}" style="display:inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-sm btn-outline-{{ 'success' if not r.is_active else 'secondary' }}">
-                                        {{ 'تعطيل' if r.is_active else 'تفعيل' }}
+                                        {{ '_("_(" _(" _(" _(" _(" _("تعطيل")")")")")")")' if r.is_active else '_("_(" _(" _(" _(" _(" _("تفعيل")")")")")")")' }}
                                     </button>
                                 </form>
                             </td>
                         </tr>
-                        {% else %}<tr><td colspan="6" class="text-muted text-center py-3">لا قواعد</td></tr>
+                        {% else %}<tr><td colspan="6" class="text-muted text-center py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا قواعد")")")")")")")') }}</td></tr>
                         {% endfor %}
                         </tbody>
                     </table>

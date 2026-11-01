@@ -2,7 +2,7 @@
   <div class="cc-widget__head"><span><i class="fas fa-flask me-1"></i> {% if dashboard_role == 'doctor' %}طلبات المختبر المعلّقة{% else %}طلبات المختبر{% endif %}</span></div>
   <div class="cc-widget__body table-responsive">
     <table class="table table-sm table-hover mb-0">
-      <thead><tr><th>المريض</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+      <thead><tr><th>{{ _('المريض') }}</th><th>{{ _('_("الحالة")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th></tr></thead>
       <tbody>
       {% for r in widget_data.lists.pending_lab or widget_data.lists.lab_pending or [] %}
       <tr>
@@ -11,7 +11,7 @@
         <td class="small text-muted">{{ r.created_at.strftime('%m-%d %H:%M') if r.created_at else '—' }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="3" class="text-center text-muted py-3">لا طلبات معلقة</td></tr>
+      <tr><td colspan="3" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا طلبات معلقة")")")")")")")') }}</td></tr>
       {% endfor %}
       </tbody>
     </table>

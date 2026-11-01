@@ -2,12 +2,12 @@
 {% block title %}المواعيد{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h4>المواعيد</h4>
-  <a href="{{ url_for('portal.book_appointment') }}" class="btn btn-primary btn-sm">حجز موعد</a>
+  <h4>{{ _('_("_(" _(" _(" _(" _(" _("المواعيد")")")")")")")') }}</h4>
+  <a href="{{ url_for('portal.book_appointment') }}" class="btn btn-primary btn-sm">{{ _('_("_(" _(" _(" _(" _(" _("حجز موعد")")")")")")")') }}</a>
 </div>
 <div class="portal-card p-3">
   <table class="table table-hover">
-    <thead><tr><th>التاريخ</th><th>الحالة</th><th>الملاحظات</th></tr></thead>
+    <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الملاحظات")")")")")")")') }}</th></tr></thead>
     <tbody>
     {% for a in appointments %}
       <tr>
@@ -16,7 +16,7 @@
         <td>{{ a.notes or '-' }}</td>
       </tr>
     {% else %}
-      <tr><td colspan="3" class="text-muted text-center">لا يوجد مواعيد</td></tr>
+      <tr><td colspan="3" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد مواعيد")")")")")")")') }}</td></tr>
     {% endfor %}
     </tbody>
   </table>

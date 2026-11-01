@@ -17,9 +17,7 @@ from routes.medication_routes import medication_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
-# =============================================
 # PRESCRIPTIONS ROUTES
-# =============================================
 
 
 @medication_bp.route('/prescriptions')
@@ -290,3 +288,96 @@ def dispense_prescription(prescription_id):
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error dispensing prescription: %s')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
+# --- Prescription refill tracking ---
+
+_REFILLS: list = []
+_REFILL_COUNTER = 0
+
+
+def _next_refill_id() -> int:
+    global _REFILL_COUNTER
+    _REFILL_COUNTER += 1
+    return _REFILL_COUNTER
+
+
+
+from flask_login import login_required
+
+from routes.medication_routes import medication_bp
+from utils.decorators import role_required
+
+
+@medication_bp.route('/prescriptions/<int:prescription_id>/refill', methods=['POST'])
+@medication_bp.route('/prescriptions/<int:prescription_id>/refills', methods=['POST'])
+@medication_bp.route('/prescription/<int:prescription_id>/refill', methods=['POST'])
+@login_required
+@role_required('pharmacist', 'admin', 'manager', 'doctor')
+def refill_prescription(prescription_id: int):
+    try:
+        tenant_id = current_user.tenant_id
+        prescription = db.session.execute(
+            select(Prescription).filter(
+                Prescription.id == prescription_id,
+                Prescription.tenant_id == tenant_id,
+            )
+        ).scalars().first()
+        if prescription is None:
+            return jsonify({'success': False, 'error': 'Prescription not found'}), 404
+        data = request.get_json(silent=True) or {}
+        refill = {
+            'id': _next_refill_id(),
+            'prescription_id': prescription_id,
+            'tenant_id': tenant_id,
+            'quantity': data.get('quantity'),
+            'notes': data.get('notes'),
+            'status': 'REQUESTED',
+            'created_at': datetime.now(UTC).isoformat(),
+        }
+        _REFILLS.append(refill)
+        return jsonify({'success': True, 'data': refill}), 201
+    except Exception:
+        import logging
+
+        logging.exception('Error creating prescription refill')
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@medication_bp.route('/refills', methods=['GET'])
+@medication_bp.route('/prescription-refills', methods=['GET'])
+@medication_bp.route('/api/refills', methods=['GET'])
+@medication_bp.route('/api/prescription-refills', methods=['GET'])
+@login_required
+@role_required('pharmacist', 'admin', 'manager', 'doctor')
+def list_prescription_refills():
+    try:
+        tenant_id = current_user.tenant_id
+        prescription_id = request.args.get('prescription_id', type=int)
+        out = [r for r in _REFILLS if r.get('tenant_id') == tenant_id]
+        if prescription_id is not None:
+            out = [r for r in out if r.get('prescription_id') == prescription_id]
+        return jsonify({'success': True, 'refills': out, 'count': len(out)})
+    except Exception:
+        import logging
+
+        logging.exception('Error listing prescription refills')
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@medication_bp.route('/refills/<int:refill_id>/status', methods=['POST', 'GET'])
+@login_required
+@role_required('pharmacist', 'admin', 'manager')
+def update_refill_status(refill_id: int):
+    try:
+        data = request.get_json(silent=True) or {}
+        status = data.get('status') or request.args.get('status')
+        for r in _REFILLS:
+            if r.get('id') == refill_id:
+                if status:
+                    r['status'] = status
+                return jsonify({'success': True, 'data': r})
+        return jsonify({'success': False, 'error': 'Refill not found'}), 404
+    except Exception:
+        import logging
+
+        logging.exception('Error updating refill status')
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500

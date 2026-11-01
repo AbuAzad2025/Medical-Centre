@@ -14,10 +14,10 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('إنشاء زيارة جديدة', subtitle='تسجيل زيارة جديدة للمريض', icon='fas fa-hospital', actions=[
-        {'type': 'button', 'label': 'رجوع', 'icon': 'fas fa-arrow-right', 'data_action': 'go-back', 'style': 'secondary'},
-        {'type': 'button', 'label': 'حفظ الزيارة', 'icon': 'fas fa-save', 'data_action': 'save-visit', 'style': 'primary'},
-        {'type': 'button', 'label': 'طوارئ سريعة', 'icon': 'fas fa-ambulance', 'id': 'quickEmergencyBtn', 'style': 'danger'}
+    {{ page_header('_("_(" _(" _(" _(" _(" _("إنشاء زيارة جديدة")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("تسجيل زيارة جديدة للمريض")")")")")")")', icon='fas fa-hospital', actions=[
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'icon': 'fas fa-arrow-right', 'data_action': 'go-back', 'style': 'secondary'},
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("حفظ الزيارة")")")")")")")', 'icon': 'fas fa-save', 'data_action': 'save-visit', 'style': 'primary'},
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("طوارئ سريعة")")")")")")")', 'icon': 'fas fa-ambulance', 'id': 'quickEmergencyBtn', 'style': 'danger'}
     ]) }}
 
     <!-- Visit Form -->
@@ -25,15 +25,15 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">معلومات الزيارة</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("معلومات الزيارة")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-secondary mb-4">
                         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
                             <div>
-                                <strong>خطوات سريعة لإنشاء زيارة:</strong>
+                                <strong>{{ _('_("_(" _(" _(" _(" _(" _("خطوات سريعة لإنشاء زيارة:")")")")")")")') }}</strong>
                                 <span class="d-block d-md-inline ms-md-2">
-                                    1) اختيار المريض، 2) اختيار القسم والطبيب، 3) تحديد نوع الزيارة وطريقة الدفع، 4) حفظ.
+                                    {{ _('_("_(" _(" _(" _(" _(" _("1) اختيار المريض، 2) اختيار القسم والطبيب، 3) تحديد نوع الزيارة وطريقة الدفع، 4) حفظ.")")")")")")")') }}
                                 </span>
                             </div>
                         </div>
@@ -42,20 +42,20 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                         {{ form_stepper([
-                            ('المريض', 'fa-user'),
-                            ('القسم والطبيب', 'fa-hospital'),
-                            ('الزيارة والفحوصات', 'fa-clipboard-list'),
-                            ('الدفع', 'fa-credit-card'),
+                            ('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")', 'fa-user'),
+                            ('_("_(" _(" _(" _(" _(" _("القسم والطبيب")")")")")")")', 'fa-hospital'),
+                            ('_("_(" _(" _(" _(" _(" _("الزيارة والفحوصات")")")")")")")', 'fa-clipboard-list'),
+                            ('_("_(" _(" _(" _(" _(" _("الدفع")")")")")")")', 'fa-credit-card'),
                         ]) }}
 
-                        <div class="form-step-panel" data-step="0">
+                        <div class="form-step-panel" data-step="0"_(" _(" _(" _(" _(" _(">
                         <!-- البحث الذكي عن المريض -->
-                        <div class="row mb-4">
+                        <div class=")")")")")")"row mb-4">
                             <div class="col-12">
                                 <div class="card bg-light">
                                     <div class="card-header">
                                         <h6 class="text-primary mb-0">
-                                            <i class="fas fa-search"></i> البحث الذكي عن المريض
+                                            <i class="fas fa-search"></i> {{ _('البحث الذكي عن المريض') }}
                                         </h6>
                                     </div>
                                     <div class="card-body">
@@ -66,9 +66,9 @@
                                                      data-target-id="selectedPatientId"
                                                      data-info-id="selectedPatientInfo"
                                                      data-min="2">
-                                                    <label for="patient_search" class="form-label">البحث الذكي</label>
+                                                    <label for="patient_search" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("البحث الذكي")")")")")")")') }}</label>
                                                     <input type="text" class="form-control" id="patient_search" data-smart-search-input
-                                                           placeholder="ابحث بالاسم، الهوية، الهاتف، أو تاريخ الميلاد..." autocomplete="off">
+                                                           placeholder="_(" _(" _(" _(" _(" _("ابحث بالاسم، الهوية، الهاتف، أو تاريخ الميلاد...")")")")")")" autocomplete="off">
                                                     <div id="patient_suggestions" class="smart-search-results list-group mt-2 d-none" data-smart-search-results></div>
                                                 </div>
                                             </div>
@@ -76,7 +76,7 @@
                                                 <div class="mb-3">
                                                     <label>&nbsp;</label>
                                                     <button type="button" class="btn btn-success w-100" id="addNewPatientBtn">
-                                                        <i class="fas fa-plus"></i> إضافة مريض جديد
+                                                        <i class="fas fa-plus"></i> {{ _('_("_(" _(" _(" _(" _(" _("إضافة مريض جديد")")")")")")")') }}
                                                     </button>
                                                 </div>
                                             </div>
@@ -101,10 +101,10 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="department_id" class="form-label">القسم الصحي <span class="text-danger">*</span></label>
+                                    <label for="department_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم الصحي")")")")")")")') }} <span class="text-danger">*</span></label>
                                     <select class="form-control" id="department_id" name="department_id" required
-                                            data-smart-select data-placeholder="ابحث أو اختر القسم...">
-                                        <option value="">اختر القسم...</option>
+                                            data-smart-select data-placeholder="_(" _(" _(" _(" _(" _("ابحث أو اختر القسم...")")")")")")">
+                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر القسم...")")")")")")")') }}</option>
                                         {% for department in departments %}
                                         <option value="{{ department.id }}">{{ department.name_ar }}</option>
                                         {% endfor %}
@@ -113,9 +113,9 @@
                             </div>
                             <div class="col-md-6" id="staff_container">
                                 <div class="mb-3">
-                                    <label for="staff_id" class="form-label">الطبيب/الموظف</label>
+                                    <label for="staff_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب/الموظف")")")")")")")') }}</label>
                                     <select class="form-control select2-search" id="staff_id" name="doctor_id">
-                                        <option value="">اختر الطبيب/الموظف...</option>
+                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الطبيب/الموظف...")")")")")")")') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -127,13 +127,13 @@
                         <div class="row mb-4" id="test_selection_section" class="d-none">
                             <div class="col-md-8">
                                 <div class="mb-3">
-                                    <label for="selected_tests" class="form-label" id="tests_section_label">الفحوصات والخدمات المطلوبة</label>
+                                    <label for="selected_tests" class="form-label" id="tests_section_label">{{ _('_("_(" _(" _(" _(" _(" _("الفحوصات والخدمات المطلوبة")")")")")")")') }}</label>
                                     <select class="form-control" id="selected_tests" name="selected_tests" multiple></select>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label">إجمالي الفحوصات</label>
+                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي الفحوصات")")")")")")")') }}</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="testsTotalPrice" readonly>
                                         <div class="input-group-append">
@@ -147,34 +147,34 @@
                         <div class="row mb-4" id="custom_services_section" class="d-none">
                             <div class="col-12">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <label class="form-label mb-0">خدمات / فحوصات إضافية يدوية</label>
+                                    <label class="form-label mb-0">{{ _('_("_(" _(" _(" _(" _(" _("خدمات / فحوصات إضافية يدوية")")")")")")")') }}</label>
                                     <button type="button" class="btn btn-outline-primary btn-sm" data-action="add-service-row">
-                                        <i class="fas fa-plus"></i> <span class="btn-label">إضافة خدمة</span>
+                                        <i class="fas fa-plus"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("إضافة خدمة")")")")")")")') }}</span>
                                     </button>
                                 </div>
-                                <div id="custom_services_container"></div>
+                                <div id="custom_services_container"_(" _(" _(" _(" _(" _("></div>
                             </div>
                         </div>
                         <!-- نوع الزيارة والتكلفة -->
-                        <div class="row mb-4">
+                        <div class=")")")")")")"row mb-4">
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="visit_type" class="form-label">نوع الزيارة</label>
+                                    <label for="visit_type" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع الزيارة")")")")")")")') }}</label>
                                     <select class="form-control" id="visit_type" name="visit_type">
-                                        <option value="REGULAR">زيارة عادية</option>
-                                        <option value="FOLLOW_UP">مراجعة</option>
-                                        <option value="CONSULTATION">استشارة</option>
-                                        <option value="EMERGENCY">طوارئ</option>
+                                        <option value="REGULAR">{{ _('_("_(" _(" _(" _(" _(" _("زيارة عادية")")")")")")")') }}</option>
+                                        <option value="FOLLOW_UP">{{ _('_("_(" _(" _(" _(" _(" _("مراجعة")")")")")")")') }}</option>
+                                        <option value="CONSULTATION">{{ _('_("_(" _(" _(" _(" _(" _("استشارة")")")")")")")') }}</option>
+                                        <option value="EMERGENCY">{{ _('_("_(" _(" _(" _(" _(" _("طوارئ")")")")")")")') }}</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="tax_type" class="form-label">الضريبة</label>
+                                    <label for="tax_type" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الضريبة")")")")")")")') }}</label>
                                     <select class="form-control" id="tax_type" name="tax_type">
-                                        <option value="none" selected>بدون ضريبة</option>
-                                        <option value="inclusive">شامل الضريبة (15%)</option>
-                                        <option value="exclusive">غير شامل (إضافة 15%)</option>
+                                        <option value="none" selected>{{ _('_("_(" _(" _(" _(" _(" _("بدون ضريبة")")")")")")")') }}</option>
+                                        <option value="inclusive">{{ _('_("_(" _(" _(" _(" _(" _("شامل الضريبة (15%)")")")")")")")') }}</option>
+                                        <option value="exclusive">{{ _('_("_(" _(" _(" _(" _(" _("غير شامل (إضافة 15%)")")")")")")")') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -182,7 +182,7 @@
                                 <div class="mb-3">
                                     <label for="is_emergency" class="form-label">
                                         <input type="checkbox" id="is_emergency" name="is_emergency">
-                                        طوارئ
+                                        {{ _('_("_(" _(" _(" _(" _(" _("طوارئ")")")")")")")') }}
                                     </label>
                                 </div>
                             </div>
@@ -190,31 +190,31 @@
                                 <div class="mb-3">
                                     <label for="is_force_payment" class="form-label">
                                         <input type="checkbox" id="is_force_payment" name="is_force_payment">
-                                        إعفاء/قوي
+                                        {{ _('_("_(" _(" _(" _(" _(" _("إعفاء/قوي")")")")")")")') }}
                                     </label>
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="mb-3">
-                                    <label class="form-label">التكلفة</label>
+                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التكلفة")")")")")")")') }}</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="visitCost" readonly>
                                         <div class="input-group-append">
                                             <span class="input-group-text">₪</span>
                                         </div>
                                     </div>
-                                    <small class="text-muted" id="costBreakdown"></small>
+                                    <small class="text-muted" id="costBreakdown"_(" _(" _(" _(" _(" _("></small>
                                 </div>
                             </div>
                         </div>
 
                         <!-- معلومات الزيارة -->
-                        <div class="row mb-4">
+                        <div class=")")")")")")"row mb-4">
                             <div class="col-12">
                                 <div class="mb-3">
-                                    <label for="symptoms" class="form-label">الأعراض/الشكوى</label>
+                                    <label for="symptoms" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الأعراض/الشكوى")")")")")")")') }}</label>
                                     <textarea class="form-control" id="symptoms" name="symptoms" rows="3" 
-                                              placeholder="وصف الأعراض أو الشكوى..."></textarea>
+                                              placeholder="_(" _(" _(" _(" _(" _("وصف الأعراض أو الشكوى...")")")")")")" _(" _(" _(" _(" _("></textarea>
                                 </div>
                             </div>
                         </div>
@@ -222,77 +222,77 @@
                         </div>{# end step 2 #}
 
                         <!-- طرق الدفع -->
-                        <div class="form-step-panel d-none" data-step="3" hidden>
+                        <div class=")")")")")"form-step-panel d-none" data-step="3" hidden>
                         <div class="row mb-4">
                             <div class="col-12">
                                 {% if module_active('billing') %}
                                 <div class="card">
                                     <div class="card-header">
                                         <h6 class="text-primary mb-0">
-                                            <i class="fas fa-credit-card"></i> طرق الدفع
+                                            <i class="fas fa-credit-card"></i> {{ _('_("_(" _(" _(" _(" _(" _("طرق الدفع")")")")")")")') }}
                                         </h6>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <div class="mb-3">
-                                                    <label for="payment_method" class="form-label">طريقة الدفع <span class="text-danger">*</span></label>
+                                                    <label for="payment_method" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("طريقة الدفع")")")")")")")') }} <span class="text-danger">*</span></label>
                                                     {% from 'partials/_payment_method_select.html' import payment_method_select %}
-                                                    {{ payment_method_select(id='payment_method', css_class='form-control', placeholder='اختر طريقة الدفع...', include_force=true) }}
+                                                    {{ payment_method_select(id='payment_method', css_class='form-control', placeholder='_("_(" _(" _(" _(" _(" _("اختر طريقة الدفع...")")")")")")")', include_force=true) }}
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="mb-3">
-                                                    <label for="amount_paid" class="form-label">المبلغ المدفوع</label>
+                                                    <label for="amount_paid" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المبلغ المدفوع")")")")")")")') }}</label>
                                                     <input type="number" step="0.01" class="form-control" id="amount_paid" name="amount_paid" placeholder="0.00">
                                                 </div>
                                             </div>
                                             <div class="col-md-4 d-flex align-items-end">
                                                 <button class="btn btn-outline-secondary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#advancedVisitFields" aria-expanded="false" aria-controls="advancedVisitFields">
-                                                    <i class="fas fa-sliders-h"></i> حقول متقدمة
+                                                    <i class="fas fa-sliders-h"></i> {{ _('_("_(" _(" _(" _(" _(" _("حقول متقدمة")")")")")")")') }}
                                                 </button>
                                             </div>
                                         </div>
 
-                                        <div class="collapse" id="advancedVisitFields">
+                                        <div class="collapse" id="advancedVisitFields"_(" _(" _(" _(" _(" _(">
                                             <!-- حقول الدفع الديناميكية -->
-                                            <div id="paymentFields" class="d-none">
+                                            <div id=")")")")")")"paymentFields" class="d-none"_(" _(" _(" _(" _(" _(">
                                                 <!-- حقول الفيزا -->
-                                                <div id="visaFields" class="row d-none">
+                                                <div id=")")")")")")"visaFields" class="row d-none">
                                                     <div class="col-md-4">
                                                         <div class="mb-3">
-                                                            <label for="card_last_digits" class="form-label">آخر 4 أرقام</label>
-                                                            <input type="text" class="form-control" id="card_last_digits" name="card_last_digits" maxlength="4" placeholder="مثال: 1234">
+                                                            <label for="card_last_digits" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("آخر 4 أرقام")")")")")")")') }}</label>
+                                                            <input type="text" class="form-control" id="card_last_digits" name="card_last_digits" maxlength="4" placeholder="_(" _(" _(" _(" _(" _("مثال: 1234")")")")")")">
                                                         </div>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <div class="mb-3">
-                                                            <label for="card_holder_name" class="form-label">اسم حامل البطاقة</label>
+                                                            <label for="card_holder_name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم حامل البطاقة")")")")")")")') }}</label>
                                                             <input type="text" class="form-control" id="card_holder_name" name="card_holder_name" maxlength="100">
                                                         </div>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <div class="mb-3">
-                                                            <label for="expiry_date" class="form-label">تاريخ الانتهاء</label>
+                                                            <label for="expiry_date" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الانتهاء")")")")")")")') }}</label>
                                                             <input type="text" class="form-control" id="expiry_date" name="expiry_date" placeholder="MM/YY">
                                                         </div>
                                                     </div>
                                                     <div class="col-12">
                                                         <button type="button" class="btn btn-outline-primary" id="posChargeBtn"
                                                             data-charge-url="{{ url_for('reception.pos_charge') }}">
-                                                            <i class="fas fa-credit-card"></i> تحصيل عبر جهاز البطاقة
+                                                            <i class="fas fa-credit-card"></i> {{ _('_("_(" _(" _(" _(" _(" _("تحصيل عبر جهاز البطاقة")")")")")")")') }}
                                                         </button>
-                                                        <small class="text-muted ms-2" id="posStatus"></small>
+                                                        <small class="text-muted ms-2" id="posStatus"_(" _(" _(" _(" _(" _("></small>
                                                     </div>
                                                 </div>
 
                                                 <!-- حقول التأمين -->
-                                                <div id="insuranceFields" class="row d-none">
+                                                <div id=")")")")")")"insuranceFields" class="row d-none">
                                                     <div class="col-md-4">
                                                         <div class="mb-3">
-                                                            <label for="insurance_company_id" class="form-label">شركة التأمين (مرجعي)</label>
+                                                            <label for="insurance_company_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("شركة التأمين (مرجعي)")")")")")")")') }}</label>
                                                             <select class="form-control" id="insurance_company_id" name="insurance_company_id">
-                                                                <option value="">بدون</option>
+                                                                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("بدون")")")")")")")') }}</option>
                                                                 {% for ic in insurance_companies or [] %}
                                                                 <option value="{{ ic.id }}">{{ ic.name_ar or ic.name }}</option>
                                                                 {% endfor %}
@@ -301,7 +301,7 @@
                                                     </div>
                                                     <div class="col-md-4">
                                                         <div class="mb-3">
-                                                            <label for="insurance_provider" class="form-label">شركة التأمين</label>
+                                                            <label for="insurance_provider" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("شركة التأمين")")")")")")")') }}</label>
                                                             <input type="text" class="form-control" id="insurance_provider" name="insurance_provider" list="insuranceProviders" maxlength="100">
                                                             <datalist id="insuranceProviders">
                                                                 {% for ic in insurance_companies or [] %}
@@ -312,29 +312,29 @@
                                                     </div>
                                                     <div class="col-md-4">
                                                         <div class="mb-3">
-                                                            <label for="insurance_policy_number" class="form-label">رقم البوليصة</label>
+                                                            <label for="insurance_policy_number" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رقم البوليصة")")")")")")")') }}</label>
                                                             <input type="text" class="form-control" id="insurance_policy_number" name="insurance_policy_number" maxlength="60">
                                                         </div>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <div class="mb-3">
-                                                            <label for="insurance_coverage" class="form-label">نسبة التغطية</label>
-                                                            <input type="number" class="form-control" id="insurance_coverage" name="insurance_coverage" min="0" max="100">
+                                                            <label for="insurance_coverage" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نسبة التغطية")")")")")")")') }}</label>
+                                                            <input type="number" class="form-control" id="insurance_coverage" name="insurance_coverage" min="0" max="100"_(" _(" _(" _(" _(" _(">
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <!-- حقول الدفع القوي -->
-                                                <div id="forceFields" class="row d-none">
+                                                <div id=")")")")")")"forceFields" class="row d-none">
                                                     <div class="col-md-6">
                                                         <div class="mb-3">
-                                                            <label for="force_payment_reason" class="form-label">سبب الدفع القوي</label>
+                                                            <label for="force_payment_reason" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("سبب الدفع القوي")")")")")")")') }}</label>
                                                             <textarea class="form-control" id="force_payment_reason" name="force_payment_reason" rows="2"></textarea>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="mb-3">
-                                                            <label for="approved_by" class="form-label">معتمد من</label>
+                                                            <label for="approved_by" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("معتمد من")")")")")")")') }}</label>
                                                             <input type="text" class="form-control" id="approved_by" name="approved_by">
                                                         </div>
                                                     </div>
@@ -346,15 +346,15 @@
                                             <!-- Visit Notes -->
                                             <div class="row mb-2">
                                                 <div class="col-12">
-                                                    <h6 class="text-primary mb-2">ملاحظات إدارية</h6>
+                                                    <h6 class="text-primary mb-2">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات إدارية")")")")")")")') }}</h6>
                                                 </div>
                                             </div>
 
                                             <div class="row">
                                                 <div class="col-md-12">
                                                     <div class="mb-3">
-                                                        <label for="notes" class="form-label">ملاحظات</label>
-                                                        <textarea class="form-control" id="notes" name="notes" rows="4" placeholder="أدخل أي ملاحظات إضافية"></textarea>
+                                                        <label for="notes" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label>
+                                                        <textarea class="form-control" id="notes" name="notes" rows="4" placeholder="_(" _(" _(" _(" _(" _("أدخل أي ملاحظات إضافية")")")")")")"></textarea>
                                                     </div>
                                                 </div>
                                             </div>
@@ -374,15 +374,15 @@
                                 <div class="btn-group" role="group">
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-save"></i>
-                                        حفظ الزيارة
+                                        {{ _('_("_(" _(" _(" _(" _(" _("حفظ الزيارة")")")")")")")') }}
                                     </button>
                                     <button type="button" class="btn btn-success" id="saveAndPrintBtn">
                                         <i class="fas fa-print"></i>
-                                        حفظ وطباعة الوصل
+                                        {{ _('_("_(" _(" _(" _(" _(" _("حفظ وطباعة الوصل")")")")")")")') }}
                                     </button>
                                     <a href="{{ url_for('reception.visits') }}" class="btn btn-secondary">
                                         <i class="fas fa-times"></i>
-                                        إلغاء
+                                        {{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}
                                     </a>
                                 </div>
                             </div>
@@ -398,60 +398,60 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">طوارئ سريعة</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                <h5 class="modal-title">{{ _('_("_(" _(" _(" _(" _(" _("طوارئ سريعة")")")")")")")') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="_(" _(" _(" _(" _(" _("إغلاق")")")")")")"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-warning">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <div>
-                            <strong>نموذج طوارئ مبسط:</strong>
-                            الاسم/معرف مؤقت، الجنس، العمر التقريبي، سبب الدخول
+                            <strong>{{ _('_("_(" _(" _(" _(" _(" _("نموذج طوارئ مبسط:")")")")")")")') }}</strong>
+                            {{ _('_("_(" _(" _(" _(" _(" _("الاسم/معرف مؤقت، الجنس، العمر التقريبي، سبب الدخول")")")")")")")') }}
                         </div>
                         <div class="text-muted small">
-                            إذا تم اختيار مريض مسبقاً سيتم استخدامه
+                            {{ _('_("_(" _(" _(" _(" _(" _("إذا تم اختيار مريض مسبقاً سيتم استخدامه")")")")")")")') }}
                         </div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label" for="qe_patient_name">اسم المريض / معرف مؤقت</label>
-                            <input type="text" class="form-control" id="qe_patient_name" placeholder="مثال: محمد أحمد أو TMP-123">
+                            <label class="form-label" for="qe_patient_name">{{ _('_("_(" _(" _(" _(" _(" _("اسم المريض / معرف مؤقت")")")")")")")') }}</label>
+                            <input type="text" class="form-control" id="qe_patient_name" placeholder="_(" _(" _(" _(" _(" _("مثال: محمد أحمد أو TMP-123")")")")")")">
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="mb-3">
-                            <label class="form-label" for="qe_gender">الجنس</label>
+                            <label class="form-label" for="qe_gender">{{ _('_("_(" _(" _(" _(" _(" _("الجنس")")")")")")")') }}</label>
                             <select class="form-control" id="qe_gender">
-                                <option value="">غير محدد</option>
-                                <option value="M">ذكر</option>
-                                <option value="F">أنثى</option>
-                                <option value="Other">آخر</option>
+                                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")') }}</option>
+                                <option value="M">{{ _('_("_(" _(" _(" _(" _(" _("ذكر")")")")")")")') }}</option>
+                                <option value="F">{{ _('_("_(" _(" _(" _(" _(" _("أنثى")")")")")")")') }}</option>
+                                <option value="Other">{{ _('_("_(" _(" _(" _(" _(" _("آخر")")")")")")")') }}</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="mb-3">
-                            <label class="form-label" for="qe_age">العمر التقريبي</label>
-                            <input type="number" class="form-control" id="qe_age" min="0" max="130" placeholder="مثال: 35">
+                            <label class="form-label" for="qe_age">{{ _('_("_(" _(" _(" _(" _(" _("العمر التقريبي")")")")")")")') }}</label>
+                            <input type="number" class="form-control" id="qe_age" min="0" max="130" placeholder="_(" _(" _(" _(" _(" _("مثال: 35")")")")")")">
                         </div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-12">
                         <div class="mb-3">
-                            <label class="form-label" for="qe_reason">سبب الدخول</label>
-                            <textarea class="form-control" id="qe_reason" rows="3" placeholder="وصف مختصر للحالة..."></textarea>
+                            <label class="form-label" for="qe_reason">{{ _('_("_(" _(" _(" _(" _(" _("سبب الدخول")")")")")")")') }}</label>
+                            <textarea class="form-control" id="qe_reason" rows="3" placeholder="_(" _(" _(" _(" _(" _("وصف مختصر للحالة...")")")")")")"></textarea>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
                 <button type="button" class="btn btn-danger" id="qe_create_btn">
                     <i class="fas fa-ambulance me-1"></i>
-                    إنشاء طوارئ
+                    {{ _('_("_(" _(" _(" _(" _(" _("إنشاء طوارئ")")")")")")")') }}
                 </button>
             </div>
         </div>

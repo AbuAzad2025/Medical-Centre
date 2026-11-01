@@ -12,15 +12,15 @@
     <div class="d-flex gap-2">
       <button class="btn btn-success btn-sm" id="btn-start"
               {% if cons.status != 'SCHEDULED' %}disabled{% endif %}>
-        <i class="fas fa-play me-1"></i>بدء
+        <i class="fas fa-play me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("بدء")")")")")")")') }}
       </button>
       <button class="btn btn-danger btn-sm" id="btn-end"
               {% if cons.status != 'LIVE' %}disabled{% endif %}>
-        <i class="fas fa-stop me-1"></i>إنهاء
+        <i class="fas fa-stop me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("إنهاء")")")")")")")') }}
       </button>
       <button class="btn btn-outline-warning btn-sm" id="btn-noshow"
               {% if cons.status not in ('SCHEDULED','LIVE') %}disabled{% endif %}>
-        المريض لم يحضر
+        {{ _('_("_(" _(" _(" _(" _(" _("المريض لم يحضر")")")")")")")') }}
       </button>
     </div>
     {% endif %}

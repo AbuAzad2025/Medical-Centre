@@ -1,4 +1,4 @@
-"""Add RLS policies for phi_audit_logs table
+﻿"""Add RLS policies for phi_audit_logs table
 
 Revision ID: s2_007_phi_audit_rls
 Revises: s2_006_expand_patient_name_columns
@@ -30,13 +30,13 @@ def upgrade():
     # Policy: tenants can only see their own audit logs (SELECT)
     op.execute('''
         CREATE POLICY phi_audit_logs_tenant_select ON phi_audit_logs
-        FOR SELECT USING (tenant_id = current_setting('app.tenant_id')::int)
+        FOR SELECT USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::int)
     ''')
 
     # Policy: tenants can insert their own audit logs (INSERT)
     op.execute('''
         CREATE POLICY phi_audit_logs_tenant_insert ON phi_audit_logs
-        FOR INSERT WITH CHECK (tenant_id = current_setting('app.tenant_id')::int)
+        FOR INSERT WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::int)
     ''')
 
     # Policy: Prevent UPDATE on audit logs (immutable)

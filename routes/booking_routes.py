@@ -787,3 +787,133 @@ def api_smart_slots():
     except Exception:
         logging.exception('Error getting smart slots: %s')
         return jsonify({'success': False, 'message': 'تعذر اقتراح الأوقات'}), 500
+# --- Scheduling enhancements (booking) ---
+
+from datetime import timedelta
+
+from flask_login import login_required
+
+from routes.booking_routes import booking_bp
+from utils.decorators import role_required
+
+_WAITLIST_BOOKING: list = []
+_WB_COUNTER = 0
+
+
+def _next_wb() -> int:
+    global _WB_COUNTER
+    _WB_COUNTER += 1
+    return _WB_COUNTER
+
+
+@booking_bp.route('/appointments/recurring', methods=['POST', 'GET'])
+@booking_bp.route('/recurring-appointments', methods=['POST', 'GET'])
+@login_required
+@role_required('reception', 'admin', 'manager', 'doctor')
+def booking_recurring_appointments():
+    tenant_id = getattr(g, 'tenant_id', None)
+    if request.method == 'POST':
+        data = request.get_json(silent=True) or {}
+        try:
+            patient_id = int(data.get('patient_id'))
+        except (TypeError, ValueError):
+            return jsonify({'success': False, 'error': 'patient_id required'}), 400
+        patient = db.session.get(Patient, patient_id)
+        if patient is None or (tenant_id is not None and getattr(patient, 'tenant_id', None) != tenant_id):
+            return jsonify({'success': False, 'error': 'Patient not found'}), 404
+        try:
+            starts_at = datetime.fromisoformat(str(data.get('starts_at')).replace('Z', '+00:00'))
+        except Exception:
+            return jsonify({'success': False, 'error': 'starts_at required (ISO)'}), 400
+        count = int(data.get('count', 1) or 1)
+        count = max(count, 1)
+        count = min(count, 52)
+        interval_days = int(data.get('interval_days', 7) or 7)
+        interval_days = max(interval_days, 1)
+        created = []
+        try:
+            for i in range(count):
+                ap = Appointment(
+                    tenant_id=tenant_id,
+                    patient_id=patient_id,
+                    doctor_id=int(data.get('doctor_id')) if data.get('doctor_id') not in (None, '') else None,
+                    department_id=int(data.get('department_id')) if data.get('department_id') not in (None, '') else None,
+                    starts_at=starts_at + timedelta(days=i * interval_days),
+                    status='SCHEDULED',
+                    notes=data.get('notes'),
+                    created_by=getattr(current_user, 'id', None),
+                )
+                db.session.add(ap)
+                db.session.flush()
+                created.append(ap.to_dict())
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            import logging
+
+            logging.exception('Error creating recurring appointments')
+            return jsonify({'success': False, 'error': 'Internal server error'}), 500
+        return jsonify({'success': True, 'created': created, 'count': len(created)}), 201
+    q = select(Appointment).order_by(Appointment.starts_at.desc()).limit(50)
+    if tenant_id is not None:
+        q = q.filter(Appointment.tenant_id == tenant_id)
+    items = db.session.execute(q).scalars().all()
+    return jsonify({'success': True, 'appointments': [a.to_dict() for a in items]})
+
+
+@booking_bp.route('/waitlist', methods=['GET', 'POST'])
+@booking_bp.route('/appointments/waitlist', methods=['GET', 'POST'])
+@login_required
+@role_required('reception', 'admin', 'manager', 'doctor')
+def booking_waitlist_management():
+    tenant_id = getattr(g, 'tenant_id', None)
+    if request.method == 'POST':
+        data = request.get_json(silent=True) or {}
+        try:
+            patient_id = int(data.get('patient_id'))
+        except (TypeError, ValueError):
+            return jsonify({'success': False, 'error': 'patient_id required'}), 400
+        entry = {
+            'id': _next_wb(),
+            'tenant_id': tenant_id,
+            'patient_id': patient_id,
+            'status': 'WAITING',
+            'created_at': datetime.now(UTC).isoformat(),
+        }
+        _WAITLIST_BOOKING.append(entry)
+        return jsonify({'success': True, 'data': entry}), 201
+    out = [w for w in _WAITLIST_BOOKING if w.get('tenant_id') == tenant_id]
+    return jsonify({'success': True, 'waitlist': out, 'count': len(out)})
+
+
+@booking_bp.route('/appointment-reminders', methods=['GET', 'POST'])
+@booking_bp.route('/appointments/reminders', methods=['GET', 'POST'])
+@login_required
+@role_required('reception', 'admin', 'manager')
+def booking_appointment_reminders():
+    tenant_id = getattr(g, 'tenant_id', None)
+    if request.method == 'POST':
+        try:
+            from services.notification_service import NotificationService
+
+            result = NotificationService.send_appointment_reminders(tenant_id=tenant_id)
+            return jsonify({'success': True, 'data': result})
+        except Exception:
+            import logging
+
+            logging.exception('Error sending appointment reminders')
+            return jsonify({'success': False, 'error': 'Internal server error'}), 500
+    return jsonify({'success': True, 'message': 'Use POST to send reminders'})
+
+
+@booking_bp.route('/no-shows', methods=['GET'])
+@booking_bp.route('/appointments/no-shows', methods=['GET'])
+@login_required
+@role_required('reception', 'admin', 'manager', 'doctor')
+def booking_no_show_list():
+    tenant_id = getattr(g, 'tenant_id', None)
+    q = select(Appointment).filter(Appointment.status == 'NO_SHOW')
+    if tenant_id is not None:
+        q = q.filter(Appointment.tenant_id == tenant_id)
+    items = db.session.execute(q.order_by(Appointment.starts_at.desc()).limit(100)).scalars().all()
+    return jsonify({'success': True, 'appointments': [a.to_dict() for a in items], 'count': len(items)})

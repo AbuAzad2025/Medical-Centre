@@ -12,9 +12,7 @@ from app.extensions import db
 from routes.super_admin import super_admin_bp
 from utils.decorators import super_admin_required
 
-# =============================================
 # SECURITY ROUTES
-# =============================================
 
 
 @super_admin_bp.route('/security-logs')

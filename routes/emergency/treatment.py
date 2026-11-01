@@ -17,9 +17,7 @@ from services.emergency_service import emergency_service
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required, role_required_json
 
-# =============================================
 # TREATMENT ROUTES
-# =============================================
 
 
 @emergency_bp.route('/treatment/<int:emergency_id>', methods=['GET', 'POST'])

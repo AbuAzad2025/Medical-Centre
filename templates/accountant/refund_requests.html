@@ -3,21 +3,21 @@
 {% block title %}طلبات الاسترداد{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('طلبات الاسترداد', subtitle='الموافقة والتنفيذ مع عكس القيود', actions=[{'label': 'العودة', 'url': url_for('accountant.dashboard'), 'style': 'secondary'}]) }}
+  {{ page_header('_("_(" _(" _(" _(" _(" _("طلبات الاسترداد")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("الموافقة والتنفيذ مع عكس القيود")")")")")")")', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'url': url_for('accountant.dashboard'), 'style': 'secondary'}]) }}
 
   <div class="card shadow mb-3">
     <div class="card-body">
       <form method="GET" class="row g-2">
         <div class="col-md-3">
           <select name="status" class="form-select">
-            <option value="">كل الحالات</option>
-            <option value="PENDING" {% if status=='PENDING' %}selected{% endif %}>قيد الانتظار</option>
-            <option value="APPROVED" {% if status=='APPROVED' %}selected{% endif %}>موافق عليه</option>
-            <option value="REJECTED" {% if status=='REJECTED' %}selected{% endif %}>مرفوض</option>
-            <option value="EXECUTED" {% if status=='EXECUTED' %}selected{% endif %}>منفذ</option>
+            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("كل الحالات")")")")")")")') }}</option>
+            <option value="PENDING" {% if status=='PENDING' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("قيد الانتظار")")")")")")")') }}</option>
+            <option value="APPROVED" {% if status=='APPROVED' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("موافق عليه")")")")")")")') }}</option>
+            <option value="REJECTED" {% if status=='REJECTED' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مرفوض")")")")")")")') }}</option>
+            <option value="EXECUTED" {% if status=='EXECUTED' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("منفذ")")")")")")")') }}</option>
           </select>
         </div>
-        <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">تصفية</button></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("تصفية")")")")")")")') }}</button></div>
       </form>
     </div>
   </div>
@@ -26,7 +26,7 @@
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-hover align-middle">
-          <thead class="table-light"><tr><th>#</th><th>المريض</th><th>المبلغ</th><th>السبب</th><th>الحالة</th><th>تاريخ الطلب</th><th>إجراءات</th></tr></thead>
+          <thead class="table-light"><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المبلغ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("السبب")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الطلب")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("إجراءات")")")")")")")') }}</th></tr></thead>
           <tbody>
             {% for r in refunds %}
             <tr>
@@ -40,17 +40,17 @@
                 {% if r.status=='PENDING' %}
                 <form method="POST" action="{{ url_for('accountant.refund_approve', refund_id=r.id) }}" class="d-inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button class="btn btn-sm btn-success" type="submit">موافقة</button>
+                  <button class="btn btn-sm btn-success" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("موافقة")")")")")")")') }}</button>
                 </form>
                 <form method="POST" action="{{ url_for('accountant.refund_reject', refund_id=r.id) }}" class="d-inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <input type="hidden" name="reason" value="مرفوض من المحاسبة">
-                  <button class="btn btn-sm btn-outline-danger" type="submit">رفض</button>
+                  <input type="hidden" name="reason" value="_(" _(" _(" _(" _(" _("مرفوض من المحاسبة")")")")")")">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">{{ _('رفض') }}</button>
                 </form>
                 {% elif r.status=='APPROVED' %}
                 <form method="POST" action="{{ url_for('accountant.refund_execute', refund_id=r.id) }}" class="d-inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button class="btn btn-sm btn-primary" type="submit">تنفيذ وعكس القيد</button>
+                  <button class="btn btn-sm btn-primary" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("تنفيذ وعكس القيد")")")")")")")') }}</button>
                 </form>
                 {% else %}
                 <span class="text-muted small">—</span>
@@ -58,7 +58,7 @@
               </td>
             </tr>
             {% else %}
-            <tr><td colspan="7" class="text-center text-muted py-4">لا توجد طلبات</td></tr>
+            <tr><td colspan="7" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد طلبات")")")")")")")') }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

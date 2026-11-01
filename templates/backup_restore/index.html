@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container py-4">
-  <h4><i class="bi bi-arrow-counterclockwise me-2"></i>استعادة النسخ الاحتياطية</h4>
+  <h4><i class="bi bi-arrow-counterclockwise me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("استعادة النسخ الاحتياطية")")")")")")")') }}</h4>
   <div class="row g-4">
     <div class="col-md-6">
       <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">النسخ المتاحة</div>
+        <div class="card-header bg-primary text-white">{{ _('_("_(" _(" _(" _(" _(" _("النسخ المتاحة")")")")")")")') }}</div>
         <div class="card-body">
           <form method="post">
             {{ forms.csrf() }}
             <div class="mb-3">
-              <label for="backup_id" class="form-label">اختر نسخة</label>
+              <label for="backup_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اختر نسخة")")")")")")")') }}</label>
               <select class="form-select" id="backup_id" name="backup_id" required>
                 {% for b in backups %}
                 <option value="{{ b.id }}">{{ b.file_name }} — {{ b.created_at }}</option>
@@ -19,8 +19,8 @@
             </div>
             <input type="hidden" name="operation" value="restore">
             <div class="d-grid">
-              <button type="submit" class="btn btn-warning" data-action="confirm" data-message="هل أنت متأكد من الاستعادة؟ سيُعاد النظام لحالة النسخة المختارة.">
-                <i class="bi bi-arrow-counterclockwise me-1"></i> استعادة
+              <button type="submit" class="btn btn-warning" data-action="confirm" data-message="_(" _(" _(" _(" _(" _("هل أنت متأكد من الاستعادة؟ سيُعاد النظام لحالة النسخة المختارة.")")")")")")">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("استعادة")")")")")")")') }}
               </button>
             </div>
           </form>
@@ -29,18 +29,18 @@
     </div>
     <div class="col-md-6">
       <div class="card shadow-sm">
-        <div class="card-header bg-info text-white">سجل الاستعادات</div>
+        <div class="card-header bg-info text-white">{{ _('_("_(" _(" _(" _(" _(" _("سجل الاستعادات")")")")")")")') }}</div>
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
-            <thead><tr><th>العملية</th><th>الحالة</th><th>التاريخ</th><th>المدة</th></tr></thead>
+            <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("العملية")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المدة")")")")")")")') }}</th></tr></thead>
             <tbody>
               {% for log in restore_logs %}
               <tr>
                 <td>{{ log.operation }}</td>
                 <td>
-                  {% if log.status == 'success' %}<span class="badge bg-success">نجاح</span>{% endif %}
-                  {% if log.status == 'failed' %}<span class="badge bg-danger">فشل</span>{% endif %}
-                  {% if log.status == 'pending' %}<span class="badge bg-warning">معلق</span>{% endif %}
+                  {% if log.status == 'success' %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نجاح")")")")")")")') }}</span>{% endif %}
+                  {% if log.status == 'failed' %}<span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("فشل")")")")")")")') }}</span>{% endif %}
+                  {% if log.status == 'pending' %}<span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("معلق")")")")")")")') }}</span>{% endif %}
                 </td>
                 <td>{{ log.started_at.strftime('%Y-%m-%d %H:%M') }}</td>
                 <td>{{ log.duration_seconds or '—' }} ث</td>

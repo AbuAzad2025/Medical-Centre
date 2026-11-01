@@ -3,9 +3,9 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-id-card-alt me-2 text-primary"></i>حالة الاشتراك</h4></div>
+        <div class="col"><h4><i class="fas fa-id-card-alt me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("حالة الاشتراك")")")")")")")') }}</h4></div>
         <div class="col-auto">
-            <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> لوحة التحكم</a>
+            <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("لوحة التحكم")")")")")")")') }}</a>
         </div>
     </div>
     <div class="card">
@@ -20,7 +20,7 @@
             <hr>
             <div class="row g-3">
                 <div class="col-md-4">
-                    <p class="mb-1 text-muted">الخطّة الحالية</p>
+                    <p class="mb-1 text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الخطّة الحالية")")")")")")")') }}</p>
                     <p class="fw-bold">
                         {% if base_line %}
                             {{ base_line.package_version.package.name }} v{{ base_line.package_version.version }}
@@ -30,11 +30,11 @@
                     </p>
                 </div>
                 <div class="col-md-4">
-                    <p class="mb-1 text-muted">نوع الفوترة</p>
+                    <p class="mb-1 text-muted">{{ _('_("_(" _(" _(" _(" _(" _("نوع الفوترة")")")")")")")') }}</p>
                     <p class="fw-bold">{{ base_line.billing_type or '-' }}</p>
                 </div>
                 <div class="col-md-4">
-                    <p class="mb-1 text-muted">تاريخ انتهاء الفترة</p>
+                    <p class="mb-1 text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ انتهاء الفترة")")")")")")")') }}</p>
                     <p class="fw-bold">{{ base_line.current_period_end or '-' }}</p>
                 </div>
             </div>
@@ -47,11 +47,11 @@
             {% if tenant.status.value in ('expired', 'cancelled') %}
             <div class="alert alert-danger mt-3 mb-0">
                 <i class="fas fa-times-circle me-2"></i>
-                الاشتراك غير نشط. تواصل مع إدارة المنصة للتجديد.
+                {{ _('_("_(" _(" _(" _(" _(" _("الاشتراك غير نشط. تواصل مع إدارة المنصة للتجديد.")")")")")")")') }}
             </div>
             {% endif %}
             <div class="mt-3">
-                <a href="{{ url_for('super_admin.change_plan') }}" class="btn btn-primary"><i class="fas fa-arrow-up me-1"></i> ترقية / تغيير الخطة</a>
+                <a href="{{ url_for('super_admin.change_plan') }}" class="btn btn-primary"><i class="fas fa-arrow-up me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("ترقية / تغيير الخطة")")")")")")")') }}</a>
             </div>
         </div>
     </div>

@@ -1,0 +1,1 @@
+<title>{% block title %}AZAD Medical — منصة أزاد الطبية{% endblock %}</title>

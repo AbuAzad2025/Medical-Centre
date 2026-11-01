@@ -3,8 +3,8 @@
 {% block title %}{% if reagent %}تعديل مادة{% else %}إضافة مادة{% endif %}{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('تعديل مادة' if reagent else 'إضافة مادة', icon='fas fa-flask', actions=[
-      {'label': 'رجوع', 'icon': 'fas fa-arrow-left', 'url': url_for('lab.reagents'), 'style': 'secondary'}
+  {{ page_header('_("_(" _(" _(" _(" _(" _("تعديل مادة")")")")")")")' if reagent else '_("_(" _(" _(" _(" _(" _("إضافة مادة")")")")")")")', icon='fas fa-flask', actions=[
+      {'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('lab.reagents'), 'style': 'secondary'}
   ]) }}
 
   <div class="card shadow">
@@ -13,47 +13,47 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label">الاسم</label>
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</label>
             <input class="form-control" name="name" value="{{ reagent.name if reagent else '' }}" required>
           </div>
           <div class="col-md-3">
-            <label class="form-label">المورد</label>
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المورد")")")")")")")') }}</label>
             <input class="form-control" name="supplier" value="{{ reagent.supplier if reagent else '' }}">
           </div>
           <div class="col-md-3">
-            <label class="form-label">رقم التشغيلة</label>
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رقم التشغيلة")")")")")")")') }}</label>
             <input class="form-control" name="lot_number" value="{{ reagent.lot_number if reagent else '' }}">
           </div>
           <div class="col-md-2">
-            <label class="form-label">الوحدة</label>
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوحدة")")")")")")")') }}</label>
             <input class="form-control" name="unit" value="{{ reagent.unit if reagent else '' }}">
           </div>
           <div class="col-md-2">
-            <label class="form-label">المخزون</label>
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المخزون")")")")")")")') }}</label>
             <input class="form-control" type="number" name="stock_quantity" value="{{ reagent.stock_quantity if reagent else 0 }}">
           </div>
           <div class="col-md-2">
-            <label class="form-label">الحد الأدنى</label>
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحد الأدنى")")")")")")")') }}</label>
             <input class="form-control" type="number" name="minimum_stock" value="{{ reagent.minimum_stock if reagent else 0 }}">
           </div>
           <div class="col-md-3">
-            <label class="form-label">تاريخ الصلاحية</label>
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الصلاحية")")")")")")")') }}</label>
             <input class="form-control" type="date" name="expiry_date" value="{{ reagent.expiry_date.strftime('%Y-%m-%d') if reagent and reagent.expiry_date else '' }}">
           </div>
           <div class="col-md-3 d-flex align-items-end">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if not reagent or reagent.is_active %}checked{% endif %}>
-              <label class="form-check-label" for="is_active">مفعل</label>
+              <label class="form-check-label" for="is_active">{{ _('_("_(" _(" _(" _(" _(" _("مفعل")")")")")")")') }}</label>
             </div>
           </div>
           <div class="col-12">
-            <label class="form-label">ملاحظات</label>
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label>
             <textarea class="form-control" name="notes" rows="3">{{ reagent.notes if reagent and reagent.notes else '' }}</textarea>
           </div>
         </div>
 
         <div class="d-flex justify-content-end mt-3">
-          <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>حفظ</button>
+          <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
         </div>
       </form>
     </div>

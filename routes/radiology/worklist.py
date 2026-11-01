@@ -30,9 +30,7 @@ from services.radiology_service import radiology_service
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
-# =============================================
 # WORKLIST ROUTES
-# =============================================
 
 
 def _parse_radiology_payload():

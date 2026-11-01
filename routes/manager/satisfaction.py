@@ -11,9 +11,7 @@ from utils.decorators import (
     role_required,
 )
 
-# =============================================
 # SATISFACTION ROUTES
-# =============================================
 
 
 @manager_bp.route('/patient-satisfaction')

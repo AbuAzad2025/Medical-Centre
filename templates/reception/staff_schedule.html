@@ -5,20 +5,20 @@
 {% block content %}
 <div class="container-fluid">
     <div class="card shadow mb-4">
-        <div class="card-header">إدارة جداول العمل</div>
+        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("إدارة جداول العمل")")")")")")")') }}</div>
         <div class="card-body">
             <form method="GET" action="{{ url_for('reception.reception_staff_schedule') }}" class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label class="form-label">الموظف</label>
+                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الموظف")")")")")")")') }}</label>
                     <select class="form-control" name="user_id" required>
-                        <option value="">اختر الموظف</option>
+                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الموظف")")")")")")")') }}</option>
                         {% for u in users %}
                         <option value="{{ u.id }}" {% if selected_user_id == u.id %}selected{% endif %}>{{ u.full_name }} ({{ u.get_role_display() }})</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-3 align-self-end">
-                    <button class="btn btn-primary">عرض</button>
+                    <button class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</button>
                 </div>
             </form>
 
@@ -27,31 +27,31 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="user_id" value="{{ selected_user_id }}">
                 <div class="col-md-3">
-                    <label class="form-label">اليوم</label>
+                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اليوم")")")")")")")') }}</label>
                     <select class="form-control" name="day_of_week" required>
-                        <option value="0">الأحد</option>
-                        <option value="1">الاثنين</option>
-                        <option value="2">الثلاثاء</option>
-                        <option value="3">الأربعاء</option>
-                        <option value="4">الخميس</option>
-                        <option value="5">الجمعة</option>
-                        <option value="6">السبت</option>
+                        <option value="0">{{ _('_("_(" _(" _(" _(" _(" _("الأحد")")")")")")")') }}</option>
+                        <option value="1">{{ _('_("_(" _(" _(" _(" _(" _("الاثنين")")")")")")")') }}</option>
+                        <option value="2">{{ _('_("_(" _(" _(" _(" _(" _("الثلاثاء")")")")")")")') }}</option>
+                        <option value="3">{{ _('_("_(" _(" _(" _(" _(" _("الأربعاء")")")")")")")') }}</option>
+                        <option value="4">{{ _('_("_(" _(" _(" _(" _(" _("الخميس")")")")")")")') }}</option>
+                        <option value="5">{{ _('_("_(" _(" _(" _(" _(" _("الجمعة")")")")")")")') }}</option>
+                        <option value="6">{{ _('_("_(" _(" _(" _(" _(" _("السبت")")")")")")")') }}</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">من</label>
-                    <input type="time" class="form-control" name="start_time" required>
+                    <label class="form-label"_(" _(" _(" _(" _(" _(">من</label>
+                    <input type=")")")")")")"time" class="form-control" name="start_time" required>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">إلى</label>
+                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إلى")")")")")")")') }}</label>
                     <input type="time" class="form-control" name="end_time" required>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">نشط</label>
+                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</label>
                     <input type="checkbox" class="form-check-input" name="is_active" checked>
                 </div>
                 <div class="col-12">
-                    <button class="btn btn-success">حفظ</button>
+                    <button class="btn btn-success">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
                 </div>
             </form>
 
@@ -61,19 +61,19 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>اليوم</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("اليوم")")")")")")")') }}</th>
                             <th>من</th>
-                            <th>إلى</th>
-                            <th>الحالة</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("إلى")")")")")")")') }}</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for s in schedules %}
                         <tr>
-                            <td>{{ ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][s.day_of_week] }}</td>
+                            <td>{{ ['_("_(" _(" _(" _(" _(" _("الأحد")")")")")")")','_("_(" _(" _(" _(" _(" _("الاثنين")")")")")")")','_("_(" _(" _(" _(" _(" _("الثلاثاء")")")")")")")','_("_(" _(" _(" _(" _(" _("الأربعاء")")")")")")")','_("_(" _(" _(" _(" _(" _("الخميس")")")")")")")','_("_(" _(" _(" _(" _(" _("الجمعة")")")")")")")','_("_(" _(" _(" _(" _(" _("السبت")")")")")")")'][s.day_of_week] }}</td>
                             <td>{{ s.start_time.strftime('%H:%M') }}</td>
                             <td>{{ s.end_time.strftime('%H:%M') }}</td>
-                            <td>{{ 'نشط' if s.is_active else 'غير نشط' }}</td>
+                            <td>{{ '_("_(" _(" _(" _(" _(" _("نشط")")")")")")")' if s.is_active else '_("_(" _(" _(" _(" _(" _("غير نشط")")")")")")")' }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

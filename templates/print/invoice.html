@@ -6,17 +6,17 @@
 {% block doc_heading %}فاتورة خدمات طبية{% endblock %}
 
 {% block doc_meta %}
-<span class="print-doc-meta__item"><strong>رقم الفاتورة:</strong> {{ invoice.invoice_number }}</span>
-<span class="print-doc-meta__item"><strong>التاريخ:</strong> {{ invoice.created_at.strftime('%Y-%m-%d %H:%M') if invoice.created_at else '—' }}</span>
-<span class="print-doc-meta__item"><strong>الحالة:</strong> {{ (invoice.status or 'DRAFT') | enum_label('InvoiceStatus') }}</span>
+<span class="print-doc-meta__item"><strong>{{ _('رقم الفاتورة:') }}</strong> {{ invoice.invoice_number }}</span>
+<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ:")")")")")")")') }}</strong> {{ invoice.created_at.strftime('%Y-%m-%d %H:%M') if invoice.created_at else '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong> {{ (invoice.status or 'DRAFT') | enum_label('InvoiceStatus') }}</span>
 {% endblock %}
 
 {% block subject_strip %}
 <div class="print-subject-strip__grid">
-    <div class="print-subject-strip__item"><span>المريض</span><span>{{ invoice.visit.patient.full_name if invoice.visit and invoice.visit.patient else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>الهوية</span><span>{{ invoice.visit.patient.national_id if invoice.visit and invoice.visit.patient else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>الهاتف</span><span>{{ invoice.visit.patient.phone if invoice.visit and invoice.visit.patient else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>العنوان</span><span>{{ invoice.visit.patient.address if invoice.visit and invoice.visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</span><span>{{ invoice.visit.patient.full_name if invoice.visit and invoice.visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الهوية")")")")")")")') }}</span><span>{{ invoice.visit.patient.national_id if invoice.visit and invoice.visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</span><span>{{ invoice.visit.patient.phone if invoice.visit and invoice.visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</span><span>{{ invoice.visit.patient.address if invoice.visit and invoice.visit.patient else '—' }}</span></div>
 </div>
 {% endblock %}
 
@@ -24,24 +24,24 @@
 <table class="print-table">
     <thead>
         <tr>
-            <th>الخدمة</th>
-            <th>الوصف</th>
-            <th>الكمية</th>
-            <th>السعر</th>
-            <th>المجموع</th>
+            <th>{{ _('_("_(" _(" _(" _(" _(" _("الخدمة")")")")")")")') }}</th>
+            <th>{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</th>
+            <th>{{ _('_("_(" _(" _(" _(" _(" _("الكمية")")")")")")")') }}</th>
+            <th>{{ _('_("_(" _(" _(" _(" _(" _("السعر")")")")")")")') }}</th>
+            <th>{{ _('_("_(" _(" _(" _(" _(" _("المجموع")")")")")")")') }}</th>
         </tr>
     </thead>
     <tbody>
         {% for service in invoice.lines %}
         <tr>
             <td class="text-end">{{ service.service_name }}</td>
-            <td class="text-end">{{ service.notes or 'خدمة طبية' }}</td>
+            <td class="text-end">{{ service.notes or '_("_(" _(" _(" _(" _(" _("خدمة طبية")")")")")")")' }}</td>
             <td>{{ service.quantity }}</td>
             <td>{{ "%.2f"|format(service.unit_price) }} {{ invoice.currency }}</td>
             <td>{{ "%.2f"|format(service.total_price) }} {{ invoice.currency }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="5">لا توجد بنود</td></tr>
+        <tr><td colspan="5">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بنود")")")")")")")') }}</td></tr>
         {% endfor %}
     </tbody>
 </table>
@@ -49,22 +49,22 @@
 
 {% block totals %}
 <div class="print-total-row print-total-row--final">
-    <span>المجموع الكلي</span>
+    <span>{{ _('_("_(" _(" _(" _(" _(" _("المجموع الكلي")")")")")")")') }}</span>
     <span>{{ "%.2f"|format(invoice.total_amount) }} {{ invoice.currency }}</span>
 </div>
 <div class="print-total-row">
-    <span>المدفوع</span>
+    <span>{{ _('_("_(" _(" _(" _(" _(" _("المدفوع")")")")")")")') }}</span>
     <span>{{ "%.2f"|format(invoice.paid_amount) }} {{ invoice.currency }}</span>
 </div>
 <div class="print-total-row">
-    <span>المتبقي</span>
+    <span>{{ _('_("_(" _(" _(" _(" _(" _("المتبقي")")")")")")")') }}</span>
     <span>{{ "%.2f"|format(invoice.total_amount - invoice.paid_amount) }} {{ invoice.currency }}</span>
 </div>
 {% endblock %}
 
 {% block legal_footer %}
-<p><strong>شكراً لثقتكم في {{ branding.organization_name if branding else (ui.organization_name if ui else 'المركز') }}</strong></p>
-<p>هذه الفاتورة صالحة للاستخدام القانوني</p>
+<p><strong>شكراً لثقتكم في {{ branding.organization_name if branding else (ui.organization_name if ui else '_("المركز")') }}</strong></p>
+<p>{{ _('_("_(" _(" _(" _(" _(" _("هذه الفاتورة صالحة للاستخدام القانوني")")")")")")")') }}</p>
 {% endblock %}
 
 {% block extra_print_js %}

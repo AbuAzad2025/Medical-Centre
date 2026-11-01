@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}التشخيص الطبي - {{ visit.patient.full_name }}{% endblock %}
+{% block title %}{{ _('التشخيص الطبي') }} - {{ visit.patient.full_name }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('التشخيص الطبي المتقدم', subtitle=(visit.patient.full_name ~ ' - ' ~ visit.visit_type_display), icon='fas fa-stethoscope', actions=[{'label': 'العودة للمريض', 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.patient_details', visit_id=visit.id), 'style': 'secondary'}]) }}
+    {{ page_header(_('التشخيص الطبي المتقدم'), subtitle=(visit.patient.full_name ~ ' - ' ~ visit.visit_type_display), icon='fas fa-stethoscope', actions=[{'label': _('العودة للمريض'), 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.patient_details', visit_id=visit.id), 'style': 'secondary'}]) }}
 
     <!-- Patient Quick Info -->
     <div class="row mb-4">
@@ -13,28 +13,28 @@
             <div class="card shadow">
                 <div class="card-header">
                     <h6 class="m-0 fw-bold text-primary">
-                        <i class="fas fa-user me-2"></i>معلومات سريعة عن المريض
+                        <i class="fas fa-user me-2"></i>{{ _('معلومات سريعة عن المريض') }}
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3">
-                            <strong>الاسم:</strong> {{ visit.patient.full_name }}
+                            <strong>{{ _('الاسم:') }}</strong> {{ visit.patient.full_name }}
                         </div>
                         <div class="col-md-3">
-                            <strong>العمر:</strong> {{ visit.patient.age or 'غير محدد' }} سنة
+                            <strong>{{ _('العمر:') }}</strong> {{ visit.patient.age or _('غير محدد') }} {{ _('سنة') }}
                         </div>
                         <div class="col-md-3">
-                            <strong>الجنس:</strong> {{ visit.patient.gender or 'غير محدد' }}
+                            <strong>{{ _('الجنس:') }}</strong> {{ visit.patient.gender or _('غير محدد') }}
                         </div>
                         <div class="col-md-3">
-                            <strong>نوع الزيارة:</strong> 
+                            <strong>{{ _('نوع الزيارة:') }}</strong> 
                             {% if visit.visit_type == 'first' %}
-                                <span class="badge text-bg-primary">أولى</span>
+                                <span class="badge text-bg-primary">{{ _('أولى') }}</span>
                             {% elif visit.visit_type == 'follow_up' %}
-                                <span class="badge text-bg-info">متابعة</span>
+                                <span class="badge text-bg-info">{{ _('متابعة') }}</span>
                             {% elif visit.visit_type == 'emergency' %}
-                                <span class="badge text-bg-danger">طوارئ</span>
+                                <span class="badge text-bg-danger">{{ _('طوارئ') }}</span>
                             {% endif %}
                         </div>
                     </div>

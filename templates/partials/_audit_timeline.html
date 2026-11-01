@@ -1,6 +1,6 @@
 {% macro audit_timeline(events) %}
 <div class="card mb-3">
-    <div class="card-header"><i class="fas fa-history me-1"></i> سجل الأحداث</div>
+    <div class="card-header"><i class="fas fa-history me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("سجل الأحداث")")")")")")")') }}</div>
     <div class="card-body p-0">
         {% if events %}
         <ul class="list-group list-group-flush">
@@ -24,7 +24,7 @@
             {% endfor %}
         </ul>
         {% else %}
-        <p class="text-muted text-center py-3 mb-0">لا توجد أحداث مسجلة</p>
+        <p class="text-muted text-center py-3 mb-0">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد أحداث مسجلة")")")")")")")') }}</p>
         {% endif %}
     </div>
 </div>

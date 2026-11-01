@@ -13,9 +13,7 @@ from routes.super_admin import super_admin_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import privileged_user_manager_required, super_admin_required
 
-# =============================================
 # USERS ROUTES
-# =============================================
 
 
 @super_admin_bp.route('/users')

@@ -18,9 +18,7 @@ from routes.nurse_routes import (
 )
 from utils.decorators import role_required
 
-# =============================================
 # PROTOCOLS ROUTES
-# =============================================
 
 
 @nurse_bp.route('/api/protocols', methods=['GET', 'POST'])

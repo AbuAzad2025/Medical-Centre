@@ -16,16 +16,16 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-lg-8">
-                            <h5 class="mb-3">التسعيرات الحالية</h5>
+                            <h5 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("التسعيرات الحالية")")")")")")")') }}</h5>
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th>نوع التسعير</th>
-                                            <th>السعر</th>
-                                            <th>الخصم</th>
-                                            <th>الوصف</th>
-                                            <th>الإجراءات</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("نوع التسعير")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("السعر")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الخصم")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -40,20 +40,20 @@
                                                     {% elif price.discount_amount %}
                                                     <span class="badge bg-warning">{{ price.discount_amount }} ل.س</span>
                                                     {% else %}
-                                                    <span class="text-muted">لا يوجد</span>
+                                                    <span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد")")")")")")")') }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ price.description or '-' }}</td>
                                                 <td>
                                                     <button class="btn btn-sm btn-danger" data-action="deletePricing" data-price-id="price.id">
-                                                        <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
+                                                        <i class="fas fa-trash"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</span>
                                                     </button>
                                                 </td>
                                             </tr>
                                             {% endfor %}
                                         {% else %}
                                             <tr>
-                                                <td colspan="5" class="text-center text-muted">لا توجد تسعيرات محددة</td>
+                                                <td colspan="5" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد تسعيرات محددة")")")")")")")') }}</td>
                                             </tr>
                                         {% endif %}
                                     </tbody>
@@ -66,7 +66,7 @@
                                 <div class="card-header bg-primary text-white">
                                     <h6 class="mb-0">
                                         <i class="fas fa-plus me-2"></i>
-                                        إضافة تسعير جديد
+                                        {{ _('_("_(" _(" _(" _(" _(" _("إضافة تسعير جديد")")")")")")")') }}
                                     </h6>
                                 </div>
                                 <div class="card-body">
@@ -74,48 +74,48 @@
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         
                                         <div class="mb-3">
-                                            <label for="price_type" class="form-label">نوع التسعير</label>
+                                            <label for="price_type" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع التسعير")")")")")")")') }}</label>
                                             <select class="form-select" id="price_type" name="price_type" required>
-                                                <option value="standard">عادي</option>
-                                                <option value="urgent">عاجل</option>
+                                                <option value="standard">{{ _('_("_(" _(" _(" _(" _(" _("عادي")")")")")")")') }}</option>
+                                                <option value="urgent">{{ _('_("_(" _(" _(" _(" _(" _("عاجل")")")")")")")') }}</option>
                                                 <option value="vip">VIP</option>
-                                                <option value="insurance">تأمين</option>
+                                                <option value="insurance">{{ _('_("_(" _(" _(" _(" _(" _("تأمين")")")")")")")') }}</option>
                                             </select>
                                         </div>
                                         
                                         <div class="mb-3">
-                                            <label for="price" class="form-label">السعر</label>
+                                            <label for="price" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("السعر")")")")")")")') }}</label>
                                             <input type="number" class="form-control" id="price" name="price" 
                                                    step="0.01" min="0" required>
                                         </div>
 
                                         <div class="mb-3">
-                                            <label for="currency" class="form-label">العملة</label>
+                                            <label for="currency" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("العملة")")")")")")")') }}</label>
                                             <select class="form-select" id="currency" name="currency">
-                                                <option value="ILS">شيكل</option>
-                                                <option value="USD">دولار</option>
-                                                <option value="EUR">يورو</option>
+                                                <option value="ILS">{{ _('_("_(" _(" _(" _(" _(" _("شيكل")")")")")")")') }}</option>
+                                                <option value="USD">{{ _('_("_(" _(" _(" _(" _(" _("دولار")")")")")")")') }}</option>
+                                                <option value="EUR">{{ _('_("_(" _(" _(" _(" _(" _("يورو")")")")")")")') }}</option>
                                             </select>
                                         </div>
 
                                         <div class="mb-3">
-                                            <label for="discount_percentage" class="form-label">الحد الأقصى للخصم (%)</label>
+                                            <label for="discount_percentage" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحد الأقصى للخصم (%)")")")")")")")') }}</label>
                                             <input type="number" class="form-control" id="discount_percentage" name="discount_percentage" step="0.01" min="0" max="100">
                                         </div>
 
                                         <div class="mb-3">
-                                            <label for="discount_amount" class="form-label">الخصم الثابت</label>
+                                            <label for="discount_amount" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الخصم الثابت")")")")")")")') }}</label>
                                             <input type="number" class="form-control" id="discount_amount" name="discount_amount" step="0.01" min="0">
                                         </div>
                                         
                                         <div class="mb-3">
-                                            <label for="description" class="form-label">الوصف</label>
+                                            <label for="description" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</label>
                                             <textarea class="form-control" id="description" name="description" rows="2"></textarea>
                                         </div>
                                         
                                         <button type="submit" class="btn btn-primary w-100">
                                             <i class="fas fa-plus me-2"></i>
-                                            إضافة
+                                            {{ _('_("_(" _(" _(" _(" _(" _("إضافة")")")")")")")') }}
                                         </button>
                                     </form>
                                 </div>
@@ -127,7 +127,7 @@
                         <div class="col-12">
                             <a href="{{ url_for('super_admin.services') }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-right me-2"></i>
-                                العودة للخدمات
+                                {{ _('_("_(" _(" _(" _(" _(" _("العودة للخدمات")")")")")")")') }}
                             </a>
                         </div>
                     </div>

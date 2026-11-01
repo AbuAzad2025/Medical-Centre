@@ -25,9 +25,7 @@ from models.lab_request import LabRequest
 from routes.lab import lab_bp
 from utils.decorators import role_required
 
-# =============================================
 # REPORTS ROUTES
-# =============================================
 
 
 @lab_bp.route('/reports')

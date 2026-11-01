@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>403 — لا يمكن عرض الصفحة</title>
+    <title>{{ _('_("_(" _(" _(" _(" _(" _("403 — لا يمكن عرض الصفحة")")")")")")")') }}</title>
     <link href="/static/vendor/fonts/fonts.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/fontawesome/css/all.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.rtl.min.css') }}" rel="stylesheet">
@@ -25,9 +25,9 @@
     <div class="error-card">
         <div class="error-icon"><i class="fas fa-lock" aria-hidden="true"></i></div>
         <div class="error-code">403</div>
-        <div class="error-title">لا يمكن عرض الصفحة</div>
-        <p class="error-desc">ليس لديك صلاحية للوصول إلى هذه الصفحة. يرجى التواصل مع المسؤول إذا كنت تعتقد أن هذا خطأ.</p>
-        <a href="/" class="btn-back"><i class="fas fa-arrow-right" aria-hidden="true"></i> العودة للصفحة الرئيسية</a>
+        <div class="error-title">{{ _('_("_(" _(" _(" _(" _(" _("لا يمكن عرض الصفحة")")")")")")")') }}</div>
+        <p class="error-desc">{{ _('_("_(" _(" _(" _(" _(" _("ليس لديك صلاحية للوصول إلى هذه الصفحة. يرجى التواصل مع المسؤول إذا كنت تعتقد أن هذا خطأ.")")")")")")")') }}</p>
+        <a href="/" class="btn-back"><i class="fas fa-arrow-right" aria-hidden="true"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة للصفحة الرئيسية")")")")")")")') }}</a>
     </div>
 </body>
 </html>

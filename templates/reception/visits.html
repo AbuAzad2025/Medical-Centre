@@ -12,17 +12,17 @@
 {% block content %}
 <div class="container-fluid">
     {% set visit_header_actions = [
-        {'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-download', 'style': 'success', 'data_action': 'export-visits'}
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")', 'icon': 'fas fa-download', 'style': 'success', 'data_action': 'export-visits'}
     ] %}
     {% if has_permission('patient_create') %}
     {% set visit_header_actions = [
-        {'url': url_for('reception.create_visit'), 'label': 'زيارة جديدة', 'icon': 'fas fa-plus', 'style': 'primary'},
-        {'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-download', 'style': 'success', 'data_action': 'export-visits'}
+        {'url': url_for('reception.create_visit'), 'label': '_("_(" _(" _(" _(" _(" _("زيارة جديدة")")")")")")")', 'icon': 'fas fa-plus', 'style': 'primary'},
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")', 'icon': 'fas fa-download', 'style': 'success', 'data_action': 'export-visits'}
     ] %}
     {% endif %}
     {{ page_header(
-        title='قائمة الزيارات',
-        subtitle='إدارة وعرض جميع زيارات المرضى',
+        title='_("_(" _(" _(" _(" _(" _("قائمة الزيارات")")")")")")")',
+        subtitle='_("_(" _(" _(" _(" _(" _("إدارة وعرض جميع زيارات المرضى")")")")")")")',
         icon='fas fa-list-alt',
         actions=visit_header_actions
     ) }}
@@ -41,34 +41,34 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <div class="fw-bold">المريض</div>
+                            <div class="fw-bold">{{ _('المريض') }}</div>
                             <div>{{ visit.patient.full_name }}</div>
                             <div class="text-muted">{{ visit.patient.phone }}</div>
                         </div>
                         <div class="col-md-3">
-                            <div class="fw-bold">القسم</div>
-                            <div>{{ visit.department.name_ar if visit.department else 'غير محدد' }}</div>
+                            <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</div>
+                            <div>{{ visit.department.name_ar if visit.department else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</div>
                         </div>
                         <div class="col-md-3">
-                            <div class="fw-bold">الطبيب</div>
-                            <div>{{ visit.doctor.full_name if visit.doctor else 'غير محدد' }}</div>
+                            <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</div>
+                            <div>{{ visit.doctor.full_name if visit.doctor else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</div>
                         </div>
                         <div class="col-md-3">
-                            <div class="fw-bold">نوع الزيارة</div>
+                            <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("نوع الزيارة")")")")")")")') }}</div>
                             <div>
                                 {% if visit.visit_type == 'EMERGENCY' %}
-                                <span class="badge bg-danger">طوارئ</span>
+                                <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("طوارئ")")")")")")")') }}</span>
                                 {% elif visit.visit_type == 'FOLLOW_UP' %}
-                                <span class="badge bg-warning">مراجعة</span>
+                                <span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("مراجعة")")")")")")")') }}</span>
                                 {% elif visit.visit_type == 'CONSULTATION' %}
-                                <span class="badge bg-info">استشارة</span>
+                                <span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("استشارة")")")")")")")') }}</span>
                                 {% else %}
-                                <span class="badge bg-secondary">عادية</span>
+                                <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("عادية")")")")")")")') }}</span>
                                 {% endif %}
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="fw-bold">التاريخ</div>
+                            <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</div>
                             <div>{{ visit.created_at|format_date }}</div>
                             <div class="text-muted">{{ visit.created_at|format_time }}</div>
                             {% if visit.created_by %}
@@ -80,27 +80,27 @@
                         </div>
                         {% if module_active('billing') %}
                         <div class="col-md-3">
-                            <div class="fw-bold">المبلغ الإجمالي</div>
+                            <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("المبلغ الإجمالي")")")")")")")') }}</div>
                             <div><strong>{{ "%.2f"|format(visit.total_amount) }} ₪</strong></div>
                         </div>
                         {% endif %}
                         <div class="col-md-3">
-                            <div class="fw-bold">حالة الدفع</div>
+                            <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("حالة الدفع")")")")")")")') }}</div>
                             <div>
                                 {{ payment_status_badge(visit) }}
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="fw-bold">حالة الزيارة</div>
+                            <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("حالة الزيارة")")")")")")")') }}</div>
                             <div>
                                 {% if visit.status == 'OPEN' %}
-                                <span class="badge bg-primary">مفتوحة</span>
+                                <span class="badge bg-primary">{{ _('_("_(" _(" _(" _(" _(" _("مفتوحة")")")")")")")') }}</span>
                                 {% elif visit.status == 'IN_PROGRESS' %}
-                                <span class="badge bg-warning">قيد التنفيذ</span>
+                                <span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")') }}</span>
                                 {% elif visit.status == 'COMPLETED' %}
-                                <span class="badge bg-success">مكتملة</span>
+                                <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتملة")")")")")")")') }}</span>
                                 {% elif visit.status == 'ARCHIVED' %}
-                                <span class="badge bg-secondary">مؤرشفة</span>
+                                <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("مؤرشفة")")")")")")")') }}</span>
                                 {% else %}
                                 <span class="badge bg-light text-dark">{{ visit.status | enum_label('VisitState') }}</span>
                                 {% endif %}
@@ -111,12 +111,12 @@
                     <div class="mt-3 d-flex gap-2">
                         <form method="post" action="{{ url_for('reception.process_payment', visit_id=visit.id) }}" class="d-inline">
                             {{ forms.csrf() }}
-                            <button type="submit" class="btn btn-outline-success" data-confirm="هل أنت متأكد من إرسال الفاتورة للمحاسبة؟">
-                                <i class="fas fa-share-square me-1"></i> إرسال للمحاسبة
+                            <button type="submit" class="btn btn-outline-success" data-confirm="_(" _(" _(" _(" _(" _("هل أنت متأكد من إرسال الفاتورة للمحاسبة؟")")")")")")">
+                                <i class="fas fa-share-square me-1"></i> {{ _('إرسال للمحاسبة') }}
                             </button>
                         </form>
                         <a href="{{ url_for('reception.print_receipt', visit_id=visit.id) }}" class="btn btn-outline-primary" target="_blank">
-                            <i class="fas fa-print me-1"></i> طباعة الوصل
+                            <i class="fas fa-print me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("طباعة الوصل")")")")")")")') }}
                         </a>
                     </div>
                     {% endif %}
@@ -131,21 +131,21 @@
             <div class="card">
                 <div class="card-header">
                     <h6 class="text-primary mb-0">
-                        <i class="fas fa-filter"></i> فلاتر البحث
+                        <i class="fas fa-filter"></i> {{ _('_("_(" _(" _(" _(" _(" _("فلاتر البحث")")")")")")")') }}
                     </h6>
                 </div>
                 <div class="card-body">
                     <form method="GET" class="row g-3">
                         <input type="hidden" name="page" value="1">
                         <div class="col-md-4">
-                            <label for="search" class="form-label">البحث</label>
+                            <label for="search" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("البحث")")")")")")")') }}</label>
                             <input type="text" class="form-control" id="search" name="search" 
-                                   value="{{ search }}" placeholder="اسم المريض، الهاتف، الهوية...">
+                                   value="{{ search }}" placeholder="_(" _(" _(" _(" _(" _("اسم المريض، الهاتف، الهوية...")")")")")")">
                         </div>
                         <div class="col-md-3">
-                            <label for="department_id" class="form-label">القسم</label>
+                            <label for="department_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</label>
                             <select class="form-control" id="department_id" name="department_id">
-                                <option value="">جميع الأقسام</option>
+                                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("جميع الأقسام")")")")")")")') }}</option>
                                 {% for dept in departments %}
                                 <option value="{{ dept.id }}" {% if selected_department == dept.id %}selected{% endif %}>
                                     {{ dept.name_ar }}
@@ -154,17 +154,17 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label for="status" class="form-label">الحالة</label>
+                            <label for="status" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</label>
                             <select class="form-control" id="status" name="status">
-                                <option value="">جميع الحالات</option>
-                                <option value="OPEN" {% if selected_status == 'OPEN' %}selected{% endif %}>مفتوحة</option>
-                                <option value="IN_PROGRESS" {% if selected_status == 'IN_PROGRESS' %}selected{% endif %}>قيد التنفيذ</option>
-                                <option value="COMPLETED" {% if selected_status == 'COMPLETED' %}selected{% endif %}>مكتملة</option>
-                                <option value="ARCHIVED" {% if selected_status == 'ARCHIVED' %}selected{% endif %}>مؤرشفة</option>
+                                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("جميع الحالات")")")")")")")') }}</option>
+                                <option value="OPEN" {% if selected_status == 'OPEN' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مفتوحة")")")")")")")') }}</option>
+                                <option value="IN_PROGRESS" {% if selected_status == 'IN_PROGRESS' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")') }}</option>
+                                <option value="COMPLETED" {% if selected_status == 'COMPLETED' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مكتملة")")")")")")")') }}</option>
+                                <option value="ARCHIVED" {% if selected_status == 'ARCHIVED' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مؤرشفة")")")")")")")') }}</option>
                             </select>
                         </div>
                         <div class="col-md-1">
-                            <label for="per_page" class="form-label">لكل صفحة</label>
+                            <label for="per_page" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("لكل صفحة")")")")")")")') }}</label>
                             <select class="form-control" id="per_page" name="per_page" onchange="this.form.submit()">
                                 {% for n in [10, 25, 50, 100, 200] %}
                                 <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
@@ -175,7 +175,7 @@
                             <label class="form-label">&nbsp;</label>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search"></i> بحث
+                                    <i class="fas fa-search"></i> {{ _('_("_(" _(" _(" _(" _(" _("بحث")")")")")")")') }}
                                 </button>
                             </div>
                         </div>
@@ -199,16 +199,16 @@
                         <table class="table table-bordered table-hover table-medical-responsive" id="visitsTable">
                             <thead class="table-light">
                                 <tr>
-                                    <th>رقم الزيارة</th>
-                                    <th>المريض</th>
-                                    <th>القسم</th>
-                                    <th>الطبيب</th>
-                                    <th>نوع الزيارة</th>
-                                    <th>التاريخ</th>
-                                    <th>المبلغ</th>
-                                    <th>حالة الدفع</th>
-                                    <th>الحالة</th>
-                                    <th>الإجراءات</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("رقم الزيارة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("نوع الزيارة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المبلغ")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("حالة الدفع")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -227,25 +227,25 @@
                                         {% if visit.department %}
                                         <span class="badge bg-info">{{ visit.department.name_ar }}</span>
                                         {% else %}
-                                        <span class="text-muted">غير محدد</span>
+                                        <span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")') }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if visit.doctor %}
                                         {{ visit.doctor.full_name }}
                                         {% else %}
-                                        <span class="text-muted">غير محدد</span>
+                                        <span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")') }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if visit.visit_type == 'EMERGENCY' %}
-                                        <span class="badge bg-danger">طوارئ</span>
+                                        <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("طوارئ")")")")")")")') }}</span>
                                         {% elif visit.visit_type == 'FOLLOW_UP' %}
-                                        <span class="badge bg-warning">مراجعة</span>
+                                        <span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("مراجعة")")")")")")")') }}</span>
                                         {% elif visit.visit_type == 'CONSULTATION' %}
-                                        <span class="badge bg-info">استشارة</span>
+                                        <span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("استشارة")")")")")")")') }}</span>
                                         {% else %}
-                                        <span class="badge bg-secondary">عادية</span>
+                                        <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("عادية")")")")")")")') }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -271,13 +271,13 @@
                                     </td>
                                     <td>
                                         {% if visit.status == 'OPEN' %}
-                                        <span class="badge bg-primary">مفتوحة</span>
+                                        <span class="badge bg-primary">{{ _('_("_(" _(" _(" _(" _(" _("مفتوحة")")")")")")")') }}</span>
                                         {% elif visit.status == 'IN_PROGRESS' %}
-                                        <span class="badge bg-warning">قيد التنفيذ</span>
+                                        <span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")') }}</span>
                                         {% elif visit.status == 'COMPLETED' %}
-                                        <span class="badge bg-success">مكتملة</span>
+                                        <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتملة")")")")")")")') }}</span>
                                         {% elif visit.status == 'ARCHIVED' %}
-                                        <span class="badge bg-secondary">مؤرشفة</span>
+                                        <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("مؤرشفة")")")")")")")') }}</span>
                                         {% else %}
                                         <span class="badge bg-light text-dark">{{ visit.status | enum_label('VisitState') }}</span>
                                         {% endif %}
@@ -285,40 +285,40 @@
                                     <td>
                                         <div class="btn-group" role="group">
                                             <button type="button" class="btn btn-sm btn-outline-primary" 
-                                                    data-action="viewVisit" data-visit-id="visit.id" title="عرض">
-                                                <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
+                                                    data-action="viewVisit" data-visit-id="visit.id" title="_(" _(" _(" _(" _(" _("عرض")")")")")")">
+                                                <i class="fas fa-eye"></i> <span class="btn-label">{{ _('عرض') }}</span>
                                             </button>
                                             {% if module_active('billing') and visit.payment_status == 'PENDING' %}
                                             <form method="post" action="{{ url_for('reception.process_payment', visit_id=visit.id) }}" class="d-inline">
                                                 {{ forms.csrf() }}
-                                                <button type="submit" class="btn btn-sm btn-outline-success" title="إرسال للمحاسبة" data-confirm="هل أنت متأكد من إرسال الفاتورة للمحاسبة؟">
+                                                <button type="submit" class="btn btn-sm btn-outline-success" title="_(" _(" _(" _(" _(" _("إرسال للمحاسبة")")")")")")" data-confirm="_(" _(" _(" _(" _(" _("هل أنت متأكد من إرسال الفاتورة للمحاسبة؟")")")")")")">
                                                     <i class="fas fa-share-square"></i> <span class="btn-label">زر</span>
                                                 </button>
                                             </form>
                                             {% elif module_active('billing') and visit.payment_status == 'PAID' and not visit.receipt_printed %}
                                             <button type="button" class="btn btn-sm btn-outline-success" 
-                                                    data-action="printReceipt" data-visit-id="visit.id" title="طباعة الوصل">
-                                                <i class="fas fa-print"></i> <span class="btn-label">طباعة</span>
+                                                    data-action="printReceipt" data-visit-id="visit.id" title="_(" _(" _(" _(" _(" _("طباعة الوصل")")")")")")">
+                                                <i class="fas fa-print"></i> <span class="btn-label">{{ _('طباعة') }}</span>
                                             </button>
                                             {% endif %}
                                             {% if has_permission('patient_create') %}
                                             <button type="button" class="btn btn-sm btn-outline-dark" 
-                                                    data-action="openTransfer" data-visit-id="visit.id" title="تحويل">
-                                                <i class="fas fa-random"></i> <span class="btn-label">عشوائي</span>
+                                                    data-action="openTransfer" data-visit-id="visit.id" title="_(" _(" _(" _(" _(" _("تحويل")")")")")")">
+                                                <i class="fas fa-random"></i> <span class="btn-label">{{ _('عشوائي') }}</span>
                                             </button>
                                             {% endif %}
                                             {% if visit.status == 'COMPLETED' %}
                                             <form method="POST" action="{{ url_for('reception.archive_visit', visit_id=visit.id) }}" class="d-inline">
                                                 {{ forms.csrf() }}
-                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="أرشفة" data-confirm="هل أنت متأكد من أرشفة الزيارة؟">
-                                                    <i class="fas fa-archive"></i> <span class="btn-label">أرشيف</span>
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="_(" _(" _(" _(" _(" _("أرشفة")")")")")")" data-confirm="_(" _(" _(" _(" _(" _("هل أنت متأكد من أرشفة الزيارة؟")")")")")")">
+                                                    <i class="fas fa-archive"></i> <span class="btn-label">{{ _('أرشيف') }}</span>
                                                 </button>
                                             </form>
                                             {% endif %}
                                             {% if visit.status == 'OPEN' %}
                                             <button type="button" class="btn btn-sm btn-outline-warning" 
-                                                    data-action="editVisit" data-visit-id="visit.id" title="تعديل">
-                                                <i class="fas fa-edit"></i> <span class="btn-label">تعديل</span>
+                                                    data-action="editVisit" data-visit-id="visit.id" title="_(" _(" _(" _(" _(" _("تعديل")")")")")")">
+                                                <i class="fas fa-edit"></i> <span class="btn-label">{{ _('تعديل') }}</span>
                                             </button>
                                             {% endif %}
                                         </div>
@@ -334,11 +334,11 @@
                         <nav aria-label="تصفح الزيارات" class="pagination-medical">
                             <a class="btn btn-outline-secondary btn-sm {% if page <= 1 %}disabled{% endif %}"
                                href="{{ url_for('reception.visits', search=search, department_id=selected_department, status=selected_status, per_page=per_page, page=page-1) }}">
-                                السابق
+                                {{ _('_("_(" _(" _(" _(" _(" _("السابق")")")")")")")') }}
                             </a>
                             <a class="btn btn-outline-secondary btn-sm {% if page >= pages %}disabled{% endif %}"
                                href="{{ url_for('reception.visits', search=search, department_id=selected_department, status=selected_status, per_page=per_page, page=page+1) }}">
-                                التالي
+                                {{ _('_("_(" _(" _(" _(" _(" _("التالي")")")")")")")') }}
                             </a>
                         </nav>
                     </div>
@@ -346,16 +346,16 @@
                     <div class="text-center py-5">
                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                         {% if search or selected_department or selected_status %}
-                            <h5 class="text-muted">لا توجد نتائج مطابقة</h5>
-                            <p class="text-muted">جرّب تغيير الفلاتر أو مسح البحث</p>
-                            <a class="btn btn-outline-secondary" href="{{ url_for('reception.visits') }}">مسح الفلاتر</a>
+                            <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد نتائج مطابقة")")")")")")")') }}</h5>
+                            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("جرّب تغيير الفلاتر أو مسح البحث")")")")")")")') }}</p>
+                            <a class="btn btn-outline-secondary" href="{{ url_for('reception.visits') }}">{{ _('_("_(" _(" _(" _(" _(" _("مسح الفلاتر")")")")")")")') }}</a>
                         {% else %}
-                            <h5 class="text-muted">لا توجد زيارات</h5>
-                            <p class="text-muted">ابدأ بإنشاء زيارة جديدة</p>
+                            <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد زيارات")")")")")")")') }}</h5>
+                            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("ابدأ بإنشاء زيارة جديدة")")")")")")")') }}</p>
                             {% if has_permission('patient_create') %}
                             <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i>
-                                إنشاء زيارة جديدة
+                                {{ _('_("_(" _(" _(" _(" _(" _("إنشاء زيارة جديدة")")")")")")")') }}
                             </a>
                             {% endif %}
                         {% endif %}
@@ -372,33 +372,33 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">تحويل الزيارة بين الأقسام</h5>
+        <h5 class="modal-title">{{ _('_("_(" _(" _(" _(" _(" _("تحويل الزيارة بين الأقسام")")")")")")")') }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="transferForm">
           <input type="hidden" id="transferVisitId">
           <div class="mb-3">
-            <label class="form-label" for="transferDepartment">القسم الجديد</label>
+            <label class="form-label" for="transferDepartment">{{ _('_("_(" _(" _(" _(" _(" _("القسم الجديد")")")")")")")') }}</label>
             <select class="form-control" id="transferDepartment" required>
-              <option value="">اختر القسم</option>
+              <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر القسم")")")")")")")') }}</option>
               {% for dept in departments %}
               <option value="{{ dept.id }}">{{ dept.name_ar }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="mb-3">
-            <label class="form-label" for="transferDoctor">الطبيب</label>
+            <label class="form-label" for="transferDoctor">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</label>
             <select class="form-control" id="transferDoctor">
-              <option value="">اختر الطبيب</option>
+              <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الطبيب")")")")")")")') }}</option>
             </select>
           </div>
         </form>
         <small id="transferStatus" class="text-muted"></small>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-        <button type="button" class="btn btn-primary" id="confirmTransferBtn">تحويل</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
+        <button type="button" class="btn btn-primary" id="confirmTransferBtn">{{ _('_("_(" _(" _(" _(" _(" _("تحويل")")")")")")")') }}</button>
       </div>
     </div>
   </div>

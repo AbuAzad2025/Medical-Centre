@@ -6,41 +6,41 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h1 class="h3 mb-0"><i class="fas fa-vault me-2"></i>خزنة المدفوعات</h1>
-            <p class="text-muted">إدارة خزنة المدفوعات والبطاقات المخزنة</p>
+            <h1 class="h3 mb-0"><i class="fas fa-vault me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("خزنة المدفوعات")")")")")")")') }}</h1>
+            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إدارة خزنة المدفوعات والبطاقات المخزنة")")")")")")")') }}</p>
         </div>
     </div>
 
     <div class="alert alert-info">
         <i class="fas fa-info-circle me-2"></i>
-        <strong>ملاحظة:</strong> هذه الصفحة هي واجهة بديلة لـ <a href="{{ url_for('owner.owner_cards_vault') }}" class="alert-link">خزنة البطاقات</a>. 
-        جميع الوظائف متاحة في صفحة خزنة البطاقات الرئيسية.
+        <strong>{{ _('_("_(" _(" _(" _(" _(" _("ملاحظة:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("هذه الصفحة هي واجهة بديلة لـ")")")")")")")') }} <a href="{{ url_for('owner.owner_cards_vault') }}" class="alert-link">{{ _('_("_(" _(" _(" _(" _(" _("خزنة البطاقات")")")")")")")') }}</a>{{ _('_("_(" _(" _(" _(" _(" _(". 
+        جميع الوظائف متاحة في صفحة خزنة البطاقات الرئيسية.")")")")")")")') }}
     </div>
 
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>إجراءات سريعة</h5>
+            <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إجراءات سريعة")")")")")")")') }}</h5>
         </div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-3">
                     <a href="{{ url_for('owner.owner_cards_vault') }}" class="btn btn-primary w-100">
-                        <i class="fas fa-credit-card me-1"></i>خزنة البطاقات
+                        <i class="fas fa-credit-card me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("خزنة البطاقات")")")")")")")') }}
                     </a>
                 </div>
                 <div class="col-md-3">
                     <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#addCardModal">
-                        <i class="fas fa-plus me-1"></i>إضافة بطاقة
+                        <i class="fas fa-plus me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("إضافة بطاقة")")")")")")")') }}
                     </button>
                 </div>
                 <div class="col-md-3">
                     <a href="{{ url_for('owner.owner_reports') }}" class="btn btn-outline-success w-100">
-                        <i class="fas fa-chart-bar me-1"></i>تقارير المدفوعات
+                        <i class="fas fa-chart-bar me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تقارير المدفوعات")")")")")")")') }}
                     </a>
                 </div>
                 <div class="col-md-3">
                     <a href="{{ url_for('owner.owner_audit_logs') }}" class="btn btn-outline-info w-100">
-                        <i class="fas fa-history me-1"></i>سجل التدقيق
+                        <i class="fas fa-history me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("سجل التدقيق")")")")")")")') }}
                     </a>
                 </div>
             </div>
@@ -54,7 +54,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">إجمالي البطاقات</h6>
+                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي البطاقات")")")")")")")') }}</h6>
                             <h2 class="mb-0">{{ stats.total_cards }}</h2>
                         </div>
                         <i class="fas fa-credit-card fa-2x opacity-50"></i>
@@ -67,7 +67,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">بطاقات نشطة</h6>
+                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("بطاقات نشطة")")")")")")")') }}</h6>
                             <h2 class="mb-0">{{ stats.active_cards }}</h2>
                         </div>
                         <i class="fas fa-check-circle fa-2x opacity-50"></i>
@@ -80,7 +80,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">منتهية الصلاحية</h6>
+                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("منتهية الصلاحية")")")")")")")') }}</h6>
                             <h2 class="mb-0">{{ stats.expired_cards }}</h2>
                         </div>
                         <i class="fas fa-calendar-times fa-2x opacity-50"></i>
@@ -93,7 +93,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">إجمالي المعاملات</h6>
+                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المعاملات")")")")")")")') }}</h6>
                             <h2 class="mb-0">{{ stats.total_transactions }}</h2>
                         </div>
                         <i class="fas fa-exchange-alt fa-2x opacity-50"></i>
@@ -106,7 +106,7 @@
     <!-- Recent Transactions -->
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-history me-2"></i>آخر المعاملات</h5>
+            <h5 class="mb-0"><i class="fas fa-history me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("آخر المعاملات")")")")")")")') }}</h5>
         </div>
         <div class="card-body">
             {% if recent_transactions %}
@@ -114,11 +114,11 @@
                 <table class="table table-hover table-striped">
                     <thead class="table-dark">
                         <tr>
-                            <th>التاريخ</th>
-                            <th>البطاقة</th>
-                            <th>المبلغ</th>
-                            <th>الحالة</th>
-                            <th>الوصف</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("البطاقة")")")")")")")') }}</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("المبلغ")")")")")")")') }}</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -129,11 +129,11 @@
                             <td class="text-success">{{ txn.amount }} SAR</td>
                             <td>
                                 {% if txn.status == 'success' %}
-                                <span class="badge bg-success">نجح</span>
+                                <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نجح")")")")")")")') }}</span>
                                 {% elif txn.status == 'failed' %}
-                                <span class="badge bg-danger">فشل</span>
+                                <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("فشل")")")")")")")') }}</span>
                                 {% else %}
-                                <span class="badge bg-warning">قيد المعالجة</span>
+                                <span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("قيد المعالجة")")")")")")")') }}</span>
                                 {% endif %}
                             </td>
                             <td>{{ txn.description|truncate(50) }}</td>
@@ -144,7 +144,7 @@
             {% else %}
             <div class="text-center py-4">
                 <i class="fas fa-exchange-alt fa-3x text-muted mb-2"></i>
-                <p class="text-muted">لا توجد معاملات حديثة</p>
+                <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد معاملات حديثة")")")")")")")') }}</p>
             </div>
             {% endif %}
         </div>

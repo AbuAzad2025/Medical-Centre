@@ -1,5 +1,5 @@
 {
-  "total_routes": 762,
+  "total_routes": 844,
   "routes": [
     {
       "endpoint": "main.index",
@@ -436,6 +436,164 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "fhir_crud.fhir_validate",
+      "path": "/api/fhir/$validate",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_allergies",
+      "path": "/api/fhir/AllergyIntolerance",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_appointments",
+      "path": "/api/fhir/Appointment",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_audit_events",
+      "path": "/api/fhir/AuditEvent",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_body_structures",
+      "path": "/api/fhir/BodyStructure",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_care_plans",
+      "path": "/api/fhir/CarePlan",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_charge_items",
+      "path": "/api/fhir/ChargeItem",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_claims",
+      "path": "/api/fhir/Claim",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_communications",
+      "path": "/api/fhir/Communication",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir.fhir_conditions",
+      "path": "/api/fhir/Condition",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_crud.create_condition",
+      "path": "/api/fhir/Condition",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_consents",
+      "path": "/api/fhir/Consent",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_coverages",
+      "path": "/api/fhir/Coverage",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_devices",
+      "path": "/api/fhir/Device",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_diagnostic_reports",
+      "path": "/api/fhir/DiagnosticReport",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_document_references",
+      "path": "/api/fhir/DocumentReference",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
       "endpoint": "fhir.fhir_encounters",
       "path": "/api/fhir/Encounter",
       "methods": [
@@ -444,6 +602,166 @@
         "OPTIONS"
       ],
       "classification": "authenticated"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_endpoints",
+      "path": "/api/fhir/Endpoint",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_flags",
+      "path": "/api/fhir/Flag",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_goals",
+      "path": "/api/fhir/Goal",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_groups",
+      "path": "/api/fhir/Group",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_healthcare_services",
+      "path": "/api/fhir/HealthcareService",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_immunizations",
+      "path": "/api/fhir/Immunization",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_invoices",
+      "path": "/api/fhir/Invoice",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_lists",
+      "path": "/api/fhir/List",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_locations",
+      "path": "/api/fhir/Location",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_medications",
+      "path": "/api/fhir/Medication",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_medication_administrations",
+      "path": "/api/fhir/MedicationAdministration",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_medication_dispenses",
+      "path": "/api/fhir/MedicationDispense",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir.fhir_medication_requests",
+      "path": "/api/fhir/MedicationRequest",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_crud.create_medication_request",
+      "path": "/api/fhir/MedicationRequest",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_medication_statements",
+      "path": "/api/fhir/MedicationStatement",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_nutrition_orders",
+      "path": "/api/fhir/NutritionOrder",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
     },
     {
       "endpoint": "fhir.fhir_observations",
@@ -456,6 +774,35 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "fhir_crud.create_observation",
+      "path": "/api/fhir/Observation",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_operation_outcome",
+      "path": "/api/fhir/OperationOutcome",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_organizations",
+      "path": "/api/fhir/Organization",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
       "endpoint": "fhir.fhir_patients",
       "path": "/api/fhir/Patient",
       "methods": [
@@ -466,6 +813,15 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "fhir_crud.create_patient",
+      "path": "/api/fhir/Patient",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
       "endpoint": "fhir.fhir_patient",
       "path": "/api/fhir/Patient/<int:patient_id>",
       "methods": [
@@ -474,6 +830,175 @@
         "OPTIONS"
       ],
       "classification": "authenticated"
+    },
+    {
+      "endpoint": "fhir_crud.update_patient",
+      "path": "/api/fhir/Patient/<int:pid>",
+      "methods": [
+        "OPTIONS",
+        "PUT"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_practitioners",
+      "path": "/api/fhir/Practitioner",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_practitioner",
+      "path": "/api/fhir/Practitioner/<int:pid>",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_procedures",
+      "path": "/api/fhir/Procedure",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_provenances",
+      "path": "/api/fhir/Provenance",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_questionnaires",
+      "path": "/api/fhir/Questionnaire",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_questionnaire_responses",
+      "path": "/api/fhir/QuestionnaireResponse",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_related_persons",
+      "path": "/api/fhir/RelatedPerson",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_research_studies",
+      "path": "/api/fhir/ResearchStudy",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_schedules",
+      "path": "/api/fhir/Schedule",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_service_requests",
+      "path": "/api/fhir/ServiceRequest",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_specimens",
+      "path": "/api/fhir/Specimen",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_substances",
+      "path": "/api/fhir/Substance",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_tasks",
+      "path": "/api/fhir/Task",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_vision_prescriptions",
+      "path": "/api/fhir/VisionPrescription",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext.fhir_metadata",
+      "path": "/api/fhir/metadata",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "fhir_ext2.fhir_metadata",
+      "path": "/api/fhir/metadata",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "internal"
     },
     {
       "endpoint": "api_lab.cancel_lab_request",
@@ -1140,6 +1665,271 @@
     {
       "endpoint": "clinical_coding.patient_procedures",
       "path": "/clinical-coding/patient/<int:patient_id>/procedures",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.access_control_review",
+      "path": "/compliance/access-control",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.access_control_review",
+      "path": "/compliance/access-control-review",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.access_control_review",
+      "path": "/compliance/access_control_review",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.audit_log_retention_check",
+      "path": "/compliance/audit-log-retention",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.audit_log_retention_check",
+      "path": "/compliance/audit-log-retention-check",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.audit_log_retention_check",
+      "path": "/compliance/audit-retention",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.audit_log_retention_check",
+      "path": "/compliance/audit-retention-check",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.audit_summary",
+      "path": "/compliance/audit-summary",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.audit_log_retention_check",
+      "path": "/compliance/audit_retention",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.breach_check",
+      "path": "/compliance/breach-check",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.consent_management_verification",
+      "path": "/compliance/consent-management",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.consent_management_verification",
+      "path": "/compliance/consent-management-verification",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.consent_management_verification",
+      "path": "/compliance/consent-verification",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.consent_management_verification",
+      "path": "/compliance/consent_management_verification",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.data_export",
+      "path": "/compliance/data-export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.data_export",
+      "path": "/compliance/data-export/<int:patient_id>",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.data_retention",
+      "path": "/compliance/data-retention",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.data_export",
+      "path": "/compliance/data_export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.encryption_at_rest_verification",
+      "path": "/compliance/encryption-at-rest",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.encryption_at_rest_verification",
+      "path": "/compliance/encryption-at-rest-verification",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.encryption_at_rest_verification",
+      "path": "/compliance/encryption-verification",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.encryption_at_rest_verification",
+      "path": "/compliance/encryption_at_rest",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.encryption_at_rest_verification",
+      "path": "/compliance/encryption_at_rest_verification",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.data_export",
+      "path": "/compliance/export-patient-data",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.data_export",
+      "path": "/compliance/patient-data-export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "compliance.consent_management_verification",
+      "path": "/compliance/verify-consent",
       "methods": [
         "GET",
         "HEAD",
@@ -2706,6 +3496,27 @@
       "methods": [
         "OPTIONS",
         "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "manager.manager_branding",
+      "path": "/manager/branding",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "manager.manager_branding_preview",
+      "path": "/manager/branding/preview",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
       ],
       "classification": "authenticated"
     },
@@ -6239,6 +7050,16 @@
     {
       "endpoint": "security.signatures",
       "path": "/security/signatures",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "main.set_language",
+      "path": "/set-language/<lang_code>",
       "methods": [
         "GET",
         "HEAD",

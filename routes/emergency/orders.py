@@ -21,9 +21,7 @@ from services.prescription_service import prescription_service
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
 
-# =============================================
 # ORDERS ROUTES
-# =============================================
 
 
 def _resolve_emergency_medication(name, tenant_id):

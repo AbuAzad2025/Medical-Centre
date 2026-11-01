@@ -18,9 +18,7 @@ from routes.radiology import (
 )
 from utils.decorators import role_required
 
-# =============================================
 # TEMPLATES ROUTES
-# =============================================
 
 
 @radiology_bp.route('/api/report-templates', methods=['GET'])

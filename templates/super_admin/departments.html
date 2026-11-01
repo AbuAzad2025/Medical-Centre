@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}إدارة الأقسام - السوبر أدمن{% endblock %}
+{% block title %}{{ _('إدارة الأقسام') }} - {{ _('السوبر أدمن') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('إدارة الأقسام', subtitle='إدارة وتنظيم جميع أقسام المركز الصحي', icon='fas fa-building', actions=[
-        {'type': 'button', 'label': 'إضافة قسم جديد', 'icon': 'fas fa-plus', 'data_bs_toggle': 'modal', 'data_bs_target': '#addDepartmentModal', 'style': 'primary'},
-        {'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-download', 'data_action': 'export-departments', 'style': 'success'}
+    {{ page_header(_('إدارة الأقسام'), subtitle=_('إدارة وتنظيم جميع أقسام المركز الصحي'), icon='fas fa-building', actions=[
+        {'type': 'button', 'label': _('إضافة قسم جديد'), 'icon': 'fas fa-plus', 'data_bs_toggle': 'modal', 'data_bs_target': '#addDepartmentModal', 'style': 'primary'},
+        {'type': 'button', 'label': _('تصدير'), 'icon': 'fas fa-download', 'data_action': 'export-departments', 'style': 'success'}
     ]) }}
 
     <!-- Statistics Cards -->
@@ -18,7 +18,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                                إجمالي الأقسام
+                                {{ _('إجمالي الأقسام') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ departments|length }}</div>
                         </div>
@@ -36,7 +36,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                                الأقسام النشطة
+                                {{ _('الأقسام النشطة') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">
                                 {{ departments|selectattr('is_active', 'equalto', true)|list|length }}

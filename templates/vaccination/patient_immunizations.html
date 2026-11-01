@@ -2,12 +2,12 @@
 {% block title %}سجل التطعيمات — <bdi>{{ patient.full_name }}</bdi>{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">سجل التطعيمات — <bdi>{{ patient.full_name }}</bdi></h2>
+  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("سجل التطعيمات —")")")")")")")') }} <bdi>{{ patient.full_name }}</bdi></h2>
   <div class="card">
-    <div class="card-header">التطعيمات المُعطاة</div>
+    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("التطعيمات المُعطاة")")")")")")")') }}</div>
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>التاريخ</th><th>اللقاح</th><th>الجرعة</th><th>الموقع</th><th>الحالة</th></tr></thead>
+        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("اللقاح")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الجرعة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الموقع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th></tr></thead>
         <tbody>
         {% for i in immunizations %}
           <tr>
@@ -18,7 +18,7 @@
             <td><span class="badge bg-success">{{ i.status | enum_label }}</span></td>
           </tr>
         {% else %}
-          <tr><td colspan="5" class="text-muted text-center">لا يوجد تطعيمات</td></tr>
+          <tr><td colspan="5" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد تطعيمات")")")")")")")') }}</td></tr>
         {% endfor %}
         </tbody>
       </table>
@@ -26,10 +26,10 @@
   </div>
   {% if upcoming %}
   <div class="card mt-3">
-    <div class="card-header">المواعيد القادمة</div>
+    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("المواعيد القادمة")")")")")")")') }}</div>
     <div class="card-body">
       <table class="table table-sm">
-        <thead><tr><th>اللقاح</th><th>الجرعة القادمة</th><th>تاريخ الاستحقاق</th></tr></thead>
+        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("اللقاح")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الجرعة القادمة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الاستحقاق")")")")")")")') }}</th></tr></thead>
         <tbody>
         {% for u in upcoming %}
           <tr>

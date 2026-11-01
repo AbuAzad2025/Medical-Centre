@@ -7,19 +7,19 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h1 class="h3 mb-0"><i class="fas fa-plug me-2"></i>إدارة التكاملات</h1>
-            <p class="text-muted">إدارة التكاملات الخارجية والخدمات الخارجية للمنصة</p>
+            <h1 class="h3 mb-0"><i class="fas fa-plug me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إدارة التكاملات")")")")")")")') }}</h1>
+            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إدارة التكاملات الخارجية والخدمات الخارجية للمنصة")")")")")")")') }}</p>
         </div>
         <div class="col-auto">
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addIntegrationModal">
-                <i class="fas fa-plus me-1"></i>إضافة تكامل جديد
+                <i class="fas fa-plus me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("إضافة تكامل جديد")")")")")")")') }}
             </button>
         </div>
     </div>
 
     <div class="card mb-4">
         <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-plug me-2"></i>التكاملات المسجلة</h5>
+            <h5 class="mb-0"><i class="fas fa-plug me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("التكاملات المسجلة")")")")")")")') }}</h5>
         </div>
         <div class="card-body">
             {% if integrations %}
@@ -27,12 +27,12 @@
                 <table class="table table-hover table-striped">
                     <thead class="table-dark">
                         <tr>
-                            <th>الاسم</th>
-                            <th>النوع</th>
-                            <th>البيئة</th>
-                            <th>الحالة</th>
-                            <th>تاريخ الإنشاء</th>
-                            <th>الإجراءات</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("البيئة")")")")")")")') }}</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإنشاء")")")")")")")') }}</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -47,9 +47,9 @@
                             </td>
                             <td>
                                 {% if integration.active %}
-                                <span class="badge bg-success">نشط</span>
+                                <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span>
                                 {% else %}
-                                <span class="badge bg-secondary">غير نشط</span>
+                                <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("غير نشط")")")")")")")') }}</span>
                                 {% endif %}
                             </td>
                             <td>{{ integration.created_at }}</td>
@@ -70,8 +70,8 @@
             {% else %}
             <div class="text-center py-5">
                 <i class="fas fa-plug fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">لا توجد تكاملات مسجلة</h5>
-                <p class="text-muted">ابدأ بإضافة تكامل جديد</p>
+                <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد تكاملات مسجلة")")")")")")")') }}</h5>
+                <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("ابدأ بإضافة تكامل جديد")")")")")")")') }}</p>
             </div>
             {% endif %}
         </div>
@@ -82,7 +82,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-plug me-2"></i>إضافة تكامل جديد</h5>
+                    <h5 class="modal-title"><i class="fas fa-plug me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إضافة تكامل جديد")")")")")")")') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form method="POST" action="{{ url_for('owner.owner_integrations') }}">
@@ -90,45 +90,45 @@
                     <div class="modal-body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">الاسم <span class="text-danger">*</span></label>
-                                <input type="text" name="name" class="form-control" required placeholder="مثال: بوابة الدفع">
+                                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }} <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control" required placeholder="_(" _(" _(" _(" _(" _("مثال: بوابة الدفع")")")")")")">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">النوع <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }} <span class="text-danger">*</span></label>
                                 <select name="type" class="form-select" required>
-                                    <option value="payment">الدفع (Payment)</option>
-                                    <option value="shipping">الشحن (Shipping)</option>
-                                    <option value="sms">الرسائل النصية (SMS)</option>
-                                    <option value="email">البريد الإلكتروني (Email)</option>
-                                    <option value="cloud">التخزين السحابي (Cloud Storage)</option>
-                                    <option value="analytics">التحليلات (Analytics)</option>
-                                    <option value="other">أخرى</option>
+                                    <option value="payment">{{ _('_("_(" _(" _(" _(" _(" _("الدفع (Payment)")")")")")")")') }}</option>
+                                    <option value="shipping">{{ _('_("_(" _(" _(" _(" _(" _("الشحن (Shipping)")")")")")")")') }}</option>
+                                    <option value="sms">{{ _('_("_(" _(" _(" _(" _(" _("الرسائل النصية (SMS)")")")")")")")') }}</option>
+                                    <option value="email">{{ _('_("_(" _(" _(" _(" _(" _("البريد الإلكتروني (Email)")")")")")")")') }}</option>
+                                    <option value="cloud">{{ _('_("_(" _(" _(" _(" _(" _("التخزين السحابي (Cloud Storage)")")")")")")")') }}</option>
+                                    <option value="analytics">{{ _('_("_(" _(" _(" _(" _(" _("التحليلات (Analytics)")")")")")")")') }}</option>
+                                    <option value="other">{{ _('_("_(" _(" _(" _(" _(" _("أخرى")")")")")")")') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">البيئة <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("البيئة")")")")")")")') }} <span class="text-danger">*</span></label>
                                 <select name="environment" class="form-select" required>
                                     <option value="sandbox">Sandbox / Test</option>
                                     <option value="production">Production</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">مفتاح API (API Key)</label>
+                                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("مفتاح API (API Key)")")")")")")")') }}</label>
                                 <input type="text" name="api_key" class="form-control" placeholder="sk_test_...">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">مفتاح سري (Secret Key)</label>
+                                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("مفتاح سري (Secret Key)")")")")")")")') }}</label>
                                 <input type="password" name="secret_key" class="form-control" placeholder="sk_...">
                             </div>
                             <div class="col-12">
-                                <label class="form-label">الوصف</label>
-                                <textarea name="description" class="form-control" rows="3" placeholder="وصف التكامل والغرض منه"></textarea>
+                                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</label>
+                                <textarea name="description" class="form-control" rows="3" placeholder="_(" _(" _(" _(" _(" _("وصف التكامل والغرض منه")")")")")")"></textarea>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                        <button type="submit" class="btn btn-primary">حفظ التكامل</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("حفظ التكامل")")")")")")")') }}</button>
                     </div>
                 </form>
             </div>

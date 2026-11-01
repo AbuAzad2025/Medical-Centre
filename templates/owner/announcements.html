@@ -5,10 +5,10 @@
 {% block header_actions %}
 <div class="d-flex gap-2">
     <button class="owner-btn owner-btn-success" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
-        <i class="fas fa-plus"></i> إعلان جديد
+        <i class="fas fa-plus"></i> {{ _('_("_(" _(" _(" _(" _(" _("إعلان جديد")")")")")")")') }}
     </button>
     <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
-        <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+        <i class="fas fa-arrow-right"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة للوحة التحكم")")")")")")")') }}
     </a>
 </div>
 {% endblock %}
@@ -18,7 +18,7 @@
     <!-- Announcement Feed -->
     <div class="col-lg-8 animate-fadeInUp delay-1">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0"><i class="fas fa-stream text-primary me-2"></i>سجل الإعلانات والتعميمات</h5>
+            <h5 class="fw-bold mb-0"><i class="fas fa-stream text-primary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("سجل الإعلانات والتعميمات")")")")")")")') }}</h5>
             <div class="d-flex gap-2">
                 <button class="owner-btn owner-btn-sm owner-btn-outline" onclick="location.reload()">
                     <i class="fas fa-sync-alt"></i>
@@ -49,12 +49,12 @@
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-lg">
-                                    <li><a class="dropdown-item small" href="#"><i class="fas fa-eye me-2 text-muted"></i> معاينة</a></li>
+                                    <li><a class="dropdown-item small" href="#"><i class="fas fa-eye me-2 text-muted"></i> {{ _('_("_(" _(" _(" _(" _(" _("معاينة")")")")")")")') }}</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <form method="post" action="{{ url_for('owner.owner_delete_announcement', announcement_id=a.id) }}" onsubmit="return confirm('هل أنت متأكد من حذف هذا الإعلان نهائياً؟');">
+                                        <form method="post" action="{{ url_for('owner.owner_delete_announcement', announcement_id=a.id) }}" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("هل أنت متأكد من حذف هذا الإعلان نهائياً؟")")")")")")")');">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="dropdown-item text-danger small"><i class="fas fa-trash me-2"></i> حذف</button>
+                                            <button type="submit" class="dropdown-item text-danger small"><i class="fas fa-trash me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</button>
                                         </form>
                                     </li>
                                 </ul>
@@ -68,8 +68,8 @@
             <div class="owner-card py-5 text-center">
                 <div class="owner-empty py-5">
                     <i class="fas fa-bullhorn fa-3x text-muted opacity-25"></i>
-                    <h5 class="mt-3">لا توجد إعلانات حالية</h5>
-                    <p class="small text-muted">ابدأ بنشر أول إعلان لمنصتك</p>
+                    <h5 class="mt-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد إعلانات حالية")")")")")")")') }}</h5>
+                    <p class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("ابدأ بنشر أول إعلان لمنصتك")")")")")")")') }}</p>
                 </div>
             </div>
             {% endfor %}
@@ -80,19 +80,19 @@
     <div class="col-lg-4 animate-fadeInUp delay-2">
         <div class="owner-card mb-4 owner-card-glass">
             <div class="owner-card-header">
-                <h6 class="owner-card-title"><i class="fas fa-chart-bar text-primary"></i> إحصائيات التواصل</h6>
+                <h6 class="owner-card-title"><i class="fas fa-chart-bar text-primary"></i> {{ _('_("_(" _(" _(" _(" _(" _("إحصائيات التواصل")")")")")")")') }}</h6>
             </div>
             <div class            class="owner-card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="small text-muted">إجمالي الإعلانات</span>
+                    <span class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي الإعلانات")")")")")")")') }}</span>
                     <span class="fw-bold">{{ announcements|length }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="small text-muted">إعلانات عاجلة (Danger)</span>
+                    <span class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إعلانات عاجلة (Danger)")")")")")")")') }}</span>
                     <span class="badge bg-danger-light text-danger">{{ announcements|selectattr('priority', 'equalto', 'danger')|list|length }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
-                    <span class="small text-muted">إعلانات تحذيرية (Warning)</span>
+                    <span class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إعلانات تحذيرية (Warning)")")")")")")")') }}</span>
                     <span class="badge bg-warning-light text-warning">{{ announcements|selectattr('priority', 'equalto', 'warning')|list|length }}</span>
                 </div>
             </div>
@@ -100,12 +100,12 @@
 
         <div class="owner-card">
             <div class="owner-card-header">
-                <h6 class="owner-card-title"><i class="fas fa-info-circle text-info"></i> نصيحة الإدارة</h6>
+                <h6 class="owner-card-title"><i class="fas fa-info-circle text-info"></i> {{ _('_("_(" _(" _(" _(" _(" _("نصيحة الإدارة")")")")")")")') }}</h6>
             </div>
             <div class="owner-card-body">
                 <div class="alert alert-info border-0 bg-info-light text-info small mb-0">
                     <i class="fas fa-lightbulb me-2"></i>
-                    استخدم الإعلانات "العاجلة" فقط للتنبيهات الأمنية أو حالات التوقف المفاجئ لجذب انتباه المستخدمين فوراً.
+                    {{ _('_("_(" _(" _(" _(" _(" _("استخدم الإعلانات \")")")")")")" _(" _(" _(" _(" _("العاجلة\")")")")")"_(" _(" _(" _(" _(" _(" فقط للتنبيهات الأمنية أو حالات التوقف المفاجئ لجذب انتباه المستخدمين فوراً.")")")")")")")') }}
                 </div>
             </div>
         </div>
@@ -119,48 +119,48 @@
             <form method="post" action="{{ url_for('owner.owner_announcements') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-paper-plane me-2 text-primary"></i>إنشاء إعلان جديد</h5>
+                    <h5 class="modal-title"><i class="fas fa-paper-plane me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("إنشاء إعلان جديد")")")")")")")') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12">
                             <div class="owner-form-group">
-                                <label class="owner-form-label">عنوان الإعلان</label>
-                                <input type="text" name="title" class="owner-input" placeholder="أدخل عنواناً جذاباً ومختصراً..." required>
+                                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("عنوان الإعلان")")")")")")")') }}</label>
+                                <input type="text" name="title" class="owner-input" placeholder="_(" _(" _(" _(" _(" _("أدخل عنواناً جذاباً ومختصراً...")")")")")")" required>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="owner-form-group">
-                                <label class="owner-form-label">محتوى الإعلان</label>
-                                <textarea name="content" class="owner-input" rows="5" placeholder="اكتب رسالتك هنا..." required></textarea>
+                                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("محتوى الإعلان")")")")")")")') }}</label>
+                                <textarea name="content" class="owner-input" rows="5" placeholder="_(" _(" _(" _(" _(" _("اكتب رسالتك هنا...")")")")")")" required></textarea>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="owner-form-group">
-                                <label class="owner-form-label">مستوى الأولوية</label>
+                                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("مستوى الأولوية")")")")")")")') }}</label>
                                 <select name="priority" class="owner-select">
-                                    <option value="info">عادي (Info)</option>
-                                    <option value="warning">تحذير (Warning)</option>
-                                    <option value="danger">عاجل جداً (Danger)</option>
+                                    <option value="info">{{ _('_("_(" _(" _(" _(" _(" _("عادي (Info)")")")")")")")') }}</option>
+                                    <option value="warning">{{ _('_("_(" _(" _(" _(" _(" _("تحذير (Warning)")")")")")")")') }}</option>
+                                    <option value="danger">{{ _('_("_(" _(" _(" _(" _(" _("عاجل جداً (Danger)")")")")")")")') }}</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="owner-form-group">
-                                <label class="owner-form-label">الجمهور المستهدف</label>
+                                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("الجمهور المستهدف")")")")")")")') }}</label>
                                 <select name="target_audience" class="owner-select">
-                                    <option value="all">الجميع (All Users)</option>
-                                    <option value="super_admin">مشرفي النظام فقط (Super Admins)</option>
-                                    <option value="managers">مدراء المنشآت فقط (Managers)</option>
+                                    <option value="all">{{ _('_("_(" _(" _(" _(" _(" _("الجميع (All Users)")")")")")")")') }}</option>
+                                    <option value="super_admin">{{ _('_("_(" _(" _(" _(" _(" _("مشرفي النظام فقط (Super Admins)")")")")")")")') }}</option>
+                                    <option value="managers">{{ _('_("_(" _(" _(" _(" _(" _("مدراء المنشآت فقط (Managers)")")")")")")")') }}</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="owner-btn owner-btn-outline" data-bs-dismiss="modal">إلغاء</button>
-                    <button type="submit" class="owner-btn owner-btn-primary">نشر الإعلان الآن</button>
+                    <button type="button" class="owner-btn owner-btn-outline" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
+                    <button type="submit" class="owner-btn owner-btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("نشر الإعلان الآن")")")")")")")') }}</button>
                 </div>
             </form>
         </div>

@@ -2,28 +2,28 @@
 {% block title %}ربط الحساب{% endblock %}
 {% block content %}
 <div class="portal-card p-4 mx-auto" style="max-width:520px">
-  <h3 class="mb-3"><i class="fas fa-link me-2 text-primary"></i>التحقق من هوية المريض</h3>
-  <p class="text-muted">للوصول إلى بوابة المريض، يجب ربط حسابك بملفك الطبي المسجّل في المركز.</p>
+  <h3 class="mb-3"><i class="fas fa-link me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("التحقق من هوية المريض")")")")")")")') }}</h3>
+  <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("للوصول إلى بوابة المريض، يجب ربط حسابك بملفك الطبي المسجّل في المركز.")")")")")")")') }}</p>
   <form method="post" class="mt-4">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="mb-3">
-      <label class="form-label" for="national_id">رقم الهوية</label>
-      <input type="text" class="form-control" id="national_id" name="national_id" placeholder="رقم الهوية الوطنية" aria-label="رقم الهوية">
+      <label class="form-label" for="national_id">{{ _('_("_(" _(" _(" _(" _(" _("رقم الهوية")")")")")")")') }}</label>
+      <input type="text" class="form-control" id="national_id" name="national_id" placeholder="_(" _(" _(" _(" _(" _("رقم الهوية الوطنية")")")")")")" aria-label="_(" _(" _(" _(" _(" _("رقم الهوية")")")")")")">
     </div>
     <div class="mb-3">
-      <label class="form-label" for="phone">رقم الهاتف</label>
-      <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}" placeholder="05xxxxxxxx" aria-label="رقم الهاتف">
-      <div class="form-text">أدخل الهوية أو الهاتف المسجّل في ملفك</div>
+      <label class="form-label" for="phone">{{ _('_("_(" _(" _(" _(" _(" _("رقم الهاتف")")")")")")")') }}</label>
+      <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}" placeholder="05xxxxxxxx" aria-label="_(" _(" _(" _(" _(" _("رقم الهاتف")")")")")")">
+      <div class="form-text">{{ _('أدخل الهوية أو الهاتف المسجّل في ملفك') }}</div>
     </div>
-    <button type="submit" class="btn btn-primary w-100">تحقق وربط الحساب</button>
+    <button type="submit" class="btn btn-primary w-100">{{ _('_("_(" _(" _(" _(" _(" _("تحقق وربط الحساب")")")")")")")') }}</button>
   </form>
   <hr class="my-4">
-  <p class="small text-muted mb-2">ليس لديك حساب مريض بعد؟</p>
+  <p class="small text-muted mb-2">{{ _('_("_(" _(" _(" _(" _(" _("ليس لديك حساب مريض بعد؟")")")")")")")') }}</p>
   <div class="d-flex flex-wrap gap-2">
     {% if module_active('appointments') %}
-    <a href="{{ url_for('booking.register') }}" class="btn btn-outline-primary btn-sm">إنشاء حساب وحجز</a>
+    <a href="{{ url_for('booking.register') }}" class="btn btn-outline-primary btn-sm">{{ _('_("_(" _(" _(" _(" _(" _("إنشاء حساب وحجز")")")")")")")') }}</a>
     {% endif %}    {% if module_active('appointments') %}
-    <a href="{{ url_for('booking.index') }}" class="btn btn-outline-secondary btn-sm">حجز موعد بدون تسجيل</a>
+    <a href="{{ url_for('booking.index') }}" class="btn btn-outline-secondary btn-sm">{{ _('_("_(" _(" _(" _(" _(" _("حجز موعد بدون تسجيل")")")")")")")') }}</a>
     {% endif %}  </div>
 </div>
 {% endblock %}

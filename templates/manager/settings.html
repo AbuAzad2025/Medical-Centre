@@ -12,7 +12,7 @@
                         <div class="col-md-8">
                             <h1 class="mb-2 text-white">
                                 <i class="fas fa-cogs me-3"></i>
-                                إعدادات المركز
+                                {{ _('_("_(" _(" _(" _(" _(" _("إعدادات المركز")")")")")")")') }}
                             </h1>
                             <p class="mb-0 text-white-50 fs-5">{{ tenant.name if tenant else '' }}</p>
                         </div>
@@ -27,24 +27,24 @@
             <ul class="nav nav-tabs nav-justified mb-4" id="settingsTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">
-                        <i class="fas fa-sliders-h me-2"></i>عام
+                        <i class="fas fa-sliders-h me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("عام")")")")")")")') }}
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     {% if platform_capability('sms_live') %}
                     <button class="nav-link" id="sms-tab" data-bs-toggle="tab" data-bs-target="#sms" type="button" role="tab">
-                        <i class="fas fa-comment-dots me-2"></i>الرسائل النصية
+                        <i class="fas fa-comment-dots me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الرسائل النصية")")")")")")")') }}
                     </button>
                     {% endif %}
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="lab-tab" data-bs-toggle="tab" data-bs-target="#lab" type="button" role="tab">
-                        <i class="fas fa-flask me-2"></i>المختبر
+                        <i class="fas fa-flask me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("المختبر")")")")")")")') }}
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="radiology-tab" data-bs-toggle="tab" data-bs-target="#radiology" type="button" role="tab">
-                        <i class="fas fa-x-ray me-2"></i>الأشعة
+                        <i class="fas fa-x-ray me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الأشعة")")")")")")")') }}
                     </button>
                 </li>
             </ul>
@@ -54,38 +54,38 @@
                 <div class="tab-pane fade show active" id="general" role="tabpanel">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="language" class="form-label">اللغة الافتراضية</label>
+                            <label for="language" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اللغة الافتراضية")")")")")")")') }}</label>
                             <select class="form-select" id="language">
-                                <option value="ar" {{ 'selected' if settings.get('general', {}).get('language') == 'ar' else '' }}>العربية</option>
+                                <option value="ar" {{ 'selected' if settings.get('general', {}).get('language') == 'ar' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("العربية")")")")")")")') }}</option>
                                 <option value="en" {{ 'selected' if settings.get('general', {}).get('language') == 'en' else '' }}>English</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="timezone" class="form-label">المنطقة الزمنية</label>
+                            <label for="timezone" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المنطقة الزمنية")")")")")")")') }}</label>
                             <select class="form-select" id="timezone">
-                                <option value="Asia/Gaza" {{ 'selected' if settings.get('general', {}).get('timezone', 'Asia/Gaza') == 'Asia/Gaza' else '' }}>آسيا/غزة (UTC+2)</option>
-                                <option value="Asia/Jerusalem" {{ 'selected' if settings.get('general', {}).get('timezone') == 'Asia/Jerusalem' else '' }}>آسيا/القدس (UTC+2)</option>
-                                <option value="Asia/Riyadh" {{ 'selected' if settings.get('general', {}).get('timezone') == 'Asia/Riyadh' else '' }}>آسيا/الرياض (UTC+3)</option>
+                                <option value="Asia/Gaza" {{ 'selected' if settings.get('general', {}).get('timezone', 'Asia/Gaza') == 'Asia/Gaza' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("آسيا/غزة (UTC+2)")")")")")")")') }}</option>
+                                <option value="Asia/Jerusalem" {{ 'selected' if settings.get('general', {}).get('timezone') == 'Asia/Jerusalem' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("آسيا/القدس (UTC+2)")")")")")")")') }}</option>
+                                <option value="Asia/Riyadh" {{ 'selected' if settings.get('general', {}).get('timezone') == 'Asia/Riyadh' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("آسيا/الرياض (UTC+3)")")")")")")")') }}</option>
                                 <option value="UTC" {{ 'selected' if settings.get('general', {}).get('timezone') == 'UTC' else '' }}>UTC</option>
                             </select>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="currency" class="form-label">العملة</label>
+                            <label for="currency" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("العملة")")")")")")")') }}</label>
                             <select class="form-select" id="currency">
-                                <option value="ILS" {{ 'selected' if settings.get('general', {}).get('currency', 'ILS') == 'ILS' else '' }}>شيكل (ILS)</option>
-                                <option value="SAR" {{ 'selected' if settings.get('general', {}).get('currency') == 'SAR' else '' }}>ريال سعودي (SAR)</option>
-                                <option value="USD" {{ 'selected' if settings.get('general', {}).get('currency') == 'USD' else '' }}>دولار (USD)</option>
-                                <option value="EUR" {{ 'selected' if settings.get('general', {}).get('currency') == 'EUR' else '' }}>يورو (EUR)</option>
+                                <option value="ILS" {{ 'selected' if settings.get('general', {}).get('currency', 'ILS') == 'ILS' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("شيكل (ILS)")")")")")")")') }}</option>
+                                <option value="SAR" {{ 'selected' if settings.get('general', {}).get('currency') == 'SAR' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("ريال سعودي (SAR)")")")")")")")') }}</option>
+                                <option value="USD" {{ 'selected' if settings.get('general', {}).get('currency') == 'USD' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("دولار (USD)")")")")")")")') }}</option>
+                                <option value="EUR" {{ 'selected' if settings.get('general', {}).get('currency') == 'EUR' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("يورو (EUR)")")")")")")")') }}</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="date_format" class="form-label">صيغة التاريخ</label>
+                            <label for="date_format" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("صيغة التاريخ")")")")")")")') }}</label>
                             <select class="form-select" id="date_format">
-                                <option value="dd/mm/yyyy" {{ 'selected' if settings.get('general', {}).get('date_format', 'dd/mm/yyyy') == 'dd/mm/yyyy' else '' }}>يوم/شهر/سنة</option>
-                                <option value="mm/dd/yyyy" {{ 'selected' if settings.get('general', {}).get('date_format') == 'mm/dd/yyyy' else '' }}>شهر/يوم/سنة</option>
-                                <option value="yyyy-mm-dd" {{ 'selected' if settings.get('general', {}).get('date_format') == 'yyyy-mm-dd' else '' }}>سنة-شهر-يوم</option>
+                                <option value="dd/mm/yyyy" {{ 'selected' if settings.get('general', {}).get('date_format', 'dd/mm/yyyy') == 'dd/mm/yyyy' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("يوم/شهر/سنة")")")")")")")') }}</option>
+                                <option value="mm/dd/yyyy" {{ 'selected' if settings.get('general', {}).get('date_format') == 'mm/dd/yyyy' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("شهر/يوم/سنة")")")")")")")') }}</option>
+                                <option value="yyyy-mm-dd" {{ 'selected' if settings.get('general', {}).get('date_format') == 'yyyy-mm-dd' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("سنة-شهر-يوم")")")")")")")') }}</option>
                             </select>
                         </div>
                     </div>
@@ -98,13 +98,13 @@
                         <div class="col-md-6 mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="sms_enabled" {{ 'checked' if settings.get('sms', {}).get('enabled', False) else '' }}>
-                                <label class="form-check-label" for="sms_enabled">تفعيل إرسال الرسائل النصية</label>
+                                <label class="form-check-label" for="sms_enabled">{{ _('_("_(" _(" _(" _(" _(" _("تفعيل إرسال الرسائل النصية")")")")")")")') }}</label>
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="sms_provider" class="form-label">مزود الخدمة</label>
+                            <label for="sms_provider" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("مزود الخدمة")")")")")")")') }}</label>
                             <select class="form-select" id="sms_provider">
-                                <option value="log" {{ 'selected' if settings.get('sms', {}).get('provider', 'log') == 'log' else '' }}>تسجيل فقط (تجريبي)</option>
+                                <option value="log" {{ 'selected' if settings.get('sms', {}).get('provider', 'log') == 'log' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("تسجيل فقط (تجريبي)")")")")")")")') }}</option>
                                 <option value="twilio" {{ 'selected' if settings.get('sms', {}).get('provider') == 'twilio' else '' }}>Twilio</option>
                             </select>
                         </div>
@@ -121,12 +121,12 @@
                                 <label for="twilio_auth_token" class="form-label">Twilio Auth Token</label>
                                 <input type="password" class="form-control" id="twilio_auth_token"
                                        value="{{ settings.get('sms', {}).get('twilio_auth_token', '') }}"
-                                       placeholder="أدخل رمز التوثيق">
+                                       placeholder="_(" _(" _(" _(" _(" _("أدخل رمز التوثيق")")")")")")">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="twilio_phone_number" class="form-label">رقم المرسل</label>
+                                <label for="twilio_phone_number" class="form-label">{{ _('رقم المرسل') }}</label>
                                 <input type="text" class="form-control" id="twilio_phone_number" dir="ltr"
                                        value="{{ settings.get('sms', {}).get('twilio_phone_number', '') }}"
                                        placeholder="+12025551234">
@@ -134,7 +134,7 @@
                             <div class="col-md-6 mb-3 d-flex align-items-end">
                                 <button type="button" class="btn btn-outline-info" onclick="testSmsSettings()">
                                     <i class="fas fa-comment-dots me-2"></i>
-                                    إرسال رسالة تجريبية
+                                    {{ _('_("_(" _(" _(" _(" _(" _("إرسال رسالة تجريبية")")")")")")")') }}
                                 </button>
                             </div>
                         </div>
@@ -148,11 +148,11 @@
                         <div class="col-md-6 mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="lab_auto_generate" {{ 'checked' if settings.get('lab', {}).get('auto_generate_request_number', True) else '' }}>
-                                <label class="form-check-label" for="lab_auto_generate">ترقيم تلقائي للطلبات</label>
+                                <label class="form-check-label" for="lab_auto_generate">{{ _('_("_(" _(" _(" _(" _(" _("ترقيم تلقائي للطلبات")")")")")")")') }}</label>
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="lab_number_prefix" class="form-label">بادئة رقم الطلب</label>
+                            <label for="lab_number_prefix" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("بادئة رقم الطلب")")")")")")")') }}</label>
                             <input type="text" class="form-control" id="lab_number_prefix" dir="ltr"
                                    value="{{ settings.get('lab', {}).get('request_number_prefix', 'LAB-') }}"
                                    placeholder="LAB-">
@@ -160,26 +160,26 @@
                     </div>
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label for="lab_decimal_places" class="form-label">عدد المنازل العشرية للنتائج</label>
+                            <label for="lab_decimal_places" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("عدد المنازل العشرية للنتائج")")")")")")")') }}</label>
                             <input type="number" class="form-control" id="lab_decimal_places" min="0" max="6"
                                    value="{{ settings.get('lab', {}).get('result_decimal_places', 2) }}">
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="lab_default_status" class="form-label">الحالة الافتراضية للنتيجة</label>
+                            <label for="lab_default_status" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحالة الافتراضية للنتيجة")")")")")")")') }}</label>
                             <select class="form-select" id="lab_default_status">
-                                <option value="PENDING" {{ 'selected' if settings.get('lab', {}).get('default_result_status', 'PENDING') == 'PENDING' else '' }}>معلق</option>
-                                <option value="READY" {{ 'selected' if settings.get('lab', {}).get('default_result_status') == 'READY' else '' }}>جاهز</option>
+                                <option value="PENDING" {{ 'selected' if settings.get('lab', {}).get('default_result_status', 'PENDING') == 'PENDING' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("معلق")")")")")")")') }}</option>
+                                <option value="READY" {{ 'selected' if settings.get('lab', {}).get('default_result_status') == 'READY' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("جاهز")")")")")")")') }}</option>
                             </select>
                         </div>
                         <div class="col-md-4 mb-3 d-flex align-items-end">
                             <div class="w-100">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="lab_critical_notify" {{ 'checked' if settings.get('lab', {}).get('critical_result_notification', True) else '' }}>
-                                    <label class="form-check-label" for="lab_critical_notify">إشعار بالنتائج الحرجة</label>
+                                    <label class="form-check-label" for="lab_critical_notify">{{ _('_("_(" _(" _(" _(" _(" _("إشعار بالنتائج الحرجة")")")")")")")') }}</label>
                                 </div>
                                 <div class="form-check form-switch mt-2">
                                     <input class="form-check-input" type="checkbox" id="lab_critical_sms" {{ 'checked' if settings.get('lab', {}).get('critical_result_sms', False) else '' }}>
-                                    <label class="form-check-label" for="lab_critical_sms">إرسال SMS للنتائج الحرجة</label>
+                                    <label class="form-check-label" for="lab_critical_sms">{{ _('_("_(" _(" _(" _(" _(" _("إرسال SMS للنتائج الحرجة")")")")")")")') }}</label>
                                 </div>
                             </div>
                         </div>
@@ -192,11 +192,11 @@
                         <div class="col-md-6 mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="rad_auto_generate" {{ 'checked' if settings.get('radiology', {}).get('auto_generate_request_number', True) else '' }}>
-                                <label class="form-check-label" for="rad_auto_generate">ترقيم تلقائي للطلبات</label>
+                                <label class="form-check-label" for="rad_auto_generate">{{ _('_("_(" _(" _(" _(" _(" _("ترقيم تلقائي للطلبات")")")")")")")') }}</label>
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="rad_number_prefix" class="form-label">بادئة رقم الطلب</label>
+                            <label for="rad_number_prefix" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("بادئة رقم الطلب")")")")")")")') }}</label>
                             <input type="text" class="form-control" id="rad_number_prefix" dir="ltr"
                                    value="{{ settings.get('radiology', {}).get('request_number_prefix', 'RAD-') }}"
                                    placeholder="RAD-">
@@ -204,26 +204,26 @@
                     </div>
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label for="rad_default_modality" class="form-label">الفحص الافتراضي</label>
+                            <label for="rad_default_modality" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الفحص الافتراضي")")")")")")")') }}</label>
                             <select class="form-select" id="rad_default_modality">
-                                <option value="XRay" {{ 'selected' if settings.get('radiology', {}).get('default_modality', 'XRay') == 'XRay' else '' }}>أشعة سينية</option>
-                                <option value="CT" {{ 'selected' if settings.get('radiology', {}).get('default_modality') == 'CT' else '' }}>مقطعي</option>
-                                <option value="MRI" {{ 'selected' if settings.get('radiology', {}).get('default_modality') == 'MRI' else '' }}>رنين مغناطيسي</option>
-                                <option value="US" {{ 'selected' if settings.get('radiology', {}).get('default_modality') == 'US' else '' }}>موجات صوتية</option>
-                                <option value="Mammo" {{ 'selected' if settings.get('radiology', {}).get('default_modality') == 'Mammo' else '' }}>ماموغرام</option>
+                                <option value="XRay" {{ 'selected' if settings.get('radiology', {}).get('default_modality', 'XRay') == 'XRay' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("أشعة سينية")")")")")")")') }}</option>
+                                <option value="CT" {{ 'selected' if settings.get('radiology', {}).get('default_modality') == 'CT' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("مقطعي")")")")")")")') }}</option>
+                                <option value="MRI" {{ 'selected' if settings.get('radiology', {}).get('default_modality') == 'MRI' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("رنين مغناطيسي")")")")")")")') }}</option>
+                                <option value="US" {{ 'selected' if settings.get('radiology', {}).get('default_modality') == 'US' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("موجات صوتية")")")")")")")') }}</option>
+                                <option value="Mammo" {{ 'selected' if settings.get('radiology', {}).get('default_modality') == 'Mammo' else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("ماموغرام")")")")")")")') }}</option>
                             </select>
                         </div>
                         <div class="col-md-4 mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="rad_pacs_enabled" {{ 'checked' if settings.get('radiology', {}).get('pacs_enabled', False) else '' }}>
-                                <label class="form-check-label" for="rad_pacs_enabled">ربط مع PACS</label>
+                                <label class="form-check-label" for="rad_pacs_enabled">{{ _('_("_(" _(" _(" _(" _(" _("ربط مع PACS")")")")")")")') }}</label>
                             </div>
                         </div>
                     </div>
                     <div id="pacsSettings" class="{{ 'd-block' if settings.get('radiology', {}).get('pacs_enabled', False) else 'd-none' }}">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="rad_pacs_url" class="form-label">رابط خادم PACS</label>
+                                <label for="rad_pacs_url" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رابط خادم PACS")")")")")")")') }}</label>
                                 <input type="text" class="form-control" id="rad_pacs_url" dir="ltr"
                                        value="{{ settings.get('radiology', {}).get('pacs_server_url', '') }}"
                                        placeholder="http://pacs.example.com:8042">
@@ -243,7 +243,7 @@
                 <div class="col-12 text-center">
                     <button class="btn btn-success btn-lg px-5" onclick="saveSettings()">
                         <i class="fas fa-save me-2"></i>
-                        حفظ الإعدادات
+                        {{ _('_("_(" _(" _(" _(" _(" _("حفظ الإعدادات")")")")")")")') }}
                     </button>
                 </div>
             </div>

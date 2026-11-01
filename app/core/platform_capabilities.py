@@ -54,6 +54,5 @@ def require_platform_capability(cap: str) -> Callable:
 
 def guard_platform_capability(cap: str) -> None:
     from flask import abort
-
     if not platform_capability(cap):
         abort(404)

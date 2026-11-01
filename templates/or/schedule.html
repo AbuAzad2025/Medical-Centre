@@ -2,11 +2,11 @@
 {% block title %}جدولة العمليات{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">جدولة العمليات <span class="badge bg-secondary">{{ status }}</span></h2>
+  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("جدولة العمليات")")")")")")")') }} <span class="badge bg-secondary">{{ status }}</span></h2>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>التاريخ</th><th>المريض</th><th>الإجراء</th><th>الغرفة</th><th>الجراح</th><th>الحالة</th><th></th></tr></thead>
+        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الغرفة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الجراح")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th></th></tr></thead>
         <tbody>
         {% for s in surgeries %}
           <tr>
@@ -16,10 +16,10 @@
             <td>{{ s.or_room or '-' }}</td>
             <td>{{ s.surgeon.full_name if s.surgeon else '-' }}</td>
             <td><span class="badge bg-{% if s.status=='COMPLETED' %}success{% elif s.status=='IN_PROGRESS' %}primary{% elif s.status=='CANCELLED' %}danger{% else %}warning{% endif %}">{{ s.status | enum_label }}</span></td>
-            <td><a href="{{ url_for('or.surgery_detail', surgery_id=s.id) }}" class="btn btn-sm btn-outline-primary">عرض</a></td>
+            <td><a href="{{ url_for('or.surgery_detail', surgery_id=s.id) }}" class="btn btn-sm btn-outline-primary">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</a></td>
           </tr>
         {% else %}
-          <tr><td colspan="7" class="text-muted text-center">لا يوجد عمليات مجدولة</td></tr>
+          <tr><td colspan="7" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد عمليات مجدولة")")")")")")")') }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

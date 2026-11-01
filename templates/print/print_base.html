@@ -33,13 +33,13 @@
         <section class="print-signatures">{% block signatures %}
 {% if current_user and current_user.is_authenticated and current_user.digital_signature %}
 <div class="print-signature-box">
-    <img src="{{ current_user.digital_signature }}" alt="{{ _('توقيع') }}" class="print-signature-img">
+    <img src="{{ current_user.digital_signature }}" alt="{{ _('_("_(" _(" _(" _(" _(" _("توقيع")")")")")")")') }}" class="print-signature-img">
     <div class="print-signature-label">{{ current_user.full_name }}</div>
 </div>
 {% else %}
 <div class="print-signature-box">
     <div class="print-signature-line"></div>
-    <div class="print-signature-label">{% block signature_label %}{{ _('التوقيع') }}{% endblock %}</div>
+    <div class="print-signature-label">{% block signature_label %}{{ _('_("_(" _(" _(" _(" _(" _("التوقيع")")")")")")")') }}{% endblock %}</div>
 </div>
 {% endif %}
 {% endblock %}</section>
@@ -50,7 +50,7 @@
   {% if qr_data_uri %}
   <div class="print-qr-section" style="text-align: center;">
     <img src="{{ qr_data_uri }}" alt="QR Verification" class="print-qr-img" style="width: 80px; height: 80px; image-rendering: pixelated;">
-    <div class="print-qr-label" style="font-size: 0.7rem; color: var(--print-muted); margin-top: 0.25rem;">{{ _('رمز التحقق') }}</div>
+    <div class="print-qr-label" style="font-size: 0.7rem; color: var(--print-muted); margin-top: 0.25rem;">{{ _('_("_(" _(" _(" _(" _(" _("رمز التحقق")")")")")")")') }}</div>
   </div>
   {% endif %}
   {% if barcode_data_uri %}
@@ -63,7 +63,7 @@
 {% elif qr_data_uri %}
 <div class="print-qr-section">
     <img src="{{ qr_data_uri }}" alt="QR" class="print-qr-img">
-    <div class="print-qr-label">{{ _('رمز التحقق') }}</div>
+    <div class="print-qr-label">{{ _('_("_(" _(" _(" _(" _(" _("رمز التحقق")")")")")")")') }}</div>
 </div>
 {% endif %}
 {% endblock %}

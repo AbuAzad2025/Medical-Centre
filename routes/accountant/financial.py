@@ -19,9 +19,7 @@ from routes.accountant import accountant_bp
 from services.gl_service import gl_service
 from utils.decorators import role_required
 
-# =============================================
 # FINANCIAL ROUTES
-# =============================================
 
 
 @accountant_bp.route('/financial-report')

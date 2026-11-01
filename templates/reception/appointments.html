@@ -2,38 +2,38 @@
 {% from 'partials/_breadcrumbs.html' import breadcrumb_nav %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}قائمة المواعيد - الاستقبال{% endblock %}
+{% block title %}{{ _('قائمة المواعيد') }} - {{ _('الاستقبال') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     {% set hdr_actions = [] %}
     {% if current_user.is_authenticated and has_permission('patient_create') %}
-        {% set _ = hdr_actions.append({'type': 'button', 'label': 'موعد جديد', 'icon': 'fas fa-plus', 'data_action': 'new-appointment', 'style': 'primary'}) %}
+        {% set dummy = hdr_actions.append({'type': 'button', 'label': _('موعد جديد'), 'icon': 'fas fa-plus', 'data_action': 'new-appointment', 'style': 'primary'}) %}
     {% endif %}
-    {% set _ = hdr_actions.append({'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-file-excel', 'data_action': 'export-appointments', 'style': 'success'}) %}
-    {{ page_header('قائمة المواعيد', subtitle='إدارة شاملة لمواعيد المرضى', icon='fas fa-calendar-check', actions=hdr_actions) }}
+    {% set dummy = hdr_actions.append({'type': 'button', 'label': _('تصدير'), 'icon': 'fas fa-file-excel', 'data_action': 'export-appointments', 'style': 'success'}) %}
+    {{ page_header(_('قائمة المواعيد'), subtitle=_('إدارة شاملة لمواعيد المرضى'), icon='fas fa-calendar-check', actions=hdr_actions) }}
 
     <!-- Search and Filters -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">البحث والتصفية</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('البحث والتصفية') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-3">
                             <div>
-                                <label for="searchInput" class="form-label">البحث</label>
+                                <label for="searchInput" class="form-label">{{ _('البحث') }}</label>
                                 <input type="text" class="form-control" id="searchInput"
-                                       placeholder="ابحث بالاسم أو رقم الموعد" value="{{ search or '' }}">
+                                       placeholder="{{ _('ابحث بالاسم أو رقم الموعد') }}" value="{{ search or '' }}">
                             </div>
                         </div>
                         <div class="col-md-2">
                             <div>
-                                <label for="departmentFilter" class="form-label">القسم</label>
+                                <label for="departmentFilter" class="form-label">{{ _('القسم') }}</label>
                                 <select class="form-control" id="departmentFilter">
-                                    <option value="">جميع الأقسام</option>
+                                    <option value="">{{ _('جميع الأقسام') }}</option>
                                     {% for dept in departments %}
                                     <option value="{{ dept.id }}" {% if selected_department == dept.id %}selected{% endif %}>{{ dept.name_ar }}</option>
                                     {% endfor %}
@@ -42,22 +42,22 @@
                         </div>
                         <div class="col-md-2">
                             <div>
-                                <label for="statusFilter" class="form-label">الحالة</label>
+                                <label for="statusFilter" class="form-label">{{ _('الحالة') }}</label>
                                 <select class="form-control" id="statusFilter">
-                                    <option value="">جميع الحالات</option>
-                                    <option value="SCHEDULED" {% if selected_status == 'SCHEDULED' %}selected{% endif %}>مجدول</option>
-                                    <option value="CONFIRMED" {% if selected_status == 'CONFIRMED' %}selected{% endif %}>مؤكد</option>
-                                    <option value="CANCELLED" {% if selected_status == 'CANCELLED' %}selected{% endif %}>ملغي</option>
-                                    <option value="DONE" {% if selected_status == 'DONE' %}selected{% endif %}>مكتمل</option>
-                                    <option value="NO_SHOW" {% if selected_status == 'NO_SHOW' %}selected{% endif %}>لم يحضر</option>
+                                    <option value="">{{ _('جميع الحالات') }}</option>
+                                    <option value="SCHEDULED" {% if selected_status == 'SCHEDULED' %}selected{% endif %}>{{ _('مجدول') }}</option>
+                                    <option value="CONFIRMED" {% if selected_status == 'CONFIRMED' %}selected{% endif %}>{{ _('مؤكد') }}</option>
+                                    <option value="CANCELLED" {% if selected_status == 'CANCELLED' %}selected{% endif %}>{{ _('ملغي') }}</option>
+                                    <option value="DONE" {% if selected_status == 'DONE' %}selected{% endif %}>{{ _('مكتمل') }}</option>
+                                    <option value="NO_SHOW" {% if selected_status == 'NO_SHOW' %}selected{% endif %}>{{ _('لم يحضر') }}</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-2">
                             <div>
-                                <label for="doctorFilter" class="form-label">الطبيب</label>
+                                <label for="doctorFilter" class="form-label">{{ _('الطبيب') }}</label>
                                 <select class="form-control" id="doctorFilter">
-                                    <option value="">جميع الأطباء</option>
+                                    <option value="">{{ _('جميع الأطباء') }}</option>
                                     {% for doc in doctors %}
                                     <option value="{{ doc.id }}" {% if selected_doctor == doc.id %}selected{% endif %}>{{ doc.full_name }}</option>
                                     {% endfor %}
@@ -66,13 +66,13 @@
                         </div>
                         <div class="col-md-2">
                             <div>
-                                <label for="dateFilter" class="form-label">التاريخ</label>
+                                <label for="dateFilter" class="form-label">{{ _('التاريخ') }}</label>
                                 <input type="date" class="form-control" id="dateFilter" value="{{ selected_date or '' }}">
                             </div>
                         </div>
                         <div class="col-md-1">
                             <div>
-                                <label for="perPageFilter" class="form-label">لكل صفحة</label>
+                                <label for="perPageFilter" class="form-label">{{ _('لكل صفحة') }}</label>
                                 <select class="form-control" id="perPageFilter">
                                     {% for n in [10, 25, 50, 100, 200] %}
                                     <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>

@@ -51,7 +51,7 @@ def get_model_columns():
         return columns_info
 
 
-def parse_template_forms(template_path: Path) -> list[dict]:
+def parse_template_forms(template_path: Path) -> list[dict[str, object]]:
     """Parse a template file and extract form fields with their attributes."""
     content = template_path.read_text(encoding='utf-8', errors='ignore')
     forms = []
@@ -66,7 +66,7 @@ def parse_template_forms(template_path: Path) -> list[dict]:
         method = method_match.group(1).upper() if method_match else 'GET'
 
         # Extract inputs, selects, textareas
-        fields = []
+        fields: list[dict[str, object]] = []
 
         # <input> fields
         for inp in re.finditer(r'<input[^>]*>', form_html, re.IGNORECASE):

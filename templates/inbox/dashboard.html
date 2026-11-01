@@ -6,8 +6,8 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div>
-                    <h4 class="mb-1"><i class="fas fa-inbox me-2 text-primary"></i>صندوق العمل الموحد</h4>
-                    <p class="mb-0 text-muted">مهام قابلة للتنفيذ حسب دورك وحالة سير العمل (VSM)</p>
+                    <h4 class="mb-1"><i class="fas fa-inbox me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("صندوق العمل الموحد")")")")")")")') }}</h4>
+                    <p class="mb-0 text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مهام قابلة للتنفيذ حسب دورك وحالة سير العمل (VSM)")")")")")")")') }}</p>
                 </div>
                 <span class="badge bg-primary fs-6">{{ items|length }} مهمة</span>
             </div>
@@ -18,12 +18,12 @@
 <div class="row mb-3">
     <div class="col-12">
         <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-sm {% if not filter_type %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard') }}">الكل</a>
-            <a class="btn btn-sm {% if filter_type == 'visit' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='visit') }}">زيارات</a>
-            <a class="btn btn-sm {% if filter_type == 'appointment' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='appointment') }}">مواعيد</a>
-            <a class="btn btn-sm {% if filter_type == 'lab' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='lab') }}">مختبر</a>
-            <a class="btn btn-sm {% if filter_type == 'radiology' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='radiology') }}">أشعة</a>
-            <a class="btn btn-sm {% if filter_type == 'invoice' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='invoice') }}">فواتير</a>
+            <a class="btn btn-sm {% if not filter_type %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard') }}">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'visit' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='visit') }}">{{ _('_("_(" _(" _(" _(" _(" _("زيارات")")")")")")")') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'appointment' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='appointment') }}">{{ _('_("_(" _(" _(" _(" _(" _("مواعيد")")")")")")")') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'lab' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='lab') }}">{{ _('_("_(" _(" _(" _(" _(" _("مختبر")")")")")")")') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'radiology' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='radiology') }}">{{ _('_("_(" _(" _(" _(" _(" _("أشعة")")")")")")")') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'invoice' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='invoice') }}">{{ _('_("_(" _(" _(" _(" _(" _("فواتير")")")")")")")') }}</a>
         </div>
     </div>
 </div>
@@ -34,12 +34,12 @@
             <table class="table table-hover mb-0 align-middle clinical-table">
                 <thead class="table-light">
                     <tr>
-                        <th>النوع</th>
-                        <th>العنوان</th>
-                        <th>الوقت</th>
-                        <th>الحالة</th>
-                        <th>الأولوية</th>
-                        <th>إجراء</th>
+                        <th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
+                        <th>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</th>
+                        <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
+                        <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                        <th>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</th>
+                        <th>{{ _('_("_(" _(" _(" _(" _(" _("إجراء")")")")")")")') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,17 +52,17 @@
                         </td>
                         <td class="text-muted small">{{ item.time }}</td>
                         <td><span class="badge bg-light text-dark border">{{ item.status | enum_label }}</span></td>
-                        <td><span class="badge bg-{% if item.priority=='high' %}danger{% elif item.priority=='medium' %}warning{% else %}info{% endif %}">{{ 'عالية' if item.priority=='high' else 'متوسطة' if item.priority=='medium' else 'منخفضة' }}</span></td>
+                        <td><span class="badge bg-{% if item.priority=='high' %}danger{% elif item.priority=='medium' %}warning{% else %}info{% endif %}">{{ '_("_(" _(" _(" _(" _(" _("عالية")")")")")")")' if item.priority=='high' else '_("_(" _(" _(" _(" _(" _("متوسطة")")")")")")")' if item.priority=='medium' else '_("_(" _(" _(" _(" _(" _("منخفضة")")")")")")")' }}</span></td>
                         <td>
                             {% if item.link and item.entitled %}
-                            <a href="{{ item.link }}" class="btn btn-sm btn-primary">فتح</a>
+                            <a href="{{ item.link }}" class="btn btn-sm btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("فتح")")")")")")")') }}</a>
                             {% else %}
-                            <button class="btn btn-sm btn-outline-secondary" disabled title="غير متاح في باقتك"><i class="fas fa-lock"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" disabled title="_(" _(" _(" _(" _(" _("غير متاح في باقتك")")")")")")"><i class="fas fa-lock"></i></button>
                             {% endif %}
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="6"><div class="text-center text-muted py-5">لا توجد مهام معلّقة حالياً</div></td></tr>
+                    <tr><td colspan="6"><div class="text-center text-muted py-5">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مهام معلّقة حالياً")")")")")")")') }}</div></td></tr>
                     {% endfor %}
                 </tbody>
             </table>

@@ -4,10 +4,10 @@
 {% block title %}باقات الفحوصات المخبرية{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('باقات الفحوصات المخبرية', subtitle='إدارة باقات الفحوصات (CBC, Lipid Profile, LFT ...)', icon='fas fa-layer-group', actions=[
-      {'type': 'button', 'label': 'إضافة باقة', 'icon': 'fas fa-plus', 'data_bs_toggle': 'modal', 'data_bs_target': '#addModal', 'style': 'primary'},
-      {'label': 'الكتالوج', 'icon': 'fas fa-book', 'url': url_for('lab.test_catalog'), 'style': 'outline-primary'},
-      {'label': 'العودة', 'icon': 'fas fa-arrow-left', 'url': url_for('lab.dashboard'), 'style': 'secondary'}
+  {{ page_header('_("_(" _(" _(" _(" _(" _("باقات الفحوصات المخبرية")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة باقات الفحوصات (CBC, Lipid Profile, LFT ...)")")")")")")")', icon='fas fa-layer-group', actions=[
+      {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("إضافة باقة")")")")")")")', 'icon': 'fas fa-plus', 'data_bs_toggle': 'modal', 'data_bs_target': '#addModal', 'style': 'primary'},
+      {'label': '_("_(" _(" _(" _(" _(" _("الكتالوج")")")")")")")', 'icon': 'fas fa-book', 'url': url_for('lab.test_catalog'), 'style': 'outline-primary'},
+      {'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('lab.dashboard'), 'style': 'secondary'}
   ]) }}
 
   <div class="row">
@@ -17,26 +17,26 @@
         <div class="card-header d-flex justify-content-between align-items-center">
           <h6 class="m-0">{{ p.name_ar }}</h6>
           <span class="badge {% if p.is_active %}bg-success{% else %}bg-secondary{% endif %}">
-            {{ 'نشط' if p.is_active else 'غير نشط' }}
+            {{ '_("_(" _(" _(" _(" _(" _("نشط")")")")")")")' if p.is_active else '_("_(" _(" _(" _(" _(" _("غير نشط")")")")")")")' }}
           </span>
         </div>
         <div class="card-body">
           <p class="text-muted small mb-2">{{ p.name_en or '' }}</p>
-          <p class="small">{{ p.description or 'لا يوجد وصف' }}</p>
+          <p class="small">{{ p.description or '_("_(" _(" _(" _(" _(" _("لا يوجد وصف")")")")")")")' }}</p>
           <div class="small">
-            <strong>الفحوصات:</strong>
+            <strong>{{ _('_("_(" _(" _(" _(" _(" _("الفحوصات:")")")")")")")') }}</strong>
             <ul class="mb-0 ps-3 mt-1">
               {% for item in p.items %}
               <li>{{ item.test.code }} - {{ item.test.name_ar }}</li>
               {% else %}
-              <li class="text-muted">لا توجد فحوصات</li>
+              <li class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد فحوصات")")")")")")")') }}</li>
               {% endfor %}
             </ul>
           </div>
         </div>
         <div class="card-footer d-flex gap-2">
-          <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ p.id }}"><i class="fas fa-edit"></i> تعديل</button>
-<form method="post" action="{{ url_for('lab.test_panels_delete', id=p.id) }}" class="d-inline" onsubmit="return confirm('حذف الباقة؟')">
+          <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ p.id }}"><i class="fas fa-edit"></i> {{ _('_("_(" _(" _(" _(" _(" _("تعديل")")")")")")")') }}</button>
+<form method="post" action="{{ url_for('lab.test_panels_delete', id=p.id) }}" class="d-inline" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("حذف الباقة؟")")")")")")")')">
               {{ csrf() }}
               <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
             </form>
@@ -54,15 +54,15 @@
               {% include 'lab/test_panel_form_body.html' %}
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-              <button type="submit" class="btn btn-primary">حفظ</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
+              <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
             </div>
           </div>
         </form>
       </div>
     </div>
     {% else %}
-    <div class="col-12 text-center text-muted py-5">لا توجد باقات</div>
+    <div class="col-12 text-center text-muted py-5">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد باقات")")")")")")")') }}</div>
     {% endfor %}
   </div>
 </div>
@@ -72,15 +72,15 @@
     <form method="post" action="{{ url_for('lab.test_panels_add') }}">
       {{ csrf() }}
       <div class="modal-content">
-        <div class="modal-header"><h5>إضافة باقة جديدة</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header"><h5>{{ _('_("_(" _(" _(" _(" _(" _("إضافة باقة جديدة")")")")")")")') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
           {% with p=None %}
           {% include 'lab/test_panel_form_body.html' %}
           {% endwith %}
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn btn-primary">إضافة</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
+          <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("إضافة")")")")")")")') }}</button>
         </div>
       </div>
     </form>

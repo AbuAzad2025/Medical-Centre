@@ -3,41 +3,41 @@
 
 {% block content %}
 <div class="container-fluid">
-  <h4 class="mb-3"><i class="fas fa-right-left me-2 text-primary"></i>تسليم واستلام الشيفتات</h4>
+  <h4 class="mb-3"><i class="fas fa-right-left me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("تسليم واستلام الشيفتات")")")")")")")') }}</h4>
 
   <div class="card shadow-sm mb-3">
-    <div class="card-header">فتح شيفت جديد</div>
+    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("فتح شيفت جديد")")")")")")")') }}</div>
     <div class="card-body row g-2 align-items-end">
       <div class="col-md-3">
-        <label class="form-label small mb-1" for="ho-role">الدور</label>
+        <label class="form-label small mb-1" for="ho-role">{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</label>
         <select id="ho-role" class="form-select form-select-sm">
-          <option value="reception">استقبال</option>
-          <option value="nurse">تمريض</option>
-          <option value="pharmacist">صيدلية</option>
+          <option value="reception">{{ _('_("_(" _(" _(" _(" _(" _("استقبال")")")")")")")') }}</option>
+          <option value="nurse">{{ _('_("_(" _(" _(" _(" _(" _("تمريض")")")")")")")') }}</option>
+          <option value="pharmacist">{{ _('_("_(" _(" _(" _(" _(" _("صيدلية")")")")")")")') }}</option>
         </select>
       </div>
       <div class="col-md-3">
-        <label class="form-label small mb-1" for="ho-to">المستلم المعيّن (اختياري)</label>
-        <input type="number" id="ho-to" class="form-control form-control-sm" placeholder="رقم المستخدم">
+        <label class="form-label small mb-1" for="ho-to">{{ _('_("_(" _(" _(" _(" _(" _("المستلم المعيّن (اختياري)")")")")")")")') }}</label>
+        <input type="number" id="ho-to" class="form-control form-control-sm" placeholder="_(" _(" _(" _(" _(" _("رقم المستخدم")")")")")")">
       </div>
       <div class="col-md-4">
-        <label class="form-label small mb-1" for="ho-notes">ملاحظات الافتتاح</label>
+        <label class="form-label small mb-1" for="ho-notes">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات الافتتاح")")")")")")")') }}</label>
         <input type="text" id="ho-notes" class="form-control form-control-sm" maxlength="300" dir="auto">
       </div>
       <div class="col-md-2">
         <button class="btn btn-primary btn-sm w-100" id="ho-btn-open">
-          <i class="fas fa-play me-1"></i>فتح
+          <i class="fas fa-play me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("فتح")")")")")")")') }}
         </button>
       </div>
     </div>
   </div>
 
   <div class="card shadow-sm">
-    <div class="card-header"><i class="fas fa-list me-2"></i>سجل الشيفتات</div>
+    <div class="card-header"><i class="fas fa-list me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("سجل الشيفتات")")")")")")")') }}</div>
     <div class="table-responsive">
       <table class="table table-hover table-sm align-middle mb-0">
         <thead class="table-light">
-          <tr><th>#</th><th>الدور</th><th>الحالة</th><th>فُتح بواسطة</th><th>وقت الفتح</th><th>فرق الصندوق</th><th>إجراءات</th></tr>
+          <tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("فُتح بواسطة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("وقت الفتح")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("فرق الصندوق")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("إجراءات")")")")")")")') }}</th></tr>
         </thead>
         <tbody id="ho-rows">
           {% for s in shifts %}
@@ -45,9 +45,9 @@
             <td>{{ s.id }}</td>
             <td>{{ s.role }}</td>
             <td>
-              {% if s.status == 'OPEN' %}<span class="badge bg-warning text-dark">مفتوح</span>
-              {% elif s.status == 'CLOSED' %}<span class="badge bg-info text-dark">مغلق — بانتظار التأكيد</span>
-              {% else %}<span class="badge bg-success">مؤكد الاستلام</span>{% endif %}
+              {% if s.status == 'OPEN' %}<span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("مفتوح")")")")")")")') }}</span>
+              {% elif s.status == 'CLOSED' %}<span class="badge bg-info text-dark">{{ _('_("_(" _(" _(" _(" _(" _("مغلق — بانتظار التأكيد")")")")")")")') }}</span>
+              {% else %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مؤكد الاستلام")")")")")")")') }}</span>{% endif %}
             </td>
             <td>{{ s.opened_by_id }}</td>
             <td class="small">{{ s.opened_at }}</td>
@@ -58,19 +58,19 @@
             </td>
             <td class="text-nowrap">
               {% if s.status == 'OPEN' and current_user.id == s.opened_by_id %}
-                <button class="btn btn-outline-danger btn-sm btn-close-shift" data-id="{{ s.id }}">إغلاق</button>
+                <button class="btn btn-outline-danger btn-sm btn-close-shift" data-id="{{ s.id }}">{{ _('_("_(" _(" _(" _(" _(" _("إغلاق")")")")")")")') }}</button>
               {% elif s.status == 'CLOSED' and current_user.id == s.to_user_id %}
-                <button class="btn btn-success btn-sm btn-ack-shift" data-id="{{ s.id }}">تأكيد الاستلام</button>
+                <button class="btn btn-success btn-sm btn-ack-shift" data-id="{{ s.id }}">{{ _('_("_(" _(" _(" _(" _(" _("تأكيد الاستلام")")")")")")")') }}</button>
               {% endif %}
               {% if s.pending_items %}
                 <button class="btn btn-outline-secondary btn-sm" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#snap-{{ s.id }}">لقطات</button>
+                        data-bs-toggle="collapse" data-bs-target="#snap-{{ s.id }}">{{ _('_("_(" _(" _(" _(" _(" _("لقطات")")")")")")")') }}</button>
               {% endif %}
             </td>
           </tr>
           {% if s.pending_items %}
           <tr class="collapse" id="snap-{{ s.id }}"><td colspan="7" class="bg-light small">
-            <strong>لقطات مجمدة وقت الإغلاق:</strong>
+            <strong>{{ _('_("_(" _(" _(" _(" _(" _("لقطات مجمدة وقت الإغلاق:")")")")")")")') }}</strong>
             <ul class="mb-0 mt-1">
               <li>طابور منتظر: {{ s.pending_items.get('queue_waiting', {}).get('count', 0) }}</li>
               <li>مختبر معلق: {{ s.pending_items.get('pending_labs', {}).get('count', 0) }}</li>
@@ -80,7 +80,7 @@
           </td></tr>
           {% endif %}
           {% else %}
-          <tr><td colspan="7" class="text-center text-muted py-4">لا توجد شيفتات بعد — ابدأ بفتح شيفت جديد</td></tr>
+          <tr><td colspan="7" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد شيفتات بعد — ابدأ بفتح شيفت جديد")")")")")")")') }}</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -91,21 +91,21 @@
     <div class="modal-dialog"><div class="modal-content">
       <form id="close-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="modal-header"><h5 class="modal-title">إغلاق الشيفت #<span id="cm-id"></span></h5>
+        <div class="modal-header"><h5 class="modal-title">{{ _('_("_(" _(" _(" _(" _(" _("إغلاق الشيفت #")")")")")")")') }}<span id="cm-id"></span></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
           <div class="mb-2">
-            <label class="form-label small" for="cm-note">سبب الفرق في الصندوق (إلزامي عند وجود فرق)</label>
+            <label class="form-label small" for="cm-note">{{ _('_("_(" _(" _(" _(" _(" _("سبب الفرق في الصندوق (إلزامي عند وجود فرق)")")")")")")")') }}</label>
             <textarea id="cm-note" class="form-control" rows="2" maxlength="500" dir="auto"></textarea>
           </div>
           <div class="mb-1">
-            <label class="form-label small" for="cm-to">تحويل إلى مستخدم (اختياري، نفس الدور)</label>
-            <input type="number" id="cm-to" class="form-control form-control-sm" placeholder="رقم المستخدم">
+            <label class="form-label small" for="cm-to">{{ _('_("_(" _(" _(" _(" _(" _("تحويل إلى مستخدم (اختياري، نفس الدور)")")")")")")")') }}</label>
+            <input type="number" id="cm-to" class="form-control form-control-sm" placeholder="_(" _(" _(" _(" _(" _("رقم المستخدم")")")")")")">
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">تراجع</button>
-          <button type="submit" class="btn btn-danger btn-sm">تأكيد الإغلاق</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("تراجع")")")")")")")') }}</button>
+          <button type="submit" class="btn btn-danger btn-sm">{{ _('_("_(" _(" _(" _(" _(" _("تأكيد الإغلاق")")")")")")")') }}</button>
         </div>
       </form>
     </div></div>

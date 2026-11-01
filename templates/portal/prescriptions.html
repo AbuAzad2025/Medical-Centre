@@ -1,10 +1,10 @@
 {% extends "portal/base.html" %}
 {% block title %}الوصفات{% endblock %}
 {% block content %}
-<h4 class="mb-3">الوصفات الطبية</h4>
+<h4 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("الوصفات الطبية")")")")")")")') }}</h4>
 <div class="portal-card p-3">
   <table class="table table-hover">
-    <thead><tr><th>التاريخ</th><th>الحالة</th><th>الأدوية</th></tr></thead>
+    <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الأدوية")")")")")")")') }}</th></tr></thead>
     <tbody>
     {% for p in prescriptions %}
       <tr>
@@ -13,7 +13,7 @@
         <td>{{ p.items_count or 0 }}</td>
       </tr>
     {% else %}
-      <tr><td colspan="3" class="text-muted text-center">لا يوجد وصفات</td></tr>
+      <tr><td colspan="3" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد وصفات")")")")")")")') }}</td></tr>
     {% endfor %}
     </tbody>
   </table>

@@ -10,7 +10,7 @@
                     {% for m in range(1,13) %}<option value="{{ m }}"{% if m==month %} selected{% endif %}>{{ m }}</option>{% endfor %}
                 </select>
                 <input type="number" name="year" class="form-control form-control-sm w-80">
-                <button class="btn btn-sm btn-primary" type="submit" title="تصفية" aria-label="تصفية"><i class="fas fa-filter"></i> <span class="btn-label">تصفية</span></button>
+                <button class="btn btn-sm btn-primary" type="submit" title="_(" _(" _(" _(" _(" _("تصفية")")")")")")" aria-label="_(" _(" _(" _(" _(" _("تصفية")")")")")")"><i class="fas fa-filter"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تصفية")")")")")")")') }}</span></button>
             </form>
         </div>
     </div>
@@ -20,7 +20,7 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="text-muted">الإيرادات</h6>
+                    <h6 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الإيرادات")")")")")")")') }}</h6>
                     <h4>{{ "%.0f"|format(actual_revenue) }} <small class="text-muted">/ {{ "%.0f"|format(dept_budgets.get(None, {}).revenue_target|default(0)|float) }} ₪</small></h4>
                     {% set target = (dept_budgets.get(None, {}).revenue_target|default(0)|float) or 1 %}
                     {% set pct = (actual_revenue / target * 100)|round %}
@@ -31,7 +31,7 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="text-muted">الزيارات</h6>
+                    <h6 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}</h6>
                     <h4>{{ actual_visits }} <small class="text-muted">/ {{ dept_budgets.get(None, {}).visits_target|default(0) }}</small></h4>
                     {% set vt = (dept_budgets.get(None, {}).visits_target|default(0)) or 1 %}
                     {% set vp = (actual_visits / vt * 100)|round %}
@@ -42,7 +42,7 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="text-muted">مرضى جدد</h6>
+                    <h6 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مرضى جدد")")")")")")")') }}</h6>
                     <h4>{{ actual_new_patients }} <small class="text-muted">/ {{ dept_budgets.get(None, {}).new_patients_target|default(0) }}</small></h4>
                     {% set nt = (dept_budgets.get(None, {}).new_patients_target|default(0)) or 1 %}
                     {% set np = (actual_new_patients / nt * 100)|round %}
@@ -54,23 +54,23 @@
 
     <!-- Set Budget Form -->
     <div class="card mb-4">
-        <div class="card-header"><i class="fas fa-edit me-1"></i> تحديد الميزانية</div>
+        <div class="card-header"><i class="fas fa-edit me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("تحديد الميزانية")")")")")")")') }}</div>
         <div class="card-body">
             <form method="post">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label">القسم (اختياري)</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم (اختياري)")")")")")")")') }}</label>
                         <select name="department_id" class="form-select">
-                            <option value="">كل الأقسام</option>
+                            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("كل الأقسام")")")")")")")') }}</option>
                             {% for d in departments %}<option value="{{ d.id }}">{{ d.name_ar or d.name }}</option>{% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-2"><label class="form-label">هدف الإيرادات</label><input type="number" step="0.01" name="revenue_target" class="form-control" value="{{ dept_budgets.get(None, {}).revenue_target|default(0)|float }}"></div>
-                    <div class="col-md-2"><label class="form-label">هدف الزيارات</label><input type="number" name="visits_target" class="form-control" value="{{ dept_budgets.get(None, {}).visits_target|default(0) }}"></div>
-                    <div class="col-md-2"><label class="form-label">هدف مرضى جدد</label><input type="number" name="new_patients_target" class="form-control" value="{{ dept_budgets.get(None, {}).new_patients_target|default(0) }}"></div>
-                    <div class="col-md-2"><label class="form-label">هدف المصروفات</label><input type="number" step="0.01" name="expenses_target" class="form-control" value="{{ dept_budgets.get(None, {}).expenses_target|default(0)|float }}"></div>
-                    <div class="col-md-1 d-flex align-items-end"><button type="submit" class="btn btn-success w-100" title="حفظ" aria-label="حفظ"><i class="fas fa-save"></i> <span class="btn-label">حفظ</span></button></div>
+                    <div class="col-md-2"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("هدف الإيرادات")")")")")")")') }}</label><input type="number" step="0.01" name="revenue_target" class="form-control" value="{{ dept_budgets.get(None, {}).revenue_target|default(0)|float }}"></div>
+                    <div class="col-md-2"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("هدف الزيارات")")")")")")")') }}</label><input type="number" name="visits_target" class="form-control" value="{{ dept_budgets.get(None, {}).visits_target|default(0) }}"></div>
+                    <div class="col-md-2"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("هدف مرضى جدد")")")")")")")') }}</label><input type="number" name="new_patients_target" class="form-control" value="{{ dept_budgets.get(None, {}).new_patients_target|default(0) }}"></div>
+                    <div class="col-md-2"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("هدف المصروفات")")")")")")")') }}</label><input type="number" step="0.01" name="expenses_target" class="form-control" value="{{ dept_budgets.get(None, {}).expenses_target|default(0)|float }}"></div>
+                    <div class="col-md-1 d-flex align-items-end"><button type="submit" class="btn btn-success w-100" title="_(" _(" _(" _(" _(" _("حفظ")")")")")")" aria-label="_(" _(" _(" _(" _(" _("حفظ")")")")")")"><i class="fas fa-save"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</span></button></div>
                 </div>
             </form>
         </div>

@@ -23,9 +23,7 @@ from routes.doctor import (
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
 
-# =============================================
 # NOTES ROUTES
-# =============================================
 
 
 @doctor_bp.route('/notes/<int:visit_id>', methods=['GET', 'POST'])

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}حول النظام - {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}{% endblock %}
+{% block title %}حول النظام - {{ branding.organization_name if branding else '_("المركز الصحي المتخصص")' }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -17,8 +17,8 @@
 {% block content %}
 <div class="about-hero">
     <div class="container">
-        <h1>حول النظام</h1>
-        <p>نظام طبي متكامل وآمن لإدارة المرافق الصحية — منصة أزاد الطبية</p>
+        <h1>{{ _('_("_(" _(" _(" _(" _(" _("حول النظام")")")")")")")') }}</h1>
+        <p>{{ _('_("_(" _(" _(" _(" _(" _("نظام طبي متكامل وآمن لإدارة المرافق الصحية — منصة أزاد الطبية")")")")")")")') }}</p>
     </div>
 </div>
 <div class="container py-5">
@@ -33,37 +33,37 @@
                             {% else %}
                                 <img src="{{ url_for('static', filename='img/medical_logo.png') }}" alt="Medical Centre Platform" class="img-fluid mb-3" style="max-height:120px">
                             {% endif %}
-                            <h4 class="fw-bold mb-1">{{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}</h4>
-                            <p class="text-muted small">نظام الإدارة الطبي المتكامل</p>
+                            <h4 class="fw-bold mb-1">{{ branding.organization_name if branding else '_("_(" _(" _(" _(" _(" _("المركز الصحي المتخصص")")")")")")")' }}</h4>
+                            <p class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("نظام الإدارة الطبي المتكامل")")")")")")")') }}</p>
                         </div>
                     </div>
                     <div class="col-md-8">
                         <div class="card-body p-4 p-md-5">
-                            <p class="lead mb-4" style="color:var(--color-text);font-weight:500;">نظام طبي متطور مصمم لتسهيل إدارة المرافق الصحية وتحسين جودة الرعاية المقدمة للمرضى.</p>
+                            <p class="lead mb-4" style="color:var(--color-text);font-weight:500;">{{ _('_("_(" _(" _(" _(" _(" _("نظام طبي متطور مصمم لتسهيل إدارة المرافق الصحية وتحسين جودة الرعاية المقدمة للمرضى.")")")")")")")') }}</p>
 
-                            <h5 class="fw-bold mb-3" style="color:var(--color-text);">الميزات الرئيسية:</h5>
+                            <h5 class="fw-bold mb-3" style="color:var(--color-text);">{{ _('_("_(" _(" _(" _(" _(" _("الميزات الرئيسية:")")")")")")")') }}</h5>
                             <div class="about-features mb-4">
-                                <div class="feat"><i class="fas fa-check-circle"></i> إدارة ملفات المرضى</div>
-                                <div class="feat"><i class="fas fa-check-circle"></i> المواعيد والحجوزات</div>
-                                <div class="feat"><i class="fas fa-check-circle"></i> إدارة المخزون والصيدلية</div>
-                                <div class="feat"><i class="fas fa-check-circle"></i> الفواتير والمحاسبة</div>
-                                <div class="feat"><i class="fas fa-check-circle"></i> المختبر والأشعة</div>
-                                <div class="feat"><i class="fas fa-check-circle"></i> تقارير وإحصائيات شاملة</div>
-                                <div class="feat"><i class="fas fa-check-circle"></i> إدارة الاستقبال وطوابير الانتظار</div>
-                                <div class="feat"><i class="fas fa-check-circle"></i> نظام متعدد المستأجرين</div>
+                                <div class="feat"><i class="fas fa-check-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("إدارة ملفات المرضى")")")")")")")') }}</div>
+                                <div class="feat"><i class="fas fa-check-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("المواعيد والحجوزات")")")")")")")') }}</div>
+                                <div class="feat"><i class="fas fa-check-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("إدارة المخزون والصيدلية")")")")")")")') }}</div>
+                                <div class="feat"><i class="fas fa-check-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("الفواتير والمحاسبة")")")")")")")') }}</div>
+                                <div class="feat"><i class="fas fa-check-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("المختبر والأشعة")")")")")")")') }}</div>
+                                <div class="feat"><i class="fas fa-check-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("تقارير وإحصائيات شاملة")")")")")")")') }}</div>
+                                <div class="feat"><i class="fas fa-check-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("إدارة الاستقبال وطوابير الانتظار")")")")")")")') }}</div>
+                                <div class="feat"><i class="fas fa-check-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("نظام متعدد المستأجرين")")")")")")")') }}</div>
                             </div>
 
                             <hr>
 
                             <div class="mt-4">
-                                <h5 class="fw-bold mb-3" style="color:var(--color-text);">معلومات التطوير</h5>
+                                <h5 class="fw-bold mb-3" style="color:var(--color-text);">{{ _('_("_(" _(" _(" _(" _(" _("معلومات التطوير")")")")")")")') }}</h5>
                                 <div class="d-flex align-items-center mb-2">
                                     <div style="width:36px;height:36px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;margin-inline-start:0.75rem;flex-shrink:0;">
                                         <i class="fas fa-code" style="font-size:0.85rem;"></i>
                                     </div>
                                     <div>
-                                        <small class="text-muted d-block">تطوير شركة</small>
-                                        <strong>{{ developer_company or 'شركة أزاد للأنظمة الذكية' }}</strong>
+                                        <small class="text-muted d-block">{{ _('_("_(" _(" _(" _(" _(" _("تطوير شركة")")")")")")")') }}</small>
+                                        <strong>{{ developer_company or '_("_(" _(" _(" _(" _(" _("شركة أزاد للأنظمة الذكية")")")")")")")' }}</strong>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center">
@@ -71,14 +71,14 @@
                                         <i class="fas fa-user-tie" style="font-size:0.85rem;"></i>
                                     </div>
                                     <div>
-                                        <small class="text-muted d-block">المطور المسؤول</small>
-                                        <strong>{{ developer_name or 'أحمد غنام' }}</strong>
+                                        <small class="text-muted d-block">{{ _('_("_(" _(" _(" _(" _(" _("المطور المسؤول")")")")")")")') }}</small>
+                                        <strong>{{ developer_name or '_("_(" _(" _(" _(" _(" _("أحمد غنام")")")")")")")' }}</strong>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="mt-4 pt-3 border-top text-center text-muted">
-                                <small>الإصدار 2.7.2025</small>
+                                <small>{{ _('_("_(" _(" _(" _(" _(" _("الإصدار 2.7.2025")")")")")")")') }}</small>
                             </div>
                         </div>
                     </div>

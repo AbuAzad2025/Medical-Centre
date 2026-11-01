@@ -9,8 +9,8 @@
         title='زيارات الطوارئ',
         icon='fas fa-ambulance',
         breadcrumbs=[
-            {'label': 'الطوارئ', 'url': url_for('emergency.dashboard')},
-            {'label': 'الزيارات'}
+            {'label': '_("الطوارئ")', 'url': url_for('emergency.dashboard')},
+            {'label': '_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")'}
         ]
     ) }}
             {% if report %}
@@ -18,20 +18,20 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">تقرير طوارئ يومي</h3>
+                            <h3 class="card-title">{{ _('_("_(" _(" _(" _(" _(" _("تقرير طوارئ يومي")")")")")")")') }}</h3>
                         </div>
                         <div class="card-body">
                             <form class="row g-2 align-items-end mb-3" method="GET" action="{{ url_for('emergency.reports') }}">
                                 <div class="col-md-4">
-                                    <label class="form-label">من</label>
-                                    <input type="date" class="form-control" name="from" value="{{ report.start_date }}">
+                                    <label class="form-label"_(" _(" _(" _(" _(" _(">من</label>
+                                    <input type=")")")")")")"date" class="form-control" name="from" value="{{ report.start_date }}">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">إلى</label>
+                                    <label class="form-label">{{ _('إلى') }}</label>
                                     <input type="date" class="form-control" name="to" value="{{ report.end_date }}">
                                 </div>
                                 <div class="col-md-4">
-                                    <button type="submit" class="btn btn-primary w-100">عرض</button>
+                                    <button type="submit" class="btn btn-primary w-100">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</button>
                                 </div>
                             </form>
 
@@ -40,20 +40,20 @@
                                     <div class="info-box bg-light">
                                         <span class="info-box-icon"><i class="fas fa-ambulance"></i></span>
                                         <div class="info-box-content">
-                                            <span class="info-box-text">إجمالي الحالات (ضمن الفترة)</span>
+                                            <span class="info-box-text">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي الحالات (ضمن الفترة)")")")")")")")') }}</span>
                                             <span class="info-box-number">{{ report.total_in_range }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-8 mb-2">
                                     <div class="card mb-0">
-                                        <div class="card-header">الأسباب الشائعة (Top 10)</div>
+                                        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("الأسباب الشائعة (Top 10)")")")")")")")') }}</div>
                                         <div class="card-body p-0">
                                             <table class="table table-sm mb-0">
                                                 <thead>
                                                     <tr>
-                                                        <th>السبب</th>
-                                                        <th class="text-end" style="width: 90px;">عدد</th>
+                                                        <th>{{ _('_("_(" _(" _(" _(" _(" _("السبب")")")")")")")') }}</th>
+                                                        <th class="text-end" style="width: 90px;">{{ _('_("_(" _(" _(" _(" _(" _("عدد")")")")")")")') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -65,7 +65,7 @@
                                                         </tr>
                                                         {% endfor %}
                                                     {% else %}
-                                                        <tr><td colspan="2" class="text-muted text-center p-3">لا توجد بيانات</td></tr>
+                                                        <tr><td colspan="2" class="text-muted text-center p-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td></tr>
                                                     {% endif %}
                                                 </tbody>
                                             </table>
@@ -77,13 +77,13 @@
                             <div class="row mt-3">
                                 <div class="col-lg-6 mb-2">
                                     <div class="card mb-0">
-                                        <div class="card-header">عدد الحالات يومياً</div>
+                                        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("عدد الحالات يومياً")")")")")")")') }}</div>
                                         <div class="card-body p-0">
                                             <table class="table table-sm mb-0">
                                                 <thead>
                                                     <tr>
-                                                        <th>اليوم</th>
-                                                        <th class="text-end" style="width: 90px;">عدد</th>
+                                                        <th>{{ _('_("_(" _(" _(" _(" _(" _("اليوم")")")")")")")') }}</th>
+                                                        <th class="text-end" style="width: 90px;">{{ _('_("_(" _(" _(" _(" _(" _("عدد")")")")")")")') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -100,13 +100,13 @@
                                 </div>
                                 <div class="col-lg-6 mb-2">
                                     <div class="card mb-0">
-                                        <div class="card-header">تصنيف الشدة (اليوم)</div>
+                                        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("تصنيف الشدة (اليوم)")")")")")")")') }}</div>
                                         <div class="card-body p-0">
                                             <table class="table table-sm mb-0">
                                                 <thead>
                                                     <tr>
-                                                        <th>الشدة</th>
-                                                        <th class="text-end" style="width: 90px;">عدد</th>
+                                                        <th>{{ _('_("_(" _(" _(" _(" _(" _("الشدة")")")")")")")') }}</th>
+                                                        <th class="text-end" style="width: 90px;">{{ _('_("_(" _(" _(" _(" _(" _("عدد")")")")")")")') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -118,7 +118,7 @@
                                                         </tr>
                                                         {% endfor %}
                                                     {% else %}
-                                                        <tr><td colspan="2" class="text-muted text-center p-3">لا توجد بيانات</td></tr>
+                                                        <tr><td colspan="2" class="text-muted text-center p-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td></tr>
                                                     {% endif %}
                                                 </tbody>
                                             </table>
@@ -135,7 +135,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">قائمة زيارات الطوارئ</h3>
+                            <h3 class="card-title">{{ _('_("_(" _(" _(" _(" _(" _("قائمة زيارات الطوارئ")")")")")")")') }}</h3>
                         </div>
                         <div class="card-body">
                             {% if visits %}
@@ -143,36 +143,36 @@
                                 <table class="table table-bordered table-striped">
                                     <thead>
                                         <tr>
-                                            <th>رقم الزيارة</th>
-                                            <th>المريض</th>
-                                            <th>التاريخ</th>
-                                            <th>الوقت</th>
-                                            <th>الحالة</th>
-                                            <th>الإجراءات</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("رقم الزيارة")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for visit in visits %}
                                         <tr>
                                             <td>{{ visit.id }}</td>
-                                            <td>{{ visit.patient.full_name if visit.patient else 'غير محدد' }}</td>
-                                            <td>{{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else 'غير محدد' }}</td>
-                                            <td>{{ visit.visit_time.strftime('%H:%M') if visit.visit_time else 'غير محدد' }}</td>
+                                            <td>{{ visit.patient.full_name if visit.patient else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                            <td>{{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                            <td>{{ visit.visit_time.strftime('%H:%M') if visit.visit_time else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
                                             <td>
                                                 {% if visit.status == 'READY' %}
-                                                    <span class="badge text-bg-success">جاهز</span>
+                                                    <span class="badge text-bg-success">{{ _('_("_(" _(" _(" _(" _(" _("جاهز")")")")")")")') }}</span>
                                                 {% elif visit.status == 'IN_PROGRESS' %}
-                                                    <span class="badge text-bg-warning">قيد التنفيذ</span>
+                                                    <span class="badge text-bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")') }}</span>
                                                 {% else %}
                                                     <span class="badge text-bg-info">{{ visit.status | enum_label('EmergencyStatus') }}</span>
                                                 {% endif %}
                                             </td>
                                             <td>
                                                 <button class="btn btn-primary btn-sm" onclick="startTreatment({{ visit.id }})">
-                                                    <i class="fas fa-play"></i> بدء العلاج
+                                                    <i class="fas fa-play"></i> {{ _('_("_(" _(" _(" _(" _(" _("بدء العلاج")")")")")")")') }}
                                                 </button>
                                                 <button class="btn btn-success btn-sm" onclick="completeVisit({{ visit.id }})">
-                                                    <i class="fas fa-check"></i> إنهاء
+                                                    <i class="fas fa-check"></i> {{ _('_("_(" _(" _(" _(" _(" _("إنهاء")")")")")")")') }}
                                                 </button>
                                             </td>
                                         </tr>
@@ -183,7 +183,7 @@
                             {% else %}
                             <div class="alert alert-info">
                                 <i class="fas fa-info-circle"></i>
-                                لا توجد زيارات طوارئ حالياً
+                                {{ _('_("_(" _(" _(" _(" _(" _("لا توجد زيارات طوارئ حالياً")")")")")")")') }}
                             </div>
                             {% endif %}
                         </div>

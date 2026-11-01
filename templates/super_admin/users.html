@@ -13,15 +13,15 @@
                         <div class="col-md-8">
                             <h1 class="mb-2 text-white">
                                 <i class="fas fa-users-cog me-3"></i>
-                                إدارة المستخدمين والأدوار
+                                {{ _('_("_(" _(" _(" _(" _(" _("إدارة المستخدمين والأدوار")")")")")")")') }}
                             </h1>
-                            <p class="mb-0 text-white-50 fs-5">إدارة شاملة للمستخدمين والأدوار والصلاحيات في النظام</p>
+                            <p class="mb-0 text-white-50 fs-5">{{ _('_("_(" _(" _(" _(" _(" _("إدارة شاملة للمستخدمين والأدوار والصلاحيات في النظام")")")")")")")') }}</p>
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
                                 <a href="{{ url_for('super_admin.create_user') }}" class="btn btn-light btn-lg">
                                     <i class="fas fa-user-plus me-2"></i>
-                                    إضافة مستخدم
+                                    {{ _('_("_(" _(" _(" _(" _(" _("إضافة مستخدم")")")")")")")') }}
                                 </a>
                                 <form method="POST" action="{{ url_for('super_admin.seed_users') }}" class="d-inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -29,12 +29,12 @@
                                     <input type="hidden" name="default_password" value="">
                                     <button type="submit" class="btn btn-warning btn-lg">
                                         <i class="fas fa-user-shield me-2"></i>
-                                        إنشاء حسابات افتراضية
+                                        {{ _('_("_(" _(" _(" _(" _(" _("إنشاء حسابات افتراضية")")")")")")")') }}
                                     </button>
                                 </form>
                                 <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-secondary btn-lg">
                                     <i class="fas fa-home me-2"></i>
-                                    الرئيسية
+                                    {{ _('_("_(" _(" _(" _(" _(" _("الرئيسية")")")")")")")') }}
                                 </a>
                             </div>
                         </div>
@@ -61,14 +61,14 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="username" class="form-label">اسم المستخدم</label>
+                                    <label for="username" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم المستخدم")")")")")")")') }}</label>
                                     <input type="text" class="form-control" id="username" name="username" 
                                            value="{{ user.username }}" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="email" class="form-label">البريد الإلكتروني</label>
+                                    <label for="email" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("البريد الإلكتروني")")")")")")")') }}</label>
                                     <input type="email" class="form-control" id="email" name="email" 
                                            value="{{ user.email }}" required>
                                 </div>
@@ -77,14 +77,14 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="full_name" class="form-label">الاسم الكامل</label>
+                                    <label for="full_name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم الكامل")")")")")")")') }}</label>
                                     <input type="text" class="form-control" id="full_name" name="full_name" 
                                            value="{{ user.full_name }}" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="phone" class="form-label">رقم الهاتف</label>
+                                    <label for="phone" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رقم الهاتف")")")")")")")') }}</label>
                                     <input type="text" class="form-control" id="phone" name="phone" 
                                            value="{{ user.phone }}">
                                 </div>
@@ -93,7 +93,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="doctor_room" class="form-label">غرفة الطبيب</label>
+                                    <label for="doctor_room" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("غرفة الطبيب")")")")")")")') }}</label>
                                     <input type="text" class="form-control" id="doctor_room" name="doctor_room" 
                                            value="{{ user.doctor_room }}">
                                 </div>
@@ -102,7 +102,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="role" class="form-label">الدور</label>
+                                    <label for="role" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</label>
                                     <select class="form-select" id="role" name="role" required>
                                         {% for role_value, role_name in roles %}
                                         <option value="{{ role_value }}" {% if user.role == role_value %}selected{% endif %}>
@@ -114,9 +114,9 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="department_id" class="form-label">القسم</label>
+                                    <label for="department_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</label>
                                     <select class="form-select" id="department_id" name="department_id">
-                                        <option value="">اختر القسم</option>
+                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر القسم")")")")")")")') }}</option>
                                         {% for dept in departments %}
                                         <option value="{{ dept.id }}" {% if user.department_id == dept.id %}selected{% endif %}>
                                             {{ dept.name }}
@@ -129,7 +129,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="mb-3">
-                                    <label class="form-label">صلاحيات إضافية على أقسام</label>
+                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("صلاحيات إضافية على أقسام")")")")")")")') }}</label>
                                     <select class="form-select" name="extra_department_ids" multiple size="6">
                                         {% for dept in departments %}
                                         <option value="{{ dept.id }}" {% if extra_department_ids and (dept.id in extra_department_ids) %}selected{% endif %}>
@@ -147,7 +147,7 @@
                                         <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
                                                {% if user.is_active %}checked{% endif %}>
                                         <label class="form-check-label" for="is_active">
-                                            المستخدم نشط
+                                            {{ _('_("_(" _(" _(" _(" _(" _("المستخدم نشط")")")")")")")') }}
                                         </label>
                                     </div>
                                 </div>
@@ -156,11 +156,11 @@
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-warning">
                                 <i class="fas fa-save me-2"></i>
-                                حفظ التغييرات
+                                {{ _('_("_(" _(" _(" _(" _(" _("حفظ التغييرات")")")")")")")') }}
                             </button>
                             <a href="{{ url_for('super_admin.users') }}" class="btn btn-secondary">
                                 <i class="fas fa-times me-2"></i>
-                                إلغاء
+                                {{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}
                             </a>
                         </div>
                     </form>
@@ -175,11 +175,11 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">قائمة المستخدمين</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("قائمة المستخدمين")")")")")")")') }}</h6>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" data-action="filter-users" data-value="all">الكل</button>
-                        <button class="btn btn-sm btn-outline-success" data-action="filter-users" data-value="active">النشطين</button>
-                        <button class="btn btn-sm btn-outline-warning" data-action="filter-users" data-value="inactive">المعطلين</button>
+                        <button class="btn btn-sm btn-outline-primary" data-action="filter-users" data-value="all">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</button>
+                        <button class="btn btn-sm btn-outline-success" data-action="filter-users" data-value="active">{{ _('_("_(" _(" _(" _(" _(" _("النشطين")")")")")")")') }}</button>
+                        <button class="btn btn-sm btn-outline-warning" data-action="filter-users" data-value="inactive">{{ _('_("_(" _(" _(" _(" _(" _("المعطلين")")")")")")")') }}</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -187,15 +187,15 @@
                         <table class="table table-bordered" id="usersTable">
                             <thead>
                                 <tr>
-                                    <th>الاسم</th>
-                                    <th>اسم المستخدم</th>
-                                    <th>البريد الإلكتروني</th>
-                                    <th>الدور</th>
-                                    <th>القسم</th>
-                                    <th>الحالة</th>
-                                    <th>آخر دخول</th>
-                                    <th>الإجراءات</th>
-                                    <th>كلمة مرور مؤقتة</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("اسم المستخدم")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("البريد الإلكتروني")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("آخر دخول")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("كلمة مرور مؤقتة")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -207,81 +207,81 @@
                                                 {{ user.full_name[0] if user.full_name else 'U' }}
                                             </div>
                                             <div>
-                                                <div class="fw-bold">{{ user.full_name or 'غير محدد' }}</div>
-                                                <small class="text-muted">{{ user.phone or 'لا يوجد رقم' }}</small>
+                                                <div class="fw-bold">{{ user.full_name or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</div>
+                                                <small class="text-muted">{{ user.phone or '_("_(" _(" _(" _(" _(" _("لا يوجد رقم")")")")")")")' }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>{{ user.username }}</td>
-                                    <td>{{ user.email or 'غير محدد' }}</td>
+                                    <td>{{ user.email or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
                                     <td>
                                         {% if user.role == 'super_admin' %}
-                                            <span class="badge bg-danger">سوبر أدمن</span>
+                                            <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("سوبر أدمن")")")")")")")') }}</span>
                                         {% elif user.role == 'manager' %}
-                                            <span class="badge bg-warning">مدير</span>
+                                            <span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("مدير")")")")")")")') }}</span>
                                         {% elif user.role == 'doctor' %}
-                                            <span class="badge bg-info">طبيب</span>
+                                            <span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("طبيب")")")")")")")') }}</span>
                                         {% elif user.role == 'reception' %}
-                                            <span class="badge bg-success">استقبال</span>
+                                            <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("استقبال")")")")")")")') }}</span>
                                         {% else %}
                                             <span class="badge bg-secondary">{{ user.role }}</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ user.department.name if user.department else 'غير محدد' }}</td>
+                                    <td>{{ user.department.name if user.department else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
                                     <td>
                                         {% if user.is_active %}
-                                            <span class="badge bg-success">نشط</span>
+                                            <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span>
                                         {% else %}
-                                            <span class="badge bg-danger">معطل</span>
+                                            <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'لم يسجل دخول' }}</td>
+                                    <td>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else '_("_(" _(" _(" _(" _(" _("لم يسجل دخول")")")")")")")' }}</td>
                                     <td>
-                                        <div class="btn-group btn-group-sm shadow-sm" role="group">
+                                        <div class="btn-group btn-group-sm shadow-sm" role="group"_(" _(" _(" _(" _(" _(">
                                             <!-- تعديل -->
-                                            <a href="{{ url_for('super_admin.edit_user', user_id=user.id) }}" 
-                                               class="btn btn-primary" title="تعديل">
-                                                <i class="fas fa-edit"></i> <span class="btn-label">تعديل</span>
+                                            <a href=")")")")")")"{{ url_for('super_admin.edit_user', user_id=user.id) }}" 
+                                               class="btn btn-primary" title="_(" _(" _(" _(" _(" _("تعديل")")")")")")">
+                                                <i class="fas fa-edit"></i> <span class="btn-label">{{ _('تعديل') }}</span>
                                             </a>
                                             
                                             {% if user.role != 'super_admin' %}
                                                 <!-- حظر/إلغاء حظر -->
                                                 {% if user.is_active %}
                                                     <form method="post" action="{{ url_for('super_admin.ban_user', user_id=user.id) }}" class="d-inline"
-                                                          data-action="confirm-submit" data-message="هل تريد حظر هذا المستخدم؟">
+                                                          data-action="confirm-submit" data-message="_(" _(" _(" _(" _(" _("هل تريد حظر هذا المستخدم؟")")")")")")">
                                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                        <button type="submit" class="btn btn-warning" title="حظر المستخدم">
+                                                        <button type="submit" class="btn btn-warning" title="_(" _(" _(" _(" _(" _("حظر المستخدم")")")")")")">
                                                             <i class="fas fa-ban"></i>
-                                                            <span class="btn-label">منع</span>
+                                                            <span class="btn-label">{{ _('منع') }}</span>
                                                         </button>
                                                     </form>
                                                 {% else %}
                                                     <form method="post" action="{{ url_for('super_admin.unban_user', user_id=user.id) }}" class="d-inline"
-                                                          data-action="confirm-submit" data-message="هل تريد إلغاء حظر هذا المستخدم؟">
+                                                          data-action="confirm-submit" data-message="_(" _(" _(" _(" _(" _("هل تريد إلغاء حظر هذا المستخدم؟")")")")")")">
                                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                        <button type="submit" class="btn btn-success" title="إلغاء الحظر">
+                                                        <button type="submit" class="btn btn-success" title="_(" _(" _(" _(" _(" _("إلغاء الحظر")")")")")")">
                                                             <i class="fas fa-check-circle"></i>
-                                                            <span class="btn-label">تأكيد</span>
+                                                            <span class="btn-label">{{ _('تأكيد') }}</span>
                                                         </button>
                                                     </form>
                                                 {% endif %}
                                                 
                                                 <!-- فرض تسجيل خروج -->
                                                 <form method="post" action="{{ url_for('super_admin.force_logout_user', user_id=user.id) }}" class="d-inline"
-                                                      data-action="confirm-submit" data-message="هل تريد إجبار هذا المستخدم على تسجيل الخروج؟">
+                                                      data-action="confirm-submit" data-message="_(" _(" _(" _(" _(" _("هل تريد إجبار هذا المستخدم على تسجيل الخروج؟")")")")")")">
                                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <button type="submit" class="btn btn-info" title="فرض تسجيل الخروج">
+                                                    <button type="submit" class="btn btn-info" title="_(" _(" _(" _(" _(" _("فرض تسجيل الخروج")")")")")")">
                                                         <i class="fas fa-sign-out-alt"></i>
-                                                        <span class="btn-label">خروج</span>
+                                                        <span class="btn-label">{{ _('خروج') }}</span>
                                                     </button>
                                                 </form>
                                                 
                                                 <!-- حذف -->
-                                                <button type="button" class="btn btn-danger" title="حذف نهائي"
+                                                <button type="button" class="btn btn-danger" title="_(" _(" _(" _(" _(" _("حذف نهائي")")")")")")"
                                                    data-action="deleteUser" data-user-id="user.id">
-                                                    <i class="fas fa-trash-alt"></i> <span class="btn-label">حذف</span>
+                                                    <i class="fas fa-trash-alt"></i> <span class="btn-label">{{ _('حذف') }}</span>
                                                 </button>
-                                                <button type="button" class="btn btn-secondary" title="إعادة تعيين كلمة المرور"
+                                                <button type="button" class="btn btn-secondary" title="_(" _(" _(" _(" _(" _("إعادة تعيين كلمة المرور")")")")")")"
                                                    data-action="resetPassword" data-user-id="user.id">
                                                     <i class="fas fa-key"></i> <span class="btn-label">زر</span>
                                                 </button>
@@ -304,7 +304,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">إدارة الأدوار</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('إدارة الأدوار') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -315,22 +315,22 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <h6 class="card-title">{{ role.display_name if role is mapping else (role.name_ar or role.name) }}</h6>
-                                            <p class="card-text text-muted">{{ role.description if role is not mapping else 'دور نظام' }}</p>
+                                            <p class="card-text text-muted">{{ role.description if role is not mapping else '_("_(" _(" _(" _(" _(" _("دور نظام")")")")")")")' }}</p>
                                             <span class="badge bg-success">
-                                                نشط
+                                                {{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}
                                             </span>
                                         </div>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-ellipsis-v"></i> <span class="btn-label">المزيد</span>
+                                                <i class="fas fa-ellipsis-v"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("المزيد")")")")")")")') }}</span>
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li><a class="dropdown-item" href="{{ url_for('super_admin.roles') }}">
-                                                    <i class="fas fa-edit me-2"></i>إدارة الأدوار
+                                                    <i class="fas fa-edit me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إدارة الأدوار")")")")")")")') }}
                                                 </a></li>
                                                 {% if role is not mapping or not role.get('is_system_role', True) %}
                                                 <li><a class="dropdown-item text-danger" href="{{ url_for('super_admin.roles') }}">
-                                                    <i class="fas fa-trash me-2"></i>حذف الدور
+                                                    <i class="fas fa-trash me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("حذف الدور")")")")")")")') }}
                                                 </a></li>
                                                 {% endif %}
                                             </ul>
@@ -351,7 +351,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">إدارة الصلاحيات</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إدارة الصلاحيات")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -362,18 +362,18 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <h6 class="card-title">{{ permission.name_ar or permission.name }}</h6>
-                                            <p class="card-text text-muted">{{ permission.description or 'لا يوجد وصف' }}</p>
+                                            <p class="card-text text-muted">{{ permission.description or '_("_(" _(" _(" _(" _(" _("لا يوجد وصف")")")")")")")' }}</p>
                                         </div>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-ellipsis-v"></i> <span class="btn-label">المزيد</span>
+                                                <i class="fas fa-ellipsis-v"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("المزيد")")")")")")")') }}</span>
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li><a class="dropdown-item" href="{{ url_for('super_admin.permissions') }}">
-                                                    <i class="fas fa-edit me-2"></i>إدارة الصلاحيات
+                                                    <i class="fas fa-edit me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إدارة الصلاحيات")")")")")")")') }}
                                                 </a></li>
                                                 <li><a class="dropdown-item text-danger" href="{{ url_for('super_admin.permissions') }}">
-                                                    <i class="fas fa-trash me-2"></i>حذف الصلاحية
+                                                    <i class="fas fa-trash me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("حذف الصلاحية")")")")")")")') }}
                                                 </a></li>
                                             </ul>
                                         </div>

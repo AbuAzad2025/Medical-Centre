@@ -25,9 +25,7 @@ from services.visit_state_machine_service import VisitStateMachineService
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
 
-# =============================================
 # VISITS ROUTES
-# =============================================
 
 
 @doctor_bp.route('/start-treatment/<int:visit_id>', methods=['POST'])

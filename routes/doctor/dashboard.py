@@ -19,9 +19,7 @@ from models.visit import Visit
 from routes.doctor import doctor_bp
 from utils.decorators import role_required, role_required_json
 
-# =============================================
 # DASHBOARD ROUTES
-# =============================================
 
 
 @doctor_bp.route('/dashboard-new')

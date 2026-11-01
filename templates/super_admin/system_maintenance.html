@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% from 'partials/_page_header.html' import page_header %}
 
-{% block title %}صيانة النظام - السوبر أدمن{% endblock %}
+{% block title %}{{ _('صيانة النظام') }} - {{ _('السوبر أدمن') }}{% endblock %}
 
 {% block content %}
-{{ page_header(title='صيانة النظام', subtitle='تنظيف النظام والصيانة الدورية', icon='fas fa-tools') }}
+{{ page_header(title=_('صيانة النظام'), subtitle=_('تنظيف النظام والصيانة الدورية'), icon='fas fa-tools') }}
 
 <!-- إحصائيات النظام -->
 <div class="stats-grid fade-in-up">
@@ -13,7 +13,7 @@
             <i class="fas fa-users"></i>
         </div>
         <div class="stat-value">{{ stats.total_users }}</div>
-        <div class="stat-label">إجمالي المستخدمين</div>
+        <div class="stat-label">{{ _('إجمالي المستخدمين') }}</div>
     </div>
     
     <div class="stat-card">
@@ -21,7 +21,7 @@
             <i class="fas fa-user-check"></i>
         </div>
         <div class="stat-value">{{ stats.active_users }}</div>
-        <div class="stat-label">المستخدمين النشطين</div>
+        <div class="stat-label">{{ _('المستخدمين النشطين') }}</div>
     </div>
     
     <div class="stat-card">
@@ -29,7 +29,7 @@
             <i class="fas fa-user-times"></i>
         </div>
         <div class="stat-value">{{ stats.inactive_users }}</div>
-        <div class="stat-label">المستخدمين غير النشطين</div>
+        <div class="stat-label">{{ _('المستخدمين غير النشطين') }}</div>
     </div>
     
     <div class="stat-card">
@@ -37,7 +37,7 @@
             <i class="fas fa-database"></i>
         </div>
         <div class="stat-value">{{ stats.database_size }}</div>
-        <div class="stat-label">حجم قاعدة البيانات</div>
+        <div class="stat-label">{{ _('حجم قاعدة البيانات') }}</div>
     </div>
 </div>
 
@@ -47,7 +47,7 @@
         <div class="card-header">
             <h3>
                 <i class="fas fa-broom"></i>
-                تنظيف النظام
+                {{ _('تنظيف النظام') }}
             </h3>
         </div>
         <div class="card-body">

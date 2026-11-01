@@ -5,7 +5,7 @@ HL7v2 MLLP routes — status + test ingest (HTTP wrapper for MLLP).
 from flask import Blueprint, jsonify, request
 from flask_login import login_required
 
-from services.hl7_mllp_service import hl7_mllp_service
+from services.hl7_mllp_service import hl7_mllp_service, validate_hl7_message
 from utils.api_security import limit_payload_size
 from utils.decorators import role_required
 
@@ -36,6 +36,9 @@ def hl7_ingest():
     raw = request.get_data(as_text=True)
     if not raw or 'MSH' not in raw:
         return jsonify(success=False, error='Missing HL7 MSH segment'), 400
+    ok, error = validate_hl7_message(raw)
+    if not ok:
+        return jsonify(success=False, error=error), 400
     ack = hl7_mllp_service.handle_raw(raw)
     return jsonify(success=True, ack=ack)
 

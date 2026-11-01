@@ -3,8 +3,8 @@
 {% block content %}
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">تقارير الاستعلامات الأسبوعية</h2>
-    <a href="{{ url_for('finance.slow_queries') }}" class="btn btn-secondary">العودة</a>
+    <h2 class="mb-0">{{ _('_("_(" _(" _(" _(" _(" _("تقارير الاستعلامات الأسبوعية")")")")")")")') }}</h2>
+    <a href="{{ url_for('finance.slow_queries') }}" class="btn btn-secondary">{{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
   </div>
   <div class="card">
     <div class="card-body">
@@ -13,9 +13,9 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>الفترة</th>
-              <th>تاريخ الإنشاء</th>
-              <th>المنشئ</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("الفترة")")")")")")")') }}</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإنشاء")")")")")")")') }}</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("المنشئ")")")")")")")') }}</th>
               <th></th>
             </tr>
           </thead>
@@ -27,12 +27,12 @@
               <td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '-' }}</td>
               <td>{{ r.creator.full_name if r.creator else '-' }}</td>
               <td class="text-end">
-                <a href="{{ url_for('finance.slow_queries_weekly_detail', report_id=r.id) }}" class="btn btn-sm btn-outline-primary">عرض</a>
+                <a href="{{ url_for('finance.slow_queries_weekly_detail', report_id=r.id) }}" class="btn btn-sm btn-outline-primary">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</a>
               </td>
             </tr>
             {% else %}
             <tr>
-              <td colspan="5" class="text-center">لا توجد تقارير</td>
+              <td colspan="5" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد تقارير")")")")")")")') }}</td>
             </tr>
             {% endfor %}
           </tbody>

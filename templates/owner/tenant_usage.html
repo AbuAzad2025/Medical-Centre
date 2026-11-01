@@ -1,20 +1,20 @@
 {% extends "owner/base.html" %}
-{% block title %}استخدام موارد العميل — {{ tenant.name }}{% endblock %}
+{% block title %}{{ _('استخدام موارد العميل') }} — {{ tenant.name }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-chart-bar me-2 text-primary"></i>استخدام موارد العميل — {{ tenant.name }}</h4></div>
+        <div class="col"><h4><i class="fas fa-chart-bar me-2 text-primary"></i>{{ _('استخدام موارد العميل') }} — {{ tenant.name }}</h4></div>
         <div class="col-auto">
-            <a href="{{ url_for('owner.owner_subscriptions') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> الاشتراكات</a>
-            <a href="{{ url_for('owner.owner_tenant_detail', tenant_id=tenant.id) }}" class="btn btn-sm btn-outline-info"><i class="fas fa-building me-1"></i> تفاصيل العميل</a>
+            <a href="{{ url_for('owner.owner_subscriptions') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _('الاشتراكات') }}</a>
+            <a href="{{ url_for('owner.owner_tenant_detail', tenant_id=tenant.id) }}" class="btn btn-sm btn-outline-info"><i class="fas fa-building me-1"></i> {{ _('تفاصيل العميل') }}</a>
         </div>
     </div>
 
     <div class="row g-3 mb-3">
         <div class="col-md-3">
             <div class="card bg-light border-0 text-center py-3">
-                <small class="text-muted">المستخدمون</small>
-                <strong>{{ latest.total_users }} / {{ limits.max_users or 'غير محدود' }}</strong>
+                <small class="text-muted">{{ _('المستخدمون') }}</small>
+                <strong>{{ latest.total_users }} / {{ limits.max_users or _('غير محدود') }}</strong>
                 {% if limits.max_users %}
                 <div class="progress mt-1 mx-3" style="height:4px">
                     <div class="progress-bar {{ 'bg-danger' if latest.total_users >= limits.max_users else 'bg-success' }}" style="width:{{ (latest.total_users / limits.max_users * 100)|round }}%"></div>
@@ -24,8 +24,8 @@
         </div>
         <div class="col-md-3">
             <div class="card bg-light border-0 text-center py-3">
-                <small class="text-muted">المرضى</small>
-                <strong>{{ latest.total_patients }} / {{ limits.max_patients or 'غير محدود' }}</strong>
+                <small class="text-muted">{{ _('المرضى') }}</small>
+                <strong>{{ latest.total_patients }} / {{ limits.max_patients or _('غير محدود') }}</strong>
                 {% if limits.max_patients %}
                 <div class="progress mt-1 mx-3" style="height:4px">
                     <div class="progress-bar {{ 'bg-danger' if latest.total_patients >= limits.max_patients else 'bg-success' }}" style="width:{{ (latest.total_patients / limits.max_patients * 100)|round }}%"></div>
@@ -35,8 +35,8 @@
         </div>
         <div class="col-md-3">
             <div class="card bg-light border-0 text-center py-3">
-                <small class="text-muted">التخزين</small>
-                <strong>{{ "%.2f"|format(latest.storage_mb|float) }} MB / {{ limits.storage_gb or 'غير محدود' }} GB</strong>
+                <small class="text-muted">{{ _('التخزين') }}</small>
+                <strong>{{ "%.2f"|format(latest.storage_mb|float) }} {{ _('MB') }} / {{ limits.storage_gb or _('غير محدود') }} {{ _('GB') }}</strong>
                 {% if limits.storage_gb %}
                 <div class="progress mt-1 mx-3" style="height:4px">
                     {% set storage_gb_used = latest.storage_mb / 1024 %}
@@ -47,7 +47,7 @@
         </div>
         <div class="col-md-3">
             <div class="card bg-light border-0 text-center py-3">
-                <small class="text-muted">استدعاءات API (24 ساعة)</small>
+                <small class="text-muted">{{ _('استدعاءات API (24 ساعة)') }}</small>
                 <strong>{{ latest.api_calls_24h }} / {{ limits.api_calls_per_month or 'غير محدود' }} /شهر</strong>
             </div>
         </div>

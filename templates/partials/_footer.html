@@ -10,10 +10,10 @@
             {% endif %}
         </div>
         <div class="luxury-footer-copyright">
-            &copy; {{ current_year or 2025 }} {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}. جميع الحقوق محفوظة.
+            &copy; {{ current_year or 2025 }} {{ branding.organization_name if branding else _('المركز الصحي المتخصص') }}. {{ _('جميع الحقوق محفوظة.') }}
         </div>
         <div class="luxury-footer-developer">
-            تطوير: {{ developer_company or 'شركة أزاد للأنظمة الذكية' }}
+            {{ _('تطوير:') }} {{ developer_company or _('شركة أزاد للأنظمة الذكية') }}
             {% if developer_name %} | {{ developer_name }}{% endif %}
         </div>
         <div class="luxury-footer-links mt-neg-15">
@@ -25,17 +25,17 @@
             {% endif %}
         </div>
         <div class="luxury-footer-links">
-            <a href="{{ url_for('main.privacy_policy') }}" class="luxury-footer-link">سياسة الخصوصية</a>
+            <a href="{{ url_for('main.privacy_policy') }}" class="luxury-footer-link">{{ _('سياسة الخصوصية') }}</a>
             <span class="luxury-footer-divider">|</span>
-            <a href="{{ url_for('main.terms_of_use') }}" class="luxury-footer-link">شروط الاستخدام</a>
+            <a href="{{ url_for('main.terms_of_use') }}" class="luxury-footer-link">{{ _('شروط الاستخدام') }}</a>
             <span class="luxury-footer-divider">|</span>
-            <a href="{{ url_for('main.technical_support') }}" class="luxury-footer-link">الدعم الفني</a>
+            <a href="{{ url_for('main.technical_support') }}" class="luxury-footer-link">{{ _('الدعم الفني') }}</a>
             <span class="luxury-footer-divider">|</span>
-            <a href="{{ url_for('main.about_system') }}" class="luxury-footer-link">حول النظام</a>
+            <a href="{{ url_for('main.about_system') }}" class="luxury-footer-link">{{ _('حول النظام') }}</a>
         </div>
         <div class="luxury-footer-security">
             <i class="fas fa-shield-alt"></i>
-            محمي بأعلى معايير الأمان العالمية
+            {{ _('محمي بأعلى معايير الأمان العالمية') }}
         </div>
     </div>
 </footer>

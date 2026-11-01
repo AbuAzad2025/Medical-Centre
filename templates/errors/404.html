@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 — الصفحة غير متاحة</title>
+    <title>{{ _('_("_(" _(" _(" _(" _(" _("404 — الصفحة غير متاحة")")")")")")")') }}</title>
     <link href="/static/vendor/fonts/fonts.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/fontawesome/css/all.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.rtl.min.css') }}" rel="stylesheet">
@@ -25,9 +25,9 @@
     <div class="error-card">
         <div class="error-icon"><i class="fas fa-magnifying-glass" aria-hidden="true"></i></div>
         <div class="error-code">404</div>
-        <div class="error-title">الصفحة غير متاحة</div>
-        <p class="error-desc">عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها. يرجى التحقق من الرابط أو العودة للصفحة الرئيسية.</p>
-        <a href="/" class="btn-back"><i class="fas fa-arrow-right" aria-hidden="true"></i> العودة للصفحة الرئيسية</a>
+        <div class="error-title">{{ _('_("_(" _(" _(" _(" _(" _("الصفحة غير متاحة")")")")")")")') }}</div>
+        <p class="error-desc">{{ _('_("_(" _(" _(" _(" _(" _("عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها. يرجى التحقق من الرابط أو العودة للصفحة الرئيسية.")")")")")")")') }}</p>
+        <a href="/" class="btn-back"><i class="fas fa-arrow-right" aria-hidden="true"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة للصفحة الرئيسية")")")")")")")') }}</a>
     </div>
 </body>
 </html>

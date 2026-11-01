@@ -1,10 +1,10 @@
 {% extends "portal/base.html" %}
 {% block title %}نتائج الأشعة{% endblock %}
 {% block content %}
-<h4 class="mb-3">نتائج الأشعة</h4>
+<h4 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("نتائج الأشعة")")")")")")")') }}</h4>
 <div class="portal-card p-3">
   <table class="table table-hover">
-    <thead><tr><th>التاريخ</th><th>نوع الفحص</th><th>الحالة</th></tr></thead>
+    <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("نوع الفحص")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th></tr></thead>
     <tbody>
     {% for r in radiology_requests %}
       <tr>
@@ -13,7 +13,7 @@
         <td><span class="badge bg-secondary">{{ r.status | enum_label('OrderState') }}</span></td>
       </tr>
     {% else %}
-      <tr><td colspan="3" class="text-muted text-center">لا يوجد نتائج</td></tr>
+      <tr><td colspan="3" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد نتائج")")")")")")")') }}</td></tr>
     {% endfor %}
     </tbody>
   </table>

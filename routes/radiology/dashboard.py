@@ -20,9 +20,7 @@ from services.core_queries import core_queries
 from services.radiology_service import radiology_service
 from utils.decorators import role_required
 
-# =============================================
 # DASHBOARD ROUTES
-# =============================================
 
 
 @radiology_bp.route('/')

@@ -5,9 +5,7 @@ All workflow and model enums consolidated into one place.
 
 from enum import Enum, StrEnum
 
-# =============================================================================
 # Subscription & Tenant
-# =============================================================================
 #
 # The values of the enums below are UPPERCASE because the PostgreSQL enum
 # types behind them are created by the migrations with UPPERCASE labels
@@ -73,9 +71,7 @@ class ModuleName(StrEnum):
     DICOM = 'dicom'
 
 
-# =============================================================================
 # Visits
-# =============================================================================
 
 
 class VisitState(StrEnum):
@@ -134,9 +130,7 @@ class PaymentMethod(StrEnum):
     FORCE = 'FORCE'
 
 
-# =============================================================================
 # Appointments
-# =============================================================================
 
 
 class AppointmentState(StrEnum):
@@ -163,9 +157,7 @@ class AppointmentWorkflowStatus(StrEnum):
     NO_SHOW = 'no_show'
 
 
-# =============================================================================
 # Orders (Lab & Radiology)
-# =============================================================================
 
 
 class OrderState(StrEnum):
@@ -218,9 +210,7 @@ class RadiologyResultStatus(StrEnum):
     VALIDATED = 'VALIDATED'
 
 
-# =============================================================================
 # Queue
-# =============================================================================
 
 
 class QueueState(StrEnum):
@@ -232,9 +222,7 @@ class QueueState(StrEnum):
     CANCELLED = 'cancelled'
 
 
-# =============================================================================
 # Billing & Invoices
-# =============================================================================
 
 
 class BillingState(StrEnum):
@@ -256,9 +244,7 @@ class InvoiceStatus(StrEnum):
     VOID = 'VOID'
 
 
-# =============================================================================
 # Prescriptions & Medications
-# =============================================================================
 
 
 class PrescriptionState(StrEnum):
@@ -287,9 +273,7 @@ class StockMovementType(StrEnum):
     TRANSFER_OUT = 'transfer_out'
 
 
-# =============================================================================
 # Booking
-# =============================================================================
 
 
 class BookingState(StrEnum):
@@ -300,9 +284,7 @@ class BookingState(StrEnum):
     EXPIRED = 'expired'
 
 
-# =============================================================================
 # Notifications
-# =============================================================================
 
 
 class NotificationState(StrEnum):
@@ -319,9 +301,7 @@ class NotificationPriority(StrEnum):
     URGENT = 'urgent'
 
 
-# =============================================================================
 # Tasks & Projects
-# =============================================================================
 
 
 class TaskState(StrEnum):
@@ -346,9 +326,7 @@ class ProjectState(StrEnum):
     ON_HOLD = 'on_hold'
 
 
-# =============================================================================
 # Emergency
-# =============================================================================
 
 
 class EmergencyStatus(StrEnum):
@@ -370,9 +348,7 @@ class EmergencySeverity(StrEnum):
     CRITICAL = 'CRITICAL'
 
 
-# =============================================================================
 # Bed Management
-# =============================================================================
 
 
 class WardType(StrEnum):
@@ -432,9 +408,7 @@ class DischargeType(StrEnum):
     AGAINST_ADVICE = 'AGAINST_ADVICE'
 
 
-# =============================================================================
 # Clinical
-# =============================================================================
 
 
 class DiagnosisType(StrEnum):
@@ -501,9 +475,7 @@ class ProcedureStatus(StrEnum):
     CANCELLED = 'CANCELLED'
 
 
-# =============================================================================
 # Backup & System
-# =============================================================================
 
 
 class BackupType(StrEnum):
@@ -605,9 +577,7 @@ class SecuritySeverity(StrEnum):
     CRITICAL = 'critical'
 
 
-# =============================================================================
 # Permissions
-# =============================================================================
 
 
 class PermissionLevel(Enum):
@@ -660,9 +630,7 @@ class PermissionCategory(Enum):
         }[self.name]
 
 
-# =============================================================================
 # Other
-# =============================================================================
 
 
 class ReportExecutionState(StrEnum):
@@ -776,9 +744,7 @@ class WorkflowStatus(StrEnum):
     TRANSFERRED = 'transferred'
 
 
-# =============================================================================
 # Print documents (§34.2)
-# =============================================================================
 
 
 class PrintDocType(StrEnum):
@@ -794,9 +760,7 @@ class PrintDocType(StrEnum):
     PHARMACY_SALE = 'pharmacy_sale'
 
 
-# =============================================================================
 # General Ledger (GL) & Chart of Accounts
-# =============================================================================
 
 
 class AccountType(StrEnum):
@@ -831,9 +795,7 @@ class JournalSourceType(StrEnum):
     PROCUREMENT = 'procurement'
 
 
-# =============================================================================
 # Helper: export all enum values as a JSON-serializable dict
-# =============================================================================
 
 
 def get_all_enums_json() -> dict:

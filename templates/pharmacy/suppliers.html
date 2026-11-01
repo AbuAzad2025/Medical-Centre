@@ -3,13 +3,13 @@
 {% block title %}الموردين{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="fas fa-truck ms-2"></i>الموردين</h4>
-    <a href="{{ url_for('medication.add_supplier') }}" class="btn btn-primary"><i class="fas fa-plus ms-1"></i>إضافة مورد</a>
+    <h4 class="mb-0"><i class="fas fa-truck ms-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الموردين")")")")")")")') }}</h4>
+    <a href="{{ url_for('medication.add_supplier') }}" class="btn btn-primary"><i class="fas fa-plus ms-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("إضافة مورد")")")")")")")') }}</a>
 </div>
 <div class="card">
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
-            <thead><tr><th>الاسم</th><th>جهة الاتصال</th><th>الهاتف</th><th>البريد</th><th>الرقم الضريبي</th><th></th></tr></thead>
+            <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("جهة الاتصال")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("البريد")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الرقم الضريبي")")")")")")")') }}</th><th></th></tr></thead>
             <tbody>
             {% for s in suppliers %}
             <tr>
@@ -20,14 +20,14 @@
                 <td>{{ s.tax_id or '-' }}</td>
                 <td>
                     <a href="{{ url_for('medication.edit_supplier', supplier_id=s.id) }}" class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></a>
-                    <form method="POST" action="{{ url_for('medication.delete_supplier', supplier_id=s.id) }}" style="display:inline" onsubmit="return confirm('تأكيد حذف المورد؟')">
+                    <form method="POST" action="{{ url_for('medication.delete_supplier', supplier_id=s.id) }}" style="display:inline" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("تأكيد حذف المورد؟")")")")")")")')">
                         {{ csrf() }}
                         <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
                     </form>
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="6" class="text-center text-muted py-4">لا يوجد موردون بعد</td></tr>
+            <tr><td colspan="6" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد موردون بعد")")")")")")")') }}</td></tr>
             {% endfor %}
             </tbody>
         </table>

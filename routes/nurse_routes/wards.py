@@ -7,9 +7,7 @@ from flask_login import login_required
 from routes.nurse_routes import nurse_bp
 from utils.decorators import role_required
 
-# =============================================
 # WARDS ROUTES
-# =============================================
 
 
 @nurse_bp.route('/patients')

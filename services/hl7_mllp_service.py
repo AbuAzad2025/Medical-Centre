@@ -2,7 +2,9 @@
 HL7v2 MLLP Service — Minimal Lower Layer Protocol listener for legacy LIS/HIS integration.
 
 Handles ER7 encoded HL7v2 messages framed as: 0x0B <HL7> 0x1C 0x0D
-Supported trigger events: ADT^A01/A04/A08 (patient), ORM^O01 (order), ORU^R01 (result).
+Supported trigger events: ADT^A01/A04/A08 (patient), ORM^O01 (order), ORU^R01 (result),
+SIU^S12 (appointment scheduling), RDE^O11 (pharmacy encoded order), RDS^O13 (pharmacy
+dispense), MDM^T02 (medical document management).
 
 Designed to run as a daemon thread or Celery beat task; does NOT require hl7 library.
 Tenant resolution via MSH-3/MSH-4 sending facility or PID-3 patient identifier fallback.
@@ -12,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import socket
 import threading
 from collections.abc import Callable
@@ -63,6 +66,53 @@ def _build_ack(msh_fields: list[str], ack_code: str = 'AA', text: str = '') -> s
     ctrl_id = msh_fields[9] if len(msh_fields) > 9 else '1'
     msa = ['MSA', ack_code, ctrl_id, text]
     return '\r'.join(['|'.join(msh), '|'.join(msa)]) + '\r'
+
+
+_MSG_TYPE_RE = re.compile(r'^[A-Z0-9]{3}(\^[A-Z0-9]+)?$')
+
+
+def validate_hl7_message(raw: str) -> tuple[bool, str]:
+    """Validate an ER7-encoded HL7 v2 message.
+
+    Returns ``(is_valid, error_message)``. An empty error string means valid.
+    """
+    if not isinstance(raw, str) or not raw.strip():
+        return False, 'Empty HL7 message'
+    text = raw.strip()
+    if 'MSH' not in text:
+        return False, 'Missing MSH segment'
+    segments = _parse_er7(text)
+    msh_list = segments.get('MSH')
+    if not msh_list:
+        return False, 'Missing MSH segment'
+    msh = msh_list[0]
+    if not msh or msh[0].strip().upper() != 'MSH':
+        return False, 'Invalid MSH segment'
+    if len(msh) < 9:
+        return False, 'MSH segment incomplete (MSH-9 message type required)'
+    msg_type = msh[8].strip().upper().replace('_', '^')
+    if not msg_type:
+        return False, 'Missing message type (MSH-9)'
+    if not _MSG_TYPE_RE.match(msg_type):
+        return False, f'Invalid message type format: {msg_type}'
+    # Every segment name must be a 3-character uppercase code.
+    for line in text.split('\r'):
+        line = line.strip()
+        if not line:
+            continue
+        if len(line) < 3 or not line[:3].isalpha() or not line[:3].isupper():
+            return False, f'Invalid segment: {line[:12]}'
+    return True, ''
+
+
+def is_valid_hl7(raw: str) -> bool:
+    ok, _ = validate_hl7_message(raw)
+    return ok
+
+
+# Backwards/alternate names
+validate_hl7 = validate_hl7_message
+hl7_validate = validate_hl7_message
 
 
 class HL7MLLPService:
@@ -189,6 +239,59 @@ def _default_oru_handler(segs: dict, raw: str) -> str | None:
     return 'ORU logged'
 
 
+def _default_siu_handler(segs: dict, raw: str) -> str | None:
+    try:
+        sch = segs.get('SCH', [[]])[0] if segs.get('SCH') else []
+        pid = segs.get('PID', [[]])[0] if segs.get('PID') else []
+        logger.info('HL7 SIU scheduling sch=%s pid=%s', (sch[0] if sch else '')[:40], (pid[3] if len(pid) > 3 else '')[:20])
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('SIU handler parse skipped: %s', exc)
+    return 'SIU logged'
+
+
+def _default_rde_handler(segs: dict, raw: str) -> str | None:
+    try:
+        pid = segs.get('PID', [[]])[0] if segs.get('PID') else []
+        rxe = segs.get('RXE', [[]])[0] if segs.get('RXE') else []
+        logger.info('HL7 RDE pharmacy order pid=%s rxe=%s', (pid[3] if len(pid) > 3 else '')[:20], (rxe[0] if rxe else '')[:40])
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('RDE handler parse skipped: %s', exc)
+    return 'RDE logged'
+
+
+def _default_rds_handler(segs: dict, raw: str) -> str | None:
+    try:
+        pid = segs.get('PID', [[]])[0] if segs.get('PID') else []
+        rxd = segs.get('RXD', [[]])[0] if segs.get('RXD') else []
+        logger.info('HL7 RDS pharmacy dispense pid=%s rxd=%s', (pid[3] if len(pid) > 3 else '')[:20], (rxd[0] if rxd else '')[:40])
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('RDS handler parse skipped: %s', exc)
+    return 'RDS logged'
+
+
+def _default_mdm_handler(segs: dict, raw: str) -> str | None:
+    try:
+        pid = segs.get('PID', [[]])[0] if segs.get('PID') else []
+        txa = segs.get('TXA', [[]])[0] if segs.get('TXA') else []
+        logger.info('HL7 MDM document pid=%s txa=%s', (pid[3] if len(pid) > 3 else '')[:20], (txa[0] if txa else '')[:40])
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('MDM handler parse skipped: %s', exc)
+    return 'MDM logged'
+
+
+# Register prefix + full trigger-event handlers
 hl7_mllp_service.register_handler('ADT', _default_adt_handler)
 hl7_mllp_service.register_handler('ORU', _default_oru_handler)
 hl7_mllp_service.register_handler('ORM', lambda _s, _r: 'ORM logged')
+hl7_mllp_service.register_handler('SIU', _default_siu_handler)
+hl7_mllp_service.register_handler('RDE', _default_rde_handler)
+hl7_mllp_service.register_handler('RDS', _default_rds_handler)
+hl7_mllp_service.register_handler('MDM', _default_mdm_handler)
+
+for _code, _event, _handler in (
+    ('SIU', 'SIU^S12', _default_siu_handler),
+    ('RDE', 'RDE^O11', _default_rde_handler),
+    ('RDS', 'RDS^O13', _default_rds_handler),
+    ('MDM', 'MDM^T02', _default_mdm_handler),
+):
+    hl7_mllp_service.register_handler(_event, _handler)

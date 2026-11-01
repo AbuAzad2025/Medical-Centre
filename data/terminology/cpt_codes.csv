@@ -1,0 +1,290 @@
+﻿system,code,description,description_ar,category
+CPT,99202,"Office or other outpatient visit, new patient, 15 min",زيارة مكتبية - مريض جديد 15 دقيقة,E/M
+CPT,99203,"Office or other outpatient visit, new patient, 30 min",زيارة مكتبية - مريض جديد 30 دقيقة,E/M
+CPT,99204,"Office or other outpatient visit, new patient, 45 min",زيارة مكتبية - مريض جديد 45 دقيقة,E/M
+CPT,99205,"Office or other outpatient visit, new patient, 60 min",زيارة مكتبية - مريض جديد 60 دقيقة,E/M
+CPT,99211,"Office or other outpatient visit, established patient, 5 min",زيارة مكتبية - مريض established 5 دقائق,E/M
+CPT,99212,"Office or other outpatient visit, established patient, 10 min",زيارة مكتبية - مريض established 10 دقائق,E/M
+CPT,99213,"Office or other outpatient visit, established patient, 20 min",زيارة مكتبية - مريض established 20 دقيقة,E/M
+CPT,99214,"Office or other outpatient visit, established patient, 30 min",زيارة مكتبية - مريض established 30 دقيقة,E/M
+CPT,99215,"Office or other outpatient visit, established patient, 40 min",زيارة مكتبية - مريض established 40 دقيقة,E/M
+CPT,99281,"Emergency department visit, straightforward",زيارة طوارئ - بسيطة,Emergency
+CPT,99282,"Emergency department visit, low complexity",زيارة طوارئ - منخفضة التعقيد,Emergency
+CPT,99283,"Emergency department visit, moderate complexity",زيارة طوارئ - متوسطة التعقيد,Emergency
+CPT,99284,"Emergency department visit, high complexity",زيارة طوارئ - عالية التعقيد,Emergency
+CPT,99285,"Emergency department visit, critical",زيارة طوارئ - حرجة,Emergency
+CPT,99221,"Initial hospital inpatient care, low",رعاية مستشفى أولية - منخفضة,Inpatient
+CPT,99222,"Initial hospital inpatient care, moderate",رعاية مستشفى أولية - متوسطة,Inpatient
+CPT,99223,"Initial hospital inpatient care, high",رعاية مستشفى أولية - عالية,Inpatient
+CPT,99231,"Subsequent hospital inpatient care, low",رعاية مستشفى لاحقة - منخفضة,Inpatient
+CPT,99232,"Subsequent hospital inpatient care, moderate",رعاية مستشفى لاحقة - متوسطة,Inpatient
+CPT,99233,"Subsequent hospital inpatient care, high",رعاية مستشفى لاحقة - عالية,Inpatient
+CPT,99238,"Hospital discharge day management, 30 min or less",إدارة خروج مستشفى - 30 دقيقة أو أقل,Inpatient
+CPT,99239,"Hospital discharge day management, more than 30 min",إدارة خروج مستشفى - أكثر من 30 دقيقة,Inpatient
+CPT,99291,"Critical care, first 30-74 minutes",رعاية حرجة - أول 30-74 دقيقة,Critical Care
+CPT,99292,"Critical care, each additional 30 minutes",رعاية حرجة - كل 30 دقيقة إضافية,Critical Care
+CPT,10060,"Incision and drainage of abscess, simple",شق وتصريف خراج - بسيط,Surgery
+CPT,10061,"Incision and drainage of abscess, complicated",شق وتصريف خراج - معقد,Surgery
+CPT,11042,"Debridement, subcutaneous tissue, first 20 sq cm",إزالة أنسجة - تحت الجلد,Surgery
+CPT,12001,"Simple repair of superficial wounds, 2.5 cm or less",إصلاح جروح بسيط - 2.5 سم أو أقل,Surgery
+CPT,12002,"Simple repair of superficial wounds, 2.6-7.5 cm",إصلاح جروح بسيط - 2.6-7.5 سم,Surgery
+CPT,12011,"Simple repair of superficial wounds, 2.6-7.5 cm, face",إصلاح جروح بسيط - وجه,Surgery
+CPT,17110,"Destruction of benign lesions, up to 14 lesions",تدمير أورام حميدة - حتى 14,Surgery
+CPT,20610,Aspiration and injection of major joint,شفط وحقن مفصل رئيسي,Surgery
+CPT,29125,Application of short arm splint,تطبيق جبيرة ذراع قصيرة,Surgery
+CPT,36415,Collection of venous blood by venipuncture,جمع دم وريدي,Laboratory
+CPT,36416,Collection of capillary blood specimen,جمع عينة دم شعري,Laboratory
+CPT,43239,Upper gastrointestinal endoscopy with biopsy,تنظير هضمي علوي مع خزعة,Endoscopy
+CPT,45378,"Colonoscopy, diagnostic",تنظير قولون - تشخيصي,Endoscopy
+CPT,45380,Colonoscopy with biopsy,تنظير قولون مع خزعة,Endoscopy
+CPT,45385,Colonoscopy with lesion removal,تنظير قولون مع إزالة آفة,Endoscopy
+CPT,70450,CT head/brain without contrast,الأشعة المقطعية - رأس/دماغ بدون تباين,Radiology
+CPT,70551,MRI brain without contrast,الرنين المغناطيسي - دماغ بدون تباين,Radiology
+CPT,71045,"Radiologic examination, chest, single view",فحص إشعاعي - صدر، منظر واحد,Radiology
+CPT,71046,"Radiologic examination, chest, 2 views",فحص إشعاعي - صدر، منظران,Radiology
+CPT,71250,CT thorax without contrast,الأشعة المقطعية - صدر بدون تباين,Radiology
+CPT,72100,"Radiologic examination, spine, lumbosacral, 2 views",فحص إشعاعي - عمود فقري,Radiology
+CPT,73030,"Radiologic examination, shoulder, 2 views",فحص إشعاعي - كتف,Radiology
+CPT,73070,"Radiologic examination, elbow, 2 views",فحص إشعاعي - كوع,Radiology
+CPT,73110,"Radiologic examination, wrist, 2 views",فحص إشعاعي - رسغ,Radiology
+CPT,73560,"Radiologic examination, knee, 1-2 views",فحص إشعاعي - ركبة,Radiology
+CPT,73562,"Radiologic examination, knee, 3 views",فحص إشعاعي - ركبة، 3 مناظر,Radiology
+CPT,73610,"Radiologic examination, ankle, 2 views",فحص إشعاعي - كاحل,Radiology
+CPT,74176,CT abdomen and pelvis without contrast,الأشعة المقطعية - بطن وحوض,Radiology
+CPT,76700,"Ultrasound, abdomen, complete",الموجات فوق الصوتية - بطن كامل,Radiology
+CPT,76805,"Ultrasound, pregnant uterus, fetal and maternal",الموجات فوق الصوتية - رحم حامل,Radiology
+CPT,76811,"Ultrasound, pregnant uterus, fetal biophysical profile",الموجات فوق الصوتية - ملف حيوي,Radiology
+CPT,76830,"Ultrasound, transvaginal",الموجات فوق الصوتية - عبر المهبل,Radiology
+CPT,76856,"Ultrasound, pelvic, complete",الموجات فوق الصوتية - حوض كامل,Radiology
+CPT,80047,Basic metabolic panel,لوحة استقلاب أساسية,Laboratory
+CPT,80048,Basic metabolic panel with calcium,لوحة استقلاب مع كالسيوم,Laboratory
+CPT,80050,General health panel,لوحة صحية عامة,Laboratory
+CPT,80053,Comprehensive metabolic panel,لوحة استقلاب شاملة,Laboratory
+CPT,80061,Lipid panel,لوحة شحوم,Laboratory
+CPT,80074,Acute hepatitis panel,لوحة التهاب كبد حاد,Laboratory
+CPT,80076,Hepatic function panel,لوحة وظيفة كبد,Laboratory
+CPT,81000,"Urinalysis, non-automated, without microscopy",تحليل بول - غير آلي,Laboratory
+CPT,81001,"Urinalysis, automated, with microscopy",تحليل بول - آلي مع مجهر,Laboratory
+CPT,81002,"Urinalysis, non-automated, with microscopy",تحليل بول - غير آلي مع مجهر,Laboratory
+CPT,81003,"Urinalysis, automated, without microscopy",تحليل بول - آلي,Laboratory
+CPT,82947,"Glucose, quantitative, blood",جلوكوز - كمي، دم,Laboratory
+CPT,83036,Hemoglobin A1c,هيموغلوبين A1c,Laboratory
+CPT,85025,"CBC with differential, automated",تعداد دم كامل مع تمايز,Laboratory
+CPT,85027,CBC without differential,تعداد دم كامل بدون تمايز,Laboratory
+CPT,85610,Prothrombin time,وقت بروثرومبين,Laboratory
+CPT,84443,Thyroid stimulating hormone (TSH),هرمون محفز للدرقية,Laboratory
+CPT,84439,Free thyroxine (Free T4),ثيروكسين حر (T4),Laboratory
+CPT,84480,Triiodothyronine (T3),ثلاثي يودوثيرونين (T3),Laboratory
+CPT,82040,"Albumin, serum",ألبومين، مصل,Laboratory
+CPT,82105,Alpha fetoprotein (AFP),ألفا فيتوبروتين,Laboratory
+CPT,82310,"Calcium, total",كالسيوم - إجمالي,Laboratory
+CPT,82465,"Cholesterol, serum, total",كولسترول - إجمالي,Laboratory
+CPT,82553,"Creatine kinase (CK), total",كيناز كرياتين - إجمالي,Laboratory
+CPT,82565,"Creatinine, blood",كرياتينين - دم,Laboratory
+CPT,82945,"Glucose, fasting",جلوكوز - صيام,Laboratory
+CPT,83540,Iron,حديد,Laboratory
+CPT,83718,"Lipoprotein, direct measurement, HDL cholesterol",بروتين دهني - HDL,Laboratory
+CPT,83721,LDL cholesterol,كولسترول LDL,Laboratory
+CPT,84075,Alkaline phosphatase,فوسفاتاز قلوي,Laboratory
+CPT,84132,"Potassium, serum",بوتاسيوم - مصل,Laboratory
+CPT,84155,"Protein, total, serum",بروتين - إجمالي,Laboratory
+CPT,84295,"Sodium, serum",صوديوم - مصل,Laboratory
+CPT,84460,"Transferase, alanine (ALT)",نقلة ألانين (ALT),Laboratory
+CPT,84450,"Transferase, aspartate (AST)",نقلة أسبارتات (AST),Laboratory
+CPT,84520,"Urea nitrogen, blood (BUN)",نيتروجين يوريا - دم,Laboratory
+CPT,85014,Hematocrit,هيماتوكريت,Laboratory
+CPT,85018,Hemoglobin,هيموغلوبين,Laboratory
+CPT,85041,Red blood cell count,تعداد خلايا دم حمراء,Laboratory
+CPT,85045,White blood cell count,تعداد خلايا دم بيضاء,Laboratory
+CPT,85048,"White blood cell count, automated",تعداد خلايا دم بيضاء - آلي,Laboratory
+CPT,87086,"Urine culture, quantitative",مزارعة بول - كمي,Laboratory
+CPT,87070,"Culture, bacterial, aerobic, any source",مزارعة بكتيرية - هوائية,Laboratory
+CPT,87071,"Culture, bacterial, anaerobic",مزارعة بكتيرية - لاهوائية,Laboratory
+CPT,90460,"Immunization administration, 1 vaccine, via any route",إدارة تطعيم - لقاح واحد,Immunization
+CPT,90461,"Immunization administration, each additional vaccine",إدارة تطعيم - كل لقاح إضافي,Immunization
+CPT,90471,"Immunization administration, 1 vaccine, via injection",إدارة تطعيم - حقن,Immunization
+CPT,90472,"Immunization administration, each additional vaccine via injection",إدارة تطعيم - حقن إضافي,Immunization
+CPT,90633,"Hepatitis A vaccine, pediatric",لقاح التهاب كبد A - أطفال,Immunization
+CPT,90700,"DTaP vaccine, for intramuscular use",لقاح DTaP - عضلي,Immunization
+CPT,90702,"DT vaccine, for intramuscular use",لقاح DT - عضلي,Immunization
+CPT,90713,"Poliovirus vaccine, inactivated",لقاح شلل أطفال - معطل,Immunization
+CPT,90714,"Td vaccine, 7 years or older",لقاح Td - 7 سنوات أو أكثر,Immunization
+CPT,90716,Varicella vaccine,لقاح جدري الماء,Immunization
+CPT,90732,"Pneumococcal vaccine, 23-valent",لقاح المكورات الرئوية 23,Immunization
+CPT,90746,"Hepatitis B vaccine, adult dosage",لقاح التهاب كبد B - بالغين,Immunization
+CPT,97110,Therapeutic exercise,تمرين علاجي,Physical Therapy
+CPT,97112,Neuromuscular reeducation,إعادة تأهيل عصبي عضلي,Physical Therapy
+CPT,97116,Gait training,تدريب مشي,Physical Therapy
+CPT,97140,Manual therapy techniques,تقنيات علاج يدوي,Physical Therapy
+CPT,97530,Therapeutic activities,أنشطة علاجية,Physical Therapy
+CPT,93306,"Echocardiography, transthoracic, complete",تخطيط صدى القلب - صدري كامل,Cardiology
+CPT,93307,"Echocardiography, transthoracic, limited",تخطيط صدى القلب - صدري محدود,Cardiology
+CPT,93000,"Electrocardiogram, routine ECG",مخطط كهربائية القلب,Cardiology
+CPT,93005,ECG tracing only,تتبع ECG فقط,Cardiology
+CPT,93010,ECG interpretation and report,تفسير وتقرير ECG,Cardiology
+CPT,93224,"External electrocardiographic recording, up to 48 hours",تسجيل ECG خارجي - 48 ساعة,Cardiology
+CPT,90791,Psychiatric diagnostic evaluation,تقييم تشخيصي نفسي,Psychiatry
+CPT,90792,Psychiatric diagnostic evaluation with medical services,تقييم تشخيصي نفسي مع خدمات طبية,Psychiatry
+CPT,90832,"Psychotherapy, 30 minutes",علاج نفسي - 30 دقيقة,Psychiatry
+CPT,90834,"Psychotherapy, 45 minutes",علاج نفسي - 45 دقيقة,Psychiatry
+CPT,90837,"Psychotherapy, 60 minutes",علاج نفسي - 60 دقيقة,Psychiatry
+CPT,90846,Family psychotherapy without patient,علاج نفسي عائلي - بدون مريض,Psychiatry
+CPT,90847,Family psychotherapy with patient,علاج نفسي عائلي - مع مريض,Psychiatry
+CPT,90935,Hemodialysis procedure with single evaluation,غسيل كلوي - تقييم واحد,Nephrology
+CPT,90937,Hemodialysis procedure with repeated evaluations,غسيل كلوي - تقييمات متكررة,Nephrology
+CPT,90945,Dialysis procedure other than hemodialysis,غسيل - غير دموي,Nephrology
+CPT,96360,"Intravenous infusion, hydration, initial",تسريب وريدي - ترطيب أولي,Infusion
+CPT,96361,"Intravenous infusion, hydration, each additional hour",تسريب وريدي - ترطيب إضافي,Infusion
+CPT,96365,"Intravenous infusion, therapeutic, initial",تسريب وريدي - علاجي أولي,Infusion
+CPT,96366,"Intravenous infusion, therapeutic, each additional hour",تسريب وريدي - علاجي إضافي,Infusion
+CPT,96372,"Therapeutic injection, subcutaneous or intramuscular",حقن علاجي - تحت الجلد/عضلي,Infusion
+CPT,96374,"Therapeutic injection, intravenous push",حقن علاجي - دفع وريدي,Infusion
+CPT,99201,"Office visit, new patient, straightforward, 10 min",زيارة مكتبية - مريض جديد 10 دقائق,E/M
+CPT,99210,"Office visit, established patient, straightforward, 5 min",زيارة مكتبية - مريض established 5 دقائق,E/M
+CPT,10021,"Fine needle aspiration, superficial",شفط إبرة دقيقة - سطحي,Surgery
+CPT,10022,"Fine needle aspiration, deep",شفط إبرة دقيقة - عميق,Surgery
+CPT,10030,Image-guided fluid collection drainage,تصريف سائل موجه بالصورة,Surgery
+CPT,10040,Acne surgery,جراحة حب شباب,Surgery
+CPT,10080,"Incision and drainage of pilonidal cyst, simple",شق وتصريف كيس شعر - بسيط,Surgery
+CPT,10081,"Incision and drainage of pilonidal cyst, complicated",شق وتصريف كيس شعر - معقد,Surgery
+CPT,10120,"Incision and removal of foreign body, subcutaneous",إزالة جسم غريب - تحت جلد,Surgery
+CPT,10121,"Incision and removal of foreign body, deep",إزالة جسم غريب - عميق,Surgery
+CPT,10140,"Incision and drainage of hematoma, seroma",شق وتصريف ورم دموي,Surgery
+CPT,10160,"Puncture aspiration of abscess, hematoma, bulla",شفط خراج,Surgery
+CPT,10180,Incision and drainage of complex postoperative wound,شق وتصريف جرح معقد,Surgery
+CPT,11000,"Debridement, extensive, with removal of foreign material",إزالة أنسجة واسعة,Surgery
+CPT,11010,"Debridement, skin, subcutaneous tissue",إزالة أنسجة - جلد,Surgery
+CPT,11011,"Debridement, skin, muscle, fascia",إزالة أنسجة - عضل,Surgery
+CPT,11012,"Debridement, skin, bone",إزالة أنسجة - عظم,Surgery
+CPT,11043,"Debridement, muscle, first 20 sq cm",إزالة أنسجة - عضل,Surgery
+CPT,11044,"Debridement, bone, first 20 sq cm",إزالة أنسجة - عظم,Surgery
+CPT,11045,"Debridement, subcutaneous tissue, each additional 20 sq cm",إزالة أنسجة - إضافي,Surgery
+CPT,11046,"Debridement, muscle, each additional 20 sq cm",إزالة أنسجة - عضل إضافي,Surgery
+CPT,11047,"Debridement, bone, each additional 20 sq cm",إزالة أنسجة - عظم إضافي,Surgery
+CPT,70010,"Radiologic examination, eye, for foreign body",فحص إشعاعي - عين,Radiology
+CPT,70015,"Radiologic examination, eye, for foreign body, localization",فحص إشعاعي - عين توطين,Radiology
+CPT,70030,"Radiologic examination, eye, for detection of foreign body",فحص إشعاعي - عين كشف,Radiology
+CPT,70100,"Radiologic examination, mandible, partial",فحص إشعاعي - فك,Radiology
+CPT,70110,"Radiologic examination, mandible, complete",فحص إشعاعي - فك كامل,Radiology
+CPT,70120,"Radiologic examination, mastoids",فحص إشعاعي - خشاء,Radiology
+CPT,70130,"Radiologic examination, nasopharynx",فحص إشعاعي - بلعوم أنفي,Radiology
+CPT,70134,"Radiologic examination, sinuses, Waters view",فحص إشعاعي - جيوب,Radiology
+CPT,70140,"Radiologic examination, facial bones",فحص إشعاعي - عظام وجه,Radiology
+CPT,70150,"Radiologic examination, larynx",فحص إشعاعي - حنجرة,Radiology
+CPT,70160,"Radiologic examination, nose",فحص إشعاعي - أنف,Radiology
+CPT,70170,Dacryocystography,تصوير كيس دمعي,Radiology
+CPT,70190,"Radiologic examination, optic foramina",فحص إشعاعي - ثقب بصري,Radiology
+CPT,70200,"Radiologic examination, orbits",فحص إشعاعي - محاجر,Radiology
+CPT,70210,"Radiologic examination, sinuses, complete",فحص إشعاعي - جيوب كامل,Radiology
+CPT,70220,"Radiologic examination, sinuses, paranasal, less than 3 views",فحص إشعاعي - جيوب أنفية,Radiology
+CPT,70240,"Radiologic examination, sella turcica",فحص إشعاعي - سرج تركي,Radiology
+CPT,70250,"Radiologic examination, skull, less than 4 views",فحص إشعاعي - جمجمة,Radiology
+CPT,70260,"Radiologic examination, skull, complete, minimum of 4 views",فحص إشعاعي - جمجمة كامل,Radiology
+CPT,70300,"Radiologic examination, teeth, single view",فحص إشعاعي - أسنان,Radiology
+CPT,70310,"Radiologic examination, teeth, complete, full mouth",فحص إشعاعي - فم كامل,Radiology
+CPT,70320,"Radiologic examination, teeth, bitewing",فحص إشعاعي - أسنان bitewing,Radiology
+CPT,70328,"Radiologic examination, temporomandibular joint",فحص إشعاعي - مفصل صدغي,Radiology
+CPT,70330,"Radiologic examination, temporomandibular joint, open and closed",فحص إشعاعي - مفصل صدغي مفتوح/مغلق,Radiology
+CPT,70332,Temporomandibular joint arthrography,تصوير مفصل صدغي,Radiology
+CPT,70336,"Magnetic resonance imaging, temporomandibular joint",MRI - مفصل صدغي,Radiology
+CPT,80051,Electrolyte panel,لوحة إلكتروليت,Laboratory
+CPT,80055,Obstetric panel,لوحة توليد,Laboratory
+CPT,80069,Renal function panel,لوحة وظيفة كلوي,Laboratory
+CPT,80081,Obstetric panel,لوحة توليد,Laboratory
+CPT,80150,"Assay, amikacin",تحليل أ mikacin,Laboratory
+CPT,80155,"Assay, carbamazepine, total",تحليل carbamazepine,Laboratory
+CPT,80156,"Assay, cyclosporine",تحليل cyclosporine,Laboratory
+CPT,80157,"Assay, digoxin",تحليل digoxin,Laboratory
+CPT,80158,"Assay, phenobarbital",تحليل phenobarbital,Laboratory
+CPT,80159,"Assay, phenytoin, total",تحليل phenytoin,Laboratory
+CPT,80162,"Assay, valproic acid (valproate)",تحليل valproic acid,Laboratory
+CPT,80163,"Assay, vancomycin",تحليل vancomycin,Laboratory
+CPT,80170,"Assay, lithium",تحليل lithium,Laboratory
+CPT,80177,"Assay, levetiracetam",تحليل levetiracetam,Laboratory
+CPT,80185,"Assay, sirolimus",تحليل sirolimus,Laboratory
+CPT,80197,"Assay, tacrolimus",تحليل tacrolimus,Laboratory
+CPT,80200,"Assay, mycophenolic acid (MPA)",تحليل mycophenolic acid,Laboratory
+CPT,80201,"Assay, mycophenolic acid (MPA) metabolite",تحليل MPA metabolite,Laboratory
+CPT,80202,"Assay, everolimus",تحليل everolimus,Laboratory
+CPT,80203,"Assay, posaconazole",تحليل posaconazole,Laboratory
+CPT,80299,"Quantitative assay, glucose-6-phosphate dehydrogenase (G6PD)",تحليل G6PD,Laboratory
+CPT,80305,"Drug test(s), presumptive",فحص أدوية - presumptive,Laboratory
+CPT,80306,"Drug test(s), presumptive, any number",فحص أدوية - any number,Laboratory
+CPT,80307,"Drug test(s), presumptive, any number, any number of devices",فحص أدوية - devices,Laboratory
+CPT,90473,"Immunization administration, 1 vaccine, intranasal/oral",إدارة تطعيم - أنفي/فموي,Immunization
+CPT,90474,"Immunization administration, each additional vaccine, intranasal/oral",إدارة تطعيم - أنفي/فموي إضافي,Immunization
+CPT,90581,Anthrax vaccine,لقاح جمرة,Immunization
+CPT,90585,Bacillus Calmette-Guerin vaccine (BCG),لقاح BCG,Immunization
+CPT,90586,"Bacillus Calmette-Guerin vaccine (BCG), percutaneous",لقاح BCG - جلد,Immunization
+CPT,90632,"Hepatitis A vaccine, adult dosage",لقاح التهاب كبد A - بالغين,Immunization
+CPT,90634,Hepatitis A and hepatitis B vaccine,لقاح التهاب كبد A+B,Immunization
+CPT,90636,"Hepatitis A vaccine, adult",لقاح التهاب كبد A - بالغين,Immunization
+CPT,90647,Haemophilus influenzae type b vaccine (Hib),لقاح Hib,Immunization
+CPT,90648,"Hib vaccine, PRP-T",لقاح Hib PRP-T,Immunization
+CPT,90649,"Human papillomavirus (HPV) vaccine, 9-valent",لقاح HPV 9-valent,Immunization
+CPT,90650,"Human papillomavirus (HPV) vaccine, quadrivalent",لقاح HPV 4-valent,Immunization
+CPT,90651,"Human papillomavirus (HPV) vaccine, bivalent",لقاح HPV 2-valent,Immunization
+CPT,90653,"Influenza vaccine, inactivated",لقاح إنفلونزا - معطل,Immunization
+CPT,90654,"Influenza vaccine, inactivated, split virus",لقاح إنفلونزا - split,Immunization
+CPT,90655,"Influenza vaccine, trivalent, split virus",لقاح إنفلونزا - trivalent,Immunization
+CPT,90656,"Influenza vaccine, trivalent, split virus, preservative free",لقاح إنفلونزا - preservative free,Immunization
+CPT,90657,"Influenza vaccine, trivalent, split virus, for children",لقاح إنفلونزا - أطفال,Immunization
+CPT,90658,"Influenza vaccine, trivalent, split virus, for intramuscular use",لقاح إنفلونزا - عضلي,Immunization
+CPT,90660,"Influenza vaccine, live, intranasal",لقاح إنفلونزا - حي، أنفي,Immunization
+CPT,90661,"Influenza vaccine, trivalent, live, intranasal",لقاح إنفلونزا - حي، أنفي,Immunization
+CPT,90662,"Influenza vaccine, quadrivalent, live, intranasal",لقاح إنفلونزا - 4-valent، حي,Immunization
+CPT,90664,"Influenza vaccine, inactivated, adjuvanted",لقاح إنفلونزا - معطل، adjuvanted,Immunization
+CPT,90666,"Influenza vaccine, pandemic",لقاح إنفلونزا - جائحة,Immunization
+CPT,90667,"Influenza vaccine, pandemic, for intramuscular use",لقاح إنفلونزا - جائحة، عضلي,Immunization
+CPT,90668,"Influenza vaccine, pandemic, for intranasal use",لقاح إنفلونزا - جائحة، أنفي,Immunization
+CPT,90670,"Pneumococcal conjugate vaccine, 13 valent",لقاح المكورات الرئوية 13,Immunization
+CPT,90671,"Pneumococcal conjugate vaccine, 13 valent, for intramuscular use",لقاح المكورات الرئوية 13، عضلي,Immunization
+CPT,90672,"Influenza vaccine, inactivated, quadrivalent",لقاح إنفلونزا - 4-valent، معطل,Immunization
+CPT,90673,"Influenza vaccine, inactivated, quadrivalent, for intramuscular use",لقاح إنفلونزا - 4-valent، عضلي,Immunization
+CPT,90674,"Influenza vaccine, inactivated, quadrivalent, for intradermal use",لقاح إنفلونزا - 4-valent، جلد,Immunization
+CPT,90675,"Rabies vaccine, for intramuscular use",لقاح داء الكلب - عضلي,Immunization
+CPT,90676,"Rabies vaccine, for intradermal use",لقاح داء الكلب - جلد,Immunization
+CPT,90680,"Rotavirus vaccine, pentavalent",لقاح روتافايرس 5-valent,Immunization
+CPT,90681,"Rotavirus vaccine, human, attenuated",لقاح روتافايرس - human,Immunization
+CPT,90682,"Rotavirus vaccine, pentavalent, for oral use",لقاح روتافايرس - فموي,Immunization
+CPT,90685,"Influenza virus vaccine, quadrivalent, inactivated",لقاح إنفلونزا - 4-valent، معطل,Immunization
+CPT,90686,"Influenza virus vaccine, quadrivalent, inactivated, for intramuscular use",لقاح إنفلونزا - 4-valent، عضلي,Immunization
+CPT,90687,"Influenza virus vaccine, quadrivalent, inactivated, for intradermal use",لقاح إنفلونزا - 4-valent، جلد,Immunization
+CPT,90688,"Influenza virus vaccine, quadrivalent, inactivated, for intranasal use",لقاح إنفلونزا - 4-valent، أنفي,Immunization
+CPT,90690,"Typhoid vaccine, live, oral",لقاح تيفوئيد - حي، فموي,Immunization
+CPT,90691,"Typhoid vaccine, Vi capsular polysaccharide",لقاح تيفوئيد - Vi,Immunization
+CPT,90692,"Typhoid vaccine, live, attenuated, for oral use",لقاح تيفوئيد - حي، فموي,Immunization
+CPT,90693,"Typhoid vaccine, Vi capsular polysaccharide, for intramuscular use",لقاح تيفوئيد - Vi، عضلي,Immunization
+CPT,90694,"Influenza virus vaccine, quadrivalent, inactivated, for intramuscular use",لقاح إنفلونزا - 4-valent، عضلي,Immunization
+CPT,90696,"Diphtheria, tetanus toxoids, acellular pertussis vaccine (DTaP)",لقاح DTaP,Immunization
+CPT,90697,"Diphtheria, tetanus toxoids, acellular pertussis vaccine (DTaP)",لقاح DTaP - 5 components,Immunization
+CPT,90698,"Diphtheria, tetanus toxoids, acellular pertussis vaccine (DTaP)",لقاح DTaP - 4 components,Immunization
+CPT,90701,"DTaP-HepB-IPV vaccine, for intramuscular use",لقاح DTaP-HepB-IPV,Immunization
+CPT,90703,"Tetanus toxoid, adsorbed, for intramuscular use",لقاح كزاز - عضلي,Immunization
+CPT,90704,"Mumps virus vaccine, live, for subcutaneous use",لقاح نكاف - حي، تحت جلد,Immunization
+CPT,90705,"Measles virus vaccine, live, for subcutaneous use",لقاح حصبة - حي، تحت جلد,Immunization
+CPT,90706,"Rubella virus vaccine, live, for subcutaneous use",لقاح Rubella - حي، تحت جلد,Immunization
+CPT,90707,"MMR vaccine, live, for subcutaneous use",لقاح MMR - حي، تحت جلد,Immunization
+CPT,90708,"Measles and rubella virus vaccine, live",لقاح حصبة+Rubella - حي,Immunization
+CPT,90710,"MMRV vaccine, live, for subcutaneous use",لقاح MMRV - حي، تحت جلد,Immunization
+CPT,90715,"Tdap vaccine, for intramuscular use",لقاح Tdap - عضلي,Immunization
+CPT,90717,"Yellow fever vaccine, live, for subcutaneous use",لقاح حمى صفراء - حي، تحت جلد,Immunization
+CPT,90718,"Typhoid vaccine, live, for oral use",لقاح تيفوئيد - حي، فموي,Immunization
+CPT,90719,"Diphtheria toxoid, for intramuscular use",لقاح كزاز - عضلي,Immunization
+CPT,90720,"DTP vaccine, for intramuscular use",لقاح DTP - عضلي,Immunization
+CPT,90721,"DTaP vaccine, for intramuscular use",لقاح DTaP - عضلي,Immunization
+CPT,90723,"DTaP-HepB-IPV vaccine, for intramuscular use",لقاح DTaP-HepB-IPV,Immunization
+CPT,90725,"Cholera vaccine, for oral use",لقاح كوليرا - فموي,Immunization
+CPT,90727,"Plague vaccine, for intramuscular use",لقاح طاعون - عضلي,Immunization
+CPT,90733,"Meningococcal vaccine, for intramuscular use",لقاح المكورات السحائية - عضلي,Immunization
+CPT,90734,"Meningococcal conjugate vaccine, for intramuscular use",لقاح المكورات السحائية conjugate,Immunization
+CPT,90735,"Japanese encephalitis virus vaccine, for subcutaneous use",لقاح التهاب دماغ ياباني,Immunization
+CPT,90736,"Zoster (shingles) vaccine, live, for subcutaneous use",لقاح زوستر - حي، تحت جلد,Immunization
+CPT,90738,"Japanese encephalitis vaccine, inactivated",لقاح التهاب دماغ ياباني - معطل,Immunization
+CPT,90739,"Hepatitis B vaccine, adult dosage, for intramuscular use",لقاح التهاب كبد B - بالغين,Immunization
+CPT,90740,"Hepatitis B vaccine, pediatric/adolescent dosage",لقاح التهاب كبد B - أطفال,Immunization
+CPT,90743,"Hepatitis B vaccine, adult dosage, for intramuscular use",لقاح التهاب كبد B - بالغين,Immunization
+CPT,90744,"Hepatitis B vaccine, pediatric/adolescent dosage, for intramuscular use",لقاح التهاب كبد B - أطفال,Immunization
+CPT,90747,"Hepatitis B vaccine, pediatric/adolescent dosage, for intramuscular use",لقاح التهاب كبد B - أطفال,Immunization
+CPT,90748,Hepatitis B and Hemophilus influenzae type b vaccine,لقاح التهاب كبد B + Hib,Immunization
+CPT,90749,Unlisted vaccine/toxoid,لقاح غير مدرج,Immunization

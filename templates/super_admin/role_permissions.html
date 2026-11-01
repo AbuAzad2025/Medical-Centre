@@ -19,7 +19,7 @@
                         
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
-                            اختر الصلاحيات التي تريد منحها لهذا الدور
+                            {{ _('_("_(" _(" _(" _(" _(" _("اختر الصلاحيات التي تريد منحها لهذا الدور")")")")")")")') }}
                         </div>
                         
                         <div class="row">
@@ -46,7 +46,7 @@
                                 {% endfor %}
                             {% else %}
                                 <div class="col-12">
-                                    <p class="text-center text-muted">لا توجد صلاحيات متاحة</p>
+                                    <p class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد صلاحيات متاحة")")")")")")")') }}</p>
                                 </div>
                             {% endif %}
                         </div>
@@ -56,11 +56,11 @@
                                 <div class="d-flex gap-2">
                                     <button type="submit" class="btn btn-primary btn-lg">
                                         <i class="fas fa-save me-2"></i>
-                                        حفظ الصلاحيات
+                                        {{ _('_("_(" _(" _(" _(" _(" _("حفظ الصلاحيات")")")")")")")') }}
                                     </button>
                                     <a href="{{ url_for('super_admin.roles') }}" class="btn btn-secondary btn-lg">
                                         <i class="fas fa-times me-2"></i>
-                                        إلغاء
+                                        {{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}
                                     </a>
                                 </div>
                             </div>

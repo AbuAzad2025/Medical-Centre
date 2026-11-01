@@ -25,9 +25,7 @@ from services.lab_service import lab_service
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
-# =============================================
 # WORKLIST ROUTES
-# =============================================
 
 
 @lab_bp.route('/requests')

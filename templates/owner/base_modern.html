@@ -10,16 +10,16 @@
     <div class="owner-sidebar-overlay" id="ownerSidebarOverlay" aria-hidden="true"></div>
 
     <!-- Sidebar -->
-    <aside class="owner-sidebar" id="ownerSidebar" aria-label="قائمة التنقل">
+    <aside class="owner-sidebar" id="ownerSidebar" aria-label="_(" _(" _(" _(" _(" _("قائمة التنقل")")")")")")">
         <div class="owner-sidebar-brand">
-            <img src="{{ url_for('static', filename='img/medical_logo.png') }}" alt="شعار منصة المركز الطبي" loading="lazy">
+            <img src="{{ url_for('static', filename='img/medical_logo.png') }}" alt="_(" _(" _(" _(" _(" _("شعار منصة المركز الطبي")")")")")")" loading="lazy">
             <div>
                 <div class="brand-title">AZAD Platform</div>
                 <div class="brand-sub">OWNER CONSOLE</div>
             </div>
         </div>
         
-        <nav class="owner-nav" aria-label="تنقل المالك">
+        <nav class="owner-nav" aria-label="_(" _(" _(" _(" _(" _("تنقل المالك")")")")")")">
             {% block sidebar_nav %}
                 {% for section in owner_nav_sections %}
                     {% if section.title_ar %}
@@ -40,7 +40,7 @@
         <div class="owner-sidebar-footer">
             <div class="owner-user-menu">
                 <div class="owner-user-avatar" aria-hidden="true">
-                    {{ current_user.full_name[0] if current_user.full_name else 'أ' }}
+                    {{ current_user.full_name[0] if current_user.full_name else '_("_(" _(" _(" _(" _(" _("أ")")")")")")")' }}
                 </div>
                 <div class="ms-2">
                     <div class="small fw-bold">{{ current_user.full_name }}</div>
@@ -54,11 +54,11 @@
     <div class="owner-main">
         <header class="owner-header" role="banner">
             <div class="owner-header-left">
-                <button class="owner-mobile-toggle d-md-none" id="ownerMobileToggle" aria-label="فتح القائمة" aria-expanded="false" aria-controls="ownerSidebar">
+                <button class="owner-mobile-toggle d-md-none" id="ownerMobileToggle" aria-label="_(" _(" _(" _(" _(" _("فتح القائمة")")")")")")" aria-expanded="false" aria-controls="ownerSidebar">
                     <i class="fas fa-bars"></i>
                 </button>
-                <nav class="owner-header-breadcrumb" aria-label="مسار التنقل">
-                    <a href="{{ url_for('owner.owner_dashboard') }}">الرئيسية</a>
+                <nav class="owner-header-breadcrumb" aria-label="_(" _(" _(" _(" _(" _("مسار التنقل")")")")")")">
+                    <a href="{{ url_for('owner.owner_dashboard') }}">{{ _('_("_(" _(" _(" _(" _(" _("الرئيسية")")")")")")")') }}</a>
                     {% block breadcrumbs %}{% endblock %}
                 </nav>
             </div>

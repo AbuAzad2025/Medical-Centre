@@ -113,7 +113,6 @@ class Visit(TenantMixin, db.Model):
     financial_completed_at = db.Column(db.DateTime, nullable=True)
     gl_posted_at = db.Column(db.DateTime, nullable=True)
     # P1-002: archive_status is an administrative/legal retention flag owned by
-    # GatekeeperService.archive_visit(). It is deliberately separate from the
     # clinical Visit.status lifecycle. Do NOT merge it into Visit.status.
     archive_status = db.Column(db.String(20), default='ACTIVE')
 

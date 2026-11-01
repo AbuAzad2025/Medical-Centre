@@ -11,9 +11,9 @@
           <div>
             <div class="fw-bold">{{ patient.full_name }}</div>
             <div class="small text-muted">
-              {% if patient.national_id %}<span class="me-2">هوية: {{ patient.national_id }}</span>{% endif %}
-              {% if patient.phone %}<span class="me-2">هاتف: {{ patient.phone }}</span>{% endif %}
-              {% if patient.birth_date and patient.age is defined %}<span>عمر: {{ patient.age }}</span>{% endif %}
+              {% if patient.national_id %}<span class="me-2">{{ _('هوية:') }} {{ patient.national_id }}</span>{% endif %}
+              {% if patient.phone %}<span class="me-2">{{ _('هاتف:') }} {{ patient.phone }}</span>{% endif %}
+              {% if patient.birth_date and patient.age is defined %}<span>{{ _('عمر:') }} {{ patient.age }}</span>{% endif %}
             </div>
           </div>
         </div>

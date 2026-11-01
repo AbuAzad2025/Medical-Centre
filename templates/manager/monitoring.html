@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('مراقبة النظام', subtitle='مراقبة شاملة لحالة جميع وحدات النظام', icon='fas fa-eye', actions=[
-        {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-monitoring', 'style': 'primary'},
-        {'type': 'button', 'label': 'تصدير تقرير', 'icon': 'fas fa-file-excel', 'data_action': 'export-monitoring-report', 'style': 'success'}
+    {{ page_header('_("_(" _(" _(" _(" _(" _("مراقبة النظام")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("مراقبة شاملة لحالة جميع وحدات النظام")")")")")")")', icon='fas fa-eye', actions=[
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-monitoring', 'style': 'primary'},
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تصدير تقرير")")")")")")")', 'icon': 'fas fa-file-excel', 'data_action': 'export-monitoring-report', 'style': 'success'}
     ]) }}
 
     <!-- System Status Overview -->
@@ -15,7 +15,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">حالة النظام العامة</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("حالة النظام العامة")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -25,8 +25,8 @@
                                     <i class="fas fa-server"></i>
                                 </div>
                                 <div class="status-info">
-                                    <h6>خادم قاعدة البيانات</h6>
-                                    <span class="badge bg-success">متصل</span>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("خادم قاعدة البيانات")")")")")")")') }}</h6>
+                                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("متصل")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -36,8 +36,8 @@
                                     <i class="fas fa-memory"></i>
                                 </div>
                                 <div class="status-info">
-                                    <h6>الذاكرة</h6>
-                                    <span class="badge bg-success">طبيعية</span>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الذاكرة")")")")")")")') }}</h6>
+                                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("طبيعية")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -47,8 +47,8 @@
                                     <i class="fas fa-hdd"></i>
                                 </div>
                                 <div class="status-info">
-                                    <h6>مساحة القرص</h6>
-                                    <span class="badge bg-success">متاحة</span>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("مساحة القرص")")")")")")")') }}</h6>
+                                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("متاحة")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -58,8 +58,8 @@
                                     <i class="fas fa-network-wired"></i>
                                 </div>
                                 <div class="status-info">
-                                    <h6>الشبكة</h6>
-                                    <span class="badge bg-success">مستقرة</span>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الشبكة")")")")")")")') }}</h6>
+                                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مستقرة")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -74,7 +74,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">حالة الوحدات</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("حالة الوحدات")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -100,7 +100,7 @@
                                     <div class="unit-info">
                                         <h6 class="unit-name">{{ unit.name }}</h6>
                                         <span id="badge-{{ unit_key }}-status" class="badge bg-{{ 'success' if unit.status == 'active' else 'danger' }}">
-                                            {{ 'نشط' if unit.status == 'active' else 'معطل' }}
+                                            {{ '_("_(" _(" _(" _(" _(" _("نشط")")")")")")")' if unit.status == 'active' else '_("_(" _(" _(" _(" _(" _("معطل")")")")")")")' }}
                                         </span>
                                     </div>
                                 </div>
@@ -108,32 +108,32 @@
                                     <div class="unit-stats">
                                         {% if unit_key == 'reception' %}
                                             <div class="stat-item">
-                                                <span class="stat-label">الزيارات المعلقة:</span>
+                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات المعلقة:")")")")")")")') }}</span>
                                                 <span id="stat-reception-pending_visits" class="stat-value">{{ unit.pending_visits }}</span>
                                             </div>
                                         {% elif unit_key == 'doctor' %}
                                             <div class="stat-item">
-                                                <span class="stat-label">الزيارات قيد التنفيذ:</span>
+                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات قيد التنفيذ:")")")")")")")') }}</span>
                                                 <span id="stat-doctor-in_progress_visits" class="stat-value">{{ unit.in_progress_visits }}</span>
                                             </div>
                                         {% elif unit_key == 'emergency' %}
                                             <div class="stat-item">
-                                                <span class="stat-label">حالات الطوارئ:</span>
+                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("حالات الطوارئ:")")")")")")")') }}</span>
                                                 <span id="stat-emergency-emergency_visits" class="stat-value">{{ unit.emergency_visits }}</span>
                                             </div>
                                         {% elif unit_key == 'lab' %}
                                             <div class="stat-item">
-                                                <span class="stat-label">طلبات المختبر:</span>
+                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("طلبات المختبر:")")")")")")")') }}</span>
                                                 <span id="stat-lab-lab_requests" class="stat-value">{{ unit.lab_requests }}</span>
                                             </div>
                                         {% elif unit_key == 'radiology' %}
                                             <div class="stat-item">
-                                                <span class="stat-label">طلبات الأشعة:</span>
+                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("طلبات الأشعة:")")")")")")")') }}</span>
                                                 <span id="stat-radiology-radiology_requests" class="stat-value">{{ unit.radiology_requests }}</span>
                                             </div>
                                         {% elif unit_key == 'accountant' and module_active('billing') %}
                                             <div class="stat-item">
-                                                <span class="stat-label">الفواتير المفتوحة:</span>
+                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("الفواتير المفتوحة:")")")")")")")') }}</span>
                                                 <span id="stat-accountant-open_invoices" class="stat-value">{{ unit.open_invoices }}</span>
                                             </div>
                                         {% endif %}
@@ -141,11 +141,11 @@
                                     <div class="unit-actions">
                                         <button class="btn btn-sm btn-outline-primary" onclick="viewUnitDetails('{{ unit_key }}')">
                                             <i class="fas fa-eye me-1"></i>
-                                            تفاصيل
+                                            {{ _('_("_(" _(" _(" _(" _(" _("تفاصيل")")")")")")")') }}
                                         </button>
                                         <button class="btn btn-sm btn-outline-success" onclick="refreshUnit('{{ unit_key }}')">
                                             <i class="fas fa-sync-alt me-1"></i>
-                                            تحديث
+                                            {{ _('_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")') }}
                                         </button>
                                     </div>
                                 </div>
@@ -163,13 +163,13 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">مؤشرات الأداء</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("مؤشرات الأداء")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">معدل الاستجابة</div>
+                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("معدل الاستجابة")")")")")")")') }}</div>
                                 <div class="metric-value">
                                     <div class="progress">
                                         <div class="progress-bar bg-success" style="width: 95%"></div>
@@ -180,7 +180,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">وقت التشغيل</div>
+                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("وقت التشغيل")")")")")")")') }}</div>
                                 <div class="metric-value">
                                     <div class="progress">
                                         <div class="progress-bar bg-info" style="width: 99%"></div>
@@ -191,7 +191,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">استخدام الذاكرة</div>
+                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("استخدام الذاكرة")")")")")")")') }}</div>
                                 <div class="metric-value">
                                     <div class="progress">
                                         <div class="progress-bar bg-warning" style="width: 75%"></div>
@@ -202,7 +202,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">استخدام القرص</div>
+                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("استخدام القرص")")")")")")")') }}</div>
                                 <div class="metric-value">
                                     <div class="progress">
                                         <div class="progress-bar bg-primary" style="width: 60%"></div>
@@ -219,20 +219,20 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">تنبيهات النظام</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("تنبيهات النظام")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-success">
                         <i class="fas fa-check-circle me-2"></i>
-                        جميع الوحدات تعمل بشكل طبيعي
+                        {{ _('_("_(" _(" _(" _(" _(" _("جميع الوحدات تعمل بشكل طبيعي")")")")")")")') }}
                     </div>
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
-                        لا توجد تنبيهات جديدة
+                        {{ _('_("_(" _(" _(" _(" _(" _("لا توجد تنبيهات جديدة")")")")")")")') }}
                     </div>
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        مراجعة دورية للنسخ الاحتياطية
+                        {{ _('_("_(" _(" _(" _(" _(" _("مراجعة دورية للنسخ الاحتياطية")")")")")")")') }}
                     </div>
                 </div>
             </div>
@@ -244,15 +244,15 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">سجلات النظام</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("سجلات النظام")")")")")")")') }}</h6>
                     <div class="d-flex gap-2">
                         <button class="btn btn-sm btn-outline-primary" onclick="clearLogs()">
                             <i class="fas fa-trash me-1"></i>
-                            مسح السجلات
+                            {{ _('_("_(" _(" _(" _(" _(" _("مسح السجلات")")")")")")")') }}
                         </button>
                         <button class="btn btn-sm btn-outline-success" onclick="exportLogs()">
                             <i class="fas fa-download me-1"></i>
-                            تصدير السجلات
+                            {{ _('_("_(" _(" _(" _(" _(" _("تصدير السجلات")")")")")")")') }}
                         </button>
                     </div>
                 </div>
@@ -261,36 +261,36 @@
                         <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th>الوقت</th>
-                                    <th>المستوى</th>
-                                    <th>الوحدة</th>
-                                    <th>الرسالة</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المستوى")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الوحدة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الرسالة")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>2024-01-15 10:30:25</td>
                                     <td><span class="badge bg-success">INFO</span></td>
-                                    <td>النظام</td>
-                                    <td>تم تحديث حالة الوحدات بنجاح</td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("النظام")")")")")")")') }}</td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("تم تحديث حالة الوحدات بنجاح")")")")")")")') }}</td>
                                 </tr>
                                 <tr>
                                     <td>2024-01-15 10:25:15</td>
                                     <td><span class="badge bg-info">DEBUG</span></td>
-                                    <td>قاعدة البيانات</td>
-                                    <td>تم تنفيذ استعلام بنجاح</td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("قاعدة البيانات")")")")")")")') }}</td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("تم تنفيذ استعلام بنجاح")")")")")")")') }}</td>
                                 </tr>
                                 <tr>
                                     <td>2024-01-15 10:20:05</td>
                                     <td><span class="badge bg-warning">WARN</span></td>
-                                    <td>الذاكرة</td>
-                                    <td>استخدام الذاكرة مرتفع قليلاً</td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("الذاكرة")")")")")")")') }}</td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("استخدام الذاكرة مرتفع قليلاً")")")")")")")') }}</td>
                                 </tr>
                                 <tr>
                                     <td>2024-01-15 10:15:30</td>
                                     <td><span class="badge bg-success">INFO</span></td>
-                                    <td>الشبكة</td>
-                                    <td>تم اختبار الاتصال بنجاح</td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("الشبكة")")")")")")")') }}</td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("تم اختبار الاتصال بنجاح")")")")")")")') }}</td>
                                 </tr>
                             </tbody>
                         </table>

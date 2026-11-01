@@ -656,9 +656,7 @@ def change_password():
         return jsonify({'success': False, 'message': 'حدث خطأ في تغيير كلمة المرور'}), 500
 
 
-# =============================================
 # PASSWORD RESET (FORGOT PASSWORD) FLOW
-# =============================================
 
 
 def _generate_reset_token() -> str:

@@ -13,9 +13,7 @@ from routes.super_admin import super_admin_bp
 from utils.db_safety import safe_rollback
 from utils.decorators import super_admin_required
 
-# =============================================
 # ANALYTICS ROUTES
-# =============================================
 
 
 @super_admin_bp.route('/performance')
@@ -762,6 +760,4 @@ def system_monitor():
         return render_template('super_admin/system_monitor.html', system_info={})
 
 
-# ============================================
 # API Routes for AJAX Calls
-# ============================================

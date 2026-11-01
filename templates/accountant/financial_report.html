@@ -5,28 +5,28 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('التقرير المالي', actions=[
-        {'label': 'رجوع', 'url': url_for('accountant.dashboard'), 'style': 'secondary'}
+    {{ page_header('_("_(" _(" _(" _(" _(" _("التقرير المالي")")")")")")")', actions=[
+        {'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'url': url_for('accountant.dashboard'), 'style': 'secondary'}
     ]) }}
     <div class="row">
         <div class="col-md-6">
             <div class="card shadow">
-                <div class="card-header">الإجماليات</div>
+                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("الإجماليات")")")")")")")') }}</div>
                 <div class="card-body">
-                    <div class="mb-2"><strong>إجمالي المدفوعات:</strong> {{ report.total_payments }}</div>
-                    <div class="mb-2"><strong>نقداً:</strong> {{ report.cash_payments }}</div>
-                    <div class="mb-2"><strong>بطاقة:</strong> {{ report.card_payments }}</div>
-                    <div class="mb-2"><strong>تأمين:</strong> {{ report.insurance_payments }}</div>
-                    <div class="mb-2"><strong>عدد العمليات:</strong> {{ report.payments_count }}</div>
+                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المدفوعات:")")")")")")")') }}</strong> {{ report.total_payments }}</div>
+                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("نقداً:")")")")")")")') }}</strong> {{ report.cash_payments }}</div>
+                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("بطاقة:")")")")")")")') }}</strong> {{ report.card_payments }}</div>
+                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("تأمين:")")")")")")")') }}</strong> {{ report.insurance_payments }}</div>
+                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("عدد العمليات:")")")")")")")') }}</strong> {{ report.payments_count }}</div>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="card shadow">
-                <div class="card-header">الفترة</div>
+                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("الفترة")")")")")")")') }}</div>
                 <div class="card-body">
-                    <div class="mb-2"><strong>من:</strong> {{ report.start_date }}</div>
-                    <div class="mb-2"><strong>إلى:</strong> {{ report.end_date }}</div>
+                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("من:")")")")")")")') }}</strong> {{ report.start_date }}</div>
+                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("إلى:")")")")")")")') }}</strong> {{ report.end_date }}</div>
                 </div>
             </div>
         </div>

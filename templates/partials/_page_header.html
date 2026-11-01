@@ -3,7 +3,7 @@
    back_url / back_label: optional back button to the left of breadcrumbs.
    tabs: optional list of dicts {label, url, active} for tabbed headers.
    filters: optional list of dicts {label, type, options, value} for filter dropdowns. #}
-{% macro page_header(title, subtitle='', icon='', breadcrumbs=[], actions=[], hero_class='', back_url='', back_label='رجوع', tabs=[], filters=[]) %}
+{% macro page_header(title, subtitle='', icon='', breadcrumbs=[], actions=[], hero_class='', back_url='', back_label=_('_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")'), tabs=[], filters=[]) %}
 <div class="clinical-page-header fade-in-up{% if hero_class %} clinical-page-header--hero text-white {{ hero_class }}{% endif %}">
     <div>
         {% if back_url or breadcrumbs %}
@@ -15,7 +15,7 @@
             </a>
             {% endif %}
             {% if breadcrumbs %}
-            <nav class="clinical-breadcrumb" aria-label="مسار التنقل">
+            <nav class="clinical-breadcrumb" aria-label="_(" _(" _(" _(" _(" _("مسار التنقل")")")")")")">
                 {% for crumb in breadcrumbs %}
                     {% if crumb.url %}
                     <a href="{{ crumb.url }}">{{ crumb.label }}</a>

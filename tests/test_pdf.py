@@ -22,7 +22,7 @@ class TestPDFReportPrinter:
         pdf = printer.generate_report(
             'Test Title', {'name': 'Test'}, [{'heading': 'Section', 'lines': ['Line1']}]
         )
-        assert pdf.startswith(b'%PDF'), f'Expected PDF header, got {pdf[:20]}'
+        assert pdf.startswith(b'%PDF'), f'Expected PDF header, got {pdf[:20]!r}'
         assert len(pdf) > 100
 
     def test_arabic_text_in_report(self, app):
@@ -37,7 +37,7 @@ class TestPDFReportPrinter:
 
         printer = PDFReportPrinter()
         pdf = printer.generate_lab_report(test_lab_request)
-        assert pdf.startswith(b'%PDF'), f'Expected PDF header, got {pdf[:20]}'
+        assert pdf.startswith(b'%PDF'), f'Expected PDF header, got {pdf[:20]!r}'
         assert len(pdf) > 500
 
     def test_generate_lab_report_with_results(self, app, test_lab_request_with_results):

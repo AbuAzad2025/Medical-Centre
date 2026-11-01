@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('التحكم في الوحدات', subtitle='إدارة شاملة لجميع وحدات النظام', icon='fas fa-cogs', actions=[
-        {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-units', 'style': 'primary'},
-        {'type': 'button', 'label': 'تصدير تقرير', 'icon': 'fas fa-file-excel', 'data_action': 'export-units-report', 'style': 'success'}
+    {{ page_header('_("_(" _(" _(" _(" _(" _("التحكم في الوحدات")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة شاملة لجميع وحدات النظام")")")")")")")', icon='fas fa-cogs', actions=[
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-units', 'style': 'primary'},
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تصدير تقرير")")")")")")")', 'icon': 'fas fa-file-excel', 'data_action': 'export-units-report', 'style': 'success'}
     ]) }}
 
     <!-- Units Overview -->
@@ -15,7 +15,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">نظرة عامة على الوحدات</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("نظرة عامة على الوحدات")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -24,17 +24,17 @@
                             <div class="unit-control-card">
                                 <div class="unit-header">
                                     <div class="unit-icon">
-                                        {% if unit.name == 'الاستقبال' %}
+                                        {% if unit.name == '_("_(" _(" _(" _(" _(" _("الاستقبال")")")")")")")' %}
                                             <i class="fas fa-hospital"></i>
-                                        {% elif unit.name == 'الطبيب' %}
+                                        {% elif unit.name == '_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")' %}
                                             <i class="fas fa-user-md"></i>
-                                        {% elif unit.name == 'الطوارئ' %}
+                                        {% elif unit.name == '_("_(" _(" _(" _(" _(" _("الطوارئ")")")")")")")' %}
                                             <i class="fas fa-ambulance"></i>
-                                        {% elif unit.name == 'المختبر' %}
+                                        {% elif unit.name == '_("_(" _(" _(" _(" _(" _("المختبر")")")")")")")' %}
                                             <i class="fas fa-flask"></i>
-                                        {% elif unit.name == 'الأشعة' %}
+                                        {% elif unit.name == '_("_(" _(" _(" _(" _(" _("الأشعة")")")")")")")' %}
                                             <i class="fas fa-x-ray"></i>
-                                        {% elif unit.name == 'المحاسب' %}
+                                        {% elif unit.name == '_("_(" _(" _(" _(" _(" _("المحاسب")")")")")")")' %}
                                             <i class="fas fa-calculator"></i>
                                         {% endif %}
                                     </div>
@@ -42,7 +42,7 @@
                                         <h6 class="unit-name">{{ unit.name }}</h6>
                                         <div class="unit-status">
                                             <span class="badge bg-{{ 'success' if unit.status == 'active' else 'danger' }}">
-                                                {{ 'نشط' if unit.status == 'active' else 'معطل' }}
+                                                {{ '_("_(" _(" _(" _(" _(" _("نشط")")")")")")")' if unit.status == 'active' else '_("_(" _(" _(" _(" _(" _("معطل")")")")")")")' }}
                                             </span>
                                         </div>
                                     </div>
@@ -50,25 +50,25 @@
                                 <div class="unit-body">
                                     <div class="unit-stats">
                                         <div class="stat-item">
-                                            <span class="stat-label">المستخدمين:</span>
+                                            <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("المستخدمين:")")")")")")")') }}</span>
                                             <span class="stat-value">{{ unit.users }}</span>
                                         </div>
                                         <div class="stat-item">
-                                            <span class="stat-label">الحالة:</span>
+                                            <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</span>
                                             <span class="stat-value text-{{ 'success' if unit.status == 'active' else 'danger' }}">
-                                                {{ 'نشط' if unit.status == 'active' else 'معطل' }}
+                                                {{ '_("_(" _(" _(" _(" _(" _("نشط")")")")")")")' if unit.status == 'active' else '_("_(" _(" _(" _(" _(" _("معطل")")")")")")")' }}
                                             </span>
                                         </div>
                                     </div>
                                     <div class="unit-actions">
                                         <button class="btn btn-sm btn-outline-primary" data-action="viewUnitDetails" data-value="{{ unit.name }}">
                                             <i class="fas fa-eye me-1"></i>
-                                            تفاصيل
+                                            {{ _('_("_(" _(" _(" _(" _(" _("تفاصيل")")")")")")")') }}
                                         </button>
                                         <button class="btn btn-sm btn-outline-{{ 'warning' if unit.status == 'active' else 'success' }}" 
                                                 data-action="toggleUnit" data-module="{{ unit.module_name }}" data-name-ar="{{ unit.name }}">
                                             <i class="fas fa-toggle-{{ 'on' if unit.status == 'active' else 'off' }} me-1"></i>
-                                            {{ 'تعطيل' if unit.status == 'active' else 'تفعيل' }}
+                                            {{ '_("_(" _(" _(" _(" _(" _("تعطيل")")")")")")")' if unit.status == 'active' else '_("_(" _(" _(" _(" _(" _("تفعيل")")")")")")")' }}
                                         </button>
                                     </div>
                                 </div>
@@ -86,11 +86,11 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">إدارة الوحدات</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إدارة الوحدات")")")")")")")') }}</h6>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" data-action="filter-units" data-value="all">الكل</button>
-                        <button class="btn btn-sm btn-outline-success" data-action="filter-units" data-value="active">النشطة</button>
-                        <button class="btn btn-sm btn-outline-danger" data-action="filter-units" data-value="inactive">المعطلة</button>
+                        <button class="btn btn-sm btn-outline-primary" data-action="filter-units" data-value="all">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</button>
+                        <button class="btn btn-sm btn-outline-success" data-action="filter-units" data-value="active">{{ _('_("_(" _(" _(" _(" _(" _("النشطة")")")")")")")') }}</button>
+                        <button class="btn btn-sm btn-outline-danger" data-action="filter-units" data-value="inactive">{{ _('_("_(" _(" _(" _(" _(" _("المعطلة")")")")")")")') }}</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -98,11 +98,11 @@
                         <table class="table table-bordered" id="unitsTable">
                             <thead>
                                 <tr>
-                                    <th>اسم الوحدة</th>
-                                    <th>النوع</th>
-                                    <th>المستخدمين</th>
-                                    <th>الحالة</th>
-                                    <th>الإجراءات</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("اسم الوحدة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المستخدمين")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -127,23 +127,23 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <span class="fw-bold">{{ unit.users }}</span>
-                                            <small class="text-muted ms-1">مستخدم</small>
+                                            <small class="text-muted ms-1">{{ _('_("_(" _(" _(" _(" _(" _("مستخدم")")")")")")")') }}</small>
                                         </div>
                                     </td>
                                     <td>
                                         {% if unit.status == 'active' %}
-                                            <span class="badge bg-success">نشط</span>
+                                            <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span>
                                         {% else %}
-                                            <span class="badge bg-danger">معطل</span>
+                                            <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
                                             <button class="btn btn-sm btn-outline-{{ 'warning' if unit.status == 'active' else 'success' }}" 
                                                     data-action="toggleUnit" data-module="{{ unit.module_name }}" data-name-ar="{{ unit.name }}"
-                                                    title="{{ 'تعطيل' if unit.status == 'active' else 'تفعيل' }}">
+                                                    title="{{ '_("_(" _(" _(" _(" _(" _("تعطيل")")")")")")")' if unit.status == 'active' else '_("_(" _(" _(" _(" _(" _("تفعيل")")")")")")")' }}">
                                                 <i class="fas fa-toggle-{{ 'on' if unit.status == 'active' else 'off' }}"></i> 
-                                                <span class="btn-label">{{ 'تعطيل' if unit.status == 'active' else 'تفعيل' }}</span>
+                                                <span class="btn-label">{{ '_("_(" _(" _(" _(" _(" _("تعطيل")")")")")")")' if unit.status == 'active' else '_("_(" _(" _(" _(" _(" _("تفعيل")")")")")")")' }}</span>
                                             </button>
                                         </div>
                                     </td>
@@ -162,7 +162,7 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">أداء الوحدات</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("أداء الوحدات")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -172,7 +172,7 @@
                                     <i class="fas fa-chart-line"></i>
                                 </div>
                                 <div class="performance-info">
-                                    <h6>معدل الإنتاجية</h6>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("معدل الإنتاجية")")")")")")")') }}</h6>
                                     <div class="progress">
                                         <div class="progress-bar bg-primary" style="width: 85%"></div>
                                     </div>
@@ -186,7 +186,7 @@
                                     <i class="fas fa-check-circle"></i>
                                 </div>
                                 <div class="performance-info">
-                                    <h6>معدل النجاح</h6>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("معدل النجاح")")")")")")")') }}</h6>
                                     <div class="progress">
                                         <div class="progress-bar bg-success" style="width: 92%"></div>
                                     </div>
@@ -200,11 +200,11 @@
                                     <i class="fas fa-clock"></i>
                                 </div>
                                 <div class="performance-info">
-                                    <h6>وقت الاستجابة</h6>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("وقت الاستجابة")")")")")")")') }}</h6>
                                     <div class="progress">
                                         <div class="progress-bar bg-info" style="width: 78%"></div>
                                     </div>
-                                    <span class="performance-value">2.3 ثانية</span>
+                                    <span class="performance-value">{{ _('_("_(" _(" _(" _(" _(" _("2.3 ثانية")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -214,7 +214,7 @@
                                     <i class="fas fa-users"></i>
                                 </div>
                                 <div class="performance-info">
-                                    <h6>المستخدمين النشطين</h6>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("المستخدمين النشطين")")")")")")")') }}</h6>
                                     <div class="progress">
                                         <div class="progress-bar bg-warning" style="width: 65%"></div>
                                     </div>
@@ -230,20 +230,20 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">تنبيهات الوحدات</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("تنبيهات الوحدات")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-success">
                         <i class="fas fa-check-circle me-2"></i>
-                        جميع الوحدات تعمل بشكل طبيعي
+                        {{ _('_("_(" _(" _(" _(" _(" _("جميع الوحدات تعمل بشكل طبيعي")")")")")")")') }}
                     </div>
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
-                        لا توجد تنبيهات جديدة
+                        {{ _('_("_(" _(" _(" _(" _(" _("لا توجد تنبيهات جديدة")")")")")")")') }}
                     </div>
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        مراجعة دورية للأداء
+                        {{ _('_("_(" _(" _(" _(" _(" _("مراجعة دورية للأداء")")")")")")")') }}
                     </div>
                 </div>
             </div>
@@ -255,32 +255,32 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">إجراءات جماعية</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إجراءات جماعية")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-primary w-100" data-action="bulk-activate">
                                 <i class="fas fa-play me-2"></i>
-                                تفعيل جميع الوحدات
+                                {{ _('_("_(" _(" _(" _(" _(" _("تفعيل جميع الوحدات")")")")")")")') }}
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-warning w-100" data-action="bulk-deactivate">
                                 <i class="fas fa-pause me-2"></i>
-                                تعطيل جميع الوحدات
+                                {{ _('_("_(" _(" _(" _(" _(" _("تعطيل جميع الوحدات")")")")")")")') }}
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-info w-100" data-action="bulk-restart">
                                 <i class="fas fa-redo me-2"></i>
-                                إعادة تشغيل جميع الوحدات
+                                {{ _('_("_(" _(" _(" _(" _(" _("إعادة تشغيل جميع الوحدات")")")")")")")') }}
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-success w-100" data-action="bulk-export">
                                 <i class="fas fa-download me-2"></i>
-                                تصدير تقرير الوحدات
+                                {{ _('_("_(" _(" _(" _(" _(" _("تصدير تقرير الوحدات")")")")")")")') }}
                             </button>
                         </div>
                     </div>

@@ -13,9 +13,7 @@ from routes.super_admin import super_admin_bp
 from services.core_queries import core_queries
 from utils.decorators import super_admin_required
 
-# =============================================
 # DASHBOARD ROUTES
-# =============================================
 
 
 def _get_super_admin_basic_stats():

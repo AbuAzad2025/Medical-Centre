@@ -1,0 +1,189 @@
+﻿code,category,description,description_ar,chapter,chapter_code,is_billable
+A00.0,A00,"Cholera due to Vibrio cholerae 01, biovar cholerae",كوليرا,Certain infectious and parasitic diseases,A00,true
+A09,A09,"Infectious gastroenteritis and colitis, unspecified",التهاب معدة وأمعاء معدي,Certain infectious and parasitic diseases,A00,true
+A15.0,A15,Tuberculosis of lung,سل رئوي,Certain infectious and parasitic diseases,A00,true
+A41.9,A41,"Sepsis, unspecified organism",تعفن دم,Certain infectious and parasitic diseases,A00,true
+A49.9,A49,"Bacterial infection, unspecified",عدوى بكتيرية غير محددة,Certain infectious and parasitic diseases,A00,true
+B34.9,B34,"Viral infection, unspecified",عدوى فيروسية غير محددة,Certain infectious and parasitic diseases,A00,true
+B18.2,B18,Chronic viral hepatitis C,التهاب كبد فيروسي مزمن C,Certain infectious and parasitic diseases,A00,true
+B18.1,B18,Chronic viral hepatitis B without delta-agent,التهاب كبد فيروسي مزمن B,Certain infectious and parasitic diseases,A00,true
+B20,B20,Human immunodeficiency virus [HIV] disease,مرض نقص المناعة المكتسب,Certain infectious and parasitic diseases,A00,true
+C34.90,C34,Malignant neoplasm of unspecified part of bronchus or lung,ورم خبيث في رئة,Neoplasms,C00,true
+C50.919,C50,Malignant neoplasm of unspecified site of unspecified female breast,ورم خبيث في ثدي,Neoplasms,C00,true
+C18.9,C18,"Malignant neoplasm of colon, unspecified",ورم خبيث في قولون,Neoplasms,C00,true
+C61,C61,Malignant neoplasm of prostate,ورم خبيث في بروستات,Neoplasms,C00,true
+D50.9,D50,"Iron deficiency anemia, unspecified",فقر دم نقص حديد,Neoplasms,C00,true
+D64.9,D64,"Anemia, unspecified",فقر دم غير محدد,Neoplasms,C00,true
+E03.9,E03,"Hypothyroidism, unspecified",قصور درقية,"Endocrine, nutritional and metabolic diseases",E00,true
+E05.90,E05,"Thyrotoxicosis, unspecified",سمية درقية,"Endocrine, nutritional and metabolic diseases",E00,true
+E10.9,E10,Type 1 diabetes mellitus without complications,سكري نوع 1,"Endocrine, nutritional and metabolic diseases",E00,true
+E11.9,E11,Type 2 diabetes mellitus without complications,سكري نوع 2,"Endocrine, nutritional and metabolic diseases",E00,true
+E11.65,E11,Type 2 diabetes mellitus with hyperglycemia,سكري نوع 2 مع ارتفاع سكر,"Endocrine, nutritional and metabolic diseases",E00,true
+E66.9,E66,"Obesity, unspecified",سمنة,"Endocrine, nutritional and metabolic diseases",E00,true
+E78.5,E78,"Hyperlipidemia, unspecified",فرط شحوم,"Endocrine, nutritional and metabolic diseases",E00,true
+E78.00,E78,"Pure hypercholesterolemia, unspecified",فرط كولسترول,"Endocrine, nutritional and metabolic diseases",E00,true
+E87.6,E87,Hypokalemia,نقص بوتاسيوم,"Endocrine, nutritional and metabolic diseases",E00,true
+F10.20,F10,"Alcohol dependence, uncomplicated",اعتماد كحول,"Mental, Behavioral and Neurodevelopmental disorders",F01,true
+F20.9,F20,"Schizophrenia, unspecified",فصام,"Mental, Behavioral and Neurodevelopmental disorders",F01,true
+F32.9,F32,"Major depressive disorder, single episode, unspecified",اكتئاب,"Mental, Behavioral and Neurodevelopmental disorders",F01,true
+F33.9,F33,"Major depressive disorder, recurrent, unspecified",اكتئاب متكرر,"Mental, Behavioral and Neurodevelopmental disorders",F01,true
+F41.1,F41,Generalized anxiety disorder,قلق عام,"Mental, Behavioral and Neurodevelopmental disorders",F01,true
+F41.9,F41,"Anxiety disorder, unspecified",اضطراب قلق,"Mental, Behavioral and Neurodevelopmental disorders",F01,true
+F43.10,F43,"Post-traumatic stress disorder, unspecified",اضطراب ما بعد الصدمة,"Mental, Behavioral and Neurodevelopmental disorders",F01,true
+F90.9,F90,"Attention-deficit hyperactivity disorder, unspecified",فرط حركة,"Mental, Behavioral and Neurodevelopmental disorders",F01,true
+G40.909,G40,"Epilepsy, unspecified",صرع,Diseases of the nervous system,G00,true
+G43.909,G43,"Migraine, unspecified",صداع نصفي,Diseases of the nervous system,G00,true
+G44.1,G44,"Vascular headache, not elsewhere classified",صداع وعائي,Diseases of the nervous system,G00,true
+G47.00,G47,"Insomnia, unspecified",أرق,Diseases of the nervous system,G00,true
+G89.29,G89,Other chronic pain,ألم مزمن,Diseases of the nervous system,G00,true
+G20,G20,Parkinson's disease,مرض باركنسون,Diseases of the nervous system,G00,true
+G30.9,G30,"Alzheimer's disease, unspecified",ألزهايمر,Diseases of the nervous system,G00,true
+G35,G35,Multiple sclerosis,التصلب المتعدد,Diseases of the nervous system,G00,true
+H10.9,H10,"Conjunctivitis, unspecified",التهاب ملتحمة,Diseases of the eye and adnexa,H00,true
+H25.9,H25,"Age-related cataract, unspecified",إعتام عدسة,Diseases of the eye and adnexa,H00,true
+H40.9,H40,"Glaucoma, unspecified",غلوكوما,Diseases of the eye and adnexa,H00,true
+H52.4,H52,Presbyopia,عسر البصر,Diseases of the eye and adnexa,H00,true
+H60.90,H60,"Otitis externa, unspecified",التهاب أذن خارجية,Diseases of the ear and mastoid process,H60,true
+H66.90,H66,"Otitis media, unspecified",التهاب أذن وسطى,Diseases of the ear and mastoid process,H60,true
+H81.10,H81,Benign paroxysmal vertigo,دوار حميد,Diseases of the ear and mastoid process,H60,true
+I10,I10,Essential (primary) hypertension,ارتفاع ضغط دم أساسي,Diseases of the circulatory system,I00,true
+I11.9,I11,Hypertensive heart disease without heart failure,مرض قلب ضغط,Diseases of the circulatory system,I00,true
+I20.9,I20,"Angina pectoris, unspecified",ذبحة صدرية,Diseases of the circulatory system,I00,true
+I21.9,I21,"Acute myocardial infarction, unspecified",احتشاء عضلة قلب حاد,Diseases of the circulatory system,I00,true
+I25.10,I25,Atherosclerotic heart disease,مرض قلب تصلبي,Diseases of the circulatory system,I00,true
+I48.91,I48,Unspecified atrial fibrillation,رجفان أذيني,Diseases of the circulatory system,I00,true
+I50.9,I50,"Heart failure, unspecified",قصور قلب,Diseases of the circulatory system,I00,true
+I63.9,I63,"Cerebral infarction, unspecified",احتشاء دماغي,Diseases of the circulatory system,I00,true
+I64,I64,"Stroke, not specified as hemorrhage or infarction",سكتة دماغية,Diseases of the circulatory system,I00,true
+I73.9,I73,"Peripheral vascular disease, unspecified",مرض وعائي محيطي,Diseases of the circulatory system,I00,true
+I80.9,I80,Phlebitis and thrombophlebitis,التهاب وريد,Diseases of the circulatory system,I00,true
+I83.90,I83,Varicose veins of lower extremities,دوالي,Diseases of the circulatory system,I00,true
+J00,J00,Acute nasopharyngitis (common cold),التهاب أنف وبلعوم حاد,Diseases of the respiratory system,J00,true
+J01.90,J01,"Acute sinusitis, unspecified",التهاب جيوب أنفية حاد,Diseases of the respiratory system,J00,true
+J02.9,J02,"Acute pharyngitis, unspecified",التهاب بلعوم حاد,Diseases of the respiratory system,J00,true
+J03.90,J03,"Acute tonsillitis, unspecified",التهاب لوزتين حاد,Diseases of the respiratory system,J00,true
+J04.0,J04,Acute laryngitis,التهاب حنجرة حاد,Diseases of the respiratory system,J00,true
+J06.9,J06,"Acute upper respiratory infection, unspecified",عدوى تنفسية علوية حادة,Diseases of the respiratory system,J00,true
+J11.1,J11,Influenza due to unidentified influenza virus,إنفلونزا,Diseases of the respiratory system,J00,true
+J12.9,J12,"Viral pneumonia, unspecified",التهاب رئة فيروسي,Diseases of the respiratory system,J00,true
+J15.9,J15,"Bacterial pneumonia, unspecified",التهاب رئة بكتيري,Diseases of the respiratory system,J00,true
+J18.9,J18,"Pneumonia, unspecified organism",التهاب رئة,Diseases of the respiratory system,J00,true
+J20.9,J20,"Acute bronchitis, unspecified",التهاب قصبات حاد,Diseases of the respiratory system,J00,true
+J30.9,J30,"Allergic rhinitis, unspecified",التهاب أنف تحسسي,Diseases of the respiratory system,J00,true
+J31.0,J31,Chronic rhinitis,التهاب أنف مزمن,Diseases of the respiratory system,J00,true
+J32.9,J32,"Chronic sinusitis, unspecified",التهاب جيوب أنفية مزمن,Diseases of the respiratory system,J00,true
+J35.0,J35,Chronic tonsillitis and adenoiditis,التهاب لوزتين مزمن,Diseases of the respiratory system,J00,true
+J40,J40,"Bronchitis, not specified as acute or chronic",التهاب قصبات,Diseases of the respiratory system,J00,true
+J44.1,J44,Chronic obstructive pulmonary disease with acute exacerbation,COPD مع تفاقم حاد,Diseases of the respiratory system,J00,true
+J44.9,J44,"Chronic obstructive pulmonary disease, unspecified",COPD,Diseases of the respiratory system,J00,true
+J45.909,J45,"Unspecified asthma, uncomplicated",ربو,Diseases of the respiratory system,J00,true
+J96.00,J96,"Acute respiratory failure, unspecified",قصور تنفسي حاد,Diseases of the respiratory system,J00,true
+J98.9,J98,"Respiratory disorder, unspecified",اضطراب تنفسي,Diseases of the respiratory system,J00,true
+K20.9,K20,"Esophagitis, unspecified",التهاب مريء,Diseases of the digestive system,K00,true
+K21.9,K21,Gastro-esophageal reflux disease without esophagitis,ارتجاع مريء,Diseases of the digestive system,K00,true
+K25.9,K25,"Gastric ulcer, unspecified",قرحة معدة,Diseases of the digestive system,K00,true
+K26.9,K26,"Duodenal ulcer, unspecified",قرحة táني عشر,Diseases of the digestive system,K00,true
+K29.70,K29,"Gastritis, unspecified",التهاب معدة,Diseases of the digestive system,K00,true
+K30,K30,Functional dyspepsia,عسر هضم وظيفي,Diseases of the digestive system,K00,true
+K35.80,K35,"Acute appendicitis, unspecified",التهاب زائدة دودية حاد,Diseases of the digestive system,K00,true
+K40.90,K40,"Unilateral inguinal hernia, without obstruction or gangrene",فتاق إربي,Diseases of the digestive system,K00,true
+K50.90,K50,"Crohn's disease, unspecified",مرض كرون,Diseases of the digestive system,K00,true
+K51.90,K51,"Ulcerative colitis, unspecified",التهاب قولون تقرحي,Diseases of the digestive system,K00,true
+K52.9,K52,"Noninfective gastroenteritis and colitis, unspecified",التهاب معدة وأمعاء,Diseases of the digestive system,K00,true
+K57.30,K57,Diverticulosis of large intestine without perforation,داء الرتج,Diseases of the digestive system,K00,true
+K59.00,K59,"Constipation, unspecified",إمساك,Diseases of the digestive system,K00,true
+K64.9,K64,"Hemorrhoids, unspecified",بواسير,Diseases of the digestive system,K00,true
+K70.30,K70,Alcoholic cirrhosis of liver,تشمع كبد كحولي,Diseases of the digestive system,K00,true
+K74.60,K74,Unspecified cirrhosis of liver,تشمع كبد,Diseases of the digestive system,K00,true
+K76.0,K76,"Fatty (change of) liver, not elsewhere classified",كبد دهني,Diseases of the digestive system,K00,true
+K80.20,K80,Calculus of gallbladder without cholecystitis,حصى مرارة,Diseases of the digestive system,K00,true
+K85.90,K85,"Acute pancreatitis, unspecified",التهاب بنكرياس حاد,Diseases of the digestive system,K00,true
+K92.1,K92,Melena,براز أسود,Diseases of the digestive system,K00,true
+L03.90,L03,"Cellulitis, unspecified",التهاب نسيج خلوي,Diseases of the skin and subcutaneous tissue,L00,true
+L20.9,L20,"Atopic dermatitis, unspecified",التهاب جلد تأتبي,Diseases of the skin and subcutaneous tissue,L00,true
+L30.9,L30,"Dermatitis, unspecified",التهاب جلد,Diseases of the skin and subcutaneous tissue,L00,true
+L40.9,L40,"Psoriasis, unspecified",صداف,Diseases of the skin and subcutaneous tissue,L00,true
+L50.9,L50,"Urticaria, unspecified",شرى,Diseases of the skin and subcutaneous tissue,L00,true
+L70.0,L70,Acne vulgaris,حب شباب,Diseases of the skin and subcutaneous tissue,L00,true
+L81.4,L81,Other melanin hyperpigmentation,فرط تصبغ,Diseases of the skin and subcutaneous tissue,L00,true
+L89.90,L89,Pressure ulcer of unspecified site,قرحة ضغط,Diseases of the skin and subcutaneous tissue,L00,true
+M06.9,M06,"Rheumatoid arthritis, unspecified",التهاب مفاصل روماتويدي,Diseases of the musculoskeletal system,M00,true
+M10.9,M10,"Gout, unspecified",نقرس,Diseases of the musculoskeletal system,M00,true
+M13.80,M13,Other specified arthritis,التهاب مفاصل,Diseases of the musculoskeletal system,M00,true
+M15.0,M15,Primary generalized osteoarthritis,التهاب مفاصل تنكسي عام,Diseases of the musculoskeletal system,M00,true
+M17.9,M17,"Osteoarthritis of knee, unspecified",التهاب مفاصل ركبة,Diseases of the musculoskeletal system,M00,true
+M19.90,M19,Unspecified osteoarthritis,التهاب مفاصل تنكسي,Diseases of the musculoskeletal system,M00,true
+M25.50,M25,Pain in unspecified joint,ألم مفصل,Diseases of the musculoskeletal system,M00,true
+M47.819,M47,"Spondylosis, unspecified",تآكل فقرات,Diseases of the musculoskeletal system,M00,true
+M51.26,M51,"Other intervertebral disc displacement, lumbar region",انزلاق غضروفي قطني,Diseases of the musculoskeletal system,M00,true
+M54.2,M54,Cervicalgia,ألم عنق,Diseases of the musculoskeletal system,M00,true
+M54.5,M54,Low back pain,ألم أسفل ظهر,Diseases of the musculoskeletal system,M00,true
+M62.81,M62,Muscle weakness,ضعف عضلي,Diseases of the musculoskeletal system,M00,true
+M75.100,M75,Unspecified rotator cuff tear or rupture,تمزق كفة دوران,Diseases of the musculoskeletal system,M00,true
+M79.1,M79,Myalgia,ألم عضلي,Diseases of the musculoskeletal system,M00,true
+M79.3,M79,"Panniculitis, unspecified",التهاب نسيج تحت جلد,Diseases of the musculoskeletal system,M00,true
+M81.0,M81,Age-related osteoporosis without current pathological fracture,هشاشة عظام,Diseases of the musculoskeletal system,M00,true
+M86.9,M86,"Osteomyelitis, unspecified",التهاب عظم,Diseases of the musculoskeletal system,M00,true
+N10,N10,Acute pyelonephritis,التهاب كلية حاد,Diseases of the genitourinary system,N00,true
+N17.9,N17,"Acute kidney failure, unspecified",قصور كلوي حاد,Diseases of the genitourinary system,N00,true
+N18.9,N18,"Chronic kidney disease, unspecified",مرض كلوي مزمن,Diseases of the genitourinary system,N00,true
+N20.0,N20,Calculus of kidney,حصى كلية,Diseases of the genitourinary system,N00,true
+N30.00,N30,Acute cystitis without hematuria,التهاب مثانة حاد,Diseases of the genitourinary system,N00,true
+N39.0,N39,"Urinary tract infection, site not specified",عدوى مسالك بولية,Diseases of the genitourinary system,N00,true
+N40.0,N40,Benign prostatic hyperplasia without lower urinary tract symptoms,تضخم بروستات حميد,Diseases of the genitourinary system,N00,true
+N73.9,N73,"Female pelvic inflammatory disease, unspecified",التهاب حوض,Diseases of the genitourinary system,N00,true
+N80.9,N80,"Endometriosis, unspecified",بطانة رحم مهاجرة,Diseases of the genitourinary system,N00,true
+N92.0,N92,Excessive and frequent menstruation with regular cycle,غزارة طمث,Diseases of the genitourinary system,N00,true
+N95.1,N95,Menopausal and female climacteric states,سن يأس,Diseases of the genitourinary system,N00,true
+O09.90,O09,"Supervision of high-risk pregnancy, unspecified",إشراف حمل عالي الخطورة,"Pregnancy, childbirth and the puerperium",O00,true
+O14.90,O14,"Pre-eclampsia, unspecified",تسمم حمل,"Pregnancy, childbirth and the puerperium",O00,true
+O24.419,O24,Gestational diabetes mellitus,سكري ح gestational,"Pregnancy, childbirth and the puerperium",O00,true
+O80,O80,Encounter for full-term uncomplicated delivery,ولادة طبيعية,"Pregnancy, childbirth and the puerperium",O00,true
+O82,O82,Encounter for cesarean delivery without indication,ولادة قيصرية,"Pregnancy, childbirth and the puerperium",O00,true
+P07.30,P07,"Preterm newborn, unspecified weeks",وليد مبكر,Certain conditions originating in the perinatal period,P00,true
+P59.9,P59,"Neonatal jaundice, unspecified",يرقان ولادي,Certain conditions originating in the perinatal period,P00,true
+P92.9,P92,"Feeding problem of newborn, unspecified",مشكلة تغذية ولادي,Certain conditions originating in the perinatal period,P00,true
+Q21.0,Q21,Ventricular septal defect,عيب جدار بطيني,Congenital malformations,Q00,true
+Q90.9,Q90,"Down syndrome, unspecified",متلازمة داون,Congenital malformations,Q00,true
+R00.0,R00,"Tachycardia, unspecified",تسارع قلب,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R05,R05,Cough,سعال,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R06.00,R06,"Dyspnea, unspecified",ضيق نفس,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R07.9,R07,"Chest pain, unspecified",ألم صدر,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R10.9,R10,"Abdominal pain, unspecified",ألم بطن,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R11.2,R11,"Nausea with vomiting, unspecified",غثيان مع قيء,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R19.7,R19,"Diarrhea, unspecified",إسهال,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R21,R21,Rash and other nonspecific skin eruption,طفح جلدي,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R42,R42,Dizziness and giddiness,دوار,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R50.9,R50,"Fever, unspecified",حمى,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R51,R51,Headache,صداع,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R52,R52,"Pain, unspecified",ألم,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R53.83,R53,Other fatigue,إرهاق,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R63.4,R63,Abnormal weight loss,فقدان وزن,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R73.03,R73,Prediabetes,مقدمات سكري,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R73.9,R73,"Hyperglycemia, unspecified",ارتفاع سكر,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+R94.5,R94,Abnormal results of liver function studies,نتائج غير طبيعية لوظيفة كبد,"Symptoms, signs and abnormal clinical and laboratory findings",R00,true
+S00.90XA,S00,"Unspecified superficial injury of head, initial encounter",إصابة سطحية رأس,"Injury, poisoning and certain other consequences of external causes",S00,true
+S06.0X0A,S06,"Concussion without loss of consciousness, initial encounter",ارتجاج دماغ,"Injury, poisoning and certain other consequences of external causes",S00,true
+S52.509A,S52,Unspecified fracture of lower end of radius,كسر radius,"Injury, poisoning and certain other consequences of external causes",S00,true
+S61.409A,S61,Unspecified open wound of hand,جرح يد مفتوح,"Injury, poisoning and certain other consequences of external causes",S00,true
+S72.009A,S72,Fracture of unspecified part of neck of femur,كسر فخذ,"Injury, poisoning and certain other consequences of external causes",S00,true
+S82.009A,S82,Fracture of unspecified part of patella,كسر رضفة,"Injury, poisoning and certain other consequences of external causes",S00,true
+S93.409A,S93,Sprain of unspecified ligament of ankle,التواء كاحل,"Injury, poisoning and certain other consequences of external causes",S00,true
+T14.90XA,T14,"Injury, unspecified",إصابة,"Injury, poisoning and certain other consequences of external causes",S00,true
+T78.40XA,T78,"Allergy, unspecified",حساسية,"Injury, poisoning and certain other consequences of external causes",S00,true
+T81.4XXA,T81,Infection following a procedure,عدوى بعد إجراء,"Injury, poisoning and certain other consequences of external causes",S00,true
+Z00.00,Z00,Encounter for general adult medical examination without abnormal findings,فحص طبي عام,Factors influencing health status,Z00,true
+Z00.129,Z00,Encounter for routine child health examination without abnormal findings,فحص صحة طفل,Factors influencing health status,Z00,true
+Z00.5,Z00,Encounter for examination of potential donor of organ and tissue,فحص متبرع,Factors influencing health status,Z00,true
+Z01.818,Z01,Encounter for preprocedural examination,فحص قبل إجراء,Factors influencing health status,Z00,true
+Z03.89,Z03,Encounter for observation for other suspected diseases,مراقبة,Factors influencing health status,Z00,true
+Z12.11,Z12,Encounter for screening for malignant neoplasm of colon,فحص سرطان قولون,Factors influencing health status,Z00,true
+Z13.9,Z13,"Encounter for screening, unspecified",فحص,Factors influencing health status,Z00,true
+Z23,Z23,Encounter for immunization,تطعيم,Factors influencing health status,Z00,true
+Z34.90,Z34,Encounter for supervision of normal pregnancy,إشراف حمل,Factors influencing health status,Z00,true
+Z51.11,Z51,Encounter for antineoplastic chemotherapy,علاج كيميائي,Factors influencing health status,Z00,true
+Z71.3,Z71,Dietary counseling and surveillance,استشارة غذائية,Factors influencing health status,Z00,true
+Z79.4,Z79,Long term (current) use of insulin,استخدام إنسولين,Factors influencing health status,Z00,true
+Z79.84,Z79,Long term (current) use of oral hypoglycemic drugs,استخدام أدوية خافضة سكر,Factors influencing health status,Z00,true
+Z87.891,Z87,Personal history of nicotine dependence,تاريخ اعتماد نيكوتين,Factors influencing health status,Z00,true
+Z96.1,Z96,Presence of intraocular lens,عدسة داخل عين,Factors influencing health status,Z00,true

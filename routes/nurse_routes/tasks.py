@@ -15,9 +15,7 @@ from routes.nurse_routes import nurse_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
-# =============================================
 # TASKS ROUTES
-# =============================================
 
 
 @nurse_bp.route('/tasks')

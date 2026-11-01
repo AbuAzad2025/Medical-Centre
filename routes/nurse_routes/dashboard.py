@@ -30,9 +30,7 @@ from routes.nurse_routes import (
 from services.core_queries import core_queries
 from utils.decorators import role_required
 
-# =============================================
 # DASHBOARD ROUTES
-# =============================================
 
 
 @nurse_bp.route('/')

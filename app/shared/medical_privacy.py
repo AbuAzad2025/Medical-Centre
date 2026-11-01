@@ -151,7 +151,12 @@ def enforce_medical_privacy_guard(user) -> None:
     if role not in ('platform_owner', 'super_admin', 'owner'):
         return
 
-    from flask import g, request
+    from flask import current_app, g, request
+
+    # In single-install (non-SaaS) mode, super_admin IS the clinic admin
+    # and should have direct access to medical data without needing an assumption
+    if not current_app.config.get('ENABLE_SAAS_MODE', False):
+        return
 
     # If request is not available (e.g., in tests with direct call), use g
     path = ''

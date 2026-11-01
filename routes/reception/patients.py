@@ -18,6 +18,7 @@ from models.patient import Patient, PatientAllergy
 from models.problem_list import PatientProblem
 from models.visit import Visit
 from routes.reception import _wants_json, reception_bp
+from utils.caching import cache
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import (
     can_delete_patient,
@@ -34,6 +35,7 @@ from utils.decorators import (
 @reception_bp.route('/patients')
 @login_required
 @role_required('reception', 'super_admin', 'manager')
+@cache.cached(timeout=60, key_prefix='patients_list')
 def patients():
     """قائمة المرضى - الوحدة المركزية"""
 

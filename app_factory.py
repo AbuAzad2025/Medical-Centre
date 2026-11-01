@@ -30,9 +30,7 @@ from werkzeug.exceptions import (
 from flask_session import Session
 from utils.db_safety import safe_commit, safe_rollback
 
-# ============================================================
 # Admin Alert Hooks (module-level for testability)
-# ============================================================
 _ALERT_SINKS = []
 
 
@@ -60,9 +58,7 @@ def _alert_admin(level, message, **ctx):
             sink(level, {'message': message, **ctx})
 
 
-# ============================================================
 # Flask extension instances
-# ============================================================
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
@@ -233,8 +229,12 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     babel = Babel()
 
     def get_locale():
+        # Debug
+        import logging
+
         from flask import g, request, session
         from flask_login import current_user
+        logging.info(f'get_locale: session_lang={session.get("lang")}, accept_lang={request.accept_languages.best_match(["ar", "en"])}')
 
         # 1. Check if language is forced in session
         if 'lang' in session:
@@ -256,6 +256,13 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
         return request.accept_languages.best_match(['ar', 'en']) or 'ar'
 
     babel.init_app(app, locale_selector=get_locale)
+
+    # Initialize caching (SimpleCache for dev, RedisCache for prod)
+    try:
+        from utils.caching import init_cache
+        init_cache(app)
+    except Exception:
+        app.logger.warning('Cache initialization failed, continuing without cache')
 
     # Flask-Session (Redis filesystem)
     try:
@@ -1062,11 +1069,12 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
                 return _deny('Tenant context is required in SaaS mode.')
             try:
                 # Always query fresh - don't rely on stale g.enabled_modules cache
-                from app.core.module.validators import get_active_modules_for_tenant
+                from app.core.module.validators import get_module_scope_for_tenant
 
-                enabled = get_active_modules_for_tenant(tenant.id)
+                has_boundary, enabled = get_module_scope_for_tenant(tenant.id)
                 g.enabled_modules = enabled
-                if module_name not in enabled:
+                # If tenant has no module boundary (single-install), allow all modules
+                if has_boundary and module_name not in enabled:
                     return _deny(f"Module '{module_name}' is not activated for this tenant.")
             except HTTPException:
                 raise
@@ -1230,6 +1238,21 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     app.register_blueprint(cds_bp, url_prefix='/cds')
     app.register_blueprint(barcode_bp, url_prefix='/barcode')
     app.register_blueprint(fhir_bp, url_prefix='/api/fhir')
+    try:
+        from routes.fhir_extended_routes import fhir_bp2
+        app.register_blueprint(fhir_bp2, url_prefix='/api/fhir')
+    except Exception:
+        pass
+    try:
+        from routes.fhir_extended2_routes import fhir_bp3
+        app.register_blueprint(fhir_bp3, url_prefix='/api/fhir')
+    except Exception:
+        pass
+    try:
+        from routes.fhir_crud_routes import fhir_crud_bp
+        app.register_blueprint(fhir_crud_bp, url_prefix='/api/fhir')
+    except Exception:
+        pass
     app.register_blueprint(dicom_bp, url_prefix='/dicom')
     app.register_blueprint(portal_bp, url_prefix='/portal')
     app.register_blueprint(pop_health_bp, url_prefix='/population-health')
@@ -1240,6 +1263,11 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     app.register_blueprint(specialty_forms_bp)
     app.register_blueprint(patient_education_bp, url_prefix='/patient-education')
     app.register_blueprint(backup_restore_bp, url_prefix='/backup-restore')
+    try:
+        from routes.compliance_routes import compliance_bp
+        app.register_blueprint(compliance_bp, url_prefix='/compliance')
+    except Exception:
+        pass
     app.register_blueprint(telemedicine_bp, url_prefix='/telemedicine')
     app.register_blueprint(sso_bp, url_prefix='/sso')
     app.register_blueprint(ai_imaging_bp, url_prefix='/ai-imaging')
@@ -1386,15 +1414,47 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
 
     importlib.import_module('app.shared.tenant_filter')  # registers SQLAlchemy event listeners
 
-    # Auto-record ResourceUsage snapshot periodically (once per hour per tenant)
+    # Make locale available in templates
+    @app.context_processor
+    def inject_locale():
+        from flask_babel import get_locale as _get_locale
+        loc = _get_locale()
+        loc_str = str(loc) if loc else 'ar'
+        # Debug
+        import logging
+        logging.info(f'inject_locale: loc={loc}, loc_str={loc_str}')
+        return {'current_locale': loc_str}
+
+    # Add trace ID to response headers (always, regardless of tenant)
     @app.after_request
-    def auto_record_resource_usage(response):
+    def _add_security_headers(response):
         from flask import g
 
-        # Add trace ID to response headers (always, regardless of tenant)
         trace_id = getattr(g, 'trace_id', None)
         if trace_id:
             response.headers['X-Request-ID'] = trace_id
+        # Security headers (OWASP best practices)
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        if not app.debug:
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        # Content Security Policy
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://kit.fontawesome.com https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
+            "font-src 'self' https://fonts.gstatic.com https://kit.fontawesome.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' https:; "
+            "frame-ancestors 'self'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+        response.headers['Content-Security-Policy'] = csp
+
         try:
             tid = getattr(g, 'tenant_id', None)
             if tid is None:

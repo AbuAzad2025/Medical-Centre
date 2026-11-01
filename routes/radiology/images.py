@@ -21,9 +21,7 @@ from routes.radiology import radiology_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
-# =============================================
 # IMAGES ROUTES
-# =============================================
 
 
 @radiology_bp.route('/images')

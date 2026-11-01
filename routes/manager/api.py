@@ -16,9 +16,7 @@ from utils.decorators import (
     role_required,
 )
 
-# =============================================
 # API ROUTES
-# =============================================
 
 
 @manager_bp.route('/api/what-if', methods=['POST'])

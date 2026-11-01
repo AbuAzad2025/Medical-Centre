@@ -5,10 +5,10 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('التقارير والإحصائيات', subtitle='تقارير شاملة وإحصائيات مفصلة', icon='fas fa-chart-bar', actions=[
-        {'label': 'مركز التقارير', 'icon': 'fas fa-chart-line', 'url': url_for('manager.reports_center'), 'style': 'outline-primary'},
-        {'type': 'button', 'label': 'إنشاء تقرير', 'icon': 'fas fa-file-alt', 'data_action': 'generate-report', 'style': 'primary'},
-        {'type': 'button', 'label': 'تصدير جميع التقارير', 'icon': 'fas fa-download', 'data_action': 'export-all-reports', 'style': 'success'}
+    {{ page_header('_("_(" _(" _(" _(" _(" _("التقارير والإحصائيات")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("تقارير شاملة وإحصائيات مفصلة")")")")")")")', icon='fas fa-chart-bar', actions=[
+        {'label': '_("_(" _(" _(" _(" _(" _("مركز التقارير")")")")")")")', 'icon': 'fas fa-chart-line', 'url': url_for('manager.reports_center'), 'style': 'outline-primary'},
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("إنشاء تقرير")")")")")")")', 'icon': 'fas fa-file-alt', 'data_action': 'generate-report', 'style': 'primary'},
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تصدير جميع التقارير")")")")")")")', 'icon': 'fas fa-download', 'data_action': 'export-all-reports', 'style': 'success'}
     ]) }}
 
     <!-- Report Categories -->
@@ -16,7 +16,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">فئات التقارير</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("فئات التقارير")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -26,10 +26,10 @@
                                     <i class="fas fa-users"></i>
                                 </div>
                                 <div class="category-info">
-                                    <h6>تقارير المرضى</h6>
-                                    <p class="text-muted">إحصائيات المرضى والزيارات</p>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("تقارير المرضى")")")")")")")') }}</h6>
+                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات المرضى والزيارات")")")")")")")') }}</p>
                                     <button class="btn btn-sm btn-outline-primary" data-action="view-patient-reports">
-                                        عرض التقارير
+                                        {{ _('_("_(" _(" _(" _(" _(" _("عرض التقارير")")")")")")")') }}
                                     </button>
                                 </div>
                             </div>
@@ -41,10 +41,10 @@
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                                 <div class="category-info">
-                                    <h6>التقارير المالية</h6>
-                                    <p class="text-muted">الإيرادات والمصروفات</p>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("التقارير المالية")")")")")")")') }}</h6>
+                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الإيرادات والمصروفات")")")")")")")') }}</p>
                                     <button class="btn btn-sm btn-outline-primary" data-action="view-financial-reports">
-                                        عرض التقارير
+                                        {{ _('_("_(" _(" _(" _(" _(" _("عرض التقارير")")")")")")")') }}
                                     </button>
                                 </div>
                             </div>
@@ -56,10 +56,10 @@
                                     <i class="fas fa-user-md"></i>
                                 </div>
                                 <div class="category-info">
-                                    <h6>تقارير الأطباء</h6>
-                                    <p class="text-muted">أداء الأطباء والإنتاجية</p>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("تقارير الأطباء")")")")")")")') }}</h6>
+                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("أداء الأطباء والإنتاجية")")")")")")")') }}</p>
                                     <button class="btn btn-sm btn-outline-primary" data-action="view-doctor-reports">
-                                        عرض التقارير
+                                        {{ _('_("_(" _(" _(" _(" _(" _("عرض التقارير")")")")")")")') }}
                                     </button>
                                 </div>
                             </div>
@@ -70,10 +70,10 @@
                                     <i class="fas fa-chart-line"></i>
                                 </div>
                                 <div class="category-info">
-                                    <h6>التقارير التحليلية</h6>
-                                    <p class="text-muted">تحليلات متقدمة واتجاهات</p>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("التقارير التحليلية")")")")")")")') }}</h6>
+                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تحليلات متقدمة واتجاهات")")")")")")")') }}</p>
                                     <button class="btn btn-sm btn-outline-primary" data-action="view-analytical-reports">
-                                        عرض التقارير
+                                        {{ _('_("_(" _(" _(" _(" _(" _("عرض التقارير")")")")")")")') }}
                                     </button>
                                 </div>
                             </div>
@@ -89,7 +89,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">التقارير السريعة</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("التقارير السريعة")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -99,10 +99,10 @@
                                     <i class="fas fa-calendar-day"></i>
                                 </div>
                                 <div class="report-info">
-                                    <h6>تقرير اليوم</h6>
-                                    <p class="text-muted">إحصائيات اليوم الحالي</p>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("تقرير اليوم")")")")")")")') }}</h6>
+                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات اليوم الحالي")")")")")")")') }}</p>
                                     <button class="btn btn-sm btn-primary" data-action="generate-daily-report">
-                                        إنشاء التقرير
+                                        {{ _('_("_(" _(" _(" _(" _(" _("إنشاء التقرير")")")")")")")') }}
                                     </button>
                                 </div>
                             </div>
@@ -113,10 +113,10 @@
                                     <i class="fas fa-calendar-week"></i>
                                 </div>
                                 <div class="report-info">
-                                    <h6>تقرير الأسبوع</h6>
-                                    <p class="text-muted">إحصائيات الأسبوع الحالي</p>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("تقرير الأسبوع")")")")")")")') }}</h6>
+                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات الأسبوع الحالي")")")")")")")') }}</p>
                                     <button class="btn btn-sm btn-success" data-action="generate-weekly-report">
-                                        إنشاء التقرير
+                                        {{ _('_("_(" _(" _(" _(" _(" _("إنشاء التقرير")")")")")")")') }}
                                     </button>
                                 </div>
                             </div>
@@ -127,10 +127,10 @@
                                     <i class="fas fa-calendar-alt"></i>
                                 </div>
                                 <div class="report-info">
-                                    <h6>تقرير الشهر</h6>
-                                    <p class="text-muted">إحصائيات الشهر الحالي</p>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("تقرير الشهر")")")")")")")') }}</h6>
+                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات الشهر الحالي")")")")")")")') }}</p>
                                     <button class="btn btn-sm btn-info" data-action="generate-monthly-report">
-                                        إنشاء التقرير
+                                        {{ _('_("_(" _(" _(" _(" _(" _("إنشاء التقرير")")")")")")")') }}
                                     </button>
                                 </div>
                             </div>
@@ -146,39 +146,39 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">التقارير المخصصة</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("التقارير المخصصة")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <form id="customReportForm">
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="report_type" class="form-label">نوع التقرير</label>
+                                    <label for="report_type" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع التقرير")")")")")")")') }}</label>
                                     <select class="form-control" id="report_type" name="report_type">
-                                        <option value="">اختر نوع التقرير</option>
-                                        <option value="patients">المرضى</option>
-                                        <option value="visits">الزيارات</option>
-                                        {% if module_active('billing') %}<option value="financial">المالي</option>{% endif %}
-                                        <option value="doctors">الأطباء</option>
-                                        <option value="departments">الأقسام</option>
+                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر نوع التقرير")")")")")")")') }}</option>
+                                        <option value="patients">{{ _('_("_(" _(" _(" _(" _(" _("المرضى")")")")")")")') }}</option>
+                                        <option value="visits">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}</option>
+                                        {% if module_active('billing') %}<option value="financial">{{ _('_("_(" _(" _(" _(" _(" _("المالي")")")")")")")') }}</option>{% endif %}
+                                        <option value="doctors">{{ _('_("_(" _(" _(" _(" _(" _("الأطباء")")")")")")")') }}</option>
+                                        <option value="departments">{{ _('_("_(" _(" _(" _(" _(" _("الأقسام")")")")")")")') }}</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="date_from" class="form-label">من تاريخ</label>
+                                    <label for="date_from" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("من تاريخ")")")")")")")') }}</label>
                                     <input type="date" class="form-control" id="date_from" name="date_from">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="date_to" class="form-label">إلى تاريخ</label>
+                                    <label for="date_to" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إلى تاريخ")")")")")")")') }}</label>
                                     <input type="date" class="form-control" id="date_to" name="date_to">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="format" class="form-label">تنسيق التقرير</label>
+                                    <label for="format" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تنسيق التقرير")")")")")")")') }}</label>
                                     <select class="form-control" id="format" name="format">
                                         <option value="pdf">PDF</option>
                                         <option value="excel">Excel</option>
@@ -191,7 +191,7 @@
                             <div class="col-md-12">
                                 <button type="button" class="btn btn-primary" data-action="generate-custom-report">
                                     <i class="fas fa-file-alt me-2"></i>
-                                    إنشاء التقرير المخصص
+                                    {{ _('_("_(" _(" _(" _(" _(" _("إنشاء التقرير المخصص")")")")")")")') }}
                                 </button>
                             </div>
                         </div>
@@ -206,11 +206,11 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">تاريخ التقارير</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ التقارير")")")")")")")') }}</h6>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" data-action="filter-reports" data-value="all">الكل</button>
-                        <button class="btn btn-sm btn-outline-success" data-action="filter-reports" data-value="recent">الأحدث</button>
-                        <button class="btn btn-sm btn-outline-warning" data-action="filter-reports" data-value="favorite">المفضلة</button>
+                        <button class="btn btn-sm btn-outline-primary" data-action="filter-reports" data-value="all">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</button>
+                        <button class="btn btn-sm btn-outline-success" data-action="filter-reports" data-value="recent">{{ _('_("_(" _(" _(" _(" _(" _("الأحدث")")")")")")")') }}</button>
+                        <button class="btn btn-sm btn-outline-warning" data-action="filter-reports" data-value="favorite">{{ _('_("_(" _(" _(" _(" _(" _("المفضلة")")")")")")")') }}</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -218,12 +218,12 @@
                         <table class="table table-bordered" id="reportsTable">
                             <thead>
                                 <tr>
-                                    <th>اسم التقرير</th>
-                                    <th>النوع</th>
-                                    <th>التاريخ</th>
-                                    <th>الحجم</th>
-                                    <th>الحالة</th>
-                                    <th>الإجراءات</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("اسم التقرير")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحجم")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -234,32 +234,32 @@
                                                 <i class="fas fa-file-pdf text-danger"></i>
                                             </div>
                                             <div>
-                                                <div class="fw-bold">تقرير المرضى اليومي</div>
-                                                <small class="text-muted">تقرير شامل عن المرضى</small>
+                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("تقرير المرضى اليومي")")")")")")")') }}</div>
+                                                <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تقرير شامل عن المرضى")")")")")")")') }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-primary">مرضى</span>
+                                        <span class="badge bg-primary">{{ _('_("_(" _(" _(" _(" _(" _("مرضى")")")")")")")') }}</span>
                                     </td>
                                     <td>2024-01-15 10:30</td>
                                     <td>2.5 MB</td>
                                     <td>
-                                        <span class="badge bg-success">مكتمل</span>
+                                        <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report1" title="عرض">
-                                                <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
+                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report1" title="_(" _(" _(" _(" _(" _("عرض")")")")")")">
+                                                <i class="fas fa-eye"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report1" title="تحميل">
-                                                <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
+                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report1" title="_(" _(" _(" _(" _(" _("تحميل")")")")")")">
+                                                <i class="fas fa-download"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")') }}</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report1" title="مشاركة">
-                                                <i class="fas fa-share"></i> <span class="btn-label">مشاركة</span>
+                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report1" title="_(" _(" _(" _(" _(" _("مشاركة")")")")")")">
+                                                <i class="fas fa-share"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("مشاركة")")")")")")")') }}</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report1" title="حذف">
-                                                <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
+                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report1" title="_(" _(" _(" _(" _(" _("حذف")")")")")")">
+                                                <i class="fas fa-trash"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</span>
                                             </button>
                                         </div>
                                     </td>
@@ -271,32 +271,32 @@
                                                 <i class="fas fa-file-excel text-success"></i>
                                             </div>
                                             <div>
-                                                <div class="fw-bold">تقرير الإيرادات الشهري</div>
-                                                <small class="text-muted">تقرير مالي شامل</small>
+                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("تقرير الإيرادات الشهري")")")")")")")') }}</div>
+                                                <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تقرير مالي شامل")")")")")")")') }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-success">مالي</span>
+                                        <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مالي")")")")")")")') }}</span>
                                     </td>
                                     <td>2024-01-14 15:45</td>
                                     <td>1.8 MB</td>
                                     <td>
-                                        <span class="badge bg-success">مكتمل</span>
+                                        <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report2" title="عرض">
-                                                <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
+                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report2" title="_(" _(" _(" _(" _(" _("عرض")")")")")")">
+                                                <i class="fas fa-eye"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report2" title="تحميل">
-                                                <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
+                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report2" title="_(" _(" _(" _(" _(" _("تحميل")")")")")")">
+                                                <i class="fas fa-download"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")') }}</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report2" title="مشاركة">
-                                                <i class="fas fa-share"></i> <span class="btn-label">مشاركة</span>
+                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report2" title="_(" _(" _(" _(" _(" _("مشاركة")")")")")")">
+                                                <i class="fas fa-share"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("مشاركة")")")")")")")') }}</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report2" title="حذف">
-                                                <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
+                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report2" title="_(" _(" _(" _(" _(" _("حذف")")")")")")">
+                                                <i class="fas fa-trash"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</span>
                                             </button>
                                         </div>
                                     </td>
@@ -308,32 +308,32 @@
                                                 <i class="fas fa-file-csv text-info"></i>
                                             </div>
                                             <div>
-                                                <div class="fw-bold">تقرير الأطباء الأسبوعي</div>
-                                                <small class="text-muted">أداء الأطباء والإنتاجية</small>
+                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("تقرير الأطباء الأسبوعي")")")")")")")') }}</div>
+                                                <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("أداء الأطباء والإنتاجية")")")")")")")') }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">أطباء</span>
+                                        <span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("أطباء")")")")")")")') }}</span>
                                     </td>
                                     <td>2024-01-13 09:15</td>
                                     <td>1.2 MB</td>
                                     <td>
-                                        <span class="badge bg-warning">قيد الإنشاء</span>
+                                        <span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("قيد الإنشاء")")")")")")")') }}</span>
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report3" title="عرض">
-                                                <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
+                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report3" title="_(" _(" _(" _(" _(" _("عرض")")")")")")">
+                                                <i class="fas fa-eye"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report3" title="تحميل">
-                                                <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
+                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report3" title="_(" _(" _(" _(" _(" _("تحميل")")")")")")">
+                                                <i class="fas fa-download"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")') }}</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report3" title="مشاركة">
-                                                <i class="fas fa-share"></i> <span class="btn-label">مشاركة</span>
+                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report3" title="_(" _(" _(" _(" _(" _("مشاركة")")")")")")">
+                                                <i class="fas fa-share"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("مشاركة")")")")")")")') }}</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report3" title="حذف">
-                                                <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
+                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report3" title="_(" _(" _(" _(" _(" _("حذف")")")")")")">
+                                                <i class="fas fa-trash"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</span>
                                             </button>
                                         </div>
                                     </td>
@@ -351,7 +351,7 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">تحليلات التقارير</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("تحليلات التقارير")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -361,7 +361,7 @@
                                     <i class="fas fa-chart-bar"></i>
                                 </div>
                                 <div class="analytics-info">
-                                    <h6>إجمالي التقارير</h6>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("إجمالي التقارير")")")")")")")') }}</h6>
                                     <span class="analytics-value">156</span>
                                 </div>
                             </div>
@@ -372,7 +372,7 @@
                                     <i class="fas fa-download"></i>
                                 </div>
                                 <div class="analytics-info">
-                                    <h6>التحميلات</h6>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("التحميلات")")")")")")")') }}</h6>
                                     <span class="analytics-value">1,234</span>
                                 </div>
                             </div>
@@ -383,8 +383,8 @@
                                     <i class="fas fa-clock"></i>
                                 </div>
                                 <div class="analytics-info">
-                                    <h6>متوسط وقت الإنشاء</h6>
-                                    <span class="analytics-value">2.3 دقيقة</span>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("متوسط وقت الإنشاء")")")")")")")') }}</h6>
+                                    <span class="analytics-value">{{ _('_("_(" _(" _(" _(" _(" _("2.3 دقيقة")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -394,7 +394,7 @@
                                     <i class="fas fa-star"></i>
                                 </div>
                                 <div class="analytics-info">
-                                    <h6>التقارير المفضلة</h6>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("التقارير المفضلة")")")")")")")') }}</h6>
                                     <span class="analytics-value">23</span>
                                 </div>
                             </div>
@@ -407,12 +407,12 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">التقارير الأكثر استخداماً</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("التقارير الأكثر استخداماً")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="popular-reports">
                         <div class="popular-report-item">
-                            <div class="report-name">تقرير المرضى اليومي</div>
+                            <div class="report-name">{{ _('_("_(" _(" _(" _(" _(" _("تقرير المرضى اليومي")")")")")")")') }}</div>
                             <div class="report-usage">
                                 <div class="progress">
                                     <div class="progress-bar bg-primary" style="width: 85%"></div>
@@ -421,7 +421,7 @@
                             </div>
                         </div>
                         <div class="popular-report-item">
-                            <div class="report-name">تقرير الإيرادات الشهري</div>
+                            <div class="report-name">{{ _('_("_(" _(" _(" _(" _(" _("تقرير الإيرادات الشهري")")")")")")")') }}</div>
                             <div class="report-usage">
                                 <div class="progress">
                                     <div class="progress-bar bg-success" style="width: 72%"></div>
@@ -430,7 +430,7 @@
                             </div>
                         </div>
                         <div class="popular-report-item">
-                            <div class="report-name">تقرير الأطباء الأسبوعي</div>
+                            <div class="report-name">{{ _('_("_(" _(" _(" _(" _(" _("تقرير الأطباء الأسبوعي")")")")")")")') }}</div>
                             <div class="report-usage">
                                 <div class="progress">
                                     <div class="progress-bar bg-info" style="width: 68%"></div>

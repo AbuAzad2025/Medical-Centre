@@ -19,11 +19,11 @@
                         <div>
                             <a href="{{ url_for('super_admin.edit_department', department_id=department.id) }}" class="btn btn-warning btn-lg me-2">
                                 <i class="fas fa-edit me-2"></i>
-                                تعديل
+                                {{ _('_("_(" _(" _(" _(" _(" _("تعديل")")")")")")")') }}
                             </a>
                             <a href="{{ url_for('super_admin.departments') }}" class="btn btn-light btn-lg">
                                 <i class="fas fa-arrow-right me-2"></i>
-                                رجوع
+                                {{ _('_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")') }}
                             </a>
                         </div>
                     </div>
@@ -38,41 +38,41 @@
                 <div class="card-header bg-gradient-primary text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-info-circle me-2"></i>
-                        معلومات القسم
+                        {{ _('_("_(" _(" _(" _(" _(" _("معلومات القسم")")")")")")")') }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
-                        <div class="col-md-4"><strong><i class="fas fa-hashtag text-primary me-2"></i>رقم القسم:</strong></div>
+                        <div class="col-md-4"><strong><i class="fas fa-hashtag text-primary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("رقم القسم:")")")")")")")') }}</strong></div>
                         <div class="col-md-8"><span class="badge bg-primary">{{ department.id }}</span></div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-4"><strong><i class="fas fa-tag text-info me-2"></i>الاسم:</strong></div>
+                        <div class="col-md-4"><strong><i class="fas fa-tag text-info me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الاسم:")")")")")")")') }}</strong></div>
                         <div class="col-md-8">{{ department.name }}</div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-4"><strong><i class="fas fa-map-marker-alt text-danger me-2"></i>الموقع:</strong></div>
-                        <div class="col-md-8">{{ department.location or 'غير محدد' }}</div>
+                        <div class="col-md-4"><strong><i class="fas fa-map-marker-alt text-danger me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الموقع:")")")")")")")') }}</strong></div>
+                        <div class="col-md-8">{{ department.location or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-4"><strong><i class="fas fa-phone text-success me-2"></i>الهاتف:</strong></div>
-                        <div class="col-md-8">{{ department.phone or 'غير محدد' }}</div>
+                        <div class="col-md-4"><strong><i class="fas fa-phone text-success me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف:")")")")")")")') }}</strong></div>
+                        <div class="col-md-8">{{ department.phone or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-4"><strong><i class="fas fa-align-right text-warning me-2"></i>الوصف:</strong></div>
-                        <div class="col-md-8">{{ department.description or 'لا يوجد وصف' }}</div>
+                        <div class="col-md-4"><strong><i class="fas fa-align-right text-warning me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الوصف:")")")")")")")') }}</strong></div>
+                        <div class="col-md-8">{{ department.description or '_("_(" _(" _(" _(" _(" _("لا يوجد وصف")")")")")")")' }}</div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-4"><strong><i class="fas fa-users text-primary me-2"></i>عدد الموظفين:</strong></div>
+                        <div class="col-md-4"><strong><i class="fas fa-users text-primary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("عدد الموظفين:")")")")")")")') }}</strong></div>
                         <div class="col-md-8"><span class="badge bg-primary fs-6">{{ staff|length }}</span></div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-4"><strong><i class="fas fa-toggle-on text-info me-2"></i>الحالة:</strong></div>
+                        <div class="col-md-4"><strong><i class="fas fa-toggle-on text-info me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong></div>
                         <div class="col-md-8">
                             {% if department.is_active %}
-                            <span class="badge bg-success">نشط</span>
+                            <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span>
                             {% else %}
-                            <span class="badge bg-danger">غير نشط</span>
+                            <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("غير نشط")")")")")")")') }}</span>
                             {% endif %}
                         </div>
                     </div>
@@ -93,10 +93,10 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>الاسم</th>
-                                    <th>الدور</th>
-                                    <th>البريد الإلكتروني</th>
-                                    <th>الهاتف</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("البريد الإلكتروني")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -112,7 +112,7 @@
                         </table>
                     </div>
                     {% else %}
-                    <p class="text-center text-muted">لا يوجد موظفين في هذا القسم</p>
+                    <p class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد موظفين في هذا القسم")")")")")")")') }}</p>
                     {% endif %}
                 </div>
             </div>
@@ -123,33 +123,33 @@
                 <div class="card-header bg-gradient-warning text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-bolt me-2"></i>
-                        إجراءات سريعة
+                        {{ _('_("_(" _(" _(" _(" _(" _("إجراءات سريعة")")")")")")")') }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         <a href="{{ url_for('super_admin.edit_department', department_id=department.id) }}" class="btn btn-warning">
                             <i class="fas fa-edit me-2"></i>
-                            تعديل القسم
+                            {{ _('_("_(" _(" _(" _(" _(" _("تعديل القسم")")")")")")")') }}
                         </a>
                         <a href="{{ url_for('super_admin.department_staff', department_id=department.id) }}" class="btn btn-info">
                             <i class="fas fa-users me-2"></i>
-                            إدارة الموظفين
+                            {{ _('_("_(" _(" _(" _(" _(" _("إدارة الموظفين")")")")")")")') }}
                         </a>
                         {% if department.is_active %}
                         <button data-action="deactivateDepartment" data-department-id="department.id" class="btn btn-danger">
                             <i class="fas fa-times-circle me-2"></i>
-                            إلغاء التفعيل
+                            {{ _('_("_(" _(" _(" _(" _(" _("إلغاء التفعيل")")")")")")")') }}
                         </button>
                         {% else %}
                         <button data-action="activateDepartment" data-department-id="department.id" class="btn btn-success">
                             <i class="fas fa-check-circle me-2"></i>
-                            تفعيل القسم
+                            {{ _('_("_(" _(" _(" _(" _(" _("تفعيل القسم")")")")")")")') }}
                         </button>
                         {% endif %}
                         <a href="{{ url_for('super_admin.departments') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-right me-2"></i>
-                            العودة للقائمة
+                            {{ _('_("_(" _(" _(" _(" _(" _("العودة للقائمة")")")")")")")') }}
                         </a>
                     </div>
                 </div>

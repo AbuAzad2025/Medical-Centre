@@ -1,6 +1,6 @@
 {% if now_cards %}
-<section class="cc-now-panel" aria-label="الآن">
-  <div class="cc-now-panel__title"><i class="fas fa-bolt me-1"></i> الآن يحتاج انتباهك</div>
+<section class="cc-now-panel" aria-label="_(" _(" _(" _(" _(" _("الآن")")")")")")">
+  <div class="cc-now-panel__title"><i class="fas fa-bolt me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("الآن يحتاج انتباهك")")")")")")")') }}</div>
   <div class="cc-now-grid">
     {% for card in now_cards %}
     {% if card.action_href %}

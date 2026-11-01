@@ -7,10 +7,10 @@
 <div class="container-fluid">
     {{ page_header(
         title='تفاصيل طلب الأشعة',
-        subtitle='طلب رقم ' ~ request.id,
+        subtitle='_("طلب رقم ")' ~ request.id,
         icon='fas fa-x-ray',
         actions=[
-            {'url': url_for('radiology.worklist'), 'label': 'العودة للطابور', 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
+            {'url': url_for('radiology.worklist'), 'label': '_("_(" _(" _(" _(" _(" _("العودة للطابور")")")")")")")', 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
         ]
     ) }}
 
@@ -21,37 +21,37 @@
                 <div class="card-header py-3">
                     <h6 class="m-0 fw-bold text-primary">
                         <i class="fas fa-info-circle me-2"></i>
-                        تفاصيل الطلب
+                        {{ _('_("_(" _(" _(" _(" _(" _("تفاصيل الطلب")")")")")")")') }}
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>رقم الطلب:</strong> {{ request.id }}</p>
-                            <p><strong>نوع التصوير:</strong> {{ request.imaging_type }}</p>
-                            <p><strong>الجزء المصور:</strong> {{ request.body_part }}</p>
-                            <p><strong>السؤال السريري:</strong> {{ request.clinical_question }}</p>
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم الطلب:")")")")")")")') }}</strong> {{ request.id }}</p>
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("نوع التصوير:")")")")")")")') }}</strong> {{ request.imaging_type }}</p>
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الجزء المصور:")")")")")")")') }}</strong> {{ request.body_part }}</p>
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("السؤال السريري:")")")")")")")') }}</strong> {{ request.clinical_question }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>الأولوية:</strong> 
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية:")")")")")")")') }}</strong> 
                                 {% if request.priority == 'HIGH' %}
-                                    <span class="badge text-bg-danger">عاجل</span>
+                                    <span class="badge text-bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("عاجل")")")")")")")') }}</span>
                                 {% elif request.priority == 'MEDIUM' %}
-                                    <span class="badge text-bg-warning">متوسط</span>
+                                    <span class="badge text-bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("متوسط")")")")")")")') }}</span>
                                 {% else %}
-                                    <span class="badge text-bg-info">عادي</span>
+                                    <span class="badge text-bg-info">{{ _('_("_(" _(" _(" _(" _(" _("عادي")")")")")")")') }}</span>
                                 {% endif %}
                             </p>
-                            <p><strong>الحالة:</strong> 
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong> 
                                 {% if request.status == 'PENDING' %}
-                                    <span class="badge text-bg-warning">في الانتظار</span>
+                                    <span class="badge text-bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("في الانتظار")")")")")")")') }}</span>
                                 {% elif request.status == 'IN_PROGRESS' %}
-                                    <span class="badge text-bg-info">قيد المعالجة</span>
+                                    <span class="badge text-bg-info">{{ _('_("_(" _(" _(" _(" _(" _("قيد المعالجة")")")")")")")') }}</span>
                                 {% elif request.status == 'COMPLETED' %}
-                                    <span class="badge text-bg-success">مكتمل</span>
+                                    <span class="badge text-bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
                                 {% endif %}
                             </p>
-                            <p><strong>تاريخ الطلب:</strong> {{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الطلب:")")")")")")")') }}</strong> {{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
                         </div>
                     </div>
                 </div>
@@ -62,27 +62,27 @@
                 <div class="card-header py-3">
                     <h6 class="m-0 fw-bold text-success">
                         <i class="fas fa-user me-2"></i>
-                        بيانات المريض
+                        {{ _('_("_(" _(" _(" _(" _(" _("بيانات المريض")")")")")")")') }}
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>اسم المريض:</strong> {{ request.visit.patient.full_name }}</p>
-                            <p><strong>رقم المريض:</strong> {{ request.visit.patient.id }}</p>
-                            <p><strong>العمر:</strong> {{ request.visit.patient.age }} سنة</p>
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("اسم المريض:")")")")")")")') }}</strong> {{ request.visit.patient.full_name }}</p>
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم المريض:")")")")")")")') }}</strong> {{ request.visit.patient.id }}</p>
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("العمر:")")")")")")")') }}</strong> {{ request.visit.patient.age }} سنة</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>الجنس:</strong> {{ request.visit.patient.get_gender_display() }}</p>
-                            <p><strong>الهاتف:</strong> {{ request.visit.patient.phone }}</p>
-                            <p><strong>تاريخ الزيارة:</strong> {{ request.visit.visit_date.strftime('%Y-%m-%d') }}</p>
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الجنس:")")")")")")")') }}</strong> {{ request.visit.patient.get_gender_display() }}</p>
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف:")")")")")")")') }}</strong> {{ request.visit.patient.phone }}</p>
+                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الزيارة:")")")")")")")') }}</strong> {{ request.visit.visit_date.strftime('%Y-%m-%d') }}</p>
                         </div>
                     </div>
                     <div class="mt-3 text-end">
                         {% if module_active('reception') %}
                         <a href="{{ url_for('reception.view_patient', patient_id=request.visit.patient.id) }}" class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-eye me-1"></i>
-                            عرض ملف المريض
+                            {{ _('_("_(" _(" _(" _(" _(" _("عرض ملف المريض")")")")")")")') }}
                         </a>
                         {% endif %}
                     </div>
@@ -96,7 +96,7 @@
                 <div class="card-header py-3">
                     <h6 class="m-0 fw-bold text-warning">
                         <i class="fas fa-cogs me-2"></i>
-                        الإجراءات
+                        {{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -104,29 +104,29 @@
                     <a href="{{ url_for('radiology.worklist') }}" 
                        class="btn btn-primary w-100 mb-2">
                         <i class="fas fa-cog me-1"></i>
-                        معالجة الطلب
+                        {{ _('_("_(" _(" _(" _(" _(" _("معالجة الطلب")")")")")")")') }}
                     </a>
                     {% elif request.status == 'IN_PROGRESS' %}
                     <a href="{{ url_for('radiology.worklist') }}" 
                        class="btn btn-success w-100 mb-2">
                         <i class="fas fa-file-medical me-1"></i>
-                        إضافة التقرير
+                        {{ _('_("_(" _(" _(" _(" _(" _("إضافة التقرير")")")")")")")') }}
                     </a>
                     <a href="{{ url_for('radiology.worklist') }}" 
                        class="btn btn-info w-100 mb-2">
                         <i class="fas fa-upload me-1"></i>
-                        رفع الصور
+                        {{ _('_("_(" _(" _(" _(" _(" _("رفع الصور")")")")")")")') }}
                     </a>
                     {% elif request.status == 'COMPLETED' %}
                     <a href="{{ url_for('radiology.worklist') }}" 
                        class="btn btn-secondary w-100 mb-2" target="_blank">
                         <i class="fas fa-print me-1"></i>
-                        طباعة التقرير
+                        {{ _('_("_(" _(" _(" _(" _(" _("طباعة التقرير")")")")")")")') }}
                     </a>
                     <a href="{{ url_for('radiology.worklist') }}" 
-                       class="btn btn-success w-100 mb-2" data-action="confirm-navigate" data-message="هل أنت متأكد من إكمال الطلب؟">
+                       class="btn btn-success w-100 mb-2" data-action="confirm-navigate" data-message="_(" _(" _(" _(" _(" _("هل أنت متأكد من إكمال الطلب؟")")")")")")">
                         <i class="fas fa-check me-1"></i>
-                        إكمال الطلب
+                        {{ _('إكمال الطلب') }}
                     </a>
                     {% endif %}
                 </div>
@@ -137,7 +137,7 @@
                 <div class="card-header py-3">
                     <h6 class="m-0 fw-bold text-info">
                         <i class="fas fa-history me-2"></i>
-                        سجل الحالة
+                        {{ _('_("_(" _(" _(" _(" _(" _("سجل الحالة")")")")")")")') }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -145,7 +145,7 @@
                         <div class="timeline-item">
                             <div class="timeline-marker bg-primary"></div>
                             <div class="timeline-content">
-                                <h6 class="timeline-title">تم إنشاء الطلب</h6>
+                                <h6 class="timeline-title">{{ _('_("_(" _(" _(" _(" _(" _("تم إنشاء الطلب")")")")")")")') }}</h6>
                                 <p class="timeline-text">{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
                             </div>
                         </div>
@@ -153,7 +153,7 @@
                         <div class="timeline-item">
                             <div class="timeline-marker bg-info"></div>
                             <div class="timeline-content">
-                                <h6 class="timeline-title">تم بدء المعالجة</h6>
+                                <h6 class="timeline-title">{{ _('_("_(" _(" _(" _(" _(" _("تم بدء المعالجة")")")")")")")') }}</h6>
                                 <p class="timeline-text">{{ request.processed_at.strftime('%Y-%m-%d %H:%M') }}</p>
                             </div>
                         </div>
@@ -162,7 +162,7 @@
                         <div class="timeline-item">
                             <div class="timeline-marker bg-success"></div>
                             <div class="timeline-content">
-                                <h6 class="timeline-title">تم إكمال الطلب</h6>
+                                <h6 class="timeline-title">{{ _('_("_(" _(" _(" _(" _(" _("تم إكمال الطلب")")")")")")")') }}</h6>
                                 <p class="timeline-text">{{ request.completed_at.strftime('%Y-%m-%d %H:%M') }}</p>
                             </div>
                         </div>

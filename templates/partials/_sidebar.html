@@ -1,6 +1,6 @@
 <aside class="clinical-sidebar" id="appSidebar">
     <div class="sidebar-header d-lg-none p-3 border-bottom d-flex justify-content-between align-items-center">
-        <strong>القائمة</strong>
+        <strong>{{ _('_("_(" _(" _(" _(" _(" _("القائمة")")")")")")")') }}</strong>
         <button class="btn btn-sm btn-light" id="closeSidebarBtn"><i class="fas fa-times"></i></button>
     </div>
 
@@ -9,12 +9,12 @@
             <li class="nav-item">
                 <a class="nav-link {{ 'active' if request.endpoint == 'main.dashboard' or request.endpoint == 'main.index' }}" href="{{ url_for('main.index') }}">
                     <i class="fas fa-home nav-icon"></i>
-                    <span>الرئيسية</span>
+                    <span>{{ _('_("_(" _(" _(" _(" _(" _("الرئيسية")")")")")")")') }}</span>
                 </a>
             </li>
 
             <li class="nav-item mt-2">
-                <span class="nav-section-title">الوحدات</span>
+                <span class="nav-section-title">{{ _('_("_(" _(" _(" _(" _(" _("الوحدات")")")")")")")') }}</span>
             </li>
             {% for module_name, meta in module_registry.items() %}
                 {% if module_name != 'owner' and module_active(module_name) %}
@@ -32,12 +32,12 @@
 
             {% if current_user.is_authenticated and has_permission('admin.access') %}
             <li class="nav-item mt-2">
-                <span class="nav-section-title">الإدارة</span>
+                <span class="nav-section-title">{{ _('_("_(" _(" _(" _(" _(" _("الإدارة")")")")")")")') }}</span>
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ 'active' if request.path.startswith('/super-admin') }}" href="{{ url_for('super_admin.dashboard') }}">
                     <i class="fas fa-cogs nav-icon"></i>
-                    <span>إعدادات المركز</span>
+                    <span>{{ _('_("_(" _(" _(" _(" _(" _("إعدادات المركز")")")")")")")') }}</span>
                 </a>
             </li>
             {% endif %}
@@ -46,7 +46,7 @@
             <li class="nav-item">
                 <a class="nav-link {{ 'active' if request.path.startswith('/owner') }}" href="{{ url_for('owner.owner_dashboard') }}">
                     <i class="fas fa-crown nav-icon"></i>
-                    <span>لوحة المالك</span>
+                    <span>{{ _('_("_(" _(" _(" _(" _(" _("لوحة المالك")")")")")")")') }}</span>
                 </a>
             </li>
             {% endif %}

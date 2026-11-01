@@ -14,9 +14,7 @@ from models.emergency import EmergencyCase
 from routes.emergency import emergency_bp
 from utils.decorators import role_required
 
-# =============================================
 # DASHBOARD ROUTES
-# =============================================
 
 
 @emergency_bp.route('/')

@@ -2,11 +2,11 @@
 {% block title %}التشخيصات المشفرة — <bdi>{{ patient.full_name }}</bdi>{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">التشخيصات المشفرة — <bdi>{{ patient.full_name }}</bdi></h2>
+  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("التشخيصات المشفرة —")")")")")")")') }} <bdi>{{ patient.full_name }}</bdi></h2>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>التاريخ</th><th>الكود</th><th>النوع</th><th>الحالة</th><th>ملاحظات</th></tr></thead>
+        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الكود")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</th></tr></thead>
         <tbody>
         {% for d in diagnoses %}
           <tr>
@@ -17,7 +17,7 @@
             <td>{{ d.notes or '-' }}</td>
           </tr>
         {% else %}
-          <tr><td colspan="5" class="text-muted text-center">لا يوجد تشخيصات مشفرة</td></tr>
+          <tr><td colspan="5" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد تشخيصات مشفرة")")")")")")")') }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

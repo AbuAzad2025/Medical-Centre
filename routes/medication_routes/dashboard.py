@@ -13,9 +13,7 @@ from models.medication import Medication, PharmacySale, Prescription
 from routes.medication_routes import medication_bp
 from utils.decorators import role_required
 
-# =============================================
 # DASHBOARD ROUTES
-# =============================================
 
 
 @medication_bp.route('/')

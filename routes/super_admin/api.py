@@ -13,13 +13,9 @@ from routes.super_admin import super_admin_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import super_admin_required
 
-# =============================================
 # API ROUTES
-# =============================================
 
-# ============================================
 # API Routes for AJAX Calls
-# ============================================
 
 
 @super_admin_bp.route('/api/audit-log', methods=['POST'])

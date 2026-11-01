@@ -20,9 +20,7 @@ from services.core_queries import core_queries
 from services.lab_service import lab_service
 from utils.decorators import role_required
 
-# =============================================
 # DASHBOARD ROUTES
-# =============================================
 
 
 @lab_bp.route('/')

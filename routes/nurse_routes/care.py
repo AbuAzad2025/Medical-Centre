@@ -12,9 +12,7 @@ from models.patient import Patient
 from routes.nurse_routes import nurse_bp
 from utils.decorators import role_required
 
-# =============================================
 # CARE ROUTES
-# =============================================
 
 
 @nurse_bp.route('/patient-care')

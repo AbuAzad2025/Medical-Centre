@@ -8,25 +8,25 @@
   <div class="row g-3 mb-3" id="sec-kpis">
     <div class="col-6 col-md-3">
       <div class="card shadow-sm h-100"><div class="card-body py-3">
-        <div class="text-muted small">دخول ناجح اليوم</div>
+        <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("دخول ناجح اليوم")")")")")")")') }}</div>
         <div class="fs-4 fw-bold" id="kpi-logins-today">—</div>
       </div></div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card shadow-sm h-100"><div class="card-body py-3">
-        <div class="text-muted small">محاولات دخول فاشلة</div>
+        <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("محاولات دخول فاشلة")")")")")")")') }}</div>
         <div class="fs-4 fw-bold text-warning" id="kpi-failed">—</div>
       </div></div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card shadow-sm h-100"><div class="card-body py-3">
-        <div class="text-muted small">دخول محظور</div>
+        <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("دخول محظور")")")")")")")') }}</div>
         <div class="fs-4 fw-bold text-danger" id="kpi-blocked">—</div>
       </div></div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card shadow-sm h-100"><div class="card-body py-3">
-        <div class="text-muted small">انتحال هوية</div>
+        <div class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("انتحال هوية")")")")")")")') }}</div>
         <div class="fs-4 fw-bold" id="kpi-impersonation">—</div>
       </div></div>
     </div>
@@ -36,46 +36,46 @@
     <div class="card-body py-2">
       <form id="sec-filters" class="row g-2 align-items-end">
         <div class="col-md-2">
-          <label class="form-label small mb-1" for="f-action">الحدث</label>
+          <label class="form-label small mb-1" for="f-action">{{ _('_("_(" _(" _(" _(" _(" _("الحدث")")")")")")")') }}</label>
           <select id="f-action" class="form-select form-select-sm">
-            <option value="">الكل</option>
-            <option value="login">دخول ناجح</option>
-            <option value="login_failed">دخول فاشل/محظور</option>
-            <option value="logout">خروج</option>
-            <option value="password_reset">إعادة تعيين كلمة مرور</option>
-            <option value="IMPERSONATE">انتحال هوية</option>
-            <option value="force_logout">إجهاض جلسة</option>
-            <option value="create">إنشاء</option>
-            <option value="update">تعديل</option>
-            <option value="delete">حذف</option>
+            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</option>
+            <option value="login">{{ _('_("_(" _(" _(" _(" _(" _("دخول ناجح")")")")")")")') }}</option>
+            <option value="login_failed">{{ _('_("_(" _(" _(" _(" _(" _("دخول فاشل/محظور")")")")")")")') }}</option>
+            <option value="logout">{{ _('_("_(" _(" _(" _(" _(" _("خروج")")")")")")")') }}</option>
+            <option value="password_reset">{{ _('_("_(" _(" _(" _(" _(" _("إعادة تعيين كلمة مرور")")")")")")")') }}</option>
+            <option value="IMPERSONATE">{{ _('_("_(" _(" _(" _(" _(" _("انتحال هوية")")")")")")")') }}</option>
+            <option value="force_logout">{{ _('_("_(" _(" _(" _(" _(" _("إجهاض جلسة")")")")")")")') }}</option>
+            <option value="create">{{ _('_("_(" _(" _(" _(" _(" _("إنشاء")")")")")")")') }}</option>
+            <option value="update">{{ _('_("_(" _(" _(" _(" _(" _("تعديل")")")")")")")') }}</option>
+            <option value="delete">{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</option>
           </select>
         </div>
         <div class="col-md-2">
-          <label class="form-label small mb-1" for="f-severity">الخطورة</label>
+          <label class="form-label small mb-1" for="f-severity">{{ _('_("_(" _(" _(" _(" _(" _("الخطورة")")")")")")")') }}</label>
           <select id="f-severity" class="form-select form-select-sm">
-            <option value="">الكل</option>
-            <option value="critical">حرجة</option>
-            <option value="high">عالية</option>
-            <option value="medium">متوسطة</option>
-            <option value="low">منخفضة</option>
+            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</option>
+            <option value="critical">{{ _('_("_(" _(" _(" _(" _(" _("حرجة")")")")")")")') }}</option>
+            <option value="high">{{ _('_("_(" _(" _(" _(" _(" _("عالية")")")")")")")') }}</option>
+            <option value="medium">{{ _('_("_(" _(" _(" _(" _(" _("متوسطة")")")")")")")') }}</option>
+            <option value="low">{{ _('_("_(" _(" _(" _(" _(" _("منخفضة")")")")")")")') }}</option>
           </select>
         </div>
         <div class="col-md-2">
-          <label class="form-label small mb-1" for="f-from">من تاريخ</label>
+          <label class="form-label small mb-1" for="f-from">{{ _('_("_(" _(" _(" _(" _(" _("من تاريخ")")")")")")")') }}</label>
           <input type="date" id="f-from" class="form-control form-control-sm">
         </div>
         <div class="col-md-2">
-          <label class="form-label small mb-1" for="f-to">إلى تاريخ</label>
+          <label class="form-label small mb-1" for="f-to">{{ _('_("_(" _(" _(" _(" _(" _("إلى تاريخ")")")")")")")') }}</label>
           <input type="date" id="f-to" class="form-control form-control-sm">
         </div>
         <div class="col-md-2">
-          <label class="form-label small mb-1" for="f-q">بحث</label>
+          <label class="form-label small mb-1" for="f-q">{{ _('_("_(" _(" _(" _(" _(" _("بحث")")")")")")")') }}</label>
           <input type="search" id="f-q" class="form-control form-control-sm"
-                 placeholder="مستخدم، مركز، زيارة...">
+                 placeholder="_(" _(" _(" _(" _(" _("مستخدم، مركز، زيارة...")")")")")")">
         </div>
         <div class="col-md-2 d-flex gap-2">
           <button type="submit" class="btn btn-primary btn-sm flex-fill">
-            <i class="fas fa-filter me-1"></i>تصفية
+            <i class="fas fa-filter me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تصفية")")")")")")")') }}
           </button>
           <button type="reset" id="f-reset" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-rotate-right"></i>
@@ -87,33 +87,33 @@
 
   <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <span><i class="fas fa-shield-halved me-2"></i>أحداث الأمان</span>
+      <span><i class="fas fa-shield-halved me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("أحداث الأمان")")")")")")")') }}</span>
       <span class="badge bg-secondary" id="sec-total">0</span>
     </div>
     <div class="table-responsive">
       <table class="table table-hover table-sm mb-0 align-middle">
         <thead class="table-light">
           <tr>
-            <th>التاريخ والوقت</th>
-            <th>الحدث</th>
-            <th>الخطورة</th>
-            <th>المستخدم</th>
+            <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ والوقت")")")")")")")') }}</th>
+            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحدث")")")")")")")') }}</th>
+            <th>{{ _('_("_(" _(" _(" _(" _(" _("الخطورة")")")")")")")') }}</th>
+            <th>{{ _('_("_(" _(" _(" _(" _(" _("المستخدم")")")")")")")') }}</th>
             <th>IP</th>
-            <th>التفاصيل</th>
+            <th>{{ _('_("_(" _(" _(" _(" _(" _("التفاصيل")")")")")")")') }}</th>
           </tr>
         </thead>
         <tbody id="sec-rows">
-          <tr><td colspan="6" class="text-center text-muted py-4">جارٍ التحميل...</td></tr>
+          <tr><td colspan="6" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("جارٍ التحميل...")")")")")")")') }}</td></tr>
         </tbody>
       </table>
     </div>
     <div class="card-footer d-flex justify-content-between align-items-center">
       <button class="btn btn-outline-secondary btn-sm" id="sec-prev">
-        <i class="fas fa-chevron-right me-1"></i>السابق
+        <i class="fas fa-chevron-right me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("السابق")")")")")")")') }}
       </button>
-      <span class="small text-muted">صفحة <span id="sec-page">1</span> من <span id="sec-pages">1</span></span>
+      <span class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("صفحة")")")")")")")') }} <span id="sec-page"_(" _(" _(" _(" _(" _(">1</span> من <span id=")")")")")")"sec-pages">1</span></span>
       <button class="btn btn-outline-secondary btn-sm" id="sec-next">
-        التالي<i class="fas fa-chevron-left ms-1"></i>
+        {{ _('_("_(" _(" _(" _(" _(" _("التالي")")")")")")")') }}<i class="fas fa-chevron-left ms-1"></i>
       </button>
     </div>
   </div>

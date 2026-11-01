@@ -23,9 +23,7 @@ from utils.decorators import (
     role_required,
 )
 
-# =============================================
 # REPORTS ROUTES
-# =============================================
 
 
 @manager_bp.route('/reports')

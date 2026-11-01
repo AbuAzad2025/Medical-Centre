@@ -3,53 +3,53 @@
 {% block content %}
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">منشئ التقارير المخصصة</h2>
+    <h2 class="mb-0">{{ _('_("_(" _(" _(" _(" _(" _("منشئ التقارير المخصصة")")")")")")")') }}</h2>
     {% if module_active('reporting') %}
     <a href="{{ url_for('manager.reports_center') }}" class="btn btn-outline-secondary btn-sm">
-    {% endif %}      <i class="fas fa-chart-bar me-1"></i>مركز التقارير
+    {% endif %}      <i class="fas fa-chart-bar me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("مركز التقارير")")")")")")")') }}
     </a>
   </div>
   <div class="card animate-in">
     <div class="card-body">
       <div class="row g-3 mb-3">
         <div class="col-md-4">
-          <label class="form-label" for="templateSelect">قالب محفوظ</label>
-          <select class="form-select" id="templateSelect" title="تحميل قالب محفوظ">
-            <option value="">— جديد —</option>
+          <label class="form-label" for="templateSelect">{{ _('_("_(" _(" _(" _(" _(" _("قالب محفوظ")")")")")")")') }}</label>
+          <select class="form-select" id="templateSelect" title="_(" _(" _(" _(" _(" _("تحميل قالب محفوظ")")")")")")">
+            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("— جديد —")")")")")")")') }}</option>
             {% for tpl in saved_templates or [] %}
               <option value="{{ tpl.id }}" {% if active_template and active_template.id == tpl.id %}selected{% endif %}>{{ tpl.name }}</option>
             {% endfor %}
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label" for="templateName">اسم القالب</label>
-          <input type="text" class="form-control" id="templateName" placeholder="مثال: تقرير المرضى الشهري">
+          <label class="form-label" for="templateName">{{ _('_("_(" _(" _(" _(" _(" _("اسم القالب")")")")")")")') }}</label>
+          <input type="text" class="form-control" id="templateName" placeholder="_(" _(" _(" _(" _(" _("مثال: تقرير المرضى الشهري")")")")")")">
         </div>
         <div class="col-md-4 d-flex align-items-end gap-2">
-          <button type="button" class="btn btn-success" id="saveTemplateBtn">حفظ القالب</button>
-          <button type="button" class="btn btn-outline-primary" id="runTemplateBtn" {% if not active_template %}disabled{% endif %}>تشغيل القالب</button>
+          <button type="button" class="btn btn-success" id="saveTemplateBtn">{{ _('_("_(" _(" _(" _(" _(" _("حفظ القالب")")")")")")")') }}</button>
+          <button type="button" class="btn btn-outline-primary" id="runTemplateBtn" {% if not active_template %}disabled{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("تشغيل القالب")")")")")")")') }}</button>
         </div>
       </div>
       <div class="row g-3">
         <div class="col-md-3">
-          <label class="form-label" for="entitySelect">الكيان</label>
-          <select class="form-select" id="entitySelect" title="اختر الكيان">
-            <option value="">اختر الكيان</option>
+          <label class="form-label" for="entitySelect">{{ _('_("_(" _(" _(" _(" _(" _("الكيان")")")")")")")') }}</label>
+          <select class="form-select" id="entitySelect" title="_(" _(" _(" _(" _(" _("اختر الكيان")")")")")")">
+            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الكيان")")")")")")")') }}</option>
             {% for key, info in entities.items() %}
               <option value="{{ key }}" {% if active_config and active_config.entity == key %}selected{% endif %}>{{ info.label }}</option>
             {% endfor %}
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="fieldsContainer">الحقول</label>
-          <div id="fieldsContainer" class="border rounded p-2 report-fields-box" role="group" aria-label="حقول التقرير المختارة"></div>
+          <label class="form-label" for="fieldsContainer">{{ _('_("_(" _(" _(" _(" _(" _("الحقول")")")")")")")') }}</label>
+          <div id="fieldsContainer" class="border rounded p-2 report-fields-box" role="group" aria-label="_(" _(" _(" _(" _(" _("حقول التقرير المختارة")")")")")")"></div>
         </div>
         <div class="col-md-2">
-          <label class="form-label" for="limitInput">الحد</label>
+          <label class="form-label" for="limitInput">{{ _('_("_(" _(" _(" _(" _(" _("الحد")")")")")")")') }}</label>
           <input type="number" class="form-control" id="limitInput" value="{{ active_config.limit if active_config else 100 }}">
         </div>
         <div class="col-md-1 d-flex align-items-end">
-          <button type="button" class="btn btn-primary w-100" id="generateBtn">توليد</button>
+          <button type="button" class="btn btn-primary w-100" id="generateBtn">{{ _('_("_(" _(" _(" _(" _(" _("توليد")")")")")")")') }}</button>
         </div>
       </div>
       <div class="mt-3">

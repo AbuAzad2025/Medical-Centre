@@ -15,9 +15,7 @@ from routes.nurse_routes import _accessible_department_ids, nurse_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
-# =============================================
 # MEDICATION ROUTES
-# =============================================
 
 
 @nurse_bp.route('/medication-administration')

@@ -17,9 +17,7 @@ from routes.doctor import doctor_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required, role_required_json
 
-# =============================================
 # PATIENTS ROUTES
-# =============================================
 
 # مسارات إضافية للطبيب الاحترافي
 

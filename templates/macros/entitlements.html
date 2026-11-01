@@ -1,6 +1,6 @@
 {# UX1-001 — Jinja helpers for EntitlementResolver-driven UI gates #}
 
-{% macro entitled(capability_key, fallback_message='هذه الميزة غير متاحة في باقتك الحالية.') %}
+{% macro entitled(capability_key, fallback_message='_("_(" _(" _(" _(" _(" _("هذه الميزة غير متاحة في باقتك الحالية.")")")")")")")') %}
   {% if is_entitled(capability_key) %}
     {{ caller() }}
   {% else %}
@@ -11,7 +11,7 @@
   {% endif %}
 {% endmacro %}
 
-{% macro entitled_btn(capability_key, label, icon='fas fa-lock', btn_class='btn btn-outline-secondary', disabled_title='غير متاح في باقتك') %}
+{% macro entitled_btn(capability_key, label, icon='fas fa-lock', btn_class='btn btn-outline-secondary', disabled_title='_("_(" _(" _(" _(" _(" _("غير متاح في باقتك")")")")")")")') %}
   {% if is_entitled(capability_key) %}
     <button type="button" class="{{ btn_class }}">{{ caller() if caller is defined else label }}</button>
   {% else %}
@@ -29,7 +29,7 @@
     {% else %}
       <div class="premium-section__overlay">
         <i class="fas fa-crown"></i>
-        <span>ميزة مميزة — ترقية الباقة مطلوبة</span>
+        <span>{{ _('_("_(" _(" _(" _(" _(" _("ميزة مميزة — ترقية الباقة مطلوبة")")")")")")")') }}</span>
       </div>
       <div class="premium-section__content premium-section__content--blurred" aria-hidden="true">
         {{ caller() }}

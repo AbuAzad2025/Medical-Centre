@@ -3,71 +3,71 @@
 {% block title %}تداخلات دوائية{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('تداخلات دوائية', subtitle='جدول تداخلات شائعة للتنبيه عند وصف الأدوية', icon='fas fa-exchange-alt', actions=[
-      {'label': 'العودة', 'icon': 'fas fa-arrow-left', 'url': url_for('medication.dashboard'), 'style': 'secondary'}
+  {{ page_header('_("_(" _(" _(" _(" _(" _("تداخلات دوائية")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("جدول تداخلات شائعة للتنبيه عند وصف الأدوية")")")")")")")', icon='fas fa-exchange-alt', actions=[
+      {'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('medication.dashboard'), 'style': 'secondary'}
   ]) }}
 
   <div class="card shadow mb-4">
-    <div class="card-header">إضافة / تحديث تداخل</div>
+    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("إضافة / تحديث تداخل")")")")")")")') }}</div>
     <div class="card-body">
       <form method="POST" class="row g-3">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="col-md-4">
-          <label class="form-label">الدواء الأول</label>
+          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الدواء الأول")")")")")")")') }}</label>
           <select class="form-select" name="medication_a_id" required>
-            <option value="">اختر</option>
+            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر")")")")")")")') }}</option>
             {% for m in medications %}
               <option value="{{ m.id }}">{{ m.trade_name }}{% if m.generic_name %} ({{ m.generic_name }}){% endif %}</option>
             {% endfor %}
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label">الدواء الثاني</label>
+          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الدواء الثاني")")")")")")")') }}</label>
           <select class="form-select" name="medication_b_id" required>
-            <option value="">اختر</option>
+            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر")")")")")")")') }}</option>
             {% for m in medications %}
               <option value="{{ m.id }}">{{ m.trade_name }}{% if m.generic_name %} ({{ m.generic_name }}){% endif %}</option>
             {% endfor %}
           </select>
         </div>
         <div class="col-md-2">
-          <label class="form-label">الشدة</label>
+          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الشدة")")")")")")")') }}</label>
           <select class="form-select" name="severity">
-            <option value="LOW">منخفض</option>
-            <option value="MODERATE" selected>متوسط</option>
-            <option value="HIGH">عالي</option>
+            <option value="LOW">{{ _('_("_(" _(" _(" _(" _(" _("منخفض")")")")")")")') }}</option>
+            <option value="MODERATE" selected>{{ _('_("_(" _(" _(" _(" _(" _("متوسط")")")")")")")') }}</option>
+            <option value="HIGH">{{ _('_("_(" _(" _(" _(" _(" _("عالي")")")")")")")') }}</option>
           </select>
         </div>
         <div class="col-md-2 d-flex align-items-end">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="is_active" id="is_active" checked>
-            <label class="form-check-label" for="is_active">مفعل</label>
+            <label class="form-check-label" for="is_active">{{ _('_("_(" _(" _(" _(" _(" _("مفعل")")")")")")")') }}</label>
           </div>
         </div>
         <div class="col-12">
-          <label class="form-label">الوصف</label>
+          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</label>
           <textarea class="form-control" name="description" rows="2"></textarea>
         </div>
         <div class="col-12 d-flex justify-content-end">
-          <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>حفظ</button>
+          <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
         </div>
       </form>
     </div>
   </div>
 
   <div class="card shadow">
-    <div class="card-header">القائمة</div>
+    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("القائمة")")")")")")")') }}</div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-striped align-middle">
           <thead>
             <tr>
               <th>#</th>
-              <th>الدواء A</th>
-              <th>الدواء B</th>
-              <th>الشدة</th>
-              <th>الحالة</th>
-              <th>الوصف</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء A")")")")")")")') }}</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء B")")")")")")")') }}</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("الشدة")")")")")")")') }}</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</th>
               <th class="text-end"></th>
             </tr>
           </thead>
@@ -80,20 +80,20 @@
                 <td><span class="badge {% if it.severity == 'HIGH' %}bg-danger{% elif it.severity == 'MODERATE' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">{{ it.severity }}</span></td>
                 <td>
                   {% if it.is_active %}
-                    <span class="badge bg-success">مفعل</span>
+                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مفعل")")")")")")")') }}</span>
                   {% else %}
-                    <span class="badge bg-secondary">غير مفعل</span>
+                    <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("غير مفعل")")")")")")")') }}</span>
                   {% endif %}
                 </td>
                 <td class="text-muted" class="ws-pre-line">{{ it.description or '' }}</td>
                 <td class="text-end">
                   <button class="btn btn-sm btn-outline-primary" type="button" onclick="toggleInteraction({{ it.id }})">
-                    تبديل
+                    {{ _('_("_(" _(" _(" _(" _(" _("تبديل")")")")")")")') }}
                   </button>
                 </td>
               </tr>
             {% else %}
-              <tr><td colspan="7" class="text-center text-muted">لا توجد تداخلات</td></tr>
+              <tr><td colspan="7" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد تداخلات")")")")")")")') }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

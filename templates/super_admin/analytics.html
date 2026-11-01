@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('التحليلات المتقدمة', subtitle='تحليلات شاملة وإحصائيات مفصلة للنظام', icon='fas fa-chart-line', actions=[
-        {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-analytics', 'style': 'primary'},
-        {'type': 'button', 'label': 'تصدير التحليلات', 'icon': 'fas fa-download', 'data_action': 'export-analytics', 'style': 'success'}
+    {{ page_header('_("_(" _(" _(" _(" _(" _("التحليلات المتقدمة")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("تحليلات شاملة وإحصائيات مفصلة للنظام")")")")")")")', icon='fas fa-chart-line', actions=[
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-analytics', 'style': 'primary'},
+        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تصدير التحليلات")")")")")")")', 'icon': 'fas fa-download', 'data_action': 'export-analytics', 'style': 'success'}
     ]) }}
 
     <!-- Analytics Overview -->
@@ -18,12 +18,12 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                                إجمالي المستخدمين
+                                {{ _('_("_(" _(" _(" _(" _(" _("إجمالي المستخدمين")")")")")")")') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">1,234</div>
                             <div class="text-xs text-success">
                                 <i class="fas fa-arrow-up me-1"></i>
-                                +12% هذا الشهر
+                                {{ _('_("_(" _(" _(" _(" _(" _("+12% هذا الشهر")")")")")")")') }}
                             </div>
                         </div>
                         <div class="col-auto">
@@ -40,12 +40,12 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                                النشاط اليومي
+                                {{ _('_("_(" _(" _(" _(" _(" _("النشاط اليومي")")")")")")")') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">89%</div>
                             <div class="text-xs text-success">
                                 <i class="fas fa-arrow-up me-1"></i>
-                                +5% من الأمس
+                                {{ _('_("_(" _(" _(" _(" _(" _("+5% من الأمس")")")")")")")') }}
                             </div>
                         </div>
                         <div class="col-auto">
@@ -62,12 +62,12 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-info text-uppercase mb-1">
-                                الأداء
+                                {{ _('_("_(" _(" _(" _(" _(" _("الأداء")")")")")")")') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">95%</div>
                             <div class="text-xs text-info">
                                 <i class="fas fa-arrow-up me-1"></i>
-                                +2% هذا الأسبوع
+                                {{ _('_("_(" _(" _(" _(" _(" _("+2% هذا الأسبوع")")")")")")")') }}
                             </div>
                         </div>
                         <div class="col-auto">
@@ -84,12 +84,12 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                                الأخطاء
+                                {{ _('_("_(" _(" _(" _(" _(" _("الأخطاء")")")")")")")') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">23</div>
                             <div class="text-xs text-warning">
                                 <i class="fas fa-arrow-down me-1"></i>
-                                -15% من الأسبوع الماضي
+                                {{ _('_("_(" _(" _(" _(" _(" _("-15% من الأسبوع الماضي")")")")")")")') }}
                             </div>
                         </div>
                         <div class="col-auto">
@@ -106,7 +106,7 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">اتجاهات الاستخدام</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("اتجاهات الاستخدام")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <canvas id="usageChart" width="400" height="200"></canvas>
@@ -117,7 +117,7 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">توزيع المستخدمين</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("توزيع المستخدمين")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <canvas id="userDistributionChart" width="400" height="200"></canvas>
@@ -131,7 +131,7 @@
         <div class="col-lg-6">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">مؤشرات الأداء</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("مؤشرات الأداء")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -141,8 +141,8 @@
                                     <i class="fas fa-server"></i>
                                 </div>
                                 <div class="metric-info">
-                                    <h6>استجابة الخادم</h6>
-                                    <span class="metric-value">2.3 ثانية</span>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("استجابة الخادم")")")")")")")') }}</h6>
+                                    <span class="metric-value">{{ _('_("_(" _(" _(" _(" _(" _("2.3 ثانية")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -152,8 +152,8 @@
                                     <i class="fas fa-database"></i>
                                 </div>
                                 <div class="metric-info">
-                                    <h6>استجابة قاعدة البيانات</h6>
-                                    <span class="metric-value">0.8 ثانية</span>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("استجابة قاعدة البيانات")")")")")")")') }}</h6>
+                                    <span class="metric-value">{{ _('_("_(" _(" _(" _(" _(" _("0.8 ثانية")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -163,7 +163,7 @@
                                     <i class="fas fa-memory"></i>
                                 </div>
                                 <div class="metric-info">
-                                    <h6>استخدام الذاكرة</h6>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("استخدام الذاكرة")")")")")")")') }}</h6>
                                     <span class="metric-value">75%</span>
                                 </div>
                             </div>
@@ -174,7 +174,7 @@
                                     <i class="fas fa-hdd"></i>
                                 </div>
                                 <div class="metric-info">
-                                    <h6>استخدام القرص</h6>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("استخدام القرص")")")")")")")') }}</h6>
                                     <span class="metric-value">60%</span>
                                 </div>
                             </div>
@@ -187,31 +187,31 @@
         <div class="col-lg-6">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">إحصائيات النظام</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات النظام")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="stat-item">
-                                <div class="stat-label">الطلبات اليومية</div>
+                                <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("الطلبات اليومية")")")")")")")') }}</div>
                                 <div class="stat-value">15,432</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="stat-item">
-                                <div class="stat-label">البيانات المعالجة</div>
+                                <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("البيانات المعالجة")")")")")")")') }}</div>
                                 <div class="stat-value">2.5 GB</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="stat-item">
-                                <div class="stat-label">الجلسات النشطة</div>
+                                <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("الجلسات النشطة")")")")")")")') }}</div>
                                 <div class="stat-value">156</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="stat-item">
-                                <div class="stat-label">وقت التشغيل</div>
+                                <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("وقت التشغيل")")")")")")")') }}</div>
                                 <div class="stat-value">99.9%</div>
                             </div>
                         </div>
@@ -226,19 +226,19 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">نشاط المستخدمين</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("نشاط المستخدمين")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>المستخدم</th>
-                                    <th>الدور</th>
-                                    <th>آخر نشاط</th>
-                                    <th>عدد الجلسات</th>
-                                    <th>الوقت الإجمالي</th>
-                                    <th>الحالة</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المستخدم")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("آخر نشاط")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("عدد الجلسات")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت الإجمالي")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -249,16 +249,16 @@
                                                 A
                                             </div>
                                             <div>
-                                                <div class="fw-bold">أحمد محمد</div>
+                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("أحمد محمد")")")")")")")') }}</div>
                                                 <small class="text-muted">admin</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td><span class="badge bg-danger">مدير</span></td>
-                                    <td>منذ 5 دقائق</td>
+                                    <td><span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("مدير")")")")")")")') }}</span></td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("منذ 5 دقائق")")")")")")")') }}</td>
                                     <td>12</td>
-                                    <td>8 ساعات</td>
-                                    <td><span class="badge bg-success">نشط</span></td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("8 ساعات")")")")")")")') }}</td>
+                                    <td><span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span></td>
                                 </tr>
                                 <tr>
                                     <td>
@@ -267,16 +267,16 @@
                                                 D
                                             </div>
                                             <div>
-                                                <div class="fw-bold">د. سارة أحمد</div>
+                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("د. سارة أحمد")")")")")")")') }}</div>
                                                 <small class="text-muted">doctor</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td><span class="badge bg-info">طبيب</span></td>
-                                    <td>منذ 15 دقيقة</td>
+                                    <td><span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("طبيب")")")")")")")') }}</span></td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("منذ 15 دقيقة")")")")")")")') }}</td>
                                     <td>8</td>
-                                    <td>6 ساعات</td>
-                                    <td><span class="badge bg-success">نشط</span></td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("6 ساعات")")")")")")")') }}</td>
+                                    <td><span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span></td>
                                 </tr>
                                 <tr>
                                     <td>
@@ -285,16 +285,16 @@
                                                 R
                                             </div>
                                             <div>
-                                                <div class="fw-bold">ريم علي</div>
+                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("ريم علي")")")")")")")') }}</div>
                                                 <small class="text-muted">reception</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td><span class="badge bg-success">استقبال</span></td>
-                                    <td>منذ 30 دقيقة</td>
+                                    <td><span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("استقبال")")")")")")")') }}</span></td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("منذ 30 دقيقة")")")")")")")') }}</td>
                                     <td>5</td>
-                                    <td>4 ساعات</td>
-                                    <td><span class="badge bg-warning">غير نشط</span></td>
+                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("4 ساعات")")")")")")")') }}</td>
+                                    <td><span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("غير نشط")")")")")")")') }}</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -309,7 +309,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">صحة النظام</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("صحة النظام")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -319,8 +319,8 @@
                                     <i class="fas fa-check"></i>
                                 </div>
                                 <div class="health-info">
-                                    <h6>قاعدة البيانات</h6>
-                                    <span class="health-status text-success">ممتاز</span>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("قاعدة البيانات")")")")")")")') }}</h6>
+                                    <span class="health-status text-success">{{ _('_("_(" _(" _(" _(" _(" _("ممتاز")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -330,8 +330,8 @@
                                     <i class="fas fa-check"></i>
                                 </div>
                                 <div class="health-info">
-                                    <h6>الخادم</h6>
-                                    <span class="health-status text-success">ممتاز</span>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الخادم")")")")")")")') }}</h6>
+                                    <span class="health-status text-success">{{ _('_("_(" _(" _(" _(" _(" _("ممتاز")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -341,8 +341,8 @@
                                     <i class="fas fa-exclamation-triangle"></i>
                                 </div>
                                 <div class="health-info">
-                                    <h6>الذاكرة</h6>
-                                    <span class="health-status text-warning">جيد</span>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الذاكرة")")")")")")")') }}</h6>
+                                    <span class="health-status text-warning">{{ _('_("_(" _(" _(" _(" _(" _("جيد")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -352,8 +352,8 @@
                                     <i class="fas fa-check"></i>
                                 </div>
                                 <div class="health-info">
-                                    <h6>الشبكة</h6>
-                                    <span class="health-status text-success">ممتاز</span>
+                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الشبكة")")")")")")")') }}</h6>
+                                    <span class="health-status text-success">{{ _('_("_(" _(" _(" _(" _(" _("ممتاز")")")")")")")') }}</span>
                                 </div>
                             </div>
                         </div>

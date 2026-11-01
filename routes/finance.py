@@ -322,3 +322,253 @@ def capture_slow_queries_weekly():
         logging.exception('Error capturing weekly slow queries: %s')
         flash('حدث خطأ في إنشاء التقرير الأسبوعي', 'error')
         return redirect(url_for('finance.slow_queries'))
+# --- Enhanced billing features ---
+
+
+def _finance_enhancements_loaded():
+    return True
+
+
+from datetime import UTC, datetime
+
+from flask import Response
+from flask_login import login_required
+
+from models.insurance import InsuranceClaim
+from routes.finance import finance_bp
+from utils.decorators import role_required
+
+_PAYMENT_PLANS: dict[int, dict] = {}
+_PAYMENT_PLAN_COUNTER = 0
+
+
+def _next_payment_plan_id() -> int:
+    global _PAYMENT_PLAN_COUNTER
+    _PAYMENT_PLAN_COUNTER += 1
+    return _PAYMENT_PLAN_COUNTER
+
+
+@finance_bp.route('/invoices/<int:invoice_id>/pdf', methods=['GET'])
+@finance_bp.route('/invoice/<int:invoice_id>/pdf', methods=['GET'])
+@finance_bp.route('/invoices/<int:invoice_id>/download', methods=['GET'])
+@login_required
+@role_required('accountant', 'admin', 'manager')
+def invoice_pdf(invoice_id: int):
+    try:
+        invoice = get_tenant_record(Invoice, invoice_id)
+    except TenantContextError:
+        return jsonify({'success': False, 'error': 'Invoice not found'}), 404
+    try:
+        from app.integrations.printing.pdf import PDFReportPrinter
+
+        printer = PDFReportPrinter()
+        lines = []
+        for svc in getattr(invoice, 'lines', None) or []:
+            lines.append(
+                f"{getattr(svc, 'service_name', '')} x{getattr(svc, 'quantity', 1)} "
+                f"= {getattr(svc, 'total_price', 0)}"
+            )
+        if not lines:
+            lines = ['No line items']
+        sections = [{'heading': 'Line items', 'lines': lines}]
+        patient_info = {
+            'invoice_number': invoice.invoice_number or invoice.id,
+            'total_amount': float(invoice.total_amount or 0),
+            'paid_amount': float(invoice.paid_amount or 0),
+            'balance_due': invoice.balance_due,
+            'status': invoice.status,
+            'currency': invoice.currency,
+        }
+        pdf = printer.generate_report(
+            f"Invoice {invoice.invoice_number or invoice.id}", patient_info, sections
+        )
+        response = Response(pdf, mimetype='application/pdf')
+        response.headers['Content-Disposition'] = (
+            f'attachment; filename=invoice-{invoice.id}.pdf'
+        )
+        return response
+    except Exception:
+        import logging
+
+        logging.exception('Error generating invoice PDF')
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@finance_bp.route('/payment-plans', methods=['GET', 'POST'])
+@finance_bp.route('/payment_plans', methods=['GET', 'POST'])
+@finance_bp.route('/billing/payment-plans', methods=['GET', 'POST'])
+@login_required
+@role_required('accountant', 'admin', 'manager')
+def payment_plans():
+    tenant_id = getattr(g, 'tenant_id', None)
+    if request.method == 'POST':
+        data = request.get_json(silent=True) or {}
+        if not data and request.form:
+            data = request.form.to_dict()
+        try:
+            total_amount = float(data.get('total_amount', 0) or 0)
+        except (TypeError, ValueError):
+            total_amount = 0.0
+        try:
+            installments = int(data.get('installments', 1) or 1)
+        except (TypeError, ValueError):
+            installments = 1
+        installments = max(installments, 1)
+        plan = {
+            'id': _next_payment_plan_id(),
+            'tenant_id': tenant_id,
+            'invoice_id': data.get('invoice_id'),
+            'total_amount': total_amount,
+            'installments': installments,
+            'frequency': data.get('frequency', 'monthly'),
+            'status': 'ACTIVE',
+            'created_at': datetime.now(UTC).isoformat(),
+            'schedule': [],
+        }
+        per = round(total_amount / installments, 2) if installments else total_amount
+        for i in range(installments):
+            plan['schedule'].append(
+                {'installment': i + 1, 'amount': per, 'status': 'PENDING'}
+            )
+        _PAYMENT_PLANS[plan['id']] = plan
+        return jsonify({'success': True, 'data': plan}), 201
+    plans = [p for p in _PAYMENT_PLANS.values() if p.get('tenant_id') == tenant_id]
+    return jsonify({'success': True, 'payment_plans': plans})
+
+
+@finance_bp.route('/payment-plans/<int:plan_id>', methods=['GET'])
+@finance_bp.route('/payment_plans/<int:plan_id>', methods=['GET'])
+@login_required
+@role_required('accountant', 'admin', 'manager')
+def get_payment_plan(plan_id: int):
+    tenant_id = getattr(g, 'tenant_id', None)
+    plan = _PAYMENT_PLANS.get(plan_id)
+    if not plan or (tenant_id is not None and plan.get('tenant_id') != tenant_id):
+        return jsonify({'success': False, 'error': 'Payment plan not found'}), 404
+    return jsonify({'success': True, 'data': plan})
+
+
+@finance_bp.route('/payment-plans/<int:plan_id>/pay', methods=['POST'])
+@finance_bp.route('/payment-plans/<int:plan_id>/payment', methods=['POST'])
+@login_required
+@role_required('accountant', 'admin', 'manager')
+def pay_payment_plan(plan_id: int):
+    tenant_id = getattr(g, 'tenant_id', None)
+    plan = _PAYMENT_PLANS.get(plan_id)
+    if not plan or (tenant_id is not None and plan.get('tenant_id') != tenant_id):
+        return jsonify({'success': False, 'error': 'Payment plan not found'}), 404
+    data = request.get_json(silent=True) or {}
+    installment_no = int(data.get('installment', 1) or 1)
+    for item in plan.get('schedule', []):
+        if item.get('installment') == installment_no:
+            item['status'] = 'PAID'
+            item['paid_at'] = datetime.now(UTC).isoformat()
+    if all(i.get('status') == 'PAID' for i in plan.get('schedule', [])):
+        plan['status'] = 'COMPLETED'
+    return jsonify({'success': True, 'data': plan})
+
+
+@finance_bp.route('/insurance-claims', methods=['GET'])
+@finance_bp.route('/insurance/claims', methods=['GET'])
+@finance_bp.route('/claims/status', methods=['GET'])
+@login_required
+@role_required('accountant', 'admin', 'manager')
+def finance_insurance_claims():
+    tenant_id = getattr(g, 'tenant_id', None)
+    status = request.args.get('status')
+    try:
+        q = select(InsuranceClaim)
+        if tenant_id is not None:
+            q = q.filter(InsuranceClaim.tenant_id == tenant_id)
+        if status:
+            q = q.filter(InsuranceClaim.status == status)
+        claims = db.session.execute(q.order_by(InsuranceClaim.created_at.desc())).scalars().all()
+        data = []
+        for c in claims:
+            data.append(
+                {
+                    'id': c.id,
+                    'claim_number': getattr(c, 'claim_number', None),
+                    'status': c.status,
+                    'total_claim': float(c.total_claim or 0)
+                    if getattr(c, 'total_claim', None) is not None
+                    else 0.0,
+                    'approved_amount': float(c.approved_amount or 0)
+                    if getattr(c, 'approved_amount', None) is not None
+                    else 0.0,
+                    'invoice_id': getattr(c, 'invoice_id', None),
+                    'visit_id': getattr(c, 'visit_id', None),
+                    'created_at': c.created_at.isoformat() if getattr(c, 'created_at', None) else None,
+                }
+            )
+        return jsonify({'success': True, 'claims': data})
+    except Exception:
+        import logging
+
+        logging.exception('Error listing insurance claims')
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@finance_bp.route('/insurance-claims/<int:claim_id>/status', methods=['GET'])
+@finance_bp.route('/insurance/claims/<int:claim_id>/status', methods=['GET'])
+@login_required
+@role_required('accountant', 'admin', 'manager')
+def finance_insurance_claim_status(claim_id: int):
+    tenant_id = getattr(g, 'tenant_id', None)
+    try:
+        claim = db.session.get(InsuranceClaim, claim_id)
+        if claim is None or (tenant_id is not None and getattr(claim, 'tenant_id', None) != tenant_id):
+            return jsonify({'success': False, 'error': 'Claim not found'}), 404
+        return jsonify(
+            {
+                'success': True,
+                'data': {
+                    'id': claim.id,
+                    'status': claim.status,
+                    'claim_number': getattr(claim, 'claim_number', None),
+                },
+            }
+        )
+    except Exception:
+        import logging
+
+        logging.exception('Error fetching claim status')
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@finance_bp.route('/billing-summary', methods=['GET'])
+@finance_bp.route('/billing/summary', methods=['GET'])
+@finance_bp.route('/summary', methods=['GET'])
+@login_required
+@role_required('accountant', 'admin', 'manager')
+def billing_summary():
+    tenant_id = getattr(g, 'tenant_id', None)
+    try:
+        inv_q = select(Invoice)
+        pay_q = select(Payment)
+        if tenant_id is not None:
+            inv_q = inv_q.filter(Invoice.tenant_id == tenant_id)
+            pay_q = pay_q.filter(Payment.tenant_id == tenant_id)
+        invoices = db.session.execute(inv_q).scalars().all()
+        payments = db.session.execute(pay_q).scalars().all()
+        total_invoiced = sum(float(i.total_amount or 0) for i in invoices)
+        total_paid = sum(float(p.amount or 0) for p in payments)
+        pending = sum(1 for i in invoices if (i.paid_amount or 0) < (i.total_amount or 0))
+        return jsonify(
+            {
+                'success': True,
+                'data': {
+                    'total_invoices': len(invoices),
+                    'total_payments': len(payments),
+                    'total_invoiced': total_invoiced,
+                    'total_paid': total_paid,
+                    'pending_invoices': pending,
+                    'outstanding': max(total_invoiced - total_paid, 0.0),
+                },
+            }
+        )
+    except Exception:
+        import logging
+
+        logging.exception('Error building billing summary')
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500

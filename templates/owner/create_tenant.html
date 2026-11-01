@@ -3,9 +3,9 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-plus-circle me-2 text-success"></i>إنشاء عميل جديد (Tenant)</h4></div>
+        <div class="col"><h4><i class="fas fa-plus-circle me-2 text-success"></i>{{ _('_("_(" _(" _(" _(" _(" _("إنشاء عميل جديد (Tenant)")")")")")")")') }}</h4></div>
         <div class="col-auto">
-            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
         </div>
     </div>
     <div class="card">
@@ -14,15 +14,15 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">اسم المؤسسة</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم المؤسسة")")")")")")")') }}</label>
                         <input type="text" name="name" class="form-control" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">الاسم بالعربية</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم بالعربية")")")")")")")') }}</label>
                         <input type="text" name="name_ar" class="form-control">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Slug (مُعرف فريد)</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("Slug (مُعرف فريد)")")")")")")")') }}</label>
                         <input type="text" name="slug" class="form-control" required placeholder="company-name">
                     </div>
                     <div class="col-md-4">
@@ -34,60 +34,60 @@
                         <input type="text" name="subdomain" class="form-control" placeholder="clinic">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">بريد التواصل</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("بريد التواصل")")")")")")")') }}</label>
                         <input type="email" name="contact_email" class="form-control" required>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">هاتف التواصل</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("هاتف التواصل")")")")")")")') }}</label>
                         <input type="tel" name="contact_phone" class="form-control">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">الرقم الضريبي</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الرقم الضريبي")")")")")")")') }}</label>
                         <input type="text" name="tax_number" class="form-control">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">نوع العيادة (Profile)</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع العيادة (Profile)")")")")")")")') }}</label>
                         <select name="product_profile" class="form-select" id="profileSelect">
-                            <option value="">بدون تحديد</option>
+                            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("بدون تحديد")")")")")")")') }}</option>
                             {% for p in profiles %}
                             <option value="{{ p.value }}">{{ p.value.replace('_', ' ').title() }}</option>
                             {% endfor %}
                         </select>
-                        <small class="text-muted">تحديد الباقة يفعّل الوحدات الأساسية تلقائياً</small>
+                        <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تحديد الباقة يفعّل الوحدات الأساسية تلقائياً")")")")")")")') }}</small>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">الخطة</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الخطة")")")")")")")') }}</label>
                         <select name="plan_id" class="form-select">
-                            <option value="">بدون خطة</option>
+                            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("بدون خطة")")")")")")")') }}</option>
                             {% for p in plans %}<option value="{{ p.id }}">{{ p.name }} — {{ p.base_price }} {{ p.currency }}</option>{% endfor %}
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">نوع الاشتراك</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع الاشتراك")")")")")")")') }}</label>
                         <select name="subscription_type" class="form-select">
-                            <option value="monthly">شهري</option>
-                            <option value="yearly">سنوي</option>
-                            <option value="perpetual">دائم</option>
+                            <option value="monthly">{{ _('_("_(" _(" _(" _(" _(" _("شهري")")")")")")")') }}</option>
+                            <option value="yearly">{{ _('_("_(" _(" _(" _(" _(" _("سنوي")")")")")")")') }}</option>
+                            <option value="perpetual">{{ _('_("_(" _(" _(" _(" _(" _("دائم")")")")")")")') }}</option>
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">تاريخ انتهاء الاشتراك</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ انتهاء الاشتراك")")")")")")")') }}</label>
                         <input type="date" name="subscription_end" class="form-control">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">فترة سماح (اختياري)</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("فترة سماح (اختياري)")")")")")")")') }}</label>
                         <input type="date" name="grace_period_end" class="form-control">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">طريقة التخزين</label>
+                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("طريقة التخزين")")")")")")")') }}</label>
                         <select name="storage_mode" class="form-select">
-                            <option value="local">محلي</option>
-                            <option value="cloud">سحابي</option>
-                            <option value="hybrid">هجين</option>
+                            <option value="local">{{ _('_("_(" _(" _(" _(" _(" _("محلي")")")")")")")') }}</option>
+                            <option value="cloud">{{ _('_("_(" _(" _(" _(" _(" _("سحابي")")")")")")")') }}</option>
+                            <option value="hybrid">{{ _('_("_(" _(" _(" _(" _(" _("هجين")")")")")")")') }}</option>
                         </select>
                     </div>
                     <div class="col-12">
-                        <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> إنشاء العميل</button>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("إنشاء العميل")")")")")")")') }}</button>
                     </div>
                 </div>
             </form>

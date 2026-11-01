@@ -7,10 +7,10 @@
 <div class="container-fluid">
     {{ page_header(
         title='إضافة دواء جديد',
-        subtitle='إضافة دواء جديد إلى النظام',
+        subtitle='_("إضافة دواء جديد إلى النظام")',
         icon='fas fa-plus',
         actions=[
-            {'url': url_for('medication.list_medications'), 'label': 'العودة للقائمة', 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
+            {'url': url_for('medication.list_medications'), 'label': '_("_(" _(" _(" _(" _(" _("العودة للقائمة")")")")")")")', 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
         ]
     ) }}
 
@@ -21,7 +21,7 @@
                 <div class="card-header">
                     <h5 class="card-title">
                         <i class="fas fa-pills me-2"></i>
-                        بيانات الدواء
+                        {{ _('_("_(" _(" _(" _(" _(" _("بيانات الدواء")")")")")")")') }}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -30,13 +30,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="trade_name" class="form-label">اسم الدواء التجاري *</label>
+                                    <label for="trade_name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم الدواء التجاري *")")")")")")")') }}</label>
                                     <input type="text" class="form-control" id="trade_name" name="trade_name" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="scientific_name" class="form-label">الاسم العلمي *</label>
+                                    <label for="scientific_name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم العلمي *")")")")")")")') }}</label>
                                     <input type="text" class="form-control" id="scientific_name" name="scientific_name" required>
                                 </div>
                             </div>
@@ -45,13 +45,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="generic_name" class="form-label">الاسم العام (Generic)</label>
+                                    <label for="generic_name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم العام (Generic)")")")")")")")') }}</label>
                                     <input type="text" class="form-control" id="generic_name" name="generic_name">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="manufacturer" class="form-label">الشركة المصنعة</label>
+                                    <label for="manufacturer" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الشركة المصنعة")")")")")")")') }}</label>
                                     <input type="text" class="form-control" id="manufacturer" name="manufacturer">
                                 </div>
                             </div>
@@ -60,19 +60,19 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="dosage_form" class="form-label">شكل الجرعة *</label>
-                                    <input type="text" class="form-control" id="dosage_form" name="dosage_form" placeholder="قرص / شراب / حقنة" required>
+                                    <label for="dosage_form" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("شكل الجرعة *")")")")")")")') }}</label>
+                                    <input type="text" class="form-control" id="dosage_form" name="dosage_form" placeholder="_(" _(" _(" _(" _(" _("قرص / شراب / حقنة")")")")")")" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="strength" class="form-label">التركيز *</label>
+                                    <label for="strength" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التركيز *")")")")")")")') }}</label>
                                     <input type="text" class="form-control" id="strength" name="strength" placeholder="500mg / 10ml" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="price" class="form-label">السعر (₪)</label>
+                                    <label for="price" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("السعر (₪)")")")")")")")') }}</label>
                                     <input type="number" class="form-control" id="price" name="price" step="0.01" min="0">
                                 </div>
                             </div>
@@ -81,13 +81,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="stock_quantity" class="form-label">كمية المخزون</label>
+                                    <label for="stock_quantity" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("كمية المخزون")")")")")")")') }}</label>
                                     <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" value="0">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="minimum_stock" class="form-label">الحد الأدنى للمخزون</label>
+                                    <label for="minimum_stock" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحد الأدنى للمخزون")")")")")")")') }}</label>
                                     <input type="number" class="form-control" id="minimum_stock" name="minimum_stock" min="0" value="10">
                                 </div>
                             </div>
@@ -96,13 +96,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="expiry_date" class="form-label">تاريخ الانتهاء</label>
+                                    <label for="expiry_date" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الانتهاء")")")")")")")') }}</label>
                                     <input type="date" class="form-control" id="expiry_date" name="expiry_date">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="batch_number" class="form-label">رقم التشغيلة</label>
+                                    <label for="batch_number" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رقم التشغيلة")")")")")")")') }}</label>
                                     <input type="text" class="form-control" id="batch_number" name="batch_number">
                                 </div>
                             </div>
@@ -111,20 +111,20 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="category" class="form-label">الفئة</label>
-                                    <input type="text" class="form-control" id="category" name="category" placeholder="مضاد حيوي / مسكن ألم ...">
+                                    <label for="category" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الفئة")")")")")")")') }}</label>
+                                    <input type="text" class="form-control" id="category" name="category" placeholder="_(" _(" _(" _(" _(" _("مضاد حيوي / مسكن ألم ...")")")")")")">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="standard_instructions" class="form-label">تعليمات قياسية</label>
-                                    <input type="text" class="form-control" id="standard_instructions" name="standard_instructions" placeholder="مثال: بعد الأكل / قبل النوم ...">
+                                    <label for="standard_instructions" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تعليمات قياسية")")")")")")")') }}</label>
+                                    <input type="text" class="form-control" id="standard_instructions" name="standard_instructions" placeholder="_(" _(" _(" _(" _(" _("مثال: بعد الأكل / قبل النوم ...")")")")")")">
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="description" class="form-label">الوصف</label>
+                            <label for="description" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</label>
                             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                         </div>
 
@@ -132,7 +132,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
                                 <label class="form-check-label" for="is_active">
-                                    دواء نشط
+                                    {{ _('_("_(" _(" _(" _(" _(" _("دواء نشط")")")")")")")') }}
                                 </label>
                             </div>
                         </div>
@@ -140,11 +140,11 @@
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i>
-                                حفظ الدواء
+                                {{ _('_("_(" _(" _(" _(" _(" _("حفظ الدواء")")")")")")")') }}
                             </button>
                             <a href="{{ url_for('medication.list_medications') }}" class="btn btn-secondary">
                                 <i class="fas fa-times me-1"></i>
-                                إلغاء
+                                {{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}
                             </a>
                         </div>
                     </form>
@@ -157,17 +157,17 @@
                 <div class="card-header">
                     <h5 class="card-title">
                         <i class="fas fa-info-circle me-2"></i>
-                        معلومات مهمة
+                        {{ _('_("_(" _(" _(" _(" _(" _("معلومات مهمة")")")")")")")') }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info">
-                        <h6><i class="fas fa-lightbulb me-1"></i> نصائح:</h6>
+                        <h6><i class="fas fa-lightbulb me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("نصائح:")")")")")")")') }}</h6>
                         <ul class="mb-0">
-                            <li>تأكد من صحة اسم الدواء</li>
-                            <li>أدخل التركيز بوحدة صحيحة</li>
-                            <li>حدد الحد الأدنى للمخزون</li>
-                            <li>تحقق من تاريخ الانتهاء</li>
+                            <li>{{ _('_("_(" _(" _(" _(" _(" _("تأكد من صحة اسم الدواء")")")")")")")') }}</li>
+                            <li>{{ _('_("_(" _(" _(" _(" _(" _("أدخل التركيز بوحدة صحيحة")")")")")")")') }}</li>
+                            <li>{{ _('_("_(" _(" _(" _(" _(" _("حدد الحد الأدنى للمخزون")")")")")")")') }}</li>
+                            <li>{{ _('_("_(" _(" _(" _(" _(" _("تحقق من تاريخ الانتهاء")")")")")")")') }}</li>
                         </ul>
                     </div>
                 </div>

@@ -2,11 +2,11 @@
 {% block title %}قواعد التنبيهات السريرية{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">قواعد التنبيهات السريرية (CDS)</h2>
+  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("قواعد التنبيهات السريرية (CDS)")")")")")")")') }}</h2>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>القاعدة</th><th>النوع</th><th>الجهة المُشغلة</th><th>الخطورة</th><th>حظر</th><th>الحالة</th></tr></thead>
+        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("القاعدة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الجهة المُشغلة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الخطورة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("حظر")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th></tr></thead>
         <tbody>
         {% for r in rules %}
           <tr>
@@ -14,11 +14,11 @@
             <td><span class="badge bg-info">{{ r.rule_type }}</span></td>
             <td>{{ r.trigger_entity_type }}</td>
             <td><span class="badge bg-{% if r.min_severity=='CRITICAL' %}danger{% elif r.min_severity=='HIGH' %}warning{% else %}info{% endif %}">{{ r.min_severity }}</span></td>
-            <td>{% if r.is_blocking %}<span class="badge bg-danger">نعم</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
-            <td>{% if r.is_active %}<span class="badge bg-success">نشط</span>{% else %}<span class="badge bg-secondary">معطل</span>{% endif %}</td>
+            <td>{% if r.is_blocking %}<span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("نعم")")")")")")")') }}</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
+            <td>{% if r.is_active %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span>{% else %}<span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</span>{% endif %}</td>
           </tr>
         {% else %}
-          <tr><td colspan="6" class="text-muted text-center">لا يوجد قواعد</td></tr>
+          <tr><td colspan="6" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد قواعد")")")")")")")') }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

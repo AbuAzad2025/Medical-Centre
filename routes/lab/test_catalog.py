@@ -1,4 +1,4 @@
-"""Test catalog and panel CRUD routes"""
+﻿"""Test catalog and panel CRUD routes"""
 
 import logging
 from datetime import UTC, datetime
@@ -41,7 +41,7 @@ def _panel_tenant_filter():
     return True
 
 
-# ─────────────── Test Catalog CRUD ───────────────
+# ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ Test Catalog CRUD ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 
 @lab_bp.route('/test-catalog/')
@@ -84,11 +84,11 @@ def test_catalog_add():
         )
         db.session.add(test)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        flash('تم إضافة الفحص إلى الكتالوج', 'success')
+        flash('╪¬┘à ╪Ñ╪╢╪º┘ü╪⌐ ╪º┘ä┘ü╪¡╪╡ ╪Ñ┘ä┘ë ╪º┘ä┘â╪¬╪º┘ä┘ê╪¼', 'success')
     except Exception as e:
         safe_rollback(db.session, error_message='database rollback')
         logger.exception('Error adding test catalog entry')
-        flash(f'خطأ في إضافة الفحص: {e}', 'danger')
+        flash(f'╪«╪╖╪ú ┘ü┘è ╪Ñ╪╢╪º┘ü╪⌐ ╪º┘ä┘ü╪¡╪╡: {e}', 'danger')
     return redirect(url_for('lab.test_catalog', category=request.form.get('category', '')))
 
 
@@ -102,7 +102,7 @@ def test_catalog_edit(id):
         .first()
     )
     if not test:
-        flash('الفحص غير موجود', 'danger')
+        flash('╪º┘ä┘ü╪¡╪╡ ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»', 'danger')
         return redirect(url_for('lab.test_catalog'))
     try:
         test.code = request.form.get('code', '').strip()
@@ -119,11 +119,11 @@ def test_catalog_edit(id):
         test.sort_order = request.form.get('sort_order', 0) or 0
         test.updated_at = datetime.now(UTC)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        flash('تم تحديث الفحص', 'success')
+        flash('╪¬┘à ╪¬╪¡╪»┘è╪½ ╪º┘ä┘ü╪¡╪╡', 'success')
     except Exception as e:
         safe_rollback(db.session, error_message='database rollback')
         logger.exception('Error editing test catalog entry')
-        flash(f'خطأ في تحديث الفحص: {e}', 'danger')
+        flash(f'╪«╪╖╪ú ┘ü┘è ╪¬╪¡╪»┘è╪½ ╪º┘ä┘ü╪¡╪╡: {e}', 'danger')
     return redirect(url_for('lab.test_catalog', category=request.form.get('category', '')))
 
 
@@ -137,19 +137,19 @@ def test_catalog_delete(id):
         .first()
     )
     if not test:
-        flash('الفحص غير موجود', 'danger')
+        flash('╪º┘ä┘ü╪¡╪╡ ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»', 'danger')
         return redirect(url_for('lab.test_catalog'))
     try:
         db.session.delete(test)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        flash('تم حذف الفحص', 'success')
+        flash('╪¬┘à ╪¡╪░┘ü ╪º┘ä┘ü╪¡╪╡', 'success')
     except Exception as e:
         safe_rollback(db.session, error_message='database rollback')
-        flash(f'خطأ في حذف الفحص: {e}', 'danger')
+        flash(f'╪«╪╖╪ú ┘ü┘è ╪¡╪░┘ü ╪º┘ä┘ü╪¡╪╡: {e}', 'danger')
     return redirect(url_for('lab.test_catalog'))
 
 
-# ─────────────── Test Panels CRUD ───────────────
+# ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ Test Panels CRUD ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 
 @lab_bp.route('/test-panels/')
@@ -207,11 +207,11 @@ def test_panels_add():
                     panel.items.append(LabTestPanelItem(test_id=test_id, sort_order=idx))
         db.session.add(panel)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        flash('تم إضافة الباقة', 'success')
+        flash('╪¬┘à ╪Ñ╪╢╪º┘ü╪⌐ ╪º┘ä╪¿╪º┘é╪⌐', 'success')
     except Exception as e:
         safe_rollback(db.session, error_message='database rollback')
         logger.exception('Error adding panel')
-        flash(f'خطأ في إضافة الباقة: {e}', 'danger')
+        flash(f'╪«╪╖╪ú ┘ü┘è ╪Ñ╪╢╪º┘ü╪⌐ ╪º┘ä╪¿╪º┘é╪⌐: {e}', 'danger')
     return redirect(url_for('lab.test_panels'))
 
 
@@ -227,7 +227,7 @@ def test_panels_edit(id):
         .first()
     )
     if not panel:
-        flash('الباقة غير موجودة', 'danger')
+        flash('╪º┘ä╪¿╪º┘é╪⌐ ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»╪⌐', 'danger')
         return redirect(url_for('lab.test_panels'))
     try:
         panel.name_ar = request.form.get('name_ar', '').strip()
@@ -255,11 +255,11 @@ def test_panels_edit(id):
                 if test:
                     panel.items.append(LabTestPanelItem(test_id=test_id, sort_order=idx))
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        flash('تم تحديث الباقة', 'success')
+        flash('╪¬┘à ╪¬╪¡╪»┘è╪½ ╪º┘ä╪¿╪º┘é╪⌐', 'success')
     except Exception as e:
         safe_rollback(db.session, error_message='database rollback')
         logger.exception('Error editing panel')
-        flash(f'خطأ في تحديث الباقة: {e}', 'danger')
+        flash(f'╪«╪╖╪ú ┘ü┘è ╪¬╪¡╪»┘è╪½ ╪º┘ä╪¿╪º┘é╪⌐: {e}', 'danger')
     return redirect(url_for('lab.test_panels'))
 
 
@@ -275,19 +275,19 @@ def test_panels_delete(id):
         .first()
     )
     if not panel:
-        flash('الباقة غير موجودة', 'danger')
+        flash('╪º┘ä╪¿╪º┘é╪⌐ ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»╪⌐', 'danger')
         return redirect(url_for('lab.test_panels'))
     try:
         db.session.delete(panel)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        flash('تم حذف الباقة', 'success')
+        flash('╪¬┘à ╪¡╪░┘ü ╪º┘ä╪¿╪º┘é╪⌐', 'success')
     except Exception as e:
         safe_rollback(db.session, error_message='database rollback')
-        flash(f'خطأ في حذف الباقة: {e}', 'danger')
+        flash(f'╪«╪╖╪ú ┘ü┘è ╪¡╪░┘ü ╪º┘ä╪¿╪º┘é╪⌐: {e}', 'danger')
     return redirect(url_for('lab.test_panels'))
 
 
-# ─────────────── JSON API for auto-fill ───────────────
+# ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ JSON API for auto-fill ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 
 @lab_bp.route('/api/test-catalog')

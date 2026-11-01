@@ -1,0 +1,310 @@
+/* ============================================================
+   Sidebar Toggle System — Works for both clinical & owner
+   ============================================================ */
+
+/* CSS Variables for sidebar positioning */
+:root {
+  --sidebar-width: 280px;
+  --sidebar-transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s;
+  --header-height: 72px;
+}
+
+/* ============================================================
+   SIDEBAR POSITION TOGGLE (Left/Right)
+   ============================================================ */
+
+.sidebar-right {
+  --sidebar-position: right;
+}
+.sidebar-left {
+  --sidebar-position: left;
+}
+
+/* Clinical Sidebar - supports left/right */
+.sidebar-left #appSidebar {
+  left: 0;
+  right: auto;
+  transform: translateX(0);
+}
+.sidebar-right #appSidebar {
+  right: 0;
+  left: auto;
+  transform: translateX(0);
+}
+
+.sidebar-left .main-container {
+  margin-right: var(--sidebar-width);
+  margin-left: 0;
+}
+.sidebar-right .main-container {
+  margin-left: var(--sidebar-width);
+  margin-right: 0;
+}
+
+/* Mobile: sidebar off-canvas */
+@media (width <= 1199px) {
+  .sidebar-left #appSidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar-right #appSidebar {
+    transform: translateX(100%);
+  }
+  .sidebar-left #appSidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-right #appSidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-left .main-container,
+  .sidebar-right .main-container {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+/* ============================================================
+   OWNER SIDEBAR - Left/Right Support
+   ============================================================ */
+
+.sidebar-left .owner-sidebar {
+  right: auto;
+  left: 0;
+  transform: translateX(0);
+}
+.sidebar-right .owner-sidebar {
+  left: auto;
+  right: 0;
+  transform: translateX(0);
+}
+
+.sidebar-left .owner-main {
+  margin-right: var(--owner-sidebar-width);
+  margin-left: 0;
+}
+.sidebar-right .owner-main {
+  margin-left: var(--owner-sidebar-width);
+  margin-right: 0;
+}
+
+@media (width <= 1199px) {
+  .sidebar-left .owner-sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar-right .owner-sidebar {
+    transform: translateX(100%);
+  }
+  .sidebar-left .owner-sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-right .owner-sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-left .owner-main,
+  .sidebar-right .owner-main {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+/* ============================================================
+   SIDEBAR TOGGLE BUTTON
+   ============================================================ */
+
+.sidebar-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: var(--owner-surface, var(--color-surface));
+  border: 1px solid var(--owner-border, var(--border));
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  z-index: 1050;
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--owner-primary-light, var(--azad-blue-light));
+  border-color: var(--owner-primary, var(--azad-blue));
+  color: var(--owner-primary, var(--azad-blue));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.sidebar-toggle-btn:focus-visible {
+  outline: 2px solid var(--owner-primary, var(--azad-blue));
+  outline-offset: 2px;
+}
+
+.sidebar-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform var(--transition-fast);
+}
+
+/* Position in header - owner */
+.owner-header .sidebar-toggle-btn {
+  margin-inline-end: 0.5rem;
+}
+
+/* Position in clinical navbar */
+#appNavbar .sidebar-toggle-btn {
+  margin-inline-end: 0.5rem;
+}
+
+/* Mobile toggle button positioning */
+@media (width <= 768px) {
+  .sidebar-toggle-btn {
+    position: fixed;
+    bottom: 1.5rem;
+    inset-inline-end: 1.5rem;
+    z-index: 1060;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .sidebar-right .sidebar-toggle-btn {
+    inset-inline-end: auto;
+    inset-inline-start: 1.5rem;
+  }
+}
+
+/* ============================================================
+   SIDEBAR OVERLAY (Mobile)
+   ============================================================ */
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1035;
+  pointer-events: none;
+  background: rgb(0 0 0 / 0.4);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.sidebar-overlay.active {
+  pointer-events: all;
+  opacity: 1;
+}
+
+/* ============================================================
+   SIDEBAR CLOSE BUTTON (Mobile)
+   ============================================================ */
+
+.sidebar-close-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+@media (width <= 1199px) {
+  .sidebar-close-btn {
+    display: flex;
+  }
+}
+
+.sidebar-close-btn:hover {
+  background: var(--owner-bg, var(--gray-100));
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   PERSISTENT SIDEBAR STATE
+   ============================================================ */
+
+/* Sidebar collapsed state */
+.sidebar-collapsed #appSidebar,
+.sidebar-collapsed .owner-sidebar {
+  width: 64px;
+  overflow: hidden;
+}
+
+.sidebar-collapsed .owner-main,
+.sidebar-collapsed .main-container {
+  margin-left: 64px;
+  margin-right: 64px;
+}
+
+.sidebar-right.sidebar-collapsed .owner-main,
+.sidebar-right.sidebar-collapsed .main-container {
+  margin-left: 64px;
+  margin-right: 64px;
+}
+
+/* Hide text when collapsed */
+.sidebar-collapsed .sidebar-text,
+.sidebar-collapsed .brand-sub,
+.sidebar-collapsed .brand-title,
+.sidebar-collapsed .nav-section-title,
+.sidebar-collapsed .owner-nav-link span,
+.sidebar-collapsed .owner-sidebar-footer {
+  display: none;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+@keyframes slideInFromRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInFromLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.sidebar-left #appSidebar.open,
+.sidebar-left .owner-sidebar.open {
+  animation: slideInFromLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-right #appSidebar.open,
+.sidebar-right .owner-sidebar.open {
+  animation: slideInFromRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================
+   RTL SUPPORT
+   ============================================================ */
+
+[dir="rtl"] .sidebar-left #appSidebar,
+[dir="rtl"] .sidebar-left .owner-sidebar {
+  right: 0;
+  left: auto;
+}
+
+[dir="rtl"] .sidebar-right #appSidebar,
+[dir="rtl"] .sidebar-right .owner-sidebar {
+  left: 0;
+  right: auto;
+}
+
+[dir="rtl"] .sidebar-left .main-container,
+[dir="rtl"] .sidebar-left .owner-main {
+  margin-right: var(--sidebar-width);
+  margin-left: 0;
+}
+
+[dir="rtl"] .sidebar-right .main-container,
+[dir="rtl"] .sidebar-right .owner-main {
+  margin-left: var(--sidebar-width);
+  margin-right: 0;
+}

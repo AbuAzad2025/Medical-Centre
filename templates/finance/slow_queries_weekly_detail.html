@@ -4,21 +4,21 @@
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h2 class="mb-1">تفاصيل تقرير الاستعلامات الأسبوعي</h2>
+      <h2 class="mb-1">{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل تقرير الاستعلامات الأسبوعي")")")")")")")') }}</h2>
       <div class="text-muted">{{ report.period_start.strftime('%Y-%m-%d') if report.period_start else '-' }} → {{ report.period_end.strftime('%Y-%m-%d') if report.period_end else '-' }}</div>
     </div>
-    <a href="{{ url_for('finance.slow_queries_weekly') }}" class="btn btn-secondary">العودة</a>
+    <a href="{{ url_for('finance.slow_queries_weekly') }}" class="btn btn-secondary">{{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
   </div>
 
   <div class="card mb-3">
     <div class="card-body">
       <div class="row g-2">
         <div class="col-md-6">
-          <div class="text-muted">وقت إعادة الضبط</div>
-          <div class="fw-bold">{{ report.reset_time.isoformat() if report.reset_time else 'غير متوفر' }}</div>
+          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("وقت إعادة الضبط")")")")")")")') }}</div>
+          <div class="fw-bold">{{ report.reset_time.isoformat() if report.reset_time else '_("_(" _(" _(" _(" _(" _("غير متوفر")")")")")")")' }}</div>
         </div>
         <div class="col-md-6">
-          <div class="text-muted">تاريخ الإنشاء</div>
+          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإنشاء")")")")")")")') }}</div>
           <div class="fw-bold">{{ report.created_at.strftime('%Y-%m-%d %H:%M') if report.created_at else '-' }}</div>
         </div>
       </div>
@@ -32,11 +32,11 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>الاستعلام</th>
-              <th class="text-end">الاستدعاءات</th>
-              <th class="text-end">متوسط الزمن (ms)</th>
-              <th class="text-end">الزمن الكلي (ms)</th>
-              <th class="text-end">الصفوف</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("الاستعلام")")")")")")")') }}</th>
+              <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("الاستدعاءات")")")")")")")') }}</th>
+              <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("متوسط الزمن (ms)")")")")")")")') }}</th>
+              <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("الزمن الكلي (ms)")")")")")")")') }}</th>
+              <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("الصفوف")")")")")")")') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -51,7 +51,7 @@
             </tr>
             {% else %}
             <tr>
-              <td colspan="6" class="text-center">لا توجد بيانات</td>
+              <td colspan="6" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td>
             </tr>
             {% endfor %}
           </tbody>

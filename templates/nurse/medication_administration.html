@@ -5,16 +5,16 @@
 
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('إدارة الأدوية', subtitle='مرحباً ' ~ current_user.full_name, icon='fas fa-pills', actions=[{'label': 'العودة', 'icon': 'fas fa-arrow-left', 'url': url_for('nurse.dashboard'), 'style': 'secondary'}]) }}
+  {{ page_header('_("_(" _(" _(" _(" _(" _("إدارة الأدوية")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("مرحباً ")")")")")")")' ~ current_user.full_name, icon='fas fa-pills', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('nurse.dashboard'), 'style': 'secondary'}]) }}
 
   <div class="row g-3">
     <div class="col-lg-8">
       <div class="card shadow mb-3">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span>تنفيذ الأدوية الموصوفة</span>
+          <span>{{ _('_("_(" _(" _(" _(" _(" _("تنفيذ الأدوية الموصوفة")")")")")")")') }}</span>
           <form method="get" class="d-flex gap-2">
             <select class="form-select form-select-sm" name="visit_id" onchange="this.form.submit()">
-              <option value="">اختر زيارة</option>
+              <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر زيارة")")")")")")")') }}</option>
               {% for v in visits or [] %}
                 <option value="{{ v.id }}" {% if selected_visit and selected_visit.id == v.id %}selected{% endif %}>
                   #{{ v.id }} — {{ v.patient.full_name if v.patient else v.patient_id }} — {{ v.status | enum_label('VisitState') }}
@@ -30,12 +30,12 @@
                 <table class="table table-striped align-middle">
                   <thead>
                     <tr>
-                      <th>الدواء</th>
-                      <th>الجرعة</th>
-                      <th>المدة</th>
-                      <th>التعليمات</th>
-                      <th>آخر تنفيذ</th>
-                      <th class="text-end">إجراء</th>
+                      <th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th>
+                      <th>{{ _('_("_(" _(" _(" _(" _(" _("الجرعة")")")")")")")') }}</th>
+                      <th>{{ _('_("_(" _(" _(" _(" _(" _("المدة")")")")")")")') }}</th>
+                      <th>{{ _('_("_(" _(" _(" _(" _(" _("التعليمات")")")")")")")') }}</th>
+                      <th>{{ _('_("_(" _(" _(" _(" _(" _("آخر تنفيذ")")")")")")")') }}</th>
+                      <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("إجراء")")")")")")")') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -63,7 +63,7 @@
                           <form method="post" action="{{ url_for('nurse.administer_medication', prescription_item_id=it.id) }}" class="d-inline-flex gap-2 justify-content-end">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="text" name="notes" class="form-control form-control-sm max-w-220">
-                            <button type="submit" class="btn btn-sm btn-success">تم التنفيذ</button>
+                            <button type="submit" class="btn btn-sm btn-success">{{ _('_("_(" _(" _(" _(" _(" _("تم التنفيذ")")")")")")")') }}</button>
                           </form>
                         </td>
                       </tr>
@@ -72,7 +72,7 @@
                 </table>
               </div>
             {% else %}
-              <div class="text-center py-4 text-muted">لا توجد أدوية موصوفة لهذه الزيارة</div>
+              <div class="text-center py-4 text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد أدوية موصوفة لهذه الزيارة")")")")")")")') }}</div>
             {% endif %}
 
             {% if administration_logs %}
@@ -82,10 +82,10 @@
                 <table class="table table-sm table-striped align-middle mb-0">
                   <thead>
                     <tr>
-                      <th>الوقت</th>
-                      <th>الدواء</th>
-                      <th>الممرضة</th>
-                      <th>ملاحظة</th>
+                      <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
+                      <th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th>
+                      <th>{{ _('_("_(" _(" _(" _(" _(" _("الممرضة")")")")")")")') }}</th>
+                      <th>{{ _('_("_(" _(" _(" _(" _(" _("ملاحظة")")")")")")")') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -102,21 +102,21 @@
               </div>
             {% endif %}
           {% else %}
-            <div class="text-center py-4 text-muted">اختر زيارة لعرض الأدوية الموصوفة وتوثيق التنفيذ</div>
+            <div class="text-center py-4 text-muted">{{ _('_("_(" _(" _(" _(" _(" _("اختر زيارة لعرض الأدوية الموصوفة وتوثيق التنفيذ")")")")")")")') }}</div>
           {% endif %}
         </div>
       </div>
 
       <div class="card shadow">
-        <div class="card-header">الأدوية المتاحة (المخزون)</div>
+        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("الأدوية المتاحة (المخزون)")")")")")")")') }}</div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th>الدواء</th>
-                  <th>الكمية</th>
-                  <th>الحد الأدنى</th>
+                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th>
+                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الكمية")")")")")")")') }}</th>
+                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الحد الأدنى")")")")")")")') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -133,7 +133,7 @@
                   {% endfor %}
                 {% else %}
                   <tr>
-                    <td colspan="3" class="text-center text-muted">لا توجد أدوية متاحة</td>
+                    <td colspan="3" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد أدوية متاحة")")")")")")")') }}</td>
                   </tr>
                 {% endif %}
               </tbody>
@@ -144,7 +144,7 @@
     </div>
     <div class="col-lg-4">
       <div class="card shadow">
-        <div class="card-header">أدوية بحاجة للطلب</div>
+        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("أدوية بحاجة للطلب")")")")")")")') }}</div>
         <div class="card-body">
           <ul class="list-group">
             {% if needed_medications %}
@@ -155,7 +155,7 @@
                 </li>
               {% endfor %}
             {% else %}
-              <li class="list-group-item text-center text-muted">لا توجد تنبيهات نقص</li>
+              <li class="list-group-item text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد تنبيهات نقص")")")")")")")') }}</li>
             {% endif %}
           </ul>
         </div>

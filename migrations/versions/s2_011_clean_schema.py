@@ -40,9 +40,7 @@ branch_labels = None
 depends_on = None
 
 
-# ================================================================================
 # CORE PATIENT TABLES
-# ================================================================================
 
 def upgrade_patients():
     if not op.get_context().bind.dialect.has_table(op.get_context().bind, 'patients'):
@@ -91,9 +89,7 @@ def upgrade_patient_allergies():
         )
 
 
-# ================================================================================
 # VISIT & CLINICAL TABLES
-# ================================================================================
 
 def upgrade_visits():
     if not op.get_context().bind.dialect.has_table(op.get_context().bind, 'visits'):
@@ -180,9 +176,7 @@ def upgrade_visits():
         op.create_index('idx_visit_payment_method', 'visits', ['payment_method'])
 
 
-# ================================================================================
 # FINANCIAL & PAYMENT TABLES
-# ================================================================================
 
 def upgrade_invoices():
     if not op.get_context().bind.dialect.has_table(op.get_context().bind, 'invoices'):
@@ -340,9 +334,7 @@ def upgrade_refunds():
         op.create_check_constraint('chk_refund_status', 'refund_requests', "status IN ('PENDING', 'APPROVED', 'REJECTED', 'EXECUTED')")
 
 
-# ================================================================================
 # PHARMACY & MEDICATION TABLES
-# ================================================================================
 
 def upgrade_medications():
     if not op.get_context().bind.dialect.has_table(op.get_context().bind, 'medications'):
@@ -521,9 +513,7 @@ def upgrade_pharmacy():
         )
 
 
-# ================================================================================
 # LAB & RADIOLOGY TABLES
-# ================================================================================
 
 def upgrade_lab_radiology():
     if not op.get_context().bind.dialect.has_table(op.get_context().bind, 'lab_requests'):
@@ -621,9 +611,7 @@ def upgrade_lab_radiology():
         op.create_index('idx_rad_result_patient_created', 'radiology_results', ['patient_id', 'created_at'])
 
 
-# ================================================================================
 # QUEUE & APPOINTMENT TABLES
-# ================================================================================
 
 def upgrade_queue_appointments():
     if not op.get_context().bind.dialect.has_table(op.get_context().bind, 'queue_management'):
@@ -701,9 +689,7 @@ def upgrade_queue_appointments():
         op.create_unique_constraint('uq_appointment_patient_time', 'appointments', ['patient_id', 'starts_at'])
 
 
-# ================================================================================
 # MEDICAL RECORDS & CLINICAL TABLES
-# ================================================================================
 
 def upgrade_medical_records():
     if not op.get_context().bind.dialect.has_table(op.get_context().bind, 'medical_records'):
@@ -793,9 +779,7 @@ def upgrade_medical_records():
         op.create_index('idx_emergency_severity_created', 'emergency_cases', ['severity', 'created_at'])
 
 
-# ================================================================================
 # AUDIT & SECURITY TABLES
-# ================================================================================
 
 def upgrade_audit():
     if not op.get_context().bind.dialect.has_table(op.get_context().bind, 'audit_trails'):
@@ -865,9 +849,7 @@ def upgrade_audit():
         op.create_index('idx_security_event_resolved', 'security_events', ['is_resolved'])
 
 
-# ================================================================================
 # MAIN UPGRADE FUNCTION
-# ================================================================================
 
 def upgrade() -> None:
     upgrade_patients()

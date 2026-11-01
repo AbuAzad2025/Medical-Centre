@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% from 'partials/_page_header.html' import page_header %}
 
-{% block title %}الملاحظات الطبية{% endblock %}
+{% block title %}{{ _('الملاحظات الطبية') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     {{ page_header(
-        title='الملاحظات الطبية',
-        subtitle='كتابة الملاحظات الطبية للمريض',
+        title=_('الملاحظات الطبية'),
+        subtitle=_('كتابة الملاحظات الطبية للمريض'),
         icon='fas fa-notes-medical',
         actions=[
-            {'url': url_for('doctor.patient_queue'), 'label': 'العودة للطابور', 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
+            {'url': url_for('doctor.patient_queue'), 'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
         ]
     ) }}
 
@@ -21,28 +21,28 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-user me-2"></i>
-                        معلومات المريض
+                        {{ _('معلومات المريض') }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3">
-                            <strong>الاسم:</strong> {{ visit.patient.full_name }}
+                            <strong>{{ _('الاسم:') }}</strong> {{ visit.patient.full_name }}
                         </div>
                         <div class="col-md-3">
-                            <strong>العمر:</strong> {{ visit.patient.age or 'غير محدد' }} سنة
+                            <strong>{{ _('العمر:') }}</strong> {{ visit.patient.age or _('غير محدد') }} {{ _('سنة') }}
                         </div>
                         <div class="col-md-3">
-                            <strong>الجنس:</strong> {{ visit.patient.get_gender_display() }}
+                            <strong>{{ _('الجنس:') }}</strong> {{ visit.patient.get_gender_display() }}
                         </div>
                         <div class="col-md-3">
-                            <strong>رقم الزيارة:</strong> {{ visit.visit_id_number or visit.id }}
+                            <strong>{{ _('رقم الزيارة:') }}</strong> {{ visit.visit_id_number or visit.id }}
                         </div>
                     </div>
                     {% if visit.visit_reason %}
                     <div class="row mt-2">
                         <div class="col-12">
-                            <strong>سبب الزيارة:</strong> {{ visit.visit_reason }}
+                            <strong>{{ _('سبب الزيارة:') }}</strong> {{ visit.visit_reason }}
                         </div>
                     </div>
                     {% endif %}

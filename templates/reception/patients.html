@@ -7,10 +7,10 @@
 <div class="container-fluid">
 <div class="row mb-3">
         <div class="col-12 d-flex justify-content-between align-items-center">
-            <h3 class="mb-0">قائمة المرضى</h3>
+            <h3 class="mb-0">{{ _('قائمة المرضى') }}</h3>
             {% if current_user.is_authenticated and has_permission('patient_create') %}
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPatientModal">
-                <i class="fas fa-user-plus me-1"></i> إضافة مريض جديد
+                <i class="fas fa-user-plus me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("إضافة مريض جديد")")")")")")")') }}
             </button>
             {% endif %}
         </div>
@@ -18,20 +18,20 @@
 
     <form method="GET" class="row g-3 mb-3">
         <div class="col-md-4">
-            <label for="search" class="form-label">البحث</label>
-            <input type="text" class="form-control" id="search" name="search" value="{{ search }}" placeholder="اسم، هاتف، هوية، رقم ملف">
+            <label for="search" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("البحث")")")")")")")') }}</label>
+            <input type="text" class="form-control" id="search" name="search" value="{{ search }}" placeholder="_(" _(" _(" _(" _(" _("اسم، هاتف، هوية، رقم ملف")")")")")")">
         </div>
         <div class="col-md-3">
-            <label for="department_id" class="form-label">القسم</label>
+            <label for="department_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</label>
             <select class="form-control" id="department_id" name="department_id">
-                <option value="">جميع الأقسام</option>
+                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("جميع الأقسام")")")")")")")') }}</option>
                 {% for dept in departments %}
                 <option value="{{ dept.id }}" {% if selected_department == dept.id %}selected{% endif %}>{{ dept.name_ar }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="col-md-2 align-self-end">
-            <button type="submit" class="btn btn-secondary w-100">تطبيق</button>
+            <button type="submit" class="btn btn-secondary w-100">{{ _('_("_(" _(" _(" _(" _(" _("تطبيق")")")")")")")') }}</button>
         </div>
     </form>
 
@@ -44,13 +44,13 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>الاسم</th>
-                                    <th>الهاتف</th>
-                                    <th>الهوية</th>
-                                    <th>الجنس</th>
-                                    <th>الحالة الاجتماعية</th>
-                                    <th>تاريخ الإضافة</th>
-                                    <th>إجراءات</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الهوية")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الجنس")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة الاجتماعية")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإضافة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("إجراءات")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody id="patientsTableBody">
@@ -66,24 +66,24 @@
                                     <td>{{ p.full_name }}</td>
                                     <td>{{ p.phone or '-' }}</td>
                                     <td>{{ p.national_id or '-' }}</td>
-                                    <td>{{ 'ذكر' if p.gender == 'M' else ('أنثى' if p.gender == 'F' else 'آخر') }}</td>
+                                    <td>{{ '_("_(" _(" _(" _(" _(" _("ذكر")")")")")")")' if p.gender == 'M' else ('_("_(" _(" _(" _(" _(" _("أنثى")")")")")")")' if p.gender == 'F' else '_("_(" _(" _(" _(" _(" _("آخر")")")")")")")') }}</td>
                                     <td>
                                         {% if p.marital_status == 'married' %}متزوج/ة{% elif p.marital_status == 'single' %}أعزب/غير متزوج{% elif p.marital_status == 'divorced' %}مطلق/ة{% elif p.marital_status == 'widowed' %}أرمل/ة{% else %}-{% endif %}
                                     </td>
                                     <td>{{ p.created_at.strftime('%Y-%m-%d') if p.created_at else '-' }}</td>
                                     <td>
-                                        <a class="btn btn-sm btn-info me-1" href="{{ url_for('reception.view_patient', patient_id=p.id) }}">عرض</a>
-                                        <a class="btn btn-sm btn-warning me-1" href="{{ url_for('reception.edit_patient', patient_id=p.id) }}">تعديل</a>
+                                        <a class="btn btn-sm btn-info me-1" href="{{ url_for('reception.view_patient', patient_id=p.id) }}">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</a>
+                                        <a class="btn btn-sm btn-warning me-1" href="{{ url_for('reception.edit_patient', patient_id=p.id) }}">{{ _('_("_(" _(" _(" _(" _(" _("تعديل")")")")")")")') }}</a>
                                         <form method="POST" action="{{ url_for('reception.delete_patient', patient_id=p.id) }}" class="d-inline" onsubmit="return false;">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="confirmDeletePatient(this)">حذف</button>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="confirmDeletePatient(this)">{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</button>
                                         </form>
-                                        <a class="btn btn-sm btn-primary mt-1" href="{{ url_for('reception.create_appointment', patient_id=p.id) }}">حجز مسبق</a>
+                                        <a class="btn btn-sm btn-primary mt-1" href="{{ url_for('reception.create_appointment', patient_id=p.id) }}">{{ _('_("_(" _(" _(" _(" _(" _("حجز مسبق")")")")")")")') }}</a>
                                     </td>
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="8" class="text-center">لا توجد بيانات</td>
+                                    <td colspan="8" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -95,10 +95,10 @@
                         <div class="text-muted small">عرض {{ total }} مريض</div>
                         <div class="btn-group">
                             <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
-                               href="{{ url_for('reception.patients', page=page-1) }}">السابق</a>
+                               href="{{ url_for('reception.patients', page=page-1) }}">{{ _('_("_(" _(" _(" _(" _(" _("السابق")")")")")")")') }}</a>
                             <span class="btn btn-outline-secondary">Page {{ page }} of {{ pages if pages > 0 else 1 }}</span>
                             <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
-                               href="{{ url_for('reception.patients', page=page+1) }}">التالي</a>
+                               href="{{ url_for('reception.patients', page=page+1) }}">{{ _('_("_(" _(" _(" _(" _(" _("التالي")")")")")")")') }}</a>
                         </div>
                     </div>
                 </div>
@@ -110,7 +110,7 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">إضافة مريض جديد</h5>
+                    <h5 class="modal-title">{{ _('_("_(" _(" _(" _(" _(" _("إضافة مريض جديد")")")")")")")') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -118,62 +118,62 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="row">
                             <div class="col-md-6">
-                                <label class="form-label" for="national_id_modal">رقم الهوية الوطنية</label>
+                                <label class="form-label" for="national_id_modal">{{ _('_("_(" _(" _(" _(" _(" _("رقم الهوية الوطنية")")")")")")")') }}</label>
                                 <input class="form-control" id="national_id_modal" name="national_id" data-validate="national_id" inputmode="numeric" maxlength="9">
                                 <div class="invalid-feedback" data-error-for="national_id"></div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" for="phone_modal">رقم الهاتف</label>
+                                <label class="form-label" for="phone_modal">{{ _('_("_(" _(" _(" _(" _(" _("رقم الهاتف")")")")")")")') }}</label>
                                 <input class="form-control" id="phone_modal" name="phone" required data-validate="phone" inputmode="tel">
                                 <div class="invalid-feedback" data-error-for="phone"></div>
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-md-3">
-                                <label class="form-label" for="first_name_modal">الاسم الأول (عربي)</label>
+                                <label class="form-label" for="first_name_modal">{{ _('_("_(" _(" _(" _(" _(" _("الاسم الأول (عربي)")")")")")")")') }}</label>
                                 <input class="form-control" id="first_name_modal" name="first_name" required>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="last_name_modal">اسم العائلة (عربي)</label>
+                                <label class="form-label" for="last_name_modal">{{ _('_("_(" _(" _(" _(" _(" _("اسم العائلة (عربي)")")")")")")")') }}</label>
                                 <input class="form-control" id="last_name_modal" name="last_name" required>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="first_name_ar_modal">الاسم الأول (إنجليزي)</label>
+                                <label class="form-label" for="first_name_ar_modal">{{ _('_("_(" _(" _(" _(" _(" _("الاسم الأول (إنجليزي)")")")")")")")') }}</label>
                                 <input class="form-control" id="first_name_ar_modal" name="first_name_ar">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="last_name_ar_modal">اسم العائلة (إنجليزي)</label>
+                                <label class="form-label" for="last_name_ar_modal">{{ _('_("_(" _(" _(" _(" _(" _("اسم العائلة (إنجليزي)")")")")")")")') }}</label>
                                 <input class="form-control" id="last_name_ar_modal" name="last_name_ar">
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-md-4">
-                                <label class="form-label" for="birth_date_modal">تاريخ الميلاد</label>
+                                <label class="form-label" for="birth_date_modal">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الميلاد")")")")")")")') }}</label>
                                 <input type="date" class="form-control" id="birth_date_modal" name="birth_date">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label" for="gender_modal">الجنس</label>
+                                <label class="form-label" for="gender_modal">{{ _('_("_(" _(" _(" _(" _(" _("الجنس")")")")")")")') }}</label>
                                 <select class="form-control" id="gender_modal" name="gender">
-                                    <option value="">اختر الجنس</option>
-                                    <option value="M">ذكر</option>
-                                    <option value="F">أنثى</option>
-                                    <option value="Other">آخر</option>
+                                    <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الجنس")")")")")")")') }}</option>
+                                    <option value="M">{{ _('_("_(" _(" _(" _(" _(" _("ذكر")")")")")")")') }}</option>
+                                    <option value="F">{{ _('_("_(" _(" _(" _(" _(" _("أنثى")")")")")")")') }}</option>
+                                    <option value="Other">{{ _('_("_(" _(" _(" _(" _(" _("آخر")")")")")")")') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label" for="age_modal">العمر (سنوات)</label>
+                                <label class="form-label" for="age_modal">{{ _('_("_(" _(" _(" _(" _(" _("العمر (سنوات)")")")")")")")') }}</label>
                                 <input type="number" class="form-control" id="age_modal" name="age" readonly>
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-md-4">
-                                <label class="form-label" for="marital_status_modal">الحالة الاجتماعية</label>
+                                <label class="form-label" for="marital_status_modal">{{ _('_("_(" _(" _(" _(" _(" _("الحالة الاجتماعية")")")")")")")') }}</label>
                                 <select class="form-control" id="marital_status_modal" name="marital_status">
-                                    <option value="">اختر الحالة</option>
-                                    <option value="single">أعزب/غير متزوج</option>
-                                    <option value="married">متزوج/ة</option>
-                                    <option value="divorced">مطلّق/ة</option>
-                                    <option value="widowed">أرمل/ة</option>
+                                    <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الحالة")")")")")")")') }}</option>
+                                    <option value="single">{{ _('_("_(" _(" _(" _(" _(" _("أعزب/غير متزوج")")")")")")")') }}</option>
+                                    <option value="married">{{ _('_("_(" _(" _(" _(" _(" _("متزوج/ة")")")")")")")') }}</option>
+                                    <option value="divorced">{{ _('_("_(" _(" _(" _(" _(" _("مطلّق/ة")")")")")")")') }}</option>
+                                    <option value="widowed">{{ _('_("_(" _(" _(" _(" _(" _("أرمل/ة")")")")")")")') }}</option>
                                 </select>
                             </div>
                         </div>
@@ -181,60 +181,60 @@
                             <div class="col-md-3">
                                 <div class="form-check mt-4">
                                     <input class="form-check-input" type="checkbox" id="is_pregnant_modal" name="is_pregnant">
-                                    <label class="form-check-label" for="is_pregnant_modal">حامل حالياً</label>
+                                    <label class="form-check-label" for="is_pregnant_modal">{{ _('_("_(" _(" _(" _(" _(" _("حامل حالياً")")")")")")")') }}</label>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="last_menstruation_date_modal">تاريخ آخر دورة</label>
+                                <label class="form-label" for="last_menstruation_date_modal">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ آخر دورة")")")")")")")') }}</label>
                                 <input type="date" class="form-control" id="last_menstruation_date_modal" name="last_menstruation_date">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="pregnancy_weeks_modal">عمر الحمل (أسابيع)</label>
+                                <label class="form-label" for="pregnancy_weeks_modal">{{ _('_("_(" _(" _(" _(" _(" _("عمر الحمل (أسابيع)")")")")")")")') }}</label>
                                 <input type="number" class="form-control" id="pregnancy_weeks_modal" name="pregnancy_weeks" readonly>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="pregnancy_notes_modal">ملاحظات الحمل</label>
+                                <label class="form-label" for="pregnancy_notes_modal">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات الحمل")")")")")")")') }}</label>
                                 <input class="form-control" id="pregnancy_notes_modal" name="pregnancy_notes">
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-12">
-                                <label class="form-label" for="address_modal">العنوان</label>
+                                <label class="form-label" for="address_modal">{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</label>
                                 <textarea class="form-control" id="address_modal" name="address" rows="2"></textarea>
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-12">
-                                <label class="form-label" for="notes_modal">ملاحظات</label>
+                                <label class="form-label" for="notes_modal">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label>
                                 <textarea class="form-control" id="notes_modal" name="notes" rows="2"></textarea>
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-md-6">
-                                <label class="form-label" for="insurance_company_id_modal">جهة التأمين</label>
+                                <label class="form-label" for="insurance_company_id_modal">{{ _('_("_(" _(" _(" _(" _(" _("جهة التأمين")")")")")")")') }}</label>
                                 <select class="form-control" id="insurance_company_id_modal" name="insurance_company_id">
-                                    <option value="">بدون</option>
+                                    <option value="">{{ _('_("_(" _(" _(" _(" _(" _("بدون")")")")")")")') }}</option>
                                     {% for ic in insurance_companies %}
                                     <option value="{{ ic.id }}">{{ ic.name_ar or ic.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" for="insurance_member_number_modal">رقم التأمين</label>
+                                <label class="form-label" for="insurance_member_number_modal">{{ _('_("_(" _(" _(" _(" _(" _("رقم التأمين")")")")")")")') }}</label>
                                 <input class="form-control" id="insurance_member_number_modal" name="insurance_member_number">
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-12">
-                                <label class="form-label" for="admin_notes_modal">ملاحظات إدارية</label>
+                                <label class="form-label" for="admin_notes_modal">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات إدارية")")")")")")")') }}</label>
                                 <textarea class="form-control" id="admin_notes_modal" name="admin_notes" rows="2"></textarea>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
-                    <button type="button" class="btn btn-primary" id="savePatientModalBtn">حفظ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إغلاق")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-primary" id="savePatientModalBtn">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
                 </div>
             </div>
         </div>
@@ -245,7 +245,7 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">تعديل بيانات المريض</h5>
+                    <h5 class="modal-title">{{ _('_("_(" _(" _(" _(" _(" _("تعديل بيانات المريض")")")")")")")') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -253,60 +253,60 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="row">
                             <div class="col-md-6">
-                                <label class="form-label" for="national_id_edit">رقم الهوية الوطنية</label>
+                                <label class="form-label" for="national_id_edit">{{ _('_("_(" _(" _(" _(" _(" _("رقم الهوية الوطنية")")")")")")")') }}</label>
                                 <input class="form-control" id="national_id_edit" name="national_id" value="{{ patient.national_id or '' }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" for="phone_edit">رقم الهاتف</label>
+                                <label class="form-label" for="phone_edit">{{ _('_("_(" _(" _(" _(" _(" _("رقم الهاتف")")")")")")")') }}</label>
                                 <input class="form-control" id="phone_edit" name="phone" value="{{ patient.phone or '' }}" required>
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-md-3">
-                                <label class="form-label" for="first_name_edit">الاسم الأول (عربي)</label>
+                                <label class="form-label" for="first_name_edit">{{ _('_("_(" _(" _(" _(" _(" _("الاسم الأول (عربي)")")")")")")")') }}</label>
                                 <input class="form-control" id="first_name_edit" name="first_name" value="{{ patient.first_name or '' }}" required>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="last_name_edit">اسم العائلة (عربي)</label>
+                                <label class="form-label" for="last_name_edit">{{ _('_("_(" _(" _(" _(" _(" _("اسم العائلة (عربي)")")")")")")")') }}</label>
                                 <input class="form-control" id="last_name_edit" name="last_name" value="{{ patient.last_name or '' }}" required>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="first_name_ar_edit">الاسم الأول (إنجليزي)</label>
+                                <label class="form-label" for="first_name_ar_edit">{{ _('_("_(" _(" _(" _(" _(" _("الاسم الأول (إنجليزي)")")")")")")")') }}</label>
                                 <input class="form-control" id="first_name_ar_edit" name="first_name_ar" value="{{ patient.first_name_ar or '' }}">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="last_name_ar_edit">اسم العائلة (إنجليزي)</label>
+                                <label class="form-label" for="last_name_ar_edit">{{ _('_("_(" _(" _(" _(" _(" _("اسم العائلة (إنجليزي)")")")")")")")') }}</label>
                                 <input class="form-control" id="last_name_ar_edit" name="last_name_ar" value="{{ patient.last_name_ar or '' }}">
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-md-4">
-                                <label class="form-label" for="birth_date_edit">تاريخ الميلاد</label>
+                                <label class="form-label" for="birth_date_edit">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الميلاد")")")")")")")') }}</label>
                                 <input type="date" class="form-control" id="birth_date_edit" name="birth_date" value="{{ patient.birth_date.strftime('%Y-%m-%d') if patient.birth_date else '' }}">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label" for="gender_edit">الجنس</label>
+                                <label class="form-label" for="gender_edit">{{ _('_("_(" _(" _(" _(" _(" _("الجنس")")")")")")")') }}</label>
                                 <select class="form-control" id="gender_edit" name="gender">
-                                    <option value="" {% if not patient.gender %}selected{% endif %}>اختر الجنس</option>
-                                    <option value="M" {% if patient.gender == 'M' %}selected{% endif %}>ذكر</option>
-                                    <option value="F" {% if patient.gender == 'F' %}selected{% endif %}>أنثى</option>
-                                    <option value="Other" {% if patient.gender == 'Other' %}selected{% endif %}>آخر</option>
+                                    <option value="" {% if not patient.gender %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("اختر الجنس")")")")")")")') }}</option>
+                                    <option value="M" {% if patient.gender == 'M' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("ذكر")")")")")")")') }}</option>
+                                    <option value="F" {% if patient.gender == 'F' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("أنثى")")")")")")")') }}</option>
+                                    <option value="Other" {% if patient.gender == 'Other' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("آخر")")")")")")")') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label" for="age_edit">العمر (سنوات)</label>
+                                <label class="form-label" for="age_edit">{{ _('_("_(" _(" _(" _(" _(" _("العمر (سنوات)")")")")")")")') }}</label>
                                 <input type="number" class="form-control" id="age_edit" readonly>
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-md-4">
-                                <label class="form-label" for="marital_status_edit">الحالة الاجتماعية</label>
+                                <label class="form-label" for="marital_status_edit">{{ _('_("_(" _(" _(" _(" _(" _("الحالة الاجتماعية")")")")")")")') }}</label>
                                 <select class="form-control" id="marital_status_edit" name="marital_status">
-                                    <option value="" {% if not patient.marital_status %}selected{% endif %}>اختر الحالة</option>
-                                    <option value="single" {% if patient.marital_status == 'single' %}selected{% endif %}>أعزب/غير متزوج</option>
-                                    <option value="married" {% if patient.marital_status == 'married' %}selected{% endif %}>متزوج/ة</option>
-                                    <option value="divorced" {% if patient.marital_status == 'divorced' %}selected{% endif %}>مطلّق/ة</option>
-                                    <option value="widowed" {% if patient.marital_status == 'widowed' %}selected{% endif %}>أرمل/ة</option>
+                                    <option value="" {% if not patient.marital_status %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("اختر الحالة")")")")")")")') }}</option>
+                                    <option value="single" {% if patient.marital_status == 'single' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("أعزب/غير متزوج")")")")")")")') }}</option>
+                                    <option value="married" {% if patient.marital_status == 'married' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("متزوج/ة")")")")")")")') }}</option>
+                                    <option value="divorced" {% if patient.marital_status == 'divorced' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مطلّق/ة")")")")")")")') }}</option>
+                                    <option value="widowed" {% if patient.marital_status == 'widowed' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("أرمل/ة")")")")")")")') }}</option>
                                 </select>
                             </div>
                         </div>
@@ -314,60 +314,60 @@
                             <div class="col-md-3">
                                 <div class="form-check mt-4">
                                     <input class="form-check-input" type="checkbox" id="is_pregnant_edit" name="is_pregnant" {% if patient.is_pregnant %}checked{% endif %}>
-                                    <label class="form-check-label" for="is_pregnant_edit">حامل حالياً</label>
+                                    <label class="form-check-label" for="is_pregnant_edit">{{ _('_("_(" _(" _(" _(" _(" _("حامل حالياً")")")")")")")') }}</label>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="last_menstruation_date_edit">تاريخ آخر دورة</label>
+                                <label class="form-label" for="last_menstruation_date_edit">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ آخر دورة")")")")")")")') }}</label>
                                 <input type="date" class="form-control" id="last_menstruation_date_edit" name="last_menstruation_date" value="{{ patient.last_menstruation_date.strftime('%Y-%m-%d') if patient.last_menstruation_date else '' }}">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="pregnancy_weeks_edit">عمر الحمل (أسابيع)</label>
+                                <label class="form-label" for="pregnancy_weeks_edit">{{ _('_("_(" _(" _(" _(" _(" _("عمر الحمل (أسابيع)")")")")")")")') }}</label>
                                 <input type="number" class="form-control" id="pregnancy_weeks_edit" name="pregnancy_weeks" value="{{ patient.pregnancy_weeks or '' }}" readonly>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" for="pregnancy_notes_edit">ملاحظات الحمل</label>
+                                <label class="form-label" for="pregnancy_notes_edit">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات الحمل")")")")")")")') }}</label>
                                 <input class="form-control" id="pregnancy_notes_edit" name="pregnancy_notes" value="{{ patient.pregnancy_notes or '' }}">
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-12">
-                                <label class="form-label" for="address_edit">العنوان</label>
+                                <label class="form-label" for="address_edit">{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</label>
                                 <textarea class="form-control" id="address_edit" name="address" rows="2">{{ patient.address or '' }}</textarea>
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-12">
-                                <label class="form-label" for="notes_edit">ملاحظات</label>
+                                <label class="form-label" for="notes_edit">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label>
                                 <textarea class="form-control" id="notes_edit" name="notes" rows="2">{{ patient.notes or '' }}</textarea>
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-md-6">
-                                <label class="form-label" for="insurance_company_id_edit">جهة التأمين</label>
+                                <label class="form-label" for="insurance_company_id_edit">{{ _('_("_(" _(" _(" _(" _(" _("جهة التأمين")")")")")")")') }}</label>
                                 <select class="form-control" id="insurance_company_id_edit" name="insurance_company_id">
-                                    <option value="">بدون</option>
+                                    <option value="">{{ _('_("_(" _(" _(" _(" _(" _("بدون")")")")")")")') }}</option>
                                     {% for ic in insurance_companies %}
                                     <option value="{{ ic.id }}" {% if patient.insurance_company_id == ic.id %}selected{% endif %}>{{ ic.name_ar or ic.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" for="insurance_member_number_edit">رقم التأمين</label>
+                                <label class="form-label" for="insurance_member_number_edit">{{ _('_("_(" _(" _(" _(" _(" _("رقم التأمين")")")")")")")') }}</label>
                                 <input class="form-control" id="insurance_member_number_edit" name="insurance_member_number" value="{{ patient.insurance_member_number or '' }}">
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-12">
-                                <label class="form-label" for="admin_notes_edit">ملاحظات إدارية</label>
+                                <label class="form-label" for="admin_notes_edit">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات إدارية")")")")")")")') }}</label>
                                 <textarea class="form-control" id="admin_notes_edit" name="admin_notes" rows="2">{{ patient.admin_notes or '' }}</textarea>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
-                    <button type="button" class="btn btn-primary" id="savePatientEditBtn">حفظ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إغلاق")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-primary" id="savePatientEditBtn">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
                 </div>
             </div>
         </div>

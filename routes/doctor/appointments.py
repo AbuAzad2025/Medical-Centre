@@ -11,9 +11,7 @@ from app.extensions import db
 from routes.doctor import doctor_bp
 from utils.decorators import role_required
 
-# =============================================
 # APPOINTMENTS ROUTES
-# =============================================
 
 
 @doctor_bp.route('/appointments')

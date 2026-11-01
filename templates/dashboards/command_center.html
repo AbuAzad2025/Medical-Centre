@@ -10,13 +10,13 @@
 <div class="command-center" data-dashboard-role="{{ dashboard_role }}">
   <div class="d-flex justify-content-end mb-2">
     <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#ccCustomizePanel" aria-expanded="false">
-      <i class="fas fa-th-large me-1"></i>تخصيص اللوحة
+      <i class="fas fa-th-large me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تخصيص اللوحة")")")")")")")') }}
     </button>
   </div>
   <div class="collapse mb-3" id="ccCustomizePanel">
     <div class="card border-0 shadow-sm">
       <div class="card-body">
-        <p class="text-muted small mb-2">اختر العناصر الظاهرة في لوحتك. يُحفظ تلقائياً.</p>
+        <p class="text-muted small mb-2">{{ _('_("_(" _(" _(" _(" _(" _("اختر العناصر الظاهرة في لوحتك. يُحفظ تلقائياً.")")")")")")")') }}</p>
         <div class="row g-2" id="ccWidgetToggles">
           {% for w in customizable_widgets or [] %}
           <div class="col-md-4 col-lg-3">

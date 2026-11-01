@@ -2,25 +2,25 @@
 {% block title %}أكواد ICD-10{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">أكواد ICD-10</h2>
+  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("أكواد ICD-10")")")")")")")') }}</h2>
   <form method="get" class="row g-2 mb-3">
-    <div class="col-md-4"><input type="text" name="q" class="form-control" placeholder="بحث بالكود أو الوصف" value="{{ q }}"></div>
-    <div class="col-md-2"><button class="btn btn-primary" type="submit">بحث</button></div>
+    <div class="col-md-4"><input type="text" name="q" class="form-control" placeholder="_(" _(" _(" _(" _(" _("بحث بالكود أو الوصف")")")")")")" value="{{ q }}"></div>
+    <div class="col-md-2"><button class="btn btn-primary" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("بحث")")")")")")")') }}</button></div>
   </form>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover table-sm">
-        <thead><tr><th>الكود</th><th>الفئة</th><th>الوصف</th><th>قابل للفوترة</th></tr></thead>
+        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الكود")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الفئة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("قابل للفوترة")")")")")")")') }}</th></tr></thead>
         <tbody>
         {% for c in codes %}
           <tr>
             <td><code>{{ c.code }}</code></td>
             <td>{{ c.category }}</td>
             <td>{{ c.description }}</td>
-            <td>{% if c.is_billable %}<span class="badge bg-success">نعم</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
+            <td>{% if c.is_billable %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نعم")")")")")")")') }}</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
           </tr>
         {% else %}
-          <tr><td colspan="4" class="text-muted text-center">لا يوجد نتائج</td></tr>
+          <tr><td colspan="4" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد نتائج")")")")")")")') }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

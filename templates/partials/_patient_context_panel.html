@@ -8,15 +8,15 @@
     </div>
     <div class="card-body py-2">
         <div class="row small">
-            <div class="col-md-3"><strong>الهاتف:</strong> {{ patient.phone or '—' }}</div>
-            <div class="col-md-3"><strong>العمر:</strong> {{ patient.age if patient.age is not none else '—' }}</div>
-            <div class="col-md-3"><strong>الجنس:</strong> {{ patient.gender or '—' }}</div>
-            <div class="col-md-3"><strong>العنوان:</strong> {{ patient.address or '—' }}</div>
+            <div class="col-md-3"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف:")")")")")")")') }}</strong> {{ patient.phone or '—' }}</div>
+            <div class="col-md-3"><strong>{{ _('_("_(" _(" _(" _(" _(" _("العمر:")")")")")")")') }}</strong> {{ patient.age if patient.age is not none else '—' }}</div>
+            <div class="col-md-3"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الجنس:")")")")")")")') }}</strong> {{ patient.gender or '—' }}</div>
+            <div class="col-md-3"><strong>{{ _('_("_(" _(" _(" _(" _(" _("العنوان:")")")")")")")') }}</strong> {{ patient.address or '—' }}</div>
         </div>
     </div>
     {% if patient.allergies %}
     <div class="card-body py-2 border-top">
-        <h6 class="mb-2"><i class="fas fa-allergies text-danger me-1"></i>الحساسيات النشطة</h6>
+        <h6 class="mb-2"><i class="fas fa-allergies text-danger me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("الحساسيات النشطة")")")")")")")') }}</h6>
         {% for a in patient.allergies %}
         {% if a.severity == 'HIGH' %}
         <span class="badge bg-danger me-1">{{ a.allergen }} ({{ a.severity }})</span>
@@ -30,7 +30,7 @@
     {% endif %}
     {% if patient.problems %}
     <div class="card-body py-2 border-top">
-        <h6 class="mb-2"><i class="fas fa-notes-medical text-primary me-1"></i>المشاكل النشطة</h6>
+        <h6 class="mb-2"><i class="fas fa-notes-medical text-primary me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("المشاكل النشطة")")")")")")")') }}</h6>
         {% for p in patient.problems %}
         {% if p.status == 'ACTIVE' %}
         <span class="badge bg-secondary me-1">{{ p.problem_description[:40] }}{% if p.problem_description|length > 40 %}...{% endif %}</span>

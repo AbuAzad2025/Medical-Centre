@@ -5,25 +5,25 @@
 <div class="container-fluid">
   {{ page_header(
       title='جودة المختبر',
-      subtitle='مؤشرات الجودة ضمن فترة',
+      subtitle='_("مؤشرات الجودة ضمن فترة")',
       icon='fas fa-shield-alt',
       actions=[
-          {'url': url_for('lab.quality_control'), 'label': 'ضبط الجودة', 'icon': 'fas fa-sliders-h', 'style': 'outline-primary'},
-          {'url': url_for('lab.dashboard'), 'label': 'العودة', 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
+          {'url': url_for('lab.quality_control'), 'label': '_("_(" _(" _(" _(" _(" _("ضبط الجودة")")")")")")")', 'icon': 'fas fa-sliders-h', 'style': 'outline-primary'},
+          {'url': url_for('lab.dashboard'), 'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
       ]
   ) }}
 
   <form method="GET" class="row g-3 mb-3">
     <div class="col-md-3">
-      <label class="form-label">من</label>
-      <input type="date" class="form-control" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
+      <label class="form-label"_(" _(" _(" _(" _(" _(">من</label>
+      <input type=")")")")")")"date" class="form-control" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
     </div>
     <div class="col-md-3">
-      <label class="form-label">إلى</label>
+      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إلى")")")")")")")') }}</label>
       <input type="date" class="form-control" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
     </div>
     <div class="col-md-2 d-flex align-items-end">
-      <button class="btn btn-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>عرض</button>
+      <button class="btn btn-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</button>
     </div>
   </form>
 
@@ -31,7 +31,7 @@
     <div class="col-md-3 mb-3">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <div class="text-muted">طلبات مكتملة</div>
+          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("طلبات مكتملة")")")")")")")') }}</div>
           <div class="h3 mb-0">{{ total_done_requests }}</div>
         </div>
       </div>
@@ -39,7 +39,7 @@
     <div class="col-md-3 mb-3">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <div class="text-muted">متوسط زمن الإنجاز (دقيقة)</div>
+          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("متوسط زمن الإنجاز (دقيقة)")")")")")")")') }}</div>
           <div class="h3 mb-0">{{ "%.1f"|format(avg_tat_minutes) }}</div>
         </div>
       </div>
@@ -47,7 +47,7 @@
     <div class="col-md-3 mb-3">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <div class="text-muted">نتائج معتمدة</div>
+          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("نتائج معتمدة")")")")")")")') }}</div>
           <div class="h3 mb-0">{{ total_validated_results }}</div>
         </div>
       </div>
@@ -55,7 +55,7 @@
     <div class="col-md-3 mb-3">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <div class="text-muted">نتائج حرجة</div>
+          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("نتائج حرجة")")")")")")")') }}</div>
           <div class="h3 mb-0">{{ critical_validated_results }}</div>
           <div class="text-muted small">{{ "%.1f"|format(critical_ratio * 100) }}%</div>
         </div>
@@ -66,7 +66,7 @@
   <div class="row mb-4">
     <div class="col-md-6 mb-3">
       <div class="card shadow">
-        <div class="card-header">ضبط الجودة</div>
+        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("ضبط الجودة")")")")")")")') }}</div>
         <div class="card-body">
           <div>إجمالي السجلات: {{ qc_total_count }}</div>
           <div>فشل: {{ qc_fail_count }}</div>
@@ -75,15 +75,15 @@
     </div>
     <div class="col-md-6 mb-3">
       <div class="card shadow">
-        <div class="card-header">إعادة الفحوصات (Top)</div>
+        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("إعادة الفحوصات (Top)")")")")")")")') }}</div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-sm table-striped align-middle">
               <thead>
                 <tr>
-                  <th>المريض</th>
-                  <th>كود</th>
-                  <th>عدد</th>
+                  <th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th>
+                  <th>{{ _('_("_(" _(" _(" _(" _(" _("كود")")")")")")")') }}</th>
+                  <th>{{ _('_("_(" _(" _(" _(" _(" _("عدد")")")")")")")') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -94,7 +94,7 @@
                     <td>{{ r.count }}</td>
                   </tr>
                 {% else %}
-                  <tr><td colspan="3" class="text-center text-muted">لا بيانات</td></tr>
+                  <tr><td colspan="3" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا بيانات")")")")")")")') }}</td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -105,15 +105,15 @@
   </div>
 
   <div class="card shadow">
-    <div class="card-header">زمن الإنجاز حسب كود التحليل (Top)</div>
+    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("زمن الإنجاز حسب كود التحليل (Top)")")")")")")")') }}</div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-striped align-middle">
           <thead>
             <tr>
-              <th>الكود</th>
-              <th class="w-220">متوسط الدقائق</th>
-              <th class="w-140">عدد الطلبات</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("الكود")")")")")")")') }}</th>
+              <th class="w-220">{{ _('_("_(" _(" _(" _(" _(" _("متوسط الدقائق")")")")")")")') }}</th>
+              <th class="w-140">{{ _('_("_(" _(" _(" _(" _(" _("عدد الطلبات")")")")")")")') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -124,7 +124,7 @@
                 <td>{{ r.requests_count }}</td>
               </tr>
             {% else %}
-              <tr><td colspan="3" class="text-center text-muted">لا بيانات</td></tr>
+              <tr><td colspan="3" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا بيانات")")")")")")")') }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

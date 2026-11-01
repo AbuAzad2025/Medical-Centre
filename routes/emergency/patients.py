@@ -19,9 +19,7 @@ from routes.emergency import emergency_bp
 from services.emergency_service import emergency_service
 from utils.decorators import role_required
 
-# =============================================
 # PATIENTS ROUTES
-# =============================================
 
 
 @emergency_bp.route('/patient-details/<int:emergency_id>')

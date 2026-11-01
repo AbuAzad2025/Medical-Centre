@@ -61,7 +61,7 @@ def get_model_columns():
         return columns_info
 
 
-def parse_template_forms(template_path: Path) -> list[dict]:
+def parse_template_forms(template_path: Path) -> list[dict[str, object]]:
     content = template_path.read_text(encoding='utf-8', errors='ignore')
     forms = []
 
@@ -72,7 +72,7 @@ def parse_template_forms(template_path: Path) -> list[dict]:
         method_match = re.search(r'method=[\'"](GET|POST)[\'"]', form_html, re.IGNORECASE)
         method = method_match.group(1).upper() if method_match else 'GET'
 
-        fields = []
+        fields: list[dict[str, object]] = []
 
         for inp in re.finditer(r'<input[^>]*>', form_html, re.IGNORECASE):
             tag = inp.group(0)

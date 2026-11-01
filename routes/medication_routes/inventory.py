@@ -15,9 +15,7 @@ from routes.medication_routes import _generate_supply_request_number, medication
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
-# =============================================
 # INVENTORY ROUTES
-# =============================================
 
 
 @medication_bp.route('/stock-alerts')

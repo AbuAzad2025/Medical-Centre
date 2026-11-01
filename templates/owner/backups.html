@@ -5,10 +5,10 @@
 {% block header_actions %}
 <div class="d-flex gap-2">
     <button class="owner-btn owner-btn-primary">
-        <i class="fas fa-cloud-upload-alt"></i> إنشاء نسخة الآن
+        <i class="fas fa-cloud-upload-alt"></i> {{ _('_("_(" _(" _(" _(" _(" _("إنشاء نسخة الآن")")")")")")")') }}
     </button>
     <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
-        <i class="fas fa-arrow-right"></i> العودة
+        <i class="fas fa-arrow-right"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}
     </a>
 </div>
 {% endblock %}
@@ -20,28 +20,28 @@
         <div class="owner-kpi owner-kpi-info">
             <div class="owner-kpi-icon"><i class="fas fa-archive"></i></div>
             <div class="owner-kpi-value">{{ stats.total }}</div>
-            <div class="owner-kpi-label">إجمالي النسخ</div>
+            <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي النسخ")")")")")")")') }}</div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6 animate-fadeInUp delay-2">
         <div class="owner-kpi owner-kpi-success">
             <div class="owner-kpi-icon"><i class="fas fa-check-circle"></i></div>
             <div class="owner-kpi-value">{{ stats.completed }}</div>
-            <div class="owner-kpi-label">مكتملة</div>
+            <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("مكتملة")")")")")")")') }}</div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6 animate-fadeInUp delay-3">
         <div class="owner-kpi owner-kpi-danger">
             <div class="owner-kpi-icon"><i class="fas fa-exclamation-triangle"></i></div>
             <div class="owner-kpi-value">{{ stats.failed }}</div>
-            <div class="owner-kpi-label">فاشلة</div>
+            <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("فاشلة")")")")")")")') }}</div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6 animate-fadeInUp delay-4">
         <div class="owner-kpi owner-kpi-warning">
             <div class="owner-kpi-icon"><i class="fas fa-hourglass-half"></i></div>
             <div class="owner-kpi-value">{{ stats.pending }}</div>
-            <div class="owner-kpi-label">قيد التنفيذ</div>
+            <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")') }}</div>
         </div>
     </div>
 </div>
@@ -49,10 +49,10 @@
 <!-- Backup History Card -->
 <div class="owner-card animate-fadeInUp delay-5">
     <div class="owner-card-header">
-        <h6 class="owner-card-title"><i class="fas fa-history text-primary"></i> سجل عمليات النسخ الاحتياطي</h6>
+        <h6 class="owner-card-title"><i class="fas fa-history text-primary"></i> {{ _('_("_(" _(" _(" _(" _(" _("سجل عمليات النسخ الاحتياطي")")")")")")")') }}</h6>
         <div class="d-flex gap-2">
             <a href="{{ url_for('backup.list_backups') }}" class="owner-btn owner-btn-outline owner-btn-sm">
-                <i class="fas fa-tasks"></i> إدارة النسخ
+                <i class="fas fa-tasks"></i> {{ _('_("_(" _(" _(" _(" _(" _("إدارة النسخ")")")")")")")') }}
             </a>
         </div>
     </div>
@@ -61,11 +61,11 @@
             <thead>
                 <tr>
                     <th style="width: 5%">#</th>
-                    <th>الاسم</th>
-                    <th>النوع</th>
-                    <th>الحالة</th>
-                    <th>الحجم</th>
-                    <th>التاريخ</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحجم")")")")")")")') }}</th>
+                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -80,11 +80,11 @@
                     </td>
                     <td>
                         {% if b.backup_status == 'COMPLETED' %}
-                            <span class="owner-badge owner-badge-live">مكتمل</span>
+                            <span class="owner-badge owner-badge-live">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
                         {% elif b.backup_status == 'FAILED' %}
-                            <span class="owner-badge owner-badge-expired">فاشل</span>
+                            <span class="owner-badge owner-badge-expired">{{ _('_("_(" _(" _(" _(" _(" _("فاشل")")")")")")")') }}</span>
                         {% else %}
-                            <span class="owner-badge owner-badge-pending">قيد المعالجة</span>
+                            <span class="owner-badge owner-badge-pending">{{ _('_("_(" _(" _(" _(" _(" _("قيد المعالجة")")")")")")")') }}</span>
                         {% endif %}
                     </td>
                     <td>
@@ -98,8 +98,8 @@
                 <tr>
                     <td colspan="6" class="owner-empty py-5">
                         <i class="fas fa-database"></i>
-                        <h5>لا توجد نسخ احتياطية</h5>
-                        <p class="small text-muted">سيتم عرض جميع عمليات النسخ الاحتياطي هنا.</p>
+                        <h5>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد نسخ احتياطية")")")")")")")') }}</h5>
+                        <p class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("سيتم عرض جميع عمليات النسخ الاحتياطي هنا.")")")")")")")') }}</p>
                     </td>
                 </tr>
                 {% endfor %}

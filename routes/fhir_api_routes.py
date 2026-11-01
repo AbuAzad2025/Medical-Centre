@@ -47,28 +47,153 @@ def _log_fhir_access(
 @role_required('admin', 'manager', 'doctor')
 @handle_route_errors
 def fhir_patients():
-    patients = (
-        db.session.execute(tenant_filter(Patient).filter_by(status='ACTIVE').limit(100))
-        .scalars()
-        .all()
-    )
+    from utils.fhir_search import apply_fhir_pagination, apply_fhir_sort
+
+    name = request.args.get('name', '')
+    gender = request.args.get('gender', '')
+    birthdate = request.args.get('birthdate', '')
+
+    query = tenant_filter(Patient)
+    if name:
+        query = query.filter(Patient.full_name.ilike(f'%{name}%'))
+    if gender:
+        query = query.filter(Patient.gender.ilike(gender))
+    if birthdate:
+        query = query.filter(Patient.birth_date == birthdate)
+
+    total = query.count()
+    query = apply_fhir_sort(query, Patient, request.args.get('_sort'))
+    query, _count, _offset = apply_fhir_pagination(query, request)
+
+    patients = db.session.execute(query).scalars().all()
+
+    # _include support
+    include_params = request.args.getlist('_include')
+    revinclude_params = request.args.getlist('_revinclude')
+    entries = [
+        {
+            'resource': {
+                'resourceType': 'Patient',
+                'id': str(p.id),
+                'name': [{'text': p.full_name}],
+                'gender': p.gender.lower() if p.gender else 'unknown',
+                'birthDate': p.birth_date.isoformat() if p.birth_date else None,
+                'generalPractitioner': [{'reference': f'Practitioner/{p.doctor_id}'}]
+                if getattr(p, 'doctor_id', None)
+                else [],
+            },
+            'search': {'mode': 'match'},
+        }
+        for p in patients
+    ]
+
+    # _include: Patient:general-practitioner
+    if (
+        'Patient:general-practitioner' in include_params
+        or 'Patient:generalPractitioner' in include_params
+    ):
+        for p in patients:
+            if getattr(p, 'doctor_id', None):
+                from models.user import User
+
+                doc = db.session.get(User, p.doctor_id)
+                if doc:
+                    entries.append(
+                        {
+                            'resource': {
+                                'resourceType': 'Practitioner',
+                                'id': str(doc.id),
+                                'name': [{'text': doc.full_name}],
+                            },
+                            'search': {'mode': 'include'},
+                        }
+                    )
+
+    # _revinclude support
+    patient_ids = [p.id for p in patients]
+    if 'Observation:patient' in revinclude_params:
+        from sqlalchemy import select as _select
+
+        from models.lab_request import LabResult
+
+        lab_results = (
+            (
+                db.session.execute(
+                    _select(LabResult).filter(LabResult.patient_id.in_(patient_ids)).limit(200)
+                )
+                .scalars()
+                .all()
+            )
+            if patient_ids
+            else []
+        )
+        for lr in lab_results:
+            entries.append(
+                {
+                    'resource': {
+                        'resourceType': 'Observation',
+                        'id': f'lab-{lr.id}',
+                        'status': 'final',
+                        'code': {'text': lr.test_name},
+                        'subject': {'reference': f'Patient/{lr.patient_id}'},
+                        'valueString': lr.value,
+                    },
+                    'search': {'mode': 'include'},
+                }
+            )
+
+    if 'Condition:patient' in revinclude_params:
+        from sqlalchemy import select as _select
+
+        from models.medical_record import MedicalRecord
+
+        records = (
+            (
+                db.session.execute(
+                    _select(MedicalRecord)
+                    .filter(MedicalRecord.patient_id.in_(patient_ids))
+                    .limit(200)
+                )
+                .scalars()
+                .all()
+            )
+            if patient_ids
+            else []
+        )
+        for rec in records:
+            entries.append(
+                {
+                    'resource': {
+                        'resourceType': 'Condition',
+                        'id': str(rec.id),
+                        'clinicalStatus': {
+                            'coding': [
+                                {
+                                    'system': 'http://terminology.hl7.org/CodeSystem/condition-clinical',
+                                    'code': 'active',
+                                }
+                            ]
+                        },
+                        'code': {
+                            'text': getattr(rec, 'diagnosis', None)
+                            or getattr(rec, 'chief_complaint', 'Unknown')
+                        },
+                        'subject': {'reference': f'Patient/{rec.patient_id}'},
+                        'recordedDate': rec.created_at.isoformat() if rec.created_at else None,
+                    },
+                    'search': {'mode': 'include'},
+                }
+            )
+
     _log_fhir_access('SEARCH', 'Patient')
     return jsonify(
         {
             'resourceType': 'Bundle',
             'type': 'searchset',
-            'total': len(patients),
-            'entry': [
-                {
-                    'resource': {
-                        'resourceType': 'Patient',
-                        'id': str(p.id),
-                        'name': [{'text': p.full_name}],
-                        'gender': p.gender.lower() if p.gender else 'unknown',
-                        'birthDate': p.birth_date.isoformat() if p.birth_date else None,
-                    }
-                }
-                for p in patients
+            'total': total,
+            'entry': entries,
+            'link': [
+                {'relation': 'self', 'url': request.url},
             ],
         }
     )
@@ -164,7 +289,7 @@ def fhir_observations():
                     ],
                     'code': {'text': lr.test_name},
                     'subject': {'reference': f'Patient/{lr.patient_id}'},
-                    'valueString': lr.result_value,
+                    'valueString': lr.value,
                 }
             )
     _log_fhir_access('SEARCH', 'Observation')
@@ -174,5 +299,99 @@ def fhir_observations():
             'type': 'searchset',
             'total': len(results),
             'entry': [{'resource': r} for r in results],
+        }
+    )
+
+
+@fhir_bp.route('/Condition', methods=['GET'])
+@login_required
+@role_required('admin', 'manager', 'doctor')
+@handle_route_errors
+def fhir_conditions():
+    patient_id = request.args.get('patient', type=int)
+    conditions = []
+    if patient_id:
+        patient = get_tenant_record(Patient, patient_id)
+        if not patient:
+            abort(404)
+        # Get medical records as conditions
+        from models.medical_record import MedicalRecord
+
+        records = (
+            db.session.execute(select(MedicalRecord).filter_by(patient_id=patient_id).limit(50))
+            .scalars()
+            .all()
+        )
+        for rec in records:
+            conditions.append(
+                {
+                    'resourceType': 'Condition',
+                    'id': str(rec.id),
+                    'clinicalStatus': {
+                        'coding': [
+                            {
+                                'system': 'http://terminology.hl7.org/CodeSystem/condition-clinical',
+                                'code': 'active',
+                            }
+                        ]
+                    },
+                    'code': {
+                        'text': getattr(rec, 'diagnosis', None)
+                        or getattr(rec, 'chief_complaint', 'Unknown')
+                    },
+                    'subject': {'reference': f'Patient/{patient_id}'},
+                    'recordedDate': rec.created_at.isoformat() if rec.created_at else None,
+                }
+            )
+    _log_fhir_access('SEARCH', 'Condition')
+    return jsonify(
+        {
+            'resourceType': 'Bundle',
+            'type': 'searchset',
+            'total': len(conditions),
+            'entry': [{'resource': c} for c in conditions],
+        }
+    )
+
+
+@fhir_bp.route('/MedicationRequest', methods=['GET'])
+@login_required
+@role_required('admin', 'manager', 'doctor')
+@handle_route_errors
+def fhir_medication_requests():
+    patient_id = request.args.get('patient', type=int)
+    requests_list = []
+    if patient_id:
+        patient = get_tenant_record(Patient, patient_id)
+        if not patient:
+            abort(404)
+        from models.prescription import Prescription
+
+        prescriptions = (
+            db.session.execute(select(Prescription).filter_by(patient_id=patient_id).limit(50))
+            .scalars()
+            .all()
+        )
+        for rx in prescriptions:
+            requests_list.append(
+                {
+                    'resourceType': 'MedicationRequest',
+                    'id': str(rx.id),
+                    'status': 'active',
+                    'intent': 'order',
+                    'medicationCodeableConcept': {
+                        'text': getattr(rx, 'medication_name', 'Unknown')
+                    },
+                    'subject': {'reference': f'Patient/{patient_id}'},
+                    'authoredOn': rx.created_at.isoformat() if rx.created_at else None,
+                }
+            )
+    _log_fhir_access('SEARCH', 'MedicationRequest')
+    return jsonify(
+        {
+            'resourceType': 'Bundle',
+            'type': 'searchset',
+            'total': len(requests_list),
+            'entry': [{'resource': r} for r in requests_list],
         }
     )

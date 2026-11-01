@@ -6,51 +6,51 @@
 {% block doc_heading %}سند قبض{% endblock %}
 
 {% block doc_meta %}
-<span class="print-doc-meta__item"><strong>رقم السند:</strong> {{ visit.receipt_number or visit.id }}</span>
-<span class="print-doc-meta__item"><strong>التاريخ:</strong> {{ visit.created_at.strftime('%Y-%m-%d %H:%M') if visit.created_at else '—' }}</span>
-<span class="print-doc-meta__item"><strong>حالة الدفع:</strong> {{ visit.payment_status | enum_label('PaymentStatus') if visit.payment_status else '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _('رقم السند:') }}</strong> {{ visit.receipt_number or visit.id }}</span>
+<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ:")")")")")")")') }}</strong> {{ visit.created_at.strftime('%Y-%m-%d %H:%M') if visit.created_at else '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("حالة الدفع:")")")")")")")') }}</strong> {{ visit.payment_status | enum_label('PaymentStatus') if visit.payment_status else '—' }}</span>
 {% endblock %}
 
 {% block subject_strip %}
 <div class="print-subject-strip__grid">
-    <div class="print-subject-strip__item"><span>المريض</span><span>{{ visit.patient.full_name }}</span></div>
-    <div class="print-subject-strip__item"><span>الهوية</span><span>{{ visit.patient.national_id or '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>القسم</span><span>{{ visit.department.name_ar if visit.department else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>الطبيب</span><span>{{ visit.doctor.full_name if visit.doctor else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</span><span>{{ visit.patient.full_name }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الهوية")")")")")")")') }}</span><span>{{ visit.patient.national_id or '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</span><span>{{ visit.department.name_ar if visit.department else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</span><span>{{ visit.doctor.full_name if visit.doctor else '—' }}</span></div>
 </div>
 {% endblock %}
 
 {% block body %}
 <div class="print-section">
-    <h3 class="print-section__title">تفاصيل الزيارة</h3>
+    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل الزيارة")")")")")")")') }}</h3>
     <div class="print-subject-strip__grid">
-        <div class="print-subject-strip__item"><span>نوع الزيارة</span><span>
+        <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("نوع الزيارة")")")")")")")') }}</span><span>
             {% if visit.visit_type == 'FIRST' %}زيارة أولى
             {% elif visit.visit_type == 'FOLLOW_UP' %}مراجعة
             {% else %}{{ visit.visit_type or '—' }}{% endif %}
         </span></div>
-        <div class="print-subject-strip__item"><span>طوارئ</span><span>{{ 'نعم' if visit.is_emergency else 'لا' }}</span></div>
-        <div class="print-subject-strip__item"><span>طريقة الدفع</span><span>{{ visit.payment_method | enum_label('PaymentMethod') if visit.payment_method else '—' }}</span></div>
-        <div class="print-subject-strip__item"><span>التشخيص</span><span>{{ visit.diagnosis or '—' }}</span></div>
+        <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("طوارئ")")")")")")")') }}</span><span>{{ '_("_(" _(" _(" _(" _(" _("نعم")")")")")")")' if visit.is_emergency else '_("_(" _(" _(" _(" _(" _("لا")")")")")")")' }}</span></div>
+        <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("طريقة الدفع")")")")")")")') }}</span><span>{{ visit.payment_method | enum_label('PaymentMethod') if visit.payment_method else '—' }}</span></div>
+        <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("التشخيص")")")")")")")') }}</span><span>{{ visit.diagnosis or '—' }}</span></div>
     </div>
 </div>
 
 {% if queue_ticket %}
 <div class="print-section">
-    <h3 class="print-section__title">تفاصيل الطابور</h3>
+    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل الطابور")")")")")")")') }}</h3>
     <div class="print-subject-strip__grid">
-        <div class="print-subject-strip__item"><span>رقم الدور</span><span>{{ queue_ticket.queue_number }}</span></div>
-        <div class="print-subject-strip__item"><span>الحالة</span><span>{{ queue_ticket.get_status_display() }}</span></div>
+        <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("رقم الدور")")")")")")")') }}</span><span>{{ queue_ticket.queue_number }}</span></div>
+        <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</span><span>{{ queue_ticket.get_status_display() }}</span></div>
     </div>
 </div>
 {% endif %}
 
 <div class="print-section">
-    <h3 class="print-section__title">تفصيل التكلفة</h3>
-    <div class="print-total-row"><span>تكلفة الخدمة</span><span>{{ "%.2f"|format(service_cost if service_cost is not none else ((visit.total_amount * 7) / 10)) }} {{ visit.currency }}</span></div>
-    <div class="print-total-row"><span>رسوم الطبيب</span><span>{{ "%.2f"|format(doctor_fee if doctor_fee is not none else ((visit.total_amount * 3) / 10)) }} {{ visit.currency }}</span></div>
+    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("تفصيل التكلفة")")")")")")")') }}</h3>
+    <div class="print-total-row"><span>{{ _('_("_(" _(" _(" _(" _(" _("تكلفة الخدمة")")")")")")")') }}</span><span>{{ "%.2f"|format(service_cost if service_cost is not none else ((visit.total_amount * 7) / 10)) }} {{ visit.currency }}</span></div>
+    <div class="print-total-row"><span>{{ _('_("_(" _(" _(" _(" _(" _("رسوم الطبيب")")")")")")")') }}</span><span>{{ "%.2f"|format(doctor_fee if doctor_fee is not none else ((visit.total_amount * 3) / 10)) }} {{ visit.currency }}</span></div>
     {% if visit.visit_type == 'FOLLOW_UP' %}
-    <div class="print-total-row"><span>خصم المراجعة</span><span>-{{ "%.2f"|format(follow_up_discount if follow_up_discount is not none else ((visit.total_amount * 3) / 10)) }} {{ visit.currency }}</span></div>
+    <div class="print-total-row"><span>{{ _('_("_(" _(" _(" _(" _(" _("خصم المراجعة")")")")")")")') }}</span><span>-{{ "%.2f"|format(follow_up_discount if follow_up_discount is not none else ((visit.total_amount * 3) / 10)) }} {{ visit.currency }}</span></div>
     {% endif %}
     {% if visit.tax_amount and visit.tax_amount > 0 %}
     <div class="print-total-row"><span>ضريبة ({{ visit.tax_percent|int }}%)</span><span>{{ "%.2f"|format(visit.tax_amount) }} {{ visit.currency }}</span></div>
@@ -60,18 +60,18 @@
 
 {% block totals %}
 <div class="print-total-row print-total-row--final">
-    <span>المجموع الكلي</span>
+    <span>{{ _('_("_(" _(" _(" _(" _(" _("المجموع الكلي")")")")")")")') }}</span>
     <span>{{ "%.2f"|format(visit.total_amount) }} {{ visit.currency }}</span>
 </div>
-<div class="print-total-row"><span>المدفوع</span><span>{{ "%.2f"|format(visit.paid_amount or 0) }} {{ visit.currency }}</span></div>
-<div class="print-total-row"><span>المتبقي</span><span>{{ "%.2f"|format(visit.remaining_amount or (visit.total_amount - (visit.paid_amount or 0))) }} {{ visit.currency }}</span></div>
+<div class="print-total-row"><span>{{ _('_("_(" _(" _(" _(" _(" _("المدفوع")")")")")")")') }}</span><span>{{ "%.2f"|format(visit.paid_amount or 0) }} {{ visit.currency }}</span></div>
+<div class="print-total-row"><span>{{ _('_("_(" _(" _(" _(" _(" _("المتبقي")")")")")")")') }}</span><span>{{ "%.2f"|format(visit.remaining_amount or (visit.total_amount - (visit.paid_amount or 0))) }} {{ visit.currency }}</span></div>
 {% if last_payment %}
-<div class="print-total-row"><span>آخر دفعة</span><span>{{ "%.2f"|format(last_payment.amount or 0) }} {{ visit.currency }}</span></div>
+<div class="print-total-row"><span>{{ _('_("_(" _(" _(" _(" _(" _("آخر دفعة")")")")")")")') }}</span><span>{{ "%.2f"|format(last_payment.amount or 0) }} {{ visit.currency }}</span></div>
 {% endif %}
 {% endblock %}
 
 {% block legal_footer %}
-<p>شكراً لثقتكم في {{ branding.organization_name if branding else (ui.organization_name if ui else 'المركز') }}</p>
+<p>شكراً لثقتكم في {{ branding.organization_name if branding else (ui.organization_name if ui else '_("المركز")') }}</p>
 <p>تاريخ الطباعة: {{ printed_at.strftime('%Y-%m-%d %H:%M') if printed_at else '—' }}</p>
 {% endblock %}
 

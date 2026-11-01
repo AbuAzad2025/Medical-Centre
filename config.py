@@ -8,9 +8,7 @@ import os
 import re
 from datetime import timedelta
 
-# ============================================================
 # PII Redaction & Structured Logging
-# ============================================================
 PII_PATTERNS = [
     (re.compile(r'\b\d{3}-\d{2}-\d{4}\b'), '[SSN]'),  # US SSN
     (re.compile(r'\b\d{14}\b'), '[NATIONAL_ID]'),  # 14-digit national ID
@@ -161,9 +159,7 @@ class JsonFormatter(logging.Formatter):
         return self.json.dumps(log_obj, ensure_ascii=False)
 
 
-# ============================================================
 # Configuration Classes
-# ============================================================
 
 
 class Config:
@@ -180,11 +176,11 @@ class Config:
     # إعدادات PostgreSQL — مع مهلة بيان لمنع الاستعلامات العالقة (DoS)
     _stmt_timeout_ms = int(os.environ.get('DB_STATEMENT_TIMEOUT_MS', '30000'))  # 30s افتراضي
     SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': 10,
+        'pool_size': int(os.environ.get('DB_POOL_SIZE', '20')),
         'pool_pre_ping': True,
-        'pool_recycle': 300,
-        'pool_timeout': 20,
-        'max_overflow': 20,
+        'pool_recycle': int(os.environ.get('DB_POOL_RECYCLE', '300')),
+        'pool_timeout': int(os.environ.get('DB_POOL_TIMEOUT', '30')),
+        'max_overflow': int(os.environ.get('DB_POOL_MAX_OVERFLOW', '40')),
         'echo': False,
         'connect_args': {
             'options': f'-c statement_timeout={_stmt_timeout_ms}',

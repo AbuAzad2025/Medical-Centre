@@ -1,0 +1,28 @@
+
+=== templates/base_landing.html ===
+  <title>{% block title %}AZAD Medical — منصة أزاد الطبية{% endblock %}</title>
+
+=== templates/dashboards/_hero.html ===
+  <h1 class="cc-hero__title">مرحباً، {{ hero.greeting_name }}</h1>
+  <i class="fas fa-sun me-1"></i> الوردية: {{ hero.shift_label }}
+
+=== templates/dashboards/_quick_actions.html ===
+  <section class="cc-quick-actions" aria-label="إجراءات سريعة">
+
+=== templates/layouts/kiosk_shell.html ===
+  <title>{% block title %}كشك{% endblock %} — {{ ui.organization_name if ui else 'المركز الصحي المتخصص' }}</title>
+
+=== templates/partials/_flash.html ===
+  <button type="button" class="flash-dismiss" aria-label="إغلاق" onclick="this.parentElement.remove()">
+
+=== templates/partials/_mobile_bottom_nav.html ===
+  <nav class="mobile-bottom-nav d-lg-none" aria-label="تنقل سريع" role="navigation">
+
+=== templates/partials/_patient_context_bar.html ===
+  {% if patient.national_id %}<span class="me-2">هوية: {{ patient.national_id }}</span>{% endif %}
+  {% if patient.phone %}<span class="me-2">هاتف: {{ patient.phone }}</span>{% endif %}
+  {% if patient.birth_date and patient.age is defined %}<span>عمر: {{ patient.age }}</span>{% endif %}
+  <span class="badge bg-light text-dark border">زيارة #{{ visit.visit_number or visit.id }}</span>
+
+=== templates/print/_print_platform_stamp.html ===
+  <span class="print-platform-stamp__copyright">© {{ pc.copyright_year }} جميع الحقوق محفوظة</span>

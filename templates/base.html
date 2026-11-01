@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ current_locale }}" dir="{{ 'rtl' if current_locale == 'ar' else 'ltr' }}">
 <head>
         <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -7,16 +7,16 @@
     <meta name="theme-color" content="#0f4c81">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="{{ ui.organization_name if ui else 'المركز الصحي المتخصص' }}">
+    <meta name="apple-mobile-web-app-title" content="{{ ui.organization_name if ui else '_("_(" _(" _(" _(" _(" _("المركز الصحي المتخصص")")")")")")")' }}">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="{{ url_for('pwa.manifest') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icon-192x192.png') }}">
     
-    <title>{% block title %}{{ branding.organization_name if branding else 'المركز الصحي المتخصص' }} - نظام إدارة متطور{% endblock %}</title>
+    <title>{% block title %}{{ branding.organization_name if branding else '_("_(" _(" _(" _(" _(" _("المركز الصحي المتخصص")")")")")")")' }} - نظام إدارة متطور{% endblock %}</title>
     
-    <meta name="description" content="نظام إدارة {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }} - حلول طبية متطورة وذكية">
-    <meta name="keywords" content="نظام طبي, إدارة مستشفى, مركز صحي, نظام ذكي">
-    <meta name="author" content="{{ developer_company or 'شركة آزاد للأنظمة الذكية' }}">
+    <meta name="description" content="نظام إدارة {{ branding.organization_name if branding else '_("المركز الصحي المتخصص"_(" _(" _(" _(" _(" _(")\\\\\\' }} - حلول طبية متطورة وذكية")")")")")")">
+    <meta name="keywords" content="_(" _(" _(" _(" _(" _("نظام طبي, إدارة مستشفى, مركز صحي, نظام ذكي")")")")")")">
+    <meta name="author" content="{{ developer_company or '_("_(" _(" _(" _(" _(" _("شركة آزاد للأنظمة الذكية")")")")")")")' }}">
     <meta name="robots" content="index, follow">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
@@ -57,7 +57,7 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body class="clinical-theme{% if current_user.is_authenticated %} has-mobile-nav{% endif %}">
-    <a href="#mainContent" class="skip-link" tabindex="0">الانتقال للمحتوى الرئيسي</a>
+    <a href="#mainContent" class="skip-link" tabindex="0">{{ _('_("_(" _(" _(" _(" _(" _("الانتقال للمحتوى الرئيسي")")")")")")")') }}</a>
     <!-- Mobile Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     {% include 'partials/_navbar.html' %}
@@ -66,9 +66,9 @@
     {% if session.get('impersonator_id') %}
     <div class="alert alert-warning text-center mb-0 rounded-0 py-2 impersonation-alert">
         <i class="fas fa-mask me-1"></i>
-        وضع انتحال الشخصية — أنت تتصفح كـ <strong>{{ current_user.full_name }}</strong>
+        {{ _('_("_(" _(" _(" _(" _(" _("وضع انتحال الشخصية — أنت تتصفح كـ")")")")")")")') }} <strong>{{ current_user.full_name }}</strong>
         <button class="btn btn-sm btn-outline-dark me-2" onclick="exitImpersonation()">
-            <i class="fas fa-undo me-1"></i>العودة لحساب المالك
+            <i class="fas fa-undo me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("العودة لحساب المالك")")")")")")")') }}
         </button>
     </div>
     {% endif %}

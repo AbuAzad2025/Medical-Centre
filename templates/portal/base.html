@@ -25,18 +25,18 @@
   {% block extra_css %}{% endblock %}
 </head>
 <body class="clinical-theme portal-theme" data-bs-theme="light">
-    <a href="#portalMainContent" class="skip-link" tabindex="0">الانتقال للمحتوى الرئيسي</a>
-<nav class="portal-navbar d-flex justify-content-between align-items-center" role="navigation" aria-label="شريط التنقل الرئيسي">
-  <a href="{{ url_for('portal.dashboard') }}" class="d-flex align-items-center gap-2" aria-label="الرئيسية">
+    <a href="#portalMainContent" class="skip-link" tabindex="0">{{ _('_("_(" _(" _(" _(" _(" _("الانتقال للمحتوى الرئيسي")")")")")")")') }}</a>
+<nav class="portal-navbar d-flex justify-content-between align-items-center" role="navigation" aria-label="_(" _(" _(" _(" _(" _("شريط التنقل الرئيسي")")")")")")">
+  <a href="{{ url_for('portal.dashboard') }}" class="d-flex align-items-center gap-2" aria-label="_(" _(" _(" _(" _(" _("الرئيسية")")")")")")">
     {% if ui and ui.logo_url %}
     <img src="{{ ui.logo_url }}" alt="" class="portal-logo" loading="lazy">
     {% endif %}
     <strong>{{ ui.organization_name if ui else 'Azad Medical' }}</strong>
-    <span class="opacity-75 small d-none d-md-inline">— بوابة المريض</span>
+    <span class="opacity-75 small d-none d-md-inline">{{ _('_("_(" _(" _(" _(" _(" _("— بوابة المريض")")")")")")")') }}</span>
   </a>
   <div class="d-flex gap-3 align-items-center">
     <span class="small d-none d-md-inline">{{ current_user.full_name }}</span>
-    <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-light" aria-label="تسجيل الخروج">
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-light" aria-label="_(" _(" _(" _(" _(" _("تسجيل الخروج")")")")")")">
       <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
     </a>
   </div>
@@ -45,20 +45,20 @@
 <div class="container-fluid portal-layout">
   <div class="row g-0">
     <div class="col-lg-2 portal-sidebar py-3 d-none d-lg-block">
-      <nav class="nav flex-column" aria-label="تنقل المريض">
-        <a class="nav-link {% if request.endpoint == 'portal.dashboard' %}active{% endif %}" href="{{ url_for('portal.dashboard') }}" {% if request.endpoint == 'portal.dashboard' %}aria-current="page"{% endif %}><i class="fas fa-home me-2" aria-hidden="true"></i>الرئيسية</a>
-        <a class="nav-link {% if request.endpoint == 'portal.appointments' %}active{% endif %}" href="{{ url_for('portal.appointments') }}" {% if request.endpoint == 'portal.appointments' %}aria-current="page"{% endif %}><i class="fas fa-calendar me-2" aria-hidden="true"></i>المواعيد</a>
-        <a class="nav-link {% if request.endpoint == 'portal.medical_records' %}active{% endif %}" href="{{ url_for('portal.medical_records') }}" {% if request.endpoint == 'portal.medical_records' %}aria-current="page"{% endif %}><i class="fas fa-file-medical me-2" aria-hidden="true"></i>السجل الطبي</a>
-        <a class="nav-link {% if request.endpoint == 'portal.prescriptions' %}active{% endif %}" href="{{ url_for('portal.prescriptions') }}" {% if request.endpoint == 'portal.prescriptions' %}aria-current="page"{% endif %}><i class="fas fa-pills me-2" aria-hidden="true"></i>الوصفات</a>
-        <a class="nav-link {% if request.endpoint == 'portal.lab_results' %}active{% endif %}" href="{{ url_for('portal.lab_results') }}" {% if request.endpoint == 'portal.lab_results' %}aria-current="page"{% endif %}><i class="fas fa-flask me-2" aria-hidden="true"></i>المختبر</a>
-        <a class="nav-link {% if request.endpoint == 'portal.radiology_results' %}active{% endif %}" href="{{ url_for('portal.radiology_results') }}" {% if request.endpoint == 'portal.radiology_results' %}aria-current="page"{% endif %}><i class="fas fa-x-ray me-2" aria-hidden="true"></i>الأشعة</a>
-        <a class="nav-link {% if request.endpoint == 'portal.bills' %}active{% endif %}" href="{{ url_for('portal.bills') }}" {% if request.endpoint == 'portal.bills' %}aria-current="page"{% endif %}><i class="fas fa-file-invoice me-2" aria-hidden="true"></i>الفواتير</a>
-        <a class="nav-link {% if request.endpoint == 'portal.documents' %}active{% endif %}" href="{{ url_for('portal.documents') }}" {% if request.endpoint == 'portal.documents' %}aria-current="page"{% endif %}><i class="fas fa-folder me-2" aria-hidden="true"></i>الوثائق</a>
-        <a class="nav-link {% if request.endpoint == 'portal.vaccinations' %}active{% endif %}" href="{{ url_for('portal.vaccinations') }}" {% if request.endpoint == 'portal.vaccinations' %}aria-current="page"{% endif %}><i class="fas fa-syringe me-2" aria-hidden="true"></i>التطعيمات</a>
-        <a class="nav-link {% if request.endpoint == 'portal.settings' %}active{% endif %}" href="{{ url_for('portal.settings') }}" {% if request.endpoint == 'portal.settings' %}aria-current="page"{% endif %}><i class="fas fa-cog me-2" aria-hidden="true"></i>الإعدادات</a>
-        <a class="nav-link {% if request.endpoint == 'portal.feedback' %}active{% endif %}" href="{{ url_for('portal.feedback') }}" {% if request.endpoint == 'portal.feedback' %}aria-current="page"{% endif %}><i class="fas fa-star me-2" aria-hidden="true"></i>التقييم</a>
+      <nav class="nav flex-column" aria-label="_(" _(" _(" _(" _(" _("تنقل المريض")")")")")")">
+        <a class="nav-link {% if request.endpoint == 'portal.dashboard' %}active{% endif %}" href="{{ url_for('portal.dashboard') }}" {% if request.endpoint == 'portal.dashboard' %}aria-current="page"{% endif %}><i class="fas fa-home me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("الرئيسية")")")")")")")') }}</a>
+        <a class="nav-link {% if request.endpoint == 'portal.appointments' %}active{% endif %}" href="{{ url_for('portal.appointments') }}" {% if request.endpoint == 'portal.appointments' %}aria-current="page"{% endif %}><i class="fas fa-calendar me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("المواعيد")")")")")")")') }}</a>
+        <a class="nav-link {% if request.endpoint == 'portal.medical_records' %}active{% endif %}" href="{{ url_for('portal.medical_records') }}" {% if request.endpoint == 'portal.medical_records' %}aria-current="page"{% endif %}><i class="fas fa-file-medical me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("السجل الطبي")")")")")")")') }}</a>
+        <a class="nav-link {% if request.endpoint == 'portal.prescriptions' %}active{% endif %}" href="{{ url_for('portal.prescriptions') }}" {% if request.endpoint == 'portal.prescriptions' %}aria-current="page"{% endif %}><i class="fas fa-pills me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("الوصفات")")")")")")")') }}</a>
+        <a class="nav-link {% if request.endpoint == 'portal.lab_results' %}active{% endif %}" href="{{ url_for('portal.lab_results') }}" {% if request.endpoint == 'portal.lab_results' %}aria-current="page"{% endif %}><i class="fas fa-flask me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("المختبر")")")")")")")') }}</a>
+        <a class="nav-link {% if request.endpoint == 'portal.radiology_results' %}active{% endif %}" href="{{ url_for('portal.radiology_results') }}" {% if request.endpoint == 'portal.radiology_results' %}aria-current="page"{% endif %}><i class="fas fa-x-ray me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("الأشعة")")")")")")")') }}</a>
+        <a class="nav-link {% if request.endpoint == 'portal.bills' %}active{% endif %}" href="{{ url_for('portal.bills') }}" {% if request.endpoint == 'portal.bills' %}aria-current="page"{% endif %}><i class="fas fa-file-invoice me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("الفواتير")")")")")")")') }}</a>
+        <a class="nav-link {% if request.endpoint == 'portal.documents' %}active{% endif %}" href="{{ url_for('portal.documents') }}" {% if request.endpoint == 'portal.documents' %}aria-current="page"{% endif %}><i class="fas fa-folder me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("الوثائق")")")")")")")') }}</a>
+        <a class="nav-link {% if request.endpoint == 'portal.vaccinations' %}active{% endif %}" href="{{ url_for('portal.vaccinations') }}" {% if request.endpoint == 'portal.vaccinations' %}aria-current="page"{% endif %}><i class="fas fa-syringe me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("التطعيمات")")")")")")")') }}</a>
+        <a class="nav-link {% if request.endpoint == 'portal.settings' %}active{% endif %}" href="{{ url_for('portal.settings') }}" {% if request.endpoint == 'portal.settings' %}aria-current="page"{% endif %}><i class="fas fa-cog me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("الإعدادات")")")")")")")') }}</a>
+        <a class="nav-link {% if request.endpoint == 'portal.feedback' %}active{% endif %}" href="{{ url_for('portal.feedback') }}" {% if request.endpoint == 'portal.feedback' %}aria-current="page"{% endif %}><i class="fas fa-star me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("التقييم")")")")")")")') }}</a>
         <hr class="my-2 mx-2">
-        <a class="nav-link" href="{{ url_for('booking.index') }}"><i class="fas fa-calendar-plus me-2" aria-hidden="true"></i>حجز موعد</a>
+        <a class="nav-link" href="{{ url_for('booking.index') }}"><i class="fas fa-calendar-plus me-2" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("حجز موعد")")")")")")")') }}</a>
       </nav>
     </div>
     <div class="col-lg-10 portal-main py-4 px-3">
@@ -70,16 +70,16 @@
   </div>
 </div>
 
-<nav class="portal-bottom-nav" aria-label="تنقل سريع" role="navigation">
-  <a href="{{ url_for('portal.dashboard') }}" class="{% if request.endpoint == 'portal.dashboard' %}active{% endif %}" {% if request.endpoint == 'portal.dashboard' %}aria-current="page"{% endif %}><i class="fas fa-home" aria-hidden="true"></i>الرئيسية</a>
-  <a href="{{ url_for('portal.appointments') }}" class="{% if request.endpoint == 'portal.appointments' %}active{% endif %}" {% if request.endpoint == 'portal.appointments' %}aria-current="page"{% endif %}><i class="fas fa-calendar" aria-hidden="true"></i>مواعيد</a>
-  <a href="{{ url_for('portal.lab_results') }}" class="{% if request.endpoint == 'portal.lab_results' %}active{% endif %}" {% if request.endpoint == 'portal.lab_results' %}aria-current="page"{% endif %}><i class="fas fa-flask" aria-hidden="true"></i>مختبر</a>
-  <a href="{{ url_for('portal.bills') }}" class="{% if request.endpoint == 'portal.bills' %}active{% endif %}" {% if request.endpoint == 'portal.bills' %}aria-current="page"{% endif %}><i class="fas fa-file-invoice" aria-hidden="true"></i>فواتير</a>
-  <a href="{{ url_for('portal.settings') }}" class="{% if request.endpoint == 'portal.settings' %}active{% endif %}" {% if request.endpoint == 'portal.settings' %}aria-current="page"{% endif %}><i class="fas fa-cog" aria-hidden="true"></i>إعدادات</a>
+<nav class="portal-bottom-nav" aria-label="_(" _(" _(" _(" _(" _("تنقل سريع")")")")")")" role="navigation">
+  <a href="{{ url_for('portal.dashboard') }}" class="{% if request.endpoint == 'portal.dashboard' %}active{% endif %}" {% if request.endpoint == 'portal.dashboard' %}aria-current="page"{% endif %}><i class="fas fa-home" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("الرئيسية")")")")")")")') }}</a>
+  <a href="{{ url_for('portal.appointments') }}" class="{% if request.endpoint == 'portal.appointments' %}active{% endif %}" {% if request.endpoint == 'portal.appointments' %}aria-current="page"{% endif %}><i class="fas fa-calendar" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("مواعيد")")")")")")")') }}</a>
+  <a href="{{ url_for('portal.lab_results') }}" class="{% if request.endpoint == 'portal.lab_results' %}active{% endif %}" {% if request.endpoint == 'portal.lab_results' %}aria-current="page"{% endif %}><i class="fas fa-flask" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("مختبر")")")")")")")') }}</a>
+  <a href="{{ url_for('portal.bills') }}" class="{% if request.endpoint == 'portal.bills' %}active{% endif %}" {% if request.endpoint == 'portal.bills' %}aria-current="page"{% endif %}><i class="fas fa-file-invoice" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("فواتير")")")")")")")') }}</a>
+  <a href="{{ url_for('portal.settings') }}" class="{% if request.endpoint == 'portal.settings' %}active{% endif %}" {% if request.endpoint == 'portal.settings' %}aria-current="page"{% endif %}><i class="fas fa-cog" aria-hidden="true"></i>{{ _('_("_(" _(" _(" _(" _(" _("إعدادات")")")")")")")') }}</a>
 </nav>
 
 <footer class="portal-footer text-center py-3 mt-2" role="contentinfo">
-  <strong>{{ developer_company or 'شركة آزاد للأنظمة الذكية' }}</strong>
+  <strong>{{ developer_company or '_("_(" _(" _(" _(" _(" _("شركة آزاد للأنظمة الذكية")")")")")")")' }}</strong>
   {% if developer_name %}<span class="mx-2">|</span><span>{{ developer_name }}</span>{% endif %}
   <br>
   <small>

@@ -1,0 +1,653 @@
+/* ============================================================
+   Medical Platform Professional Design System v4.0
+   Clean, Modern, Professional Clinical Interface
+   ============================================================ */
+
+/* Design Philosophy:
+   - Professional medical blue palette
+   - Clean whitespace
+   - Consistent component library
+   - RTL native
+   - Dark mode ready
+   - Responsive at all breakpoints
+*/
+
+:root {
+  /* Professional Medical Palette */
+  --med-primary: #0f4c81;
+  --med-primary-deep: #0a3a5c;
+  --med-primary-light: #e8f0fa;
+  --med-cyan: #0ea5e9;
+  --med-teal: #0891b2;
+  --med-green: #059669;
+  --med-green-light: #ecfdf5;
+  --med-red: #e11d48;
+  --med-red-light: #fff1f2;
+  --med-amber: #f59e0b;
+  --med-amber-light: #fffbeb;
+  --med-slate: #1e293b;
+  --med-slate-deep: #0f172a;
+
+  /* Surface */
+  --surface-bg: #f8fafc;
+  --surface-card: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-hover: #f1f5f9;
+
+  /* Text */
+  --text-main: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --text-inverse: #ffffff;
+
+  /* Borders */
+  --border-subtle: #e2e8f0;
+  --border-default: #cbd5e1;
+  --border-hover: #94a3b8;
+  --border-active: #0f4c81;
+
+  /* Shadows - Professional depth */
+  --shadow-xs: 0 1px 2px rgb(15 76 129 / 0.04);
+  --shadow-sm: 0 1px 3px rgb(15 76 129 / 0.06), 0 1px 2px rgb(15 76 129 / 0.04);
+  --shadow-md: 0 4px 12px rgb(15 76 129 / 0.08), 0 2px 4px rgb(15 76 129 / 0.04);
+  --shadow-lg: 0 12px 32px rgb(15 76 129 / 0.12), 0 4px 8px rgb(15 76 129 / 0.06);
+  --shadow-xl: 0 25px 50px -12px rgb(15 76 129 / 0.15);
+
+  /* Radius */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 50px;
+
+  /* Spacing Scale */
+  --space-0: 0;
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.5rem;   /* 24px */
+  --space-6: 2rem;     /* 32px */
+  --space-8: 3rem;     /* 48px */
+  --space-10: 4rem;    /* 64px */
+
+  /* Typography */
+  --font-sans: 'Cairo', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Tajawal', 'Cairo', sans-serif;
+  --font-display: 'Changa', 'Cairo', sans-serif;
+  --font-code: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Transitions */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 250ms ease-out;
+  --transition-slow: 350ms ease-out;
+}
+
+/* ============================================================
+   DARK MODE (optional toggle)
+   ============================================================ */
+[data-theme="dark"] {
+  --surface-bg: #0b1120;
+  --surface-card: #0f172a;
+  --surface-elevated: #111827;
+  --surface-hover: #1e293b;
+  --text-main: #f0f4f8;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  --text-subtle: #475569;
+  --text-inverse: #0f172a;
+  --border-subtle: #1e293b;
+  --border-default: #334155;
+  --border-hover: #475569;
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5);
+}
+
+/* ============================================================
+   GLOBAL RESET & BASE
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-main);
+  background: var(--surface-bg);
+  min-height: 100vh;
+}
+
+/* ============================================================
+   NAVBAR — Professional Clinical Navbar
+   ============================================================ */
+
+.clinical-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1040;
+  height: 68px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-xs);
+  padding: 0 1.25rem;
+}
+
+[data-theme="dark"] .clinical-navbar {
+  background: rgba(15, 23, 42, 0.92);
+  border-bottom-color: var(--border-subtle);
+}
+
+/* Brand */
+.clinical-navbar .navbar-brand {
+  gap: 0.625rem;
+  text-decoration: none;
+}
+
+.clinical-navbar .brand-text {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+/* Search Bar */
+.global-search-form .form-control {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  color: var(--text-main);
+  font-size: 0.875rem;
+  border-radius: 50px 0 0 50px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.global-search-form .form-control:focus {
+  border-color: var(--med-primary);
+  box-shadow: 0 0 0 3px rgb(15 76 129 / 0.1);
+}
+
+/* Language Switcher */
+.dropdown-toggle {
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all var(--transition-fast);
+}
+
+.dropdown-toggle:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-default);
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem 0;
+  background: var(--surface-card);
+}
+
+.dropdown-item {
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  margin: 0 0.25rem;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.dropdown-item:hover {
+  background: var(--med-primary-light);
+  color: var(--med-primary);
+}
+
+.dropdown-item.active {
+  background: var(--med-primary-light);
+  color: var(--med-primary);
+  font-weight: 600;
+}
+
+/* Buttons */
+.btn-light {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  color: var(--text-main) !important;
+  border-radius: 8px !important;
+  transition: all var(--transition-fast) !important;
+}
+
+.btn-light:hover {
+  background: var(--surface-hover) !important;
+  border-color: var(--border-default) !important;
+}
+
+/* Clock Widget */
+.clock-widget {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   SIDEBAR — Professional Clinical Sidebar
+   ============================================================ */
+
+#appSidebar {
+  position: fixed;
+  top: 68px; /* Below navbar */
+  left: 0;
+  bottom: 0;
+  width: 260px;
+  z-index: 1030;
+  background: var(--surface-card);
+  border-right: 1px solid var(--border-subtle);
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: width var(--transition-normal), transform var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+#appSidebar::-webkit-scrollbar { width: 4px; }
+#appSidebar::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 4px; }
+
+/* Sidebar Header (Mobile only) */
+#appSidebar > .sidebar-header {
+  display: none; /* Hidden by default, shown on mobile */
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+}
+
+#closeSidebarBtn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0.25rem;
+  border-radius: 6px;
+  transition: background var(--transition-fast);
+}
+
+#closeSidebarBtn:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+/* Sidebar Nav */
+#appSidebar nav {
+  padding: 0.5rem;
+}
+
+#appSidebar .nav-section-title {
+  padding: 0.75rem 1rem 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+#appSidebar .nav-item {
+  margin-bottom: 0.15rem;
+}
+
+#appSidebar .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+#appSidebar .nav-link:hover {
+  background: var(--surface-hover);
+  color: var(--med-primary);
+}
+
+#appSidebar .nav-link.active {
+  background: var(--med-primary-light);
+  color: var(--med-primary);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--med-primary);
+}
+
+#appSidebar .nav-link .nav-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--surface-bg);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+#appSidebar .nav-link:hover .nav-icon,
+#appSidebar .nav-link.active .nav-icon {
+  background: var(--med-primary);
+  color: #fff;
+}
+
+/* ============================================================
+   NOTIFICATIONS
+   ============================================================ */
+
+#notificationDropdown .dropdown-menu {
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+#notificationDropdown .dropdown-header {
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+footer {
+  background: var(--surface-card);
+  border-top: 1px solid var(--border-subtle);
+  padding: 2rem 0;
+  margin-top: 3rem;
+  color: var(--text-secondary);
+}
+
+/* ============================================================
+   BUTTONS — Professional Medical Button System
+   ============================================================ */
+
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* Button variants */
+.btn-primary {
+  background: var(--med-primary);
+  color: #fff;
+  border-color: var(--med-primary);
+}
+
+.btn-primary:hover {
+  background: var(--med-primary-deep);
+  border-color: var(--med-primary-deep);
+  color: #fff;
+}
+
+.btn-outline-primary {
+  color: var(--med-primary);
+  border-color: var(--med-primary);
+  background: transparent;
+}
+
+.btn-outline-primary:hover {
+  background: var(--med-primary);
+  color: #fff;
+}
+
+.btn-success {
+  background: var(--med-green);
+  color: #fff;
+  border-color: var(--med-green);
+}
+
+.btn-danger {
+  background: var(--med-red);
+  color: #fff;
+  border-color: var(--med-red);
+}
+
+.btn-outline-success {
+  color: var(--med-green);
+  border-color: var(--med-green);
+  background: transparent;
+}
+
+.btn-outline-success:hover {
+  background: var(--med-green);
+  color: #fff;
+}
+
+.btn-outline-danger {
+  color: var(--med-red);
+  border-color: var(--med-red);
+  background: transparent;
+}
+
+.btn-outline-danger:hover {
+  background: var(--med-red);
+  color: #fff;
+}
+
+.btn-light {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  color: var(--text-main);
+}
+
+.btn-light:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-default);
+  color: var(--text-main);
+}
+
+/* Small buttons */
+.btn-sm {
+  padding: 0.35rem 0.875rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+}
+
+/* Block button */
+.btn-block {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+/* ============================================================
+   FORM CONTROLS — Professional Medical Forms
+   ============================================================ */
+
+.form-control,
+.form-select {
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  background: var(--surface-card);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  font-family: var(--font-sans);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--med-primary);
+  box-shadow: 0 0 0 3px rgb(15 76 129 / 0.12);
+  outline: none;
+  background: var(--surface-card);
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.form-check-label {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* ============================================================
+   CARDS — Professional Card Component
+   ============================================================ */
+
+.card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  background: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, transparent 100%);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 1rem 1.25rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-main);
+}
+
+.card-body {
+  padding: 1.25rem;
+}
+
+/* ============================================================
+   BADGES — Professional Status Indicators
+   ============================================================ */
+
+.badge {
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.badge-primary { background: var(--med-primary-light); color: var(--med-primary); }
+.badge-success { background: var(--med-green-light); color: var(--med-green); }
+.badge-warning { background: var(--med-amber-light); color: #92400e; }
+.badge-danger { background: var(--med-red-light); color: var(--med-red); }
+.badge-info { background: rgb(14 165 233 / 0.1); color: var(--med-cyan); }
+.badge-secondary { background: var(--surface-hover); color: var(--text-secondary); }
+
+/* ============================================================
+   ALERTS — Professional Alert System
+   ============================================================ */
+
+.alert {
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  border: none;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.alert-success {
+  background: var(--med-green-light);
+  color: #064e3b;
+}
+
+.alert-danger {
+  background: var(--med-red-light);
+  color: #7f1d1d;
+}
+
+.alert-warning {
+  background: var(--med-amber-light);
+  color: #78350f;
+}
+
+.alert-info {
+  background: rgb(14 165 233 / 0.1);
+  color: #0c4a6e;
+}
+
+/* ============================================================
+   TOAST NOTIFICATIONS
+   ============================================================ */
+
+.toast-container {
+  position: fixed;
+  top: 5rem;
+  right: 1.5rem;
+  z-index: 1060;
+  max-width: 360px;
+}
+
+/* ============================================================
+   DARK MODE OVERRIDES
+   ============================================================ */
+
+[data-theme="dark"] .card {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+}
+
+[data-theme="dark"] .card-header {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.6) 0%, transparent 100%);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .btn-light {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  color: var(--text-main);
+}

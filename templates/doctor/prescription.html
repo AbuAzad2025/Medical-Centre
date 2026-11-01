@@ -11,16 +11,16 @@
   </div></div>
   {% if visit_prescriptions %}
   <div class="card shadow-sm mt-3">
-    <div class="card-header">وصفات هذه الزيارة</div>
+    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("وصفات هذه الزيارة")")")")")")")') }}</div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-sm table-striped align-middle">
           <thead>
             <tr>
               <th>#</th>
-              <th>رقم الوصفة</th>
-              <th>عدد الأدوية</th>
-              <th>التاريخ</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("رقم الوصفة")")")")")")")') }}</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("عدد الأدوية")")")")")")")') }}</th>
+              <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
               <th></th>
             </tr>
           </thead>
@@ -33,7 +33,7 @@
               <td>{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '' }}</td>
               <td class="text-end">
                 <a class="btn btn-sm btn-outline-primary" href="{{ url_for('doctor.print_prescription', prescription_id=p.id) }}" target="_blank">
-                  <i class="fas fa-print me-1"></i>طباعة
+                  <i class="fas fa-print me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("طباعة")")")")")")")') }}
                 </a>
               </td>
             </tr>
@@ -45,15 +45,15 @@
   </div>
   {% endif %}
   <div class="card mt-3">
-    <div class="card-header">إنشاء وصفة</div>
+    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("إنشاء وصفة")")")")")")")') }}</div>
     <div class="card-body">
       <form method="post">
         {{ forms.csrf() }}
         <div class="row g-3 mb-2">
           <div class="col-md-6">
-            <label class="form-label">قوالب الطبيب</label>
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("قوالب الطبيب")")")")")")")') }}</label>
             <select class="form-select" id="templateSelect">
-              <option value="">بدون قالب</option>
+              <option value="">{{ _('_("_(" _(" _(" _(" _(" _("بدون قالب")")")")")")")') }}</option>
               {% for t in doctor_templates or [] %}
               <option value="{{ t.id }}">{{ t.name }}</option>
               {% endfor %}
@@ -61,7 +61,7 @@
           </div>
           <div class="col-md-6 d-flex align-items-end">
             <button type="button" class="btn btn-outline-secondary w-100" id="applyTemplateBtn">
-              <i class="fas fa-bolt me-1"></i>تطبيق القالب
+              <i class="fas fa-bolt me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تطبيق القالب")")")")")")")') }}
             </button>
           </div>
         </div>
@@ -78,12 +78,12 @@
               <table class="table table-sm align-middle" id="rxItemsTable">
                 <thead>
                   <tr>
-                    <th style="min-width: 340px;">الدواء</th>
-                    <th style="min-width: 160px;">الجرعة</th>
-                    <th style="min-width: 160px;">التكرار</th>
-                    <th style="min-width: 120px;">المدة (أيام)</th>
-                    <th style="min-width: 100px;">الكمية</th>
-                    <th style="min-width: 200px;">تعليمات</th>
+                    <th style="min-width: 340px;">{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th>
+                    <th style="min-width: 160px;">{{ _('_("_(" _(" _(" _(" _(" _("الجرعة")")")")")")")') }}</th>
+                    <th style="min-width: 160px;">{{ _('_("_(" _(" _(" _(" _(" _("التكرار")")")")")")")') }}</th>
+                    <th style="min-width: 120px;">{{ _('_("_(" _(" _(" _(" _(" _("المدة (أيام)")")")")")")")') }}</th>
+                    <th style="min-width: 100px;">{{ _('_("_(" _(" _(" _(" _(" _("الكمية")")")")")")")') }}</th>
+                    <th style="min-width: 200px;">{{ _('_("_(" _(" _(" _(" _(" _("تعليمات")")")")")")")') }}</th>
                     <th style="width: 1%;"></th>
                   </tr>
                 </thead>
@@ -91,37 +91,37 @@
               </table>
             </div>
             <button type="button" class="btn btn-outline-primary" id="addRxItemBtn">
-              <i class="fas fa-plus me-1"></i>إضافة دواء
+              <i class="fas fa-plus me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("إضافة دواء")")")")")")")') }}
             </button>
           </div>
 
           <div class="col-md-6">
-            <label class="form-label">تعليمات إضافية (للوصفة كاملة)</label>
-            <textarea class="form-control" name="additional_notes" rows="3" placeholder="أي تعليمات عامة للصيدلية أو للمريض"></textarea>
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تعليمات إضافية (للوصفة كاملة)")")")")")")")') }}</label>
+            <textarea class="form-control" name="additional_notes" rows="3" placeholder="_(" _(" _(" _(" _(" _("أي تعليمات عامة للصيدلية أو للمريض")")")")")")"></textarea>
           </div>
 
           <div class="col-md-6">
-            <label class="form-label">أدوية غير موجودة (اختياري)</label>
-            <textarea class="form-control" name="non_catalog_medications" rows="3" placeholder="اكتب أسماء الأدوية غير الموجودة لإشعار الصيدلية"></textarea>
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("أدوية غير موجودة (اختياري)")")")")")")")') }}</label>
+            <textarea class="form-control" name="non_catalog_medications" rows="3" placeholder="_(" _(" _(" _(" _(" _("اكتب أسماء الأدوية غير الموجودة لإشعار الصيدلية")")")")")")"></textarea>
           </div>
 
           <div class="col-md-6">
             <div class="form-check mt-4">
               <input class="form-check-input" type="checkbox" id="save_as_template" name="save_as_template">
-              <label class="form-check-label" for="save_as_template">حفظ كقالب للطبيب</label>
+              <label class="form-check-label" for="save_as_template">{{ _('_("_(" _(" _(" _(" _(" _("حفظ كقالب للطبيب")")")")")")")') }}</label>
             </div>
           </div>
           <div class="col-md-6">
-            <label class="form-label">اسم القالب (عند الحفظ)</label>
-            <input type="text" class="form-control" name="template_name" placeholder="مثال: نزلة برد">
+            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم القالب (عند الحفظ)")")")")")")")') }}</label>
+            <input type="text" class="form-control" name="template_name" placeholder="_(" _(" _(" _(" _(" _("مثال: نزلة برد")")")")")")">
           </div>
 
           <div class="col-12">
             <button type="submit" class="btn btn-primary">
               <i class="fas fa-prescription-bottle-alt me-1"></i>
-              حفظ الوصفة
+              {{ _('_("_(" _(" _(" _(" _(" _("حفظ الوصفة")")")")")")")') }}
             </button>
-            <a href="{{ url_for('doctor.patient_details', visit_id=visit.id) }}" class="btn btn-secondary ms-2">رجوع</a>
+            <a href="{{ url_for('doctor.patient_details', visit_id=visit.id) }}" class="btn btn-secondary ms-2">{{ _('_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")') }}</a>
           </div>
         </div>
       </form>

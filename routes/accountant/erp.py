@@ -13,9 +13,7 @@ from models.payment import Payment
 from routes.accountant import accountant_bp
 from utils.decorators import role_required
 
-# =============================================
 # ERP ROUTES
-# =============================================
 
 
 @accountant_bp.route('/api/erp/export')

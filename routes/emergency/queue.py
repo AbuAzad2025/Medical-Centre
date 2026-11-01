@@ -17,9 +17,7 @@ from services.emergency_service import emergency_service
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
 
-# =============================================
 # QUEUE ROUTES
-# =============================================
 
 
 @emergency_bp.route('/patient-queue')

@@ -22,9 +22,7 @@ from utils.decorators import (
     role_required,
 )
 
-# =============================================
 # FINANCIAL ROUTES
-# =============================================
 
 
 @manager_bp.route('/settlements')

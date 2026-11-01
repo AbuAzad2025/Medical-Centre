@@ -11,9 +11,7 @@ from routes.accountant import accountant_bp
 from services.report_service import ReportService
 from utils.decorators import can_access_financial_reports
 
-# =============================================
 # AUDIT ROUTES
-# =============================================
 
 # ==================== مسارات التدقيق (الأسبوع الثاني) ====================
 

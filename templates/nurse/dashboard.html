@@ -13,19 +13,19 @@
                         <div class="col-md-8">
                             <h1 class="mb-2 text-white">
                                 <i class="fas fa-user-nurse me-3"></i>
-                                لوحة التمريض الاحترافية
+                                {{ _('_("_(" _(" _(" _(" _(" _("لوحة التمريض الاحترافية")")")")")")")') }}
                             </h1>
-                            <p class="mb-0 text-white-50 fs-5">مرحباً <bdi>{{ current_user.full_name }}</bdi> - رعاية طبية متقدمة ومتخصصة</p>
+                            <p class="mb-0 text-white-50 fs-5">{{ _('_("_(" _(" _(" _(" _(" _("مرحباً")")")")")")")') }} <bdi>{{ current_user.full_name }}</bdi> {{ _('_("_(" _(" _(" _(" _(" _("- رعاية طبية متقدمة ومتخصصة")")")")")")")') }}</p>
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
                                 <a href="{{ url_for('nurse.patients') }}" class="btn btn-light btn-lg">
                                     <i class="fas fa-heartbeat me-2"></i>
-                                    رعاية المرضى
+                                    {{ _('_("_(" _(" _(" _(" _(" _("رعاية المرضى")")")")")")")') }}
                                 </a>
                                 <a href="{{ url_for('nurse.medications') }}" class="btn btn-warning btn-lg">
                                     <i class="fas fa-pills me-2"></i>
-                                    إعطاء الأدوية
+                                    {{ _('_("_(" _(" _(" _(" _(" _("إعطاء الأدوية")")")")")")")') }}
                                 </a>
                             </div>
                         </div>
@@ -42,23 +42,23 @@
                 <div class="card-header bg-gradient-success text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-info-circle me-2"></i>
-                        صلاحيات الممرض
+                        {{ _('_("_(" _(" _(" _(" _(" _("صلاحيات الممرض")")")")")")")') }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
                             <ul class="mb-0">
-                                <li>قياس العلامات الحيوية للمرضى</li>
-                                <li>إعطاء الأدوية حسب الوصفات</li>
-                                <li>مراقبة حالة المرضى</li>
+                                <li>{{ _('_("_(" _(" _(" _(" _(" _("قياس العلامات الحيوية للمرضى")")")")")")")') }}</li>
+                                <li>{{ _('_("_(" _(" _(" _(" _(" _("إعطاء الأدوية حسب الوصفات")")")")")")")') }}</li>
+                                <li>{{ _('_("_(" _(" _(" _(" _(" _("مراقبة حالة المرضى")")")")")")")') }}</li>
                             </ul>
                         </div>
                         <div class="col-md-6">
                             <ul class="mb-0">
-                                <li>مساعدة الأطباء في العلاج</li>
-                                <li>تسجيل ملاحظات التمريض</li>
-                            <li>التنسيق مع الأقسام الأخرى</li>
+                                <li>{{ _('_("_(" _(" _(" _(" _(" _("مساعدة الأطباء في العلاج")")")")")")")') }}</li>
+                                <li>{{ _('_("_(" _(" _(" _(" _(" _("تسجيل ملاحظات التمريض")")")")")")")') }}</li>
+                            <li>{{ _('_("_(" _(" _(" _(" _(" _("التنسيق مع الأقسام الأخرى")")")")")")")') }}</li>
                         </ul>
                     </div>
                 </div>
@@ -70,32 +70,32 @@
     <ul class="nav nav-pills mb-4" id="nurseTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
-                <i class="fas fa-home me-2"></i> نظرة عامة
+                <i class="fas fa-home me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("نظرة عامة")")")")")")")') }}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="care-tab" data-bs-toggle="tab" data-bs-target="#care" type="button" role="tab" aria-controls="care" aria-selected="false">
-                <i class="fas fa-heartbeat me-2"></i> الرعاية والعلامات الحيوية
+                <i class="fas fa-heartbeat me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("الرعاية والعلامات الحيوية")")")")")")")') }}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="medication-tab" data-bs-toggle="tab" data-bs-target="#medication" type="button" role="tab" aria-controls="medication" aria-selected="false">
-                <i class="fas fa-pills me-2"></i> إدارة الأدوية
+                <i class="fas fa-pills me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("إدارة الأدوية")")")")")")")') }}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="intelligence-tab" data-bs-toggle="tab" data-bs-target="#intelligence" type="button" role="tab" aria-controls="intelligence" aria-selected="false">
-                <i class="fas fa-brain me-2"></i> الذكاء والأتمتة
+                <i class="fas fa-brain me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("الذكاء والأتمتة")")")")")")")') }}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="visits-tab" data-bs-toggle="tab" data-bs-target="#visits" type="button" role="tab" aria-controls="visits" aria-selected="false">
-                <i class="fas fa-clock me-2"></i> الزيارات
+                <i class="fas fa-clock me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="actions-tab" data-bs-toggle="tab" data-bs-target="#actions" type="button" role="tab" aria-controls="actions" aria-selected="false">
-                <i class="fas fa-bolt me-2"></i> إجراءات سريعة
+                <i class="fas fa-bolt me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("إجراءات سريعة")")")")")")")') }}
             </button>
         </li>
     </ul>
@@ -110,7 +110,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">إجمالي المرضى</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المرضى")")")")")")")') }}</div>
                                     <div class="h2 mb-0 fw-bold gradient-text">{{ total_patients or 0 }}</div>
                                 </div>
                                 <div class="icon-circle bg-primary bg-opacity-10 text-primary">
@@ -126,7 +126,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">زيارات اليوم</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("زيارات اليوم")")")")")")")') }}</div>
                                     <div class="h2 mb-0 fw-bold gradient-text">{{ today_visits or 0 }}</div>
                                 </div>
                                 <div class="icon-circle bg-success bg-opacity-10 text-success">
@@ -142,7 +142,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">في الانتظار</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("في الانتظار")")")")")")")') }}</div>
                                     <div class="h2 mb-0 fw-bold gradient-text">{{ pending_visits or 0 }}</div>
                                 </div>
                                 <div class="icon-circle bg-warning bg-opacity-10 text-warning">
@@ -158,7 +158,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">علاجات مكتملة</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("علاجات مكتملة")")")")")")")') }}</div>
                                     <div class="h2 mb-0 fw-bold gradient-text">{{ completed_treatments or 0 }}</div>
                                 </div>
                                 <div class="icon-circle bg-info bg-opacity-10 text-info">
@@ -173,10 +173,10 @@
             {% if safety_alerts and (safety_alerts.vitals_alerts_count or safety_alerts.overdue_tasks_count) %}
             <div class="card card-modern mb-4">
                 <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold text-danger"><i class="fas fa-exclamation-triangle me-2"></i>تنبيهات السلامة</h6>
+                    <h6 class="mb-0 fw-bold text-danger"><i class="fas fa-exclamation-triangle me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تنبيهات السلامة")")")")")")")') }}</h6>
                     <div class="d-flex gap-2">
-                        <a class="btn btn-sm btn-outline-danger" href="{{ url_for('nurse.vital_signs') }}">العلامات الحيوية</a>
-                        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('nurse.tasks') }}">المهام</a>
+                        <a class="btn btn-sm btn-outline-danger" href="{{ url_for('nurse.vital_signs') }}">{{ _('_("_(" _(" _(" _(" _(" _("العلامات الحيوية")")")")")")")') }}</a>
+                        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('nurse.tasks') }}">{{ _('_("_(" _(" _(" _(" _(" _("المهام")")")")")")")') }}</a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -184,16 +184,16 @@
                         <div class="col-lg-6">
                             <div class="p-3 border rounded bg-light">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <div class="fw-bold">علامات حيوية بدون متابعة</div>
+                                    <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("علامات حيوية بدون متابعة")")")")")")")') }}</div>
                                     <div class="fw-bold text-danger">{{ safety_alerts.vitals_alerts_count }}</div>
                                 </div>
                                 <div class="table-responsive mt-2">
                                     <table class="table table-sm mb-0">
                                         <thead>
                                             <tr>
-                                                <th>المريض</th>
-                                                <th class="w-160">الوقت</th>
-                                                <th class="w-90">الحالة</th>
+                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th>
+                                                <th class="w-160">{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
+                                                <th class="w-90">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -203,14 +203,14 @@
                                                 <td>{{ a.recorded_at|format_datetime }}</td>
                                                 <td>
                                                     {% if a.severity == 'critical' %}
-                                                        <span class="badge bg-danger">حرج</span>
+                                                        <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("حرج")")")")")")")') }}</span>
                                                     {% else %}
-                                                        <span class="badge bg-warning text-dark">غير طبيعي</span>
+                                                        <span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("غير طبيعي")")")")")")")') }}</span>
                                                     {% endif %}
                                                 </td>
                                             </tr>
                                             {% else %}
-                                            <tr><td colspan="3" class="text-center text-muted">لا يوجد</td></tr>
+                                            <tr><td colspan="3" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد")")")")")")")') }}</td></tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>
@@ -220,16 +220,16 @@
                         <div class="col-lg-6">
                             <div class="p-3 border rounded bg-light">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <div class="fw-bold">مهام متأخرة</div>
+                                    <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("مهام متأخرة")")")")")")")') }}</div>
                                     <div class="fw-bold text-warning">{{ safety_alerts.overdue_tasks_count }}</div>
                                 </div>
                                 <div class="table-responsive mt-2">
                                     <table class="table table-sm mb-0">
                                         <thead>
                                             <tr>
-                                                <th>العنوان</th>
-                                                <th class="w-160">الاستحقاق</th>
-                                                <th class="w-90">الأولوية</th>
+                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</th>
+                                                <th class="w-160">{{ _('_("_(" _(" _(" _(" _(" _("الاستحقاق")")")")")")")') }}</th>
+                                                <th class="w-90">{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -240,16 +240,16 @@
                                                 <td class="text-danger">{{ t.due_date|format_datetime }}</td>
                                                 <td>
                                                     {% if t.priority == 'urgent' %}
-                                                        <span class="badge bg-danger">عاجلة</span>
+                                                        <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("عاجلة")")")")")")")') }}</span>
                                                     {% elif t.priority == 'high' %}
-                                                        <span class="badge bg-warning text-dark">عالية</span>
+                                                        <span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("عالية")")")")")")")') }}</span>
                                                     {% else %}
                                                         <span class="badge bg-secondary">{{ t.priority }}</span>
                                                     {% endif %}
                                                 </td>
                                             </tr>
                                             {% else %}
-                                            <tr><td colspan="3" class="text-center text-muted">لا يوجد</td></tr>
+                                            <tr><td colspan="3" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد")")")")")")")') }}</td></tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>
@@ -268,7 +268,7 @@
                         <div class="card-header bg-transparent border-0">
                             <h6 class="m-0 fw-bold text-success">
                                 <i class="fas fa-id-card me-2"></i>
-                                الملف الشخصي والتوقيع
+                                {{ _('_("_(" _(" _(" _(" _(" _("الملف الشخصي والتوقيع")")")")")")")') }}
                             </h6>
                         </div>
                         <div class="card-body">
@@ -276,20 +276,20 @@
                                 <div>
                                     <h5 class="mb-1"><bdi>{{ current_user.full_name }}</bdi></h5>
                                     <p class="text-muted mb-0">{{ current_user.get_role_display() }}</p>
-                                    <small class="text-muted">آخر دخول: {{ current_user.last_login|format_datetime if current_user.last_login else 'الآن' }}</small>
+                                    <small class="text-muted">آخر دخول: {{ current_user.last_login|format_datetime if current_user.last_login else '_("الآن")' }}</small>
                                 </div>
                                 <div class="text-center border-start ps-4">
                                     {% if current_user.digital_signature %}
                                         <div class="mb-2">
                                             <img src="{{ current_user.digital_signature }}" alt="Signature" class="max-h-40">
                                         </div>
-                                        <span class="badge bg-success">التوقيع مفعل</span>
+                                        <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("التوقيع مفعل")")")")")")")') }}</span>
                                     {% else %}
                                         <div class="mb-2 text-muted">
                                             <i class="fas fa-signature fa-2x opacity-50"></i>
                                         </div>
                                         <a href="{{ url_for('auth.profile') }}" class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-plus me-1"></i> إعداد التوقيع
+                                            <i class="fas fa-plus me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("إعداد التوقيع")")")")")")")') }}
                                         </a>
                                     {% endif %}
                                 </div>
@@ -310,7 +310,7 @@
                         <div class="card-header bg-gradient-success text-white">
                             <h5 class="mb-0">
                                 <i class="fas fa-heartbeat me-2"></i>
-                                تحسين رعاية المرضى
+                                {{ _('_("_(" _(" _(" _(" _(" _("تحسين رعاية المرضى")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -318,25 +318,25 @@
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-primary">{{ stats.patient_care_optimization.total_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">إجمالي المهام</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المهام")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-success">{{ stats.patient_care_optimization.completed_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام مكتملة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام مكتملة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-warning">{{ stats.patient_care_optimization.urgent_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام عاجلة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام عاجلة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-info">{{ stats.patient_care_optimization.efficiency_score or 0 }}%</h4>
-                                        <p class="text-muted mb-0">كفاءة الرعاية</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("كفاءة الرعاية")")")")")")")') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -354,7 +354,7 @@
                         <div class="card-header bg-gradient-danger text-white">
                             <h5 class="mb-0">
                                 <i class="fas fa-heartbeat me-2"></i>
-                                مراقبة العلامات الحيوية
+                                {{ _('_("_(" _(" _(" _(" _(" _("مراقبة العلامات الحيوية")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -362,25 +362,25 @@
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-primary">{{ stats.vital_signs_monitoring.total_vital_signs or 0 }}</h4>
-                                        <p class="text-muted mb-0">إجمالي القياسات</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي القياسات")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-warning">{{ stats.vital_signs_monitoring.abnormal_vital_signs or 0 }}</h4>
-                                        <p class="text-muted mb-0">قياسات شاذة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("قياسات شاذة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-danger">{{ stats.vital_signs_monitoring.critical_alerts or 0 }}</h4>
-                                        <p class="text-muted mb-0">تنبيهات حرجة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("تنبيهات حرجة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-success">{{ stats.vital_signs_monitoring.monitoring_score or 0 }}%</h4>
-                                        <p class="text-muted mb-0">درجة المراقبة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("درجة المراقبة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -401,7 +401,7 @@
                         <div class="card-header bg-gradient-info text-white">
                             <h5 class="mb-0">
                                 <i class="fas fa-pills me-2"></i>
-                                إدارة الأدوية
+                                {{ _('_("_(" _(" _(" _(" _(" _("إدارة الأدوية")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -409,25 +409,25 @@
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-primary">{{ stats.medication_management.medication_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام الأدوية</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام الأدوية")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-success">{{ stats.medication_management.completed_medication_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام مكتملة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام مكتملة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-warning">{{ stats.medication_management.medications_needed or 0 }}</h4>
-                                        <p class="text-muted mb-0">أدوية مطلوبة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("أدوية مطلوبة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-info">{{ stats.medication_management.medication_efficiency or 0 }}%</h4>
-                                        <p class="text-muted mb-0">كفاءة الأدوية</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("كفاءة الأدوية")")")")")")")') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -448,7 +448,7 @@
                         <div class="card-header bg-gradient-primary text-white">
                             <h5 class="mb-0">
                                 <i class="fas fa-chart-bar me-2"></i>
-                                التحليلات الذكية للتمريض
+                                {{ _('_("_(" _(" _(" _(" _(" _("التحليلات الذكية للتمريض")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -456,25 +456,25 @@
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-primary">{{ stats.smart_analytics.total_nurses or 0 }}</h4>
-                                        <p class="text-muted mb-0">إجمالي الممرضات</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي الممرضات")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-success">{{ stats.smart_analytics.completed_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام مكتملة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام مكتملة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-warning">{{ stats.smart_analytics.urgent_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام عاجلة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام عاجلة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-info">{{ stats.smart_analytics.efficiency_score or 0 }}%</h4>
-                                        <p class="text-muted mb-0">كفاءة التمريض</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("كفاءة التمريض")")")")")")")') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -492,7 +492,7 @@
                         <div class="card-header bg-gradient-dark text-white">
                             <h5 class="mb-0">
                                 <i class="fas fa-robot me-2"></i>
-                                أتمتة سير العمل
+                                {{ _('_("_(" _(" _(" _(" _(" _("أتمتة سير العمل")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -500,25 +500,25 @@
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-primary">{{ stats.workflow_automation.automated_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام مؤتمتة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام مؤتمتة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-success">{{ stats.workflow_automation.manual_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام يدوية</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام يدوية")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-info">{{ stats.workflow_automation.avg_processing_time or 0 }} دقيقة</h4>
-                                        <p class="text-muted mb-0">متوسط وقت المعالجة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("متوسط وقت المعالجة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-warning">{{ stats.workflow_automation.automation_score or 0 }}%</h4>
-                                        <p class="text-muted mb-0">درجة الأتمتة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("درجة الأتمتة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -536,7 +536,7 @@
                         <div class="card-header bg-gradient-light text-dark">
                             <h5 class="mb-0">
                                 <i class="fas fa-crystal-ball me-2"></i>
-                                الرؤى التنبؤية للتمريض
+                                {{ _('_("_(" _(" _(" _(" _(" _("الرؤى التنبؤية للتمريض")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -544,26 +544,26 @@
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-primary">{{ stats.predictive_insights.weekly_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام أسبوعية</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام أسبوعية")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-success">{{ stats.predictive_insights.monthly_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام شهرية</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام شهرية")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                     <div class="text-center">
                                         <h4 class="text-info">{{ stats.predictive_insights.growth_rate or 0 }}%</h4>
-                                        <p class="text-muted mb-0">معدل النمو</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("معدل النمو")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-warning">{{ stats.predictive_insights.workload_forecast_accuracy or 0 }}%</h4>
-                                        <p class="text-muted mb-0">دقة التنبؤ</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("دقة التنبؤ")")")")")")")') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -580,7 +580,7 @@
                         <div class="card-header bg-gradient-success text-white">
                             <h5 class="mb-0">
                                 <i class="fas fa-shield-alt me-2"></i>
-                                مؤشرات جودة التمريض
+                                {{ _('_("_(" _(" _(" _(" _(" _("مؤشرات جودة التمريض")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -588,25 +588,25 @@
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-danger">{{ stats.quality_indicators.critical_vitals_7d or 0 }}</h4>
-                                        <p class="text-muted mb-0">تنبيهات حرجة أسبوعية</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("تنبيهات حرجة أسبوعية")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-warning">{{ stats.quality_indicators.overdue_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام متأخرة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام متأخرة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-info">{{ stats.quality_indicators.documentation_rate or 0 }}%</h4>
-                                        <p class="text-muted mb-0">معدل التوثيق</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("معدل التوثيق")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-success">{{ stats.quality_indicators.safety_score or 0 }}</h4>
-                                        <p class="text-muted mb-0">درجة الأمان</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("درجة الأمان")")")")")")")') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -623,7 +623,7 @@
                         <div class="card-header bg-gradient-light text-dark">
                             <h5 class="mb-0">
                                 <i class="fas fa-layer-group me-2"></i>
-                                توقع عبء العمل
+                                {{ _('_("_(" _(" _(" _(" _(" _("توقع عبء العمل")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -631,19 +631,19 @@
                                 <div class="col-md-4">
                                     <div class="text-center">
                                         <h4 class="text-primary">{{ stats.workload_prediction.active_visits or 0 }}</h4>
-                                        <p class="text-muted mb-0">زيارات نشطة</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("زيارات نشطة")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="text-center">
                                         <h4 class="text-warning">{{ stats.workload_prediction.pending_tasks or 0 }}</h4>
-                                        <p class="text-muted mb-0">مهام قيد التنفيذ</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("مهام قيد التنفيذ")")")")")")")') }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="text-center">
                                         <h4 class="text-success">{{ stats.workload_prediction.predicted_load or 0 }}</h4>
-                                        <p class="text-muted mb-0">العبء المتوقع</p>
+                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("العبء المتوقع")")")")")")")') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -660,7 +660,7 @@
                         <div class="card-header bg-gradient-primary text-white">
                             <h5 class="mb-0">
                                 <i class="fas fa-notes-medical me-2"></i>
-                                البروتوكولات التمريضية
+                                {{ _('_("_(" _(" _(" _(" _(" _("البروتوكولات التمريضية")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -692,7 +692,7 @@
                         <div class="card-header bg-gradient-primary text-white">
                             <h5 class="mb-0">
                                 <i class="fas fa-lightbulb me-2"></i>
-                                التوصيات الذكية للتمريض
+                                {{ _('_("_(" _(" _(" _(" _(" _("التوصيات الذكية للتمريض")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -713,7 +713,7 @@
                             {% else %}
                             <div class="text-center text-muted">
                                 <i class="fas fa-info-circle fa-2x mb-2"></i>
-                                <p>لا توجد توصيات حالياً</p>
+                                <p>{{ _('لا توجد توصيات حالياً') }}</p>
                             </div>
                             {% endif %}
                         </div>
@@ -732,7 +732,7 @@
                         <div class="card-header">
                             <h5 class="mb-0">
                                 <i class="fas fa-tasks me-2"></i>
-                                مهام تمريضية مقترحة
+                                {{ _('_("_(" _(" _(" _(" _(" _("مهام تمريضية مقترحة")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -740,10 +740,10 @@
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th>المهمة</th>
-                                            <th>المريض</th>
-                                            <th>الأولوية</th>
-                                            <th class="text-end">إجراء</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("المهمة")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</th>
+                                            <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("إجراء")")")")")")")') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -753,15 +753,15 @@
                                             <td>{{ t.patient_name }}</td>
                                             <td>
                                                 {% if t.priority == 'high' %}
-                                                    <span class="badge bg-danger">عالية</span>
+                                                    <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("عالية")")")")")")")') }}</span>
                                                 {% elif t.priority == 'medium' %}
-                                                    <span class="badge bg-warning text-dark">متوسطة</span>
+                                                    <span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("متوسطة")")")")")")")') }}</span>
                                                 {% else %}
-                                                    <span class="badge bg-secondary">منخفضة</span>
+                                                    <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("منخفضة")")")")")")")') }}</span>
                                                 {% endif %}
                                             </td>
                                             <td class="text-end">
-                                                <a class="btn btn-sm btn-outline-primary" href="{{ t.url }}">فتح</a>
+                                                <a class="btn btn-sm btn-outline-primary" href="{{ t.url }}">{{ _('_("_(" _(" _(" _(" _(" _("فتح")")")")")")")') }}</a>
                                             </td>
                                         </tr>
                                         {% endfor %}
@@ -781,7 +781,7 @@
                         <div class="card-header">
                             <h5 class="mb-0">
                                 <i class="fas fa-procedures me-2"></i>
-                                الزيارات النشطة
+                                {{ _('_("_(" _(" _(" _(" _(" _("الزيارات النشطة")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -789,26 +789,26 @@
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th>المريض</th>
-                                            <th>الطبيب</th>
-                                            <th>التاريخ</th>
-                                            <th>الحالة</th>
-                                            <th>الإجراءات</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for visit in active_visits_list %}
                                         <tr>
-                                            <td><bdi>{{ visit.patient.full_name if visit.patient else 'غير محدد' }}</bdi></td>
-                                            <td><bdi>{{ visit.doctor.full_name if visit.doctor else 'غير محدد' }}</bdi></td>
-                                            <td>{{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else (visit.created_at.strftime('%Y-%m-%d') if visit.created_at else 'غير محدد') }}</td>
+                                            <td><bdi>{{ visit.patient.full_name if visit.patient else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</bdi></td>
+                                            <td><bdi>{{ visit.doctor.full_name if visit.doctor else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</bdi></td>
+                                            <td>{{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else (visit.created_at.strftime('%Y-%m-%d') if visit.created_at else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")') }}</td>
                                             <td>
                                                 {% if visit.status == 'OPEN' %}
-                                                    <span class="badge bg-info">في الانتظار</span>
+                                                    <span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("في الانتظار")")")")")")")') }}</span>
                                                 {% elif visit.status == 'IN_PROGRESS' %}
-                                                    <span class="badge bg-warning text-dark">قيد العلاج</span>
+                                                    <span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("قيد العلاج")")")")")")")') }}</span>
                                                 {% elif visit.status == 'COMPLETED' %}
-                                                    <span class="badge bg-success">مكتملة</span>
+                                                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتملة")")")")")")")') }}</span>
                                                 {% else %}
                                                     <span class="badge bg-secondary">{{ visit.status | enum_label('VisitState') }}</span>
                                                 {% endif %}
@@ -816,10 +816,10 @@
                                             <td>
                                                 <div class="btn-group btn-group-sm">
                                                     <a href="{{ url_for('nurse.vital_signs', visit_id=visit.id) }}" class="btn btn-outline-primary">
-                                                        <i class="fas fa-heartbeat"></i> <span class="btn-label">نبض</span>
+                                                        <i class="fas fa-heartbeat"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("نبض")")")")")")")') }}</span>
                                                     </a>
                                                     <a href="{{ url_for('nurse.medication_administration', visit_id=visit.id) }}" class="btn btn-outline-success">
-                                                        <i class="fas fa-pills"></i> <span class="btn-label">أدوية</span>
+                                                        <i class="fas fa-pills"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("أدوية")")")")")")")') }}</span>
                                                     </a>
                                                 </div>
                                             </td>
@@ -841,7 +841,7 @@
                         <div class="card-header">
                             <h5 class="mb-0">
                                 <i class="fas fa-clock me-2"></i>
-                                الزيارات الأخيرة
+                                {{ _('_("_(" _(" _(" _(" _(" _("الزيارات الأخيرة")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -850,26 +850,26 @@
                                     <table class="table table-hover">
                                         <thead>
                                             <tr>
-                                                <th>المريض</th>
-                                                <th>الطبيب</th>
-                                                <th>التاريخ</th>
-                                                <th>الحالة</th>
-                                                <th>الإجراءات</th>
+                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th>
+                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th>
+                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for visit in recent_visits %}
                                             <tr>
-                                                <td><bdi>{{ visit.patient.full_name if visit.patient else 'غير محدد' }}</bdi></td>
-                                                <td><bdi>{{ visit.doctor.full_name if visit.doctor else 'غير محدد' }}</bdi></td>
-                                                <td>{{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else (visit.created_at.strftime('%Y-%m-%d') if visit.created_at else 'غير محدد') }}</td>
+                                                <td><bdi>{{ visit.patient.full_name if visit.patient else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</bdi></td>
+                                                <td><bdi>{{ visit.doctor.full_name if visit.doctor else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</bdi></td>
+                                                <td>{{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else (visit.created_at.strftime('%Y-%m-%d') if visit.created_at else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")') }}</td>
                                                 <td>
                                                     {% if visit.status == 'OPEN' %}
-                                                        <span class="badge bg-info">في الانتظار</span>
+                                                        <span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("في الانتظار")")")")")")")') }}</span>
                                                     {% elif visit.status == 'IN_PROGRESS' %}
-                                                        <span class="badge bg-warning text-dark">قيد العلاج</span>
+                                                        <span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("قيد العلاج")")")")")")")') }}</span>
                                                     {% elif visit.status == 'COMPLETED' %}
-                                                        <span class="badge bg-success">مكتملة</span>
+                                                        <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتملة")")")")")")")') }}</span>
                                                     {% else %}
                                                         <span class="badge bg-secondary">{{ visit.status | enum_label('VisitState') }}</span>
                                                     {% endif %}
@@ -877,10 +877,10 @@
                                                 <td>
                                                     <div class="btn-group btn-group-sm">
                                                         <a href="{{ url_for('nurse.vital_signs', visit_id=visit.id) }}" class="btn btn-outline-primary">
-                                                            <i class="fas fa-heartbeat"></i> <span class="btn-label">نبض</span>
+                                                            <i class="fas fa-heartbeat"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("نبض")")")")")")")') }}</span>
                                                         </a>
                                                         <a href="{{ url_for('nurse.patient_care') }}" class="btn btn-outline-success">
-                                                            <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
+                                                            <i class="fas fa-eye"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</span>
                                                         </a>
                                                     </div>
                                                 </td>
@@ -892,7 +892,7 @@
                             {% else %}
                                 <div class="text-center py-4">
                                     <i class="fas fa-user-nurse fa-3x text-muted mb-3"></i>
-                                    <h5 class="text-muted">لا توجد زيارات حديثة</h5>
+                                    <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد زيارات حديثة")")")")")")")') }}</h5>
                                 </div>
                             {% endif %}
                         </div>
@@ -910,7 +910,7 @@
                         <div class="card-header">
                             <h5 class="mb-0">
                                 <i class="fas fa-bolt me-2"></i>
-                                الإجراءات السريعة
+                                {{ _('_("_(" _(" _(" _(" _(" _("الإجراءات السريعة")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -918,25 +918,25 @@
                                 <div class="col-md-3">
                                     <a href="{{ url_for('nurse.patient_care') }}" class="btn btn-primary btn-lg w-100 mb-2">
                                         <i class="fas fa-heartbeat me-2"></i>
-                                        رعاية المرضى
+                                        {{ _('_("_(" _(" _(" _(" _(" _("رعاية المرضى")")")")")")")') }}
                                     </a>
                                 </div>
                                 <div class="col-md-3">
                                     <a href="{{ url_for('nurse.medication_administration') }}" class="btn btn-success btn-lg w-100 mb-2">
                                         <i class="fas fa-pills me-2"></i>
-                                        إعطاء الأدوية
+                                        {{ _('_("_(" _(" _(" _(" _(" _("إعطاء الأدوية")")")")")")")') }}
                                     </a>
                                 </div>
                                 <div class="col-md-3">
                                     <a href="{{ url_for('nurse.patient_monitoring') }}" class="btn btn-info btn-lg w-100 mb-2">
                                         <i class="fas fa-eye me-2"></i>
-                                        مراقبة المرضى
+                                        {{ _('_("_(" _(" _(" _(" _(" _("مراقبة المرضى")")")")")")")') }}
                                     </a>
                                 </div>
                                 <div class="col-md-3">
                                     <a href="{{ url_for('nurse.patient_care') }}" class="btn btn-warning btn-lg w-100 mb-2">
                                         <i class="fas fa-notes-medical me-2"></i>
-                                        تسجيل الملاحظات
+                                        {{ _('_("_(" _(" _(" _(" _(" _("تسجيل الملاحظات")")")")")")")') }}
                                     </a>
                                 </div>
                             </div>

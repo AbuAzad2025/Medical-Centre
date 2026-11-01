@@ -4,19 +4,19 @@
 
 {% block content %}
 <div class="kiosk-checkin text-center">
-  <h1 class="mb-2"><i class="fas fa-id-card me-2"></i>تسجيل الوصول الذاتي</h1>
-  <p class="text-muted mb-4">أدخل رقم الهوية لتسجيل موعدك اليوم</p>
+  <h1 class="mb-2"><i class="fas fa-id-card me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تسجيل الوصول الذاتي")")")")")")")') }}</h1>
+  <p class="text-muted mb-4">{{ _('_("_(" _(" _(" _(" _(" _("أدخل رقم الهوية لتسجيل موعدك اليوم")")")")")")")') }}</p>
 
   <div class="kiosk-checkin__panel mx-auto">
-    <label for="nationalId" class="form-label visually-hidden">رقم الهوية</label>
+    <label for="nationalId" class="form-label visually-hidden">{{ _('_("_(" _(" _(" _(" _(" _("رقم الهوية")")")")")")")') }}</label>
     <input type="text" id="nationalId" class="form-control form-control-lg text-center mb-3 kiosk-key"
-           inputmode="numeric" autocomplete="off" placeholder="رقم الهوية" maxlength="32">
+           inputmode="numeric" autocomplete="off" placeholder="_(" _(" _(" _(" _(" _("رقم الهوية")")")")")")" maxlength="32">
 
-    <div class="kiosk-keypad mb-3" id="kioskKeypad" aria-label="لوحة أرقام"></div>
+    <div class="kiosk-keypad mb-3" id="kioskKeypad" aria-label="_(" _(" _(" _(" _(" _("لوحة أرقام")")")")")")"></div>
 
     <button type="button" class="btn btn-primary btn-lg w-100 kiosk-key" id="kioskSubmit"
             data-api-url="{{ url_for('kiosk.api_check_in') }}">
-      <i class="fas fa-check me-2"></i>تسجيل الوصول
+      <i class="fas fa-check me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تسجيل الوصول")")")")")")")') }}
     </button>
 
     <div id="kioskResult" class="mt-4" hidden></div>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}إضافة مريض للطابور - الاستقبال{% endblock %}
+{% block title %}{{ _('إضافة مريض للطابور') }} - {{ _('الاستقبال') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -10,12 +10,12 @@
                 <div class="card-header">
                     <h3 class="card-title">
                         <i class="fas fa-user-plus"></i>
-                        إضافة مريض للطابور
+                        {{ _('إضافة مريض للطابور') }}
                     </h3>
                     <div class="card-tools">
                         <a href="{{ url_for('reception.queue_management') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i>
-                            العودة للطابور
+                            {{ _('العودة للطابور') }}
                         </a>
                     </div>
                 </div>
@@ -27,13 +27,13 @@
                             <div class="col-md-6">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5>معلومات المريض</h5>
+                                        <h5>{{ _('معلومات المريض') }}</h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="form-group">
-                                            <label for="patient_id">اختيار المريض *</label>
+                                            <label for="patient_id">{{ _('اختيار المريض') }} *</label>
                                             <select class="form-control" name="patient_id" id="patient_id" required>
-                                                <option value="">اختر المريض</option>
+                                                <option value="">{{ _('اختر المريض') }}</option>
                                                 {% for patient in patients %}
                                                 <option value="{{ patient.id }}">
                                                     {{ patient.first_name }} {{ patient.last_name }} - {{ patient.phone }}
@@ -43,9 +43,9 @@
                                         </div>
                                         
                                         <div class="form-group">
-                                            <label for="visit_id">الزيارة (اختياري)</label>
+                                            <label for="visit_id">{{ _('الزيارة (اختياري)') }}</label>
                                             <select class="form-control" name="visit_id" id="visit_id">
-                                                <option value="">اختر الزيارة</option>
+                                                <option value="">{{ _('اختر الزيارة') }}</option>
                                                 {% for visit in visits %}
                                                 <option value="{{ visit.id }}">
                                                     زيارة #{{ visit.visit_number or visit.id }} - {{ visit.patient.first_name }} {{ visit.patient.last_name }}

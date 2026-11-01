@@ -6,12 +6,12 @@
 <div class="container-fluid py-4">
     {% from "partials/_page_header.html" import page_header %}
     {{ page_header(
-        title='موافقات الخدمات المخصصة',
-        subtitle='مراجعة والموافقة على الخدمات المخصصة التي أنشأها الاستقبال',
+        title='_("_(" _(" _(" _(" _(" _("موافقات الخدمات المخصصة")")")")")")")',
+        subtitle='_("_(" _(" _(" _(" _(" _("مراجعة والموافقة على الخدمات المخصصة التي أنشأها الاستقبال")")")")")")")',
         icon='fas fa-clipboard-check',
         breadcrumbs=[
-            {'label': 'الرئيسية', 'url': url_for('manager.dashboard')},
-            {'label': 'الموافقات'},
+            {'label': '_("_(" _(" _(" _(" _(" _("الرئيسية")")")")")")")', 'url': url_for('manager.dashboard')},
+            {'label': '_("_(" _(" _(" _(" _(" _("الموافقات")")")")")")")'},
         ]
     ) }}
 
@@ -22,7 +22,7 @@
                 <div class="card-header d-flex align-items-center justify-content-between">
                     <h5 class="mb-0">
                         <i class="fas fa-clock text-warning me-2"></i>
-                        خدمات بانتظار الموافقة
+                        {{ _('_("_(" _(" _(" _(" _(" _("خدمات بانتظار الموافقة")")")")")")")') }}
                         <span class="badge bg-warning text-dark ms-2">{{ pending_services|length }}</span>
                     </h5>
                 </div>
@@ -33,13 +33,13 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>اسم الخدمة</th>
-                                    <th>الرمز</th>
-                                    <th>الفئة</th>
-                                    <th>السعر الأساسي</th>
-                                    <th>سعر الطوارئ</th>
-                                    <th>العملة</th>
-                                    <th class="text-center" style="width: 180px;">إجراءات</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("اسم الخدمة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الرمز")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الفئة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("السعر الأساسي")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("سعر الطوارئ")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("العملة")")")")")")")') }}</th>
+                                    <th class="text-center" style="width: 180px;">{{ _('_("_(" _(" _(" _(" _(" _("إجراءات")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -54,23 +54,23 @@
                                     </td>
                                     <td><code>{{ svc.code }}</code></td>
                                     <td>
-                                        {% set cat_map = {'doctor': 'طبيب', 'lab': 'مختبر', 'radiology': 'أشعة', 'general': 'عام'} %}
+                                        {% set cat_map = {'doctor': '_("_(" _(" _(" _(" _(" _("طبيب")")")")")")")', 'lab': '_("_(" _(" _(" _(" _(" _("مختبر")")")")")")")', 'radiology': '_("_(" _(" _(" _(" _(" _("أشعة")")")")")")")', 'general': '_("_(" _(" _(" _(" _(" _("عام")")")")")")")'} %}
                                         <span class="badge bg-secondary">{{ cat_map.get(svc.category, svc.category) }}</span>
                                     </td>
                                     <td class="fw-semibold">{{ "%.2f"|format(svc.base_price) }}</td>
                                     <td>{{ "%.2f"|format(svc.emergency_price) if svc.emergency_price else '—' }}</td>
                                     <td>{{ svc.currency }}</td>
                                     <td class="text-center">
-                                        <form method="POST" action="{{ url_for('manager.approve_custom_service', service_id=svc.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من الموافقة على هذه الخدمة؟')">
+                                        <form method="POST" action="{{ url_for('manager.approve_custom_service', service_id=svc.id) }}" class="d-inline" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("هل أنت متأكد من الموافقة على هذه الخدمة؟")")")")")")")')">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-sm btn-success" title="موافقة">
-                                                <i class="fas fa-check"></i> موافقة
+                                            <button type="submit" class="btn btn-sm btn-success" title="_(" _(" _(" _(" _(" _("موافقة")")")")")")">
+                                                <i class="fas fa-check"></i> {{ _('_("_(" _(" _(" _(" _(" _("موافقة")")")")")")")') }}
                                             </button>
                                         </form>
-                                        <form method="POST" action="{{ url_for('manager.reject_custom_service', service_id=svc.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من رفض هذه الخدمة؟')">
+                                        <form method="POST" action="{{ url_for('manager.reject_custom_service', service_id=svc.id) }}" class="d-inline" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("هل أنت متأكد من رفض هذه الخدمة؟")")")")")")")')">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="رفض">
-                                                <i class="fas fa-times"></i> رفض
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="_(" _(" _(" _(" _(" _("رفض")")")")")")">
+                                                <i class="fas fa-times"></i> {{ _('_("_(" _(" _(" _(" _(" _("رفض")")")")")")")') }}
                                             </button>
                                         </form>
                                     </td>
@@ -83,10 +83,10 @@
                     {% from "partials/_empty_state.html" import empty_state %}
                     {{ empty_state(
                         icon='fas fa-check-circle',
-                        title='لا توجد خدمات بانتظار الموافقة',
-                        description='جميع الخدمات المخصصة تمت مراجعتها',
+                        title='_("_(" _(" _(" _(" _(" _("لا توجد خدمات بانتظار الموافقة")")")")")")")',
+                        description='_("_(" _(" _(" _(" _(" _("جميع الخدمات المخصصة تمت مراجعتها")")")")")")")',
                         action_url=url_for('manager.dashboard'),
-                        action_label='العودة للوحة الإدارة'
+                        action_label='_("_(" _(" _(" _(" _(" _("العودة للوحة الإدارة")")")")")")")'
                     ) }}
                     {% endif %}
                 </div>
@@ -99,7 +99,7 @@
                 <div class="card-header d-flex align-items-center justify-content-between">
                     <h5 class="mb-0">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        خدمات تمت الموافقة عليها
+                        {{ _('_("_(" _(" _(" _(" _(" _("خدمات تمت الموافقة عليها")")")")")")")') }}
                         <span class="badge bg-success ms-2">{{ approved_services|length }}</span>
                     </h5>
                 </div>
@@ -110,12 +110,12 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>اسم الخدمة</th>
-                                    <th>الرمز</th>
-                                    <th>الفئة</th>
-                                    <th>السعر الأساسي</th>
-                                    <th>العملة</th>
-                                    <th>تاريخ الموافقة</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("اسم الخدمة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الرمز")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الفئة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("السعر الأساسي")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("العملة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الموافقة")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -125,7 +125,7 @@
                                     <td><strong>{{ svc.name_ar or svc.name }}</strong></td>
                                     <td><code>{{ svc.code }}</code></td>
                                     <td>
-                                        {% set cat_map = {'doctor': 'طبيب', 'lab': 'مختبر', 'radiology': 'أشعة', 'general': 'عام'} %}
+                                        {% set cat_map = {'doctor': '_("_(" _(" _(" _(" _(" _("طبيب")")")")")")")', 'lab': '_("_(" _(" _(" _(" _(" _("مختبر")")")")")")")', 'radiology': '_("_(" _(" _(" _(" _(" _("أشعة")")")")")")")', 'general': '_("_(" _(" _(" _(" _(" _("عام")")")")")")")'} %}
                                         <span class="badge bg-secondary">{{ cat_map.get(svc.category, svc.category) }}</span>
                                     </td>
                                     <td class="fw-semibold">{{ "%.2f"|format(svc.base_price) }}</td>
@@ -140,8 +140,8 @@
                     {% from "partials/_empty_state.html" import empty_state %}
                     {{ empty_state(
                         icon='fas fa-folder-open',
-                        title='لا توجد خدمات معتمدة بعد',
-                        description='الخدمات المخصصة التي تتم الموافقة عليها ستظهر هنا'
+                        title='_("_(" _(" _(" _(" _(" _("لا توجد خدمات معتمدة بعد")")")")")")")',
+                        description='_("_(" _(" _(" _(" _(" _("الخدمات المخصصة التي تتم الموافقة عليها ستظهر هنا")")")")")")")'
                     ) }}
                     {% endif %}
                 </div>

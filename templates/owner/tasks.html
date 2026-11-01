@@ -3,15 +3,15 @@
 {% block title %}المهام والمشاريع — لوحة المنصة{% endblock %}
 {% block content %}
 <div class="container-fluid py-3">
-    {{ page_header('المهام والمشاريع', subtitle='متابعة مهام ومشاريع فرق العمل عبر المنصة', icon='fas fa-tasks', actions=[
-        {'label': 'لوحة التحكم', 'icon': 'fas fa-chart-line', 'url': url_for('owner.owner_dashboard'), 'style': 'outline-light'}
+    {{ page_header('_("_(" _(" _(" _(" _(" _("المهام والمشاريع")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("متابعة مهام ومشاريع فرق العمل عبر المنصة")")")")")")")', icon='fas fa-tasks', actions=[
+        {'label': '_("_(" _(" _(" _(" _(" _("لوحة التحكم")")")")")")")', 'icon': 'fas fa-chart-line', 'url': url_for('owner.owner_dashboard'), 'style': 'outline-light'}
     ]) }}
 
     <div class="row g-3 mb-4">
         <div class="col-md-3 col-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
-                    <h6 class="text-muted small">إجمالي المهام</h6>
+                    <h6 class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المهام")")")")")")")') }}</h6>
                     <h3 class="fw-bold text-primary">{{ stats.total_tasks }}</h3>
                 </div>
             </div>
@@ -19,7 +19,7 @@
         <div class="col-md-3 col-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
-                    <h6 class="text-muted small">مفتوحة/قيد التنفيذ</h6>
+                    <h6 class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("مفتوحة/قيد التنفيذ")")")")")")")') }}</h6>
                     <h3 class="fw-bold text-warning">{{ stats.open_tasks }}</h3>
                 </div>
             </div>
@@ -27,7 +27,7 @@
         <div class="col-md-3 col-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
-                    <h6 class="text-muted small">إجمالي المشاريع</h6>
+                    <h6 class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المشاريع")")")")")")")') }}</h6>
                     <h3 class="fw-bold text-info">{{ stats.total_projects }}</h3>
                 </div>
             </div>
@@ -35,7 +35,7 @@
         <div class="col-md-3 col-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
-                    <h6 class="text-muted small">مشاريع نشطة</h6>
+                    <h6 class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("مشاريع نشطة")")")")")")")') }}</h6>
                     <h3 class="fw-bold text-success">{{ stats.active_projects }}</h3>
                 </div>
             </div>
@@ -46,12 +46,12 @@
         <div class="col-md-7">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-clipboard-list text-primary me-2"></i>آخر المهام</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-clipboard-list text-primary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("آخر المهام")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light"><tr><th>المهمة</th><th>الحالة</th><th>الأولوية</th><th>التاريخ</th></tr></thead>
+                            <thead class="table-light"><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("المهمة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th></tr></thead>
                             <tbody>
                                 {% for t in recent_tasks %}
                                 <tr>
@@ -61,7 +61,7 @@
                                     <td class="small text-muted">{{ t.created_at.strftime('%Y-%m-%d') if t.created_at else '-' }}</td>
                                 </tr>
                                 {% else %}
-                                <tr><td colspan="4" class="text-muted text-center py-4">لا توجد مهام</td></tr>
+                                <tr><td colspan="4" class="text-muted text-center py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مهام")")")")")")")') }}</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -72,7 +72,7 @@
         <div class="col-md-5">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-project-diagram text-success me-2"></i>المشاريع</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-project-diagram text-success me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("المشاريع")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
@@ -85,7 +85,7 @@
                             <span class="badge bg-{{ 'success' if p.status == 'active' else 'secondary' }}">{{ p.status }}</span>
                         </div>
                         {% else %}
-                        <div class="text-muted text-center py-4">لا توجد مشاريع</div>
+                        <div class="text-muted text-center py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مشاريع")")")")")")")') }}</div>
                         {% endfor %}
                     </div>
                 </div>

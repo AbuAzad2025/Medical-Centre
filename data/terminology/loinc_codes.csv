@@ -1,0 +1,231 @@
+﻿system,code,description,description_ar,category
+LOINC,718-7,Hemoglobin [Mass/volume] in Blood,هيموغلوبين [كتلة/حجم] في الدم,Hematology
+LOINC,4548-4,Hemoglobin A1c/Hemoglobin.total in Blood,هيموغلوبين A1c/هيموغلوبين إجمالي في الدم,Hematology
+LOINC,4549-2,Hemoglobin A1c [Mass/volume] in Blood,هيموغلوبين A1c [كتلة/حجم] في الدم,Hematology
+LOINC,20509-6,Erythrocytes [#/volume] in Blood,خلايا دم حمراء [#/حجم] في الدم,Hematology
+LOINC,6690-2,Leukocytes [#/volume] in Blood,خلايا دم بيضاء [#/حجم] في الدم,Hematology
+LOINC,777-3,Platelets [#/volume] in Blood,صفائح دم [#/حجم] في الدم,Hematology
+LOINC,787-2,MCV [Entitic volume] by Automated count,MCV [حجم] بحساب آلي,Hematology
+LOINC,785-6,MCH [Entitic mass] by Automated count,MCH [كتلة] بحساب آلي,Hematology
+LOINC,786-4,MCHC [Mass/volume] by Automated count,MCHC [كتلة/حجم] بحساب آلي,Hematology
+LOINC,20570-8,Hematocrit [Volume Fraction] of Blood,هيماتوكريت [كسر حجم] of Blood,Hematology
+LOINC,789-8,Erythrocytes [#/volume] in Blood by Automated count,خلايا دم حمراء [#/حجم] بحساب آلي,Hematology
+LOINC,788-0,Erythrocyte distribution width [Ratio] by Automated count,عرض توزيع خلايا دم حمراء,Hematology
+LOINC,784-9,MCHC [Mass/volume] by Automated count,MCHC [كتلة/حجم] بحساب آلي,Hematology
+LOINC,2345-7,Glucose [Mass/volume] in Serum or Plasma,جلوكوز [كتلة/حجم] في مصل أو بلازما,Chemistry
+LOINC,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,جلوكوز صيام [كتلة/حجم],Chemistry
+LOINC,41653-7,Glucose [Mass/volume] in Capillary blood,جلوكوز [كتلة/حجم] في دم شعري,Chemistry
+LOINC,2160-0,Creatinine [Mass/volume] in Serum or Plasma,كرياتينين [كتلة/حجم] في مصل أو بلازما,Chemistry
+LOINC,33914-3,Glomerular filtration rate/1.73 sq M.predicted,معدل ترشيح كبيبي,Chemistry
+LOINC,2951-2,Sodium [Moles/volume] in Serum or Plasma,صوديوم [مول/حجم] في مصل أو بلازما,Chemistry
+LOINC,2823-3,Potassium [Moles/volume] in Serum or Plasma,بوتاسيوم [مول/حجم] في مصل أو بلازما,Chemistry
+LOINC,2075-0,Chloride [Moles/volume] in Serum or Plasma,كلوريد [مول/حجم] في مصل أو بلازما,Chemistry
+LOINC,17861-6,Calcium [Mass/volume] in Serum or Plasma,كالسيوم [كتلة/حجم] في مصل أو بلازما,Chemistry
+LOINC,2777-1,Phosphate [Mass/volume] in Serum or Plasma,فوسفات [كتلة/حجم] في مصل أو بلازما,Chemistry
+LOINC,1751-7,Albumin [Mass/volume] in Serum or Plasma,ألبومين [كتلة/حجم] في مصل أو بلازما,Chemistry
+LOINC,2885-2,Protein [Mass/volume] in Serum or Plasma,بروتين [كتلة/حجم] في مصل أو بلازما,Chemistry
+LOINC,1975-2,Bilirubin.total [Mass/volume] in Serum or Plasma,بيليروبين إجمالي [كتلة/حجم],Chemistry
+LOINC,1968-7,Bilirubin.direct [Mass/volume] in Serum or Plasma,بيليروبين مباشر [كتلة/حجم],Chemistry
+LOINC,6768-6,Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma,فوسفاتاز قلوي [نشاط إنزيمي/حجم],Chemistry
+LOINC,1742-6,Alanine aminotransferase [Enzymatic activity/volume] in Serum or Plasma,ألانين أمينوترانسفيراز [نشاط إنزيمي/حجم],Chemistry
+LOINC,1920-8,Aspartate aminotransferase [Enzymatic activity/volume] in Serum or Plasma,أسبارتات أمينوترانسفيراز [نشاط إنزيمي/حجم],Chemistry
+LOINC,2324-2,Gamma glutamyl transferase [Enzymatic activity/volume] in Serum or Plasma,جاما غلوتاميل ترانسفيراز,Chemistry
+LOINC,2000-8,Calcium [Mass/volume] in Serum or Plasma,كالسيوم [كتلة/حجم] في مصل,Chemistry
+LOINC,3094-0,Urea nitrogen [Mass/volume] in Serum or Plasma,نيتروجين يوريا [كتلة/حجم] في مصل,Chemistry
+LOINC,14682-9,Creatinine [Mass/volume] in Urine,كرياتينين [كتلة/حجم] في بول,Chemistry
+LOINC,2093-3,Cholesterol [Mass/volume] in Serum or Plasma,كولسترول [كتلة/حجم] في مصل,Chemistry
+LOINC,2085-9,Cholesterol in HDL [Mass/volume] in Serum or Plasma,كولسترول HDL [كتلة/حجم] في مصل,Chemistry
+LOINC,13457-7,Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation,كولسترول LDL [كتلة/حجم] بحساب,Chemistry
+LOINC,2571-8,Triglycerides [Mass/volume] in Serum or Plasma,ثلاثي غليسريد [كتلة/حجم] في مصل,Chemistry
+LOINC,20565-8,"Carbon dioxide, total [Moles/volume] in Serum or Plasma",ثاني أكسيد كربون إجمالي [مول/حجم],Chemistry
+LOINC,1963-8,Bicarbonate [Moles/volume] in Arterial blood,بيكربونات [مول/حجم] في دم شرياني,Chemistry
+LOINC,2744-1,pH of Arterial blood,pH دم شرياني,Chemistry
+LOINC,34728-6,Magnesium [Mass/volume] in Serum or Plasma,مغنيسيوم [كتلة/حجم] في مصل,Chemistry
+LOINC,2044-7,Carbon dioxide [Partial pressure] in Arterial blood,ثاني أكسيد كربون [ضغط جزئي] في دم شرياني,Chemistry
+LOINC,2703-7,Oxygen [Partial pressure] in Arterial blood,أكسجين [ضغط جزئي] في دم شرياني,Chemistry
+LOINC,19236-1,Oxygen saturation in Arterial blood,تشبع أكسجين في دم شرياني,Chemistry
+LOINC,3016-3,Thyrotropin [Units/volume] in Serum or Plasma,ثيروتروبين [وحدات/حجم] في مصل,Endocrinology
+LOINC,3026-2,Thyroxine (T4) free [Mass/volume] in Serum or Plasma,ثيروكسين حر (T4) [كتلة/حجم] في مصل,Endocrinology
+LOINC,3053-6,Triiodothyronine (T3) free [Mass/volume] in Serum or Plasma,ثلاثي يودوثيرونين حر (T3) [كتلة/حجم],Endocrinology
+LOINC,3051-0,Thyroxine (T4) [Mass/volume] in Serum or Plasma,ثيروكسين (T4) [كتلة/حجم] في مصل,Endocrinology
+LOINC,3050-2,Triiodothyronine (T3) [Mass/volume] in Serum or Plasma,ثلاثي يودوثيرونين (T3) [كتلة/حجم] في مصل,Endocrinology
+LOINC,5811-5,Specific gravity of Urine,الوزن النوعي للبول,Urinalysis
+LOINC,5792-7,Glucose [Mass/volume] in Urine,جلوكوز [كتلة/حجم] في بول,Urinalysis
+LOINC,5797-6,Ketones [Mass/volume] in Urine,كيتونات [كتلة/حجم] في بول,Urinalysis
+LOINC,5802-4,Nitrite [Presence] in Urine,نيتريت [وجود] في بول,Urinalysis
+LOINC,5803-2,pH of Urine,pH بول,Urinalysis
+LOINC,5804-0,Protein [Mass/volume] in Urine,بروتين [كتلة/حجم] في بول,Urinalysis
+LOINC,20454-5,Erythrocytes [#/volume] in Urine sediment,خلايا دم حمراء [#/حجم] في راسب بول,Urinalysis
+LOINC,11277-1,Leukocytes [#/volume] in Urine sediment,خلايا دم بيضاء [#/حجم] في راسب بول,Urinalysis
+LOINC,5767-9,Appearance of Urine,مظهر بول,Urinalysis
+LOINC,5778-6,Color of Urine,لون بول,Urinalysis
+LOINC,630-4,Bacteria identified in Urine by Culture,بكتيريا محددة في بول بمزارعة,Microbiology
+LOINC,632-0,Yeast identified in Urine by Culture,خميرة محددة في بول بمزارعة,Microbiology
+LOINC,600-7,Bacteria identified in Blood by Culture,بكتيريا محددة في دم بمزارعة,Microbiology
+LOINC,10839-9,Troponin I.cardiac [Mass/volume] in Serum or Plasma,تروبونين I قلبي [كتلة/حجم] في مصل,Cardiology
+LOINC,42719-5,Troponin T.cardiac [Mass/volume] in Serum or Plasma,تروبونين T قلبي [كتلة/حجم] في مصل,Cardiology
+LOINC,33762-6,NT-proBNP [Mass/volume] in Serum or Plasma,NT-proBNP [كتلة/حجم] في مصل,Cardiology
+LOINC,2947-0,Sodium [Moles/volume] in Blood,صوديوم [مول/حجم] في دم,Chemistry
+LOINC,5902-2,Prothrombin time (PT),وقت بروثرومبين (PT),Coagulation
+LOINC,6301-6,INR in Platelet poor plasma,INR في بلازما فقيرة بالصفائح,Coagulation
+LOINC,3173-2,aPTT in Platelet poor plasma,aPTT في بلازما فقيرة بالصفائح,Coagulation
+LOINC,3255-7,Fibrinogen [Mass/volume] in Platelet poor plasma,فيبرينوجين [كتلة/حجم] في بلازما,Coagulation
+LOINC,7799-0,D-dimer [Mass/volume] in Platelet poor plasma,D-dimer [كتلة/حجم] في بلازما,Coagulation
+LOINC,22316-4,Hepatitis B surface antigen [Presence] in Serum,مستضد سطح التهاب كبد B [وجود] في مصل,Immunology
+LOINC,13955-0,Hepatitis B surface antibody [Units/volume] in Serum,أجسام مضادة لسطح التهاب كبد B,Immunology
+LOINC,16128-1,Hepatitis C virus Ab [Presence] in Serum,أجسام مضادة لفيروس التهاب كبد C,Immunology
+LOINC,20786-8,HIV 1+2 Ab [Presence] in Serum,أجسام مضادة لـ HIV 1+2,Immunology
+LOINC,22312-3,Rheumatoid factor [Units/volume] in Serum,عامل روماتويدي [وحدات/حجم] في مصل,Immunology
+LOINC,5059-8,Prostate specific antigen [Mass/volume] in Serum or Plasma,مستضد خاص بالبروستات [كتلة/حجم],Immunology
+LOINC,1988-5,C-reactive protein [Mass/volume] in Serum or Plasma,بروتين C-التفاعلي [كتلة/حجم],Immunology
+LOINC,20569-0,Ferritin [Mass/volume] in Serum or Plasma,فيريتين [كتلة/حجم] في مصل,Immunology
+LOINC,2498-4,Iron [Mass/volume] in Serum or Plasma,حديد [كتلة/حجم] في مصل,Immunology
+LOINC,2500-7,Iron binding capacity [Mass/volume] in Serum or Plasma,قدرة ربط حديد [كتلة/حجم] في مصل,Immunology
+LOINC,14647-2,Cholesterol in LDL/HDL [Ratio] in Serum or Plasma,نسبة كولسترول LDL/HDL,Immunology
+LOINC,14635-7,Vitamin B12 [Mass/volume] in Serum or Plasma,فيتامين B12 [كتلة/حجم] في مصل,Vitamins
+LOINC,2132-9,Vitamin D [Mass/volume] in Serum or Plasma,فيتامين D [كتلة/حجم] في مصل,Vitamins
+LOINC,2284-8,Folate [Mass/volume] in Serum or Plasma,فوليت [كتلة/حجم] في مصل,Vitamins
+LOINC,56444-3,Carcinoembryonic antigen (CEA) [Mass/volume] in Serum or Plasma,مستضد سرطاني جنيني (CEA),Oncology
+LOINC,19197-2,Alpha-1-Fetoprotein [Mass/volume] in Serum or Plasma,ألفا-1-فيتوبروتين,Oncology
+LOINC,83080-8,CA 15-3 [Units/volume] in Serum or Plasma,CA 15-3 [وحدات/حجم],Oncology
+LOINC,83081-6,CA 125 [Units/volume] in Serum or Plasma,CA 125 [وحدات/حجم],Oncology
+LOINC,83083-2,CA 19-9 [Units/volume] in Serum or Plasma,CA 19-9 [وحدات/حجم],Oncology
+LOINC,10331-7,Prostate specific antigen (PSA) [Mass/volume] in Serum or Plasma,مستضد خاص بالبروستات (PSA),Oncology
+LOINC,1759-0,Albumin [Mass/volume] in Urine,ألبومين [كتلة/حجم] في بول,Chemistry
+LOINC,1986-9,Bilirubin.total [Mass/volume] in Urine,بيليروبين إجمالي [كتلة/حجم] في بول,Chemistry
+LOINC,2157-6,Creatinine [Mass/volume] in Urine,كرياتينين [كتلة/حجم] في بول,Chemistry
+LOINC,2350-7,Glucose [Mass/volume] in Urine,جلوكوز [كتلة/حجم] في بول,Chemistry
+LOINC,2650-7,Ketones [Mass/volume] in Urine,كيتونات [كتلة/حجم] في بول,Chemistry
+LOINC,2734-0,pH of Urine,pH بول,Chemistry
+LOINC,2888-6,Protein [Mass/volume] in Urine,بروتين [كتلة/حجم] في بول,Chemistry
+LOINC,3040-3,Lipase [Enzymatic activity/volume] in Serum or Plasma,ليباز [نشاط إنزيمي/حجم],Chemistry
+LOINC,3084-1,Urate [Mass/volume] in Serum or Plasma,يورات [كتلة/حجم] في مصل,Chemistry
+LOINC,38483-4,Creatinine [Mass/volume] in Serum or Plasma,كرياتينين [كتلة/حجم] في مصل,Chemistry
+LOINC,44734-0,Bilirubin.indirect [Mass/volume] in Serum or Plasma,بيليروبين غير مباشر [كتلة/حجم],Chemistry
+LOINC,5670-6,Chloride [Moles/volume] in Urine,كلوريد [مول/حجم] في بول,Chemistry
+LOINC,5934-5,Potassium [Moles/volume] in Urine,بوتاسيوم [مول/حجم] في بول,Chemistry
+LOINC,5982-4,Sodium [Moles/volume] in Urine,صوديوم [مول/حجم] في بول,Chemistry
+LOINC,70218-3,Hemoglobin.glycated [Mass/volume] in Blood,هيموغلوبين متسكر [كتلة/حجم] في دم,Chemistry
+LOINC,30341-2,Erythrocyte sedimentation rate,معدل ترسيب كريات دم حمراء,Hematology
+LOINC,30385-9,Erythrocyte sedimentation rate by Westergren method,معدل ترسيب ESR,Hematology
+LOINC,30433-7,Reticulocytes [#/volume] in Blood,خلايا شبكية [#/حجم] في دم,Hematology
+LOINC,32276-5,Band form neutrophils [#/volume] in Blood,عدلات حزمية [#/حجم] في دم,Hematology
+LOINC,32623-1,Segmented neutrophils [#/volume] in Blood,عدلات مقطعة [#/حجم] في دم,Hematology
+LOINC,32639-7,Lymphocytes [#/volume] in Blood,لمفاويات [#/حجم] في دم,Hematology
+LOINC,32646-2,Monocytes [#/volume] in Blood,وحيدات [#/حجم] في دم,Hematology
+LOINC,32647-0,Eosinophils [#/volume] in Blood,حمضات [#/حجم] في دم,Hematology
+LOINC,32648-8,Basophils [#/volume] in Blood,قاعدات [#/حجم] في دم,Hematology
+LOINC,711-2,Eosinophils [#/volume] in Blood by Automated count,حمضات [#/حجم] بحساب آلي,Hematology
+LOINC,706-2,Basophils [#/volume] in Blood by Automated count,قاعدات [#/حجم] بحساب آلي,Hematology
+LOINC,713-8,Eosinophils [#/volume] in Blood by Manual count,حمضات [#/حجم] بحساب يدوي,Hematology
+LOINC,736-9,Lymphocytes [#/volume] in Blood by Automated count,لمفاويات [#/حجم] بحساب آلي,Hematology
+LOINC,740-1,Neutrophils [#/volume] in Blood by Automated count,عدلات [#/حجم] بحساب آلي,Hematology
+LOINC,742-7,Monocytes [#/volume] in Blood by Automated count,وحيدات [#/حجم] بحساب آلي,Hematology
+LOINC,11556-8,Estrogens [Mass/volume] in Serum or Plasma,إستروجين [كتلة/حجم] في مصل,Endocrinology
+LOINC,11557-6,Progesterone [Mass/volume] in Serum or Plasma,بروجسترون [كتلة/حجم] في مصل,Endocrinology
+LOINC,11579-0,Testosterone [Mass/volume] in Serum or Plasma,تستوستيرون [كتلة/حجم] في مصل,Endocrinology
+LOINC,13969-1,Cortisol [Mass/volume] in Serum or Plasma,كورتيزول [كتلة/حجم] في مصل,Endocrinology
+LOINC,15065-4,Parathyroid hormone intact [Mass/volume] in Serum or Plasma,هرمون جار درقية [كتلة/حجم],Endocrinology
+LOINC,1668-3,Phenylalanine [Mass/volume] in Serum or Plasma,فينيل ألانين [كتلة/حجم],Endocrinology
+LOINC,2336-6,Insulin [Units/volume] in Serum or Plasma,إنسولين [وحدات/حجم] في مصل,Endocrinology
+LOINC,2337-4,Insulin [Mass/volume] in Serum or Plasma,إنسولين [كتلة/حجم] في مصل,Endocrinology
+LOINC,2532-0,Hemoglobin [Mass/volume] in Arterial blood,هيموغلوبين [كتلة/حجم] في دم شرياني,Endocrinology
+LOINC,11054-4,Immunoglobulin A [Mass/volume] in Serum,غلوبولين مناعي A [كتلة/حجم],Immunology
+LOINC,11055-1,Immunoglobulin G [Mass/volume] in Serum,غلوبولين مناعي G [كتلة/حجم],Immunology
+LOINC,11056-9,Immunoglobulin M [Mass/volume] in Serum,غلوبولين مناعي M [كتلة/حجم],Immunology
+LOINC,14138-3,Complement C3 [Mass/volume] in Serum,مكمل C3 [كتلة/حجم],Immunology
+LOINC,14139-1,Complement C4 [Mass/volume] in Serum,مكمل C4 [كتلة/حجم],Immunology
+LOINC,1996-8,Calcium.ionized [Moles/volume] in Blood,كالسيوم متأين [مول/حجم] في دم,Immunology
+LOINC,20405-0,Erythrocyte sedimentation rate by Westergren method,معدل ترسيب ESR,Immunology
+LOINC,2236-8,Hepatitis B surface antigen [Presence] in Serum,مستضد سطح التهاب كبد B [وجود],Immunology
+LOINC,24112-3,Hepatitis B virus core antibody [Presence] in Serum,أجسام مضادة لـ HBV core,Immunology
+LOINC,49765-1,Hepatitis B e antigen [Presence] in Serum,مستضد e التهاب كبد B [وجود],Immunology
+LOINC,5195-3,Hepatitis C virus RNA [#/volume] in Serum,RNA فيروس التهاب كبد C [#/حجم],Immunology
+LOINC,5196-1,Hepatitis C virus RNA [Log] in Serum,RNA فيروس التهاب كبد C [Log],Immunology
+LOINC,5199-5,HIV 1 RNA [#/volume] in Serum,RNA HIV 1 [#/حجم],Immunology
+LOINC,7917-0,Syphilis [Presence] in Serum,زهري [وجود] في مصل,Immunology
+LOINC,8037-0,Rubella virus Ab [Titer] in Serum,أجسام مضادة لـ Rubella [مقدار],Immunology
+LOINC,8038-8,Rubella virus IgG Ab [Presence] in Serum,أجسام مضادة لـ Rubella IgG [وجود],Immunology
+LOINC,8039-6,Rubella virus IgM Ab [Presence] in Serum,أجسام مضادة لـ Rubella IgM [وجود],Immunology
+LOINC,8040-4,Varicella zoster virus Ab [Presence] in Serum,أجسام مضادة لـ VZV [وجود],Immunology
+LOINC,8041-2,Toxoplasma gondii Ab [Presence] in Serum,أجسام مضادة لـ Toxoplasma [وجود],Immunology
+LOINC,8042-0,Cytomegalovirus Ab [Presence] in Serum,أجسام مضادة لـ CMV [وجود],Immunology
+LOINC,8043-8,Epstein-Barr virus Ab [Presence] in Serum,أجسام مضادة لـ EBV [وجود],Immunology
+LOINC,8044-6,Herpes simplex virus 1 Ab [Presence] in Serum,أجسام مضادة لـ HSV1 [وجود],Immunology
+LOINC,8045-3,Herpes simplex virus 2 Ab [Presence] in Serum,أجسام مضادة لـ HSV2 [وجود],Immunology
+LOINC,14634-0,Vitamin A [Mass/volume] in Serum or Plasma,فيتامين A [كتلة/حجم] في مصل,Vitamins
+LOINC,14636-5,Vitamin B6 [Mass/volume] in Serum or Plasma,فيتامين B6 [كتلة/حجم] في مصل,Vitamins
+LOINC,14637-3,Vitamin C [Mass/volume] in Serum or Plasma,فيتامين C [كتلة/حجم] في مصل,Vitamins
+LOINC,14638-1,Vitamin E [Mass/volume] in Serum or Plasma,فيتامين E [كتلة/حجم] في مصل,Vitamins
+LOINC,14639-9,Vitamin K [Mass/volume] in Serum or Plasma,فيتامين K [كتلة/حجم] في مصل,Vitamins
+LOINC,2133-7,Vitamin D2 [Mass/volume] in Serum or Plasma,فيتامين D2 [كتلة/حجم] في مصل,Vitamins
+LOINC,2134-5,Vitamin D3 [Mass/volume] in Serum or Plasma,فيتامين D3 [كتلة/حجم] في مصل,Vitamins
+LOINC,19239-5,Cancer antigen 125 [Units/volume] in Serum or Plasma,مستضد سرطان 125,Oncology
+LOINC,24109-9,Cancer antigen 15-3 [Units/volume] in Serum or Plasma,مستضد سرطان 15-3,Oncology
+LOINC,24110-7,Cancer antigen 19-9 [Units/volume] in Serum or Plasma,مستضد سرطان 19-9,Oncology
+LOINC,24358-2,Squamous cell carcinoma antigen [Mass/volume] in Serum or Plasma,مستضد سرطان خلايا حرشفية,Oncology
+LOINC,48065-7,BNP [Mass/volume] in Serum or Plasma,BNP [كتلة/حجم] في مصل,Cardiology
+LOINC,10838-1,Troponin I.cardiac [Mass/volume] in Serum or Plasma by high sensitivity method,تروبونين I قلبي حساس,Cardiology
+LOINC,4631-6,Prothrombin time (PT) in Control,وقت بروثرومبين - control,Coagulation
+LOINC,4632-4,Prothrombin time (PT) in Platelet poor plasma by Coagulation assay,وقت بروثرومبين - test,Coagulation
+LOINC,602-3,Bacteria identified in Cerebrospinal fluid by Culture,بكتيريا محددة في CSF بمزارعة,Microbiology
+LOINC,603-1,Bacteria identified in Sputum by Culture,بكتيريا محددة في قشع بمزارعة,Microbiology
+LOINC,604-9,Bacteria identified in Wound by Culture,بكتيريا محددة في جرح بمزارعة,Microbiology
+LOINC,605-6,Bacteria identified in Throat by Culture,بكتيريا محددة في حلق بمزارعة,Microbiology
+LOINC,606-4,Bacteria identified in Stool by Culture,بكتيريا محددة في براز بمزارعة,Microbiology
+LOINC,882-1,Bacteria identified in Genital specimen by Culture,بكتيريا محددة في عينة تناسلية,Microbiology
+LOINC,11475-1,Chlamydia trachomatis [Presence] in Urine,Chlamydia trachomatis [وجود] في بول,Microbiology
+LOINC,11476-9,Neisseria gonorrhoeae [Presence] in Urine,Neisseria gonorrhoeae [وجود] في بول,Microbiology
+LOINC,11477-7,Trichomonas vaginalis [Presence] in Urine,Trichomonas vaginalis [وجود] في بول,Microbiology
+LOINC,20442-0,HIV 1 RNA [#/volume] in Plasma,HIV 1 RNA [#/حجم] في بلازما,Microbiology
+LOINC,20443-8,HIV 1 RNA [Log] in Plasma,HIV 1 RNA [Log] في بلازما,Microbiology
+LOINC,21198-7,Hepatitis B virus DNA [#/volume] in Serum,HBV DNA [#/حجم] في مصل,Microbiology
+LOINC,21199-5,Hepatitis C virus RNA [#/volume] in Serum,HCV RNA [#/حجم] في مصل,Microbiology
+LOINC,31714-3,Mycobacterium tuberculosis [Presence] in Sputum,Mycobacterium tuberculosis [وجود] في قشع,Microbiology
+LOINC,32700-7,Severe acute respiratory syndrome coronavirus 2 RNA [Presence] in Respiratory specimen,SARS-CoV-2 RNA [وجود] في عينة تنفسية,Microbiology
+LOINC,94500-6,SARS-CoV-2 RNA [Presence] in Respiratory specimen by NAA,SARS-CoV-2 RNA [وجود] by NAA,Microbiology
+LOINC,94531-1,SARS-CoV-2 RNA [Presence] in Respiratory specimen by NAA with probe detection,SARS-CoV-2 RNA by NAA with probe,Microbiology
+LOINC,94558-4,SARS-CoV-2 Ab [Presence] in Serum or Plasma by Immunoassay,SARS-CoV-2 Ab [وجود] by Immunoassay,Microbiology
+LOINC,94562-6,SARS-CoV-2 Ab [Titer] in Serum or Plasma by Neutralization test,SARS-CoV-2 Ab [مقدار] by Neutralization,Microbiology
+LOINC,32999-2,Blood [Presence] in Urine by Dipstick,دم [وجود] في بول by Dipstick,Urinalysis
+LOINC,33000-8,Bilirubin [Presence] in Urine by Dipstick,بيليروبين [وجود] في بول by Dipstick,Urinalysis
+LOINC,33001-6,Ketones [Presence] in Urine by Dipstick,كيتونات [وجود] في بول by Dipstick,Urinalysis
+LOINC,33002-4,Leukocytes [Presence] in Urine by Dipstick,خلايا دم بيضاء [وجود] في بول by Dipstick,Urinalysis
+LOINC,33003-2,Nitrite [Presence] in Urine by Dipstick,نيتريت [وجود] في بول by Dipstick,Urinalysis
+LOINC,33004-0,Protein [Presence] in Urine by Dipstick,بروتين [وجود] في بول by Dipstick,Urinalysis
+LOINC,33005-7,Urobilinogen [Presence] in Urine by Dipstick,يوروبيلينوجين [وجود] في بول by Dipstick,Urinalysis
+LOINC,33006-5,Glucose [Presence] in Urine by Dipstick,جلوكوز [وجود] في بول by Dipstick,Urinalysis
+LOINC,33007-3,Specific gravity of Urine by Dipstick,وزن نوعي بول by Dipstick,Urinalysis
+LOINC,33008-1,pH of Urine by Dipstick,pH بول by Dipstick,Urinalysis
+LOINC,33009-9,Ascorbic acid [Presence] in Urine by Dipstick,حمض أسكوربيك [وجود] في بول,Urinalysis
+LOINC,24728-3,CT Abdomen and Pelvis,الأشعة المقطعية - بطن وحوض,Radiology
+LOINC,30746-2,MRI Brain,الرنين المغناطيسي - دماغ,Radiology
+LOINC,36642-6,X-Ray Chest 2 views,أشعة صدر 2 مناظر,Radiology
+LOINC,36643-4,X-Ray Chest PA and Lateral,أشعة صدر PA وجانبي,Radiology
+LOINC,37643-0,Ultrasound Abdomen,موجات فوق صوتية - بطن,Radiology
+LOINC,38266-3,CT Head without contrast,الأشعة المقطعية - رأس بدون تباين,Radiology
+LOINC,39156-5,MRI Spine Lumbar,الرنين المغناطيسي - عمود فقري قطني,Radiology
+LOINC,42284-5,X-Ray Knee 3 views,أشعة ركبة 3 مناظر,Radiology
+LOINC,44137-5,Mammogram bilateral,ماموغرام ثنائي,Radiology
+LOINC,44138-3,Mammogram unilateral,ماموغرام أحادي,Radiology
+LOINC,44139-1,DEXA Scan,مسح DEXA,Radiology
+LOINC,44140-9,CT Chest with contrast,الأشعة المقطعية - صدر مع تباين,Radiology
+LOINC,44141-7,CT Abdomen with contrast,الأشعة المقطعية - بطن مع تباين,Radiology
+LOINC,44142-5,MRI Brain with contrast,الرنين المغناطيسي - دماغ مع تباين,Radiology
+LOINC,44143-3,Ultrasound Pelvis,موجات فوق صوتية - حوض,Radiology
+LOINC,44144-1,Ultrasound Thyroid,موجات فوق صوتية - درقية,Radiology
+LOINC,44145-8,Ultrasound Breast,موجات فوق صوتية - ثدي,Radiology
+LOINC,44146-6,Ultrasound Obstetric,موجات فوق صوتية - توليد,Radiology
+LOINC,44147-4,Ultrasound Vascular,موجات فوق صوتية - وعائية,Radiology
+LOINC,44148-2,X-Ray Hand,أشعة - يد,Radiology
+LOINC,44149-0,X-Ray Foot,أشعة - قدم,Radiology
+LOINC,44150-8,X-Ray Shoulder,أشعة - كتف,Radiology
+LOINC,44151-6,X-Ray Spine Cervical,أشعة - عمود فقري عنقي,Radiology
+LOINC,44152-4,X-Ray Spine Thoracic,أشعة - عمود فقري صدري,Radiology
+LOINC,44153-2,X-Ray Spine Lumbar,أشعة - عمود فقري قطني,Radiology
+LOINC,44154-0,X-Ray Pelvis,أشعة - حوض,Radiology
+LOINC,44155-7,X-Ray Hip,أشعة - ورك,Radiology
+LOINC,44156-5,X-Ray Ankle,أشعة - كاحل,Radiology
+LOINC,44157-3,X-Ray Wrist,أشعة - رسغ,Radiology
+LOINC,44158-1,X-Ray Elbow,أشعة - كوع,Radiology
+LOINC,44159-9,X-Ray Knee,أشعة - ركبة,Radiology

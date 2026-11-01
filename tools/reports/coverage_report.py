@@ -155,7 +155,7 @@ def _count(mapping: dict, branch: bool = False) -> FileStat:
     return FileStat('', covered, total)
 
 
-def frontend_metrics(data: dict) -> dict[str, Metric]:
+def frontend_metrics(data: dict) -> dict[str, object]:
     statements = Metric('statements')
     branches = Metric('branches')
     functions = Metric('functions')

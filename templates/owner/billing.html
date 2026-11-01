@@ -5,7 +5,7 @@
 {% block header_actions %}
 <div class="d-flex gap-2">
     <button class="owner-btn owner-btn-outline" onclick="window.print()">
-        <i class="fas fa-print"></i> طباعة التقرير
+        <i class="fas fa-print"></i> {{ _('_("_(" _(" _(" _(" _(" _("طباعة التقرير")")")")")")")') }}
     </button>
 </div>
 {% endblock %}
@@ -17,28 +17,28 @@
     <div class="owner-kpi owner-kpi-primary">
         <div class="owner-kpi-icon"><i class="fas fa-chart-line"></i></div>
         <div class="owner-kpi-value">{{ "%.0f"|format(stats.mrr) }} <small class="fs-6">{{ stats.currency }}</small></div>
-        <div class="owner-kpi-label">MRR (إيراد شهري متكرر)</div>
+        <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("MRR (إيراد شهري متكرر)")")")")")")")') }}</div>
     </div>
 
     <!-- ARR -->
     <div class="owner-kpi owner-kpi-success">
         <div class="owner-kpi-icon"><i class="fas fa-calendar-check"></i></div>
         <div class="owner-kpi-value">{{ "%.0f"|format(stats.arr) }} <small class="fs-6">{{ stats.currency }}</small></div>
-        <div class="owner-kpi-label">ARR (إيراد سنوي متكرر)</div>
+        <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("ARR (إيراد سنوي متكرر)")")")")")")")') }}</div>
     </div>
 
     <!-- Active Paid Tenants -->
     <div class="owner-kpi owner-kpi-info">
         <div class="owner-kpi-icon"><i class="fas fa-user-check"></i></div>
         <div class="owner-kpi-value">{{ stats.active_paid }}</div>
-        <div class="owner-kpi-label">عملاء نشطون (مدفوع)</div>
+        <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("عملاء نشطون (مدفوع)")")")")")")")') }}</div>
     </div>
 
     <!-- Total Tenants -->
     <div class="owner-kpi owner-kpi-accent">
         <div class="owner-kpi-icon"><i class="fas fa-building"></i></div>
         <div class="owner-kpi-value">{{ stats.tenant_count }}</div>
-        <div class="owner-kpi-label">إجمالي العملاء</div>
+        <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي العملاء")")")")")")")') }}</div>
     </div>
 </div>
 
@@ -47,15 +47,15 @@
     <div class="col-lg-8 animate-fadeInUp delay-2">
         <div class="owner-card h-100">
             <div class="owner-card-header">
-                <h6 class="owner-card-title"><i class="fas fa-tags text-primary"></i> تحليل الإيرادات حسب الخطة</h6>
+                <h6 class="owner-card-title"><i class="fas fa-tags text-primary"></i> {{ _('_("_(" _(" _(" _(" _(" _("تحليل الإيرادات حسب الخطة")")")")")")")') }}</h6>
             </div>
             <div class="table-responsive">
                 <table class="owner-table mb-0">
                     <thead>
                         <tr>
-                            <th>الخطة</th>
-                            <th>العملاء النشطون</th>
-                            <th class="text-end">السعر الشهري</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الخطة")")")")")")")') }}</th>
+                            <th>{{ _('_("_(" _(" _(" _(" _(" _("العملاء النشطون")")")")")")")') }}</th>
+                            <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("السعر الشهري")")")")")")")') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,7 +78,7 @@
                         <tr>
                             <td colspan="3" class="owner-empty py-5">
                                 <i class="fas fa-folder-open"></i>
-                                <h5>لا توجد خطط متاحة</h5>
+                                <h5>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد خطط متاحة")")")")")")")') }}</h5>
                             </td>
                         </tr>
                         {% endfor %}
@@ -92,15 +92,15 @@
     <div class="col-lg-4 animate-fadeInUp delay-3">
         <div class="owner-card h-100">
             <div class="owner-card-header">
-                <h6 class="owner-card-title"><i class="fas fa-info-circle text-info"></i> ملخص مالي سريع</h6>
+                <h6 class="owner-card-title"><i class="fas fa-info-circle text-info"></i> {{ _('_("_(" _(" _(" _(" _(" _("ملخص مالي سريع")")")")")")")') }}</h6>
             </div>
             <div class="owner-card-body">
                 <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">العملة المستخدمة:</span>
+                    <span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("العملة المستخدمة:")")")")")")")') }}</span>
                     <span class="fw-bold">{{ stats.currency }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">متوسط العميل/شهر:</span>
+                    <span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("متوسط العميل/شهر:")")")")")")")') }}</span>
                     <span class="fw-bold text-primary">{{ "%.2f"|format(stats.mrr / stats.tenant_count if stats.tenant_count > 0 else 0) }} {{ stats.currency }}</span>
                 </div>
                 <hr class="my-4">
@@ -108,7 +108,7 @@
                     <div class="d-flex gap-3 align-items-start">
                         <i class="fas fa-lightbulb text-warning mt-1"></i>
                         <div class="small text-muted">
-                            تستخدم هذه الأرقام لحساب الإيرادات المتكررة (MRR/ARR) بناءً على الاشتراكات النشطة والمدفوعة فقط.
+                            {{ _('_("_(" _(" _(" _(" _(" _("تستخدم هذه الأرقام لحساب الإيرادات المتكررة (MRR/ARR) بناءً على الاشتراكات النشطة والمدفوعة فقط.")")")")")")")') }}
                         </div>
                     </div>
                 </div>

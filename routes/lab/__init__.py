@@ -468,6 +468,7 @@ def generate_optimization_suggestions(avg_time):
 
 from . import barcode as barcode
 from . import dashboard as dashboard
+from . import enhancements as enhancements
 from . import fhir as fhir
 from . import lis_import as lis_import
 from . import quality as quality

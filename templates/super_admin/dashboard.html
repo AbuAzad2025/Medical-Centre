@@ -13,7 +13,7 @@
                         <div class="col-md-8">
                             <h1 class="mb-2 text-white floating-animation">
                                 <i class="fas fa-globe-americas me-3"></i>
-                                لوحة السوبر أدمن العالمية
+                                {{ _('_("_(" _(" _(" _(" _(" _("لوحة السوبر أدمن العالمية")")")")")")")') }}
                             </h1>
                             <p class="mb-0 text-white-50 fs-5">مرحباً {{ current_user.full_name }} - إدارة عالمية متقدمة وشاملة للنظام</p>
                             <div class="mt-2">
@@ -25,17 +25,17 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2 flex-wrap justify-content-end">
-                                <button class="btn btn-light btn-lg btn-modern shadow-sm" data-action="refresh-dashboard" title="تحديث البيانات">
-                                    <i class="fas fa-sync-alt"></i> <span class="btn-label">تحديث</span>
+                                <button class="btn btn-light btn-lg btn-modern shadow-sm" data-action="refresh-dashboard" title="_(" _(" _(" _(" _(" _("تحديث البيانات")")")")")")">
+                                    <i class="fas fa-sync-alt"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")') }}</span>
                                 </button>
-                                <button class="btn btn-warning btn-lg btn-modern shadow-sm" data-action="create-backup" title="نسخة احتياطية">
-                                    <i class="fas fa-database"></i> <span class="btn-label">نسخة</span>
+                                <button class="btn btn-warning btn-lg btn-modern shadow-sm" data-action="create-backup" title="_(" _(" _(" _(" _(" _("نسخة احتياطية")")")")")")">
+                                    <i class="fas fa-database"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("نسخة")")")")")")")') }}</span>
                                 </button>
-                                <button class="btn btn-info btn-lg btn-modern shadow-sm" data-action="export-system-data" title="تصدير البيانات">
-                                    <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
+                                <button class="btn btn-info btn-lg btn-modern shadow-sm" data-action="export-system-data" title="_(" _(" _(" _(" _(" _("تصدير البيانات")")")")")")">
+                                    <i class="fas fa-download"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")') }}</span>
                                 </button>
-                                <button class="btn btn-success btn-lg btn-modern shadow-sm" data-action="open-system-monitor" title="مراقب النظام">
-                                    <i class="fas fa-chart-line"></i> <span class="btn-label">مراقب</span>
+                                <button class="btn btn-success btn-lg btn-modern shadow-sm" data-action="open-system-monitor" title="_(" _(" _(" _(" _(" _("مراقب النظام")")")")")")">
+                                    <i class="fas fa-chart-line"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("مراقب")")")")")")")') }}</span>
                                 </button>
                             </div>
                         </div>
@@ -50,16 +50,16 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body d-flex gap-2 flex-wrap">
                     <a class="btn btn-outline-primary" href="{{ url_for('super_admin.maintenance_automation') }}">
-                        <i class="fas fa-tools me-1"></i>أتمتة الصيانة
+                        <i class="fas fa-tools me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("أتمتة الصيانة")")")")")")")') }}
                     </a>
                     <a class="btn btn-outline-danger" href="{{ url_for('super_admin.security_center') }}">
-                        <i class="fas fa-shield-alt me-1"></i>مركز الأمان
+                        <i class="fas fa-shield-alt me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("مركز الأمان")")")")")")")') }}
                     </a>
                     <a class="btn btn-outline-secondary" href="{{ url_for('super_admin.branch_templates') }}">
-                        <i class="fas fa-code-branch me-1"></i>قوالب الفروع
+                        <i class="fas fa-code-branch me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("قوالب الفروع")")")")")")")') }}
                     </a>
                     <a class="btn btn-outline-info" href="{{ url_for('super_admin.data_warehouse') }}">
-                        <i class="fas fa-database me-1"></i>مستودع البيانات
+                        <i class="fas fa-database me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("مستودع البيانات")")")")")")")') }}
                     </a>
                 </div>
             </div>
@@ -70,17 +70,17 @@
     <ul class="nav nav-pills mb-4" id="adminTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
-                <i class="fas fa-home me-2"></i> نظرة عامة
+                <i class="fas fa-home me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("نظرة عامة")")")")")")")') }}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="intelligence-tab" data-bs-toggle="tab" data-bs-target="#intelligence" type="button" role="tab" aria-controls="intelligence" aria-selected="false">
-                <i class="fas fa-brain me-2"></i> الذكاء والتحليل
+                <i class="fas fa-brain me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("الذكاء والتحليل")")")")")")")') }}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" aria-controls="security" aria-selected="false">
-                <i class="fas fa-shield-alt me-2"></i> الأمان
+                <i class="fas fa-shield-alt me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("الأمان")")")")")")")') }}
             </button>
         </li>
     </ul>
@@ -96,7 +96,7 @@
                         <div class="card-header border-0" class="gradient-primary-text">
                             <h5 class="mb-0">
                                 <i class="fas fa-globe-americas me-2"></i>
-                                لوحة التحليلات العالمية المتقدمة
+                                {{ _('_("_(" _(" _(" _(" _(" _("لوحة التحليلات العالمية المتقدمة")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -107,7 +107,7 @@
                                             <i class="fas fa-users fa-3x text-primary floating-animation"></i>
                                         </div>
                                         <h3 class="gradient-text">{{ stats.total_users or 0 }}</h3>
-                                        <p class="text-muted">إجمالي المستخدمين</p>
+                                        <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المستخدمين")")")")")")")') }}</p>
                                         <div class="progress" class="progress-sm">
                                             <div class="progress-bar bg-primary" style="width: 85%"></div>
                                         </div>
@@ -119,7 +119,7 @@
                                             <i class="fas fa-heartbeat fa-3x text-success floating-animation"></i>
                                         </div>
                                         <h3 class="gradient-text">{{ stats.active_sessions or 0 }}</h3>
-                                        <p class="text-muted">الجلسات النشطة</p>
+                                        <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الجلسات النشطة")")")")")")")') }}</p>
                                         <div class="progress" class="progress-sm">
                                             <div class="progress-bar bg-success" style="width: 92%"></div>
                                         </div>
@@ -131,7 +131,7 @@
                                             <i class="fas fa-shield-alt fa-3x text-warning floating-animation"></i>
                                         </div>
                                         <h3 class="gradient-text">{{ stats.security_events or 0 }}</h3>
-                                        <p class="text-muted">أحداث الأمان</p>
+                                        <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("أحداث الأمان")")")")")")")') }}</p>
                                         <div class="progress" class="progress-sm">
                                             <div class="progress-bar bg-warning" style="width: 15%"></div>
                                         </div>
@@ -143,7 +143,7 @@
                                             <i class="fas fa-server fa-3x text-info floating-animation"></i>
                                         </div>
                                          <h3 class="gradient-text">{{ stats.system_uptime or '99.9%' }}</h3>
-                                         <p class="text-muted">وقت تشغيل النظام</p>
+                                         <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("وقت تشغيل النظام")")")")")")")') }}</p>
                                          <div class="progress" class="progress-sm">
                                              <div class="progress-bar bg-info" style="width: {{ (stats.system_uptime|replace('%','')|float) if stats.system_uptime else 99 }}%"></div>
                                         </div>
@@ -163,14 +163,14 @@
                         <div class="card-header bg-gradient-{{ stats.system_health_score.color }} text-white border-0">
                             <h5 class="mb-0">
                                 <i class="fas fa-heartbeat me-2"></i>
-                                صحة النظام
+                                {{ _('_("_(" _(" _(" _(" _(" _("صحة النظام")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="row align-items-center">
                                 <div class="col-md-6">
                                     <h3 class="text-{{ stats.system_health_score.color }} fw-bold display-4">{{ stats.system_health_score.score }}%</h3>
-                                    <p class="text-muted mb-0">حالة النظام: <strong>{{ stats.system_health_score.status }}</strong></p>
+                                    <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("حالة النظام:")")")")")")")') }} <strong>{{ stats.system_health_score.status }}</strong></p>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="progress" class="progress-rounded">
@@ -208,7 +208,7 @@
                                 <div class="col-md-10">
                                     <h4 class="text-white mb-3">
                                         <i class="fas fa-brain me-2"></i>
-                                        المساعد الذكي المتطور
+                                        {{ _('_("_(" _(" _(" _(" _(" _("المساعد الذكي المتطور")")")")")")")') }}
                                     </h4>
                                     <div class="ai-chat-container" id="aiChatContainer">
                                         <div class="ai-messages" id="aiMessages">
@@ -217,43 +217,43 @@
                                                     <i class="fas fa-robot"></i>
                                                 </div>
                                                 <div class="message-content">
-                                                    <strong>المساعد الذكي</strong>
+                                                    <strong>{{ _('_("_(" _(" _(" _(" _(" _("المساعد الذكي")")")")")")")') }}</strong>
                                                     <p>مرحباً {{ current_user.full_name }}! أنا مساعدك الذكي المتطور. 🤖</p>
-                                                    <p><strong>✅ نظام التحقق الذكي مفعّل:</strong></p>
+                                                    <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("✅ نظام التحقق الذكي مفعّل:")")")")")")")') }}</strong></p>
                                                     <ul class="mb-2">
-                                                        <li>🔍 فحص تلقائي للبيانات قبل أي عملية</li>
-                                                        <li>⚠️ تنبيه فوري عند اكتشاف أخطاء</li>
-                                                        <li>🛡️ حماية من البيانات غير المنطقية</li>
-                                                        <li>✅ تأكيد المستخدم قبل التجاوز</li>
+                                                        <li>{{ _('_("_(" _(" _(" _(" _(" _("🔍 فحص تلقائي للبيانات قبل أي عملية")")")")")")")') }}</li>
+                                                        <li>{{ _('_("_(" _(" _(" _(" _(" _("⚠️ تنبيه فوري عند اكتشاف أخطاء")")")")")")")') }}</li>
+                                                        <li>{{ _('_("_(" _(" _(" _(" _(" _("🛡️ حماية من البيانات غير المنطقية")")")")")")")') }}</li>
+                                                        <li>{{ _('_("_(" _(" _(" _(" _(" _("✅ تأكيد المستخدم قبل التجاوز")")")")")")")') }}</li>
                                                     </ul>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="ai-input-container">
                                             <div class="input-group">
-                                                <button class="btn btn-light" id="voiceBtn" title="أوامر صوتية">
-                                                    <i class="fas fa-microphone"></i> <span class="btn-label">صوتي</span>
+                                                <button class="btn btn-light" id="voiceBtn" title="_(" _(" _(" _(" _(" _("أوامر صوتية")")")")")")">
+                                                    <i class="fas fa-microphone"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("صوتي")")")")")")")') }}</span>
                                                 </button>
                                                 <input type="text" class="form-control" id="aiInput" 
-                                                       placeholder="اكتب سؤالك أو طلبك هنا... (مثال: حلل أداء النظام، أنشئ تقرير المستخدمين، ما هي التحسينات المقترحة؟)">
+                                                       placeholder="_(" _(" _(" _(" _(" _("اكتب سؤالك أو طلبك هنا... (مثال: حلل أداء النظام، أنشئ تقرير المستخدمين، ما هي التحسينات المقترحة؟)")")")")")")">
                                                 <button class="btn btn-success" id="sendBtn" data-action="send-ai-message">
                                                     <i class="fas fa-paper-plane me-1"></i>
-                                                    إرسال
+                                                    {{ _('_("_(" _(" _(" _(" _(" _("إرسال")")")")")")")') }}
                                                 </button>
                                             </div>
                                             <div class="quick-commands mt-2">
-                                                <small class="text-white-50">أوامر سريعة:</small>
+                                                <small class="text-white-50">{{ _('_("_(" _(" _(" _(" _(" _("أوامر سريعة:")")")")")")")') }}</small>
                                                 <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="analyze">
-                                                    <i class="fas fa-chart-line"></i> تحليل النظام
+                                                    <i class="fas fa-chart-line"></i> {{ _('_("_(" _(" _(" _(" _(" _("تحليل النظام")")")")")")")') }}
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="report">
-                                                    <i class="fas fa-file-alt"></i> إنشاء تقرير
+                                                    <i class="fas fa-file-alt"></i> {{ _('_("_(" _(" _(" _(" _(" _("إنشاء تقرير")")")")")")")') }}
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="optimize">
-                                                    <i class="fas fa-cog"></i> اقتراحات التحسين
+                                                    <i class="fas fa-cog"></i> {{ _('_("_(" _(" _(" _(" _(" _("اقتراحات التحسين")")")")")")")') }}
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="backup">
-                                                    <i class="fas fa-database"></i> نسخة احتياطية
+                                                    <i class="fas fa-database"></i> {{ _('_("_(" _(" _(" _(" _(" _("نسخة احتياطية")")")")")")")') }}
                                                 </button>
                                             </div>
                                         </div>
@@ -273,7 +273,7 @@
                         <div class="card-header bg-gradient-primary text-white border-0">
                             <h5 class="mb-0">
                                 <i class="fas fa-brain me-2"></i>
-                                رؤى الذكاء الاصطناعي
+                                {{ _('_("_(" _(" _(" _(" _(" _("رؤى الذكاء الاصطناعي")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -302,7 +302,7 @@
                         <div class="card-header bg-gradient-success text-white border-0">
                             <h5 class="mb-0">
                                 <i class="fas fa-lightbulb me-2"></i>
-                                التوصيات الذكية
+                                {{ _('_("_(" _(" _(" _(" _(" _("التوصيات الذكية")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -332,7 +332,7 @@
                         <div class="card-header bg-gradient-danger text-white border-0">
                             <h5 class="mb-0">
                                 <i class="fas fa-shield-alt me-2"></i>
-                                التهديدات الأمنية
+                                {{ _('_("_(" _(" _(" _(" _(" _("التهديدات الأمنية")")")")")")")') }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -356,19 +356,19 @@
                 <div class="col-md-4 mb-3">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h6 class="mb-0 fw-bold"><i class="fas fa-sign-in-alt me-2 text-warning"></i>محاولات الدخول الفاشلة</h6>
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-sign-in-alt me-2 text-warning"></i>{{ _('محاولات الدخول الفاشلة') }}</h6>
                         </div>
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
-                                <div class="text-muted">آخر ساعة</div>
+                                <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("آخر ساعة")")")")")")")') }}</div>
                                 <div class="fw-bold">{{ stats.failed_logins_1h or 0 }}</div>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <div class="text-muted">آخر 24 ساعة</div>
+                                <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("آخر 24 ساعة")")")")")")")') }}</div>
                                 <div class="fw-bold">{{ stats.failed_logins_24h or 0 }}</div>
                             </div>
                             <div class="mt-3">
-                                <a class="btn btn-sm btn-outline-secondary w-100" href="{{ url_for('super_admin.security_logs') }}">سجلات الأمان</a>
+                                <a class="btn btn-sm btn-outline-secondary w-100" href="{{ url_for('super_admin.security_logs') }}">{{ _('_("_(" _(" _(" _(" _(" _("سجلات الأمان")")")")")")")') }}</a>
                             </div>
                         </div>
                     </div>
@@ -376,7 +376,7 @@
                 <div class="col-md-4 mb-3">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h6 class="mb-0 fw-bold"><i class="fas fa-bug me-2 text-danger"></i>أخطاء النظام</h6>
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-bug me-2 text-danger"></i>{{ _('_("_(" _(" _(" _(" _(" _("أخطاء النظام")")")")")")")') }}</h6>
                         </div>
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
@@ -388,7 +388,7 @@
                                 <div class="fw-bold">{{ stats.critical_logs_24h or 0 }}</div>
                             </div>
                             <div class="mt-3">
-                                <a class="btn btn-sm btn-outline-primary w-100" href="{{ url_for('super_admin.system_monitor') }}">مراقب النظام</a>
+                                <a class="btn btn-sm btn-outline-primary w-100" href="{{ url_for('super_admin.system_monitor') }}">{{ _('_("_(" _(" _(" _(" _(" _("مراقب النظام")")")")")")")') }}</a>
                             </div>
                         </div>
                     </div>
@@ -396,15 +396,15 @@
                 <div class="col-md-4 mb-3">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h6 class="mb-0 fw-bold"><i class="fas fa-shield-alt me-2 text-primary"></i>أحداث أمان غير محلولة</h6>
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-shield-alt me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("أحداث أمان غير محلولة")")")")")")")') }}</h6>
                         </div>
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
-                                <div class="text-muted">غير محلول</div>
+                                <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("غير محلول")")")")")")")') }}</div>
                                 <div class="fw-bold">{{ stats.unresolved_security_events or 0 }}</div>
                             </div>
                             <div class="mt-3">
-                                <a class="btn btn-sm btn-outline-danger w-100" href="{{ url_for('super_admin.audit_trail') }}">سجل التدقيق</a>
+                                <a class="btn btn-sm btn-outline-danger w-100" href="{{ url_for('super_admin.audit_trail') }}">{{ _('_("_(" _(" _(" _(" _(" _("سجل التدقيق")")")")")")")') }}</a>
                             </div>
                         </div>
                     </div>
@@ -415,16 +415,16 @@
                 <div class="col-lg-6 mb-3">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h6 class="mb-0 fw-bold">آخر أحداث الأمان</h6>
+                            <h6 class="mb-0 fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("آخر أحداث الأمان")")")")")")")') }}</h6>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-sm table-striped align-middle mb-0">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th class="ps-3">النوع</th>
-                                            <th>الشدّة</th>
-                                            <th class="w-160">التاريخ</th>
+                                            <th class="ps-3">{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الشدّة")")")")")")")') }}</th>
+                                            <th class="w-160">{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -435,7 +435,7 @@
                                             <td>{{ e.created_at|format_datetime }}</td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="3" class="text-center text-muted py-3">لا بيانات</td></tr>
+                                        <tr><td colspan="3" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا بيانات")")")")")")")') }}</td></tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -446,16 +446,16 @@
                 <div class="col-lg-6 mb-3">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0">
-                            <h6 class="mb-0 fw-bold">آخر أخطاء النظام</h6>
+                            <h6 class="mb-0 fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("آخر أخطاء النظام")")")")")")")') }}</h6>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-sm table-striped align-middle mb-0">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th class="ps-3">المستوى</th>
-                                            <th>التصنيف</th>
-                                            <th class="w-160">التاريخ</th>
+                                            <th class="ps-3">{{ _('_("_(" _(" _(" _(" _(" _("المستوى")")")")")")")') }}</th>
+                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("التصنيف")")")")")")")') }}</th>
+                                            <th class="w-160">{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -466,7 +466,7 @@
                                             <td>{{ e.created_at|format_datetime }}</td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="3" class="text-center text-muted py-3">لا بيانات</td></tr>
+                                        <tr><td colspan="3" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا بيانات")")")")")")")') }}</td></tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>

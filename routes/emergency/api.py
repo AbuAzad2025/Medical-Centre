@@ -14,9 +14,7 @@ from routes.emergency import emergency_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required_json
 
-# =============================================
 # API ROUTES
-# =============================================
 
 
 @emergency_bp.route('/api/ems/intake', methods=['POST'])

@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('صلاحيات الأقسام', subtitle='الدور: ' ~ (role.display_name or role.name_ar or role.name), icon='fas fa-building', actions=[
-    {'label': 'صلاحيات عامة', 'url': url_for('super_admin.manage_role_permissions', role_id=role.id), 'style': 'outline-primary'},
-    {'label': 'رجوع', 'url': url_for('super_admin.roles'), 'style': 'secondary'}
+  {{ page_header('_("_(" _(" _(" _(" _(" _("صلاحيات الأقسام")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("الدور: ")")")")")")")' ~ (role.display_name or role.name_ar or role.name), icon='fas fa-building', actions=[
+    {'label': '_("_(" _(" _(" _(" _(" _("صلاحيات عامة")")")")")")")', 'url': url_for('super_admin.manage_role_permissions', role_id=role.id), 'style': 'outline-primary'},
+    {'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'url': url_for('super_admin.roles'), 'style': 'secondary'}
   ]) }}
 
   <form method="POST" class="card border-0 shadow-sm">
@@ -17,20 +17,20 @@
         <table class="table table-bordered align-middle mb-0">
           <thead class="table-light">
             <tr>
-              <th class="min-w-240">القسم</th>
-              <th class="text-center">وصول</th>
-              <th class="text-center">المرضى</th>
-              <th class="text-center">الزيارات</th>
-              <th class="text-center">المواعيد</th>
-              <th class="text-center">الموظفين</th>
-              <th class="text-center">تجاوز القيود</th>
-              <th class="text-center">إعدادات القسم</th>
+              <th class="min-w-240">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th>
+              <th class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("وصول")")")")")")")') }}</th>
+              <th class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("المرضى")")")")")")")') }}</th>
+              <th class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}</th>
+              <th class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("المواعيد")")")")")")")') }}</th>
+              <th class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("الموظفين")")")")")")")') }}</th>
+              <th class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("تجاوز القيود")")")")")")")') }}</th>
+              <th class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("إعدادات القسم")")")")")")")') }}</th>
             </tr>
           </thead>
           <tbody>
             {% set allp = perm_map.get(None) %}
             <tr class="table-secondary">
-              <td><strong>جميع الأقسام</strong></td>
+              <td><strong>{{ _('_("_(" _(" _(" _(" _(" _("جميع الأقسام")")")")")")")') }}</strong></td>
               <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_all_can_access" {% if allp and allp.can_access %}checked{% endif %}></td>
               <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_all_can_manage_patients" {% if allp and allp.can_manage_patients %}checked{% endif %}></td>
               <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_all_can_manage_visits" {% if allp and allp.can_manage_visits %}checked{% endif %}></td>
@@ -58,8 +58,8 @@
       </div>
 
       <div class="d-flex gap-2 mt-3">
-        <button type="submit" class="btn btn-primary">حفظ</button>
-        <a href="{{ url_for('super_admin.roles') }}" class="btn btn-outline-secondary">إلغاء</a>
+        <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+        <a href="{{ url_for('super_admin.roles') }}" class="btn btn-outline-secondary">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</a>
       </div>
     </div>
   </form>

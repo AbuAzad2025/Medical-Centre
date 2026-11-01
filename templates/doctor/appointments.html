@@ -2,34 +2,34 @@
 {% block title %}مواعيد الطبيب{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-3"><i class="fas fa-calendar-alt me-2"></i> المواعيد</h2>
+  <h2 class="mb-3"><i class="fas fa-calendar-alt me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("المواعيد")")")")")")")') }}</h2>
   <!-- Stats Cards -->
   <div class="row g-3 mb-4">
     <div class="col-md-3">
       <div class="card card-stat bg-primary">
         <div class="icon-bg"><i class="fas fa-calendar"></i></div>
-        <h6>إجمالي المواعيد</h6>
+        <h6>{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المواعيد")")")")")")")') }}</h6>
         <h3>{{ total or 0 }}</h3>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card card-stat bg-success">
         <div class="icon-bg"><i class="fas fa-check-circle"></i></div>
-        <h6>مواعيد اليوم</h6>
+        <h6>{{ _('_("_(" _(" _(" _(" _(" _("مواعيد اليوم")")")")")")")') }}</h6>
         <h3>{{ today_count or 0 }}</h3>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card card-stat bg-warning">
         <div class="icon-bg"><i class="fas fa-clock"></i></div>
-        <h6>قادمة</h6>
+        <h6>{{ _('_("_(" _(" _(" _(" _(" _("قادمة")")")")")")")') }}</h6>
         <h3>{{ upcoming_count or 0 }}</h3>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card card-stat bg-info">
         <div class="icon-bg"><i class="fas fa-user-check"></i></div>
-        <h6>تم تأكيدها</h6>
+        <h6>{{ _('_("_(" _(" _(" _(" _(" _("تم تأكيدها")")")")")")")') }}</h6>
         <h3>{{ confirmed_count or 0 }}</h3>
       </div>
     </div>
@@ -38,7 +38,7 @@
     <div class="table-responsive">
       <table class="table table-striped align-middle">
         <thead class="table-light">
-          <tr><th>#</th><th>المريض</th><th>التاريخ</th><th>الوقت</th><th>الحالة</th><th>الإجراءات</th></tr>
+          <tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th></tr>
         </thead>
         <tbody>
           {% for a in appointments or [] %}
@@ -68,14 +68,14 @@
             </td>
             <td>
               {% if a.visit_id %}
-                <a href="{{ url_for('doctor.patient_details', visit_id=a.visit_id) }}" class="btn btn-sm btn-outline-primary">الزيارة</a>
+                <a href="{{ url_for('doctor.patient_details', visit_id=a.visit_id) }}" class="btn btn-sm btn-outline-primary">{{ _('_("_(" _(" _(" _(" _(" _("الزيارة")")")")")")")') }}</a>
               {% endif %}
             </td>
           </tr>
           {% else %}
           <tr><td colspan="6" class="text-center py-4 text-muted">
             <i class="fas fa-calendar-times fa-2x mb-2"></i>
-            <p>لا توجد مواعيد</p>
+            <p>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مواعيد")")")")")")")') }}</p>
           </td></tr>
           {% endfor %}
         </tbody>
@@ -85,8 +85,8 @@
     <div class="d-flex justify-content-between align-items-center mt-3">
       <div class="text-muted small">صفحة {{ page }} من {{ pages }}</div>
       <div class="btn-group btn-group-sm">
-        <a href="{{ url_for('doctor.appointments', page=page-1) }}" class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}">السابق</a>
-        <a href="{{ url_for('doctor.appointments', page=page+1) }}" class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}">التالي</a>
+        <a href="{{ url_for('doctor.appointments', page=page-1) }}" class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}">{{ _('_("_(" _(" _(" _(" _(" _("السابق")")")")")")")') }}</a>
+        <a href="{{ url_for('doctor.appointments', page=page+1) }}" class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}">{{ _('_("_(" _(" _(" _(" _(" _("التالي")")")")")")")') }}</a>
       </div>
     </div>
     {% endif %}

@@ -2,43 +2,43 @@
 {% from "macros/forms.html" import csrf %}
 {% block content %}
 <div class="container py-4">
-  <h4><i class="bi bi-book me-2"></i>المواد التعليمية — <bdi>{{ patient.full_name }}</bdi></h4>
+  <h4><i class="bi bi-book me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("المواد التعليمية —")")")")")")")') }} <bdi>{{ patient.full_name }}</bdi></h4>
   <div class="card shadow-sm mb-4">
-    <div class="card-header bg-success text-white">إسناد مادة جديدة</div>
+    <div class="card-header bg-success text-white">{{ _('_("_(" _(" _(" _(" _(" _("إسناد مادة جديدة")")")")")")")') }}</div>
     <div class="card-body">
       <form method="post" action="{{ url_for('patient_education.assign_material') }}">
         {{ csrf() }}
         <input type="hidden" name="patient_id" value="{{ patient.id }}">
         <div class="row g-3">
           <div class="col-md-6">
-            <label for="material_id" class="form-label">المادة</label>
+            <label for="material_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المادة")")")")")")")') }}</label>
             <select class="form-select" id="material_id" name="material_id" required>
               {% for m in materials %}<option value="{{ m.id }}">{{ m.title }} ({{ m.category }})</option>{% endfor %}
             </select>
           </div>
           <div class="col-md-6">
-            <label for="notes" class="form-label">ملاحظات</label>
+            <label for="notes" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label>
             <input type="text" class="form-control" id="notes" name="notes">
           </div>
         </div>
         <div class="d-grid mt-3">
-          <button type="submit" class="btn btn-success">إسناد</button>
+          <button type="submit" class="btn btn-success">{{ _('_("_(" _(" _(" _(" _(" _("إسناد")")")")")")")') }}</button>
         </div>
       </form>
     </div>
   </div>
-  <h5>المواد المُسنَدة</h5>
+  <h5>{{ _('_("_(" _(" _(" _(" _(" _("المواد المُسنَدة")")")")")")")') }}</h5>
   <div class="table-responsive">
     <table class="table table-striped">
-      <thead><tr><th>المادة</th><th>الحالة</th><th>تاريخ المشاهدة</th><th>تاريخ الإكمال</th></tr></thead>
+      <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("المادة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ المشاهدة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإكمال")")")")")")")') }}</th></tr></thead>
       <tbody>
         {% for a in assignments %}
         <tr>
           <td>{{ a.material.title }}</td>
           <td>
-            {% if a.status == 'assigned' %}<span class="badge bg-secondary">مُسنَد</span>{% endif %}
-            {% if a.status == 'viewed' %}<span class="badge bg-info">مُشاهَد</span>{% endif %}
-            {% if a.status == 'completed' %}<span class="badge bg-success">مكتمل</span>{% endif %}
+            {% if a.status == 'assigned' %}<span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("مُسنَد")")")")")")")') }}</span>{% endif %}
+            {% if a.status == 'viewed' %}<span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("مُشاهَد")")")")")")")') }}</span>{% endif %}
+            {% if a.status == 'completed' %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>{% endif %}
           </td>
           <td>{{ a.viewed_at.strftime('%Y-%m-%d %H:%M') if a.viewed_at else '—' }}</td>
           <td>{{ a.completed_at.strftime('%Y-%m-%d %H:%M') if a.completed_at else '—' }}</td>
@@ -48,8 +48,8 @@
             <td colspan="4">
                 <div class="empty-state-smart">
                     <div class="empty-icon-wrap"><i class="fas fa-book"></i></div>
-                    <h5>لا توجد مواد مُسنَدة</h5>
-                    <p>لم يتم إسناد أي مواد تعليمية لهذا المريض بعد.</p>
+                    <h5>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مواد مُسنَدة")")")")")")")') }}</h5>
+                    <p>{{ _('_("_(" _(" _(" _(" _(" _("لم يتم إسناد أي مواد تعليمية لهذا المريض بعد.")")")")")")")') }}</p>
                 </div>
             </td>
         </tr>

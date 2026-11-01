@@ -9,17 +9,17 @@
         </div>
         <div class="d-flex flex-wrap gap-2">
             {% if version %}
-            <a href="{{ url_for('specialty_forms.fill_form', form_id=form.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-pen me-1"></i>تعبئة</a>
+            <a href="{{ url_for('specialty_forms.fill_form', form_id=form.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-pen me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تعبئة")")")")")")")') }}</a>
             {% endif %}
-            <a href="{{ url_for('specialty_forms.list_submissions', form_id=form.id) }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-inbox me-1"></i>الإجابات</a>
+            <a href="{{ url_for('specialty_forms.list_submissions', form_id=form.id) }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-inbox me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("الإجابات")")")")")")")') }}</a>
             {% if user_role in ['manager','admin','super_admin'] %}
             {% for ver in form.versions %}
             {% if ver.status == 'draft' %}
-            <a href="{{ url_for('specialty_forms.edit_version', form_id=form.id, version_id=ver.id) }}" class="btn btn-outline-warning btn-sm">تعديل مسودة</a>
+            <a href="{{ url_for('specialty_forms.edit_version', form_id=form.id, version_id=ver.id) }}" class="btn btn-outline-warning btn-sm">{{ _('_("_(" _(" _(" _(" _(" _("تعديل مسودة")")")")")")")') }}</a>
             {% endif %}
             {% endfor %}
             {% endif %}
-            <a href="{{ url_for('specialty_forms.list_forms') }}" class="btn btn-outline-secondary btn-sm">القائمة</a>
+            <a href="{{ url_for('specialty_forms.list_forms') }}" class="btn btn-outline-secondary btn-sm">{{ _('_("_(" _(" _(" _(" _(" _("القائمة")")")")")")")') }}</a>
         </div>
     </div>
 </div>
@@ -28,7 +28,7 @@
 {% endif %}
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-header bg-white">
-        <h6 class="mb-0">النسخة المنشورة الحالية</h6>
+        <h6 class="mb-0">{{ _('_("_(" _(" _(" _(" _(" _("النسخة المنشورة الحالية")")")")")")")') }}</h6>
     </div>
     <div class="card-body">
         {% if version %}
@@ -41,11 +41,11 @@
                 <thead class="table-light">
                     <tr>
                         <th>#</th>
-                        <th>التسمية</th>
-                        <th>المعرّف</th>
-                        <th>النوع</th>
-                        <th>مطلوب</th>
-                        <th>خيارات</th>
+                        <th>{{ _('_("_(" _(" _(" _(" _(" _("التسمية")")")")")")")') }}</th>
+                        <th>{{ _('_("_(" _(" _(" _(" _(" _("المعرّف")")")")")")")') }}</th>
+                        <th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
+                        <th>{{ _('_("_(" _(" _(" _(" _(" _("مطلوب")")")")")")")') }}</th>
+                        <th>{{ _('_("_(" _(" _(" _(" _(" _("خيارات")")")")")")")') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -56,20 +56,20 @@
                         <td><code>{{ field.name }}</code></td>
                         <td><span class="badge bg-secondary">{{ field.field_type }}</span></td>
                         <td>{% if field.required %}<i class="fas fa-check text-success"></i>{% else %}—{% endif %}</td>
-                        <td class="small text-muted">{% if field.options %}{{ field.options|join('، ') }}{% else %}—{% endif %}</td>
+                        <td class="small text-muted">{% if field.options %}{{ field.options|join('_("_(" _(" _(" _(" _(" _("، ")")")")")")")') }}{% else %}—{% endif %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         {% else %}
-        <div class="text-center text-muted py-4">لا توجد نسخة منشورة بعد</div>
+        <div class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد نسخة منشورة بعد")")")")")")")') }}</div>
         {% endif %}
     </div>
 </div>
 {% if form.versions|length > 1 %}
 <div class="card border-0 shadow-sm">
-    <div class="card-header bg-white"><h6 class="mb-0">سجل النسخ</h6></div>
+    <div class="card-header bg-white"><h6 class="mb-0">{{ _('_("_(" _(" _(" _(" _(" _("سجل النسخ")")")")")")")') }}</h6></div>
     <div class="card-body p-0">
         <ul class="list-group list-group-flush">
             {% for ver in form.versions|sort(attribute='version_number', reverse=true) %}

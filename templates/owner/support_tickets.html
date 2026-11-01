@@ -3,16 +3,16 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-headset me-2 text-info"></i>تذاكر الدعم</h4></div>
+        <div class="col"><h4><i class="fas fa-headset me-2 text-info"></i>{{ _('_("_(" _(" _(" _(" _(" _("تذاكر الدعم")")")")")")")') }}</h4></div>
         <div class="col-auto d-flex gap-2">
-            <select class="form-select form-select-sm w-auto" title="حالة التذكرة" onchange="location.href='?status='+this.value">
-                <option value="">الكل</option>
-                <option value="open" {% if status_filter == 'open' %}selected{% endif %}>مفتوحة</option>
-                <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>قيد المعالجة</option>
-                <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>محلولة</option>
-                <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>مغلقة</option>
+            <select class="form-select form-select-sm w-auto" title="_(" _(" _(" _(" _(" _("حالة التذكرة")")")")")")" onchange="location.href='?status='+this.value">
+                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</option>
+                <option value="open" {% if status_filter == 'open' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مفتوحة")")")")")")")') }}</option>
+                <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("قيد المعالجة")")")")")")")') }}</option>
+                <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("محلولة")")")")")")")') }}</option>
+                <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مغلقة")")")")")")")') }}</option>
             </select>
-            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
         </div>
     </div>
     <div class="card border-0 shadow-sm">
@@ -20,31 +20,31 @@
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
-                        <tr><th>#</th><th>العنوان</th><th>العميل</th><th>الأولوية</th><th>الحالة</th><th>تاريخ الإنشاء</th><th>الإجراءات</th></tr>
+                        <tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("العميل")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإنشاء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th></tr>
                     </thead>
                     <tbody>
                         {% for t in tickets %}
                         <tr>
                             <td>{{ t.id }}</td>
                             <td><strong>{{ t.title }}</strong><br><small class="text-muted">{{ t.category }}</small></td>
-                            <td>{{ t.tenant.name if t.tenant else 'عام' }}</td>
+                            <td>{{ t.tenant.name if t.tenant else '_("_(" _(" _(" _(" _(" _("عام")")")")")")")' }}</td>
                             <td><span class="badge bg-{{ 'danger' if t.priority=='critical' else 'warning' if t.priority=='high' else 'info' if t.priority=='medium' else 'secondary' }}">{{ t.priority }}</span></td>
                             <td><span class="badge bg-{{ 'success' if t.status=='resolved' else 'primary' if t.status=='open' else 'warning' if t.status=='in_progress' else 'secondary' }}">{{ t.status | enum_label }}</span></td>
                             <td class="small">{{ t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '-' }}</td>
                             <td>
                                 <form method="post" action="{{ url_for('owner.owner_update_ticket', ticket_id=t.id) }}" class="d-flex gap-1">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <select name="status" class="form-select form-select-sm w-auto" title="تحديث الحالة">
-                                        <option value="open" {% if t.status=='open' %}selected{% endif %}>مفتوحة</option>
-                                        <option value="in_progress" {% if t.status=='in_progress' %}selected{% endif %}>قيد المعالجة</option>
-                                        <option value="resolved" {% if t.status=='resolved' %}selected{% endif %}>محلولة</option>
-                                        <option value="closed" {% if t.status=='closed' %}selected{% endif %}>مغلقة</option>
+                                    <select name="status" class="form-select form-select-sm w-auto" title="_(" _(" _(" _(" _(" _("تحديث الحالة")")")")")")">
+                                        <option value="open" {% if t.status=='open' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مفتوحة")")")")")")")') }}</option>
+                                        <option value="in_progress" {% if t.status=='in_progress' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("قيد المعالجة")")")")")")")') }}</option>
+                                        <option value="resolved" {% if t.status=='resolved' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("محلولة")")")")")")")') }}</option>
+                                        <option value="closed" {% if t.status=='closed' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مغلقة")")")")")")")') }}</option>
                                     </select>
-                                    <button type="submit" class="btn btn-sm btn-success">حفظ</button>
+                                    <button type="submit" class="btn btn-sm btn-success">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
                                 </form>
                             </td>
                         </tr>
-                        {% else %}<tr><td colspan="7" class="text-muted text-center py-4">لا تذاكر</td></tr>
+                        {% else %}<tr><td colspan="7" class="text-muted text-center py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا تذاكر")")")")")")")') }}</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

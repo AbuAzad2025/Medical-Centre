@@ -2,11 +2,11 @@
 {% block title %}اللقاحات{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">سجل اللقاحات</h2>
+  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("سجل اللقاحات")")")")")")")') }}</h2>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>الاسم</th><th>الكود</th><th>الشركة</th><th>الجرعات</th><th>الحالة</th></tr></thead>
+        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الكود")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الشركة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الجرعات")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th></tr></thead>
         <tbody>
         {% for v in vaccines %}
           <tr>
@@ -14,10 +14,10 @@
             <td>{{ v.code }}</td>
             <td>{{ v.manufacturer or '-' }}</td>
             <td>{{ v.doses_required }}</td>
-            <td><span class="badge bg-success">نشط</span></td>
+            <td><span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span></td>
           </tr>
         {% else %}
-          <tr><td colspan="5" class="text-muted text-center">لا يوجد لقاحات</td></tr>
+          <tr><td colspan="5" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد لقاحات")")")")")")")') }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

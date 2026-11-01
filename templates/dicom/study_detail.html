@@ -2,21 +2,21 @@
 {% block title %}تفاصيل الدراسة{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">تفاصيل الدراسة</h2>
+  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل الدراسة")")")")")")")') }}</h2>
   <div class="card">
     <div class="card-body">
       <p><strong>UID:</strong> <code>{{ study.study_instance_uid }}</code></p>
-      <p><strong>المريض:</strong> {{ study.patient.full_name if study.patient else '-' }}</p>
-      <p><strong>التاريخ:</strong> {{ study.study_date or '-' }}</p>
-      <p><strong>النوع:</strong> <span class="badge bg-info">{{ study.modality }}</span></p>
-      <p><strong>الوصف:</strong> {{ study.study_description or '-' }}</p>
-      <p><strong>الحالة:</strong> <span class="badge bg-primary">{{ study.status | enum_label }}</span></p>
-      <p><strong>عدد السلاسل:</strong> {{ study.series_count }} — <strong>عدد الصور:</strong> {{ study.instance_count }}</p>
-      <a href="{{ url_for('dicom.viewer', study_id=study.id) }}" class="btn btn-primary">فتح الـ Viewer</a>
+      <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("المريض:")")")")")")")') }}</strong> {{ study.patient.full_name if study.patient else '-' }}</p>
+      <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ:")")")")")")")') }}</strong> {{ study.study_date or '-' }}</p>
+      <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("النوع:")")")")")")")') }}</strong> <span class="badge bg-info">{{ study.modality }}</span></p>
+      <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الوصف:")")")")")")")') }}</strong> {{ study.study_description or '-' }}</p>
+      <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong> <span class="badge bg-primary">{{ study.status | enum_label }}</span></p>
+      <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("عدد السلاسل:")")")")")")")') }}</strong> {{ study.series_count }} — <strong>{{ _('_("_(" _(" _(" _(" _(" _("عدد الصور:")")")")")")")') }}</strong> {{ study.instance_count }}</p>
+      <a href="{{ url_for('dicom.viewer', study_id=study.id) }}" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("فتح الـ Viewer")")")")")")")') }}</a>
     </div>
   </div>
   <div class="card mt-3">
-    <div class="card-header">السلاسل</div>
+    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("السلاسل")")")")")")")') }}</div>
     <div class="card-body">
       <div class="row g-3">
         {% for s in series %}
@@ -28,7 +28,7 @@
             </div>
           </div>
         {% else %}
-          <p class="text-muted">لا يوجد سلاسل</p>
+          <p class="text-muted">{{ _('لا يوجد سلاسل') }}</p>
         {% endfor %}
       </div>
     </div>

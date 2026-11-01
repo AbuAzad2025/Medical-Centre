@@ -7,25 +7,25 @@
 <div class="container-fluid">
     {% set hdr_actions = [] %}
     {% if radiology_request %}
-        {% set _ = hdr_actions.append({'label': 'فتح الطلب', 'url': url_for('radiology.worklist_request', request_id=radiology_request.id), 'style': 'outline-primary'}) %}
-        {% set _ = hdr_actions.append({'label': 'طباعة التقرير', 'url': url_for('radiology.print_report', radiology_scan_id=(radiology_result.id if radiology_result else radiology_request.id)), 'style': 'primary'}) %}
-        {% set _ = hdr_actions.append({'label': 'تحميل PDF', 'icon': 'fas fa-file-pdf', 'url': url_for('radiology.print_report_pdf', radiology_scan_id=(radiology_result.id if radiology_result else radiology_request.id)), 'style': 'danger'}) %}
+        {% set _ = hdr_actions.append({'label': '_("_(" _(" _(" _(" _(" _("فتح الطلب")")")")")")")', 'url': url_for('radiology.worklist_request', request_id=radiology_request.id), 'style': 'outline-primary'}) %}
+        {% set _ = hdr_actions.append({'label': '_("_(" _(" _(" _(" _(" _("طباعة التقرير")")")")")")")', 'url': url_for('radiology.print_report', radiology_scan_id=(radiology_result.id if radiology_result else radiology_request.id)), 'style': 'primary'}) %}
+        {% set _ = hdr_actions.append({'label': '_("_(" _(" _(" _(" _(" _("تحميل PDF")")")")")")")', 'icon': 'fas fa-file-pdf', 'url': url_for('radiology.print_report_pdf', radiology_scan_id=(radiology_result.id if radiology_result else radiology_request.id)), 'style': 'danger'}) %}
     {% endif %}
-    {% set _ = hdr_actions.append({'label': 'العودة', 'url': url_for('radiology.dashboard'), 'style': 'secondary'}) %}
-    {{ page_header('تقرير الأشعة', subtitle='عرض نتائج الأشعة وطباعة التقرير', icon='fas fa-x-ray', actions=hdr_actions) }}
+    {% set _ = hdr_actions.append({'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'url': url_for('radiology.dashboard'), 'style': 'secondary'}) %}
+    {{ page_header('_("_(" _(" _(" _(" _(" _("تقرير الأشعة")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("عرض نتائج الأشعة وطباعة التقرير")")")")")")")', icon='fas fa-x-ray', actions=hdr_actions) }}
 
     <div class="row">
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header">
-                    <h6 class="m-0 fw-bold text-primary">اختيار الطلب</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("اختيار الطلب")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     <form method="GET">
                         <div class="mb-3">
-                            <label class="form-label">طلبات حديثة</label>
+                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("طلبات حديثة")")")")")")")') }}</label>
                             <select class="form-select" name="request_id">
-                                <option value="">آخر طلب</option>
+                                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("آخر طلب")")")")")")")') }}</option>
                                 {% for r in recent_requests or [] %}
                                 <option value="{{ r.id }}" {% if radiology_request and r.id == radiology_request.id %}selected{% endif %}>
                                     #{{ r.request_number or r.id }} - {{ r.patient.full_name if r.patient else r.patient_id }} - {{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '' }}
@@ -33,7 +33,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <button class="btn btn-outline-primary w-100" type="submit">عرض</button>
+                        <button class="btn btn-outline-primary w-100" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</button>
                     </form>
                 </div>
             </div>
@@ -42,47 +42,47 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header">
-                    <h6 class="m-0 fw-bold text-primary">تفاصيل التقرير</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل التقرير")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
                     {% if radiology_request %}
                     <div class="row g-3">
-                        <div class="col-md-6"><strong>رقم الطلب:</strong> {{ radiology_request.request_number or radiology_request.id }}</div>
-                        <div class="col-md-6"><strong>الحالة:</strong> <span class="badge bg-info">{{ radiology_request.status | enum_label('OrderState') }}</span></div>
-                        <div class="col-md-6"><strong>المريض:</strong> {{ radiology_request.patient.full_name if radiology_request.patient else radiology_request.patient_id }}</div>
-                        <div class="col-md-6"><strong>الهاتف:</strong> {{ radiology_request.patient.phone if radiology_request.patient else '-' }}</div>
-                        <div class="col-md-6"><strong>نوع الفحص:</strong> {{ radiology_request.modality or '-' }}</div>
-                        <div class="col-md-6"><strong>منطقة الفحص:</strong> {{ radiology_request.body_part or '-' }}</div>
-                        <div class="col-md-6"><strong>تاريخ الطلب:</strong> {{ radiology_request.created_at.strftime('%Y-%m-%d') if radiology_request.created_at else today }}</div>
-                        <div class="col-md-6"><strong>الطبيب الطالب:</strong> {{ radiology_request.requester.full_name if radiology_request.requester else 'غير محدد' }}</div>
+                        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم الطلب:")")")")")")")') }}</strong> {{ radiology_request.request_number or radiology_request.id }}</div>
+                        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong> <span class="badge bg-info">{{ radiology_request.status | enum_label('OrderState') }}</span></div>
+                        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("المريض:")")")")")")")') }}</strong> {{ radiology_request.patient.full_name if radiology_request.patient else radiology_request.patient_id }}</div>
+                        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف:")")")")")")")') }}</strong> {{ radiology_request.patient.phone if radiology_request.patient else '-' }}</div>
+                        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("نوع الفحص:")")")")")")")') }}</strong> {{ radiology_request.modality or '-' }}</div>
+                        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("منطقة الفحص:")")")")")")")') }}</strong> {{ radiology_request.body_part or '-' }}</div>
+                        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الطلب:")")")")")")")') }}</strong> {{ radiology_request.created_at.strftime('%Y-%m-%d') if radiology_request.created_at else today }}</div>
+                        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب الطالب:")")")")")")")') }}</strong> {{ radiology_request.requester.full_name if radiology_request.requester else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</div>
                     </div>
                     <hr>
                     <div class="mb-3">
                         <strong>Study UID:</strong> {{ radiology_result.study_uid if radiology_result and radiology_result.study_uid else '-' }}
                     </div>
                     <div class="mb-3">
-                        <strong>رابط PACS:</strong> {{ radiology_result.pacs_url if radiology_result and radiology_result.pacs_url else '-' }}
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("رابط PACS:")")")")")")")') }}</strong> {{ radiology_result.pacs_url if radiology_result and radiology_result.pacs_url else '-' }}
                     </div>
                     <div class="mb-3">
-                        <strong>الحالة التشخيصية:</strong> {{ (radiology_result.status if radiology_result else 'PENDING') | enum_label }}
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة التشخيصية:")")")")")")")') }}</strong> {{ (radiology_result.status if radiology_result else 'PENDING') | enum_label }}
                     </div>
                     <div class="mb-3">
-                        <strong>حرج:</strong> {{ 'نعم' if radiology_result and radiology_result.is_critical else 'لا' }}
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("حرج:")")")")")")")') }}</strong> {{ '_("_(" _(" _(" _(" _(" _("نعم")")")")")")")' if radiology_result and radiology_result.is_critical else '_("_(" _(" _(" _(" _(" _("لا")")")")")")")' }}
                     </div>
                     <div class="mb-3">
-                        <strong>النتائج:</strong>
-                        <div class="border rounded p-2 mt-2">{{ radiology_result.findings if radiology_result and radiology_result.findings else 'لا توجد نتائج' }}</div>
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("النتائج:")")")")")")")') }}</strong>
+                        <div class="border rounded p-2 mt-2">{{ radiology_result.findings if radiology_result and radiology_result.findings else '_("_(" _(" _(" _(" _(" _("لا توجد نتائج")")")")")")")' }}</div>
                     </div>
                     <div class="mb-3">
-                        <strong>الانطباع:</strong>
-                        <div class="border rounded p-2 mt-2">{{ radiology_result.impression if radiology_result and radiology_result.impression else 'لا يوجد انطباع' }}</div>
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("الانطباع:")")")")")")")') }}</strong>
+                        <div class="border rounded p-2 mt-2">{{ radiology_result.impression if radiology_result and radiology_result.impression else '_("_(" _(" _(" _(" _(" _("لا يوجد انطباع")")")")")")")' }}</div>
                     </div>
                     <div class="mb-3">
-                        <strong>التوصيات:</strong>
-                        <div class="border rounded p-2 mt-2">{{ radiology_result.notes if radiology_result and radiology_result.notes else 'لا توجد توصيات' }}</div>
+                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("التوصيات:")")")")")")")') }}</strong>
+                        <div class="border rounded p-2 mt-2">{{ radiology_result.notes if radiology_result and radiology_result.notes else '_("_(" _(" _(" _(" _(" _("لا توجد توصيات")")")")")")")' }}</div>
                     </div>
                     {% else %}
-                    <div class="text-center text-muted">لا توجد طلبات لعرضها</div>
+                    <div class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد طلبات لعرضها")")")")")")")') }}</div>
                     {% endif %}
                 </div>
             </div>

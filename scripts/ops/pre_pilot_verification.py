@@ -58,9 +58,7 @@ def _safe_test(desc, fn):
         print(f'  [ERROR] {desc}: {exc}')
 
 
-# ============================================================
 # PHASE 1: Schema / Migration Verification (Model-level)
-# ============================================================
 print('\n=== PHASE 1: Schema / Migration Verification ===')
 
 
@@ -128,9 +126,7 @@ def _phase1():
 
 _safe_test('Phase 1: Schema verification', _phase1)
 
-# ============================================================
 # PHASE 2: Clinical Safety Hard-Stops
-# ============================================================
 print('\n=== PHASE 2: Clinical Safety Hard-Stops ===')
 
 
@@ -194,9 +190,7 @@ def _phase2():
 
 _safe_test('Phase 2: Clinical safety & password policy', _phase2)
 
-# ============================================================
 # PHASE 3: Resilience, Circuit Breaker, Timeout
-# ============================================================
 print('\n=== PHASE 3: Resilience, Circuit Breaker, Timeout ===')
 
 
@@ -329,9 +323,7 @@ def _phase3():
 
 _safe_test('Phase 3: Resilience & circuit breakers', _phase3)
 
-# ============================================================
 # PHASE 4: Security Hardening
-# ============================================================
 print('\n=== PHASE 4: Security Hardening ===')
 
 
@@ -437,9 +429,7 @@ def _phase4():
 
 _safe_test('Phase 4: Security hardening', _phase4)
 
-# ============================================================
 # PHASE 5: HIPAA / GDPR Compliance & Data Retention
-# ============================================================
 print('\n=== PHASE 5: HIPAA / GDPR Compliance ===')
 
 
@@ -528,9 +518,7 @@ def _phase5():
 
 _safe_test('Phase 5: Compliance & data retention', _phase5)
 
-# ============================================================
 # PHASE 6: Health Check & Background Worker Enhancements
-# ============================================================
 print('\n=== PHASE 6: Health Check & Background Worker ===')
 
 
@@ -582,9 +570,7 @@ def _phase6():
 
 _safe_test('Phase 6: Integration verification', _phase6)
 
-# ============================================================
 # SUMMARY
-# ============================================================
 print('\n' + '=' * 60)
 print('PRE-PILOT DEPLOYMENT VERIFICATION SUMMARY')
 print('=' * 60)

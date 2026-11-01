@@ -36,9 +36,7 @@ _MODULE_ROLE_MAP = {
 }
 
 
-# =============================================
 # UNIT CONTROL ROUTES (real DB-backed)
-# =============================================
 
 
 @manager_bp.route('/unit-control')

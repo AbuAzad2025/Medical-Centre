@@ -2,10 +2,10 @@
   Unified empty state component.
   Usage:
       {% from 'partials/_empty_state.html' import empty_state %}
-      {{ empty_state(icon='fa-users', message='لا يوجد مرضى مسجلون',
-                     action_label='إضافة مريض', action_url=url_for('reception.add_patient')) }}
+      {{ empty_state(icon='fa-users', message=_('_("_(" _(" _(" _(" _(" _("لا يوجد مرضى مسجلون")")")")")")")'),
+                     action_label=_('_("_(" _(" _(" _(" _(" _("إضافة مريض")")")")")")")'), action_url=url_for('reception.add_patient')) }}
 #}
-{% macro empty_state(icon='fa-inbox', title='لا توجد بيانات', message='',
+{% macro empty_state(icon='fa-inbox', title=_('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")'), message='',
                     action_label='', action_url='', action_modal='') %}
 <div class="empty-state text-center py-5 my-3">
     <div class="mb-3">
