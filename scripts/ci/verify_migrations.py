@@ -118,6 +118,8 @@ def main():
     os.environ['FLASK_ENV'] = 'testing'
     os.environ['SECRET_KEY'] = 'test-secret-key-for-ci-testing-32bytes-minimum-length'
     os.environ['FLASK_ENV'] = 'testing'
+    # Allow RLS bypass for superuser in CI (required for migrations)
+    os.environ['RLS_BYPASS_ALLOWED'] = '1'
 
     # Create PostgreSQL database if needed (for CI)
     if database_url.startswith('postgresql://') or database_url.startswith('postgres://'):
