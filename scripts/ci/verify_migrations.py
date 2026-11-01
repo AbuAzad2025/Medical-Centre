@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -47,6 +48,44 @@ def run_cmd(cmd, cwd=None, env=None):
         return False, str(e)
 
 
+def create_postgres_database(database_url: str) -> bool:
+    """Create PostgreSQL database if it doesn't exist"""
+    if not database_url.startswith('postgresql://') and not database_url.startswith('postgres://'):
+        return True  # Not PostgreSQL, nothing to do
+
+    try:
+        parsed = urlparse(database_url)
+        db_name = parsed.path.lstrip('/')
+        if not db_name:
+            return True
+
+        # Connect to postgres database to create the target database
+        postgres_url = f'postgresql://{parsed.username}:{parsed.password}@{parsed.hostname}:{parsed.port or 5432}/postgres'
+
+        import psycopg2
+        from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
+        conn = psycopg2.connect(postgres_url)
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        cursor = conn.cursor()
+
+        # Check if database exists
+        cursor.execute('SELECT 1 FROM pg_database WHERE datname = %s', (db_name,))
+        if not cursor.fetchone():
+            print(f'Creating database: {db_name}')
+            cursor.execute(f'CREATE DATABASE "{db_name}"')
+            print(f'Database {db_name} created successfully')
+        else:
+            print(f'Database {db_name} already exists')
+
+        cursor.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f'Warning: Could not create database: {e}')
+        return False
+
+
 def main():
     """Verify Alembic migrations can be applied to a fresh database"""
     print('Verifying Alembic migrations...')
@@ -80,6 +119,11 @@ def main():
     os.environ['SECRET_KEY'] = 'test-secret-key-for-ci-testing-32bytes-minimum-length'
     os.environ['FLASK_ENV'] = 'testing'
 
+    # Create PostgreSQL database if needed (for CI)
+    if database_url.startswith('postgresql://') or database_url.startswith('postgres://'):
+        print('Ensuring PostgreSQL database exists...')
+        create_postgres_database(database_url)
+
     # Add project root to PYTHONPATH so migration scripts can import from migrations.*
     os.environ['PYTHONPATH'] = str(PROJECT_ROOT) + os.pathsep + os.environ.get('PYTHONPATH', '')
 
@@ -87,6 +131,7 @@ def main():
     print('Creating Flask app with test database...')
     try:
         from app_factory import create_app
+
         app = create_app('testing')
     except Exception as e:
         print(f'ERROR: Failed to create Flask app: {e}')
