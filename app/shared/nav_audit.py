@@ -65,6 +65,8 @@ def audit_manager_nav_coverage(app: Flask) -> list[str]:
             '/manager/drill-down/visits',
             '/manager/reports',
             '/manager/settings',
+            '/manager/branding',
+            '/manager/branding/preview',
         )
     }
     missing = []
