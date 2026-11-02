@@ -406,7 +406,14 @@ def test_clinical_and_platform_families_are_separate(corpus):
             families[sc['family']].add(sc['template'])
 
     tpl_by_key = {t.key: t for t in TEMPLATES}
-    platform_prefixes = ('/owner/', '/super-admin/', '/api/billing/', '/api/super/', '/api/saas/', '/api/user/')
+    platform_prefixes = (
+        '/owner/',
+        '/super-admin/',
+        '/api/billing/',
+        '/api/super/',
+        '/api/saas/',
+        '/api/user/',
+    )
 
     def path_of(api):
         m = API_LINE.match(api)
