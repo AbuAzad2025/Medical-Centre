@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-from unittest.mock import MagicMock, patch
 
 # Test the alias modules
 import utils.hl7
@@ -56,7 +55,7 @@ class TestHL7GeneratorExports:
 
     def test_all_exports_available(self):
         """Test all exported functions are available."""
-        import utils.hl7 as hl7
+        from utils import hl7
 
         # Check that the module has expected functions
         expected_exports = [
@@ -69,7 +68,7 @@ class TestHL7GeneratorExports:
 
     def test_key_classes_available(self):
         """Test key classes are available."""
-        import utils.hl7 as hl7
+        from utils import hl7
 
         assert hasattr(hl7, 'HL7Generator')
         assert hasattr(hl7, 'HL7MessageBuilder')
@@ -78,7 +77,7 @@ class TestHL7GeneratorExports:
 
     def test_aliases_available(self):
         """Test convenience aliases are available."""
-        import utils.hl7 as hl7
+        from utils import hl7
 
         # Class aliases
         assert hasattr(hl7, 'HL7Generator')
@@ -96,14 +95,14 @@ class TestHL7GeneratorExports:
 
     def test_validation_functions_available(self):
         """Test validation functions are available."""
-        import utils.hl7 as hl7
+        from utils import hl7
 
         assert hasattr(hl7, 'validate_hl7_message')
         assert hasattr(hl7, 'validate_message')
 
     def test_message_creation_functions(self):
         """Test message creation functions."""
-        import utils.hl7 as hl7
+        from utils import hl7
 
         assert hasattr(hl7, 'create_message')
         assert hasattr(hl7, 'build_message')
@@ -113,7 +112,7 @@ class TestHL7GeneratorExports:
 
     def test_segment_builders_available(self):
         """Test segment builder functions."""
-        import utils.hl7 as hl7
+        from utils import hl7
 
         assert hasattr(hl7, 'build_msh')
         assert hasattr(hl7, 'build_pid')
@@ -121,7 +120,7 @@ class TestHL7GeneratorExports:
 
     def test_message_type_builders_available(self):
         """Test message type builders."""
-        import utils.hl7 as hl7
+        from utils import hl7
 
         assert hasattr(hl7, 'build_adt')
         assert hasattr(hl7, 'build_orm')
@@ -134,7 +133,7 @@ class TestHL7GeneratorExports:
 
     def test_convenience_builders_available(self):
         """Test convenience builders."""
-        import utils.hl7 as hl7
+        from utils import hl7
 
         assert hasattr(hl7, 'build_adt_a01')
         assert hasattr(hl7, 'build_adt_a04')
@@ -148,14 +147,13 @@ class TestHL7GeneratorExports:
 
     def test_mllp_functions_available(self):
         """Test MLLP functions."""
-        import utils.hl7 as hl7
+        from utils import hl7
 
         assert hasattr(hl7, 'frame_mllp')
         assert hasattr(hl7, 'send_mllp')
 
     def test_constants_available(self):
         """Test HL7 constants."""
-        import utils.hl7 as hl7
         import services.hl7_message_generator as hl7_service
 
         # Constants are in the service module

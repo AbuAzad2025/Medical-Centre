@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from app.modules.workflows.notifications_integration import (
-    notify_on_visit_status_change,
-    notify_on_lab_approved,
     notify_on_invoice_posted,
+    notify_on_lab_approved,
     notify_on_prescription_dispensed,
+    notify_on_visit_status_change,
 )
 
 

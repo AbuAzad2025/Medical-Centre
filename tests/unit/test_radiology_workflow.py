@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from app.modules.workflows.radiology import RadiologyWorkflowService
 from app.shared.enums import RadiologyOrderStatus
@@ -57,7 +58,7 @@ class TestRadiologyWorkflowService:
         mock_rad_request = MagicMock()
         mock_rad_request.status = 'ordered'
 
-        with patch('app.modules.workflows.radiology.db.session') as mock_session:
+        with patch('app.modules.workflows.radiology.db.session'):
             RadiologyWorkflowService.transition(mock_rad_request, 'scheduled')
 
             assert mock_rad_request.status == 'scheduled'
@@ -76,7 +77,7 @@ class TestRadiologyWorkflowService:
         mock_rad_request = MagicMock()
         mock_rad_request.status = 'reported'
 
-        with patch('app.modules.workflows.radiology.db.session') as mock_session:
+        with patch('app.modules.workflows.radiology.db.session'):
             RadiologyWorkflowService.transition(
                 mock_rad_request, 'approved', performed_by=123
             )
@@ -90,7 +91,7 @@ class TestRadiologyWorkflowService:
         mock_rad_request = MagicMock()
         mock_rad_request.status = 'ordered'
 
-        with patch('app.modules.workflows.radiology.db.session') as mock_session:
+        with patch('app.modules.workflows.radiology.db.session'):
             RadiologyWorkflowService.transition(mock_rad_request, 'scheduled', performed_by=123)
 
             assert mock_rad_request.status == 'scheduled'
@@ -116,7 +117,7 @@ class TestRadiologyWorkflowService:
         mock_rad_request = MagicMock()
         mock_rad_request.status = 'reported'
 
-        with patch('app.modules.workflows.radiology.db.session') as mock_session:
+        with patch('app.modules.workflows.radiology.db.session'):
             RadiologyWorkflowService.transition(mock_rad_request, 'approved', performed_by=None)
 
             assert mock_rad_request.status == 'approved'
@@ -127,7 +128,7 @@ class TestRadiologyWorkflowService:
         mock_rad_request = MagicMock()
         mock_rad_request.status = 'ordered'
 
-        with patch('app.modules.workflows.radiology.db.session') as mock_session:
+        with patch('app.modules.workflows.radiology.db.session'):
             with patch('app.modules.workflows.radiology.datetime') as mock_datetime:
                 mock_now = MagicMock()
                 mock_datetime.now.return_value = mock_now
@@ -153,7 +154,7 @@ class TestRadiologyWorkflowServiceEdgeCases:
         mock_rad_request = MagicMock()
         mock_rad_request.status = 'reported'
 
-        with patch('app.modules.workflows.radiology.db.session') as mock_session:
+        with patch('app.modules.workflows.radiology.db.session'):
             RadiologyWorkflowService.transition(mock_rad_request, 'approved', performed_by=None)
 
             # When performed_by is None, approved_by should not be set to a value
@@ -165,7 +166,7 @@ class TestRadiologyWorkflowServiceEdgeCases:
         mock_rad_request = MagicMock()
         mock_rad_request.status = 'reported'
 
-        with patch('app.modules.workflows.radiology.db.session') as mock_session:
+        with patch('app.modules.workflows.radiology.db.session'):
             RadiologyWorkflowService.transition(mock_rad_request, 'reported')
 
             assert mock_rad_request.status == 'reported'
@@ -180,7 +181,7 @@ class TestRadiologyWorkflowServiceEdgeCases:
         mock_rad_request = MagicMock()
         mock_rad_request.status = 'reported'
 
-        with patch('app.modules.workflows.radiology.db.session') as mock_session:
+        with patch('app.modules.workflows.radiology.db.session'):
             RadiologyWorkflowService.transition(mock_rad_request, 'approved', performed_by=0)
 
             # 0 is falsy, so approved_by should not be set to 0

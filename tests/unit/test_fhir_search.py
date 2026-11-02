@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
 
 from utils.fhir_search import (
-    parse_fhir_params,
     apply_fhir_pagination,
     apply_fhir_sort,
     fhir_bundle,
+    parse_fhir_params,
 )
 
 
@@ -113,7 +114,7 @@ class TestApplyFhirPagination:
         mock_query.offset.return_value = mock_query
         mock_query.limit.return_value = mock_query
 
-        result_query, count, offset = apply_fhir_pagination(mock_query, mock_request)
+        _result_query, count, offset = apply_fhir_pagination(mock_query, mock_request)
 
         assert count == 20
         assert offset == 0
@@ -132,7 +133,7 @@ class TestApplyFhirPagination:
         mock_query.offset.return_value = mock_query
         mock_query.limit.return_value = mock_query
 
-        result_query, count, offset = apply_fhir_pagination(mock_query, mock_request, default_count=20, max_count=100)
+        _result_query, count, offset = apply_fhir_pagination(mock_query, mock_request, default_count=20, max_count=100)
 
         assert count == 50
         assert offset == 0
@@ -149,7 +150,7 @@ class TestApplyFhirPagination:
         mock_query.offset.return_value = mock_query
         mock_query.limit.return_value = mock_query
 
-        result_query, count, offset = apply_fhir_pagination(mock_query, mock_request, default_count=20, max_count=100)
+        _result_query, count, _offset = apply_fhir_pagination(mock_query, mock_request, default_count=20, max_count=100)
 
         assert count == 100  # capped at max_count
 
@@ -165,7 +166,7 @@ class TestApplyFhirPagination:
         mock_query.offset.return_value = mock_query
         mock_query.limit.return_value = mock_query
 
-        result_query, count, offset = apply_fhir_pagination(mock_query, mock_request)
+        _result_query, count, offset = apply_fhir_pagination(mock_query, mock_request)
 
         assert count == 10
         assert offset == 5
@@ -183,7 +184,7 @@ class TestApplyFhirPagination:
         mock_query.offset.return_value = mock_query
         mock_query.limit.return_value = mock_query
 
-        result_query, count, offset = apply_fhir_pagination(mock_query, mock_request)
+        _result_query, count, offset = apply_fhir_pagination(mock_query, mock_request)
 
         assert count == 10
         assert offset == 0

@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import pytest
-from datetime import datetime, UTC
-from unittest.mock import MagicMock, patch, PropertyMock
 
 from models.snomed import SNOMEDConcept, SNOMEDRelationship
 
@@ -59,7 +57,7 @@ class TestSNOMEDConcept:
         """Test that concept_id is unique."""
         # This is a model definition test - verify the column definition
         from sqlalchemy import inspect
-        from app_factory import db
+
 
         # Verify the column exists and has unique constraint
         mapper = inspect(SNOMEDConcept)
@@ -167,7 +165,6 @@ class TestSNOMEDIndexes:
 
     def test_snomed_concept_indexes(self):
         """Test SNOMEDConcept indexes."""
-        from sqlalchemy import inspect
 
         table = SNOMEDConcept.__table__
         index_names = [idx.name for idx in table.indexes]
@@ -176,7 +173,6 @@ class TestSNOMEDIndexes:
 
     def test_snomed_relationship_indexes(self):
         """Test SNOMEDRelationship indexes."""
-        from sqlalchemy import inspect
 
         table = SNOMEDRelationship.__table__
         index_names = [idx.name for idx in table.indexes]

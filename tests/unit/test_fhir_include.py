@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
 
-from utils.fhir_include import parse_include_params, resolve_include, apply_include_to_bundle
+import pytest
+
+from utils.fhir_include import apply_include_to_bundle, parse_include_params, resolve_include
 
 
 class TestParseIncludeParams:
@@ -54,7 +55,7 @@ class TestParseIncludeParams:
     def test_parse_include_params_empty(self):
         """Test parsing when both are empty."""
         mock_request = MagicMock()
-        mock_request.args.getlist.side_effect = lambda key: []
+        mock_request.args.getlist.side_effect = lambda *_args, **_kwargs: []
 
         includes, revincludes = parse_include_params(mock_request)
 
@@ -94,7 +95,7 @@ class TestResolveInclude:
         model_lookup['Practitioner'][0].query.get.return_value = MagicMock()
 
         with patch('utils.fhir_include.resolve_include') as mock:
-            mock.side_effect = lambda entries, include_params, model_lookup: entries
+            mock.side_effect = lambda entries, _include_params, _model_lookup: entries
             result = resolve_include(entries, ['Patient:general-practitioner'], model_lookup)
             assert result == entries
 
@@ -165,7 +166,7 @@ class TestApplyIncludeToBundle:
         """Test apply_include_to_bundle with include params."""
         bundle = {'entry': [{'resource': {'resourceType': 'Patient', 'id': '1'}}]}
         result = apply_include_to_bundle(bundle, ['Patient:general-practitioner'])
-        
+
         # Should add search mode to entries
         assert 'search' in result['entry'][0]
         assert result['entry'][0]['search']['mode'] == 'match'
