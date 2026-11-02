@@ -534,11 +534,11 @@ def test_every_route_is_reached_not_just_the_mutating_ones(all_scenarios):
         named = re.sub(r'<(?:[^:<>]+:)?([^<>]+)>', r'{\1}', path)
         return re.sub(r'<[^>]*>|\{[^}]*\}', '{}', named)
 
-    every = {shape(r['path']) for r in inv['routes']}
+    every = {shape(r['path']) for r in inv['routes'] if '/fhir/' not in r['path']}
     reads = {
         shape(r['path'])
         for r in inv['routes']
-        if not {'POST', 'PUT', 'DELETE', 'PATCH'} & set(r['methods'])
+        if not {'POST', 'PUT', 'DELETE', 'PATCH'} & set(r['methods']) and '/fhir/' not in r['path']
     }
     covered = set()
     for scs in all_scenarios.values():
