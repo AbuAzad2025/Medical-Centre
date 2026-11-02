@@ -25286,6 +25286,1920 @@
   },
   {
     "scenario_id": "GS-0538",
+    "template": "BOOKING_APPOINTMENT_REMINDERS",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Appointment reminders are sent via NotificationService. The reminder job runs hourly and picks up appointments within the reminder window.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /booking/appointment-reminders",
+        "assertion": "reminders queued for upcoming appointments"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "GET /booking/appointment-reminders",
+        "assertion": "list scheduled reminders with status"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /booking/appointment-reminders",
+        "assertion": "trigger manual reminder for specific appointment"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0539",
+    "template": "BOOKING_RECURRING_APPOINTMENTS",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Recurring appointments create a series of individual appointment records linked by a recurrence_group_id. Modifying the series applies to future occurrences only; past ones are immutable.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /booking/appointments/recurring",
+        "assertion": "recurring series created"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "GET /booking/recurring-appointments",
+        "assertion": "list all recurring series"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /booking/appointments/recurring",
+        "assertion": "pause/resume a series"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0540",
+    "template": "BOOKING_WAITLIST_MANAGEMENT",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Waitlist operates FIFO per doctor/slot. When a slot opens, the next patient is promoted and notified. Idempotency key prevents duplicate waitlist entries for the same patient/slot.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /booking/appointments/waitlist",
+        "assertion": "patient added to waitlist"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "GET /booking/waitlist",
+        "assertion": "view waitlist position"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /booking/waitlist",
+        "assertion": "promote/remove/notify actions"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0541",
+    "template": "BOOKING_APPOINTMENT_LIFECYCLE",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Appointment flows: create -> confirm -> (payment) -> checkin. Cancellation releases the slot and notifies waitlist. Payment is required before checkin for non-emergency.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /booking/create",
+        "assertion": "appointment created in SCHEDULED"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "GET /booking/confirmation/<booking_id>",
+        "assertion": "confirmed, slot reserved"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /booking/payment/<booking_id>",
+        "assertion": "payment collected, ready for checkin"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /booking/cancel/<booking_id>",
+        "assertion": "cancelled, slot released, waitlist notified"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0542",
+    "template": "COMPLIANCE_DATA_EXPORT",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Data export implements GDPR Article 20 right to data portability. Export is scoped to tenant and includes audit trail. Large exports are async with download link; small ones stream directly.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Manager",
+        "api": "POST /compliance/data-export",
+        "assertion": "export job created, returns job_id"
+      },
+      {
+        "step": 2,
+        "department": "Manager",
+        "api": "GET /compliance/data-export/<patient_id>",
+        "assertion": "poll job status, download when ready"
+      },
+      {
+        "step": 3,
+        "department": "Manager",
+        "api": "POST /compliance/export-patient-data",
+        "assertion": "patient-specific export"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0543",
+    "template": "FINANCE_PAYMENT_PLAN_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "CASH"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by CASH: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Payment plans split a balance into instalments with due dates. Default triggers collection workflow; 3 defaults = plan cancelled.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans",
+        "assertion": "plan created with instalment schedule"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans",
+        "assertion": "list plans with status"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans/<plan_id>",
+        "assertion": "view plan details and payments"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans/<plan_id>/pay",
+        "assertion": "instalment paid, next due updated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0544",
+    "template": "FINANCE_PAYMENT_PLAN_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "CARD"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by CARD: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Payment plans split a balance into instalments with due dates. Default triggers collection workflow; 3 defaults = plan cancelled.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans",
+        "assertion": "plan created with instalment schedule"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans",
+        "assertion": "list plans with status"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans/<plan_id>",
+        "assertion": "view plan details and payments"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans/<plan_id>/pay",
+        "assertion": "instalment paid, next due updated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0545",
+    "template": "FINANCE_PAYMENT_PLAN_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "visa"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by visa: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Payment plans split a balance into instalments with due dates. Default triggers collection workflow; 3 defaults = plan cancelled.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans",
+        "assertion": "plan created with instalment schedule"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans",
+        "assertion": "list plans with status"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans/<plan_id>",
+        "assertion": "view plan details and payments"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans/<plan_id>/pay",
+        "assertion": "instalment paid, next due updated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0546",
+    "template": "FINANCE_PAYMENT_PLAN_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "mada"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by mada: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Payment plans split a balance into instalments with due dates. Default triggers collection workflow; 3 defaults = plan cancelled.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans",
+        "assertion": "plan created with instalment schedule"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans",
+        "assertion": "list plans with status"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans/<plan_id>",
+        "assertion": "view plan details and payments"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans/<plan_id>/pay",
+        "assertion": "instalment paid, next due updated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0547",
+    "template": "FINANCE_PAYMENT_PLAN_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "WIRE"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by WIRE: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Payment plans split a balance into instalments with due dates. Default triggers collection workflow; 3 defaults = plan cancelled.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans",
+        "assertion": "plan created with instalment schedule"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans",
+        "assertion": "list plans with status"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans/<plan_id>",
+        "assertion": "view plan details and payments"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans/<plan_id>/pay",
+        "assertion": "instalment paid, next due updated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0548",
+    "template": "FINANCE_PAYMENT_PLAN_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "INSURANCE"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by INSURANCE: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Payment plans split a balance into instalments with due dates. Default triggers collection workflow; 3 defaults = plan cancelled.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans",
+        "assertion": "plan created with instalment schedule"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans",
+        "assertion": "list plans with status"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans/<plan_id>",
+        "assertion": "view plan details and payments"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans/<plan_id>/pay",
+        "assertion": "instalment paid, next due updated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0549",
+    "template": "FINANCE_PAYMENT_PLAN_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "payment_method": "FORCE"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by FORCE: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Payment plans split a balance into instalments with due dates. Default triggers collection workflow; 3 defaults = plan cancelled.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans",
+        "assertion": "plan created with instalment schedule"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans",
+        "assertion": "list plans with status"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "GET /finance/payment-plans/<plan_id>",
+        "assertion": "view plan details and payments"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /finance/payment-plans/<plan_id>/pay",
+        "assertion": "instalment paid, next due updated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0550",
+    "template": "LAB_DERIVED_VALUES_AND_TEMPLATES",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Derived values compute from raw results using formulas. Result templates define panels with derived fields. Auto-calculate runs on result finalization. Templates are versioned.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/api/result-templates",
+        "assertion": "template created with derived fields"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "GET /lab/result-templates",
+        "assertion": "list templates"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/auto-calculate",
+        "assertion": "derived values computed on finalize"
+      },
+      {
+        "step": 4,
+        "department": "Lab",
+        "api": "POST /lab/calculate",
+        "assertion": "manual recalculation trigger"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0551",
+    "template": "MEDICATION_INTERACTION_CHECK",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Interaction check runs on every prescription create and dispense. HARD_STOP (contraindicated) blocks save with 422. Override requires manager approval and audit trail. Drug database updated weekly.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /medication/api/interactions/check",
+        "assertion": "check returns severity and recommendation"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /medication/prescriptions",
+        "assertion": "prescription saved, interaction re-checked"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
+        "assertion": "dispense blocked if HARD_STOP"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0552",
+    "template": "MEDICATION_REFILL_WORKFLOW",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Refills require prescriber approval unless auto-refill enabled. Max refills per prescription set at create. Expired refills require new prescription. Controlled substances never auto-refill.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /medication/prescriptions/<prescription_id>/refill",
+        "assertion": "refill requested"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "GET /medication/prescriptions/<prescription_id>/refills",
+        "assertion": "list refills with status"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
+        "assertion": "refill dispensed"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "GET /medication/refills/<refill_id>/status",
+        "assertion": "patient checks refill status"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0553",
+    "template": "MANAGER_BRANDING_CUSTOMIZATION",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Branding customizes tenant appearance. Changes apply to portal, emails, PDFs, and kiosk. Preview mode shows changes before publish. Theme JSON validates against schema; invalid CSS rejected.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Manager",
+        "api": "GET /manager/branding",
+        "assertion": "current branding config"
+      },
+      {
+        "step": 2,
+        "department": "Manager",
+        "api": "POST /manager/branding",
+        "assertion": "update branding elements"
+      },
+      {
+        "step": 3,
+        "department": "Manager",
+        "api": "GET /manager/branding/preview",
+        "assertion": "preview without publishing"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0554",
+    "template": "RECEPTION_APPOINTMENT_REMINDERS",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Reception manages appointment reminders separately from booking. Reminder types map to NotificationService templates. No-show followup triggers after missed appointment.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "GET /reception/appointment-reminders",
+        "assertion": "list pending reminders"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/appointment-reminders",
+        "assertion": "send manual reminder"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/appointment-reminders",
+        "assertion": "trigger no-show followup reminder"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0555",
+    "template": "RECEPTION_RECURRING_APPOINTMENTS",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Reception recurring appointments mirror booking but with additional walk-in conversion. Series modification affects future instances only. Instance cancellation keeps series alive.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/appointments/recurring",
+        "assertion": "create recurring series"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "GET /reception/recurring-appointments",
+        "assertion": "list active series"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/appointments/recurring",
+        "assertion": "modify series for future instances"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0556",
+    "template": "RECEPTION_WAITLIST_MANAGEMENT",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Reception waitlist for walk-ins and overbooked slots. Convert moves waitlisted patient to confirmed appointment. Auto-call notifies next patient when slot frees.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/appointments/waitlist",
+        "assertion": "add to waitlist"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "GET /reception/waitlist",
+        "assertion": "view waitlist"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/appointments/waitlist/<entry_id>",
+        "assertion": "call/convert/remove"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0557",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "ADMITTED",
+      "bed_status": "AVAILABLE"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends ADMITTED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends AVAILABLE, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0558",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "ADMITTED",
+      "bed_status": "OCCUPIED"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends ADMITTED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends OCCUPIED, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0559",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "ADMITTED",
+      "bed_status": "RESERVED"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends ADMITTED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends RESERVED, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0560",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "ADMITTED",
+      "bed_status": "CLEANING"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends ADMITTED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends CLEANING, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0561",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "ADMITTED",
+      "bed_status": "OUT_OF_ORDER"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends ADMITTED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends OUT_OF_ORDER, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0562",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "DISCHARGED",
+      "bed_status": "AVAILABLE"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends DISCHARGED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends AVAILABLE, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0563",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "DISCHARGED",
+      "bed_status": "OCCUPIED"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends DISCHARGED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends OCCUPIED, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0564",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "DISCHARGED",
+      "bed_status": "RESERVED"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends DISCHARGED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends RESERVED, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0565",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "DISCHARGED",
+      "bed_status": "CLEANING"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends DISCHARGED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends CLEANING, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0566",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "DISCHARGED",
+      "bed_status": "OUT_OF_ORDER"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends DISCHARGED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends OUT_OF_ORDER, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0567",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "TRANSFERRED",
+      "bed_status": "AVAILABLE"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends TRANSFERRED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends AVAILABLE, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0568",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "TRANSFERRED",
+      "bed_status": "OCCUPIED"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends TRANSFERRED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends OCCUPIED, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0569",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "TRANSFERRED",
+      "bed_status": "RESERVED"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends TRANSFERRED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends RESERVED, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0570",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "TRANSFERRED",
+      "bed_status": "CLEANING"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends TRANSFERRED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends CLEANING, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0571",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "TRANSFERRED",
+      "bed_status": "OUT_OF_ORDER"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends TRANSFERRED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends OUT_OF_ORDER, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0572",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "DECEASED",
+      "bed_status": "AVAILABLE"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends DECEASED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends AVAILABLE, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0573",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "DECEASED",
+      "bed_status": "OCCUPIED"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends DECEASED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends OCCUPIED, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0574",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "DECEASED",
+      "bed_status": "RESERVED"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends DECEASED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends RESERVED, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0575",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "DECEASED",
+      "bed_status": "CLEANING"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends DECEASED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends CLEANING, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0576",
+    "template": "BED_ADMISSION_TRANSFER_DISCHARGE",
+    "family": "clinical",
+    "axes": {
+      "admission_status": "DECEASED",
+      "bed_status": "OUT_OF_ORDER"
+    },
+    "axes_note": {
+      "admission_status": "Admission.status. DISCHARGED and DECEASED both close the bed.",
+      "bed_status": "Bed.status. OUT_OF_ORDER is not an occupancy, so availability counts have to subtract it explicitly."
+    },
+    "axes_effect": {
+      "admission_status": "the admission ends DECEASED; DISCHARGED and DECEASED both release the bed",
+      "bed_status": "the bed ends OUT_OF_ORDER, and OUT_OF_ORDER is not an occupancy, so availability has to subtract it explicitly"
+    },
+    "rule": "Admission requires AVAILABLE bed. Transfer moves patient between beds with audit trail. Discharge sets bed to CLEANING, then AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted to AVAILABLE bed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "transfer to another AVAILABLE bed"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "discharge, bed to CLEANING"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0577",
+    "template": "API_CLAIMS_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "insurance_claim_status": "DRAFT"
+    },
+    "axes_note": {
+      "insurance_claim_status": "InsuranceClaim.status. An APPROVED claim never reaches the ledger, so the insurer receivable is only cleared out of band."
+    },
+    "axes_effect": {
+      "insurance_claim_status": "the claim is driven to DRAFT; only SETTLED should mean money arrived"
+    },
+    "rule": "API claims lifecycle for external integrations. Submit creates DRAFT claim. Adjudicate sets approved amount. Settle moves to SETTLED. Payout records payment without GL entry (known gap).",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /api/claims",
+        "assertion": "claim created DRAFT"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/submit",
+        "assertion": "submitted to insurer"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/adjudicate",
+        "assertion": "approved amount set"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/settle",
+        "assertion": "SETTLED, awaiting payout"
+      },
+      {
+        "step": 5,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/payout",
+        "assertion": "payout recorded, 1105 not relieved"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0578",
+    "template": "API_CLAIMS_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "insurance_claim_status": "SUBMITTED"
+    },
+    "axes_note": {
+      "insurance_claim_status": "InsuranceClaim.status. An APPROVED claim never reaches the ledger, so the insurer receivable is only cleared out of band."
+    },
+    "axes_effect": {
+      "insurance_claim_status": "the claim is driven to SUBMITTED; only SETTLED should mean money arrived"
+    },
+    "rule": "API claims lifecycle for external integrations. Submit creates DRAFT claim. Adjudicate sets approved amount. Settle moves to SETTLED. Payout records payment without GL entry (known gap).",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /api/claims",
+        "assertion": "claim created DRAFT"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/submit",
+        "assertion": "submitted to insurer"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/adjudicate",
+        "assertion": "approved amount set"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/settle",
+        "assertion": "SETTLED, awaiting payout"
+      },
+      {
+        "step": 5,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/payout",
+        "assertion": "payout recorded, 1105 not relieved"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0579",
+    "template": "API_CLAIMS_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "insurance_claim_status": "UNDER_REVIEW"
+    },
+    "axes_note": {
+      "insurance_claim_status": "InsuranceClaim.status. An APPROVED claim never reaches the ledger, so the insurer receivable is only cleared out of band."
+    },
+    "axes_effect": {
+      "insurance_claim_status": "the claim is driven to UNDER_REVIEW; only SETTLED should mean money arrived"
+    },
+    "rule": "API claims lifecycle for external integrations. Submit creates DRAFT claim. Adjudicate sets approved amount. Settle moves to SETTLED. Payout records payment without GL entry (known gap).",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /api/claims",
+        "assertion": "claim created DRAFT"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/submit",
+        "assertion": "submitted to insurer"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/adjudicate",
+        "assertion": "approved amount set"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/settle",
+        "assertion": "SETTLED, awaiting payout"
+      },
+      {
+        "step": 5,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/payout",
+        "assertion": "payout recorded, 1105 not relieved"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0580",
+    "template": "API_CLAIMS_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "insurance_claim_status": "APPROVED"
+    },
+    "axes_note": {
+      "insurance_claim_status": "InsuranceClaim.status. An APPROVED claim never reaches the ledger, so the insurer receivable is only cleared out of band."
+    },
+    "axes_effect": {
+      "insurance_claim_status": "the claim is driven to APPROVED; only SETTLED should mean money arrived"
+    },
+    "rule": "API claims lifecycle for external integrations. Submit creates DRAFT claim. Adjudicate sets approved amount. Settle moves to SETTLED. Payout records payment without GL entry (known gap).",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /api/claims",
+        "assertion": "claim created DRAFT"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/submit",
+        "assertion": "submitted to insurer"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/adjudicate",
+        "assertion": "approved amount set"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/settle",
+        "assertion": "SETTLED, awaiting payout"
+      },
+      {
+        "step": 5,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/payout",
+        "assertion": "payout recorded, 1105 not relieved"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0581",
+    "template": "API_CLAIMS_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "insurance_claim_status": "PARTIALLY_APPROVED"
+    },
+    "axes_note": {
+      "insurance_claim_status": "InsuranceClaim.status. An APPROVED claim never reaches the ledger, so the insurer receivable is only cleared out of band."
+    },
+    "axes_effect": {
+      "insurance_claim_status": "the claim is driven to PARTIALLY_APPROVED; only SETTLED should mean money arrived"
+    },
+    "rule": "API claims lifecycle for external integrations. Submit creates DRAFT claim. Adjudicate sets approved amount. Settle moves to SETTLED. Payout records payment without GL entry (known gap).",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /api/claims",
+        "assertion": "claim created DRAFT"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/submit",
+        "assertion": "submitted to insurer"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/adjudicate",
+        "assertion": "approved amount set"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/settle",
+        "assertion": "SETTLED, awaiting payout"
+      },
+      {
+        "step": 5,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/payout",
+        "assertion": "payout recorded, 1105 not relieved"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0582",
+    "template": "API_CLAIMS_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "insurance_claim_status": "REJECTED"
+    },
+    "axes_note": {
+      "insurance_claim_status": "InsuranceClaim.status. An APPROVED claim never reaches the ledger, so the insurer receivable is only cleared out of band."
+    },
+    "axes_effect": {
+      "insurance_claim_status": "the claim is driven to REJECTED; only SETTLED should mean money arrived"
+    },
+    "rule": "API claims lifecycle for external integrations. Submit creates DRAFT claim. Adjudicate sets approved amount. Settle moves to SETTLED. Payout records payment without GL entry (known gap).",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /api/claims",
+        "assertion": "claim created DRAFT"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/submit",
+        "assertion": "submitted to insurer"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/adjudicate",
+        "assertion": "approved amount set"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/settle",
+        "assertion": "SETTLED, awaiting payout"
+      },
+      {
+        "step": 5,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/payout",
+        "assertion": "payout recorded, 1105 not relieved"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0583",
+    "template": "API_CLAIMS_LIFECYCLE",
+    "family": "financial",
+    "axes": {
+      "insurance_claim_status": "SETTLED"
+    },
+    "axes_note": {
+      "insurance_claim_status": "InsuranceClaim.status. An APPROVED claim never reaches the ledger, so the insurer receivable is only cleared out of band."
+    },
+    "axes_effect": {
+      "insurance_claim_status": "the claim is driven to SETTLED; only SETTLED should mean money arrived"
+    },
+    "rule": "API claims lifecycle for external integrations. Submit creates DRAFT claim. Adjudicate sets approved amount. Settle moves to SETTLED. Payout records payment without GL entry (known gap).",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /api/claims",
+        "assertion": "claim created DRAFT"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/submit",
+        "assertion": "submitted to insurer"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/adjudicate",
+        "assertion": "approved amount set"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/settle",
+        "assertion": "SETTLED, awaiting payout"
+      },
+      {
+        "step": 5,
+        "department": "Accountant",
+        "api": "POST /api/claims/<claim_id>/payout",
+        "assertion": "payout recorded, 1105 not relieved"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0584",
+    "template": "API_BILLING_INTEGRATION",
+    "family": "financial",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Stripe billing integration for SaaS subscriptions. Checkout creates session. Portal allows self-service. Webhook handles async events. Change-plan prorates. Cancel at period end by default.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Owner",
+        "api": "POST /api/billing/checkout",
+        "assertion": "checkout session created"
+      },
+      {
+        "step": 2,
+        "department": "Owner",
+        "api": "GET /api/billing/portal",
+        "assertion": "customer portal session"
+      },
+      {
+        "step": 3,
+        "department": "System",
+        "api": "POST /api/billing/stripe/webhook",
+        "assertion": "async event processed"
+      },
+      {
+        "step": 4,
+        "department": "Owner",
+        "api": "POST /api/billing/subscription/cancel",
+        "assertion": "subscription cancelled"
+      },
+      {
+        "step": 5,
+        "department": "Owner",
+        "api": "POST /api/billing/subscription/change-plan",
+        "assertion": "plan changed with proration"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0585",
+    "template": "API_LAB_RADIOLOGY_CANCEL_AMEND",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Cancel/amend endpoints for external integrations. Cancel only allowed in REQUESTED/IN_PROGRESS. Amend creates audit trail with original value preserved. Requires ordering provider or admin role.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /api/lab/requests/<request_id>/cancel",
+        "assertion": "lab request cancelled"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /api/lab/results/<result_id>/amend",
+        "assertion": "lab result amended, original kept"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /api/radiology/requests/<request_id>/cancel",
+        "assertion": "radiology request cancelled"
+      },
+      {
+        "step": 4,
+        "department": "Radiology",
+        "api": "POST /api/radiology/results/<result_id>/amend",
+        "assertion": "radiology result amended"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0586",
     "template": "LAB_BARCODE_AND_LIS_RECEIPT",
     "family": "clinical",
     "axes": {
@@ -25328,7 +27242,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0539",
+    "scenario_id": "GS-0587",
     "template": "LAB_BARCODE_AND_LIS_RECEIPT",
     "family": "clinical",
     "axes": {
@@ -25371,7 +27285,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0540",
+    "scenario_id": "GS-0588",
     "template": "LAB_BARCODE_AND_LIS_RECEIPT",
     "family": "clinical",
     "axes": {
@@ -25414,7 +27328,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0541",
+    "scenario_id": "GS-0589",
     "template": "LAB_QUALITY_CONTROL_AND_REAGENTS",
     "family": "clinical",
     "axes": {
@@ -25457,7 +27371,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0542",
+    "scenario_id": "GS-0590",
     "template": "LAB_QUALITY_CONTROL_AND_REAGENTS",
     "family": "clinical",
     "axes": {
@@ -25500,7 +27414,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0543",
+    "scenario_id": "GS-0591",
     "template": "LAB_QUALITY_CONTROL_AND_REAGENTS",
     "family": "clinical",
     "axes": {
@@ -25543,7 +27457,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0544",
+    "scenario_id": "GS-0592",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25580,7 +27494,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0545",
+    "scenario_id": "GS-0593",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25617,7 +27531,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0546",
+    "scenario_id": "GS-0594",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25654,7 +27568,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0547",
+    "scenario_id": "GS-0595",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25691,7 +27605,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0548",
+    "scenario_id": "GS-0596",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25728,7 +27642,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0549",
+    "scenario_id": "GS-0597",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25765,7 +27679,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0550",
+    "scenario_id": "GS-0598",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25802,7 +27716,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0551",
+    "scenario_id": "GS-0599",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25839,7 +27753,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0552",
+    "scenario_id": "GS-0600",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25876,7 +27790,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0553",
+    "scenario_id": "GS-0601",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25913,7 +27827,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0554",
+    "scenario_id": "GS-0602",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25950,7 +27864,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0555",
+    "scenario_id": "GS-0603",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -25987,7 +27901,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0556",
+    "scenario_id": "GS-0604",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -26024,7 +27938,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0557",
+    "scenario_id": "GS-0605",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -26061,7 +27975,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0558",
+    "scenario_id": "GS-0606",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -26098,7 +28012,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0559",
+    "scenario_id": "GS-0607",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -26135,7 +28049,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0560",
+    "scenario_id": "GS-0608",
     "template": "EMERGENCY_CASE_RESOLUTION",
     "family": "clinical",
     "axes": {
@@ -26178,7 +28092,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0561",
+    "scenario_id": "GS-0609",
     "template": "EMERGENCY_CASE_RESOLUTION",
     "family": "clinical",
     "axes": {
@@ -26221,7 +28135,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0562",
+    "scenario_id": "GS-0610",
     "template": "EMERGENCY_CASE_RESOLUTION",
     "family": "clinical",
     "axes": {
@@ -26264,7 +28178,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0563",
+    "scenario_id": "GS-0611",
     "template": "EMERGENCY_CASE_RESOLUTION",
     "family": "clinical",
     "axes": {
@@ -26307,7 +28221,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0564",
+    "scenario_id": "GS-0612",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26350,7 +28264,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0565",
+    "scenario_id": "GS-0613",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26393,7 +28307,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0566",
+    "scenario_id": "GS-0614",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26436,7 +28350,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0567",
+    "scenario_id": "GS-0615",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26479,7 +28393,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0568",
+    "scenario_id": "GS-0616",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26522,7 +28436,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0569",
+    "scenario_id": "GS-0617",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26565,7 +28479,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0570",
+    "scenario_id": "GS-0618",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26608,7 +28522,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0571",
+    "scenario_id": "GS-0619",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26651,7 +28565,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0572",
+    "scenario_id": "GS-0620",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26694,7 +28608,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0573",
+    "scenario_id": "GS-0621",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26737,7 +28651,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0574",
+    "scenario_id": "GS-0622",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26780,7 +28694,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0575",
+    "scenario_id": "GS-0623",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26823,7 +28737,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0576",
+    "scenario_id": "GS-0624",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26866,7 +28780,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0577",
+    "scenario_id": "GS-0625",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26909,7 +28823,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0578",
+    "scenario_id": "GS-0626",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26952,7 +28866,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0579",
+    "scenario_id": "GS-0627",
     "template": "RECEPTION_PATIENT_ADMINISTRATION",
     "family": "clinical",
     "axes": {
@@ -26995,7 +28909,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0580",
+    "scenario_id": "GS-0628",
     "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
     "family": "clinical",
     "axes": {
@@ -27038,7 +28952,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0581",
+    "scenario_id": "GS-0629",
     "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
     "family": "clinical",
     "axes": {
@@ -27081,7 +28995,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0582",
+    "scenario_id": "GS-0630",
     "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
     "family": "clinical",
     "axes": {
@@ -27124,7 +29038,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0583",
+    "scenario_id": "GS-0631",
     "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
     "family": "clinical",
     "axes": {
@@ -27167,7 +29081,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0584",
+    "scenario_id": "GS-0632",
     "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
     "family": "clinical",
     "axes": {
@@ -27210,7 +29124,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0585",
+    "scenario_id": "GS-0633",
     "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
     "family": "clinical",
     "axes": {
@@ -27253,7 +29167,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0586",
+    "scenario_id": "GS-0634",
     "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
     "family": "clinical",
     "axes": {
@@ -27296,7 +29210,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0587",
+    "scenario_id": "GS-0635",
     "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
     "family": "clinical",
     "axes": {
@@ -27329,1422 +29243,6 @@
         "department": "Doctor",
         "api": "GET|POST /doctor/prescription/<visit_id>",
         "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0588",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "admin"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a admin user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0589",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "doctor"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a doctor user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0590",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "emergency"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a emergency user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0591",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "er_doctor"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a er_doctor user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0592",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "lab"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a lab user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0593",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "manager"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a manager user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0594",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "nurse"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a nurse user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0595",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "owner"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a owner user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0596",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "patient"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a patient user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0597",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "pharmacist"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a pharmacist user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0598",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "radiology"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a radiology user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0599",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "reception"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a reception user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0600",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "super_admin"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a super_admin user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0601",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "technician"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a technician user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0602",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "user"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a user user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0603",
-    "template": "RADIOLOGY_TEMPLATES_AND_MACROS",
-    "family": "clinical",
-    "axes": {
-      "radiology_modality": "XRay"
-    },
-    "axes_note": {
-      "radiology_modality": "RadiologyRequest.modality."
-    },
-    "axes_effect": {
-      "radiology_modality": "the macro is written for XRay studies only"
-    },
-    "rule": "Report templates and macros are reporting scaffolding, not diagnostics. They are per-tenant and editable by radiologists, and ai-assist consults them for the canned suggestions it returns. Nothing here validates the report against the study.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Radiology",
-        "api": "GET|POST /radiology/api/report-templates",
-        "assertion": "template listed or created"
-      },
-      {
-        "step": 2,
-        "department": "Radiology",
-        "api": "GET|POST /radiology/api/report-macros",
-        "assertion": "macro listed or created"
-      },
-      {
-        "step": 3,
-        "department": "Radiology",
-        "api": "POST /radiology/worklist/complete/<request_id>",
-        "assertion": "report written from the template"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0604",
-    "template": "RADIOLOGY_TEMPLATES_AND_MACROS",
-    "family": "clinical",
-    "axes": {
-      "radiology_modality": "CT"
-    },
-    "axes_note": {
-      "radiology_modality": "RadiologyRequest.modality."
-    },
-    "axes_effect": {
-      "radiology_modality": "the macro is written for CT studies only"
-    },
-    "rule": "Report templates and macros are reporting scaffolding, not diagnostics. They are per-tenant and editable by radiologists, and ai-assist consults them for the canned suggestions it returns. Nothing here validates the report against the study.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Radiology",
-        "api": "GET|POST /radiology/api/report-templates",
-        "assertion": "template listed or created"
-      },
-      {
-        "step": 2,
-        "department": "Radiology",
-        "api": "GET|POST /radiology/api/report-macros",
-        "assertion": "macro listed or created"
-      },
-      {
-        "step": 3,
-        "department": "Radiology",
-        "api": "POST /radiology/worklist/complete/<request_id>",
-        "assertion": "report written from the template"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0605",
-    "template": "RADIOLOGY_TEMPLATES_AND_MACROS",
-    "family": "clinical",
-    "axes": {
-      "radiology_modality": "MRI"
-    },
-    "axes_note": {
-      "radiology_modality": "RadiologyRequest.modality."
-    },
-    "axes_effect": {
-      "radiology_modality": "the macro is written for MRI studies only"
-    },
-    "rule": "Report templates and macros are reporting scaffolding, not diagnostics. They are per-tenant and editable by radiologists, and ai-assist consults them for the canned suggestions it returns. Nothing here validates the report against the study.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Radiology",
-        "api": "GET|POST /radiology/api/report-templates",
-        "assertion": "template listed or created"
-      },
-      {
-        "step": 2,
-        "department": "Radiology",
-        "api": "GET|POST /radiology/api/report-macros",
-        "assertion": "macro listed or created"
-      },
-      {
-        "step": 3,
-        "department": "Radiology",
-        "api": "POST /radiology/worklist/complete/<request_id>",
-        "assertion": "report written from the template"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0606",
-    "template": "RADIOLOGY_TEMPLATES_AND_MACROS",
-    "family": "clinical",
-    "axes": {
-      "radiology_modality": "US"
-    },
-    "axes_note": {
-      "radiology_modality": "RadiologyRequest.modality."
-    },
-    "axes_effect": {
-      "radiology_modality": "the macro is written for US studies only"
-    },
-    "rule": "Report templates and macros are reporting scaffolding, not diagnostics. They are per-tenant and editable by radiologists, and ai-assist consults them for the canned suggestions it returns. Nothing here validates the report against the study.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Radiology",
-        "api": "GET|POST /radiology/api/report-templates",
-        "assertion": "template listed or created"
-      },
-      {
-        "step": 2,
-        "department": "Radiology",
-        "api": "GET|POST /radiology/api/report-macros",
-        "assertion": "macro listed or created"
-      },
-      {
-        "step": 3,
-        "department": "Radiology",
-        "api": "POST /radiology/worklist/complete/<request_id>",
-        "assertion": "report written from the template"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0607",
-    "template": "NURSING_ASSESSMENT_SCALES",
-    "family": "clinical",
-    "axes": {
-      "ward_type": "GENERAL"
-    },
-    "axes_note": {
-      "ward_type": "Ward.ward_type. Descriptive only: nothing prices a ward, so every inpatient stay costs the same regardless of ICU versus maternity."
-    },
-    "axes_effect": {
-      "ward_type": "the assessment is recorded on a GENERAL ward, which is descriptive only and does not change the scale that is applied"
-    },
-    "rule": "NursingAssessment scores five instruments and assigns a risk band for each: Braden (severe at 9 and below), Glasgow (severe below 4), Morse fall (high at 51 and above), pain (high above 6) and Norton (high at 14 and below). The scales are real and computed; nothing acts on the band, so a severe score raises no alert.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/patient/<int:patient_id>",
-        "assertion": "existing assessments listed"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "GET|POST /nursing-assessment/new/<int:patient_id>",
-        "assertion": "scales scored, bands computed"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/view/<int:assessment_id>",
-        "assertion": "stored assessment reviewed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0608",
-    "template": "NURSING_ASSESSMENT_SCALES",
-    "family": "clinical",
-    "axes": {
-      "ward_type": "ICU"
-    },
-    "axes_note": {
-      "ward_type": "Ward.ward_type. Descriptive only: nothing prices a ward, so every inpatient stay costs the same regardless of ICU versus maternity."
-    },
-    "axes_effect": {
-      "ward_type": "the assessment is recorded on a ICU ward, which is descriptive only and does not change the scale that is applied"
-    },
-    "rule": "NursingAssessment scores five instruments and assigns a risk band for each: Braden (severe at 9 and below), Glasgow (severe below 4), Morse fall (high at 51 and above), pain (high above 6) and Norton (high at 14 and below). The scales are real and computed; nothing acts on the band, so a severe score raises no alert.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/patient/<int:patient_id>",
-        "assertion": "existing assessments listed"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "GET|POST /nursing-assessment/new/<int:patient_id>",
-        "assertion": "scales scored, bands computed"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/view/<int:assessment_id>",
-        "assertion": "stored assessment reviewed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0609",
-    "template": "NURSING_ASSESSMENT_SCALES",
-    "family": "clinical",
-    "axes": {
-      "ward_type": "NICU"
-    },
-    "axes_note": {
-      "ward_type": "Ward.ward_type. Descriptive only: nothing prices a ward, so every inpatient stay costs the same regardless of ICU versus maternity."
-    },
-    "axes_effect": {
-      "ward_type": "the assessment is recorded on a NICU ward, which is descriptive only and does not change the scale that is applied"
-    },
-    "rule": "NursingAssessment scores five instruments and assigns a risk band for each: Braden (severe at 9 and below), Glasgow (severe below 4), Morse fall (high at 51 and above), pain (high above 6) and Norton (high at 14 and below). The scales are real and computed; nothing acts on the band, so a severe score raises no alert.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/patient/<int:patient_id>",
-        "assertion": "existing assessments listed"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "GET|POST /nursing-assessment/new/<int:patient_id>",
-        "assertion": "scales scored, bands computed"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/view/<int:assessment_id>",
-        "assertion": "stored assessment reviewed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0610",
-    "template": "NURSING_ASSESSMENT_SCALES",
-    "family": "clinical",
-    "axes": {
-      "ward_type": "PICU"
-    },
-    "axes_note": {
-      "ward_type": "Ward.ward_type. Descriptive only: nothing prices a ward, so every inpatient stay costs the same regardless of ICU versus maternity."
-    },
-    "axes_effect": {
-      "ward_type": "the assessment is recorded on a PICU ward, which is descriptive only and does not change the scale that is applied"
-    },
-    "rule": "NursingAssessment scores five instruments and assigns a risk band for each: Braden (severe at 9 and below), Glasgow (severe below 4), Morse fall (high at 51 and above), pain (high above 6) and Norton (high at 14 and below). The scales are real and computed; nothing acts on the band, so a severe score raises no alert.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/patient/<int:patient_id>",
-        "assertion": "existing assessments listed"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "GET|POST /nursing-assessment/new/<int:patient_id>",
-        "assertion": "scales scored, bands computed"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/view/<int:assessment_id>",
-        "assertion": "stored assessment reviewed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0611",
-    "template": "NURSING_ASSESSMENT_SCALES",
-    "family": "clinical",
-    "axes": {
-      "ward_type": "MATERNITY"
-    },
-    "axes_note": {
-      "ward_type": "Ward.ward_type. Descriptive only: nothing prices a ward, so every inpatient stay costs the same regardless of ICU versus maternity."
-    },
-    "axes_effect": {
-      "ward_type": "the assessment is recorded on a MATERNITY ward, which is descriptive only and does not change the scale that is applied"
-    },
-    "rule": "NursingAssessment scores five instruments and assigns a risk band for each: Braden (severe at 9 and below), Glasgow (severe below 4), Morse fall (high at 51 and above), pain (high above 6) and Norton (high at 14 and below). The scales are real and computed; nothing acts on the band, so a severe score raises no alert.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/patient/<int:patient_id>",
-        "assertion": "existing assessments listed"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "GET|POST /nursing-assessment/new/<int:patient_id>",
-        "assertion": "scales scored, bands computed"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/view/<int:assessment_id>",
-        "assertion": "stored assessment reviewed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0612",
-    "template": "NURSING_ASSESSMENT_SCALES",
-    "family": "clinical",
-    "axes": {
-      "ward_type": "SURGERY"
-    },
-    "axes_note": {
-      "ward_type": "Ward.ward_type. Descriptive only: nothing prices a ward, so every inpatient stay costs the same regardless of ICU versus maternity."
-    },
-    "axes_effect": {
-      "ward_type": "the assessment is recorded on a SURGERY ward, which is descriptive only and does not change the scale that is applied"
-    },
-    "rule": "NursingAssessment scores five instruments and assigns a risk band for each: Braden (severe at 9 and below), Glasgow (severe below 4), Morse fall (high at 51 and above), pain (high above 6) and Norton (high at 14 and below). The scales are real and computed; nothing acts on the band, so a severe score raises no alert.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/patient/<int:patient_id>",
-        "assertion": "existing assessments listed"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "GET|POST /nursing-assessment/new/<int:patient_id>",
-        "assertion": "scales scored, bands computed"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/view/<int:assessment_id>",
-        "assertion": "stored assessment reviewed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0613",
-    "template": "NURSING_ASSESSMENT_SCALES",
-    "family": "clinical",
-    "axes": {
-      "ward_type": "ISOLATION"
-    },
-    "axes_note": {
-      "ward_type": "Ward.ward_type. Descriptive only: nothing prices a ward, so every inpatient stay costs the same regardless of ICU versus maternity."
-    },
-    "axes_effect": {
-      "ward_type": "the assessment is recorded on a ISOLATION ward, which is descriptive only and does not change the scale that is applied"
-    },
-    "rule": "NursingAssessment scores five instruments and assigns a risk band for each: Braden (severe at 9 and below), Glasgow (severe below 4), Morse fall (high at 51 and above), pain (high above 6) and Norton (high at 14 and below). The scales are real and computed; nothing acts on the band, so a severe score raises no alert.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/patient/<int:patient_id>",
-        "assertion": "existing assessments listed"
-      },
-      {
-        "step": 2,
-        "department": "Nurse",
-        "api": "GET|POST /nursing-assessment/new/<int:patient_id>",
-        "assertion": "scales scored, bands computed"
-      },
-      {
-        "step": 3,
-        "department": "Nurse",
-        "api": "GET /nursing-assessment/view/<int:assessment_id>",
-        "assertion": "stored assessment reviewed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0614",
-    "template": "QUEUE_TICKET_LIFECYCLE",
-    "family": "clinical",
-    "axes": {
-      "task_state": "pending"
-    },
-    "axes_note": {
-      "task_state": "Nursing task lifecycle."
-    },
-    "axes_effect": {
-      "task_state": "the ticket task ends pending"
-    },
-    "rule": "A ticket moves waiting, called, in_progress, completed, skipped or cancelled. call_next_patient claims atomically with a conditional UPDATE, but /doctor/call-patient is a plain read-then-write, so two browser tabs can both claim the same ticket.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET /reception/queue",
-        "assertion": "queue listed, unfiltered by payment"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET /reception/queue/call-next/<int:department_id>",
-        "assertion": "atomic conditional claim"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/queue/start-treatment/<int:ticket_id>",
-        "assertion": "ticket in_progress"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/queue/complete-treatment/<int:ticket_id>",
-        "assertion": "ticket completed"
-      },
-      {
-        "step": 5,
-        "department": "Reception",
-        "api": "POST /reception/queue/cancel-ticket/<int:ticket_id>",
-        "assertion": "ticket cancelled"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0615",
-    "template": "QUEUE_TICKET_LIFECYCLE",
-    "family": "clinical",
-    "axes": {
-      "task_state": "in_progress"
-    },
-    "axes_note": {
-      "task_state": "Nursing task lifecycle."
-    },
-    "axes_effect": {
-      "task_state": "the ticket task ends in_progress"
-    },
-    "rule": "A ticket moves waiting, called, in_progress, completed, skipped or cancelled. call_next_patient claims atomically with a conditional UPDATE, but /doctor/call-patient is a plain read-then-write, so two browser tabs can both claim the same ticket.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET /reception/queue",
-        "assertion": "queue listed, unfiltered by payment"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET /reception/queue/call-next/<int:department_id>",
-        "assertion": "atomic conditional claim"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/queue/start-treatment/<int:ticket_id>",
-        "assertion": "ticket in_progress"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/queue/complete-treatment/<int:ticket_id>",
-        "assertion": "ticket completed"
-      },
-      {
-        "step": 5,
-        "department": "Reception",
-        "api": "POST /reception/queue/cancel-ticket/<int:ticket_id>",
-        "assertion": "ticket cancelled"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0616",
-    "template": "QUEUE_TICKET_LIFECYCLE",
-    "family": "clinical",
-    "axes": {
-      "task_state": "completed"
-    },
-    "axes_note": {
-      "task_state": "Nursing task lifecycle."
-    },
-    "axes_effect": {
-      "task_state": "the ticket task ends completed"
-    },
-    "rule": "A ticket moves waiting, called, in_progress, completed, skipped or cancelled. call_next_patient claims atomically with a conditional UPDATE, but /doctor/call-patient is a plain read-then-write, so two browser tabs can both claim the same ticket.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET /reception/queue",
-        "assertion": "queue listed, unfiltered by payment"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET /reception/queue/call-next/<int:department_id>",
-        "assertion": "atomic conditional claim"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/queue/start-treatment/<int:ticket_id>",
-        "assertion": "ticket in_progress"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/queue/complete-treatment/<int:ticket_id>",
-        "assertion": "ticket completed"
-      },
-      {
-        "step": 5,
-        "department": "Reception",
-        "api": "POST /reception/queue/cancel-ticket/<int:ticket_id>",
-        "assertion": "ticket cancelled"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0617",
-    "template": "QUEUE_TICKET_LIFECYCLE",
-    "family": "clinical",
-    "axes": {
-      "task_state": "cancelled"
-    },
-    "axes_note": {
-      "task_state": "Nursing task lifecycle."
-    },
-    "axes_effect": {
-      "task_state": "the ticket task ends cancelled"
-    },
-    "rule": "A ticket moves waiting, called, in_progress, completed, skipped or cancelled. call_next_patient claims atomically with a conditional UPDATE, but /doctor/call-patient is a plain read-then-write, so two browser tabs can both claim the same ticket.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET /reception/queue",
-        "assertion": "queue listed, unfiltered by payment"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET /reception/queue/call-next/<int:department_id>",
-        "assertion": "atomic conditional claim"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/queue/start-treatment/<int:ticket_id>",
-        "assertion": "ticket in_progress"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/queue/complete-treatment/<int:ticket_id>",
-        "assertion": "ticket completed"
-      },
-      {
-        "step": 5,
-        "department": "Reception",
-        "api": "POST /reception/queue/cancel-ticket/<int:ticket_id>",
-        "assertion": "ticket cancelled"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0618",
-    "template": "DOCTOR_NOTES_AND_TEMPLATES",
-    "family": "clinical",
-    "axes": {
-      "treatment_status": "pending"
-    },
-    "axes_note": {
-      "treatment_status": "Treatment record lifecycle."
-    },
-    "axes_effect": {
-      "treatment_status": "the treatment the note describes is pending"
-    },
-    "rule": "Progress notes are appended as a timestamped labelled block to the single Visit.notes Text column, not stored as rows, so note history is unqueryable and note templates live in SystemConfig rather than a table of their own.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/notes/<visit_id>",
-        "assertion": "note appended to Visit.notes"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/api/note-templates",
-        "assertion": "note template stored in SystemConfig"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/save-visit-summary/<visit_id>",
-        "assertion": "summary written, JSON accepted"
-      },
-      {
-        "step": 4,
-        "department": "Doctor",
-        "api": "POST /doctor/end-treatment/<visit_id>",
-        "assertion": "consultation closed, follow-up synced"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0619",
-    "template": "DOCTOR_NOTES_AND_TEMPLATES",
-    "family": "clinical",
-    "axes": {
-      "treatment_status": "active"
-    },
-    "axes_note": {
-      "treatment_status": "Treatment record lifecycle."
-    },
-    "axes_effect": {
-      "treatment_status": "the treatment the note describes is active"
-    },
-    "rule": "Progress notes are appended as a timestamped labelled block to the single Visit.notes Text column, not stored as rows, so note history is unqueryable and note templates live in SystemConfig rather than a table of their own.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/notes/<visit_id>",
-        "assertion": "note appended to Visit.notes"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/api/note-templates",
-        "assertion": "note template stored in SystemConfig"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/save-visit-summary/<visit_id>",
-        "assertion": "summary written, JSON accepted"
-      },
-      {
-        "step": 4,
-        "department": "Doctor",
-        "api": "POST /doctor/end-treatment/<visit_id>",
-        "assertion": "consultation closed, follow-up synced"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0620",
-    "template": "DOCTOR_NOTES_AND_TEMPLATES",
-    "family": "clinical",
-    "axes": {
-      "treatment_status": "completed"
-    },
-    "axes_note": {
-      "treatment_status": "Treatment record lifecycle."
-    },
-    "axes_effect": {
-      "treatment_status": "the treatment the note describes is completed"
-    },
-    "rule": "Progress notes are appended as a timestamped labelled block to the single Visit.notes Text column, not stored as rows, so note history is unqueryable and note templates live in SystemConfig rather than a table of their own.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/notes/<visit_id>",
-        "assertion": "note appended to Visit.notes"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/api/note-templates",
-        "assertion": "note template stored in SystemConfig"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/save-visit-summary/<visit_id>",
-        "assertion": "summary written, JSON accepted"
-      },
-      {
-        "step": 4,
-        "department": "Doctor",
-        "api": "POST /doctor/end-treatment/<visit_id>",
-        "assertion": "consultation closed, follow-up synced"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0621",
-    "template": "DOCTOR_NOTES_AND_TEMPLATES",
-    "family": "clinical",
-    "axes": {
-      "treatment_status": "cancelled"
-    },
-    "axes_note": {
-      "treatment_status": "Treatment record lifecycle."
-    },
-    "axes_effect": {
-      "treatment_status": "the treatment the note describes is cancelled"
-    },
-    "rule": "Progress notes are appended as a timestamped labelled block to the single Visit.notes Text column, not stored as rows, so note history is unqueryable and note templates live in SystemConfig rather than a table of their own.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/notes/<visit_id>",
-        "assertion": "note appended to Visit.notes"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/api/note-templates",
-        "assertion": "note template stored in SystemConfig"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/save-visit-summary/<visit_id>",
-        "assertion": "summary written, JSON accepted"
-      },
-      {
-        "step": 4,
-        "department": "Doctor",
-        "api": "POST /doctor/end-treatment/<visit_id>",
-        "assertion": "consultation closed, follow-up synced"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0622",
-    "template": "DOCTOR_NOTES_AND_TEMPLATES",
-    "family": "clinical",
-    "axes": {
-      "treatment_status": "follow_up"
-    },
-    "axes_note": {
-      "treatment_status": "Treatment record lifecycle."
-    },
-    "axes_effect": {
-      "treatment_status": "the treatment the note describes is follow_up"
-    },
-    "rule": "Progress notes are appended as a timestamped labelled block to the single Visit.notes Text column, not stored as rows, so note history is unqueryable and note templates live in SystemConfig rather than a table of their own.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/notes/<visit_id>",
-        "assertion": "note appended to Visit.notes"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/api/note-templates",
-        "assertion": "note template stored in SystemConfig"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/save-visit-summary/<visit_id>",
-        "assertion": "summary written, JSON accepted"
-      },
-      {
-        "step": 4,
-        "department": "Doctor",
-        "api": "POST /doctor/end-treatment/<visit_id>",
-        "assertion": "consultation closed, follow-up synced"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0623",
-    "template": "VISIT_WORKFLOW_STATE_MACHINE",
-    "family": "clinical",
-    "axes": {
-      "visit_state": "OPEN"
-    },
-    "axes_note": {
-      "visit_state": "Visit.status; direct assignment raises unless the state machine authorises it."
-    },
-    "axes_effect": {
-      "visit_state": "the visit is driven to OPEN"
-    },
-    "rule": "Visit.status cannot be assigned directly. The model raises ValueError unless the thread-local state-machine flag is set, and the legal transitions are fixed: OPEN to CHECKED_IN, CHECKED_IN to IN_PROGRESS, IN_PROGRESS to COMPLETED, COMPLETED back to OPEN for return-to-treatment, and CANCELLED is terminal.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "POST /doctor/call-patient/<visit_id>",
-        "assertion": "ticket claimed"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/start-treatment/<visit_id>",
-        "assertion": "OPEN to IN_PROGRESS via the state machine"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "POST /doctor/end-treatment/<visit_id>",
-        "assertion": "IN_PROGRESS to COMPLETED"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/visits/<int:visit_id>/return-to-treatment",
-        "assertion": "COMPLETED to OPEN, audited"
       }
     ]
   }

@@ -444,6 +444,15 @@ def test_clinical_and_platform_families_are_separate(corpus):
         '/specialty-forms/',
         '/patient-education/',
         '/ai-imaging/',
+        # Booking is clinical: patient appointments, reminders, waitlist
+        '/booking/',
+        # API endpoints for clinical operations
+        '/api/lab/',
+        '/api/radiology/',
+        # Compliance: patient data export, GDPR, privacy
+        '/compliance/',
+        # Manager: clinical operations management
+        '/manager/',
     )
     for k in families['clinical']:
         deps = [path_of(s.api) for s in tpl_by_key[k].steps]

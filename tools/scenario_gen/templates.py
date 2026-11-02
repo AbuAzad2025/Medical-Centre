@@ -209,6 +209,9 @@ PHARMACY = 'Pharmacy'
 EMERGENCY = 'Emergency'
 ACCOUNTANT = 'Accountant'
 MANAGER = 'Manager'
+OWNER = 'Owner'
+SUPER_ADMIN = 'SuperAdmin'
+SYSTEM = 'System'
 
 
 def _base_templates() -> tuple[Template, ...]:
@@ -977,6 +980,329 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             expected_status='PAID',
         ),
+
+        # ===== BOOKING MODULE - Appointment Management =====
+        # Simple templates with no axes - one scenario each
+        Template(
+            key='BOOKING_APPOINTMENT_REMINDERS',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Appointment reminders are sent via NotificationService. '
+                'The reminder job runs hourly and picks up appointments within '
+                'the reminder window.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /booking/appointment-reminders', 'reminders queued for upcoming appointments'),
+                _s(RECEPTION, 'GET /booking/appointment-reminders', 'list scheduled reminders with status'),
+                _s(RECEPTION, 'POST /booking/appointment-reminders', 'trigger manual reminder for specific appointment'),
+            ),
+        ),
+        Template(
+            key='BOOKING_RECURRING_APPOINTMENTS',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Recurring appointments create a series of individual appointment '
+                'records linked by a recurrence_group_id. Modifying the series '
+                'applies to future occurrences only; past ones are immutable.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /booking/appointments/recurring', 'recurring series created'),
+                _s(RECEPTION, 'GET /booking/recurring-appointments', 'list all recurring series'),
+                _s(RECEPTION, 'POST /booking/appointments/recurring', 'pause/resume a series'),
+            ),
+        ),
+        Template(
+            key='BOOKING_WAITLIST_MANAGEMENT',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Waitlist operates FIFO per doctor/slot. When a slot opens, '
+                'the next patient is promoted and notified. Idempotency key '
+                'prevents duplicate waitlist entries for the same patient/slot.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /booking/appointments/waitlist', 'patient added to waitlist'),
+                _s(RECEPTION, 'GET /booking/waitlist', 'view waitlist position'),
+                _s(RECEPTION, 'POST /booking/waitlist', 'promote/remove/notify actions'),
+            ),
+        ),
+        Template(
+            key='BOOKING_APPOINTMENT_LIFECYCLE',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Appointment flows: create -> confirm -> (payment) -> checkin. '
+                'Cancellation releases the slot and notifies waitlist. '
+                'Payment is required before checkin for non-emergency.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /booking/create', 'appointment created in SCHEDULED'),
+                _s(RECEPTION, 'GET /booking/confirmation/<booking_id>', 'confirmed, slot reserved'),
+                _s(RECEPTION, 'POST /booking/payment/<booking_id>', 'payment collected, ready for checkin'),
+                _s(RECEPTION, 'POST /booking/cancel/<booking_id>', 'cancelled, slot released, waitlist notified'),
+            ),
+        ),
+
+        # ===== COMPLIANCE MODULE - Data Export (GDPR/Privacy) =====
+        Template(
+            key='COMPLIANCE_DATA_EXPORT',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Data export implements GDPR Article 20 right to data portability. '
+                'Export is scoped to tenant and includes audit trail. '
+                'Large exports are async with download link; small ones stream directly.'
+            ),
+            steps=(
+                _s(MANAGER, 'POST /compliance/data-export', 'export job created, returns job_id'),
+                _s(MANAGER, 'GET /compliance/data-export/<patient_id>', 'poll job status, download when ready'),
+                _s(MANAGER, 'POST /compliance/export-patient-data', 'patient-specific export'),
+            ),
+        ),
+
+        # ===== FINANCE MODULE - Payment Plans =====
+        Template(
+            key='FINANCE_PAYMENT_PLAN_LIFECYCLE',
+            family='financial',
+            axes=('payment_method',),
+            observed={'payment_method': ('CASH', 'CARD', 'WIRE')},
+            effect={'payment_method': 'instalments collected via {value}'},
+            rule=(
+                'Payment plans split a balance into instalments with due dates. '
+                'Default triggers collection workflow; 3 defaults = plan cancelled.'
+            ),
+            steps=(
+                _s(ACCOUNTANT, 'POST /finance/payment-plans', 'plan created with instalment schedule'),
+                _s(ACCOUNTANT, 'GET /finance/payment-plans', 'list plans with status'),
+                _s(ACCOUNTANT, 'GET /finance/payment-plans/<plan_id>', 'view plan details and payments'),
+                _s(ACCOUNTANT, 'POST /finance/payment-plans/<plan_id>/pay', 'instalment paid, next due updated'),
+            ),
+        ),
+
+        # ===== LAB MODULE - Derived Values & Result Templates =====
+        Template(
+            key='LAB_DERIVED_VALUES_AND_TEMPLATES',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Derived values compute from raw results using formulas. '
+                'Result templates define panels with derived fields. '
+                'Auto-calculate runs on result finalization. Templates are versioned.'
+            ),
+            steps=(
+                _s(LAB, 'POST /lab/api/result-templates', 'template created with derived fields'),
+                _s(LAB, 'GET /lab/result-templates', 'list templates'),
+                _s(LAB, 'POST /lab/auto-calculate', 'derived values computed on finalize'),
+                _s(LAB, 'POST /lab/calculate', 'manual recalculation trigger'),
+            ),
+        ),
+
+        # ===== MEDICATION MODULE - Interactions & Refills =====
+        Template(
+            key='MEDICATION_INTERACTION_CHECK',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Interaction check runs on every prescription create and dispense. '
+                'HARD_STOP (contraindicated) blocks save with 422. Override requires '
+                'manager approval and audit trail. Drug database updated weekly.'
+            ),
+            steps=(
+                _s(DOCTOR, 'POST /medication/api/interactions/check', 'check returns severity and recommendation'),
+                _s(DOCTOR, 'POST /medication/prescriptions', 'prescription saved, interaction re-checked'),
+                _s(PHARMACY, 'POST /medication/prescriptions/dispense/<prescription_id>', 'dispense blocked if HARD_STOP'),
+            ),
+        ),
+        Template(
+            key='MEDICATION_REFILL_WORKFLOW',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Refills require prescriber approval unless auto-refill enabled. '
+                'Max refills per prescription set at create. Expired refills '
+                'require new prescription. Controlled substances never auto-refill.'
+            ),
+            steps=(
+                _s(DOCTOR, 'POST /medication/prescriptions/<prescription_id>/refill', 'refill requested'),
+                _s(DOCTOR, 'GET /medication/prescriptions/<prescription_id>/refills', 'list refills with status'),
+                _s(PHARMACY, 'POST /medication/prescriptions/dispense/<prescription_id>', 'refill dispensed'),
+                _s(RECEPTION, 'GET /medication/refills/<refill_id>/status', 'patient checks refill status'),
+            ),
+        ),
+
+        # ===== MANAGER MODULE - Branding =====
+        Template(
+            key='MANAGER_BRANDING_CUSTOMIZATION',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Branding customizes tenant appearance. Changes apply to portal, '
+                'emails, PDFs, and kiosk. Preview mode shows changes before publish. '
+                'Theme JSON validates against schema; invalid CSS rejected.'
+            ),
+            steps=(
+                _s(MANAGER, 'GET /manager/branding', 'current branding config'),
+                _s(MANAGER, 'POST /manager/branding', 'update branding elements'),
+                _s(MANAGER, 'GET /manager/branding/preview', 'preview without publishing'),
+            ),
+        ),
+
+        # ===== RECEPTION MODULE - Appointment Reminders/Recurring/Waitlist =====
+        Template(
+            key='RECEPTION_APPOINTMENT_REMINDERS',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Reception manages appointment reminders separately from booking. '
+                'Reminder types map to NotificationService templates. '
+                'No-show followup triggers after missed appointment.'
+            ),
+            steps=(
+                _s(RECEPTION, 'GET /reception/appointment-reminders', 'list pending reminders'),
+                _s(RECEPTION, 'POST /reception/appointment-reminders', 'send manual reminder'),
+                _s(RECEPTION, 'POST /reception/appointment-reminders', 'trigger no-show followup reminder'),
+            ),
+        ),
+        Template(
+            key='RECEPTION_RECURRING_APPOINTMENTS',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Reception recurring appointments mirror booking but with '
+                'additional walk-in conversion. Series modification affects '
+                'future instances only. Instance cancellation keeps series alive.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /reception/appointments/recurring', 'create recurring series'),
+                _s(RECEPTION, 'GET /reception/recurring-appointments', 'list active series'),
+                _s(RECEPTION, 'POST /reception/appointments/recurring', 'modify series for future instances'),
+            ),
+        ),
+        Template(
+            key='RECEPTION_WAITLIST_MANAGEMENT',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Reception waitlist for walk-ins and overbooked slots. '
+                'Convert moves waitlisted patient to confirmed appointment. '
+                'Auto-call notifies next patient when slot frees.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /reception/appointments/waitlist', 'add to waitlist'),
+                _s(RECEPTION, 'GET /reception/waitlist', 'view waitlist'),
+                _s(RECEPTION, 'POST /reception/appointments/waitlist/<entry_id>', 'call/convert/remove'),
+            ),
+        ),
+
+        # ===== BED MODULE - Admissions =====
+        Template(
+            key='BED_ADMISSION_TRANSFER_DISCHARGE',
+            family='clinical',
+            axes=('admission_status', 'bed_status'),
+            observed={
+                'admission_status': ('ADMITTED', 'DISCHARGED', 'TRANSFERRED'),
+                'bed_status': ('AVAILABLE', 'OCCUPIED', 'CLEANING', 'RESERVED'),
+            },
+            effect={
+                'admission_status': 'admission ended {value}',
+                'bed_status': 'bed status transitioned to {value}',
+            },
+            rule=(
+                'Admission requires AVAILABLE bed. Transfer moves patient between '
+                'beds with audit trail. Discharge sets bed to CLEANING, then '
+                'AVAILABLE after housekeeping confirms. Bed status enforced by DB trigger.'
+            ),
+            steps=(
+                _s(NURSE, 'POST /bed/api/admissions/admit', 'patient admitted to AVAILABLE bed'),
+                _s(NURSE, 'POST /bed/api/admissions/<admission_id>/transfer', 'transfer to another AVAILABLE bed'),
+                _s(NURSE, 'POST /bed/api/admissions/<admission_id>/discharge', 'discharge, bed to CLEANING'),
+            ),
+        ),
+
+        # ===== API MODULE - Claims & Billing =====
+        Template(
+            key='API_CLAIMS_LIFECYCLE',
+            family='financial',
+            axes=('insurance_claim_status',),
+            observed={'insurance_claim_status': ('DRAFT', 'SUBMITTED', 'APPROVED', 'SETTLED')},
+            effect={'insurance_claim_status': 'claim driven to {value}'},
+            rule=(
+                'API claims lifecycle for external integrations. Submit creates '
+                'DRAFT claim. Adjudicate sets approved amount. Settle moves to SETTLED. '
+                'Payout records payment without GL entry (known gap).'
+            ),
+            steps=(
+                _s(ACCOUNTANT, 'POST /api/claims', 'claim created DRAFT'),
+                _s(ACCOUNTANT, 'POST /api/claims/<claim_id>/submit', 'submitted to insurer'),
+                _s(ACCOUNTANT, 'POST /api/claims/<claim_id>/adjudicate', 'approved amount set'),
+                _s(ACCOUNTANT, 'POST /api/claims/<claim_id>/settle', 'SETTLED, awaiting payout'),
+                _s(ACCOUNTANT, 'POST /api/claims/<claim_id>/payout', 'payout recorded, 1105 not relieved'),
+            ),
+        ),
+        Template(
+            key='API_BILLING_INTEGRATION',
+            family='financial',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Stripe billing integration for SaaS subscriptions. Checkout creates '
+                'session. Portal allows self-service. Webhook handles async events. '
+                'Change-plan prorates. Cancel at period end by default.'
+            ),
+            steps=(
+                _s(OWNER, 'POST /api/billing/checkout', 'checkout session created'),
+                _s(OWNER, 'GET /api/billing/portal', 'customer portal session'),
+                _s(SYSTEM, 'POST /api/billing/stripe/webhook', 'async event processed'),
+                _s(OWNER, 'POST /api/billing/subscription/cancel', 'subscription cancelled'),
+                _s(OWNER, 'POST /api/billing/subscription/change-plan', 'plan changed with proration'),
+            ),
+        ),
+        Template(
+            key='API_LAB_RADIOLOGY_CANCEL_AMEND',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Cancel/amend endpoints for external integrations. Cancel only '
+                'allowed in REQUESTED/IN_PROGRESS. Amend creates audit trail with '
+                'original value preserved. Requires ordering provider or admin role.'
+            ),
+            steps=(
+                _s(DOCTOR, 'POST /api/lab/requests/<request_id>/cancel', 'lab request cancelled'),
+                _s(LAB, 'POST /api/lab/results/<result_id>/amend', 'lab result amended, original kept'),
+                _s(DOCTOR, 'POST /api/radiology/requests/<request_id>/cancel', 'radiology request cancelled'),
+                _s(RADIOLOGY, 'POST /api/radiology/results/<result_id>/amend', 'radiology result amended'),
+            ),
+        ),
+
     )
 
 
