@@ -7,8 +7,8 @@ correctly rejects superuser connections when RLS_BYPASS_ALLOWED is not set.
 """
 
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 # Add project root to path
@@ -36,14 +36,21 @@ def main():
 
     # Try to create app - should fail with RuntimeError about RLS guard
     result = subprocess.run(
-        [sys.executable, '-c', '''
+        [
+            sys.executable,
+            '-c',
+            """
 import os
 os.environ["RLS_BYPASS_ALLOWED"] = "0"
 from app_factory import create_app
 app = create_app("testing")
 print("ERROR: Should have failed but didn't")
-'''],
-        capture_output=True, text=True, timeout=60, env=env
+""",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        env=env,
     )
 
     if result.returncode == 0:
@@ -52,7 +59,10 @@ print("ERROR: Should have failed but didn't")
         return 1
 
     stderr_lower = result.stderr.lower()
-    if 'rls startup guard rejected' in stderr_lower or 'rls startup guard rejected superuser' in stderr_lower:
+    if (
+        'rls startup guard rejected' in stderr_lower
+        or 'rls startup guard rejected superuser' in stderr_lower
+    ):
         print('PASS: RLS startup guard correctly rejected superuser')
     else:
         print('FAIL: Expected RLS guard rejection message not found')
@@ -64,14 +74,21 @@ print("ERROR: Should have failed but didn't")
     print('\nTest 2: Testing with RLS_BYPASS_ALLOWED=1...')
     env['RLS_BYPASS_ALLOWED'] = '1'
     result = subprocess.run(
-        [sys.executable, '-c', '''
+        [
+            sys.executable,
+            '-c',
+            """
 import os
 os.environ["RLS_BYPASS_ALLOWED"] = "1"
 from app_factory import create_app
 app = create_app("testing")
 print("SUCCESS: App created with bypass allowed")
-'''],
-        capture_output=True, text=True, timeout=60, env=env
+""",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        env=env,
     )
 
     if result.returncode != 0:

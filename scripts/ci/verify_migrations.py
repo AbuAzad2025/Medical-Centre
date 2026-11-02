@@ -142,6 +142,7 @@ def main():
     print('Creating Flask app with test database...')
     try:
         from app_factory import create_app
+
         app = create_app('testing')
     except Exception as e:
         print(f'ERROR: Failed to create Flask app: {e}')
@@ -161,16 +162,15 @@ def main():
     print('Verifying current revision...')
     try:
         from alembic.config import Config
-        from alembic.script import ScriptDirectory
         from alembic.runtime.migration import MigrationContext
+        from alembic.script import ScriptDirectory
 
         alembic_cfg = Config(str(ALEMBIC_INI))
         script = ScriptDirectory.from_config(alembic_cfg)
 
         with app.app_context():
-            from flask import current_app
             from alembic.runtime.migration import MigrationContext
-            from sqlalchemy import create_engine
+            from flask import current_app
 
             # Get current revision from database
             engine = current_app.extensions['migrate'].db.engine
@@ -185,7 +185,9 @@ def main():
                 if current_rev == head_rev:
                     print('Current revision matches head - migration check passed!')
                 else:
-                    print(f'WARNING: Current revision ({current_rev}) does not match head ({head_rev})')
+                    print(
+                        f'WARNING: Current revision ({current_rev}) does not match head ({head_rev})'
+                    )
                     # Don't fail - just warn
 
     except Exception as e:

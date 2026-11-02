@@ -571,6 +571,8 @@ def fhir_healthcare_services():
 
 # --- CapabilityStatement ---
 @fhir_bp2.route('/metadata', methods=['GET'])
+@login_required
+@handle_route_errors
 def fhir_metadata():
     resources = [
         'Patient',
