@@ -1,5 +1,5 @@
 {
-  "total_routes": 1065,
+  "total_routes": 1055,
   "routes": [
     {
       "endpoint": "__health",
@@ -8436,86 +8436,6 @@
     {
       "endpoint": "_root_medications",
       "path": "/medications",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "test._test_perm-error",
-      "path": "/test/perm-error",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "test._test_g-trace",
-      "path": "/test/g-trace",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "test._test_tenant-iso-error",
-      "path": "/test/tenant-iso-error",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "test._test_idempotency-error-html",
-      "path": "/test/idempotency-error-html",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "test._static_path_filename",
-      "path": "/static/<path:filename>",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "test._test_module-error-html",
-      "path": "/test/module-error-html",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "test._test_tenant-ctx-error",
-      "path": "/test/tenant-ctx-error",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "test._test_module-error",
-      "path": "/test/module-error",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "test._test_idempotency-error",
-      "path": "/test/idempotency-error",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "test._test_log-trace",
-      "path": "/test/log-trace",
       "methods": [
         "GET"
       ],

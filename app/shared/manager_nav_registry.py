@@ -200,6 +200,20 @@ _MANAGER_SECTIONS: list[_MgrSectionSpec] = [
                 'manager.manager_settings',
                 '/manager/settings',
             ),
+            _MgrSpec(
+                'branding',
+                'الهوية',
+                'fas fa-palette',
+                'manager.manager_branding',
+                '/manager/branding',
+            ),
+            _MgrSpec(
+                'branding_preview',
+                'معاينة الهوية',
+                'fas fa-eye',
+                'manager.manager_branding_preview',
+                '/manager/branding/preview',
+            ),
         ],
     ),
 ]
