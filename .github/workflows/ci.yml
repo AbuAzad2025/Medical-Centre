@@ -421,6 +421,8 @@ jobs:
           SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
 
       - name: 1/5 â€” Verify RLS startup guard rejects superuser
+        env:
+          RLS_BYPASS_ALLOWED: "0"
         run: python scripts/ci/verify_rls_guard_rejection.py
 
       - name: 2/5 â€” Verify RLS enforcement (runtime role + proof)
