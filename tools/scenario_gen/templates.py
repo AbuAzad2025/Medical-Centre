@@ -159,6 +159,9 @@ class Template:
                 problems.append(f'{self.key}: unparseable api {step.api!r}')
                 continue
             shape = re.sub(r'<[^>]*>|\{[^}]*\}', '{}', m.group('path'))
+            # Skip test routes - they are registered in conftest.py app fixture, not main app
+            if m.group('path').startswith('/test/'):
+                continue
             if shape not in SHAPES:
                 problems.append(f'{self.key}: no route {m.group("path")}')
             elif tuple(_placeholders(m.group('path'))) not in PLACEHOLDER_NAMES.get(shape, ()):

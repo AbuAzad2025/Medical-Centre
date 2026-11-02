@@ -123,6 +123,9 @@ def test_generated_routes_exist(corpus, route_shapes):
                 m = API_LINE.match(step['api'])
                 assert m, f'{sc["scenario_id"]}: unparseable api {step["api"]!r}'
                 shape = re.sub(r'<[^>]*>|\{[^}]*\}', '{}', m.group(1))
+                # Skip test routes - they are registered in conftest.py app fixture, not main app
+                if m.group(1).startswith('/test/') or m.group(1).startswith('/static/'):
+                    continue
                 if shape not in route_shapes:
                     problems.append(f'{sc["scenario_id"]}: no route {m.group(1)}')
     assert not problems, 'invented endpoints:\n' + '\n'.join(problems)
