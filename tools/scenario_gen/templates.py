@@ -1303,6 +1303,698 @@ def _base_templates() -> tuple[Template, ...]:
             ),
         ),
 
+        # ===== RECEPTION MODULE - Critical Write Routes =====
+        Template(
+            key='RECEPTION_APPOINTMENT_CHECKIN',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Reception check-in confirms appointment and creates visit. '
+                'Idempotent via appointment marker in visit notes.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /reception/appointments/<appointment_id>/checkin', 'visit created from appointment'),
+                _s(RECEPTION, 'POST /reception/appointments/<appointment_id>/confirm', 'appointment confirmed'),
+                _s(RECEPTION, 'POST /reception/appointments/<appointment_id>/cancel', 'appointment cancelled'),
+            ),
+        ),
+        Template(
+            key='RECEPTION_NO_SHOW_HANDLING',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'No-show marks appointment and releases slot for waitlist. '
+                'Follow-up reminder triggered automatically.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /reception/appointments/<appointment_id>/no-show', 'appointment marked no-show'),
+                _s(RECEPTION, 'GET /reception/no-shows', 'list no-show appointments'),
+                _s(RECEPTION, 'POST /reception/appointments/<appointment_id>/no-show', 'verify no-show recorded'),
+            ),
+        ),
+        Template(
+            key='RECEPTION_QUEUE_MANAGEMENT',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Queue management: add patient, call next, complete, skip, return. '
+                'Queue gate enforces payment status.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /reception/queue/add-patient', 'patient added to queue'),
+                _s(RECEPTION, 'GET /reception/queue/call-next/<department_id>', 'next patient called'),
+                _s(RECEPTION, 'POST /reception/queue/complete-treatment/<ticket_id>', 'treatment completed'),
+                _s(RECEPTION, 'POST /reception/queue/skip-patient/<ticket_id>', 'patient skipped'),
+                _s(RECEPTION, 'POST /reception/queue/return-to-queue/<ticket_id>', 'patient returned to queue'),
+            ),
+        ),
+        Template(
+            key='RECEPTION_VISIT_LIFECYCLE',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Visit lifecycle: create, add services, end, transfer, archive. '
+                'Archive requires invoice reconciliation.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /reception/visits/create', 'visit created'),
+                _s(RECEPTION, 'POST /reception/visits/<visit_id>/add-service', 'service added to invoice'),
+                _s(RECEPTION, 'POST /reception/visits/<visit_id>/end', 'visit ended'),
+                _s(RECEPTION, 'POST /reception/visits/<visit_id>/transfer', 'visit transferred'),
+                _s(RECEPTION, 'POST /reception/visits/<visit_id>/archive', 'visit archived after reconciliation'),
+            ),
+        ),
+        Template(
+            key='RECEPTION_PATIENT_ADMIN',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Patient administration: add, edit, delete, view. '
+                'Allergies and problems managed via API.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /reception/add_patient', 'patient registered'),
+                _s(RECEPTION, 'POST /reception/edit_patient/<patient_id>', 'patient updated'),
+                _s(RECEPTION, 'POST /reception/delete_patient/<patient_id>', 'patient deleted'),
+                _s(RECEPTION, 'POST /reception/api/patients/<patient_id>/allergies/add', 'allergy added'),
+                _s(RECEPTION, 'POST /reception/api/patients/<patient_id>/problems/add', 'problem added'),
+            ),
+        ),
+        Template(
+            key='RECEPTION_PAYMENT_CASH_REGISTER',
+            family='financial',
+            axes=('payment_method',),
+            observed={'payment_method': ('CASH', 'CARD', 'WIRE')},
+            effect={'payment_method': 'payment collected via {value}'},
+            rule=(
+                'Cash register processes payments. POS charge for walk-ins. '
+                'Daily close reconciles register.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /reception/cash-register', 'cash register opened'),
+                _s(RECEPTION, 'POST /reception/pos/charge', 'POS charge processed'),
+                _s(RECEPTION, 'POST /reception/daily-close', 'daily close reconciled'),
+            ),
+        ),
+        Template(
+            key='RECEPTION_EMERGENCY_DEBT_FORCE_ENTRY',
+            family='financial',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Emergency debt approval and force entry override queue gate. '
+                'Requires manager approval with audit trail.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /reception/queue/approve-emergency-debt/<ticket_id>', 'emergency debt approved'),
+                _s(RECEPTION, 'POST /reception/queue/approve-force-entry/<ticket_id>', 'force entry approved'),
+                _s(RECEPTION, 'POST /reception/queue/approve-emergency-debt/<ticket_id>', 'verify approval recorded'),
+            ),
+        ),
+        Template(
+            key='RECEPTION_STAFF_SCHEDULE',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Staff schedule and absence management. '
+                'Absence does not cancel appointments.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /reception/staff/absence', 'absence recorded'),
+                _s(RECEPTION, 'POST /reception/staff/schedule', 'schedule updated'),
+                _s(RECEPTION, 'GET /reception/staff/schedule', 'verify schedule updated'),
+            ),
+        ),
+        Template(
+            key='RECEPTION_SURVEY_FEEDBACK',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Patient survey feedback collected post-visit.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /reception/survey/<token>', 'survey submitted'),
+                _s(RECEPTION, 'GET /reception/survey/<token>', 'survey details retrieved'),
+                _s(RECEPTION, 'POST /reception/survey/<token>', 'survey response recorded'),
+            ),
+        ),
+
+        # ===== LAB MODULE - Critical Write Routes =====
+        Template(
+            key='LAB_WORKLIST_MANAGEMENT',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Lab worklist: claim requests, complete with results. '
+                'Auto-calculate derived values on finalize.'
+            ),
+            steps=(
+                _s(LAB, 'POST /lab/worklist/claim/<request_id>', 'request claimed'),
+                _s(LAB, 'POST /lab/worklist/complete/<request_id>', 'results entered, derived values calculated'),
+                _s(LAB, 'POST /lab/worklist/request/<request_id>', 'status advanced'),
+            ),
+        ),
+        Template(
+            key='LAB_CATALOG_MANAGEMENT',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Lab test catalog and panels management. '
+                'Test catalog CRUD, panel CRUD.'
+            ),
+            steps=(
+                _s(LAB, 'POST /lab/test-catalog/add', 'test added to catalog'),
+                _s(LAB, 'POST /lab/test-catalog/<id>/edit', 'test updated'),
+                _s(LAB, 'POST /lab/test-catalog/<id>/delete', 'test deleted'),
+                _s(LAB, 'POST /lab/test-panels/add', 'panel created'),
+                _s(LAB, 'POST /lab/test-panels/<id>/edit', 'panel updated'),
+                _s(LAB, 'POST /lab/test-panels/<id>/delete', 'panel deleted'),
+            ),
+        ),
+        Template(
+            key='LAB_REAGENTS_QUALITY',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Reagents and quality control management. '
+                'LIS confirm and preview for external integration.'
+            ),
+            steps=(
+                _s(LAB, 'POST /lab/reagents/add', 'reagent added'),
+                _s(LAB, 'POST /lab/reagents/<reagent_id>/edit', 'reagent updated'),
+                _s(LAB, 'POST /lab/lis/confirm', 'LIS order confirmed'),
+                _s(LAB, 'POST /lab/lis/preview', 'LIS preview'),
+                _s(LAB, 'POST /lab/quality-control', 'QC recorded'),
+            ),
+        ),
+        Template(
+            key='LAB_BARCODE_PRINT_SCAN',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Barcode print and scan for sample tracking.'
+            ),
+            steps=(
+                _s(LAB, 'POST /lab/barcode/print/<request_id>', 'barcode printed'),
+                _s(LAB, 'POST /lab/barcode/scan/<barcode>', 'sample scanned'),
+                _s(LAB, 'GET /lab/barcode/print/<request_id>', 'verify barcode printed'),
+            ),
+        ),
+        Template(
+            key='LAB_RESULT_TEMPLATES_DERIVED',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Result templates with derived values. '
+                'Auto-calculate and manual calculate triggers.'
+            ),
+            steps=(
+                _s(LAB, 'POST /lab/api/result-templates', 'template created'),
+                _s(LAB, 'POST /lab/api/derived-values', 'derived values computed'),
+                _s(LAB, 'POST /lab/auto-calculate', 'auto-calculate on finalize'),
+                _s(LAB, 'POST /lab/calculate', 'manual calculate'),
+            ),
+        ),
+
+        # ===== MEDICATION MODULE - Critical Write Routes =====
+        Template(
+            key='MEDICATION_PRESCRIPTION_DISPENSE',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Prescription dispense with interaction check. '
+                'Stock moves under row lock. Refill workflow.'
+            ),
+            steps=(
+                _s(DOCTOR, 'POST /medication/prescriptions', 'prescription created'),
+                _s(PHARMACY, 'POST /medication/prescriptions/dispense/<prescription_id>', 'dispensed with interaction check'),
+                _s(DOCTOR, 'POST /medication/prescriptions/<prescription_id>/refill', 'refill requested'),
+                _s(PHARMACY, 'POST /medication/prescriptions/<prescription_id>/refill', 'refill approved'),
+            ),
+        ),
+        Template(
+            key='MEDICATION_CATALOG_INTERACTIONS',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Medication catalog: add, edit, suppliers. '
+                'Drug interactions managed. POS sell and charge.'
+            ),
+            steps=(
+                _s(PHARMACY, 'POST /medication/add', 'medication added'),
+                _s(PHARMACY, 'POST /medication/edit/<medication_id>', 'medication updated'),
+                _s(PHARMACY, 'POST /medication/interactions', 'interaction added'),
+                _s(PHARMACY, 'POST /medication/interactions/<interaction_id>/toggle', 'interaction toggled'),
+                _s(PHARMACY, 'POST /medication/pos/sell', 'POS sale'),
+                _s(PHARMACY, 'POST /medication/pos/charge', 'POS charge'),
+            ),
+        ),
+        Template(
+            key='MEDICATION_PURCHASES_SUPPLY',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Purchases and supply requests workflow. '
+                'Suppliers CRUD. Supply requests: create, approve, fulfill.'
+            ),
+            steps=(
+                _s(PHARMACY, 'POST /medication/purchases/add', 'purchase recorded'),
+                _s(PHARMACY, 'POST /medication/suppliers/add', 'supplier added'),
+                _s(PHARMACY, 'POST /medication/suppliers/<supplier_id>/edit', 'supplier updated'),
+                _s(PHARMACY, 'POST /medication/suppliers/<supplier_id>/delete', 'supplier deleted'),
+                _s(PHARMACY, 'POST /medication/supply-requests/create', 'supply request created'),
+                _s(PHARMACY, 'POST /medication/supply-requests/<request_id>/approve', 'supply request approved'),
+                _s(PHARMACY, 'POST /medication/supply-requests/<request_id>/fulfill', 'supply request fulfilled'),
+            ),
+        ),
+        Template(
+            key='MEDICATION_EXTERNAL_IMPORT',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'External drug import and search. '
+                'Stock alerts monitored.'
+            ),
+            steps=(
+                _s(PHARMACY, 'POST /medication/api/external-drug-import', 'external drug imported'),
+                _s(PHARMACY, 'POST /medication/api/stock/alerts', 'stock alerts checked'),
+                _s(PHARMACY, 'GET /medication/api/stock/alerts', 'verify stock alerts retrieved'),
+            ),
+        ),
+
+        # ===== MANAGER MODULE - Critical Write Routes =====
+        Template(
+            key='MANAGER_APPROVALS_WORKFLOW',
+            family='financial',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Custom service and force payment approvals. '
+                'Manager approves/rejects with audit trail.'
+            ),
+            steps=(
+                _s(MANAGER, 'POST /manager/approve-custom-service/<service_id>', 'custom service approved'),
+                _s(MANAGER, 'POST /manager/reject-custom-service/<service_id>', 'custom service rejected'),
+                _s(MANAGER, 'POST /manager/approve-force-payment/<visit_id>', 'force payment approved'),
+                _s(MANAGER, 'POST /manager/reject-force-payment/<visit_id>', 'force payment rejected'),
+            ),
+        ),
+        Template(
+            key='MANAGER_PRICING_EXCHANGE_RATES',
+            family='financial',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Pricing management and exchange rates. '
+                'Seed pricing from catalog. Fetch rates from API.'
+            ),
+            steps=(
+                _s(MANAGER, 'POST /manager/pricing', 'pricing updated'),
+                _s(MANAGER, 'POST /manager/seed-pricing', 'pricing seeded from catalog'),
+                _s(MANAGER, 'POST /manager/exchange-rates', 'exchange rate updated'),
+                _s(MANAGER, 'POST /manager/exchange-rates/fetch-api', 'rates fetched from API'),
+                _s(MANAGER, 'POST /manager/exchange-rates/deactivate/<rate_id>', 'rate deactivated'),
+            ),
+        ),
+        Template(
+            key='MANAGER_STAFF_SCHEDULE_CAPACITY',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Staff schedule and capacity management. '
+                'Absence recorded. Unit control for bed management.'
+            ),
+            steps=(
+                _s(MANAGER, 'POST /manager/staff/absence', 'staff absence recorded'),
+                _s(MANAGER, 'POST /manager/staff/schedule', 'schedule updated'),
+                _s(MANAGER, 'POST /manager/unit-control', 'unit control updated'),
+                _s(MANAGER, 'POST /manager/staff/capacity', 'capacity updated'),
+            ),
+        ),
+        Template(
+            key='MANAGER_SETTINGS_WHAT_IF',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Manager settings and what-if modelling. '
+                'Test SMS sends. Units toggle.'
+            ),
+            steps=(
+                _s(MANAGER, 'POST /manager/settings', 'settings updated'),
+                _s(MANAGER, 'POST /manager/settings/test-sms', 'test SMS sent'),
+                _s(MANAGER, 'POST /manager/api/units/toggle', 'unit toggled'),
+                _s(MANAGER, 'POST /manager/api/what-if', 'what-if scenario run'),
+            ),
+        ),
+        Template(
+            key='MANAGER_USER_DEPT_MANAGEMENT',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'User management and department management.'
+            ),
+            steps=(
+                _s(MANAGER, 'POST /manager/user-management', 'user managed'),
+                _s(MANAGER, 'POST /manager/departments', 'department managed'),
+                _s(MANAGER, 'GET /manager/user-management', 'verify user managed'),
+            ),
+        ),
+        Template(
+            key='MANAGER_BUDGET_FINANCIAL_REPORTS',
+            family='financial',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Budget dashboard and financial reports. '
+                'Settlements export. Monthly comparison.'
+            ),
+            steps=(
+                _s(MANAGER, 'POST /manager/budget', 'budget updated'),
+                _s(MANAGER, 'POST /manager/financial-reports', 'financial report generated'),
+                _s(MANAGER, 'POST /manager/settlements/export', 'settlements exported'),
+                _s(MANAGER, 'POST /manager/monthly-comparison', 'monthly comparison generated'),
+            ),
+        ),
+
+        # ===== EMERGENCY MODULE - Critical Write Routes =====
+        Template(
+            key='EMERGENCY_CASE_TREATMENT',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Emergency case lifecycle: create, triage, treat, complete. '
+                'EMS intake creates patient without visit. Lab/radiology orders without hub-and-spoke.'
+            ),
+            steps=(
+                _s(EMERGENCY, 'POST /emergency/cases/create', 'emergency case created'),
+                _s(EMERGENCY, 'POST /emergency/triage/<emergency_id>', 'triage completed'),
+                _s(EMERGENCY, 'POST /emergency/start-treatment/<emergency_id>', 'treatment started'),
+                _s(EMERGENCY, 'POST /emergency/end-treatment/<emergency_id>', 'treatment ended'),
+                _s(EMERGENCY, 'POST /emergency/emergency-visits/<visit_id>/complete', 'emergency visit completed'),
+            ),
+        ),
+        Template(
+            key='EMERGENCY_ORDERS_PRESCRIPTIONS',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Emergency lab/radiology orders and prescriptions. '
+                'No hub-and-spoke re-queue. Case convert and resolve.'
+            ),
+            steps=(
+                _s(EMERGENCY, 'POST /emergency/lab-request/<emergency_id>', 'ER lab order'),
+                _s(EMERGENCY, 'POST /emergency/radiology-request/<emergency_id>', 'ER radiology order'),
+                _s(EMERGENCY, 'POST /emergency/prescription/<emergency_id>', 'ER prescription'),
+                _s(EMERGENCY, 'POST /emergency/cases/<id>/convert', 'case converted to inpatient'),
+                _s(EMERGENCY, 'POST /emergency/cases/<id>/resolve', 'case resolved'),
+            ),
+        ),
+        Template(
+            key='EMERGENCY_EMS_INTAKE',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'EMS intake creates patient and case without visit or queue ticket. '
+                'API endpoint for external EMS systems.'
+            ),
+            steps=(
+                _s(EMERGENCY, 'POST /emergency/api/ems/intake', 'EMS intake processed'),
+                _s(EMERGENCY, 'POST /emergency/cases/create', 'emergency case created from intake'),
+                _s(EMERGENCY, 'GET /emergency/cases', 'verify case created'),
+            ),
+        ),
+
+        # ===== DOCTOR MODULE - Critical Write Routes =====
+        Template(
+            key='DOCTOR_PRESCRIPTION_NOTES',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Doctor prescriptions with safety checks. '
+                'Notes and templates. Visit summary save. Dental chart.'
+            ),
+            steps=(
+                _s(DOCTOR, 'POST /doctor/prescription/<visit_id>', 'prescription created with safety check'),
+                _s(DOCTOR, 'POST /doctor/save-visit-summary/<visit_id>', 'visit summary saved'),
+                _s(DOCTOR, 'POST /doctor/dental-chart/save', 'dental chart saved'),
+                _s(DOCTOR, 'POST /doctor/notes/<visit_id>', 'clinical note saved'),
+                _s(DOCTOR, 'POST /doctor/api/note-templates', 'note template created'),
+                _s(DOCTOR, 'POST /doctor/api/note-templates/<template_id>/delete', 'note template deleted'),
+            ),
+        ),
+        Template(
+            key='DOCTOR_TREATMENT_LIFECYCLE',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Doctor treatment lifecycle: start, end, call patient. '
+                'Lab/radiology requests via hub-and-spoke.'
+            ),
+            steps=(
+                _s(DOCTOR, 'POST /doctor/start-treatment/<visit_id>', 'treatment started'),
+                _s(DOCTOR, 'POST /doctor/end-treatment/<visit_id>', 'treatment ended'),
+                _s(DOCTOR, 'POST /doctor/call-patient/<visit_id>', 'patient called'),
+                _s(DOCTOR, 'POST /doctor/lab-request/<visit_id>', 'lab requested via hub-and-spoke'),
+                _s(DOCTOR, 'POST /doctor/radiology-request/<visit_id>', 'radiology requested via hub-and-spoke'),
+            ),
+        ),
+        Template(
+            key='DOCTOR_DIAGNOSIS_PRESCRIPTION_HISTORY',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Diagnosis management and prescription history.'
+            ),
+            steps=(
+                _s(DOCTOR, 'POST /doctor/diagnosis/<visit_id>', 'diagnosis recorded'),
+                _s(DOCTOR, 'POST /doctor/prescriptions', 'prescriptions listed'),
+                _s(DOCTOR, 'POST /doctor/prescriptions-history/<patient_id>', 'prescription history'),
+            ),
+        ),
+
+        # ===== BOOKING MODULE - Critical Write Routes =====
+        Template(
+            key='BOOKING_PAYMENT_CANCEL',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Booking payment and cancellation. '
+                'Telemedicine booking. Register new patient.'
+            ),
+            steps=(
+                _s(RECEPTION, 'POST /booking/payment/<booking_id>', 'booking payment processed'),
+                _s(RECEPTION, 'POST /booking/cancel/<booking_id>', 'booking cancelled'),
+                _s(RECEPTION, 'POST /booking/register', 'patient registered via booking'),
+                _s(RECEPTION, 'POST /booking/telemedicine/<booking_id>', 'telemedicine booking created'),
+            ),
+        ),
+
+        # ===== RADIOLOGY MODULE - Critical Write Routes =====
+        Template(
+            key='RADIOLOGY_WORKLIST_REPORTS',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Radiology worklist: claim, complete. Reports with second review. '
+                'AI assist. Print reports. Tests and macros.'
+            ),
+            steps=(
+                _s(RADIOLOGY, 'POST /radiology/worklist/claim/<request_id>', 'request claimed'),
+                _s(RADIOLOGY, 'POST /radiology/worklist/complete/<request_id>', 'report completed'),
+                _s(RADIOLOGY, 'POST /radiology/results/<result_id>/second-review', 'second review completed'),
+                _s(RADIOLOGY, 'POST /radiology/api/ai-assist', 'AI assist requested'),
+                _s(RADIOLOGY, 'POST /radiology/tests/add', 'test added'),
+                _s(RADIOLOGY, 'POST /radiology/api/report-macros', 'macro created'),
+                _s(RADIOLOGY, 'POST /radiology/api/report-macros/<macro_id>/delete', 'macro deleted'),
+                _s(RADIOLOGY, 'POST /radiology/api/report-templates', 'template created'),
+                _s(RADIOLOGY, 'POST /radiology/api/report-templates/<template_id>/delete', 'template deleted'),
+            ),
+        ),
+
+        # ===== COMPLIANCE MODULE - Critical Write Routes =====
+        Template(
+            key='COMPLIANCE_CONSENT_AUDIT',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Consent management and audit log retention. '
+                'Breach check. Data export with patient data.'
+            ),
+            steps=(
+                _s(MANAGER, 'POST /compliance/consent-management', 'consent recorded'),
+                _s(MANAGER, 'POST /compliance/verify-consent', 'consent verified'),
+                _s(MANAGER, 'POST /compliance/audit-log-retention', 'retention policy applied'),
+                _s(MANAGER, 'POST /compliance/breach-check', 'breach checked'),
+                _s(MANAGER, 'POST /compliance/data-export', 'data export triggered'),
+            ),
+        ),
+
+        # ===== ACCOUNTANT MODULE - Critical Write Routes =====
+        Template(
+            key='ACCOUNTANT_PERIOD_REFUND',
+            family='financial',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Accountant period close and refund workflow. '
+                'Refund approve/execute/reject. Payment documentation.'
+            ),
+            steps=(
+                _s(ACCOUNTANT, 'POST /accountant/periods/close', 'period closed'),
+                _s(ACCOUNTANT, 'POST /accountant/refunds/<refund_id>/approve', 'refund approved'),
+                _s(ACCOUNTANT, 'POST /accountant/refunds/<refund_id>/execute', 'refund executed'),
+                _s(ACCOUNTANT, 'POST /accountant/refunds/<refund_id>/reject', 'refund rejected'),
+                _s(ACCOUNTANT, 'POST /accountant/payment-documentation/<payment_id>', 'payment documented'),
+            ),
+        ),
+
+        # ===== BED MODULE - Critical Write Routes =====
+        Template(
+            key='BED_ADMISSIONS_FULL',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Bed admissions: admit, transfer, discharge. '
+                'Bed status transitions enforced.'
+            ),
+            steps=(
+                _s(NURSE, 'POST /bed/api/admissions/admit', 'patient admitted'),
+                _s(NURSE, 'POST /bed/api/admissions/<admission_id>/transfer', 'patient transferred'),
+                _s(NURSE, 'POST /bed/api/admissions/<admission_id>/discharge', 'patient discharged'),
+            ),
+        ),
+
+        # ===== NURSE MODULE - Critical Write Routes =====
+        Template(
+            key='NURSE_VITALS_TASKS',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Nurse vital signs recording with validation. '
+                'Medication administration. Task create and status updates.'
+            ),
+            steps=(
+                _s(NURSE, 'POST /nurse/record-vital-signs/<patient_id>', 'vitals recorded'),
+                _s(NURSE, 'POST /nurse/administer-medication/<prescription_item_id>', 'medication administered'),
+                _s(NURSE, 'POST /nurse/tasks/create', 'task created'),
+                _s(NURSE, 'POST /nurse/tasks/<task_id>/status', 'task status updated'),
+            ),
+        ),
+        Template(
+            key='NURSE_PROTOCOLS_API',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Nurse protocols API for clinical guidelines.'
+            ),
+            steps=(
+                _s(NURSE, 'POST /nurse/api/protocols', 'protocol accessed'),
+                _s(NURSE, 'GET /nurse/api/protocols', 'protocol list retrieved'),
+                _s(NURSE, 'POST /nurse/api/protocols', 'protocol search performed'),
+            ),
+        ),
+
+        # ===== NURSING ASSESSMENT - Critical Write Routes =====
+        Template(
+            key='NURSING_ASSESSMENT_NEW',
+            family='clinical',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'Nursing assessment creation for patient.'
+            ),
+            steps=(
+                _s(NURSE, 'POST /nursing-assessment/new/<patient_id>', 'assessment created'),
+                _s(NURSE, 'GET /nursing-assessment/new/<patient_id>', 'assessment details retrieved'),
+                _s(NURSE, 'POST /nursing-assessment/new/<patient_id>', 'assessment updated'),
+            ),
+        ),
+
+        # ===== API MODULE - Critical Write Routes =====
+        Template(
+            key='API_SAAS_REGISTER_PREFERENCES',
+            family='platform',
+            axes=(),
+            observed={},
+            effect={},
+            rule=(
+                'SaaS registration and user preferences API.'
+            ),
+            steps=(
+                _s(SYSTEM, 'POST /api/saas/register', 'tenant registered'),
+                _s(SYSTEM, 'POST /api/user/preferences', 'preferences updated'),
+                _s(SYSTEM, 'GET /api/user/preferences', 'verify preferences retrieved'),
+            ),
+        ),
+
     )
 
 

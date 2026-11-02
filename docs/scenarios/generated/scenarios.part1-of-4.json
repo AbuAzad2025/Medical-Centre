@@ -27200,6 +27200,1725 @@
   },
   {
     "scenario_id": "GS-0586",
+    "template": "RECEPTION_APPOINTMENT_CHECKIN",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Reception check-in confirms appointment and creates visit. Idempotent via appointment marker in visit notes.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/appointments/<appointment_id>/checkin",
+        "assertion": "visit created from appointment"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/appointments/<appointment_id>/confirm",
+        "assertion": "appointment confirmed"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/appointments/<appointment_id>/cancel",
+        "assertion": "appointment cancelled"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0587",
+    "template": "RECEPTION_NO_SHOW_HANDLING",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "No-show marks appointment and releases slot for waitlist. Follow-up reminder triggered automatically.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/appointments/<appointment_id>/no-show",
+        "assertion": "appointment marked no-show"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "GET /reception/no-shows",
+        "assertion": "list no-show appointments"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/appointments/<appointment_id>/no-show",
+        "assertion": "verify no-show recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0588",
+    "template": "RECEPTION_QUEUE_MANAGEMENT",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Queue management: add patient, call next, complete, skip, return. Queue gate enforces payment status.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/queue/add-patient",
+        "assertion": "patient added to queue"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "GET /reception/queue/call-next/<department_id>",
+        "assertion": "next patient called"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/queue/complete-treatment/<ticket_id>",
+        "assertion": "treatment completed"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/queue/skip-patient/<ticket_id>",
+        "assertion": "patient skipped"
+      },
+      {
+        "step": 5,
+        "department": "Reception",
+        "api": "POST /reception/queue/return-to-queue/<ticket_id>",
+        "assertion": "patient returned to queue"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0589",
+    "template": "RECEPTION_VISIT_LIFECYCLE",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Visit lifecycle: create, add services, end, transfer, archive. Archive requires invoice reconciliation.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/visits/create",
+        "assertion": "visit created"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/visits/<visit_id>/add-service",
+        "assertion": "service added to invoice"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/visits/<visit_id>/end",
+        "assertion": "visit ended"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/visits/<visit_id>/transfer",
+        "assertion": "visit transferred"
+      },
+      {
+        "step": 5,
+        "department": "Reception",
+        "api": "POST /reception/visits/<visit_id>/archive",
+        "assertion": "visit archived after reconciliation"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0590",
+    "template": "RECEPTION_PATIENT_ADMIN",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Patient administration: add, edit, delete, view. Allergies and problems managed via API.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/add_patient",
+        "assertion": "patient registered"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/edit_patient/<patient_id>",
+        "assertion": "patient updated"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/delete_patient/<patient_id>",
+        "assertion": "patient deleted"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /reception/api/patients/<patient_id>/allergies/add",
+        "assertion": "allergy added"
+      },
+      {
+        "step": 5,
+        "department": "Reception",
+        "api": "POST /reception/api/patients/<patient_id>/problems/add",
+        "assertion": "problem added"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0591",
+    "template": "RECEPTION_PAYMENT_CASH_REGISTER",
+    "family": "financial",
+    "axes": {
+      "payment_method": "CASH"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by CASH: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Cash register processes payments. POS charge for walk-ins. Daily close reconciles register.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/cash-register",
+        "assertion": "cash register opened"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "POS charge processed"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/daily-close",
+        "assertion": "daily close reconciled"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0592",
+    "template": "RECEPTION_PAYMENT_CASH_REGISTER",
+    "family": "financial",
+    "axes": {
+      "payment_method": "CARD"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by CARD: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Cash register processes payments. POS charge for walk-ins. Daily close reconciles register.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/cash-register",
+        "assertion": "cash register opened"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "POS charge processed"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/daily-close",
+        "assertion": "daily close reconciled"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0593",
+    "template": "RECEPTION_PAYMENT_CASH_REGISTER",
+    "family": "financial",
+    "axes": {
+      "payment_method": "visa"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by visa: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Cash register processes payments. POS charge for walk-ins. Daily close reconciles register.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/cash-register",
+        "assertion": "cash register opened"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "POS charge processed"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/daily-close",
+        "assertion": "daily close reconciled"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0594",
+    "template": "RECEPTION_PAYMENT_CASH_REGISTER",
+    "family": "financial",
+    "axes": {
+      "payment_method": "mada"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by mada: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Cash register processes payments. POS charge for walk-ins. Daily close reconciles register.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/cash-register",
+        "assertion": "cash register opened"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "POS charge processed"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/daily-close",
+        "assertion": "daily close reconciled"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0595",
+    "template": "RECEPTION_PAYMENT_CASH_REGISTER",
+    "family": "financial",
+    "axes": {
+      "payment_method": "WIRE"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by WIRE: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Cash register processes payments. POS charge for walk-ins. Daily close reconciles register.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/cash-register",
+        "assertion": "cash register opened"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "POS charge processed"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/daily-close",
+        "assertion": "daily close reconciled"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0596",
+    "template": "RECEPTION_PAYMENT_CASH_REGISTER",
+    "family": "financial",
+    "axes": {
+      "payment_method": "INSURANCE"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by INSURANCE: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Cash register processes payments. POS charge for walk-ins. Daily close reconciles register.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/cash-register",
+        "assertion": "cash register opened"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "POS charge processed"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/daily-close",
+        "assertion": "daily close reconciled"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0597",
+    "template": "RECEPTION_PAYMENT_CASH_REGISTER",
+    "family": "financial",
+    "axes": {
+      "payment_method": "FORCE"
+    },
+    "axes_note": {
+      "payment_method": "PaymentMethod; note the enum carries lowercase visa/mada, and payment_routes maps them onto CARD."
+    },
+    "axes_effect": {
+      "payment_method": "collected by FORCE: CASH and FORCE both post to the cash GL account, while the lowercase visa and mada members are mapped onto CARD by payment_routes and INSURANCE posts to the insurer receivable instead"
+    },
+    "rule": "Cash register processes payments. POS charge for walk-ins. Daily close reconciles register.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/cash-register",
+        "assertion": "cash register opened"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/pos/charge",
+        "assertion": "POS charge processed"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/daily-close",
+        "assertion": "daily close reconciled"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0598",
+    "template": "RECEPTION_EMERGENCY_DEBT_FORCE_ENTRY",
+    "family": "financial",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Emergency debt approval and force entry override queue gate. Requires manager approval with audit trail.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/queue/approve-emergency-debt/<ticket_id>",
+        "assertion": "emergency debt approved"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/queue/approve-force-entry/<ticket_id>",
+        "assertion": "force entry approved"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/queue/approve-emergency-debt/<ticket_id>",
+        "assertion": "verify approval recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0599",
+    "template": "RECEPTION_STAFF_SCHEDULE",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Staff schedule and absence management. Absence does not cancel appointments.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/staff/absence",
+        "assertion": "absence recorded"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /reception/staff/schedule",
+        "assertion": "schedule updated"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "GET /reception/staff/schedule",
+        "assertion": "verify schedule updated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0600",
+    "template": "RECEPTION_SURVEY_FEEDBACK",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Patient survey feedback collected post-visit.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /reception/survey/<token>",
+        "assertion": "survey submitted"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "GET /reception/survey/<token>",
+        "assertion": "survey details retrieved"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /reception/survey/<token>",
+        "assertion": "survey response recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0601",
+    "template": "LAB_WORKLIST_MANAGEMENT",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Lab worklist: claim requests, complete with results. Auto-calculate derived values on finalize.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/worklist/claim/<request_id>",
+        "assertion": "request claimed"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/worklist/complete/<request_id>",
+        "assertion": "results entered, derived values calculated"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/worklist/request/<request_id>",
+        "assertion": "status advanced"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0602",
+    "template": "LAB_CATALOG_MANAGEMENT",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Lab test catalog and panels management. Test catalog CRUD, panel CRUD.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/test-catalog/add",
+        "assertion": "test added to catalog"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/test-catalog/<id>/edit",
+        "assertion": "test updated"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/test-catalog/<id>/delete",
+        "assertion": "test deleted"
+      },
+      {
+        "step": 4,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/add",
+        "assertion": "panel created"
+      },
+      {
+        "step": 5,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<id>/edit",
+        "assertion": "panel updated"
+      },
+      {
+        "step": 6,
+        "department": "Lab",
+        "api": "POST /lab/test-panels/<id>/delete",
+        "assertion": "panel deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0603",
+    "template": "LAB_REAGENTS_QUALITY",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Reagents and quality control management. LIS confirm and preview for external integration.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/reagents/add",
+        "assertion": "reagent added"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/reagents/<reagent_id>/edit",
+        "assertion": "reagent updated"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/lis/confirm",
+        "assertion": "LIS order confirmed"
+      },
+      {
+        "step": 4,
+        "department": "Lab",
+        "api": "POST /lab/lis/preview",
+        "assertion": "LIS preview"
+      },
+      {
+        "step": 5,
+        "department": "Lab",
+        "api": "POST /lab/quality-control",
+        "assertion": "QC recorded"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0604",
+    "template": "LAB_BARCODE_PRINT_SCAN",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Barcode print and scan for sample tracking.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/barcode/print/<request_id>",
+        "assertion": "barcode printed"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/barcode/scan/<barcode>",
+        "assertion": "sample scanned"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "GET /lab/barcode/print/<request_id>",
+        "assertion": "verify barcode printed"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0605",
+    "template": "LAB_RESULT_TEMPLATES_DERIVED",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Result templates with derived values. Auto-calculate and manual calculate triggers.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Lab",
+        "api": "POST /lab/api/result-templates",
+        "assertion": "template created"
+      },
+      {
+        "step": 2,
+        "department": "Lab",
+        "api": "POST /lab/api/derived-values",
+        "assertion": "derived values computed"
+      },
+      {
+        "step": 3,
+        "department": "Lab",
+        "api": "POST /lab/auto-calculate",
+        "assertion": "auto-calculate on finalize"
+      },
+      {
+        "step": 4,
+        "department": "Lab",
+        "api": "POST /lab/calculate",
+        "assertion": "manual calculate"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0606",
+    "template": "MEDICATION_PRESCRIPTION_DISPENSE",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Prescription dispense with interaction check. Stock moves under row lock. Refill workflow.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /medication/prescriptions",
+        "assertion": "prescription created"
+      },
+      {
+        "step": 2,
+        "department": "Pharmacy",
+        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
+        "assertion": "dispensed with interaction check"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /medication/prescriptions/<prescription_id>/refill",
+        "assertion": "refill requested"
+      },
+      {
+        "step": 4,
+        "department": "Pharmacy",
+        "api": "POST /medication/prescriptions/<prescription_id>/refill",
+        "assertion": "refill approved"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0607",
+    "template": "MEDICATION_CATALOG_INTERACTIONS",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Medication catalog: add, edit, suppliers. Drug interactions managed. POS sell and charge.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Pharmacy",
+        "api": "POST /medication/add",
+        "assertion": "medication added"
+      },
+      {
+        "step": 2,
+        "department": "Pharmacy",
+        "api": "POST /medication/edit/<medication_id>",
+        "assertion": "medication updated"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "POST /medication/interactions",
+        "assertion": "interaction added"
+      },
+      {
+        "step": 4,
+        "department": "Pharmacy",
+        "api": "POST /medication/interactions/<interaction_id>/toggle",
+        "assertion": "interaction toggled"
+      },
+      {
+        "step": 5,
+        "department": "Pharmacy",
+        "api": "POST /medication/pos/sell",
+        "assertion": "POS sale"
+      },
+      {
+        "step": 6,
+        "department": "Pharmacy",
+        "api": "POST /medication/pos/charge",
+        "assertion": "POS charge"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0608",
+    "template": "MEDICATION_PURCHASES_SUPPLY",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Purchases and supply requests workflow. Suppliers CRUD. Supply requests: create, approve, fulfill.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Pharmacy",
+        "api": "POST /medication/purchases/add",
+        "assertion": "purchase recorded"
+      },
+      {
+        "step": 2,
+        "department": "Pharmacy",
+        "api": "POST /medication/suppliers/add",
+        "assertion": "supplier added"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "POST /medication/suppliers/<supplier_id>/edit",
+        "assertion": "supplier updated"
+      },
+      {
+        "step": 4,
+        "department": "Pharmacy",
+        "api": "POST /medication/suppliers/<supplier_id>/delete",
+        "assertion": "supplier deleted"
+      },
+      {
+        "step": 5,
+        "department": "Pharmacy",
+        "api": "POST /medication/supply-requests/create",
+        "assertion": "supply request created"
+      },
+      {
+        "step": 6,
+        "department": "Pharmacy",
+        "api": "POST /medication/supply-requests/<request_id>/approve",
+        "assertion": "supply request approved"
+      },
+      {
+        "step": 7,
+        "department": "Pharmacy",
+        "api": "POST /medication/supply-requests/<request_id>/fulfill",
+        "assertion": "supply request fulfilled"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0609",
+    "template": "MEDICATION_EXTERNAL_IMPORT",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "External drug import and search. Stock alerts monitored.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Pharmacy",
+        "api": "POST /medication/api/external-drug-import",
+        "assertion": "external drug imported"
+      },
+      {
+        "step": 2,
+        "department": "Pharmacy",
+        "api": "POST /medication/api/stock/alerts",
+        "assertion": "stock alerts checked"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "GET /medication/api/stock/alerts",
+        "assertion": "verify stock alerts retrieved"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0610",
+    "template": "MANAGER_APPROVALS_WORKFLOW",
+    "family": "financial",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Custom service and force payment approvals. Manager approves/rejects with audit trail.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Manager",
+        "api": "POST /manager/approve-custom-service/<service_id>",
+        "assertion": "custom service approved"
+      },
+      {
+        "step": 2,
+        "department": "Manager",
+        "api": "POST /manager/reject-custom-service/<service_id>",
+        "assertion": "custom service rejected"
+      },
+      {
+        "step": 3,
+        "department": "Manager",
+        "api": "POST /manager/approve-force-payment/<visit_id>",
+        "assertion": "force payment approved"
+      },
+      {
+        "step": 4,
+        "department": "Manager",
+        "api": "POST /manager/reject-force-payment/<visit_id>",
+        "assertion": "force payment rejected"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0611",
+    "template": "MANAGER_PRICING_EXCHANGE_RATES",
+    "family": "financial",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Pricing management and exchange rates. Seed pricing from catalog. Fetch rates from API.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Manager",
+        "api": "POST /manager/pricing",
+        "assertion": "pricing updated"
+      },
+      {
+        "step": 2,
+        "department": "Manager",
+        "api": "POST /manager/seed-pricing",
+        "assertion": "pricing seeded from catalog"
+      },
+      {
+        "step": 3,
+        "department": "Manager",
+        "api": "POST /manager/exchange-rates",
+        "assertion": "exchange rate updated"
+      },
+      {
+        "step": 4,
+        "department": "Manager",
+        "api": "POST /manager/exchange-rates/fetch-api",
+        "assertion": "rates fetched from API"
+      },
+      {
+        "step": 5,
+        "department": "Manager",
+        "api": "POST /manager/exchange-rates/deactivate/<rate_id>",
+        "assertion": "rate deactivated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0612",
+    "template": "MANAGER_STAFF_SCHEDULE_CAPACITY",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Staff schedule and capacity management. Absence recorded. Unit control for bed management.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Manager",
+        "api": "POST /manager/staff/absence",
+        "assertion": "staff absence recorded"
+      },
+      {
+        "step": 2,
+        "department": "Manager",
+        "api": "POST /manager/staff/schedule",
+        "assertion": "schedule updated"
+      },
+      {
+        "step": 3,
+        "department": "Manager",
+        "api": "POST /manager/unit-control",
+        "assertion": "unit control updated"
+      },
+      {
+        "step": 4,
+        "department": "Manager",
+        "api": "POST /manager/staff/capacity",
+        "assertion": "capacity updated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0613",
+    "template": "MANAGER_SETTINGS_WHAT_IF",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Manager settings and what-if modelling. Test SMS sends. Units toggle.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Manager",
+        "api": "POST /manager/settings",
+        "assertion": "settings updated"
+      },
+      {
+        "step": 2,
+        "department": "Manager",
+        "api": "POST /manager/settings/test-sms",
+        "assertion": "test SMS sent"
+      },
+      {
+        "step": 3,
+        "department": "Manager",
+        "api": "POST /manager/api/units/toggle",
+        "assertion": "unit toggled"
+      },
+      {
+        "step": 4,
+        "department": "Manager",
+        "api": "POST /manager/api/what-if",
+        "assertion": "what-if scenario run"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0614",
+    "template": "MANAGER_USER_DEPT_MANAGEMENT",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "User management and department management.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Manager",
+        "api": "POST /manager/user-management",
+        "assertion": "user managed"
+      },
+      {
+        "step": 2,
+        "department": "Manager",
+        "api": "POST /manager/departments",
+        "assertion": "department managed"
+      },
+      {
+        "step": 3,
+        "department": "Manager",
+        "api": "GET /manager/user-management",
+        "assertion": "verify user managed"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0615",
+    "template": "MANAGER_BUDGET_FINANCIAL_REPORTS",
+    "family": "financial",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Budget dashboard and financial reports. Settlements export. Monthly comparison.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Manager",
+        "api": "POST /manager/budget",
+        "assertion": "budget updated"
+      },
+      {
+        "step": 2,
+        "department": "Manager",
+        "api": "POST /manager/financial-reports",
+        "assertion": "financial report generated"
+      },
+      {
+        "step": 3,
+        "department": "Manager",
+        "api": "POST /manager/settlements/export",
+        "assertion": "settlements exported"
+      },
+      {
+        "step": 4,
+        "department": "Manager",
+        "api": "POST /manager/monthly-comparison",
+        "assertion": "monthly comparison generated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0616",
+    "template": "EMERGENCY_CASE_TREATMENT",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Emergency case lifecycle: create, triage, treat, complete. EMS intake creates patient without visit. Lab/radiology orders without hub-and-spoke.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/cases/create",
+        "assertion": "emergency case created"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/triage/<emergency_id>",
+        "assertion": "triage completed"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/start-treatment/<emergency_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 4,
+        "department": "Emergency",
+        "api": "POST /emergency/end-treatment/<emergency_id>",
+        "assertion": "treatment ended"
+      },
+      {
+        "step": 5,
+        "department": "Emergency",
+        "api": "POST /emergency/emergency-visits/<visit_id>/complete",
+        "assertion": "emergency visit completed"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0617",
+    "template": "EMERGENCY_ORDERS_PRESCRIPTIONS",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Emergency lab/radiology orders and prescriptions. No hub-and-spoke re-queue. Case convert and resolve.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/lab-request/<emergency_id>",
+        "assertion": "ER lab order"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/radiology-request/<emergency_id>",
+        "assertion": "ER radiology order"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "POST /emergency/prescription/<emergency_id>",
+        "assertion": "ER prescription"
+      },
+      {
+        "step": 4,
+        "department": "Emergency",
+        "api": "POST /emergency/cases/<id>/convert",
+        "assertion": "case converted to inpatient"
+      },
+      {
+        "step": 5,
+        "department": "Emergency",
+        "api": "POST /emergency/cases/<id>/resolve",
+        "assertion": "case resolved"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0618",
+    "template": "EMERGENCY_EMS_INTAKE",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "EMS intake creates patient and case without visit or queue ticket. API endpoint for external EMS systems.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Emergency",
+        "api": "POST /emergency/api/ems/intake",
+        "assertion": "EMS intake processed"
+      },
+      {
+        "step": 2,
+        "department": "Emergency",
+        "api": "POST /emergency/cases/create",
+        "assertion": "emergency case created from intake"
+      },
+      {
+        "step": 3,
+        "department": "Emergency",
+        "api": "GET /emergency/cases",
+        "assertion": "verify case created"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0619",
+    "template": "DOCTOR_PRESCRIPTION_NOTES",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Doctor prescriptions with safety checks. Notes and templates. Visit summary save. Dental chart.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/prescription/<visit_id>",
+        "assertion": "prescription created with safety check"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/save-visit-summary/<visit_id>",
+        "assertion": "visit summary saved"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/dental-chart/save",
+        "assertion": "dental chart saved"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "POST /doctor/notes/<visit_id>",
+        "assertion": "clinical note saved"
+      },
+      {
+        "step": 5,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates",
+        "assertion": "note template created"
+      },
+      {
+        "step": 6,
+        "department": "Doctor",
+        "api": "POST /doctor/api/note-templates/<template_id>/delete",
+        "assertion": "note template deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0620",
+    "template": "DOCTOR_TREATMENT_LIFECYCLE",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Doctor treatment lifecycle: start, end, call patient. Lab/radiology requests via hub-and-spoke.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/start-treatment/<visit_id>",
+        "assertion": "treatment started"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/end-treatment/<visit_id>",
+        "assertion": "treatment ended"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/call-patient/<visit_id>",
+        "assertion": "patient called"
+      },
+      {
+        "step": 4,
+        "department": "Doctor",
+        "api": "POST /doctor/lab-request/<visit_id>",
+        "assertion": "lab requested via hub-and-spoke"
+      },
+      {
+        "step": 5,
+        "department": "Doctor",
+        "api": "POST /doctor/radiology-request/<visit_id>",
+        "assertion": "radiology requested via hub-and-spoke"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0621",
+    "template": "DOCTOR_DIAGNOSIS_PRESCRIPTION_HISTORY",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Diagnosis management and prescription history.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "POST /doctor/diagnosis/<visit_id>",
+        "assertion": "diagnosis recorded"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/prescriptions",
+        "assertion": "prescriptions listed"
+      },
+      {
+        "step": 3,
+        "department": "Doctor",
+        "api": "POST /doctor/prescriptions-history/<patient_id>",
+        "assertion": "prescription history"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0622",
+    "template": "BOOKING_PAYMENT_CANCEL",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Booking payment and cancellation. Telemedicine booking. Register new patient.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Reception",
+        "api": "POST /booking/payment/<booking_id>",
+        "assertion": "booking payment processed"
+      },
+      {
+        "step": 2,
+        "department": "Reception",
+        "api": "POST /booking/cancel/<booking_id>",
+        "assertion": "booking cancelled"
+      },
+      {
+        "step": 3,
+        "department": "Reception",
+        "api": "POST /booking/register",
+        "assertion": "patient registered via booking"
+      },
+      {
+        "step": 4,
+        "department": "Reception",
+        "api": "POST /booking/telemedicine/<booking_id>",
+        "assertion": "telemedicine booking created"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0623",
+    "template": "RADIOLOGY_WORKLIST_REPORTS",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Radiology worklist: claim, complete. Reports with second review. AI assist. Print reports. Tests and macros.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Radiology",
+        "api": "POST /radiology/worklist/claim/<request_id>",
+        "assertion": "request claimed"
+      },
+      {
+        "step": 2,
+        "department": "Radiology",
+        "api": "POST /radiology/worklist/complete/<request_id>",
+        "assertion": "report completed"
+      },
+      {
+        "step": 3,
+        "department": "Radiology",
+        "api": "POST /radiology/results/<result_id>/second-review",
+        "assertion": "second review completed"
+      },
+      {
+        "step": 4,
+        "department": "Radiology",
+        "api": "POST /radiology/api/ai-assist",
+        "assertion": "AI assist requested"
+      },
+      {
+        "step": 5,
+        "department": "Radiology",
+        "api": "POST /radiology/tests/add",
+        "assertion": "test added"
+      },
+      {
+        "step": 6,
+        "department": "Radiology",
+        "api": "POST /radiology/api/report-macros",
+        "assertion": "macro created"
+      },
+      {
+        "step": 7,
+        "department": "Radiology",
+        "api": "POST /radiology/api/report-macros/<macro_id>/delete",
+        "assertion": "macro deleted"
+      },
+      {
+        "step": 8,
+        "department": "Radiology",
+        "api": "POST /radiology/api/report-templates",
+        "assertion": "template created"
+      },
+      {
+        "step": 9,
+        "department": "Radiology",
+        "api": "POST /radiology/api/report-templates/<template_id>/delete",
+        "assertion": "template deleted"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0624",
+    "template": "COMPLIANCE_CONSENT_AUDIT",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Consent management and audit log retention. Breach check. Data export with patient data.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Manager",
+        "api": "POST /compliance/consent-management",
+        "assertion": "consent recorded"
+      },
+      {
+        "step": 2,
+        "department": "Manager",
+        "api": "POST /compliance/verify-consent",
+        "assertion": "consent verified"
+      },
+      {
+        "step": 3,
+        "department": "Manager",
+        "api": "POST /compliance/audit-log-retention",
+        "assertion": "retention policy applied"
+      },
+      {
+        "step": 4,
+        "department": "Manager",
+        "api": "POST /compliance/breach-check",
+        "assertion": "breach checked"
+      },
+      {
+        "step": 5,
+        "department": "Manager",
+        "api": "POST /compliance/data-export",
+        "assertion": "data export triggered"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0625",
+    "template": "ACCOUNTANT_PERIOD_REFUND",
+    "family": "financial",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Accountant period close and refund workflow. Refund approve/execute/reject. Payment documentation.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Accountant",
+        "api": "POST /accountant/periods/close",
+        "assertion": "period closed"
+      },
+      {
+        "step": 2,
+        "department": "Accountant",
+        "api": "POST /accountant/refunds/<refund_id>/approve",
+        "assertion": "refund approved"
+      },
+      {
+        "step": 3,
+        "department": "Accountant",
+        "api": "POST /accountant/refunds/<refund_id>/execute",
+        "assertion": "refund executed"
+      },
+      {
+        "step": 4,
+        "department": "Accountant",
+        "api": "POST /accountant/refunds/<refund_id>/reject",
+        "assertion": "refund rejected"
+      },
+      {
+        "step": 5,
+        "department": "Accountant",
+        "api": "POST /accountant/payment-documentation/<payment_id>",
+        "assertion": "payment documented"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0626",
+    "template": "BED_ADMISSIONS_FULL",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Bed admissions: admit, transfer, discharge. Bed status transitions enforced.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/admit",
+        "assertion": "patient admitted"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/transfer",
+        "assertion": "patient transferred"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /bed/api/admissions/<admission_id>/discharge",
+        "assertion": "patient discharged"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0627",
+    "template": "NURSE_VITALS_TASKS",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Nurse vital signs recording with validation. Medication administration. Task create and status updates.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /nurse/record-vital-signs/<patient_id>",
+        "assertion": "vitals recorded"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "POST /nurse/administer-medication/<prescription_item_id>",
+        "assertion": "medication administered"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/tasks/create",
+        "assertion": "task created"
+      },
+      {
+        "step": 4,
+        "department": "Nurse",
+        "api": "POST /nurse/tasks/<task_id>/status",
+        "assertion": "task status updated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0628",
+    "template": "NURSE_PROTOCOLS_API",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Nurse protocols API for clinical guidelines.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "protocol accessed"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "GET /nurse/api/protocols",
+        "assertion": "protocol list retrieved"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nurse/api/protocols",
+        "assertion": "protocol search performed"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0629",
+    "template": "NURSING_ASSESSMENT_NEW",
+    "family": "clinical",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "Nursing assessment creation for patient.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Nurse",
+        "api": "POST /nursing-assessment/new/<patient_id>",
+        "assertion": "assessment created"
+      },
+      {
+        "step": 2,
+        "department": "Nurse",
+        "api": "GET /nursing-assessment/new/<patient_id>",
+        "assertion": "assessment details retrieved"
+      },
+      {
+        "step": 3,
+        "department": "Nurse",
+        "api": "POST /nursing-assessment/new/<patient_id>",
+        "assertion": "assessment updated"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0630",
+    "template": "API_SAAS_REGISTER_PREFERENCES",
+    "family": "platform",
+    "axes": {},
+    "axes_note": {},
+    "axes_effect": {},
+    "rule": "SaaS registration and user preferences API.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "System",
+        "api": "POST /api/saas/register",
+        "assertion": "tenant registered"
+      },
+      {
+        "step": 2,
+        "department": "System",
+        "api": "POST /api/user/preferences",
+        "assertion": "preferences updated"
+      },
+      {
+        "step": 3,
+        "department": "System",
+        "api": "GET /api/user/preferences",
+        "assertion": "verify preferences retrieved"
+      }
+    ]
+  },
+  {
+    "scenario_id": "GS-0631",
     "template": "LAB_BARCODE_AND_LIS_RECEIPT",
     "family": "clinical",
     "axes": {
@@ -27242,7 +28961,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0587",
+    "scenario_id": "GS-0632",
     "template": "LAB_BARCODE_AND_LIS_RECEIPT",
     "family": "clinical",
     "axes": {
@@ -27285,7 +29004,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0588",
+    "scenario_id": "GS-0633",
     "template": "LAB_BARCODE_AND_LIS_RECEIPT",
     "family": "clinical",
     "axes": {
@@ -27328,7 +29047,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0589",
+    "scenario_id": "GS-0634",
     "template": "LAB_QUALITY_CONTROL_AND_REAGENTS",
     "family": "clinical",
     "axes": {
@@ -27371,7 +29090,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0590",
+    "scenario_id": "GS-0635",
     "template": "LAB_QUALITY_CONTROL_AND_REAGENTS",
     "family": "clinical",
     "axes": {
@@ -27414,7 +29133,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0591",
+    "scenario_id": "GS-0636",
     "template": "LAB_QUALITY_CONTROL_AND_REAGENTS",
     "family": "clinical",
     "axes": {
@@ -27457,7 +29176,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0592",
+    "scenario_id": "GS-0637",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -27494,7 +29213,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0593",
+    "scenario_id": "GS-0638",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -27531,7 +29250,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0594",
+    "scenario_id": "GS-0639",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -27568,7 +29287,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0595",
+    "scenario_id": "GS-0640",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -27605,7 +29324,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0596",
+    "scenario_id": "GS-0641",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -27642,7 +29361,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0597",
+    "scenario_id": "GS-0642",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -27679,7 +29398,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0598",
+    "scenario_id": "GS-0643",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -27716,7 +29435,7 @@
     ]
   },
   {
-    "scenario_id": "GS-0599",
+    "scenario_id": "GS-0644",
     "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
     "family": "clinical",
     "axes": {
@@ -27749,1500 +29468,6 @@
         "department": "Pharmacy",
         "api": "POST /medication/prescriptions/dispense/<prescription_id>",
         "assertion": "active to dispensed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0600",
-    "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "owner"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the prescription is written by a owner prescriber"
-    },
-    "rule": "The prescription CHECK constraint allows exactly active, issued, dispensed and cancelled, while the PrescriptionState enum also carries draft, partial and expired. A state written from the enum rather than the constraint is rejected by the database, so the enum is wider than what the table accepts.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "prescription created active"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/prescription/<visit_id>",
-        "assertion": "reissue while active"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
-        "assertion": "active to dispensed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0601",
-    "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "patient"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the prescription is written by a patient prescriber"
-    },
-    "rule": "The prescription CHECK constraint allows exactly active, issued, dispensed and cancelled, while the PrescriptionState enum also carries draft, partial and expired. A state written from the enum rather than the constraint is rejected by the database, so the enum is wider than what the table accepts.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "prescription created active"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/prescription/<visit_id>",
-        "assertion": "reissue while active"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
-        "assertion": "active to dispensed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0602",
-    "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "pharmacist"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the prescription is written by a pharmacist prescriber"
-    },
-    "rule": "The prescription CHECK constraint allows exactly active, issued, dispensed and cancelled, while the PrescriptionState enum also carries draft, partial and expired. A state written from the enum rather than the constraint is rejected by the database, so the enum is wider than what the table accepts.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "prescription created active"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/prescription/<visit_id>",
-        "assertion": "reissue while active"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
-        "assertion": "active to dispensed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0603",
-    "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "radiology"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the prescription is written by a radiology prescriber"
-    },
-    "rule": "The prescription CHECK constraint allows exactly active, issued, dispensed and cancelled, while the PrescriptionState enum also carries draft, partial and expired. A state written from the enum rather than the constraint is rejected by the database, so the enum is wider than what the table accepts.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "prescription created active"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/prescription/<visit_id>",
-        "assertion": "reissue while active"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
-        "assertion": "active to dispensed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0604",
-    "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "reception"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the prescription is written by a reception prescriber"
-    },
-    "rule": "The prescription CHECK constraint allows exactly active, issued, dispensed and cancelled, while the PrescriptionState enum also carries draft, partial and expired. A state written from the enum rather than the constraint is rejected by the database, so the enum is wider than what the table accepts.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "prescription created active"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/prescription/<visit_id>",
-        "assertion": "reissue while active"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
-        "assertion": "active to dispensed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0605",
-    "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "super_admin"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the prescription is written by a super_admin prescriber"
-    },
-    "rule": "The prescription CHECK constraint allows exactly active, issued, dispensed and cancelled, while the PrescriptionState enum also carries draft, partial and expired. A state written from the enum rather than the constraint is rejected by the database, so the enum is wider than what the table accepts.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "prescription created active"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/prescription/<visit_id>",
-        "assertion": "reissue while active"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
-        "assertion": "active to dispensed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0606",
-    "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "technician"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the prescription is written by a technician prescriber"
-    },
-    "rule": "The prescription CHECK constraint allows exactly active, issued, dispensed and cancelled, while the PrescriptionState enum also carries draft, partial and expired. A state written from the enum rather than the constraint is rejected by the database, so the enum is wider than what the table accepts.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "prescription created active"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/prescription/<visit_id>",
-        "assertion": "reissue while active"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
-        "assertion": "active to dispensed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0607",
-    "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "user"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the prescription is written by a user prescriber"
-    },
-    "rule": "The prescription CHECK constraint allows exactly active, issued, dispensed and cancelled, while the PrescriptionState enum also carries draft, partial and expired. A state written from the enum rather than the constraint is rejected by the database, so the enum is wider than what the table accepts.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "prescription created active"
-      },
-      {
-        "step": 2,
-        "department": "Doctor",
-        "api": "POST /doctor/prescription/<visit_id>",
-        "assertion": "reissue while active"
-      },
-      {
-        "step": 3,
-        "department": "Pharmacy",
-        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
-        "assertion": "active to dispensed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0608",
-    "template": "EMERGENCY_CASE_RESOLUTION",
-    "family": "clinical",
-    "axes": {
-      "emergency_severity": "LOW"
-    },
-    "axes_note": {
-      "emergency_severity": "EmergencyCase.severity, uppercased by a validator."
-    },
-    "axes_effect": {
-      "emergency_severity": "the case is closed at LOW severity"
-    },
-    "rule": "An emergency case advances through EmergencyStatus and every transition writes an EmergencyStatusHistory row, which is the only audit trail the ER keeps. cases/edit amends case data without requiring a status transition, so an edit is invisible in the history.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/create",
-        "assertion": "case opened with a history row"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/<int:id>/edit",
-        "assertion": "case data amended, no history entry"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/<int:id>/resolve",
-        "assertion": "case resolved"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "GET /emergency/cases/<int:id>",
-        "assertion": "history reviewed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0609",
-    "template": "EMERGENCY_CASE_RESOLUTION",
-    "family": "clinical",
-    "axes": {
-      "emergency_severity": "MODERATE"
-    },
-    "axes_note": {
-      "emergency_severity": "EmergencyCase.severity, uppercased by a validator."
-    },
-    "axes_effect": {
-      "emergency_severity": "the case is closed at MODERATE severity"
-    },
-    "rule": "An emergency case advances through EmergencyStatus and every transition writes an EmergencyStatusHistory row, which is the only audit trail the ER keeps. cases/edit amends case data without requiring a status transition, so an edit is invisible in the history.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/create",
-        "assertion": "case opened with a history row"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/<int:id>/edit",
-        "assertion": "case data amended, no history entry"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/<int:id>/resolve",
-        "assertion": "case resolved"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "GET /emergency/cases/<int:id>",
-        "assertion": "history reviewed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0610",
-    "template": "EMERGENCY_CASE_RESOLUTION",
-    "family": "clinical",
-    "axes": {
-      "emergency_severity": "HIGH"
-    },
-    "axes_note": {
-      "emergency_severity": "EmergencyCase.severity, uppercased by a validator."
-    },
-    "axes_effect": {
-      "emergency_severity": "the case is closed at HIGH severity"
-    },
-    "rule": "An emergency case advances through EmergencyStatus and every transition writes an EmergencyStatusHistory row, which is the only audit trail the ER keeps. cases/edit amends case data without requiring a status transition, so an edit is invisible in the history.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/create",
-        "assertion": "case opened with a history row"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/<int:id>/edit",
-        "assertion": "case data amended, no history entry"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/<int:id>/resolve",
-        "assertion": "case resolved"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "GET /emergency/cases/<int:id>",
-        "assertion": "history reviewed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0611",
-    "template": "EMERGENCY_CASE_RESOLUTION",
-    "family": "clinical",
-    "axes": {
-      "emergency_severity": "CRITICAL"
-    },
-    "axes_note": {
-      "emergency_severity": "EmergencyCase.severity, uppercased by a validator."
-    },
-    "axes_effect": {
-      "emergency_severity": "the case is closed at CRITICAL severity"
-    },
-    "rule": "An emergency case advances through EmergencyStatus and every transition writes an EmergencyStatusHistory row, which is the only audit trail the ER keeps. cases/edit amends case data without requiring a status transition, so an edit is invisible in the history.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/create",
-        "assertion": "case opened with a history row"
-      },
-      {
-        "step": 2,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/<int:id>/edit",
-        "assertion": "case data amended, no history entry"
-      },
-      {
-        "step": 3,
-        "department": "Emergency",
-        "api": "POST /emergency/cases/<int:id>/resolve",
-        "assertion": "case resolved"
-      },
-      {
-        "step": 4,
-        "department": "Emergency",
-        "api": "GET /emergency/cases/<int:id>",
-        "assertion": "history reviewed"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0612",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "accountant"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a accountant user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0613",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "admin"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a admin user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0614",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "doctor"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a doctor user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0615",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "emergency"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a emergency user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0616",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "er_doctor"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a er_doctor user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0617",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "lab"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a lab user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0618",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "manager"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a manager user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0619",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "nurse"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a nurse user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0620",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "owner"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a owner user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0621",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "patient"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a patient user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0622",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "pharmacist"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a pharmacist user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0623",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "radiology"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a radiology user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0624",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "reception"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a reception user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0625",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "super_admin"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a super_admin user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0626",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "technician"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a technician user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0627",
-    "template": "RECEPTION_PATIENT_ADMINISTRATION",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "user"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the record is administered by a user user, and the delete route is reception-gated"
-    },
-    "rule": "Patient demographics are encrypted at rest: national_id and phone are AES-GCM with a blind-index hash, names are AES-SIV so they stay searchable. Duplicate national_id and duplicate phone are both rejected with 409, so the same person cannot be registered twice under either identifier.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "created with encrypted identifiers"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "GET|POST /reception/add_patient",
-        "assertion": "duplicate national_id rejected 409"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "GET|POST /reception/edit_patient/<int:patient_id>",
-        "assertion": "demographics amended"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "GET /reception/api/smart-patient-search",
-        "assertion": "search resolves through the blind index"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0628",
-    "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
-    "family": "clinical",
-    "axes": {
-      "appointment_status": "scheduled"
-    },
-    "axes_note": {
-      "appointment_status": "Appointment workflow. The AppointmentState enum adds CHECKED_IN and COMPLETED, which this workflow enum does not have."
-    },
-    "axes_effect": {
-      "appointment_status": "the appointment ends scheduled"
-    },
-    "rule": "Check-in refuses a CANCELLED or NO_SHOW appointment and refuses an appointment with no department, before the idempotency marker is even consulted. No-show therefore has to be recorded before the patient arrives or the slot is silently reusable.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/no-show",
-        "assertion": "marked NO_SHOW"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for NO_SHOW"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/cancel",
-        "assertion": "slot cancelled"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for CANCELLED"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0629",
-    "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
-    "family": "clinical",
-    "axes": {
-      "appointment_status": "confirmed"
-    },
-    "axes_note": {
-      "appointment_status": "Appointment workflow. The AppointmentState enum adds CHECKED_IN and COMPLETED, which this workflow enum does not have."
-    },
-    "axes_effect": {
-      "appointment_status": "the appointment ends confirmed"
-    },
-    "rule": "Check-in refuses a CANCELLED or NO_SHOW appointment and refuses an appointment with no department, before the idempotency marker is even consulted. No-show therefore has to be recorded before the patient arrives or the slot is silently reusable.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/no-show",
-        "assertion": "marked NO_SHOW"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for NO_SHOW"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/cancel",
-        "assertion": "slot cancelled"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for CANCELLED"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0630",
-    "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
-    "family": "clinical",
-    "axes": {
-      "appointment_status": "checked_in"
-    },
-    "axes_note": {
-      "appointment_status": "Appointment workflow. The AppointmentState enum adds CHECKED_IN and COMPLETED, which this workflow enum does not have."
-    },
-    "axes_effect": {
-      "appointment_status": "the appointment ends checked_in"
-    },
-    "rule": "Check-in refuses a CANCELLED or NO_SHOW appointment and refuses an appointment with no department, before the idempotency marker is even consulted. No-show therefore has to be recorded before the patient arrives or the slot is silently reusable.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/no-show",
-        "assertion": "marked NO_SHOW"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for NO_SHOW"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/cancel",
-        "assertion": "slot cancelled"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for CANCELLED"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0631",
-    "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
-    "family": "clinical",
-    "axes": {
-      "appointment_status": "in_progress"
-    },
-    "axes_note": {
-      "appointment_status": "Appointment workflow. The AppointmentState enum adds CHECKED_IN and COMPLETED, which this workflow enum does not have."
-    },
-    "axes_effect": {
-      "appointment_status": "the appointment ends in_progress"
-    },
-    "rule": "Check-in refuses a CANCELLED or NO_SHOW appointment and refuses an appointment with no department, before the idempotency marker is even consulted. No-show therefore has to be recorded before the patient arrives or the slot is silently reusable.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/no-show",
-        "assertion": "marked NO_SHOW"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for NO_SHOW"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/cancel",
-        "assertion": "slot cancelled"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for CANCELLED"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0632",
-    "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
-    "family": "clinical",
-    "axes": {
-      "appointment_status": "done"
-    },
-    "axes_note": {
-      "appointment_status": "Appointment workflow. The AppointmentState enum adds CHECKED_IN and COMPLETED, which this workflow enum does not have."
-    },
-    "axes_effect": {
-      "appointment_status": "the appointment ends done"
-    },
-    "rule": "Check-in refuses a CANCELLED or NO_SHOW appointment and refuses an appointment with no department, before the idempotency marker is even consulted. No-show therefore has to be recorded before the patient arrives or the slot is silently reusable.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/no-show",
-        "assertion": "marked NO_SHOW"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for NO_SHOW"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/cancel",
-        "assertion": "slot cancelled"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for CANCELLED"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0633",
-    "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
-    "family": "clinical",
-    "axes": {
-      "appointment_status": "cancelled"
-    },
-    "axes_note": {
-      "appointment_status": "Appointment workflow. The AppointmentState enum adds CHECKED_IN and COMPLETED, which this workflow enum does not have."
-    },
-    "axes_effect": {
-      "appointment_status": "the appointment ends cancelled"
-    },
-    "rule": "Check-in refuses a CANCELLED or NO_SHOW appointment and refuses an appointment with no department, before the idempotency marker is even consulted. No-show therefore has to be recorded before the patient arrives or the slot is silently reusable.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/no-show",
-        "assertion": "marked NO_SHOW"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for NO_SHOW"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/cancel",
-        "assertion": "slot cancelled"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for CANCELLED"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0634",
-    "template": "APPOINTMENT_NO_SHOW_AND_CANCEL",
-    "family": "clinical",
-    "axes": {
-      "appointment_status": "no_show"
-    },
-    "axes_note": {
-      "appointment_status": "Appointment workflow. The AppointmentState enum adds CHECKED_IN and COMPLETED, which this workflow enum does not have."
-    },
-    "axes_effect": {
-      "appointment_status": "the appointment ends no_show"
-    },
-    "rule": "Check-in refuses a CANCELLED or NO_SHOW appointment and refuses an appointment with no department, before the idempotency marker is even consulted. No-show therefore has to be recorded before the patient arrives or the slot is silently reusable.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/no-show",
-        "assertion": "marked NO_SHOW"
-      },
-      {
-        "step": 2,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for NO_SHOW"
-      },
-      {
-        "step": 3,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/cancel",
-        "assertion": "slot cancelled"
-      },
-      {
-        "step": 4,
-        "department": "Reception",
-        "api": "POST /reception/appointments/<int:appointment_id>/checkin",
-        "assertion": "refused for CANCELLED"
-      }
-    ]
-  },
-  {
-    "scenario_id": "GS-0635",
-    "template": "MEDICATION_CATALOG_AND_INTERACTIONS",
-    "family": "clinical",
-    "axes": {
-      "actor_role": "accountant"
-    },
-    "axes_note": {
-      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
-    },
-    "axes_effect": {
-      "actor_role": "the interaction screen is opened by a accountant user; the check itself spans tenants because the table carries no tenant_id"
-    },
-    "rule": "A DrugInteraction row is normalised to an ordered pair and its severity is clamped to LOW, MODERATE or HIGH. The table is one of only four models in models/ with no tenant_id, so an interaction learned for one tenant blocks dispensing in every other.",
-    "expected_payment_status": "PAID",
-    "tags": [],
-    "journey_steps": [
-      {
-        "step": 1,
-        "department": "Pharmacy",
-        "api": "GET|POST /medication/interactions",
-        "assertion": "interaction recorded with a clamped severity"
-      },
-      {
-        "step": 2,
-        "department": "Pharmacy",
-        "api": "POST /medication/interactions/<int:interaction_id>/toggle",
-        "assertion": "interaction deactivated"
-      },
-      {
-        "step": 3,
-        "department": "Doctor",
-        "api": "GET|POST /doctor/prescription/<visit_id>",
-        "assertion": "screen consults the global interaction table"
       }
     ]
   }
