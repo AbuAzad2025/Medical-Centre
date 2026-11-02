@@ -7,11 +7,11 @@
 <div class="container-fluid">
     {% set hdr_actions = [] %}
     {% if radiology_request %}
-        {% set _ = hdr_actions.append({'label': _('فتح الطلب'), 'url': url_for('radiology.worklist_request', request_id=radiology_request.id), 'style': 'outline-primary'}) %}
-        {% set _ = hdr_actions.append({'label': _('طباعة التقرير'), 'url': url_for('radiology.print_report', radiology_scan_id=(radiology_result.id if radiology_result else radiology_request.id)), 'style': 'primary'}) %}
-        {% set _ = hdr_actions.append({'label': _('تحميل PDF'), 'icon': 'fas fa-file-pdf', 'url': url_for('radiology.print_report_pdf', radiology_scan_id=(radiology_result.id if radiology_result else radiology_request.id)), 'style': 'danger'}) %}
+        {% set _dummy = hdr_actions.append({'label': _('فتح الطلب'), 'url': url_for('radiology.worklist_request', request_id=radiology_request.id), 'style': 'outline-primary'}) %}
+        {% set _dummy = hdr_actions.append({'label': _('طباعة التقرير'), 'url': url_for('radiology.print_report', radiology_scan_id=(radiology_result.id if radiology_result else radiology_request.id)), 'style': 'primary'}) %}
+        {% set _dummy = hdr_actions.append({'label': _('تحميل PDF'), 'icon': 'fas fa-file-pdf', 'url': url_for('radiology.print_report_pdf', radiology_scan_id=(radiology_result.id if radiology_result else radiology_request.id)), 'style': 'danger'}) %}
     {% endif %}
-    {% set _ = hdr_actions.append({'label': _('العودة'), 'url': url_for('radiology.dashboard'), 'style': 'secondary'}) %}
+    {% set _dummy = hdr_actions.append({'label': _('العودة'), 'url': url_for('radiology.dashboard'), 'style': 'secondary'}) %}
     {{ page_header(_('تقرير الأشعة'), subtitle=_('عرض نتائج الأشعة وطباعة التقرير'), icon='fas fa-x-ray', actions=hdr_actions) }}
 
     <div class="row">
