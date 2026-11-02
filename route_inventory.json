@@ -3573,7 +3573,7 @@
       "endpoint": "lab.result_template_detail",
       "path": "/lab/result-templates/<int:template_id>",
       "methods": [
-        "GET"
+        "DELETE"
       ],
       "classification": "authenticated"
     },
@@ -3581,7 +3581,7 @@
       "endpoint": "lab.result_template_detail",
       "path": "/lab/result-templates/<int:template_id>",
       "methods": [
-        "DELETE"
+        "GET"
       ],
       "classification": "authenticated"
     },

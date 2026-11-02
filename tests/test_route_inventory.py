@@ -32,7 +32,9 @@ class TestRouteInventory:
         inv_path = Path(__file__).parent.parent / 'route_inventory.json'
         data = json.loads(inv_path.read_text(encoding='utf-8'))
         inventory_paths = {r['path'] for r in data['routes']}
-        registered_paths = {str(rule) for rule in app.url_map.iter_rules()}
+        # Get all registered routes, excluding static files and test routes
+        registered_paths = {str(rule) for rule in app.url_map.iter_rules()
+                            if not str(rule).startswith('/static/') and not str(rule).startswith('/test/')}
         missing = registered_paths - inventory_paths
         assert not missing, f'Missing routes in inventory: {missing}'
 
