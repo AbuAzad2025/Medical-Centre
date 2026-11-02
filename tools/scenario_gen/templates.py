@@ -980,7 +980,6 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             expected_status='PAID',
         ),
-
         # ===== BOOKING MODULE - Appointment Management =====
         # Simple templates with no axes - one scenario each
         Template(
@@ -995,9 +994,21 @@ def _base_templates() -> tuple[Template, ...]:
                 'the reminder window.'
             ),
             steps=(
-                _s(RECEPTION, 'POST /booking/appointment-reminders', 'reminders queued for upcoming appointments'),
-                _s(RECEPTION, 'GET /booking/appointment-reminders', 'list scheduled reminders with status'),
-                _s(RECEPTION, 'POST /booking/appointment-reminders', 'trigger manual reminder for specific appointment'),
+                _s(
+                    RECEPTION,
+                    'POST /booking/appointment-reminders',
+                    'reminders queued for upcoming appointments',
+                ),
+                _s(
+                    RECEPTION,
+                    'GET /booking/appointment-reminders',
+                    'list scheduled reminders with status',
+                ),
+                _s(
+                    RECEPTION,
+                    'POST /booking/appointment-reminders',
+                    'trigger manual reminder for specific appointment',
+                ),
             ),
         ),
         Template(
@@ -1048,11 +1059,18 @@ def _base_templates() -> tuple[Template, ...]:
             steps=(
                 _s(RECEPTION, 'POST /booking/create', 'appointment created in SCHEDULED'),
                 _s(RECEPTION, 'GET /booking/confirmation/<booking_id>', 'confirmed, slot reserved'),
-                _s(RECEPTION, 'POST /booking/payment/<booking_id>', 'payment collected, ready for checkin'),
-                _s(RECEPTION, 'POST /booking/cancel/<booking_id>', 'cancelled, slot released, waitlist notified'),
+                _s(
+                    RECEPTION,
+                    'POST /booking/payment/<booking_id>',
+                    'payment collected, ready for checkin',
+                ),
+                _s(
+                    RECEPTION,
+                    'POST /booking/cancel/<booking_id>',
+                    'cancelled, slot released, waitlist notified',
+                ),
             ),
         ),
-
         # ===== COMPLIANCE MODULE - Data Export (GDPR/Privacy) =====
         Template(
             key='COMPLIANCE_DATA_EXPORT',
@@ -1067,11 +1085,14 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             steps=(
                 _s(MANAGER, 'POST /compliance/data-export', 'export job created, returns job_id'),
-                _s(MANAGER, 'GET /compliance/data-export/<patient_id>', 'poll job status, download when ready'),
+                _s(
+                    MANAGER,
+                    'GET /compliance/data-export/<patient_id>',
+                    'poll job status, download when ready',
+                ),
                 _s(MANAGER, 'POST /compliance/export-patient-data', 'patient-specific export'),
             ),
         ),
-
         # ===== FINANCE MODULE - Payment Plans =====
         Template(
             key='FINANCE_PAYMENT_PLAN_LIFECYCLE',
@@ -1084,13 +1105,24 @@ def _base_templates() -> tuple[Template, ...]:
                 'Default triggers collection workflow; 3 defaults = plan cancelled.'
             ),
             steps=(
-                _s(ACCOUNTANT, 'POST /finance/payment-plans', 'plan created with instalment schedule'),
+                _s(
+                    ACCOUNTANT,
+                    'POST /finance/payment-plans',
+                    'plan created with instalment schedule',
+                ),
                 _s(ACCOUNTANT, 'GET /finance/payment-plans', 'list plans with status'),
-                _s(ACCOUNTANT, 'GET /finance/payment-plans/<plan_id>', 'view plan details and payments'),
-                _s(ACCOUNTANT, 'POST /finance/payment-plans/<plan_id>/pay', 'instalment paid, next due updated'),
+                _s(
+                    ACCOUNTANT,
+                    'GET /finance/payment-plans/<plan_id>',
+                    'view plan details and payments',
+                ),
+                _s(
+                    ACCOUNTANT,
+                    'POST /finance/payment-plans/<plan_id>/pay',
+                    'instalment paid, next due updated',
+                ),
             ),
         ),
-
         # ===== LAB MODULE - Derived Values & Result Templates =====
         Template(
             key='LAB_DERIVED_VALUES_AND_TEMPLATES',
@@ -1110,7 +1142,6 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(LAB, 'POST /lab/calculate', 'manual recalculation trigger'),
             ),
         ),
-
         # ===== MEDICATION MODULE - Interactions & Refills =====
         Template(
             key='MEDICATION_INTERACTION_CHECK',
@@ -1124,9 +1155,21 @@ def _base_templates() -> tuple[Template, ...]:
                 'manager approval and audit trail. Drug database updated weekly.'
             ),
             steps=(
-                _s(DOCTOR, 'POST /medication/api/interactions/check', 'check returns severity and recommendation'),
-                _s(DOCTOR, 'POST /medication/prescriptions', 'prescription saved, interaction re-checked'),
-                _s(PHARMACY, 'POST /medication/prescriptions/dispense/<prescription_id>', 'dispense blocked if HARD_STOP'),
+                _s(
+                    DOCTOR,
+                    'POST /medication/api/interactions/check',
+                    'check returns severity and recommendation',
+                ),
+                _s(
+                    DOCTOR,
+                    'POST /medication/prescriptions',
+                    'prescription saved, interaction re-checked',
+                ),
+                _s(
+                    PHARMACY,
+                    'POST /medication/prescriptions/dispense/<prescription_id>',
+                    'dispense blocked if HARD_STOP',
+                ),
             ),
         ),
         Template(
@@ -1141,13 +1184,28 @@ def _base_templates() -> tuple[Template, ...]:
                 'require new prescription. Controlled substances never auto-refill.'
             ),
             steps=(
-                _s(DOCTOR, 'POST /medication/prescriptions/<prescription_id>/refill', 'refill requested'),
-                _s(DOCTOR, 'GET /medication/prescriptions/<prescription_id>/refills', 'list refills with status'),
-                _s(PHARMACY, 'POST /medication/prescriptions/dispense/<prescription_id>', 'refill dispensed'),
-                _s(RECEPTION, 'GET /medication/refills/<refill_id>/status', 'patient checks refill status'),
+                _s(
+                    DOCTOR,
+                    'POST /medication/prescriptions/<prescription_id>/refill',
+                    'refill requested',
+                ),
+                _s(
+                    DOCTOR,
+                    'GET /medication/prescriptions/<prescription_id>/refills',
+                    'list refills with status',
+                ),
+                _s(
+                    PHARMACY,
+                    'POST /medication/prescriptions/dispense/<prescription_id>',
+                    'refill dispensed',
+                ),
+                _s(
+                    RECEPTION,
+                    'GET /medication/refills/<refill_id>/status',
+                    'patient checks refill status',
+                ),
             ),
         ),
-
         # ===== MANAGER MODULE - Branding =====
         Template(
             key='MANAGER_BRANDING_CUSTOMIZATION',
@@ -1166,7 +1224,6 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(MANAGER, 'GET /manager/branding/preview', 'preview without publishing'),
             ),
         ),
-
         # ===== RECEPTION MODULE - Appointment Reminders/Recurring/Waitlist =====
         Template(
             key='RECEPTION_APPOINTMENT_REMINDERS',
@@ -1182,7 +1239,11 @@ def _base_templates() -> tuple[Template, ...]:
             steps=(
                 _s(RECEPTION, 'GET /reception/appointment-reminders', 'list pending reminders'),
                 _s(RECEPTION, 'POST /reception/appointment-reminders', 'send manual reminder'),
-                _s(RECEPTION, 'POST /reception/appointment-reminders', 'trigger no-show followup reminder'),
+                _s(
+                    RECEPTION,
+                    'POST /reception/appointment-reminders',
+                    'trigger no-show followup reminder',
+                ),
             ),
         ),
         Template(
@@ -1199,7 +1260,11 @@ def _base_templates() -> tuple[Template, ...]:
             steps=(
                 _s(RECEPTION, 'POST /reception/appointments/recurring', 'create recurring series'),
                 _s(RECEPTION, 'GET /reception/recurring-appointments', 'list active series'),
-                _s(RECEPTION, 'POST /reception/appointments/recurring', 'modify series for future instances'),
+                _s(
+                    RECEPTION,
+                    'POST /reception/appointments/recurring',
+                    'modify series for future instances',
+                ),
             ),
         ),
         Template(
@@ -1216,10 +1281,13 @@ def _base_templates() -> tuple[Template, ...]:
             steps=(
                 _s(RECEPTION, 'POST /reception/appointments/waitlist', 'add to waitlist'),
                 _s(RECEPTION, 'GET /reception/waitlist', 'view waitlist'),
-                _s(RECEPTION, 'POST /reception/appointments/waitlist/<entry_id>', 'call/convert/remove'),
+                _s(
+                    RECEPTION,
+                    'POST /reception/appointments/waitlist/<entry_id>',
+                    'call/convert/remove',
+                ),
             ),
         ),
-
         # ===== BED MODULE - Admissions =====
         Template(
             key='BED_ADMISSION_TRANSFER_DISCHARGE',
@@ -1240,11 +1308,18 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             steps=(
                 _s(NURSE, 'POST /bed/api/admissions/admit', 'patient admitted to AVAILABLE bed'),
-                _s(NURSE, 'POST /bed/api/admissions/<admission_id>/transfer', 'transfer to another AVAILABLE bed'),
-                _s(NURSE, 'POST /bed/api/admissions/<admission_id>/discharge', 'discharge, bed to CLEANING'),
+                _s(
+                    NURSE,
+                    'POST /bed/api/admissions/<admission_id>/transfer',
+                    'transfer to another AVAILABLE bed',
+                ),
+                _s(
+                    NURSE,
+                    'POST /bed/api/admissions/<admission_id>/discharge',
+                    'discharge, bed to CLEANING',
+                ),
             ),
         ),
-
         # ===== API MODULE - Claims & Billing =====
         Template(
             key='API_CLAIMS_LIFECYCLE',
@@ -1262,7 +1337,11 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(ACCOUNTANT, 'POST /api/claims/<claim_id>/submit', 'submitted to insurer'),
                 _s(ACCOUNTANT, 'POST /api/claims/<claim_id>/adjudicate', 'approved amount set'),
                 _s(ACCOUNTANT, 'POST /api/claims/<claim_id>/settle', 'SETTLED, awaiting payout'),
-                _s(ACCOUNTANT, 'POST /api/claims/<claim_id>/payout', 'payout recorded, 1105 not relieved'),
+                _s(
+                    ACCOUNTANT,
+                    'POST /api/claims/<claim_id>/payout',
+                    'payout recorded, 1105 not relieved',
+                ),
             ),
         ),
         Template(
@@ -1281,7 +1360,11 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(OWNER, 'GET /api/billing/portal', 'customer portal session'),
                 _s(SYSTEM, 'POST /api/billing/stripe/webhook', 'async event processed'),
                 _s(OWNER, 'POST /api/billing/subscription/cancel', 'subscription cancelled'),
-                _s(OWNER, 'POST /api/billing/subscription/change-plan', 'plan changed with proration'),
+                _s(
+                    OWNER,
+                    'POST /api/billing/subscription/change-plan',
+                    'plan changed with proration',
+                ),
             ),
         ),
         Template(
@@ -1297,12 +1380,23 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             steps=(
                 _s(DOCTOR, 'POST /api/lab/requests/<request_id>/cancel', 'lab request cancelled'),
-                _s(LAB, 'POST /api/lab/results/<result_id>/amend', 'lab result amended, original kept'),
-                _s(DOCTOR, 'POST /api/radiology/requests/<request_id>/cancel', 'radiology request cancelled'),
-                _s(RADIOLOGY, 'POST /api/radiology/results/<result_id>/amend', 'radiology result amended'),
+                _s(
+                    LAB,
+                    'POST /api/lab/results/<result_id>/amend',
+                    'lab result amended, original kept',
+                ),
+                _s(
+                    DOCTOR,
+                    'POST /api/radiology/requests/<request_id>/cancel',
+                    'radiology request cancelled',
+                ),
+                _s(
+                    RADIOLOGY,
+                    'POST /api/radiology/results/<result_id>/amend',
+                    'radiology result amended',
+                ),
             ),
         ),
-
         # ===== RECEPTION MODULE - Critical Write Routes =====
         Template(
             key='RECEPTION_APPOINTMENT_CHECKIN',
@@ -1315,9 +1409,21 @@ def _base_templates() -> tuple[Template, ...]:
                 'Idempotent via appointment marker in visit notes.'
             ),
             steps=(
-                _s(RECEPTION, 'POST /reception/appointments/<appointment_id>/checkin', 'visit created from appointment'),
-                _s(RECEPTION, 'POST /reception/appointments/<appointment_id>/confirm', 'appointment confirmed'),
-                _s(RECEPTION, 'POST /reception/appointments/<appointment_id>/cancel', 'appointment cancelled'),
+                _s(
+                    RECEPTION,
+                    'POST /reception/appointments/<appointment_id>/checkin',
+                    'visit created from appointment',
+                ),
+                _s(
+                    RECEPTION,
+                    'POST /reception/appointments/<appointment_id>/confirm',
+                    'appointment confirmed',
+                ),
+                _s(
+                    RECEPTION,
+                    'POST /reception/appointments/<appointment_id>/cancel',
+                    'appointment cancelled',
+                ),
             ),
         ),
         Template(
@@ -1331,9 +1437,17 @@ def _base_templates() -> tuple[Template, ...]:
                 'Follow-up reminder triggered automatically.'
             ),
             steps=(
-                _s(RECEPTION, 'POST /reception/appointments/<appointment_id>/no-show', 'appointment marked no-show'),
+                _s(
+                    RECEPTION,
+                    'POST /reception/appointments/<appointment_id>/no-show',
+                    'appointment marked no-show',
+                ),
                 _s(RECEPTION, 'GET /reception/no-shows', 'list no-show appointments'),
-                _s(RECEPTION, 'POST /reception/appointments/<appointment_id>/no-show', 'verify no-show recorded'),
+                _s(
+                    RECEPTION,
+                    'POST /reception/appointments/<appointment_id>/no-show',
+                    'verify no-show recorded',
+                ),
             ),
         ),
         Template(
@@ -1348,10 +1462,22 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             steps=(
                 _s(RECEPTION, 'POST /reception/queue/add-patient', 'patient added to queue'),
-                _s(RECEPTION, 'GET /reception/queue/call-next/<department_id>', 'next patient called'),
-                _s(RECEPTION, 'POST /reception/queue/complete-treatment/<ticket_id>', 'treatment completed'),
+                _s(
+                    RECEPTION,
+                    'GET /reception/queue/call-next/<department_id>',
+                    'next patient called',
+                ),
+                _s(
+                    RECEPTION,
+                    'POST /reception/queue/complete-treatment/<ticket_id>',
+                    'treatment completed',
+                ),
                 _s(RECEPTION, 'POST /reception/queue/skip-patient/<ticket_id>', 'patient skipped'),
-                _s(RECEPTION, 'POST /reception/queue/return-to-queue/<ticket_id>', 'patient returned to queue'),
+                _s(
+                    RECEPTION,
+                    'POST /reception/queue/return-to-queue/<ticket_id>',
+                    'patient returned to queue',
+                ),
             ),
         ),
         Template(
@@ -1366,10 +1492,18 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             steps=(
                 _s(RECEPTION, 'POST /reception/visits/create', 'visit created'),
-                _s(RECEPTION, 'POST /reception/visits/<visit_id>/add-service', 'service added to invoice'),
+                _s(
+                    RECEPTION,
+                    'POST /reception/visits/<visit_id>/add-service',
+                    'service added to invoice',
+                ),
                 _s(RECEPTION, 'POST /reception/visits/<visit_id>/end', 'visit ended'),
                 _s(RECEPTION, 'POST /reception/visits/<visit_id>/transfer', 'visit transferred'),
-                _s(RECEPTION, 'POST /reception/visits/<visit_id>/archive', 'visit archived after reconciliation'),
+                _s(
+                    RECEPTION,
+                    'POST /reception/visits/<visit_id>/archive',
+                    'visit archived after reconciliation',
+                ),
             ),
         ),
         Template(
@@ -1386,8 +1520,16 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(RECEPTION, 'POST /reception/add_patient', 'patient registered'),
                 _s(RECEPTION, 'POST /reception/edit_patient/<patient_id>', 'patient updated'),
                 _s(RECEPTION, 'POST /reception/delete_patient/<patient_id>', 'patient deleted'),
-                _s(RECEPTION, 'POST /reception/api/patients/<patient_id>/allergies/add', 'allergy added'),
-                _s(RECEPTION, 'POST /reception/api/patients/<patient_id>/problems/add', 'problem added'),
+                _s(
+                    RECEPTION,
+                    'POST /reception/api/patients/<patient_id>/allergies/add',
+                    'allergy added',
+                ),
+                _s(
+                    RECEPTION,
+                    'POST /reception/api/patients/<patient_id>/problems/add',
+                    'problem added',
+                ),
             ),
         ),
         Template(
@@ -1417,9 +1559,21 @@ def _base_templates() -> tuple[Template, ...]:
                 'Requires manager approval with audit trail.'
             ),
             steps=(
-                _s(RECEPTION, 'POST /reception/queue/approve-emergency-debt/<ticket_id>', 'emergency debt approved'),
-                _s(RECEPTION, 'POST /reception/queue/approve-force-entry/<ticket_id>', 'force entry approved'),
-                _s(RECEPTION, 'POST /reception/queue/approve-emergency-debt/<ticket_id>', 'verify approval recorded'),
+                _s(
+                    RECEPTION,
+                    'POST /reception/queue/approve-emergency-debt/<ticket_id>',
+                    'emergency debt approved',
+                ),
+                _s(
+                    RECEPTION,
+                    'POST /reception/queue/approve-force-entry/<ticket_id>',
+                    'force entry approved',
+                ),
+                _s(
+                    RECEPTION,
+                    'POST /reception/queue/approve-emergency-debt/<ticket_id>',
+                    'verify approval recorded',
+                ),
             ),
         ),
         Template(
@@ -1428,10 +1582,7 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'Staff schedule and absence management. '
-                'Absence does not cancel appointments.'
-            ),
+            rule=('Staff schedule and absence management. Absence does not cancel appointments.'),
             steps=(
                 _s(RECEPTION, 'POST /reception/staff/absence', 'absence recorded'),
                 _s(RECEPTION, 'POST /reception/staff/schedule', 'schedule updated'),
@@ -1444,16 +1595,13 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'Patient survey feedback collected post-visit.'
-            ),
+            rule=('Patient survey feedback collected post-visit.'),
             steps=(
                 _s(RECEPTION, 'POST /reception/survey/<token>', 'survey submitted'),
                 _s(RECEPTION, 'GET /reception/survey/<token>', 'survey details retrieved'),
                 _s(RECEPTION, 'POST /reception/survey/<token>', 'survey response recorded'),
             ),
         ),
-
         # ===== LAB MODULE - Critical Write Routes =====
         Template(
             key='LAB_WORKLIST_MANAGEMENT',
@@ -1467,7 +1615,11 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             steps=(
                 _s(LAB, 'POST /lab/worklist/claim/<request_id>', 'request claimed'),
-                _s(LAB, 'POST /lab/worklist/complete/<request_id>', 'results entered, derived values calculated'),
+                _s(
+                    LAB,
+                    'POST /lab/worklist/complete/<request_id>',
+                    'results entered, derived values calculated',
+                ),
                 _s(LAB, 'POST /lab/worklist/request/<request_id>', 'status advanced'),
             ),
         ),
@@ -1477,10 +1629,7 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'Lab test catalog and panels management. '
-                'Test catalog CRUD, panel CRUD.'
-            ),
+            rule=('Lab test catalog and panels management. Test catalog CRUD, panel CRUD.'),
             steps=(
                 _s(LAB, 'POST /lab/test-catalog/add', 'test added to catalog'),
                 _s(LAB, 'POST /lab/test-catalog/<id>/edit', 'test updated'),
@@ -1514,9 +1663,7 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'Barcode print and scan for sample tracking.'
-            ),
+            rule=('Barcode print and scan for sample tracking.'),
             steps=(
                 _s(LAB, 'POST /lab/barcode/print/<request_id>', 'barcode printed'),
                 _s(LAB, 'POST /lab/barcode/scan/<barcode>', 'sample scanned'),
@@ -1540,7 +1687,6 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(LAB, 'POST /lab/calculate', 'manual calculate'),
             ),
         ),
-
         # ===== MEDICATION MODULE - Critical Write Routes =====
         Template(
             key='MEDICATION_PRESCRIPTION_DISPENSE',
@@ -1554,9 +1700,21 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             steps=(
                 _s(DOCTOR, 'POST /medication/prescriptions', 'prescription created'),
-                _s(PHARMACY, 'POST /medication/prescriptions/dispense/<prescription_id>', 'dispensed with interaction check'),
-                _s(DOCTOR, 'POST /medication/prescriptions/<prescription_id>/refill', 'refill requested'),
-                _s(PHARMACY, 'POST /medication/prescriptions/<prescription_id>/refill', 'refill approved'),
+                _s(
+                    PHARMACY,
+                    'POST /medication/prescriptions/dispense/<prescription_id>',
+                    'dispensed with interaction check',
+                ),
+                _s(
+                    DOCTOR,
+                    'POST /medication/prescriptions/<prescription_id>/refill',
+                    'refill requested',
+                ),
+                _s(
+                    PHARMACY,
+                    'POST /medication/prescriptions/<prescription_id>/refill',
+                    'refill approved',
+                ),
             ),
         ),
         Template(
@@ -1573,7 +1731,11 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(PHARMACY, 'POST /medication/add', 'medication added'),
                 _s(PHARMACY, 'POST /medication/edit/<medication_id>', 'medication updated'),
                 _s(PHARMACY, 'POST /medication/interactions', 'interaction added'),
-                _s(PHARMACY, 'POST /medication/interactions/<interaction_id>/toggle', 'interaction toggled'),
+                _s(
+                    PHARMACY,
+                    'POST /medication/interactions/<interaction_id>/toggle',
+                    'interaction toggled',
+                ),
                 _s(PHARMACY, 'POST /medication/pos/sell', 'POS sale'),
                 _s(PHARMACY, 'POST /medication/pos/charge', 'POS charge'),
             ),
@@ -1594,8 +1756,16 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(PHARMACY, 'POST /medication/suppliers/<supplier_id>/edit', 'supplier updated'),
                 _s(PHARMACY, 'POST /medication/suppliers/<supplier_id>/delete', 'supplier deleted'),
                 _s(PHARMACY, 'POST /medication/supply-requests/create', 'supply request created'),
-                _s(PHARMACY, 'POST /medication/supply-requests/<request_id>/approve', 'supply request approved'),
-                _s(PHARMACY, 'POST /medication/supply-requests/<request_id>/fulfill', 'supply request fulfilled'),
+                _s(
+                    PHARMACY,
+                    'POST /medication/supply-requests/<request_id>/approve',
+                    'supply request approved',
+                ),
+                _s(
+                    PHARMACY,
+                    'POST /medication/supply-requests/<request_id>/fulfill',
+                    'supply request fulfilled',
+                ),
             ),
         ),
         Template(
@@ -1604,17 +1774,13 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'External drug import and search. '
-                'Stock alerts monitored.'
-            ),
+            rule=('External drug import and search. Stock alerts monitored.'),
             steps=(
                 _s(PHARMACY, 'POST /medication/api/external-drug-import', 'external drug imported'),
                 _s(PHARMACY, 'POST /medication/api/stock/alerts', 'stock alerts checked'),
                 _s(PHARMACY, 'GET /medication/api/stock/alerts', 'verify stock alerts retrieved'),
             ),
         ),
-
         # ===== MANAGER MODULE - Critical Write Routes =====
         Template(
             key='MANAGER_APPROVALS_WORKFLOW',
@@ -1627,10 +1793,26 @@ def _base_templates() -> tuple[Template, ...]:
                 'Manager approves/rejects with audit trail.'
             ),
             steps=(
-                _s(MANAGER, 'POST /manager/approve-custom-service/<service_id>', 'custom service approved'),
-                _s(MANAGER, 'POST /manager/reject-custom-service/<service_id>', 'custom service rejected'),
-                _s(MANAGER, 'POST /manager/approve-force-payment/<visit_id>', 'force payment approved'),
-                _s(MANAGER, 'POST /manager/reject-force-payment/<visit_id>', 'force payment rejected'),
+                _s(
+                    MANAGER,
+                    'POST /manager/approve-custom-service/<service_id>',
+                    'custom service approved',
+                ),
+                _s(
+                    MANAGER,
+                    'POST /manager/reject-custom-service/<service_id>',
+                    'custom service rejected',
+                ),
+                _s(
+                    MANAGER,
+                    'POST /manager/approve-force-payment/<visit_id>',
+                    'force payment approved',
+                ),
+                _s(
+                    MANAGER,
+                    'POST /manager/reject-force-payment/<visit_id>',
+                    'force payment rejected',
+                ),
             ),
         ),
         Template(
@@ -1648,7 +1830,9 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(MANAGER, 'POST /manager/seed-pricing', 'pricing seeded from catalog'),
                 _s(MANAGER, 'POST /manager/exchange-rates', 'exchange rate updated'),
                 _s(MANAGER, 'POST /manager/exchange-rates/fetch-api', 'rates fetched from API'),
-                _s(MANAGER, 'POST /manager/exchange-rates/deactivate/<rate_id>', 'rate deactivated'),
+                _s(
+                    MANAGER, 'POST /manager/exchange-rates/deactivate/<rate_id>', 'rate deactivated'
+                ),
             ),
         ),
         Template(
@@ -1674,10 +1858,7 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'Manager settings and what-if modelling. '
-                'Test SMS sends. Units toggle.'
-            ),
+            rule=('Manager settings and what-if modelling. Test SMS sends. Units toggle.'),
             steps=(
                 _s(MANAGER, 'POST /manager/settings', 'settings updated'),
                 _s(MANAGER, 'POST /manager/settings/test-sms', 'test SMS sent'),
@@ -1691,9 +1872,7 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'User management and department management.'
-            ),
+            rule=('User management and department management.'),
             steps=(
                 _s(MANAGER, 'POST /manager/user-management', 'user managed'),
                 _s(MANAGER, 'POST /manager/departments', 'department managed'),
@@ -1707,8 +1886,7 @@ def _base_templates() -> tuple[Template, ...]:
             observed={},
             effect={},
             rule=(
-                'Budget dashboard and financial reports. '
-                'Settlements export. Monthly comparison.'
+                'Budget dashboard and financial reports. Settlements export. Monthly comparison.'
             ),
             steps=(
                 _s(MANAGER, 'POST /manager/budget', 'budget updated'),
@@ -1717,7 +1895,6 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(MANAGER, 'POST /manager/monthly-comparison', 'monthly comparison generated'),
             ),
         ),
-
         # ===== EMERGENCY MODULE - Critical Write Routes =====
         Template(
             key='EMERGENCY_CASE_TREATMENT',
@@ -1732,9 +1909,15 @@ def _base_templates() -> tuple[Template, ...]:
             steps=(
                 _s(EMERGENCY, 'POST /emergency/cases/create', 'emergency case created'),
                 _s(EMERGENCY, 'POST /emergency/triage/<emergency_id>', 'triage completed'),
-                _s(EMERGENCY, 'POST /emergency/start-treatment/<emergency_id>', 'treatment started'),
+                _s(
+                    EMERGENCY, 'POST /emergency/start-treatment/<emergency_id>', 'treatment started'
+                ),
                 _s(EMERGENCY, 'POST /emergency/end-treatment/<emergency_id>', 'treatment ended'),
-                _s(EMERGENCY, 'POST /emergency/emergency-visits/<visit_id>/complete', 'emergency visit completed'),
+                _s(
+                    EMERGENCY,
+                    'POST /emergency/emergency-visits/<visit_id>/complete',
+                    'emergency visit completed',
+                ),
             ),
         ),
         Template(
@@ -1749,7 +1932,11 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             steps=(
                 _s(EMERGENCY, 'POST /emergency/lab-request/<emergency_id>', 'ER lab order'),
-                _s(EMERGENCY, 'POST /emergency/radiology-request/<emergency_id>', 'ER radiology order'),
+                _s(
+                    EMERGENCY,
+                    'POST /emergency/radiology-request/<emergency_id>',
+                    'ER radiology order',
+                ),
                 _s(EMERGENCY, 'POST /emergency/prescription/<emergency_id>', 'ER prescription'),
                 _s(EMERGENCY, 'POST /emergency/cases/<id>/convert', 'case converted to inpatient'),
                 _s(EMERGENCY, 'POST /emergency/cases/<id>/resolve', 'case resolved'),
@@ -1771,7 +1958,6 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(EMERGENCY, 'GET /emergency/cases', 'verify case created'),
             ),
         ),
-
         # ===== DOCTOR MODULE - Critical Write Routes =====
         Template(
             key='DOCTOR_PRESCRIPTION_NOTES',
@@ -1784,12 +1970,20 @@ def _base_templates() -> tuple[Template, ...]:
                 'Notes and templates. Visit summary save. Dental chart.'
             ),
             steps=(
-                _s(DOCTOR, 'POST /doctor/prescription/<visit_id>', 'prescription created with safety check'),
+                _s(
+                    DOCTOR,
+                    'POST /doctor/prescription/<visit_id>',
+                    'prescription created with safety check',
+                ),
                 _s(DOCTOR, 'POST /doctor/save-visit-summary/<visit_id>', 'visit summary saved'),
                 _s(DOCTOR, 'POST /doctor/dental-chart/save', 'dental chart saved'),
                 _s(DOCTOR, 'POST /doctor/notes/<visit_id>', 'clinical note saved'),
                 _s(DOCTOR, 'POST /doctor/api/note-templates', 'note template created'),
-                _s(DOCTOR, 'POST /doctor/api/note-templates/<template_id>/delete', 'note template deleted'),
+                _s(
+                    DOCTOR,
+                    'POST /doctor/api/note-templates/<template_id>/delete',
+                    'note template deleted',
+                ),
             ),
         ),
         Template(
@@ -1806,8 +2000,14 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(DOCTOR, 'POST /doctor/start-treatment/<visit_id>', 'treatment started'),
                 _s(DOCTOR, 'POST /doctor/end-treatment/<visit_id>', 'treatment ended'),
                 _s(DOCTOR, 'POST /doctor/call-patient/<visit_id>', 'patient called'),
-                _s(DOCTOR, 'POST /doctor/lab-request/<visit_id>', 'lab requested via hub-and-spoke'),
-                _s(DOCTOR, 'POST /doctor/radiology-request/<visit_id>', 'radiology requested via hub-and-spoke'),
+                _s(
+                    DOCTOR, 'POST /doctor/lab-request/<visit_id>', 'lab requested via hub-and-spoke'
+                ),
+                _s(
+                    DOCTOR,
+                    'POST /doctor/radiology-request/<visit_id>',
+                    'radiology requested via hub-and-spoke',
+                ),
             ),
         ),
         Template(
@@ -1816,16 +2016,17 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'Diagnosis management and prescription history.'
-            ),
+            rule=('Diagnosis management and prescription history.'),
             steps=(
                 _s(DOCTOR, 'POST /doctor/diagnosis/<visit_id>', 'diagnosis recorded'),
                 _s(DOCTOR, 'POST /doctor/prescriptions', 'prescriptions listed'),
-                _s(DOCTOR, 'POST /doctor/prescriptions-history/<patient_id>', 'prescription history'),
+                _s(
+                    DOCTOR,
+                    'POST /doctor/prescriptions-history/<patient_id>',
+                    'prescription history',
+                ),
             ),
         ),
-
         # ===== BOOKING MODULE - Critical Write Routes =====
         Template(
             key='BOOKING_PAYMENT_CANCEL',
@@ -1833,18 +2034,18 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'Booking payment and cancellation. '
-                'Telemedicine booking. Register new patient.'
-            ),
+            rule=('Booking payment and cancellation. Telemedicine booking. Register new patient.'),
             steps=(
                 _s(RECEPTION, 'POST /booking/payment/<booking_id>', 'booking payment processed'),
                 _s(RECEPTION, 'POST /booking/cancel/<booking_id>', 'booking cancelled'),
                 _s(RECEPTION, 'POST /booking/register', 'patient registered via booking'),
-                _s(RECEPTION, 'POST /booking/telemedicine/<booking_id>', 'telemedicine booking created'),
+                _s(
+                    RECEPTION,
+                    'POST /booking/telemedicine/<booking_id>',
+                    'telemedicine booking created',
+                ),
             ),
         ),
-
         # ===== RADIOLOGY MODULE - Critical Write Routes =====
         Template(
             key='RADIOLOGY_WORKLIST_REPORTS',
@@ -1859,16 +2060,27 @@ def _base_templates() -> tuple[Template, ...]:
             steps=(
                 _s(RADIOLOGY, 'POST /radiology/worklist/claim/<request_id>', 'request claimed'),
                 _s(RADIOLOGY, 'POST /radiology/worklist/complete/<request_id>', 'report completed'),
-                _s(RADIOLOGY, 'POST /radiology/results/<result_id>/second-review', 'second review completed'),
+                _s(
+                    RADIOLOGY,
+                    'POST /radiology/results/<result_id>/second-review',
+                    'second review completed',
+                ),
                 _s(RADIOLOGY, 'POST /radiology/api/ai-assist', 'AI assist requested'),
                 _s(RADIOLOGY, 'POST /radiology/tests/add', 'test added'),
                 _s(RADIOLOGY, 'POST /radiology/api/report-macros', 'macro created'),
-                _s(RADIOLOGY, 'POST /radiology/api/report-macros/<macro_id>/delete', 'macro deleted'),
+                _s(
+                    RADIOLOGY,
+                    'POST /radiology/api/report-macros/<macro_id>/delete',
+                    'macro deleted',
+                ),
                 _s(RADIOLOGY, 'POST /radiology/api/report-templates', 'template created'),
-                _s(RADIOLOGY, 'POST /radiology/api/report-templates/<template_id>/delete', 'template deleted'),
+                _s(
+                    RADIOLOGY,
+                    'POST /radiology/api/report-templates/<template_id>/delete',
+                    'template deleted',
+                ),
             ),
         ),
-
         # ===== COMPLIANCE MODULE - Critical Write Routes =====
         Template(
             key='COMPLIANCE_CONSENT_AUDIT',
@@ -1888,7 +2100,6 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(MANAGER, 'POST /compliance/data-export', 'data export triggered'),
             ),
         ),
-
         # ===== ACCOUNTANT MODULE - Critical Write Routes =====
         Template(
             key='ACCOUNTANT_PERIOD_REFUND',
@@ -1905,10 +2116,13 @@ def _base_templates() -> tuple[Template, ...]:
                 _s(ACCOUNTANT, 'POST /accountant/refunds/<refund_id>/approve', 'refund approved'),
                 _s(ACCOUNTANT, 'POST /accountant/refunds/<refund_id>/execute', 'refund executed'),
                 _s(ACCOUNTANT, 'POST /accountant/refunds/<refund_id>/reject', 'refund rejected'),
-                _s(ACCOUNTANT, 'POST /accountant/payment-documentation/<payment_id>', 'payment documented'),
+                _s(
+                    ACCOUNTANT,
+                    'POST /accountant/payment-documentation/<payment_id>',
+                    'payment documented',
+                ),
             ),
         ),
-
         # ===== BED MODULE - Critical Write Routes =====
         Template(
             key='BED_ADMISSIONS_FULL',
@@ -1916,17 +2130,17 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'Bed admissions: admit, transfer, discharge. '
-                'Bed status transitions enforced.'
-            ),
+            rule=('Bed admissions: admit, transfer, discharge. Bed status transitions enforced.'),
             steps=(
                 _s(NURSE, 'POST /bed/api/admissions/admit', 'patient admitted'),
-                _s(NURSE, 'POST /bed/api/admissions/<admission_id>/transfer', 'patient transferred'),
-                _s(NURSE, 'POST /bed/api/admissions/<admission_id>/discharge', 'patient discharged'),
+                _s(
+                    NURSE, 'POST /bed/api/admissions/<admission_id>/transfer', 'patient transferred'
+                ),
+                _s(
+                    NURSE, 'POST /bed/api/admissions/<admission_id>/discharge', 'patient discharged'
+                ),
             ),
         ),
-
         # ===== NURSE MODULE - Critical Write Routes =====
         Template(
             key='NURSE_VITALS_TASKS',
@@ -1940,7 +2154,11 @@ def _base_templates() -> tuple[Template, ...]:
             ),
             steps=(
                 _s(NURSE, 'POST /nurse/record-vital-signs/<patient_id>', 'vitals recorded'),
-                _s(NURSE, 'POST /nurse/administer-medication/<prescription_item_id>', 'medication administered'),
+                _s(
+                    NURSE,
+                    'POST /nurse/administer-medication/<prescription_item_id>',
+                    'medication administered',
+                ),
                 _s(NURSE, 'POST /nurse/tasks/create', 'task created'),
                 _s(NURSE, 'POST /nurse/tasks/<task_id>/status', 'task status updated'),
             ),
@@ -1951,16 +2169,13 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'Nurse protocols API for clinical guidelines.'
-            ),
+            rule=('Nurse protocols API for clinical guidelines.'),
             steps=(
                 _s(NURSE, 'POST /nurse/api/protocols', 'protocol accessed'),
                 _s(NURSE, 'GET /nurse/api/protocols', 'protocol list retrieved'),
                 _s(NURSE, 'POST /nurse/api/protocols', 'protocol search performed'),
             ),
         ),
-
         # ===== NURSING ASSESSMENT - Critical Write Routes =====
         Template(
             key='NURSING_ASSESSMENT_NEW',
@@ -1968,16 +2183,17 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'Nursing assessment creation for patient.'
-            ),
+            rule=('Nursing assessment creation for patient.'),
             steps=(
                 _s(NURSE, 'POST /nursing-assessment/new/<patient_id>', 'assessment created'),
-                _s(NURSE, 'GET /nursing-assessment/new/<patient_id>', 'assessment details retrieved'),
+                _s(
+                    NURSE,
+                    'GET /nursing-assessment/new/<patient_id>',
+                    'assessment details retrieved',
+                ),
                 _s(NURSE, 'POST /nursing-assessment/new/<patient_id>', 'assessment updated'),
             ),
         ),
-
         # ===== API MODULE - Critical Write Routes =====
         Template(
             key='API_SAAS_REGISTER_PREFERENCES',
@@ -1985,16 +2201,13 @@ def _base_templates() -> tuple[Template, ...]:
             axes=(),
             observed={},
             effect={},
-            rule=(
-                'SaaS registration and user preferences API.'
-            ),
+            rule=('SaaS registration and user preferences API.'),
             steps=(
                 _s(SYSTEM, 'POST /api/saas/register', 'tenant registered'),
                 _s(SYSTEM, 'POST /api/user/preferences', 'preferences updated'),
                 _s(SYSTEM, 'GET /api/user/preferences', 'verify preferences retrieved'),
             ),
         ),
-
     )
 
 
