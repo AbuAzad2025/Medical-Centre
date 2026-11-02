@@ -28,37 +28,52 @@ def main():
     os.environ['RLS_BYPASS_ALLOWED'] = '1'
 
     try:
-        from app_factory import create_app
         from flask import g
-        from sqlalchemy import text
+
+        from app_factory import create_app
 
         app = create_app('testing')
 
         with app.app_context():
             from flask import current_app
+            from sqlalchemy import select
+
             from app.core.tenant.middleware import bind_g_tenant
             from app.core.tenant.models import Tenant
-            from models.user import User
             from models.patient import Patient
-            from sqlalchemy import select
 
             db = current_app.extensions['migrate'].db
 
             # Create two test tenants
-            tenant1 = Tenant(slug='tenant1', name='Tenant 1', name_ar='مستأجر 1', contact_email='t1@test.com', status='ACTIVE')
-            tenant2 = Tenant(slug='tenant2', name='Tenant 2', name_ar='مستأجر 2', contact_email='t2@test.com', status='ACTIVE')
+            tenant1 = Tenant(
+                slug='tenant1',
+                name='Tenant 1',
+                name_ar='مستأجر 1',
+                contact_email='t1@test.com',
+                status='ACTIVE',
+            )
+            tenant2 = Tenant(
+                slug='tenant2',
+                name='Tenant 2',
+                name_ar='مستأجر 2',
+                contact_email='t2@test.com',
+                status='ACTIVE',
+            )
 
-            from app_factory import db
             db.session.add(tenant1)
             db.session.add(tenant2)
             db.session.flush()
 
             # Create a test patient in tenant1
-            patient1 = Patient(tenant_id=tenant1.id, first_name='Test', last_name='Patient1', gender='M')
+            patient1 = Patient(
+                tenant_id=tenant1.id, first_name='Test', last_name='Patient1', gender='M'
+            )
             db.session.add(patient1)
 
             # Create a test patient in tenant2
-            patient2 = Patient(tenant_id=tenant2.id, first_name='Test', last_name='Patient2', gender='F')
+            patient2 = Patient(
+                tenant_id=tenant2.id, first_name='Test', last_name='Patient2', gender='F'
+            )
             db.session.add(patient2)
             db.session.commit()
 
@@ -98,6 +113,7 @@ def main():
             # With RLS_FORCE, even platform should be restricted unless bypassed
             # Clear tenant binding
             from flask import g
+
             g.pop('tenant_id', None)
             g.pop('current_tenant', None)
 
@@ -107,13 +123,16 @@ def main():
 
             # With FORCE RLS and no tenant bound, should see nothing
             if platform_patient_ids:
-                print('WARNING: Platform sees patients without tenant binding (may be expected if bypass is active)')
+                print(
+                    'WARNING: Platform sees patients without tenant binding (may be expected if bypass is active)'
+                )
             else:
                 print('PASS: Platform sees no patients without tenant binding')
 
     except Exception as e:
         print(f'ERROR during RLS enforcement test: {e}')
         import traceback
+
         traceback.print_exc()
         return 1
 
