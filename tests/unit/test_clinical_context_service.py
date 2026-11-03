@@ -16,7 +16,7 @@ class TestClinicalContextService:
     def test_get_visit_context_tenant_error(self):
         """Test get_visit_context returns empty dict on tenant error."""
         with patch('services.clinical_context_service.get_tenant_record') as mock_get:
-            mock_get.side_effect = TenantContextError("No tenant context")
+            mock_get.side_effect = TenantContextError('No tenant context')
 
             result = ClinicalContextService.get_visit_context(1)
 
