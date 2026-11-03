@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from services.clinical_context_service import ClinicalContextService
 from utils.tenant_query import TenantContextError
