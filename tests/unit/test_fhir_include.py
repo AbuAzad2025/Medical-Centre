@@ -89,7 +89,13 @@ class TestResolveInclude:
     def test_resolve_include_matching_resource(self):
         """Test resolve_include with matching resource."""
         entries = [
-            {'resource': {'resourceType': 'Patient', 'id': '1', 'general-practitioner': {'reference': 'Practitioner/2'}}}
+            {
+                'resource': {
+                    'resourceType': 'Patient',
+                    'id': '1',
+                    'general-practitioner': {'reference': 'Practitioner/2'},
+                }
+            }
         ]
         model_lookup = {'Practitioner': (MagicMock(), 'id')}
         model_lookup['Practitioner'][0].query.get.return_value = MagicMock()
@@ -102,7 +108,13 @@ class TestResolveInclude:
     def test_resolve_include_reference_dict(self):
         """Test resolve_include with reference as dict."""
         entries = [
-            {'resource': {'resourceType': 'Patient', 'id': '1', 'general-practitioner': {'reference': 'Practitioner/2'}}}
+            {
+                'resource': {
+                    'resourceType': 'Patient',
+                    'id': '1',
+                    'general-practitioner': {'reference': 'Practitioner/2'},
+                }
+            }
         ]
         model_lookup = {'Practitioner': (MagicMock(), 'id')}
         mock_model = MagicMock()
@@ -116,10 +128,16 @@ class TestResolveInclude:
     def test_resolve_include_reference_list(self):
         """Test resolve_include with reference as list."""
         entries = [
-            {'resource': {'resourceType': 'Patient', 'id': '1', 'general-practitioner': [
-                {'reference': 'Practitioner/2'},
-                {'reference': 'Practitioner/3'}
-            ]}}
+            {
+                'resource': {
+                    'resourceType': 'Patient',
+                    'id': '1',
+                    'general-practitioner': [
+                        {'reference': 'Practitioner/2'},
+                        {'reference': 'Practitioner/3'},
+                    ],
+                }
+            }
         ]
         model_lookup = {'Practitioner': (MagicMock(), 'id')}
         mock_model = MagicMock()
@@ -131,10 +149,16 @@ class TestResolveInclude:
     def test_resolve_include_model_lookup_exception(self):
         """Test resolve_include handles model lookup exceptions."""
         entries = [
-            {'resource': {'resourceType': 'Patient', 'id': '1', 'general-practitioner': {'reference': 'Practitioner/2'}}}
+            {
+                'resource': {
+                    'resourceType': 'Patient',
+                    'id': '1',
+                    'general-practitioner': {'reference': 'Practitioner/2'},
+                }
+            }
         ]
         model_lookup = {'Practitioner': (MagicMock(), 'id')}
-        model_lookup['Practitioner'][0].query.get.side_effect = Exception("DB error")
+        model_lookup['Practitioner'][0].query.get.side_effect = Exception('DB error')
 
         # Should not raise exception
         result = resolve_include(entries, ['Patient:general-practitioner'], model_lookup)
@@ -143,10 +167,16 @@ class TestResolveInclude:
     def test_resolve_include_value_error(self):
         """Test resolve_include handles ValueError."""
         entries = [
-            {'resource': {'resourceType': 'Patient', 'id': '1', 'general-practitioner': {'reference': 'Practitioner/not-an-int'}}}
+            {
+                'resource': {
+                    'resourceType': 'Patient',
+                    'id': '1',
+                    'general-practitioner': {'reference': 'Practitioner/not-an-int'},
+                }
+            }
         ]
         model_lookup = {'Practitioner': (MagicMock(), 'id')}
-        model_lookup['Practitioner'][0].query.get.side_effect = ValueError("Invalid ID")
+        model_lookup['Practitioner'][0].query.get.side_effect = ValueError('Invalid ID')
 
         # Should not raise exception
         result = resolve_include(entries, ['Patient:general-practitioner'], model_lookup)
