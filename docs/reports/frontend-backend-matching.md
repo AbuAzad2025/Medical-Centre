@@ -1,6 +1,6 @@
 # Frontend-Backend Template Matching Report
 
-Generated: 2026-10-21 12:35:52Z
+Generated: 2026-11-02 19:05:20Z
 Frontend pages analyzed: 81
 Backend templates analyzed: 87
 
@@ -19,32 +19,32 @@ Backend templates analyzed: 87
 ### ✅ reception/appointments
 - File: `D:\recovers\data\medical\static\js\pages\reception\appointments.js`
 - API calls found: 10
-- Matched backend templates: READ_ROOT_LEVEL_SHORTCUTS, READ_BOOKING_SLOT_AVAILABILITY, READ_RECEPTION_PRINTABLES, READ_RECEPTION_FOLLOW_UP_AND_PAYMENT_LISTS, READ_LANDING_AND_ACCOUNT_PAGES, READ_RECEPTION_LOOKUP_AND_DETAIL, READ_RECEPTION_FRONT_DESK_DASHBOARDS, READ_FHIR_BUNDLE_ENDPOINTS, READ_DASHBOARD_SNAPSHOT_AND_PATIENT_SEARCH_API, READ_GLOBAL_SEARCH, READ_CONSOLE_LANDING_PAGES, READ_FHIR_AND_INTEROPERABILITY_SURFACES, READ_DEPARTMENT_DASHBOARDS
-- **Missing backend coverage for:** reception.appointments, reception.edit_appointment, reception.no_show_appointment, reception.view_appointment, __M1__, reception.confirm_appointment, __M0__, reception.cancel_appointment
+- Matched backend templates: READ_LANDING_AND_ACCOUNT_PAGES, READ_GLOBAL_SEARCH, READ_CONSOLE_LANDING_PAGES, READ_ROOT_LEVEL_SHORTCUTS, READ_DASHBOARD_SNAPSHOT_AND_PATIENT_SEARCH_API, READ_DEPARTMENT_DASHBOARDS, READ_FHIR_AND_INTEROPERABILITY_SURFACES, READ_FHIR_BUNDLE_ENDPOINTS, READ_RECEPTION_FOLLOW_UP_AND_PAYMENT_LISTS, READ_RECEPTION_LOOKUP_AND_DETAIL, READ_RECEPTION_FRONT_DESK_DASHBOARDS, READ_RECEPTION_PRINTABLES, READ_BOOKING_SLOT_AVAILABILITY
+- **Missing backend coverage for:** reception.no_show_appointment, __M0__, reception.cancel_appointment, reception.view_appointment, reception.appointments, reception.confirm_appointment, reception.edit_appointment, __M1__
 
 ### ✅ reception/visits
 - File: `D:\recovers\data\medical\static\js\pages\reception\visits.js`
 - API calls found: 9
-- Matched backend templates: READ_ACCOUNTANT_ACCOUNTS_AND_PATIENT_BALANCES, READ_PAYMENT_CONSOLE, READ_ACCOUNTANT_RECEIPT_AND_EXPORT, READ_ACCOUNTANT_DASHBOARDS_AND_REPORTS, READ_PATIENT_PORTAL_BILLS_AND_BOOKING
-- **Missing backend coverage for:** reception.print_receipt, reception.export_visits, reception.transfer_visit, reception.view_visit, __M1__, reception.api_department_staff, __M0__, reception.edit_visit
+- Matched backend templates: READ_ACCOUNTANT_ACCOUNTS_AND_PATIENT_BALANCES, READ_PATIENT_PORTAL_BILLS_AND_BOOKING, READ_ACCOUNTANT_DASHBOARDS_AND_REPORTS, READ_ACCOUNTANT_RECEIPT_AND_EXPORT, READ_PAYMENT_CONSOLE
+- **Missing backend coverage for:** reception.edit_visit, __M0__, reception.transfer_visit, reception.export_visits, reception.print_receipt, reception.api_department_staff, __M1__, reception.view_visit
 
 ### ✅ super_admin/departments
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\departments.js`
 - API calls found: 7
 - Matched backend templates: READ_SUPERADMIN_CATALOGUE_AND_PRICING
-- **Missing backend coverage for:** super_admin.activate_department, super_admin.department_staff, super_admin.deactivate_department, super_admin.view_department, super_admin.export_departments, super_admin.edit_department
+- **Missing backend coverage for:** super_admin.activate_department, super_admin.view_department, super_admin.edit_department, super_admin.deactivate_department, super_admin.department_staff, super_admin.export_departments
 
 ### ✅ super_admin/services
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\services.js`
 - API calls found: 7
 - Matched backend templates: READ_SUPERADMIN_CATALOGUE_AND_PRICING
-- **Missing backend coverage for:** super_admin.edit_service, super_admin.deactivate_service, super_admin.view_service, super_admin.export_services, super_admin.service_pricing, super_admin.activate_service
+- **Missing backend coverage for:** super_admin.deactivate_service, super_admin.export_services, super_admin.edit_service, super_admin.activate_service, super_admin.service_pricing, super_admin.view_service
 
 ### ✅ super_admin/system_backup
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\system_backup.js`
 - API calls found: 9
 - Matched backend templates: READ_BACKUP_CONSOLE_VIEWS, READ_SUPERADMIN_SYSTEM_AND_BACKUP_VIEWS
-- **Missing backend coverage for:** super_admin.export_backup_logs, super_admin.delete_backup, super_admin.backup_report, super_admin.save_backup_settings, super_admin.restore_backup, super_admin.backup_schedule, super_admin.backup_history, super_admin.cancel_backup
+- **Missing backend coverage for:** super_admin.backup_report, super_admin.backup_schedule, super_admin.export_backup_logs, super_admin.backup_history, super_admin.cancel_backup, super_admin.save_backup_settings, super_admin.delete_backup, super_admin.restore_backup
 
 ### ❌ accountant/dashboard_new
 - File: `D:\recovers\data\medical\static\js\pages\accountant\dashboard_new.js`
@@ -58,7 +58,7 @@ Backend templates analyzed: 87
 ### ❌ accountant/process_payment
 - File: `D:\recovers\data\medical\static\js\pages\accountant\process_payment.js`
 - API calls found: 2
-- **Missing backend coverage for:** __M0__, reception_currency.check_rate
+- **Missing backend coverage for:** reception_currency.check_rate, __M0__
 
 ### ❌ barcode/scan
 - File: `D:\recovers\data\medical\static\js\pages\barcode\scan.js`
@@ -73,7 +73,7 @@ Backend templates analyzed: 87
 ### ❌ booking/create
 - File: `D:\recovers\data\medical\static\js\pages\booking\create.js`
 - API calls found: 5
-- **Missing backend coverage for:** __M2__, __M3__, __M4__, __M1__, __M0__
+- **Missing backend coverage for:** __M3__, __M0__, __M2__, __M1__, __M4__
 
 ### ❌ booking/index
 - File: `D:\recovers\data\medical\static\js\pages\booking\index.js`
@@ -83,12 +83,12 @@ Backend templates analyzed: 87
 ### ❌ doctor/dashboard
 - File: `D:\recovers\data\medical\static\js\pages\doctor\dashboard.js`
 - API calls found: 7
-- **Missing backend coverage for:** __M2__, doctor.api_dashboard_stats, __M3__, __M4__, __M1__, __M5__, __M0__
+- **Missing backend coverage for:** __M3__, __M0__, __M5__, __M2__, __M1__, doctor.api_dashboard_stats, __M4__
 
 ### ❌ doctor/dental_chart
 - File: `D:\recovers\data\medical\static\js\pages\doctor\dental_chart.js`
 - API calls found: 6
-- **Missing backend coverage for:** __M2__, __M3__, __M4__, __M1__, __M5__, __M0__
+- **Missing backend coverage for:** __M3__, __M0__, __M5__, __M2__, __M1__, __M4__
 
 ### ❌ doctor/diagnosis
 - File: `D:\recovers\data\medical\static\js\pages\doctor\diagnosis.js`
@@ -97,7 +97,7 @@ Backend templates analyzed: 87
 ### ❌ doctor/notes
 - File: `D:\recovers\data\medical\static\js\pages\doctor\notes.js`
 - API calls found: 3
-- **Missing backend coverage for:** __M2__, __M1__, __M0__
+- **Missing backend coverage for:** __M1__, __M2__, __M0__
 
 ### ❌ doctor/patient_details
 - File: `D:\recovers\data\medical\static\js\pages\doctor\patient_details.js`
@@ -107,7 +107,7 @@ Backend templates analyzed: 87
 ### ❌ doctor/patient_queue
 - File: `D:\recovers\data\medical\static\js\pages\doctor\patient_queue.js`
 - API calls found: 4
-- **Missing backend coverage for:** reception.get_smart_queue_management, __M2__, __M1__, __M0__
+- **Missing backend coverage for:** reception.get_smart_queue_management, __M2__, __M0__, __M1__
 
 ### ❌ doctor/prescription
 - File: `D:\recovers\data\medical\static\js\pages\doctor\prescription.js`
@@ -176,12 +176,12 @@ Backend templates analyzed: 87
 ### ❌ manager/monitoring
 - File: `D:\recovers\data\medical\static\js\pages\manager\monitoring.js`
 - API calls found: 8
-- **Missing backend coverage for:** __M2__, __M3__, __M4__, __M1__, __M5__, __M0__, __M6__, __M7__
+- **Missing backend coverage for:** __M3__, __M0__, __M5__, __M2__, __M6__, __M7__, __M1__, __M4__
 
 ### ❌ manager/pricing
 - File: `D:\recovers\data\medical\static\js\pages\manager\pricing.js`
 - API calls found: 3
-- **Missing backend coverage for:** manager.get_services_api, __M1__, __M0__
+- **Missing backend coverage for:** __M1__, manager.get_services_api, __M0__
 
 ### ❌ manager/reports
 - File: `D:\recovers\data\medical\static\js\pages\manager\reports.js`
@@ -263,12 +263,12 @@ Backend templates analyzed: 87
 ### ❌ radiology/process
 - File: `D:\recovers\data\medical\static\js\pages\radiology\process.js`
 - API calls found: 8
-- **Missing backend coverage for:** __M2__, __M3__, __M4__, __M1__, __M5__, __M0__, __M6__, __M7__
+- **Missing backend coverage for:** __M3__, __M0__, __M5__, __M2__, __M6__, __M7__, __M1__, __M4__
 
 ### ❌ reception/add_patient_to_queue
 - File: `D:\recovers\data\medical\static\js\pages\reception\add_patient_to_queue.js`
 - API calls found: 2
-- **Missing backend coverage for:** reception.api_doctors, reception.queue_management
+- **Missing backend coverage for:** reception.queue_management, reception.api_doctors
 
 ### ❌ reception/calls_display
 - File: `D:\recovers\data\medical\static\js\pages\reception\calls_display.js`
@@ -283,22 +283,22 @@ Backend templates analyzed: 87
 ### ❌ reception/create_visit
 - File: `D:\recovers\data\medical\static\js\pages\reception\create_visit.js`
 - API calls found: 9
-- **Missing backend coverage for:** __M2__, __M3__, reception.pos_charge, __M1__, reception.api_department_staff, reception.api_department_services, reception.api_visit_pricing, __M0__, reception.patients
+- **Missing backend coverage for:** __M3__, __M0__, reception.pos_charge, __M2__, reception.api_visit_pricing, reception.patients, reception.api_department_services, reception.api_department_staff, __M1__
 
 ### ❌ reception/patients
 - File: `D:\recovers\data\medical\static\js\pages\reception\patients.js`
 - API calls found: 3
-- **Missing backend coverage for:** reception.api_smart_patient_search, __M1__, __M0__
+- **Missing backend coverage for:** __M1__, reception.api_smart_patient_search, __M0__
 
 ### ❌ reception/queue_management
 - File: `D:\recovers\data\medical\static\js\pages\reception\queue_management.js`
 - API calls found: 13
-- **Missing backend coverage for:** reception.start_treatment, __M2__, reception.approve_emergency_debt, reception.return_to_queue, reception.transfer_visit, __M1__, reception.api_department_staff, reception.approve_force_entry, reception.cancel_ticket, reception.complete_treatment, reception.api_queue_wait_metrics, reception.skip_patient, __M0__
+- **Missing backend coverage for:** reception.approve_force_entry, reception.skip_patient, __M0__, reception.cancel_ticket, reception.start_treatment, reception.transfer_visit, reception.api_queue_wait_metrics, reception.return_to_queue, __M2__, reception.approve_emergency_debt, reception.api_department_staff, __M1__, reception.complete_treatment
 
 ### ❌ reception/view_appointment
 - File: `D:\recovers\data\medical\static\js\pages\reception\view_appointment.js`
 - API calls found: 3
-- **Missing backend coverage for:** reception.cancel_appointment, reception.confirm_appointment, reception.no_show_appointment
+- **Missing backend coverage for:** reception.cancel_appointment, reception.no_show_appointment, reception.confirm_appointment
 
 ### ❌ reception/waiting_display
 - File: `D:\recovers\data\medical\static\js\pages\reception\waiting_display.js`
@@ -308,7 +308,7 @@ Backend templates analyzed: 87
 ### ❌ report_builder/builder
 - File: `D:\recovers\data\medical\static\js\pages\report_builder\builder.js`
 - API calls found: 8
-- **Missing backend coverage for:** __M2__, __M3__, __M4__, __M1__, __M5__, __M0__, __M6__, __M7__
+- **Missing backend coverage for:** __M3__, __M0__, __M5__, __M2__, __M6__, __M7__, __M1__, __M4__
 
 ### ❌ super_admin/analytics
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\analytics.js`
@@ -327,7 +327,7 @@ Backend templates analyzed: 87
 ### ❌ super_admin/branding
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\branding.js`
 - API calls found: 3
-- **Missing backend coverage for:** __M2__, __M1__, __M0__
+- **Missing backend coverage for:** __M1__, __M2__, __M0__
 
 ### ❌ super_admin/create_user
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\create_user.js`
@@ -341,7 +341,7 @@ Backend templates analyzed: 87
 ### ❌ super_admin/department_staff
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\department_staff.js`
 - API calls found: 4
-- **Missing backend coverage for:** super_admin.add_staff_to_department, __M1__, __M0__, super_admin.remove_staff_from_department
+- **Missing backend coverage for:** __M1__, super_admin.remove_staff_from_department, super_admin.add_staff_to_department, __M0__
 
 ### ❌ super_admin/maintenance_automation
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\maintenance_automation.js`
@@ -364,7 +364,7 @@ Backend templates analyzed: 87
 ### ❌ super_admin/roles
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\roles.js`
 - API calls found: 3
-- **Missing backend coverage for:** super_admin.manage_role_permissions, super_admin.manage_role_department_permissions, super_admin.edit_role
+- **Missing backend coverage for:** super_admin.manage_role_department_permissions, super_admin.manage_role_permissions, super_admin.edit_role
 
 ### ❌ super_admin/security_logs
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\security_logs.js`
@@ -382,7 +382,7 @@ Backend templates analyzed: 87
 ### ❌ super_admin/system_config
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\system_config.js`
 - API calls found: 7
-- **Missing backend coverage for:** __M2__, __M3__, __M4__, __M1__, __M5__, __M6__, __M0__
+- **Missing backend coverage for:** __M3__, __M0__, __M5__, __M2__, __M6__, __M1__, __M4__
 
 ### ❌ super_admin/system_maintenance
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\system_maintenance.js`
@@ -392,7 +392,7 @@ Backend templates analyzed: 87
 ### ❌ super_admin/users
 - File: `D:\recovers\data\medical\static\js\pages\super_admin\users.js`
 - API calls found: 2
-- **Missing backend coverage for:** super_admin.delete_user, super_admin.reset_user_password
+- **Missing backend coverage for:** super_admin.reset_user_password, super_admin.delete_user
 
 ## Orphaned Backend Templates (No Frontend Coverage)
 
@@ -535,17 +535,17 @@ Backend templates analyzed: 87
 |---------------|-----------|-----------|-------------------|---------|
 | accountant/dashboard_new | accountant | __M0__ |  | __M0__ |
 | accountant/pending_payments | accountant |  |  |  |
-| accountant/process_payment | accountant | __M0__, reception_currency.check_rate |  | __M0__, reception_currency.check_rate |
+| accountant/process_payment | accountant | reception_currency.check_rate, __M0__ |  | reception_currency.check_rate, __M0__ |
 | barcode/scan | barcode | __M1__, __M0__ |  | __M1__, __M0__ |
 | biometric/status | biometric | __M0__ |  | __M0__ |
-| booking/create | booking | __M2__, __M3__, __M4__... |  | __M2__, __M3__... |
+| booking/create | booking | __M3__, __M0__, __M2__... |  | __M3__, __M0__... |
 | booking/index | booking | __M1__, __M0__ |  | __M1__, __M0__ |
-| doctor/dashboard | doctor | __M2__, doctor.api_dashboard_stats, __M3__... |  | __M2__, doctor.api_dashboard_stats... |
-| doctor/dental_chart | doctor | __M2__, __M3__, __M4__... |  | __M2__, __M3__... |
+| doctor/dashboard | doctor | __M3__, __M0__, __M5__... |  | __M3__, __M0__... |
+| doctor/dental_chart | doctor | __M3__, __M0__, __M5__... |  | __M3__, __M0__... |
 | doctor/diagnosis | doctor |  |  |  |
-| doctor/notes | doctor | __M2__, __M1__, __M0__ |  | __M2__, __M1__... |
+| doctor/notes | doctor | __M1__, __M2__, __M0__ |  | __M1__, __M2__... |
 | doctor/patient_details | doctor | __M1__, __M0__ |  | __M1__, __M0__ |
-| doctor/patient_queue | doctor | reception.get_smart_queue_management, __M2__, __M1__... |  | reception.get_smart_queue_management, __M2__... |
+| doctor/patient_queue | doctor | reception.get_smart_queue_management, __M2__, __M0__... |  | reception.get_smart_queue_management, __M2__... |
 | doctor/prescription | doctor | __M0__ |  | __M0__ |
 | doctor/visit_summary | doctor | __M1__, __M0__ |  | __M1__, __M0__ |
 | emergency/dashboard_new | emergency |  |  |  |
@@ -560,8 +560,8 @@ Backend templates analyzed: 87
 | lab/dashboard_new | lab |  |  |  |
 | lab/lab_requests_results_print | lab |  |  |  |
 | manager/dashboard | manager | __M0__ |  | __M0__ |
-| manager/monitoring | manager | __M2__, __M3__, __M4__... |  | __M2__, __M3__... |
-| manager/pricing | manager | manager.get_services_api, __M1__, __M0__ |  | manager.get_services_api, __M1__... |
+| manager/monitoring | manager | __M3__, __M0__, __M5__... |  | __M3__, __M0__... |
+| manager/pricing | manager | __M1__, manager.get_services_api, __M0__ |  | __M1__, manager.get_services_api... |
 | manager/reports | manager |  |  |  |
 | manager/unit_control | manager | manager.unit_toggle | READ_MANAGER_PRICING_AND_SATISFACTION |  |
 | manager/user_management | manager |  |  |  |
@@ -581,36 +581,36 @@ Backend templates analyzed: 87
 | quality_compliance/dashboard | quality_compliance | __M0__ |  | __M0__ |
 | radiology/add_scan | radiology |  |  |  |
 | radiology/dashboard_new | radiology |  |  |  |
-| radiology/process | radiology | __M2__, __M3__, __M4__... |  | __M2__, __M3__... |
-| reception/add_patient_to_queue | reception | reception.api_doctors, reception.queue_management |  | reception.api_doctors, reception.queue_management |
-| reception/appointments | reception | reception.appointments, reception.edit_appointment, reception.create_visit... | READ_ROOT_LEVEL_SHORTCUTS, READ_BOOKING_SLOT_AVAILABILITY... | reception.appointments, reception.edit_appointment... |
+| radiology/process | radiology | __M3__, __M0__, __M5__... |  | __M3__, __M0__... |
+| reception/add_patient_to_queue | reception | reception.queue_management, reception.api_doctors |  | reception.queue_management, reception.api_doctors |
+| reception/appointments | reception | reception.create_appointment, reception.no_show_appointment, reception.create_visit... | READ_LANDING_AND_ACCOUNT_PAGES, READ_GLOBAL_SEARCH... | reception.no_show_appointment, __M0__... |
 | reception/calls_display | reception | __M0__ |  | __M0__ |
 | reception/create_appointment | reception | booking.api_available_doctors, booking.api_available_times, __M0__ |  | booking.api_available_doctors, booking.api_available_times... |
-| reception/create_visit | reception | __M2__, __M3__, reception.pos_charge... |  | __M2__, __M3__... |
-| reception/patients | reception | reception.api_smart_patient_search, __M1__, __M0__ |  | reception.api_smart_patient_search, __M1__... |
-| reception/queue_management | reception | reception.start_treatment, __M2__, reception.approve_emergency_debt... |  | reception.start_treatment, __M2__... |
-| reception/view_appointment | reception | reception.cancel_appointment, reception.confirm_appointment, reception.no_show_appointment |  | reception.cancel_appointment, reception.confirm_appointment... |
-| reception/visits | reception | reception.print_receipt, reception.export_visits, reception.transfer_visit... | READ_ACCOUNTANT_ACCOUNTS_AND_PATIENT_BALANCES, READ_PAYMENT_CONSOLE... | reception.print_receipt, reception.export_visits... |
+| reception/create_visit | reception | __M3__, __M0__, reception.pos_charge... |  | __M3__, __M0__... |
+| reception/patients | reception | __M1__, reception.api_smart_patient_search, __M0__ |  | __M1__, reception.api_smart_patient_search... |
+| reception/queue_management | reception | reception.approve_force_entry, reception.skip_patient, __M0__... |  | reception.approve_force_entry, reception.skip_patient... |
+| reception/view_appointment | reception | reception.cancel_appointment, reception.no_show_appointment, reception.confirm_appointment |  | reception.cancel_appointment, reception.no_show_appointment... |
+| reception/visits | reception | reception.edit_visit, __M0__, reception.transfer_visit... | READ_ACCOUNTANT_ACCOUNTS_AND_PATIENT_BALANCES, READ_PATIENT_PORTAL_BILLS_AND_BOOKING... | reception.edit_visit, __M0__... |
 | reception/waiting_display | reception | __M0__ |  | __M0__ |
-| report_builder/builder | report_builder | __M2__, __M3__, __M4__... |  | __M2__, __M3__... |
+| report_builder/builder | report_builder | __M3__, __M0__, __M5__... |  | __M3__, __M0__... |
 | super_admin/analytics | super_admin |  |  |  |
 | super_admin/audit_trail | super_admin | __M0__ |  | __M0__ |
 | super_admin/branch_templates | super_admin | __M0__ |  | __M0__ |
-| super_admin/branding | super_admin | __M2__, __M1__, __M0__ |  | __M2__, __M1__... |
+| super_admin/branding | super_admin | __M1__, __M2__, __M0__ |  | __M1__, __M2__... |
 | super_admin/create_user | super_admin |  |  |  |
 | super_admin/department_detail | super_admin | super_admin.activate_department, super_admin.deactivate_department |  | super_admin.activate_department, super_admin.deactivate_department |
-| super_admin/department_staff | super_admin | super_admin.add_staff_to_department, __M1__, __M0__... |  | super_admin.add_staff_to_department, __M1__... |
-| super_admin/departments | super_admin | super_admin.activate_department, super_admin.create_department, super_admin.department_staff... | READ_SUPERADMIN_CATALOGUE_AND_PRICING | super_admin.activate_department, super_admin.department_staff... |
+| super_admin/department_staff | super_admin | __M1__, super_admin.remove_staff_from_department, super_admin.add_staff_to_department... |  | __M1__, super_admin.remove_staff_from_department... |
+| super_admin/departments | super_admin | super_admin.activate_department, super_admin.view_department, super_admin.edit_department... | READ_SUPERADMIN_CATALOGUE_AND_PRICING | super_admin.activate_department, super_admin.view_department... |
 | super_admin/maintenance_automation | super_admin | __M0__ |  | __M0__ |
 | super_admin/performance | super_admin |  |  |  |
 | super_admin/permissions | super_admin |  |  |  |
 | super_admin/queue_settings | super_admin | __M1__, __M0__ |  | __M1__, __M0__ |
-| super_admin/roles | super_admin | super_admin.manage_role_permissions, super_admin.manage_role_department_permissions, super_admin.edit_role |  | super_admin.manage_role_permissions, super_admin.manage_role_department_permissions... |
+| super_admin/roles | super_admin | super_admin.manage_role_department_permissions, super_admin.manage_role_permissions, super_admin.edit_role |  | super_admin.manage_role_department_permissions, super_admin.manage_role_permissions... |
 | super_admin/security_logs | super_admin |  |  |  |
 | super_admin/service_detail | super_admin | super_admin.deactivate_service, super_admin.activate_service |  | super_admin.deactivate_service, super_admin.activate_service |
 | super_admin/service_pricing | super_admin |  |  |  |
-| super_admin/services | super_admin | super_admin.edit_service, super_admin.deactivate_service, super_admin.view_service... | READ_SUPERADMIN_CATALOGUE_AND_PRICING | super_admin.edit_service, super_admin.deactivate_service... |
-| super_admin/system_backup | super_admin | super_admin.export_backup_logs, super_admin.delete_backup, super_admin.backup_report... | READ_BACKUP_CONSOLE_VIEWS, READ_SUPERADMIN_SYSTEM_AND_BACKUP_VIEWS | super_admin.export_backup_logs, super_admin.delete_backup... |
-| super_admin/system_config | super_admin | __M2__, __M3__, __M4__... |  | __M2__, __M3__... |
+| super_admin/services | super_admin | super_admin.deactivate_service, super_admin.export_services, super_admin.edit_service... | READ_SUPERADMIN_CATALOGUE_AND_PRICING | super_admin.deactivate_service, super_admin.export_services... |
+| super_admin/system_backup | super_admin | super_admin.backup_report, super_admin.backup_schedule, super_admin.export_backup_logs... | READ_BACKUP_CONSOLE_VIEWS, READ_SUPERADMIN_SYSTEM_AND_BACKUP_VIEWS | super_admin.backup_report, super_admin.backup_schedule... |
+| super_admin/system_config | super_admin | __M3__, __M0__, __M5__... |  | __M3__, __M0__... |
 | super_admin/system_maintenance | super_admin | main.health |  | main.health |
-| super_admin/users | super_admin | super_admin.delete_user, super_admin.reset_user_password |  | super_admin.delete_user, super_admin.reset_user_password |
+| super_admin/users | super_admin | super_admin.reset_user_password, super_admin.delete_user |  | super_admin.reset_user_password, super_admin.delete_user |
