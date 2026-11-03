@@ -323,7 +323,8 @@ class FileService:
         query = select(FileUpload)
         if tid:
             query = query.filter_by(tenant_id=tid)
-        return query.order_by(FileUpload.uploaded_at.desc()).all()
+        query = query.order_by(FileUpload.uploaded_at.desc())
+        return db.session.execute(query).scalars().all()
 
     @staticmethod
     def delete(file_id: int) -> bool:

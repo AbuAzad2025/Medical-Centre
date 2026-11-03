@@ -32,7 +32,7 @@ def index():
             flash('يجب كتابة RESTORE للتأكيد قبل الاستعادة', 'error')
             return redirect(url_for('backup_restore.index'))
         backup = db.session.get(Backup, backup_id) if backup_id else None
-        if not backup or not backup.file_path or not Path(backup.file_path).exists():
+        if not backup or not backup.backup_path or not Path(backup.backup_path).exists():
             flash('ملف النسخة غير موجود', 'error')
             return redirect(url_for('backup_restore.index'))
         log = BackupRestoreLog(
@@ -40,7 +40,7 @@ def index():
             operation=operation,
             status='running',
             initiated_by=current_user.id,
-            source_path=backup.file_path,
+            source_path=backup.backup_path,
             started_at=datetime.now(UTC),
         )
         db.session.add(log)
@@ -51,9 +51,9 @@ def index():
             from services.pg_backup_service import pg_backup_service
 
             if hasattr(pg_backup_service, 'restore_backup'):
-                ok = pg_backup_service.restore_backup(backup.file_path)
+                ok = pg_backup_service.restore_backup(backup.backup_path)
             elif hasattr(pg_backup_service, 'restore_pg_sql_gz'):
-                ok = pg_backup_service.restore_pg_sql_gz(backup.file_path)
+                ok = pg_backup_service.restore_pg_sql_gz(backup.backup_path)
             else:
                 ok = False
             duration = int(time.monotonic() - start)
@@ -63,7 +63,7 @@ def index():
             log.details = json.dumps(
                 {
                     'message': 'Restore completed' if ok else 'Restore failed',
-                    'file': backup.file_path,
+                    'file': backup.backup_path,
                 }
             )
             safe_commit(db.session, error_message='database commit failed', reraise=True)

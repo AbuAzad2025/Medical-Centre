@@ -149,7 +149,7 @@ class IHEPixPdqService:
                 severity='low',
                 description=f'ATNA {event_type} patient={patient_id} outcome={outcome}',
                 user_id=user_id,
-                ip_address='127.0.0.1',
+                user_ip='127.0.0.1',
                 is_resolved=False,
                 created_at=datetime.now(UTC),
             )

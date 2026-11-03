@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import contextlib
 
-from flask import Blueprint, abort, jsonify, request
+from flask import Blueprint, abort, g, jsonify, request
 from flask_login import login_required
 
 from app.extensions import db
@@ -143,6 +143,7 @@ def create_patient():
 
     name_parts = name.split(' ', 1)
     patient = Patient(
+        tenant_id=getattr(g, 'tenant_id', None),
         first_name=name_parts[0] if name_parts else 'Unknown',
         last_name=name_parts[1] if len(name_parts) > 1 else '',
         gender=data.get('gender', 'unknown'),
@@ -183,8 +184,9 @@ def update_patient(pid):
 
     from models.patient import Patient
 
-    patient = get_tenant_record(Patient, pid)
-    if not patient:
+    try:
+        patient = get_tenant_record(Patient, pid)
+    except Exception:
         abort(404)
 
     name = data.get('name', [{}])[0].get('text', '') if data.get('name') else ''
@@ -227,9 +229,10 @@ def create_observation():
     if issues:
         return jsonify({'resourceType': 'OperationOutcome', 'issue': issues}), 400
 
-    from models.vitals import Vital
+    from models.nurse import VitalSigns as Vital
 
     vital = Vital(
+        tenant_id=getattr(g, 'tenant_id', None),
         patient_id=int(data.get('subject', {}).get('reference', '').split('/')[-1])
         if data.get('subject')
         else None,
@@ -274,8 +277,9 @@ def create_condition():
         else None
     )
     record = MedicalRecord(
+        tenant_id=getattr(g, 'tenant_id', None),
         patient_id=patient_id,
-        chief_complaint=data.get('code', {}).get('text', 'Unknown'),
+        title=data.get('code', {}).get('text', 'Unknown') or 'Unknown',
         diagnosis=data.get('code', {}).get('text'),
     )
     db.session.add(record)
@@ -302,7 +306,7 @@ def create_medication_request():
     if issues:
         return jsonify({'resourceType': 'OperationOutcome', 'issue': issues}), 400
 
-    from models.prescription import Prescription
+    from models.medication import Prescription
 
     patient_id = (
         int(data.get('subject', {}).get('reference', '').split('/')[-1])
@@ -310,10 +314,14 @@ def create_medication_request():
         else None
     )
     med_name = data.get('medicationCodeableConcept', {}).get('text', 'Unknown')
+    import uuid
+
     rx = Prescription(
+        tenant_id=getattr(g, 'tenant_id', None),
         patient_id=patient_id,
-        medication_name=med_name,
-        dosage=data.get('dosageInstruction', [{}])[0].get('text')
+        prescription_number=f'RX-FHIR-{uuid.uuid4().hex[:8]}',
+        diagnosis=med_name,
+        notes=data.get('dosageInstruction', [{}])[0].get('text')
         if data.get('dosageInstruction')
         else None,
     )

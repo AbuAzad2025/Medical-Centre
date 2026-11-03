@@ -73,7 +73,7 @@ class ReportScopeService:
             q = q.filter_by(tenant_id=tenant_id)
         total = (
             db.session.execute(
-                select(db.func.sum(Payment.amount_paid)).filter(
+                select(db.func.sum(Payment.amount)).filter(
                     *([Payment.tenant_id == tenant_id] if tenant_id else [])
                 )
             ).scalar()
@@ -88,17 +88,21 @@ class ReportScopeService:
         q = Medication.query
         if tenant_id:
             q = q.filter_by(tenant_id=tenant_id)
-        low_stock = q.filter(Medication.quantity <= Medication.min_quantity).count()
+        low_stock = q.filter(Medication.stock_quantity <= Medication.minimum_stock).count()
         total = q.count()
         return {'total_medications': total, 'low_stock': low_stock}
 
     @staticmethod
     def _referral(tenant_id: int | None, **filters) -> dict[str, Any]:
+        from models.referral import Referral
         from models.visit import Visit
 
-        q = Visit.query
+        q = Referral.query
         if tenant_id:
             q = q.filter_by(tenant_id=tenant_id)
-        referrals = q.filter(Visit.referring_doctor_id.isnot(None)).count()
-        total = q.count()
+        referrals = q.count()
+        vq = Visit.query
+        if tenant_id:
+            vq = vq.filter_by(tenant_id=tenant_id)
+        total = vq.count()
         return {'total_referrals': referrals, 'total_visits': total}

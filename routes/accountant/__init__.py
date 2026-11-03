@@ -174,11 +174,10 @@ def get_financial_forecasting():
             )
 
         # التنبؤ بالشهر القادم
+        predicted_revenue = 0
         if len(monthly_data) >= 3:
             recent_avg = sum([m['revenue'] for m in monthly_data[:3]]) / 3
             predicted_revenue = recent_avg * 1.1  # نمو متوقع 10%
-        else:
-            predicted_revenue = 0
 
         # تحليل الموسمية
         seasonal_analysis = analyze_seasonal_patterns(monthly_data)
@@ -294,32 +293,18 @@ def get_payment_optimization():
         )
 
         # تحليل أوقات الدفع (متوافق مع أكثر من محرك قاعدة بيانات)
-        try:
-            payment_times = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', Payment.created_at).label('hour'),
-                        func.count(Payment.id).label('count'),
-                    )
-                    .filter(Payment.tenant_id == current_user.tenant_id)
-                    .group_by(func.extract('hour', Payment.created_at))
+        payment_times = (
+            db.session.execute(
+                select(
+                    func.extract('hour', Payment.created_at).label('hour'),
+                    func.count(Payment.id).label('count'),
                 )
-                .scalars()
-                .all()
+                .filter(Payment.tenant_id == current_user.tenant_id)
+                .group_by(func.extract('hour', Payment.created_at))
             )
-        except Exception:
-            payment_times = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', Payment.created_at).label('hour'),
-                        func.count(Payment.id).label('count'),
-                    )
-                    .filter(Payment.tenant_id == current_user.tenant_id)
-                    .group_by(func.extract('hour', Payment.created_at))
-                )
-                .scalars()
-                .all()
-            )
+            .scalars()
+            .all()
+        )
 
         # تحليل المدفوعات المتأخرة
         late_payments = db.session.execute(
@@ -593,7 +578,9 @@ def calculate_payment_efficiency(payment_methods):
         if not payment_methods:
             return 0
 
-        total_payments = sum(p.count for p in payment_methods)
+        total_payments = 0
+        for p in payment_methods or []:
+            total_payments = total_payments + (getattr(p, 'count', 0) or 0)
         if total_payments == 0:
             return 0
 
@@ -729,7 +716,7 @@ def get_revenue_cycle_metrics():
             .select_from(InsuranceClaim)
             .filter(
                 InsuranceClaim.tenant_id == current_user.tenant_id,
-                InsuranceClaim.status == InsuranceClaimStatus.PAID,
+                InsuranceClaim.status == InsuranceClaimStatus.SETTLED,
             )
         ).scalar()
         outstanding = (
