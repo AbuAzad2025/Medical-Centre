@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { loadModule } from '../test-utils.mjs';
+import { loadModule } from './test-utils.mjs';
 
 beforeEach(async () => {
   document.body.innerHTML = '';
