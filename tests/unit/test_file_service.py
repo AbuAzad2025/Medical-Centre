@@ -524,9 +524,11 @@ class TestGetFileStream:
             upload.s3_key = 'key'
             upload.file_path = 'path'
             s3_client = MagicMock()
-            s3_client.get_object.return_value = {
-                'Body': MagicMock(iter_chunks=lambda _chunk_size=8192: [b'chunk'])
-            }
+            class FakeBody:
+                def iter_chunks(self, chunk_size=8192):
+                    return [b'chunk']
+
+            s3_client.get_object.return_value = {'Body': FakeBody()}
             with patch('services.file_service.FileService._get_s3_client', return_value=s3_client):
                 result = FileService.get_file_stream(upload)
                 assert result is not None
