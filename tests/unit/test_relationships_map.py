@@ -32,7 +32,7 @@ class TestRequiredRelationships:
         ]
 
         for model in expected_models:
-            assert model in REQUIRED_RELATIONSHIPS, f"Missing model: {model}"
+            assert model in REQUIRED_RELATIONSHIPS, f'Missing model: {model}'
 
     def test_user_relationships(self):
         """Test User model relationships."""
@@ -191,23 +191,23 @@ class TestRelationshipsMapStructure:
     def test_all_relationships_are_lists(self):
         """Test all relationship values are lists."""
         for model, relationships in REQUIRED_RELATIONSHIPS.items():
-            assert isinstance(relationships, list), f"{model} relationships not a list"
+            assert isinstance(relationships, list), f'{model} relationships not a list'
 
     def test_no_duplicate_relationships(self):
         """Test no duplicate relationships within each model."""
         for model, relationships in REQUIRED_RELATIONSHIPS.items():
-            assert len(relationships) == len(set(relationships)), f"Duplicates in {model}"
+            assert len(relationships) == len(set(relationships)), f'Duplicates in {model}'
 
     def test_all_relationship_names_are_strings(self):
         """Test all relationship names are strings."""
         for model, relationships in REQUIRED_RELATIONSHIPS.items():
             for rel in relationships:
-                assert isinstance(rel, str), f"Non-string relationship in {model}: {rel}"
+                assert isinstance(rel, str), f'Non-string relationship in {model}: {rel}'
 
     def test_no_empty_relationships(self):
         """Test no model has empty relationships."""
         for model, relationships in REQUIRED_RELATIONSHIPS.items():
-            assert len(relationships) > 0, f"Empty relationships for {model}"
+            assert len(relationships) > 0, f'Empty relationships for {model}'
 
     def test_total_relationship_count(self):
         """Test total relationship count is reasonable."""
@@ -223,12 +223,14 @@ class TestRelationshipMapComments:
     def test_module_has_docstring(self):
         """Test module has docstring."""
         import models.relationships_map as rel_map
+
         assert rel_map.__doc__ is not None
         assert len(rel_map.__doc__) > 0
 
     def test_required_relationships_documented(self):
         """Test REQUIRED_RELATIONSHIPS is documented."""
         import models.relationships_map as rel_map
+
         assert hasattr(rel_map, 'REQUIRED_RELATIONSHIPS')
 
 
@@ -251,13 +253,13 @@ class TestRelationshipMapIntegration:
         """Test all relationship names are lowercase with underscores."""
         for model, relationships in REQUIRED_RELATIONSHIPS.items():
             for rel in relationships:
-                assert rel.islower() or '_' in rel, f"Non-lowercase in {model}: {rel}"
+                assert rel.islower() or '_' in rel, f'Non-lowercase in {model}: {rel}'
 
     def test_relationships_no_spaces(self):
         """Test relationship names don't have spaces."""
         for model, relationships in REQUIRED_RELATIONSHIPS.items():
             for rel in relationships:
-                assert ' ' not in rel, f"Space in {model}: {rel}"
+                assert ' ' not in rel, f'Space in {model}: {rel}'
 
 
 if __name__ == '__main__':

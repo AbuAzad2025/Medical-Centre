@@ -26,7 +26,9 @@ class TestNotifyOnVisitStatusChange:
         mock_visit.patient = mock_patient
         mock_visit.visit_number = 'VN12345'
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -43,7 +45,9 @@ class TestNotifyOnVisitStatusChange:
         """Test no notification when status is not completed."""
         mock_visit = MagicMock()
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -58,7 +62,9 @@ class TestNotifyOnVisitStatusChange:
         mock_visit = MagicMock()
         mock_visit.patient = None
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -74,7 +80,9 @@ class TestNotifyOnVisitStatusChange:
         mock_patient.full_name = 'John Doe'
         mock_visit.patient = mock_patient
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -92,11 +100,15 @@ class TestNotifyOnVisitStatusChange:
         mock_visit.visit_number = 'VN12345'
         mock_tenant = MagicMock()
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
-            notify_on_visit_status_change(mock_visit, 'in_progress', 'completed', tenant=mock_tenant)
+            notify_on_visit_status_change(
+                mock_visit, 'in_progress', 'completed', tenant=mock_tenant
+            )
 
             mock_dispatcher_class.assert_called_once_with(mock_tenant)
             mock_dispatcher.notify_lab_results_ready.assert_called_once_with(
@@ -120,7 +132,9 @@ class TestNotifyOnLabApproved:
         mock_visit.visit_number = 'VN12345'
         mock_lab_order.visit = mock_visit
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -145,7 +159,9 @@ class TestNotifyOnLabApproved:
         mock_lab_order.visit = mock_visit
         mock_tenant = MagicMock()
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -158,7 +174,9 @@ class TestNotifyOnLabApproved:
         mock_lab_order = MagicMock()
         mock_lab_order.visit = None
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -173,7 +191,9 @@ class TestNotifyOnLabApproved:
         mock_visit.patient = None
         mock_lab_order.visit = mock_visit
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -190,7 +210,9 @@ class TestNotifyOnLabApproved:
         mock_visit.patient = mock_patient
         mock_lab_order.visit = mock_visit
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -213,7 +235,9 @@ class TestNotifyOnInvoicePosted:
         mock_invoice.visit = mock_visit
         mock_invoice.total_amount = 1000.50
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -238,7 +262,9 @@ class TestNotifyOnInvoicePosted:
         mock_invoice.total_amount = 500.0
         mock_tenant = MagicMock()
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -251,7 +277,9 @@ class TestNotifyOnInvoicePosted:
         mock_invoice = MagicMock()
         mock_invoice.visit = None
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -266,7 +294,9 @@ class TestNotifyOnInvoicePosted:
         mock_visit.patient = None
         mock_invoice.visit = mock_visit
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -283,7 +313,9 @@ class TestNotifyOnInvoicePosted:
         mock_visit.patient = mock_patient
         mock_invoice.visit = mock_visit
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -309,7 +341,9 @@ class TestNotifyOnPrescriptionDispensed:
         mock_item.dosage = '500mg'
         mock_prescription.items = [mock_item]
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -338,7 +372,9 @@ class TestNotifyOnPrescriptionDispensed:
         mock_prescription.items = [mock_item]
         mock_tenant = MagicMock()
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -351,7 +387,9 @@ class TestNotifyOnPrescriptionDispensed:
         mock_prescription = MagicMock()
         mock_prescription.patient = None
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -366,7 +404,9 @@ class TestNotifyOnPrescriptionDispensed:
         mock_patient.phone = None
         mock_prescription.patient = mock_patient
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -382,7 +422,9 @@ class TestNotifyOnPrescriptionDispensed:
         mock_prescription.patient = mock_patient
         mock_prescription.items = []
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 
@@ -402,7 +444,9 @@ class TestNotifyOnPrescriptionDispensed:
         mock_item.dosage = '500mg'
         mock_prescription.items = [mock_item]
 
-        with patch('app.modules.workflows.notifications_integration.NotificationDispatcher') as mock_dispatcher_class:
+        with patch(
+            'app.modules.workflows.notifications_integration.NotificationDispatcher'
+        ) as mock_dispatcher_class:
             mock_dispatcher = MagicMock()
             mock_dispatcher_class.return_value = mock_dispatcher
 

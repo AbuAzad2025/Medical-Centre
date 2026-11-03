@@ -58,7 +58,6 @@ class TestSNOMEDConcept:
         # This is a model definition test - verify the column definition
         from sqlalchemy import inspect
 
-
         # Verify the column exists and has unique constraint
         mapper = inspect(SNOMEDConcept)
         concept_id_col = mapper.columns.concept_id

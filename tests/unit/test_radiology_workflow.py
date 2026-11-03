@@ -78,9 +78,7 @@ class TestRadiologyWorkflowService:
         mock_rad_request.status = 'reported'
 
         with patch('app.modules.workflows.radiology.db.session'):
-            RadiologyWorkflowService.transition(
-                mock_rad_request, 'approved', performed_by=123
-            )
+            RadiologyWorkflowService.transition(mock_rad_request, 'approved', performed_by=123)
 
             assert mock_rad_request.status == 'approved'
             assert mock_rad_request.approved_by == 123

@@ -133,7 +133,9 @@ class TestApplyFhirPagination:
         mock_query.offset.return_value = mock_query
         mock_query.limit.return_value = mock_query
 
-        _result_query, count, offset = apply_fhir_pagination(mock_query, mock_request, default_count=20, max_count=100)
+        _result_query, count, offset = apply_fhir_pagination(
+            mock_query, mock_request, default_count=20, max_count=100
+        )
 
         assert count == 50
         assert offset == 0
@@ -150,7 +152,9 @@ class TestApplyFhirPagination:
         mock_query.offset.return_value = mock_query
         mock_query.limit.return_value = mock_query
 
-        _result_query, count, _offset = apply_fhir_pagination(mock_query, mock_request, default_count=20, max_count=100)
+        _result_query, count, _offset = apply_fhir_pagination(
+            mock_query, mock_request, default_count=20, max_count=100
+        )
 
         assert count == 100  # capped at max_count
 
@@ -279,8 +283,16 @@ class TestFhirBundle:
         assert bundle['type'] == 'searchset'
         assert bundle['total'] == 2
         assert len(bundle['entry']) == 2
-        assert bundle['entry'][0]['resource'] == {'resourceType': 'Patient', 'id': '1', 'name': 'John'}
-        assert bundle['entry'][1]['resource'] == {'resourceType': 'Patient', 'id': '2', 'name': 'Jane'}
+        assert bundle['entry'][0]['resource'] == {
+            'resourceType': 'Patient',
+            'id': '1',
+            'name': 'John',
+        }
+        assert bundle['entry'][1]['resource'] == {
+            'resourceType': 'Patient',
+            'id': '2',
+            'name': 'Jane',
+        }
         assert bundle['link'] == []
 
     def test_fhir_bundle_custom_type(self):

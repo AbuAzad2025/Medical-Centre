@@ -59,12 +59,22 @@ class TestHL7GeneratorExports:
 
         # Check that the module has expected functions
         expected_exports = [
-            'build_adt', 'build_orm', 'build_oru', 'build_siu', 'build_rde',
-            'build_rds', 'build_mdm', 'build_ack', 'generate_message',
-            'send_mllp', 'build_msh', 'build_pid', 'build_pv1',
+            'build_adt',
+            'build_orm',
+            'build_oru',
+            'build_siu',
+            'build_rde',
+            'build_rds',
+            'build_mdm',
+            'build_ack',
+            'generate_message',
+            'send_mllp',
+            'build_msh',
+            'build_pid',
+            'build_pv1',
         ]
         for item in expected_exports:
-            assert hasattr(hl7, item), f"Missing export: {item}"
+            assert hasattr(hl7, item), f'Missing export: {item}'
 
     def test_key_classes_available(self):
         """Test key classes are available."""
