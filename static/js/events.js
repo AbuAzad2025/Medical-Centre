@@ -131,6 +131,11 @@ export function initEventDelegation() {
   });
 }
 
+// Auto-initialize event delegation on module load
+if (typeof document !== 'undefined') {
+  initEventDelegation();
+}
+
 // Expose globally for backward compatibility
 if (typeof window !== 'undefined') {
   window.confirmAction = confirmAction;
