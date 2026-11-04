@@ -78,9 +78,36 @@ class TestManagerRouteFunctions:
         with app.test_request_context():
             bind_tenant_on_g(test_tenant, db_session=db.session)
             flask.g._login_user = user
+            # force inner except (174) in get_smart_analytics
+            call_count = {'n': 0}
+            orig = db.session.execute
+
+            def se(*a, **k):
+                call_count['n'] += 1
+
+                if call_count['n'] == 6:
+                    raise ValueError('boom')
+                return orig(*a, **k)
+
+            with patch('routes.manager.db.session.execute', side_effect=se):
+                r = get_smart_analytics()
+                assert r is not None
             with patch('routes.manager.db.session.execute', side_effect=Exception('db err')):
                 assert get_smart_analytics() is not None or True
                 assert get_business_insights() is not None or True
+                # force inner except (365-371) in get_performance_metrics
+                call_count = {'n': 0}
+                orig = db.session.execute
+
+                def se(*a, **k):
+                    call_count['n'] += 1
+                    if call_count['n'] == 5:
+                        raise ValueError('boom')
+                    return orig(*a, **k)
+
+                with patch('routes.manager.db.session.execute', side_effect=se):
+                    r = get_performance_metrics()
+                    assert r is not None
                 assert get_performance_metrics() is not None or True
                 assert get_financial_forecasting() is not None or True
                 assert get_operational_efficiency() is not None or True

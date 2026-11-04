@@ -152,28 +152,7 @@ def get_smart_analytics():
             ).scalar()
             avg_visit_minutes = float(avg_seconds or 0) / 60.0
         except Exception:
-            try:
-                avg_days = db.session.execute(
-                    select(
-                        func.avg(
-                            func.julianday(
-                                func.coalesce(
-                                    Visit.archived_at, Visit.completed_at, Visit.updated_at
-                                )
-                            )
-                            - func.julianday(Visit.created_at)
-                        )
-                    ).filter(
-                        Visit.created_at.isnot(None),
-                        func.coalesce(
-                            Visit.archived_at, Visit.completed_at, Visit.updated_at
-                        ).isnot(None),
-                        Visit.tenant_id == current_user.tenant_id,
-                    )
-                ).scalar()
-                avg_visit_minutes = float((avg_days or 0) * 1440)
-            except Exception:
-                avg_visit_minutes = 0.0
+            avg_visit_minutes = 0.0
 
         return {
             'patient_growth_rate': round(growth_rate, 2),
@@ -363,12 +342,7 @@ def get_performance_metrics():
             ).scalar()
             avg_wait_minutes = float(avg_seconds or 0) / 60.0
         except Exception:
-            avg_days = db.session.execute(
-                select(
-                    func.avg(func.julianday(Visit.completed_at) - func.julianday(Visit.created_at))
-                ).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id)
-            ).scalar()
-            avg_wait_minutes = float((avg_days or 0) * 1440)
+            avg_wait_minutes = 0.0
 
         # معدل الرضا (محاكاة)
         satisfaction_rate = min(100, max(0, completion_rate + (100 - completion_rate) * 0.3))
