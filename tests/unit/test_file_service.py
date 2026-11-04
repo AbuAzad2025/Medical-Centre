@@ -524,6 +524,7 @@ class TestGetFileStream:
             upload.s3_key = 'key'
             upload.file_path = 'path'
             s3_client = MagicMock()
+
             class FakeBody:
                 def iter_chunks(self, chunk_size=8192):
                     return [b'chunk']
