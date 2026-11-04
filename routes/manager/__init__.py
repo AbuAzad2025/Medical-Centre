@@ -132,27 +132,22 @@ def get_smart_analytics():
             else 0
         )
         avg_visit_minutes = 0.0
-        try:
-            avg_seconds = db.session.execute(
-                select(
-                    func.avg(
-                        func.extract(
-                            'epoch',
-                            func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at)
-                            - Visit.created_at,
-                        )
+        avg_seconds = db.session.execute(
+            select(
+                func.avg(
+                    func.extract(
+                        'epoch',
+                        func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at)
+                        - Visit.created_at,
                     )
-                ).filter(
-                    Visit.created_at.isnot(None),
-                    func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at).isnot(
-                        None
-                    ),
-                    Visit.tenant_id == current_user.tenant_id,
                 )
-            ).scalar()
-            avg_visit_minutes = float(avg_seconds or 0) / 60.0
-        except Exception:
-            avg_visit_minutes = 0.0
+            ).filter(
+                Visit.created_at.isnot(None),
+                func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at).isnot(None),
+                Visit.tenant_id == current_user.tenant_id,
+            )
+        ).scalar()
+        avg_visit_minutes = float(avg_seconds or 0) / 60.0
 
         return {
             'patient_growth_rate': round(growth_rate, 2),
@@ -334,15 +329,12 @@ def get_performance_metrics():
         )
 
         avg_wait_minutes = 0.0
-        try:
-            avg_seconds = db.session.execute(
-                select(
-                    func.avg(func.extract('epoch', Visit.completed_at - Visit.created_at))
-                ).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id)
-            ).scalar()
-            avg_wait_minutes = float(avg_seconds or 0) / 60.0
-        except Exception:
-            avg_wait_minutes = 0.0
+        avg_seconds = db.session.execute(
+            select(func.avg(func.extract('epoch', Visit.completed_at - Visit.created_at))).filter(
+                Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id
+            )
+        ).scalar()
+        avg_wait_minutes = float(avg_seconds or 0) / 60.0
 
         # معدل الرضا (محاكاة)
         satisfaction_rate = min(100, max(0, completion_rate + (100 - completion_rate) * 0.3))
