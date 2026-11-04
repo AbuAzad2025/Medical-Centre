@@ -140,13 +140,22 @@ class TestManagerRouteFunctions:
                 email=f'doc{i}@test.local',
                 full_name=f'Doc {i}',
                 role='doctor',
-                is_active=True,
+                is_active=(i == 0),
                 department_id=dept.id,
                 last_login=datetime.now(),
             )
             u.set_password('ValidPass123!')
             db.session.add(u)
         db.session.commit()
+        doctors = (
+            db.session.execute(
+                __import__('sqlalchemy', fromlist=['select'])
+                .select(User)
+                .filter_by(tenant_id=test_tenant.id, role='doctor')
+            )
+            .scalars()
+            .all()
+        )
         # Create a patient first
         from models.patient import Patient
 
@@ -161,14 +170,32 @@ class TestManagerRouteFunctions:
             v = Visit(
                 tenant_id=test_tenant.id,
                 patient_id=patient.id,
-                doctor_id=None,
+                doctor_id=doctors[0].id if doctors else None,
+                department_id=dept.id,
                 status='completed',
                 created_at=now,
                 completed_at=now + timedelta(minutes=30),
                 updated_at=now + timedelta(minutes=30),
                 archived_at=now + timedelta(minutes=30),
+                visit_time=now,
             )
             db.session.add(v)
+        db.session.commit()
+        # Add high payments for avg_revenue_per_visit > 100
+        from app.shared.enums import PaymentMethod, PaymentStatus
+        from models.payment import Payment
+
+        for _i in range(5):
+            p = Payment(
+                tenant_id=test_tenant.id,
+                patient_id=patient.id,
+                amount=10000,
+                method=PaymentMethod.CASH,
+                status=PaymentStatus.CONFIRMED,
+                created_at=now,
+                payment_date=now,
+            )
+            db.session.add(p)
         db.session.commit()
         import flask
 

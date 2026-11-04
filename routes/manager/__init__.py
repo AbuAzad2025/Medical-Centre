@@ -430,63 +430,51 @@ def get_operational_efficiency():
 
         # تحليل الكفاءة حسب الأقسام
         try:
-            department_efficiency = (
-                db.session.execute(
-                    select(
-                        func.count(Visit.id).label('visits'),
-                        func.avg(
-                            func.extract('epoch', Visit.completed_at - Visit.created_at)
-                        ).label('avg_seconds'),
-                        User.department_id,
-                    )
-                    .join(User, Visit.doctor_id == User.id)
-                    .filter(
-                        Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id
-                    )
-                    .group_by(User.department_id)
+            department_efficiency = db.session.execute(
+                select(
+                    func.count(Visit.id).label('visits'),
+                    func.avg(func.extract('epoch', Visit.completed_at - Visit.created_at)).label(
+                        'avg_seconds'
+                    ),
+                    User.department_id,
                 )
-                .scalars()
-                .all()
-            )
+                .join(User, Visit.doctor_id == User.id)
+                .filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id)
+                .group_by(User.department_id)
+            ).all()
             department_efficiency = [
                 type(
                     'Row',
                     (),
                     {
-                        'visits': d.visits,
-                        'avg_duration': float(d.avg_seconds or 0),
-                        'department_id': d.department_id,
+                        'visits': d[0],
+                        'avg_duration': float(d[1] or 0),
+                        'department_id': d[2],
                     },
                 )
                 for d in department_efficiency
             ]
         except Exception:
-            dept_eff = (
-                db.session.execute(
-                    select(
-                        func.count(Visit.id).label('visits'),
-                        func.avg(
-                            func.julianday(Visit.completed_at) - func.julianday(Visit.created_at)
-                        ).label('avg_days'),
-                        User.department_id,
-                    )
-                    .join(User, Visit.doctor_id == User.id)
-                    .filter(
-                        Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id
-                    )
-                    .group_by(User.department_id)
+            dept_eff = db.session.execute(
+                select(
+                    func.count(Visit.id).label('visits'),
+                    func.avg(
+                        func.julianday(Visit.completed_at) - func.julianday(Visit.created_at)
+                    ).label('avg_days'),
+                    User.department_id,
                 )
-                .scalars()
-                .all()
-            )
+                .join(User, Visit.doctor_id == User.id)
+                .filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id)
+                .group_by(User.department_id)
+            ).all()
             department_efficiency = [
                 type(
                     'Row',
                     (),
                     {
-                        'visits': d.visits,
-                        'avg_duration': float((d.avg_days or 0) * 86400),
-                        'department_id': d.department_id,
+                        'visits': d[0],
+                        'avg_duration': float((d[1] or 0) * 86400),
+                        'department_id': d[2],
                     },
                 )
                 for d in dept_eff
@@ -559,24 +547,22 @@ def get_staff_productivity():
         from models.visit import Visit
 
         # تحليل إنتاجية الأطباء
-        doctor_productivity = (
-            db.session.execute(
-                select(
-                    User.id,
-                    User.full_name,
-                    func.count(Visit.id).label('total_visits'),
-                    func.avg(Visit.duration).label('avg_duration'),
-                )
-                .join(Visit, User.id == Visit.doctor_id)
-                .filter(
-                    Visit.created_at >= datetime.now().date() - timedelta(days=30),
-                    Visit.tenant_id == current_user.tenant_id,
-                )
-                .group_by(User.id, User.full_name)
+        doctor_productivity = db.session.execute(
+            select(
+                User.id,
+                User.full_name,
+                func.count(Visit.id).label('total_visits'),
+                func.avg(func.extract('epoch', Visit.completed_at - Visit.created_at)).label(
+                    'avg_duration'
+                ),
             )
-            .scalars()
-            .all()
-        )
+            .join(Visit, User.id == Visit.doctor_id)
+            .filter(
+                Visit.created_at >= datetime.now().date() - timedelta(days=30),
+                Visit.tenant_id == current_user.tenant_id,
+            )
+            .group_by(User.id, User.full_name)
+        ).all()
 
         # تحليل النشاط
         active_staff = db.session.execute(
@@ -647,7 +633,9 @@ def get_patient_satisfaction():
         # إضافة عوامل أخرى
         avg_duration = (
             db.session.execute(
-                select(func.avg(Visit.duration)).filter(Visit.tenant_id == current_user.tenant_id)
+                select(
+                    func.avg(func.extract('epoch', Visit.completed_at - Visit.created_at))
+                ).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id)
             ).scalar()
             or 0
         )
