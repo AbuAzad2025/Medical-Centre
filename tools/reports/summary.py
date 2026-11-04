@@ -63,7 +63,11 @@ def frontend_summary():
         status = '✅' if pct >= 90 else ('⚠️' if pct >= 50 else '❌')
         # Shorten path
         short = path_key
-        for prefix in ('/home/runner/work/Medical-Centre/Medical-Centre/', 'D:/recovers/data/medical/', 'D:\\\\recovers\\\\data\\\\medical\\\\'):
+        for prefix in (
+            '/home/runner/work/Medical-Centre/Medical-Centre/',
+            'D:/recovers/data/medical/',
+            'D:\\\\recovers\\\\data\\\\medical\\\\',
+        ):
             short = short.replace(prefix, '')
         lines.append(f'| `{short}` | {total} | {miss} | {pct:.1f}% {status} |')
     if total_stmts > 0:
@@ -92,6 +96,7 @@ def main():
     text = '\n'.join(out)
     # Write to stdout and to GITHUB_STEP_SUMMARY if set
     import sys
+
     sys.stdout.reconfigure(encoding='utf-8')
     print(text)
     summary_path = os.environ.get('GITHUB_STEP_SUMMARY')
