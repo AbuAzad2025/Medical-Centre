@@ -181,40 +181,32 @@ def get_business_insights():
 
         # تحليل ساعات الذروة
         try:
-            peak_hours = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', Visit.visit_time).label('hour'),
-                        func.count(Visit.id).label('count'),
-                    )
-                    .filter(Visit.tenant_id == current_user.tenant_id)
-                    .group_by(func.extract('hour', Visit.visit_time))
+            peak_hours = db.session.execute(
+                select(
+                    func.extract('hour', Visit.visit_time).label('hour'),
+                    func.count(Visit.id).label('count'),
                 )
-                .scalars()
-                .all()
-            )
+                .filter(Visit.tenant_id == current_user.tenant_id)
+                .group_by(func.extract('hour', Visit.visit_time))
+            ).all()
         except Exception:
-            peak_hours = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', Visit.visit_time).label('hour'),
-                        func.count(Visit.id).label('count'),
-                    )
-                    .filter(Visit.tenant_id == current_user.tenant_id)
-                    .group_by(func.extract('hour', Visit.visit_time))
+            peak_hours = db.session.execute(
+                select(
+                    func.extract('hour', Visit.visit_time).label('hour'),
+                    func.count(Visit.id).label('count'),
                 )
-                .scalars()
-                .all()
-            )
+                .filter(Visit.tenant_id == current_user.tenant_id)
+                .group_by(func.extract('hour', Visit.visit_time))
+            ).all()
 
         if peak_hours:
-            max_hour = max(peak_hours, key=lambda x: x.count)
-            if max_hour.count > 10:
+            max_hour = max(peak_hours, key=lambda x: x[1])
+            if max_hour[1] > 10:
                 insights.append(
                     {
                         'type': 'peak_hours',
                         'title': 'ساعات الذروة',
-                        'description': f'الساعة {max_hour.hour}:00 هي الأكثر ازدحاماً مع {max_hour.count} زيارة',
+                        'description': f'الساعة {max_hour[0]}:00 هي الأكثر ازدحاماً مع {max_hour[1]} زيارة',
                         'recommendation': 'توزيع المواعيد على ساعات أخرى لتقليل الازدحام',
                     }
                 )
@@ -698,64 +690,52 @@ def get_resource_optimization():
 
         # تحليل ساعات الذروة
         try:
-            peak_hours = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', Visit.visit_time).label('hour'),
-                        func.count(Visit.id).label('count'),
-                    )
-                    .filter(Visit.tenant_id == current_user.tenant_id)
-                    .group_by(func.extract('hour', Visit.visit_time))
+            peak_hours = db.session.execute(
+                select(
+                    func.extract('hour', Visit.visit_time).label('hour'),
+                    func.count(Visit.id).label('count'),
                 )
-                .scalars()
-                .all()
-            )
+                .filter(Visit.tenant_id == current_user.tenant_id)
+                .group_by(func.extract('hour', Visit.visit_time))
+            ).all()
         except Exception:
-            peak_hours = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', Visit.visit_time).label('hour'),
-                        func.count(Visit.id).label('count'),
-                    )
-                    .filter(Visit.tenant_id == current_user.tenant_id)
-                    .group_by(func.extract('hour', Visit.visit_time))
+            peak_hours = db.session.execute(
+                select(
+                    func.extract('hour', Visit.visit_time).label('hour'),
+                    func.count(Visit.id).label('count'),
                 )
-                .scalars()
-                .all()
-            )
+                .filter(Visit.tenant_id == current_user.tenant_id)
+                .group_by(func.extract('hour', Visit.visit_time))
+            ).all()
 
         if peak_hours:
-            max_hour = max(peak_hours, key=lambda x: x.count)
-            if max_hour.count > 15:
+            max_hour = max(peak_hours, key=lambda x: x[1])
+            if max_hour[1] > 15:
                 optimizations.append(
                     {
                         'type': 'peak_hours',
                         'title': 'توزيع ساعات الذروة',
-                        'description': f'الساعة {max_hour.hour}:00 مزدحمة جداً ({max_hour.count} زيارة)',
+                        'description': f'الساعة {max_hour[0]}:00 مزدحمة جداً ({max_hour[1]} زيارة)',
                         'suggestion': 'توزيع المواعيد على ساعات أخرى',
                     }
                 )
 
         # تحليل الأقسام
-        department_load = (
-            db.session.execute(
-                select(func.count(Visit.id).label('count'), User.department_id)
-                .join(User, Visit.doctor_id == User.id)
-                .filter(Visit.tenant_id == current_user.tenant_id)
-                .group_by(User.department_id)
-            )
-            .scalars()
-            .all()
-        )
+        department_load = db.session.execute(
+            select(func.count(Visit.id).label('count'), User.department_id)
+            .join(User, Visit.doctor_id == User.id)
+            .filter(Visit.tenant_id == current_user.tenant_id)
+            .group_by(User.department_id)
+        ).all()
 
         if department_load:
-            max_dept = max(department_load, key=lambda x: x.count)
-            if max_dept.count > 20:
+            max_dept = max(department_load, key=lambda x: x[1])
+            if max_dept[1] > 20:
                 optimizations.append(
                     {
                         'type': 'department_load',
                         'title': 'توزيع الأحمال',
-                        'description': f'القسم {max_dept.department_id} مزدحم ({max_dept.count} زيارة)',
+                        'description': f'القسم {max_dept[0]} مزدحم ({max_dept[1]} زيارة)',
                         'suggestion': 'إضافة موارد إضافية أو إعادة توزيع الأحمال',
                     }
                 )
