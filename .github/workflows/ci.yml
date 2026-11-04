@@ -992,6 +992,6 @@ jobs:
       - name: Combine and report coverage
         run: |
           coverage combine covdata
-          coverage report
+          coverage report | tee -a "$GITHUB_STEP_SUMMARY"
           coverage json -o coverage.json
 
