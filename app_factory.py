@@ -1002,7 +1002,6 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     from routes.data_warehouse_routes import data_warehouse_bp
     from routes.dicom_routes import dicom_bp
     from routes.doctor import doctor_bp
-    from routes.order_set_routes import order_set_bp
     from routes.emar_routes import emar_bp
     from routes.emergency import emergency_bp
     from routes.fhir_api_routes import fhir_bp
@@ -1018,6 +1017,7 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     from routes.nurse_routes import nurse_bp
     from routes.nursing_assessment_routes import nursing_assessment_bp
     from routes.or_management_routes import or_bp
+    from routes.order_set_routes import order_set_bp
     from routes.patient_education_routes import patient_education_bp
     from routes.patient_portal import portal_bp
     from routes.payment_routes import payment_bp
