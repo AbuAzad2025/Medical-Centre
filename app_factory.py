@@ -1002,6 +1002,7 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     from routes.data_warehouse_routes import data_warehouse_bp
     from routes.dicom_routes import dicom_bp
     from routes.doctor import doctor_bp
+    from routes.order_set_routes import order_set_bp
     from routes.emar_routes import emar_bp
     from routes.emergency import emergency_bp
     from routes.fhir_api_routes import fhir_bp
@@ -1220,6 +1221,7 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     app.register_blueprint(super_admin_bp, url_prefix='/super-admin')
     app.register_blueprint(reception_bp, url_prefix='/reception')
     app.register_blueprint(doctor_bp, url_prefix='/doctor')
+    app.register_blueprint(order_set_bp, url_prefix='/order-sets')
     app.register_blueprint(emergency_bp, url_prefix='/emergency')
     app.register_blueprint(lab_bp, url_prefix='/lab')
     app.register_blueprint(radiology_bp, url_prefix='/radiology')
