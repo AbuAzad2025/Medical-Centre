@@ -106,7 +106,9 @@ def fhir_medications():
         {
             'resourceType': 'Medication',
             'id': str(m.id),
-            'code': {'text': getattr(m, 'name', None) or getattr(m, 'medication_name', 'Unknown')},
+            'code': {
+                'text': getattr(m, 'trade_name', None) or getattr(m, 'scientific_name', 'Unknown')
+            },
         }
         for m in meds
     ]
@@ -120,7 +122,7 @@ def fhir_medications():
 @role_required('admin', 'manager', 'doctor', 'nurse', 'pharmacist')
 @handle_route_errors
 def fhir_medication_administrations():
-    from models.emar import EMARRecord
+    from models.emar import eMARAdministration as EMARRecord
 
     patient_id = request.args.get('patient', type=int)
     q = select(EMARRecord)
@@ -132,7 +134,9 @@ def fhir_medication_administrations():
             'resourceType': 'MedicationAdministration',
             'id': str(r.id),
             'status': getattr(r, 'status', 'completed').lower(),
-            'medicationCodeableConcept': {'text': getattr(r, 'medication_name', 'Unknown')},
+            'medicationCodeableConcept': {
+                'text': (r.medication.trade_name if getattr(r, 'medication', None) else 'Unknown')
+            },
             'subject': {'reference': f'Patient/{r.patient_id}'},
             'effectiveDateTime': r.administered_at.isoformat()
             if getattr(r, 'administered_at', None)
@@ -150,17 +154,19 @@ def fhir_medication_administrations():
 @role_required('admin', 'manager', 'pharmacist')
 @handle_route_errors
 def fhir_medication_dispenses():
-    from models.medication import MedicationDispense
+    try:
+        from models.medication import MedicationDispense
+    except ImportError:
+        MedicationDispense = None
+
+    if MedicationDispense is None or not hasattr(MedicationDispense, '__tablename__'):
+        return jsonify(_bundle([], 0))
 
     patient_id = request.args.get('patient', type=int)
     q = select(MedicationDispense)
     if patient_id:
         q = q.filter(MedicationDispense.patient_id == patient_id)
-    dispenses = (
-        db.session.execute(q.limit(100)).scalars().all()
-        if hasattr(MedicationDispense, '__tablename__')
-        else []
-    )
+    dispenses = db.session.execute(q.limit(100)).scalars().all()
     entries = [
         {
             'resourceType': 'MedicationDispense',
@@ -199,7 +205,7 @@ def fhir_medication_statements():
             'resourceType': 'MedicationStatement',
             'id': str(s.id),
             'status': getattr(s, 'status', 'active').lower(),
-            'medicationCodeableConcept': {'text': getattr(s, 'medication_name', 'Unknown')},
+            'medicationCodeableConcept': {'text': 'Medication Reconciliation'},
             'subject': {'reference': f'Patient/{s.patient_id}'}
             if getattr(s, 'patient_id', None)
             else None,
@@ -552,7 +558,9 @@ def fhir_substances():
             'resourceType': 'Substance',
             'id': str(m.id),
             'status': 'active',
-            'code': {'text': getattr(m, 'name', None) or getattr(m, 'medication_name', 'Unknown')},
+            'code': {
+                'text': getattr(m, 'trade_name', None) or getattr(m, 'scientific_name', 'Unknown')
+            },
         }
         for m in meds
     ]

@@ -380,7 +380,12 @@ def fhir_medication_requests():
                     'status': 'active',
                     'intent': 'order',
                     'medicationCodeableConcept': {
-                        'text': getattr(rx, 'medication_name', 'Unknown')
+                        'text': (
+                            rx.items.first().medication.trade_name
+                            if rx.items.first() and rx.items.first().medication
+                            else None
+                        )
+                        or getattr(rx, 'diagnosis', 'Unknown')
                     },
                     'subject': {'reference': f'Patient/{patient_id}'},
                     'authoredOn': rx.created_at.isoformat() if rx.created_at else None,
