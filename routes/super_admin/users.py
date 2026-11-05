@@ -210,9 +210,13 @@ def edit_user(user_id):
             user.is_admin = bool(request.form.get('is_admin'))
 
             try:
+                from sqlalchemy import delete as sa_delete
+
                 from models.user_department_access import UserDepartmentAccess
 
-                select(UserDepartmentAccess).delete()
+                db.session.execute(
+                    sa_delete(UserDepartmentAccess).where(UserDepartmentAccess.user_id == user.id)
+                )
                 selected = request.form.getlist('extra_department_ids')
                 for dep_id in selected:
                     try:
