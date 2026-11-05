@@ -1,0 +1,130 @@
+# Microservices-oriented compose for gradual extraction.
+# Each service shares the same image but runs a different entrypoint/module.
+# Tenant isolation is preserved via shared PostgreSQL RLS + Redis tenant context.
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-changeme}
+      POSTGRES_DB: ${PG_DB_NAME:-medical_system}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-postgres} -d ${PG_DB_NAME:-medical_system}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # === CORE API (auth, patients, visits, users) ===
+  core-api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      SERVICE_NAME: "core-api"
+      SERVICE_MODULES: "reception,doctor,nursing,emergency"
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
+      DATABASE_URL: postgresql://${PG_USER:-postgres}:${PG_PASSWORD:-changeme}@db:5432/${PG_DB_NAME:-medical_system}
+      REDIS_URL: redis://redis:6379/0
+      ENABLE_SAAS_MODE: "true"
+      RLS_BYPASS_ALLOWED: "0"
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    command: gunicorn -c gunicorn.conf.py "app_factory:create_app('core')"
+
+  # === PHARMACY SERVICE ===
+  pharmacy-service:
+    build: .
+    ports:
+      - "8081:8080"
+    environment:
+      SERVICE_NAME: "pharmacy-service"
+      SERVICE_MODULES: "pharmacy"
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
+      DATABASE_URL: postgresql://${PG_USER:-postgres}:${PG_PASSWORD:-changeme}@db:5432/${PG_DB_NAME:-medical_system}
+      REDIS_URL: redis://redis:6379/0
+      ENABLE_SAAS_MODE: "true"
+      RLS_BYPASS_ALLOWED: "0"
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    command: gunicorn -c gunicorn.conf.py "app_factory:create_app('pharmacy')"
+
+  # === LAB SERVICE ===
+  lab-service:
+    build: .
+    ports:
+      - "8082:8080"
+    environment:
+      SERVICE_NAME: "lab-service"
+      SERVICE_MODULES: "lab"
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
+      DATABASE_URL: postgresql://${PG_USER:-postgres}:${PG_PASSWORD:-changeme}@db:5432/${PG_DB_NAME:-medical_system}
+      REDIS_URL: redis://redis:6379/0
+      ENABLE_SAAS_MODE: "true"
+      RLS_BYPASS_ALLOWED: "0"
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    command: gunicorn -c gunicorn.conf.py "app_factory:create_app('lab')"
+
+  # === BILLING SERVICE ===
+  billing-service:
+    build: .
+    ports:
+      - "8083:8080"
+    environment:
+      SERVICE_NAME: "billing-service"
+      SERVICE_MODULES: "billing,accounting"
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
+      DATABASE_URL: postgresql://${PG_USER:-postgres}:${PG_PASSWORD:-changeme}@db:5432/${PG_DB_NAME:-medical_system}
+      REDIS_URL: redis://redis:6379/0
+      ENABLE_SAAS_MODE: "true"
+      RLS_BYPASS_ALLOWED: "0"
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    command: gunicorn -c gunicorn.conf.py "app_factory:create_app('billing')"
+
+  # === API GATEWAY (tenant isolation enforced) ===
+  api-gateway:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/gateway.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - core-api
+      - pharmacy-service
+      - lab-service
+      - billing-service
+
+  # === WORKER ===
+  worker:
+    build: .
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
+      DATABASE_URL: postgresql://${PG_USER:-postgres}:${PG_PASSWORD:-changeme}@db:5432/${PG_DB_NAME:-medical_system}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_ENABLED: "true"
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    command: celery -A celery_worker.celery worker --loglevel=info -E
+
+volumes:
+  pgdata:
+  uploads:
+---

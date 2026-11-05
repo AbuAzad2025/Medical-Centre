@@ -1,0 +1,53 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: medical-ingress
+  namespace: medical-system
+  annotations:
+    # CDN: route static assets to CDN origin
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    # Tenant isolation: preserve X-Tenant-ID header
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Tenant-ID $http_x_tenant_id;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: medical.example.com
+      http:
+        paths:
+          # CDN: static assets served with long cache
+          - path: /static
+            pathType: Prefix
+            backend:
+              service:
+                name: cdn-static
+                port:
+                  number: 80
+          # API and app traffic
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: medical-app
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - medical.example.com
+      secretName: medical-tls
+---
+# CDN service for static assets (can be replaced with CloudFront/Cloudflare)
+apiVersion: v1
+kind: Service
+metadata:
+  name: cdn-static
+  namespace: medical-system
+spec:
+  selector:
+    app: medical-app
+  ports:
+    - port: 80
+      targetPort: 8080
+---
