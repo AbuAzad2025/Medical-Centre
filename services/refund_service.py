@@ -223,7 +223,7 @@ class RefundService:
                     )
                     reversal = min(current_paid, remaining)
                     new_paid = current_paid - reversal
-                    inv.paid_amount = float(new_paid)
+                    inv.paid_amount = new_paid
                     remaining -= reversal
                     paid_dec = Decimal(str(inv.paid_amount or 0)).quantize(
                         Decimal('0.01'), rounding=ROUND_HALF_UP
@@ -298,7 +298,7 @@ class RefundService:
                     _new_visit_paid = _visit_paid - refund_amount
                     if _new_visit_paid < 0:
                         _new_visit_paid = Decimal('0.00')
-                    _visit.paid_amount = float(_new_visit_paid)
+                    _visit.paid_amount = _new_visit_paid
                     if _new_visit_paid <= 0:
                         _visit.payment_status = 'UNPAID'
                     elif _new_visit_paid < Decimal(str(_visit.total_amount or 0)):

@@ -140,7 +140,7 @@ class PaymentAllocationService:
             if due > 0:
                 alloc = min(remaining, due)
                 new_paid = Decimal(str(inv.paid_amount or 0)) + alloc
-                inv.paid_amount = float(new_paid)
+                inv.paid_amount = new_paid
                 remaining -= alloc
                 allocated += alloc
                 if remaining <= 0:

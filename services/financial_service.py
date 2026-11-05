@@ -128,7 +128,9 @@ class FinancialService:
 
             return {'ok': True, 'invoices': [inv.to_dict() for inv in invoices]}
         except Exception as e:
-            safe_commit(db.session, error_message='Error reconciling visit payments')
+            from utils.db_safety import safe_rollback
+
+            safe_rollback(db.session, error_message='Error reconciling visit payments')
             logging.exception('Error reconciling visit payments: %s')
             return {'ok': False, 'error': str(e)}
 
@@ -261,7 +263,7 @@ class FinancialService:
             tenant_id = getattr(g, 'tenant_id', None) or getattr(
                 getattr(g, 'current_tenant', None), 'id', None
             )
-        q = select(Invoice).filter(Invoice.status.in_(['PENDING', 'PARTIAL']))
+        q = select(Invoice).filter(Invoice.status.in_(['ISSUED', 'PARTIAL']))
         if tenant_id:
             q = q.filter(Invoice.tenant_id == tenant_id)
         return db.session.execute(q.order_by(Invoice.created_at.asc()).limit(limit)).scalars().all()
@@ -323,7 +325,10 @@ class FinancialService:
                     'expense': None,
                     'message': 'amount_must_be_positive',
                 }
+            from flask import g
+
             expense = Expense(
+                tenant_id=getattr(g, 'tenant_id', None),
                 description=description,
                 amount=Decimal(str(amount)),
                 category=category,
