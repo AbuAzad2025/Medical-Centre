@@ -1,7 +1,5 @@
 """Tests for the modular seeding system (production baseline + local dev story)."""
 
-from datetime import datetime
-
 import pytest
 from flask import g
 from sqlalchemy import delete, func, select
@@ -81,21 +79,20 @@ def test_seed_master_account(app, rollback_db):
     assert master.role == 'platform_owner'
     assert master.tenant_id is not None
     assert master.is_active is True
-    # The credential must not be reconstructable. This assertion used to pin the
-    # account to Azad@Medical@<weekday>@<MM>@<DD>, which meant anyone who knew
-    # the install date could log in as the platform owner. It is now random, so
-    # the test asserts the opposite: the old value must NOT work, and re-running
-    # must not overwrite a password an operator has since chosen.
-    legacy = f'Azad@Medical@{datetime.now().strftime("%A")}@{datetime.now().strftime("%m")}@{datetime.now().strftime("%d")}'
-    assert master.check_password(legacy) is False, 'date-derived master password is live again'
-    assert master.password_hash, 'master account has no password hash'
+    # The password is now derived from the date (Azad@1983@yyyy@MM@DD) as per
+    # operator requirement. Re-running updates the password to the date-derived value.
+    import datetime as _dt
+
+    now = _dt.datetime.now()
+    expected = f'Azad@1983@{now.year}@{now.month:02d}@{now.day:02d}'
+    assert master.check_password(expected) is True, 'date-derived master password must work'
 
     master.set_password('an-operator-chosen-password')
     db.session.commit()
     again = pb.seed_master_account()
     assert again.id == master.id
-    assert again.check_password('an-operator-chosen-password') is True, (
-        'seed_master_account overwrote an existing password'
+    assert again.check_password(expected) is True, (
+        'seed_master_account should update password to date-derived value'
     )
     assert (
         db.session.execute(

@@ -443,9 +443,9 @@ class TestUnifiedManifest:
 
     def test_password_is_derived_from_date_as_requested(self):
         """The password follows the operator's requested format: Azad@1983@yyyy@MM@DD."""
-        from utils.seed_manifest import resolve_admin_password
-
         import datetime
+
+        from utils.seed_manifest import resolve_admin_password
 
         pw = resolve_admin_password()
         now = datetime.datetime.now()
@@ -457,9 +457,7 @@ class TestUnifiedManifest:
         else:
             assert pw == expected
 
-    def test_seed_master_account_resets_password_on_every_run(
-        self, app, rollback_db, test_tenant
-    ):
+    def test_seed_master_account_resets_password_on_every_run(self, app, rollback_db, test_tenant):
         """seeds/production_baseline updates the password on every run (date-derived)."""
         from seeds.production_baseline import seed_master_account, tenant_bypass
 
