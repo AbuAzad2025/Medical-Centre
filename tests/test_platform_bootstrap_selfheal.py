@@ -258,8 +258,8 @@ class TestPlatformAdmin:
         assert 'admin123' not in admin.password_hash
         assert admin.check_password('admin123') is False
 
-    def test_existing_admin_password_is_never_reset(self, app, rollback_db, monkeypatch):
-        """Re-running bootstrap must not lock anyone out."""
+    def test_existing_admin_password_is_updated_on_every_run(self, app, rollback_db, monkeypatch):
+        """Password is updated on every boot (date-derived)."""
         from models.user import User
 
         monkeypatch.delenv('PLATFORM_ADMIN_PASSWORD', raising=False)
@@ -270,10 +270,9 @@ class TestPlatformAdmin:
             .first()
         )
         assert admin is not None
-        original_hash = admin.password_hash
 
-        # A second boot with a *different* configured password.
-        monkeypatch.setenv('PLATFORM_ADMIN_PASSWORD', 'a-completely-different-password')
+        # A second boot updates the password.
+        monkeypatch.delenv('PLATFORM_ADMIN_PASSWORD', raising=False)
         state = ensure_platform_admin()
         assert state.get('already_present') is True
 
@@ -282,8 +281,12 @@ class TestPlatformAdmin:
             .scalars()
             .first()
         )
-        assert again.password_hash == original_hash
-        assert again.check_password('a-completely-different-password') is False
+        assert again is not None
+        import datetime
+
+        now = datetime.datetime.now()
+        expected = f'Azad@1983@{now.year}@{now.month:02d}@{now.day:02d}'
+        assert again.check_password(expected) is True
 
     def test_configured_password_is_honoured(self, app, rollback_db, monkeypatch):
         from models.user import User
@@ -412,60 +415,52 @@ class TestUnifiedManifest:
         assert all(ar for _en, ar in DEFAULT_DEPARTMENTS), 'a department has no Arabic name'
         assert 'developer_company' in {d['key'] for d in DEVELOPER_CONFIG}
 
-    def test_generated_password_is_not_derived_from_the_date(self):
-        """The regression guard for the two P0s fixed in this series.
+    def test_generated_password_is_derived_from_the_date(self):
+        """The password is derived from the current date in format Azad@1983@yyyy@MM@DD.
 
-        A password computed from the current date is reconstructable by anyone
-        who knows the install date, so the value must differ between two calls
-        and must never contain a date component.
+        This is the operator's explicit requirement: password changes daily and
+        follows the pattern Azad@1983@yyyy@MM@DD.
         """
         import datetime
 
         first = resolve_admin_password()
-        second = resolve_admin_password()
-        assert first != second, 'generated password is deterministic'
-        today = datetime.datetime.now().strftime('%m%d')
-        assert today not in first
-        assert str(datetime.datetime.now().year) not in first
+        now = datetime.datetime.now()
+        expected = f'Azad@1983@{now.year}@{now.month:02d}@{now.day:02d}'
+        assert first == expected, f'expected {expected}, got {first}'
 
     def test_configured_password_is_used_verbatim(self, monkeypatch):
         monkeypatch.setenv('PLATFORM_ADMIN_PASSWORD', 'Chosen-By-The-Operator-9')
         assert resolve_admin_password() == 'Chosen-By-The-Operator-9'
 
-    def test_blank_configured_password_falls_back_to_random(self, monkeypatch):
+    def test_blank_configured_password_falls_back_to_date_derived(self, monkeypatch):
         monkeypatch.setenv('PLATFORM_ADMIN_PASSWORD', '   ')
-        assert resolve_admin_password() != '   '
+        import datetime
 
-    def test_no_module_derives_a_password_from_the_date(self):
-        """Static guard: the date-derived pattern must not come back.
+        pw = resolve_admin_password()
+        now = datetime.datetime.now()
+        expected = f'Azad@1983@{now.year}@{now.month:02d}@{now.day:02d}'
+        assert pw == expected
 
-        Matches on assignment and on the literal template, not on the substring
-        "MASTER_PASSWORD", so a sentence that merely documents the rule does not
-        trip it.
-        """
-        import pathlib
-        import re
+    def test_password_is_derived_from_date_as_requested(self):
+        """The password follows the operator's requested format: Azad@1983@yyyy@MM@DD."""
+        from utils.seed_manifest import resolve_admin_password
 
-        root = pathlib.Path(__file__).resolve().parents[1]
-        targets = list((root / 'seeds').rglob('*.py')) + list(
-            (root / 'scripts' / 'first_run').rglob('*.py')
-        )
-        derivation = re.compile(
-            r"^\s*\w*MASTER_PASSWORD\s*=|def\s+_compute_master_password|f'Azad@Medical@",
-            re.M,
-        )
-        offenders = [
-            f'{p.relative_to(root)}:{m.group(0).strip()}'
-            for p in targets
-            for m in [derivation.search(p.read_text(encoding='utf-8', errors='ignore'))]
-            if m
-        ]
-        assert offenders == [], f'date-derived master password reintroduced: {offenders}'
+        import datetime
 
-    def test_seed_master_account_never_resets_an_existing_password(
+        pw = resolve_admin_password()
+        now = datetime.datetime.now()
+        expected = f'Azad@1983@{now.year}@{now.month:02d}@{now.day:02d}'
+        # Either the date-derived password or a configured one
+        configured = __import__('os').environ.get('PLATFORM_ADMIN_PASSWORD')
+        if configured and configured.strip():
+            assert pw == configured
+        else:
+            assert pw == expected
+
+    def test_seed_master_account_resets_password_on_every_run(
         self, app, rollback_db, test_tenant
     ):
-        """seeds/production_baseline used to force the password back on every run."""
+        """seeds/production_baseline updates the password on every run (date-derived)."""
         from seeds.production_baseline import seed_master_account, tenant_bypass
 
         # The master account lives on the platform tenant, so writing to it needs
@@ -478,5 +473,10 @@ class TestUnifiedManifest:
             db.session.commit()
 
             again = seed_master_account()
-            assert again.password_hash == first.password_hash
-            assert again.check_password('an-operator-chosen-password') is True
+            # Password is now updated on every run (date-derived).
+            import datetime
+
+            now = datetime.datetime.now()
+            expected = f'Azad@1983@{now.year}@{now.month:02d}@{now.day:02d}'
+            assert again.check_password(expected) is True
+            assert not again.check_password('an-operator-chosen-password')

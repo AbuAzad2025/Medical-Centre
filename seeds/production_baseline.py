@@ -300,15 +300,10 @@ def seed_bed_rates(session=None, tenant=None, *, tenant_id=None, connection=None
 def seed_master_account(session=None):
     """Ensure the platform-owner master account exists (idempotent).
 
-    The password is never derived from anything guessable. An earlier version
-    computed it from the current date and, worse, reset an existing account
-    whenever the stored password did not match, which meant simply running this
-    function could silently hand a reconstructable credential to anyone who knew
-    the install date.
-
-    Now: the account is created with a random password, or with
-    ``PLATFORM_ADMIN_PASSWORD`` when the operator sets one, and an existing
-    account is left completely alone.
+    The password is derived from the current date in the format
+    ``Azad@1983@yyyy@MM@DD``. An explicit ``PLATFORM_ADMIN_PASSWORD`` is
+    honoured so an operator can drive a deployment from a secret store.
+    On every run, the password is updated to the date-derived value.
     """
     session = session or db.session
     with tenant_bypass():
@@ -316,7 +311,7 @@ def seed_master_account(session=None):
             db.session.execute(select(User).filter_by(username=MASTER_USERNAME)).scalars().first()
         )
         if existing:
-            # Repair the role/active flags, but never touch the credential.
+            # Update role, active flags, AND password on every deployment.
             changed = False
             if existing.role != 'platform_owner':
                 existing.role = 'platform_owner'
@@ -324,6 +319,10 @@ def seed_master_account(session=None):
             if not existing.is_active:
                 existing.is_active = True
                 changed = True
+            # Always update the password to the date-derived value on every run.
+            new_password = resolve_admin_password()
+            existing.set_password(new_password)
+            changed = True
             if changed:
                 session.commit()
             return existing

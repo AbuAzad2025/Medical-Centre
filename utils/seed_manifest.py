@@ -47,9 +47,9 @@ Rules encoded below, and the reasons they are not negotiable:
 from __future__ import annotations
 
 import os
-import secrets
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 # ---------------------------------------------------------------------------
@@ -121,17 +121,19 @@ DEVELOPER_CONFIG: tuple[dict[str, str], ...] = (
 
 
 def resolve_admin_password() -> str:
-    """Return the configured admin password, or generate a random one.
+    """Return the admin password derived from the current date.
+
+    Format: Azad@1983@yyyy@MM@DD
 
     An explicit ``PLATFORM_ADMIN_PASSWORD`` is honoured so an operator can drive
-    a deployment from a secret store. Otherwise a random password is generated;
-    it is returned exactly once, at creation time, and never derived from
-    anything guessable.
+    a deployment from a secret store. Otherwise the password is derived from
+    the current date in the format Azad@1983@yyyy@MM@DD.
     """
     configured = os.environ.get('PLATFORM_ADMIN_PASSWORD')
     if configured and configured.strip():
         return configured
-    return secrets.token_urlsafe(18)
+    now = datetime.now()
+    return f'Azad@1983@{now.year}@{now.month:02d}@{now.day:02d}'
 
 
 # ---------------------------------------------------------------------------

