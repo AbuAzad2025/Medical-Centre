@@ -1,4 +1,4 @@
-﻿function updateClock() {
+function updateClock() {
         const now = new Date();
         const optionsDate = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', calendar: 'islamic-umalqura' };
         const dateStr = now.toLocaleDateString('ar-SA', optionsDate);

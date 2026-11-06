@@ -145,7 +145,7 @@ def get_lab_smart_analytics():
 
 
 def get_lab_test_optimization():
-    """ØªØ­Ø³ÙŠÙ† Ø§Ù„Ù�Ø­ÙˆØµØ§Øª"""
+    """تحسين الفحوصات"""
     try:
         from flask import g
 

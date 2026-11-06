@@ -17,7 +17,7 @@ reception_currency_bp = Blueprint('reception_currency', __name__)
 @login_required
 @role_required('manager', 'admin', 'super_admin')
 def save_manual_rate():
-    """O-U?O, O3O1O� O�O�U? USO_U^US U.U+ O,U,U^O_O,U,"""
+    """حفظ سعر الصرف اليدوي"""
     try:
         data = request.get_json(force=True, silent=True) or {}
         from_currency = data.get('from_currency', '').strip().upper()
@@ -25,7 +25,7 @@ def save_manual_rate():
         rate = data.get('rate')
 
         if not from_currency or not to_currency or rate is None:
-            return jsonify({'success': False, 'error': 'O�U.USO1 O,U,O-U,U^U, U.O�U,U^O"Oc'}), 400
+            return jsonify({'success': False, 'error': 'سعر صرف غير صالح'}), 400
 
         # A rate has to be a positive number. A zero or negative rate is not a
         # conversion, and the money side of every foreign-currency payment
@@ -33,9 +33,9 @@ def save_manual_rate():
         try:
             rate_value = float(rate)
         except (TypeError, ValueError):
-            return jsonify({'success': False, 'error': 'O�U.USO1 O,U,O-U,U^U, U.O�U,U^O"Oc'}), 400
+            return jsonify({'success': False, 'error': 'سعر صرف غير صالح'}), 400
         if not (rate_value > 0) or rate_value > 1_000_000:
-            return jsonify({'success': False, 'error': 'O�U.USO1 O,U,O-U,U^U, U.O�U,U^O"Oc'}), 400
+            return jsonify({'success': False, 'error': 'سعر صرف غير صالح'}), 400
 
         rate = CurrencyConverter.ensure_manual_rate(
             from_currency=from_currency,

@@ -1,4 +1,4 @@
-﻿function refreshQueue() {
+function refreshQueue() {
     location.reload();
 }
 

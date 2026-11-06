@@ -1,4 +1,4 @@
-﻿function refreshPage() {
+function refreshPage() {
     location.reload();
 }
 

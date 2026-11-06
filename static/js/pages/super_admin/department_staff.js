@@ -1,4 +1,4 @@
-﻿var __M = window.__M || [];
+var __M = window.__M || [];
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 const addStaffFormEl = document.getElementById('addStaffForm');
 if (addStaffFormEl) {

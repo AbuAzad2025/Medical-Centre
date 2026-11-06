@@ -1,4 +1,4 @@
-﻿var __M = window.__M || [];
+var __M = window.__M || [];
 const presetDoctorId = __M0__;
 const presetTime = __M1__;
 

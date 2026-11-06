@@ -1,4 +1,4 @@
-﻿    setInterval(function() {
+    setInterval(function() {
         if (document.querySelector('.status-active')) {
             location.reload();
         }

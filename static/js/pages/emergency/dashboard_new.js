@@ -1,4 +1,4 @@
-﻿if (typeof Chart !== 'undefined') {
+if (typeof Chart !== 'undefined') {
   Chart.defaults.plugins.tooltip.rtl = true;
   Chart.defaults.plugins.tooltip.textDirection = 'rtl';
   Chart.defaults.plugins.legend.rtl = true;

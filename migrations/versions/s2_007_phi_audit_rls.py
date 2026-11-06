@@ -1,4 +1,4 @@
-﻿"""Add RLS policies for phi_audit_logs table
+"""Add RLS policies for phi_audit_logs table
 
 Revision ID: s2_007_phi_audit_rls
 Revises: s2_006_expand_patient_name_columns

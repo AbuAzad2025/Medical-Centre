@@ -1,4 +1,4 @@
-﻿const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 
 function createBackup(e) {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';

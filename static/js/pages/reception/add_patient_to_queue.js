@@ -1,4 +1,4 @@
-﻿const isEmergencyEl = document.getElementById('is_emergency');
+const isEmergencyEl = document.getElementById('is_emergency');
 if (isEmergencyEl) {
     isEmergencyEl.addEventListener('change', function() {
         const reasonGroup = document.getElementById('emergency_reason_group');

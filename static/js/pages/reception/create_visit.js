@@ -1,4 +1,4 @@
-﻿var __M = window.__M || [];
+var __M = window.__M || [];
 
 document.addEventListener('DOMContentLoaded', function() {
     const selectedPatientId = document.getElementById('selectedPatientId');

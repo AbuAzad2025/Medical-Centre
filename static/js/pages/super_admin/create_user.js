@@ -1,4 +1,4 @@
-﻿function togglePassword(fieldId) {
+function togglePassword(fieldId) {
     const field = document.getElementById(fieldId);
     const button = field.nextElementSibling;
     const icon = button.querySelector('i');

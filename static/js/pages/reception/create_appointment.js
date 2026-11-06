@@ -1,4 +1,4 @@
-﻿var __M = window.__M || [];
+var __M = window.__M || [];
 function saveAppointment() {
     const form = document.getElementById('appointmentForm');
     const formData = new FormData(form);

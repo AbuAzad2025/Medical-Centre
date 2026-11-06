@@ -1,4 +1,4 @@
-﻿class SecurityManager {
+class SecurityManager {
     constructor() {
         this.csrfToken = null;
         this.sessionTimeout = 30 * 60 * 1000;

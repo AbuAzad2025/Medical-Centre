@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   'use strict';
 
   const rules = window.__VALIDATION_RULES__ || {};

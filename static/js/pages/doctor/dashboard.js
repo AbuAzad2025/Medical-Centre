@@ -1,4 +1,4 @@
-﻿  function notifyErr(msg) {
+  function notifyErr(msg) {
     if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
     else console.warn('[doctor-page]', msg);
   }

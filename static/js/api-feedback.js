@@ -1,4 +1,4 @@
-﻿// api-feedback.js - API feedback utilities
+// api-feedback.js - API feedback utilities
 // Converted to ES module
 
 function swal() {

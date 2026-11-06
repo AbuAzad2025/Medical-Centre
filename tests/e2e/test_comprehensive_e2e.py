@@ -330,8 +330,8 @@ def ctx(app, db, test_tenant):
 
     def _patient(**kw):
         p = Patient(
-            first_name=kw.get('first_name', 'U.O�USO�'),
-            last_name=kw.get('last_name', 'OOrO�O"OO�'),
+            first_name=kw.get('first_name', 'اختبار'),
+            last_name=kw.get('last_name', 'مريض'),
             phone=kw.get('phone', '050' + format(uuid.uuid4().int % 10**7, '07d')),
             gender=kw.get('gender', 'M'),
         )
@@ -356,7 +356,7 @@ def ctx(app, db, test_tenant):
             tenant_id=tenant_id,
             username=kw.get('username', f'{role}_{uuid.uuid4().hex[:6]}'),
             email=kw.get('email', f'{uuid.uuid4().hex[:8]}@test.local'),
-            full_name=kw.get('full_name', 'U.O3O�OrO_U.'),
+            full_name=kw.get('full_name', 'مريض اختبار'),
             role=role,
             is_active=True,
         )

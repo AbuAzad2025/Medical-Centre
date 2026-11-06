@@ -1,4 +1,4 @@
-﻿function createPermission() {
+function createPermission() {
     document.getElementById('modalTitle').textContent = 'إضافة صلاحية جديدة';
     document.getElementById('permissionForm').reset();
     document.getElementById('permissionModal').style.display = 'block';

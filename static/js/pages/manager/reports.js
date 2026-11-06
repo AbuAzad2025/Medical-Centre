@@ -1,4 +1,4 @@
-﻿function generateReport() {
+function generateReport() {
     Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير جديد', icon: 'info' });
 }
 

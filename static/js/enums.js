@@ -1,4 +1,4 @@
-﻿window.ENUMS = window.ENUMS || {};
+window.ENUMS = window.ENUMS || {};
 
 window.ENUMS.COLORS = {
 

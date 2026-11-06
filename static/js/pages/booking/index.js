@@ -1,4 +1,4 @@
-﻿var __M = window.__M || [];
+var __M = window.__M || [];
 function loadDoctors(){
   const dept = document.getElementById('department_id').value;
   const url = __M0__ + (dept ? ('?department_id='+dept) : '');

@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     const cfg = window.__PHARMACY_POS__ || {};
     let cart = [];
     let posChargeData = null;

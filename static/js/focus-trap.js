@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   'use strict';
 
   var FOCUSABLE = 'a[href], area[href], input:not([disabled]):not([type="hidden"]), '

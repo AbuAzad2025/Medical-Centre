@@ -1,4 +1,4 @@
-﻿var __M = window.__M || [];
+var __M = window.__M || [];
 document.getElementById('triageForm').addEventListener('submit', function(e) {
     e.preventDefault();
 

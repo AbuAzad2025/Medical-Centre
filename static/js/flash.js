@@ -1,4 +1,4 @@
-﻿// flash.js - Toast notification utilities
+// flash.js - Toast notification utilities
 // Converted to ES module
 
 const toastContainer = (() => {

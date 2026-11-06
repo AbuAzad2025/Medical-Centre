@@ -1,4 +1,4 @@
-﻿function refreshLogs() {
+function refreshLogs() {
     location.reload();
 }
 

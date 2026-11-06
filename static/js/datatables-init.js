@@ -1,4 +1,4 @@
-﻿export function initDataTables() {
+export function initDataTables() {
   const hasDT = typeof window.$ !== 'undefined' && typeof window.$.fn?.DataTable === 'function';
   if (!hasDT) return;
   const lang = {

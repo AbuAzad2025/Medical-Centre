@@ -1,4 +1,4 @@
-﻿var __M = window.__M || [];
+var __M = window.__M || [];
 
 var ROLE = __M0__;
 var billingActive = __M1__;

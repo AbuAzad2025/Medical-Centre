@@ -7247,7 +7247,7 @@
     "has_view_func": true,
     "view_func_name": "save_manual_rate",
     "view_func_module": "routes.reception_currency",
-    "view_func_doc": "O-U?O, O3O1O� O�O�U? USO_U^US U.U+ O,U,U^O_O,U,"
+    "view_func_doc": "حفظ سعر الصرف اليدوي"
   },
   {
     "endpoint": "reception_currency.check_rate",

@@ -1,4 +1,4 @@
-﻿class PerformanceMonitor {
+class PerformanceMonitor {
     constructor() {
         this.metrics = {};
         this.startTime = performance.now();

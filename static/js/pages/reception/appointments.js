@@ -1,4 +1,4 @@
-﻿var __M = window.__M || [];
+var __M = window.__M || [];
 
 function getCsrfToken() {
     const el = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');

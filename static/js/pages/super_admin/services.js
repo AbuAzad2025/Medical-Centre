@@ -1,4 +1,4 @@
-﻿const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 const searchInputEl = document.getElementById('searchInput');
 if (searchInputEl) {
     searchInputEl.addEventListener('input', function() {

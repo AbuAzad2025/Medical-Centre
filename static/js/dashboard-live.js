@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   'use strict';
 
   const ENDPOINT = (window.API_ROUTES && window.API_ROUTES.dashboard_snapshot) || '/api/dashboard/snapshot';

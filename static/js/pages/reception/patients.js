@@ -1,4 +1,4 @@
-﻿var __M = window.__M || [];
+var __M = window.__M || [];
 let smartSearchTimer = null;
 (function() {
     const input = document.getElementById('search');

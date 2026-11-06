@@ -1,4 +1,4 @@
-﻿(function (global) {
+(function (global) {
     function initPosCharge(opts) {
         const btn = typeof opts.button === 'string'
             ? document.getElementById(opts.button)

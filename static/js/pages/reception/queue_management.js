@@ -1,4 +1,4 @@
-﻿var __M = window.__M || [];
+var __M = window.__M || [];
 let currentTicketId = null;
 const currentUserRole = __M0__;
 const currentDoctorId = __M1__;

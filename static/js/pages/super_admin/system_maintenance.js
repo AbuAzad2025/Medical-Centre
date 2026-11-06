@@ -1,4 +1,4 @@
-﻿function optimizeDatabase() {
+function optimizeDatabase() {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من تحسين قاعدة البيانات؟ قد يستغرق هذا بعض الوقت.',
