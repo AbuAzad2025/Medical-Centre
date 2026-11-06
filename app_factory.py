@@ -268,6 +268,13 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     except Exception:
         app.logger.warning('Cache initialization failed, continuing without cache')
 
+    # Initialize resilience & observability (graceful shutdown, pool optimization, correlation ID, input validation, metrics)
+    try:
+        from app.core.resilience import init_resilience
+
+        init_resilience(app)
+    except Exception as e:
+        app.logger.warning('Resilience initialization failed: %s', e)
     # Flask-Session (Redis filesystem)
     try:
         sess.init_app(app)
