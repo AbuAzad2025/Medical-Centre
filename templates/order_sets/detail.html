@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Order Set Detail') }} - {{ order_set.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-list-alt me-2"></i>{{ order_set.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ order_set.description or '' }}</p>
+                    {% if order_set.name_ar %}<p class="text-muted">{{ order_set.name_ar }}</p>{% endif %}
+                    <span class="badge bg-secondary">{{ order_set.category or 'general' }}</span>
+                    {% if order_set.diagnosis_code %}<span class="badge bg-info">{{ order_set.diagnosis_code }}</span>{% endif %}
+
+                    <h6 class="mt-3">{{ _('Items') }}</h6>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>{{ _('Type') }}</th>
+                                <th>{{ _('Name') }}</th>
+                                <th>{{ _('Code') }}</th>
+                                <th>{{ _('Dosage') }}</th>
+                                <th>{{ _('Qty') }}</th>
+                                <th>{{ _('Duration') }}</th>
+                                <th>{{ _('Optional') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order_set.items %}
+                            <tr>
+                                <td><span class="badge bg-info">{{ item.item_type }}</span></td>
+                                <td>{{ item.item_name }}</td>
+                                <td>{{ item.item_code or '-' }}</td>
+                                <td>{{ item.default_dosage or '-' }}</td>
+                                <td>{{ item.default_quantity }}</td>
+                                <td>{{ item.default_duration }} days</td>
+                                <td>{{ 'Yes' if item.is_optional else 'No' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

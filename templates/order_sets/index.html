@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Order Sets') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list-alt me-2"></i>{{ _('Order Sets') }}</h5>
+                    {% if current_user.role in ['admin', 'manager'] %}
+                    <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#createOrderSetModal">
+                        <i class="fas fa-plus me-1"></i>{{ _('Create New') }}
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if order_sets %}
+                    <div class="row g-3">
+                        {% for os in order_sets %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ os.name }}</h6>
+                                    {% if os.name_ar %}<p class="text-muted small">{{ os.name_ar }}</p>{% endif %}
+                                    <p class="card-text small">{{ os.description or '' }}</p>
+                                    <span class="badge bg-secondary">{{ os.category or 'general' }}</span>
+                                    {% if os.diagnosis_code %}<span class="badge bg-info">{{ os.diagnosis_code }}</span>{% endif %}
+                                    <div class="mt-2">
+                                        <span class="badge bg-primary">{{ os.items|length }} items</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="{{ url_for('order_set.detail', set_id=os.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i>{{ _('View') }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-list-alt fa-3x mb-3"></i>
+                        <p>{{ _('No order sets available') }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
