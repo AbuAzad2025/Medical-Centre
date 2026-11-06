@@ -1,0 +1,324 @@
+                    <div class="tab-content" id="medicalTabsContent">
+                        <!-- Diagnosis Tab -->
+                        <div class="tab-pane fade show active" id="diagnosis" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="mb-3">ملخص الحالة الحالية</h6>
+                                    <div class="mb-2">
+                                        <strong>الشكوى الرئيسية:</strong>
+                                        <p class="mb-1">{{ visit.chief_complaint or 'لم يتم إدخالها' }}</p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>الأعراض:</strong>
+                                        <p class="mb-1">{{ visit.symptoms or 'لم يتم إدخالها' }}</p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>العلامات الحيوية:</strong>
+                                        {% set nvs = nurse_latest_vital_signs or {} %}
+                                        {% set vs = structured_vital_signs or {} %}
+                                        {% if nvs.get('blood_pressure') or nvs.get('heart_rate') or nvs.get('temperature') or nvs.get('respiratory_rate') or nvs.get('oxygen_saturation') %}
+                                            <div class="text-muted small mb-1">
+                                                آخر قياس تمريض
+                                                {% if nurse_latest_vital_signs_recorded_at %}
+                                                    — {{ nurse_latest_vital_signs_recorded_at.strftime('%Y-%m-%d %H:%M') }}
+                                                {% endif %}
+                                            </div>
+                                            <ul class="mb-2 ps-3">
+                                                {% if nvs.get('blood_pressure') %}
+                                                    <li>ضغط الدم: {{ nvs.get('blood_pressure') }}</li>
+                                                {% endif %}
+                                                {% if nvs.get('heart_rate') %}
+                                                    <li>النبض: {{ nvs.get('heart_rate') }} نبضة/دقيقة</li>
+                                                {% endif %}
+                                                {% if nvs.get('temperature') %}
+                                                    <li>الحرارة: {{ nvs.get('temperature') }}°</li>
+                                                {% endif %}
+                                                {% if nvs.get('oxygen_saturation') %}
+                                                    <li>SpO2: {{ nvs.get('oxygen_saturation') }}%</li>
+                                                {% endif %}
+                                                {% if nvs.get('respiratory_rate') %}
+                                                    <li>معدل التنفس: {{ nvs.get('respiratory_rate') }} نفس/دقيقة</li>
+                                                {% endif %}
+                                            </ul>
+                                        {% endif %}
+                                        {% if vs.get('blood_pressure') or vs.get('heart_rate') or vs.get('temperature') or vs.get('respiratory_rate') %}
+                                            <div class="text-muted small mb-1">قياس الطبيب (داخل الزيارة)</div>
+                                            <ul class="mb-0 ps-3">
+                                                {% if vs.get('blood_pressure') %}
+                                                    <li>ضغط الدم: {{ vs.get('blood_pressure') }}</li>
+                                                {% endif %}
+                                                {% if vs.get('heart_rate') %}
+                                                    <li>النبض: {{ vs.get('heart_rate') }} نبضة/دقيقة</li>
+                                                {% endif %}
+                                                {% if vs.get('temperature') %}
+                                                    <li>الحرارة: {{ vs.get('temperature') }}°</li>
+                                                {% endif %}
+                                                {% if vs.get('respiratory_rate') %}
+                                                    <li>معدل التنفس: {{ vs.get('respiratory_rate') }} نفس/دقيقة</li>
+                                                {% endif %}
+                                            </ul>
+                                        {% elif visit.vital_signs %}
+                                            <p class="mb-0">{{ visit.vital_signs }}</p>
+                                        {% else %}
+                                            <p class="mb-0">لم يتم إدخالها</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="mb-3">خطة العلاج والمتابعة</h6>
+                                    <div class="mb-2">
+                                        <strong>التشخيص:</strong>
+                                        <p class="mb-1">{{ visit.diagnosis or 'لم يتم إدخالها' }}</p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>التشخيص التفريقي:</strong>
+                                        <p class="mb-1">{{ visit.differential_diagnosis or 'لم يتم إدخالها' }}</p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>خطة العلاج:</strong>
+                                        <p class="mb-1">{{ visit.treatment_plan or 'لم يتم إدخالها' }}</p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>ملاحظات المتابعة:</strong>
+                                        <p class="mb-0">{{ visit.follow_up_notes or 'لم يتم إدخالها' }}</p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>حاجة إلى متابعة:</strong>
+                                        {% if visit.follow_up_required %}
+                                            نعم
+                                            {% if visit.follow_up_date %}
+                                                - {{ visit.follow_up_date.strftime('%Y-%m-%d') }}
+                                            {% endif %}
+                                        {% else %}
+                                            لا
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if not visit.diagnosis %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-stethoscope fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">لم يتم إدخال التشخيص بعد</h5>
+                                    <a href="{{ url_for('doctor.diagnosis', visit_id=visit.id) }}" class="btn btn-primary">
+                                        <i class="fas fa-plus me-2"></i>إدخال التشخيص
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Prescriptions Tab -->
+                        <div class="tab-pane fade" id="prescriptions" role="tabpanel">
+                            {% if previous_prescriptions %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>رقم الوصفة</th>
+                                                <th>الدواء</th>
+                                                <th>الجرعة</th>
+                                                <th>التكرار</th>
+                                                <th>المدة</th>
+                                                <th>التعليمات</th>
+                                                <th>التاريخ</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for prescription in previous_prescriptions %}
+                                                {% for item in prescription.items.all() %}
+                                                {% set parts = (item.dosage or '').split(' | ', 1) %}
+                                                <tr>
+                                                    <td>{{ prescription.prescription_number }}</td>
+                                                    <td>
+                                                        {{ item.medication.trade_name if item.medication else 'غير محدد' }}
+                                                        {% if item.medication and item.medication.generic_name %} ({{ item.medication.generic_name }}){% endif %}
+                                                    </td>
+                                                    <td>{{ parts[0] if parts and parts[0] else '' }}</td>
+                                                    <td>{{ parts[1] if parts|length > 1 else '' }}</td>
+                                                    <td>{{ item.duration_days }}</td>
+                                                    <td>{{ item.instructions }}</td>
+                                                    <td>{{ prescription.created_at.strftime('%Y-%m-%d') if prescription.created_at else 'غير محدد' }}</td>
+                                                    <td class="text-end">
+                                                        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('doctor.print_prescription', prescription_id=prescription.id) }}" target="_blank">
+                                                            <i class="fas fa-print"></i> <span class="btn-label">طباعة</span>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-prescription fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">لا توجد وصفات سابقة</h5>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('doctor.prescription', visit_id=visit.id) }}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>إضافة وصفة جديدة
+                                </a>
+                            </div>
+                        </div>
+
+                        {% if module_active('lab') %}
+                        <!-- Lab Tab -->
+                        <div class="tab-pane fade" id="lab" role="tabpanel">
+                            {% if lab_requests %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>رقم الطلب</th>
+                                                <th>الملاحظات</th>
+                                                <th>الحالة</th>
+                                                <th>التاريخ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for lab in lab_requests %}
+                                            <tr>
+                                                <td>{{ lab.request_number or lab.id }}</td>
+                                                <td>{{ lab.notes or '-' }}</td>
+                                                <td>
+                                                    {% if lab.status == 'REQUESTED' %}
+                                                        <span class="badge text-bg-warning">مطلوب</span>
+                                                    {% elif lab.status == 'IN_PROGRESS' %}
+                                                        <span class="badge text-bg-info">قيد التنفيذ</span>
+                                                    {% elif lab.status == 'DONE' %}
+                                                        <span class="badge text-bg-success">مكتمل</span>
+                                                    {% elif lab.status == 'CANCELLED' %}
+                                                        <span class="badge text-bg-danger">ملغي</span>
+                                                    {% else %}
+                                                        <span class="badge text-bg-secondary">{{ lab.status | enum_label('OrderState') }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ lab.created_at.strftime('%Y-%m-%d') if lab.created_at else 'غير محدد' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">لا توجد طلبات مختبر</h5>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('doctor.lab_request', visit_id=visit.id) }}" class="btn btn-warning">
+                                    <i class="fas fa-plus me-2"></i>طلب فحص مختبر
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if module_active('radiology') %}
+                        <!-- Radiology Tab -->
+                        <div class="tab-pane fade" id="radiology" role="tabpanel">
+                            {% if radiology_requests %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>نوع الفحص</th>
+                                                <th>منطقة الفحص</th>
+                                                <th>الحالة</th>
+                                                <th>التاريخ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for radiology in radiology_requests %}
+                                            <tr>
+                                                <td>{{ radiology.modality or '-' }}</td>
+                                                <td>{{ radiology.body_part or '-' }}</td>
+                                                <td>
+                                                    {% if radiology.status == 'REQUESTED' %}
+                                                        <span class="badge text-bg-warning">مطلوب</span>
+                                                    {% elif radiology.status == 'IN_PROGRESS' %}
+                                                        <span class="badge text-bg-info">قيد التنفيذ</span>
+                                                    {% elif radiology.status == 'DONE' %}
+                                                        <span class="badge text-bg-success">مكتمل</span>
+                                                    {% elif radiology.status == 'CANCELLED' %}
+                                                        <span class="badge text-bg-danger">ملغي</span>
+                                                    {% else %}
+                                                        <span class="badge text-bg-secondary">{{ radiology.status | enum_label('OrderState') }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ radiology.created_at.strftime('%Y-%m-%d') if radiology.created_at else 'غير محدد' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-x-ray fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">لا توجد طلبات أشعة</h5>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('doctor.radiology_request', visit_id=visit.id) }}" class="btn btn-secondary">
+                                    <i class="fas fa-plus me-2"></i>طلب فحص أشعة
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Medical History Tab -->
+                        <div class="tab-pane fade" id="history" role="tabpanel">
+                            {% if medical_records %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>النوع</th>
+                                                <th>العنوان</th>
+                                                <th>المحتوى</th>
+                                                <th>التاريخ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for record in medical_records %}
+                                            <tr>
+                                                <td>
+                                                    {% if record.record_type == 'DIAGNOSIS' %}
+                                                        <span class="badge text-bg-primary">تشخيص</span>
+                                                    {% elif record.record_type == 'TREATMENT' %}
+                                                        <span class="badge text-bg-success">علاج</span>
+                                                    {% else %}
+                                                        <span class="badge text-bg-info">{{ record.record_type }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ record.title }}</td>
+                                                <td>{{ record.content[:100] }}{% if record.content|length > 100 %}...{% endif %}</td>
+                                                <td>{{ record.created_at.strftime('%Y-%m-%d') if record.created_at else 'غير محدد' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">لا توجد سجلات طبية</h5>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('doctor.medical_history', patient_id=visit.patient_id) }}" class="btn btn-info">
+                                    <i class="fas fa-eye me-2"></i>عرض السجل الطبي الكامل
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
