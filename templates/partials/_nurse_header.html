@@ -1,0 +1,28 @@
+<!-- Nurse Dashboard Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-lg">
+            <div class="card-body bg-gradient-success text-white">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="mb-2 text-white">
+                            <i class="fas fa-user-nurse me-3"></i>
+                            {{ _('لوحة التمريض الاحترافية') }}
+                        </h1>
+                        <p class="mb-0 text-white-50 fs-5">{{ _('مرحباً') }} <bdi>{{ current_user.full_name }}</bdi> {{ _(' - نظام متكامل لإدارة رعاية المرضى') }}</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('nurse.patients') }}" class="btn btn-light btn-lg">
+                                <i class="fas fa-heartbeat me-2"></i> {{ _('المرضى') }}
+                            </a>
+                            <a href="{{ url_for('nurse.medications') }}" class="btn btn-warning btn-lg">
+                                <i class="fas fa-pills me-2"></i> {{ _('الأدوية') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
