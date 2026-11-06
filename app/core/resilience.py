@@ -129,7 +129,7 @@ def init_metrics_endpoint(app: Flask) -> None:
 
     Exposes basic application metrics: request count, response times, etc.
     """
-    from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+    from prometheus_client import Counter, Histogram
 
     request_count = Counter(
         'http_requests_total',
@@ -164,11 +164,11 @@ def init_metrics_endpoint(app: Flask) -> None:
             pass
         return response
 
-    @app.route('/metrics')
-    def metrics():
-        return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
-
-    logger.info('Prometheus metrics endpoint registered at /metrics')
+    # Note: /metrics endpoint is provided by monitoring_routes.py
+    # HTTP request metrics are tracked via before/after_request hooks above
+    logger.info(
+        'HTTP request metrics tracking registered (endpoint: /metrics via monitoring_routes)'
+    )
 
 
 # ---------------------------------------------------------------------------
