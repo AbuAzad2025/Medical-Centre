@@ -1,0 +1,26 @@
+                        <div class="form-step-panel d-none" data-step="1" hidden>
+                        {% if current_user.is_authenticated and has_permission('patient_create') %}
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="department_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم الصحي")")")")")")")') }} <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="department_id" name="department_id" required
+                                            data-smart-select data-placeholder="_(" _(" _(" _(" _(" _("ابحث أو اختر القسم...")")")")")")">
+                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر القسم...")")")")")")")') }}</option>
+                                        {% for department in departments %}
+                                        <option value="{{ department.id }}">{{ department.name_ar }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6" id="staff_container">
+                                <div class="mb-3">
+                                    <label for="staff_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب/الموظف")")")")")")")') }}</label>
+                                    <select class="form-control select2-search" id="staff_id" name="doctor_id">
+                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الطبيب/الموظف...")")")")")")")') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        </div>{# end step 1 #}

@@ -48,81 +48,8 @@
                             ('_("_(" _(" _(" _(" _(" _("الدفع")")")")")")")', 'fa-credit-card'),
                         ]) }}
 
-                        <div class="form-step-panel" data-step="0"_(" _(" _(" _(" _(" _(">
-                        <!-- البحث الذكي عن المريض -->
-                        <div class=")")")")")")"row mb-4">
-                            <div class="col-12">
-                                <div class="card bg-light">
-                                    <div class="card-header">
-                                        <h6 class="text-primary mb-0">
-                                            <i class="fas fa-search"></i> {{ _('البحث الذكي عن المريض') }}
-                                        </h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-8">
-                                                <div class="mb-3 smart-search" data-smart-search
-                                                     data-api="{{ url_for('api_search.search_patients') }}"
-                                                     data-target-id="selectedPatientId"
-                                                     data-info-id="selectedPatientInfo"
-                                                     data-min="2">
-                                                    <label for="patient_search" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("البحث الذكي")")")")")")")') }}</label>
-                                                    <input type="text" class="form-control" id="patient_search" data-smart-search-input
-                                                           placeholder="_(" _(" _(" _(" _(" _("ابحث بالاسم، الهوية، الهاتف، أو تاريخ الميلاد...")")")")")")" autocomplete="off">
-                                                    <div id="patient_suggestions" class="smart-search-results list-group mt-2 d-none" data-smart-search-results></div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="mb-3">
-                                                    <label>&nbsp;</label>
-                                                    <button type="button" class="btn btn-success w-100" id="addNewPatientBtn">
-                                                        <i class="fas fa-plus"></i> {{ _('_("_(" _(" _(" _(" _(" _("إضافة مريض جديد")")")")")")")') }}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <input type="hidden" id="selectedPatientId" name="patient_id">
-                                        <div id="selectedPatientInfo" class="alert alert-info d-none"></div>
-                                        <input type="hidden" id="quick_emergency" name="quick_emergency" value="">
-                                        <input type="hidden" id="quick_patient_name" name="quick_patient_name" value="">
-                                        <input type="hidden" id="quick_gender" name="quick_gender" value="">
-                                        <input type="hidden" id="quick_age" name="quick_age" value="">
-                                        <input type="hidden" id="quick_reason" name="quick_reason" value="">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        </div>
-                        </div>{# end step 0 #}
-
-                        <div class="form-step-panel d-none" data-step="1" hidden>
-                        {% if current_user.is_authenticated and has_permission('patient_create') %}
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="department_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم الصحي")")")")")")")') }} <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="department_id" name="department_id" required
-                                            data-smart-select data-placeholder="_(" _(" _(" _(" _(" _("ابحث أو اختر القسم...")")")")")")">
-                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر القسم...")")")")")")")') }}</option>
-                                        {% for department in departments %}
-                                        <option value="{{ department.id }}">{{ department.name_ar }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6" id="staff_container">
-                                <div class="mb-3">
-                                    <label for="staff_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب/الموظف")")")")")")")') }}</label>
-                                    <select class="form-control select2-search" id="staff_id" name="doctor_id">
-                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الطبيب/الموظف...")")")")")")")') }}</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                        </div>{# end step 1 #}
-
+{% include "partials/_visit_step_patient.html" %}
+{% include "partials/_visit_step_department.html" %}
                         <div class="form-step-panel d-none" data-step="2" hidden>
                         <div class="row mb-4" id="test_selection_section" class="d-none">
                             <div class="col-md-8">
