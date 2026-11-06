@@ -103,11 +103,8 @@ def init_correlation_id(app: Flask) -> None:
 
     @app.before_request
     def _set_correlation_id():
-        cid = (
-            request.headers.get('X-Request-ID')
-            or request.headers.get('X-Correlation-ID')
-            or str(uuid.uuid4())
-        )
+        incoming = request.headers.get('X-Request-ID') or request.headers.get('X-Correlation-ID')
+        cid = incoming or uuid.uuid4().hex[:16]
         g.correlation_id = cid
         g.trace_id = cid
 
@@ -198,8 +195,13 @@ def init_input_validation(app: Flask) -> None:
             abort(413)
 
         # Sanitize string inputs (strip whitespace)
-        if request.is_json and request.json:
-            _sanitize_dict(request.json)
+        if request.method in ('POST', 'PUT', 'PATCH') and request.is_json:
+            try:
+                json_data = request.get_json(silent=True)
+                if json_data and isinstance(json_data, dict):
+                    _sanitize_dict(json_data)
+            except Exception:
+                pass
 
     def _sanitize_dict(d):
         for key, value in list(d.items()):
