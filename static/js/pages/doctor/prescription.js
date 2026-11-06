@@ -183,12 +183,20 @@ document.addEventListener('DOMContentLoaded', function() {
               .then(function(d2) {
                 if (d2.success) { window.location.href = form.getAttribute('data-success-url') || window.location.href; }
                 else { showSafetyModal([d2.message || 'خطأ غير معروف'], function(){}); }
+              })
+              .catch(function() {
+                var errEl = document.getElementById('prescriptionError');
+                if (errEl) { errEl.textContent = 'حدث خطأ في الاتصال'; errEl.classList.remove('d-none'); }
               });
           });
         } else {
           var errEl = document.getElementById('prescriptionError');
           if (errEl) { errEl.textContent = data.message || 'حدث خطأ غير متوقع'; errEl.classList.remove('d-none'); }
         }
+      })
+      .catch(function() {
+        var errEl = document.getElementById('prescriptionError');
+        if (errEl) { errEl.textContent = 'حدث خطأ في الاتصال'; errEl.classList.remove('d-none'); }
       });
   });
 });
