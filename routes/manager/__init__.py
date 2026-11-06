@@ -446,11 +446,7 @@ def get_operational_efficiency():
                 type(
                     'Row',
                     (),
-                    {
-                        'visits': d[0],
-                        'avg_duration': float(d[1] or 0),
-                        'department_id': d[2],
-                    },
+                    {'visits': d[0], 'avg_duration': float(d[1] or 0), 'department_id': d[2]},
                 )
                 for d in department_efficiency
             ]
