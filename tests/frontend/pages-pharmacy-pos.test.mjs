@@ -172,6 +172,26 @@ describe('pharmacy/pos.js', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
+  it('checkout with cash item server failure shows error and restores button', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: false, message: 'Insufficient stock' }) });
+    const mod = await loadModule('static/js/pages/pharmacy/pos.js');
+    mod.addToCart('1', 'Aspirin', '5', '100');
+    document.getElementById('checkoutBtn').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(document.getElementById('checkoutBtn').disabled).toBe(false);
+    expect(window.showApiError).toHaveBeenCalled();
+  });
+
+  it('checkout network failure shows error and restores button', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error('network'));
+    const mod = await loadModule('static/js/pages/pharmacy/pos.js');
+    mod.addToCart('1', 'Aspirin', '5', '100');
+    document.getElementById('checkoutBtn').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(document.getElementById('checkoutBtn').disabled).toBe(false);
+    expect(window.showApiError).toHaveBeenCalled();
+  });
+
   it('checkout with cash item completes the sale', async () => {
     const mod = await loadModule('static/js/pages/pharmacy/pos.js');
     mod.addToCart('1', 'Aspirin', '5', '100');
