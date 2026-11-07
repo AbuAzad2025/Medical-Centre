@@ -17,12 +17,12 @@ export function exportMonitoringReport() {
 
     const csvContent = "data:text/csv;charset=utf-8,"
         + "الوحدة,الحالة,الإحصائيات\n"
-        + "الاستقبال,نشط,' + (' + window.__M1__ + ' || 0) + '\n"
-        + "الطبيب,نشط,' + (' + window.__M2__ + ' || 0) + '\n"
-        + "الطوارئ,نشط,' + (' + window.__M3__ + ' || 0) + '\n"
-        + "المختبر,نشط,' + (' + window.__M4__ + ' || 0) + '\n"
-        + "الأشعة,نشط,' + (' + window.__M5__ + ' || 0) + '\n"
-        + "المحاسبة,نشط,' + (' + window.__M6__ + ' || 0) + '\n";
+        + `الاستقبال,نشط,${window.__M1__ || 0}\n`
+        + `الطبيب,نشط,${window.__M2__ || 0}\n`
+        + `الطوارئ,نشط,${window.__M3__ || 0}\n`
+        + `المختبر,نشط,${window.__M4__ || 0}\n`
+        + `الأشعة,نشط,${window.__M5__ || 0}\n`
+        + `المحاسبة,نشط,${window.__M6__ || 0}\n`;
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
