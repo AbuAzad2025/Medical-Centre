@@ -1,6 +1,6 @@
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 
-function createBackup(e) {
+export function createBackup(e) {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
@@ -38,7 +38,7 @@ function createBackup(e) {
     });
 }
 
-function scheduleBackup() {
+export function scheduleBackup() {
     var scheduleUrl = (window.API_ROUTES && window.API_ROUTES.backup_schedule) || '/super-admin/backup/schedule';
     Swal.showLoading();
     fetch(scheduleUrl, { credentials: 'same-origin' })
@@ -113,7 +113,7 @@ function scheduleBackup() {
         });
 }
 
-function createFullBackup(e) {
+export function createFullBackup(e) {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
@@ -152,7 +152,7 @@ function createFullBackup(e) {
     });
 }
 
-function createIncrementalBackup(e) {
+export function createIncrementalBackup(e) {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
@@ -191,7 +191,7 @@ function createIncrementalBackup(e) {
     });
 }
 
-function createDatabaseBackup(e) {
+export function createDatabaseBackup(e) {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
@@ -230,7 +230,7 @@ function createDatabaseBackup(e) {
     });
 }
 
-function createFilesBackup(e) {
+export function createFilesBackup(e) {
     var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
@@ -269,7 +269,7 @@ function createFilesBackup(e) {
     });
 }
 
-function filterBackups(status, e) {
+export function filterBackups(status, e) {
     const rows = document.querySelectorAll('#backupsTable tbody tr');
 
     rows.forEach(row => {
@@ -287,7 +287,7 @@ function filterBackups(status, e) {
     if (e) e.target.classList.add('active');
 }
 
-function restoreBackup(backupId) {
+export function restoreBackup(backupId) {
     var restoreUrl = ((window.API_ROUTES && window.API_ROUTES.restore_backup) || '/super-admin/backup/restore/0').replace('/0', '/' + backupId);
     Swal.fire({
         title: 'تأكيد الاستعادة',
@@ -322,7 +322,7 @@ function restoreBackup(backupId) {
     });
 }
 
-function deleteBackup(backupId) {
+export function deleteBackup(backupId) {
     var deleteUrl = ((window.API_ROUTES && window.API_ROUTES.delete_backup) || '/super-admin/backup/delete/0').replace('/0', '/' + backupId);
     Swal.fire({
         title: 'حذف النسخة',
@@ -357,7 +357,7 @@ function deleteBackup(backupId) {
     });
 }
 
-function cancelBackup(backupId) {
+export function cancelBackup(backupId) {
     var cancelUrl = ((window.API_ROUTES && window.API_ROUTES.cancel_backup) || '/super-admin/backup/cancel/0').replace('/0', '/' + backupId);
     Swal.fire({
         title: 'إلغاء النسخ',
@@ -392,7 +392,7 @@ function cancelBackup(backupId) {
     });
 }
 
-function retryBackup(type) {
+export function retryBackup(type) {
     let reqType = 'full';
     if (type === 'incremental' || type === 'INCREMENTAL') reqType = 'incremental';
     else if (type === 'differential' || type === 'DIFFERENTIAL') reqType = 'database';
@@ -439,7 +439,7 @@ function retryBackup(type) {
     });
 }
 
-function saveBackupSettings() {
+export function saveBackupSettings() {
     var settingsUrl = (window.API_ROUTES && window.API_ROUTES.save_backup_settings) || '/super-admin/backup/settings';
     Swal.fire({
         title: 'حفظ الإعدادات',
@@ -482,15 +482,15 @@ function saveBackupSettings() {
     });
 }
 
-function generateBackupReport() {
+export function generateBackupReport() {
     window.location.href = (window.API_ROUTES && window.API_ROUTES.backup_report) || '/super-admin/backup/report';
 }
 
-function exportBackupLogs() {
+export function exportBackupLogs() {
     window.location.href = (window.API_ROUTES && window.API_ROUTES.export_backup_logs) || '/super-admin/backup/export-logs';
 }
 
-function viewBackupHistory() {
+export function viewBackupHistory() {
     var historyUrl = (window.API_ROUTES && window.API_ROUTES.backup_history) || '/super-admin/backup/history';
     Swal.showLoading();
     fetch(historyUrl, { credentials: 'same-origin' })
@@ -548,3 +548,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+
+// Backward compatibility
+if (typeof createBackup !== "undefined") window.createBackup = createBackup;
+if (typeof scheduleBackup !== "undefined") window.scheduleBackup = scheduleBackup;
+if (typeof createFullBackup !== "undefined") window.createFullBackup = createFullBackup;
+if (typeof createIncrementalBackup !== "undefined") window.createIncrementalBackup = createIncrementalBackup;
+if (typeof createDatabaseBackup !== "undefined") window.createDatabaseBackup = createDatabaseBackup;
+if (typeof createFilesBackup !== "undefined") window.createFilesBackup = createFilesBackup;
+if (typeof filterBackups !== "undefined") window.filterBackups = filterBackups;
+if (typeof restoreBackup !== "undefined") window.restoreBackup = restoreBackup;
+if (typeof deleteBackup !== "undefined") window.deleteBackup = deleteBackup;
+if (typeof cancelBackup !== "undefined") window.cancelBackup = cancelBackup;
+if (typeof retryBackup !== "undefined") window.retryBackup = retryBackup;
+if (typeof saveBackupSettings !== "undefined") window.saveBackupSettings = saveBackupSettings;
+if (typeof generateBackupReport !== "undefined") window.generateBackupReport = generateBackupReport;
+if (typeof exportBackupLogs !== "undefined") window.exportBackupLogs = exportBackupLogs;
+if (typeof viewBackupHistory !== "undefined") window.viewBackupHistory = viewBackupHistory;
