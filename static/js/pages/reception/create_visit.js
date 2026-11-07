@@ -5,10 +5,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedPatientInfo = document.getElementById('selectedPatientInfo');
     const addNewPatientBtn = document.getElementById('addNewPatientBtn');
 
-    var prePid = __M0__;
-    var preDept = __M1__;
-    var preDoc = __M2__;
-    var PRESELECTED_PATIENT = __M3__;
+    var prePid = window.__M0__;
+    var preDept = window.__M1__;
+    var preDoc = window.__M2__;
+    var PRESELECTED_PATIENT = window.__M3__;
     if (PRESELECTED_PATIENT) {
         (function initPreselectedPatient(){
             selectedPatientId.value = PRESELECTED_PATIENT.id;
@@ -479,3 +479,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+
+// Backward compatibility: expose on window for legacy templates
