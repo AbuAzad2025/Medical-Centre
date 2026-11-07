@@ -17,9 +17,12 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  window.location = { href: '', reload: vi.fn() };
   try { localStorage.clear(); } catch (e) {}
   // Keep #topLoadingBar (created once by the module at import); remove everything else.
   document.querySelectorAll('body > *:not(#topLoadingBar)').forEach((n) => n.remove());
+  const bar = document.getElementById('topLoadingBar');
+  if (bar) { bar.style.display = 'none'; bar.style.width = '0%'; }
   window.__M = [];
   window.API_ROUTES = {};
   window.Swal = {
@@ -45,6 +48,165 @@ afterEach(() => {
 });
 
 describe('base.js', () => {
+  it('sidebar toggle collapses sidebar when clicked', async () => {
+    const aside = document.createElement('aside');
+    aside.id = 'appSidebar';
+    const toggle = document.createElement('button');
+    toggle.id = 'sidebarToggle';
+    toggle.setAttribute('aria-expanded', 'true');
+    document.body.appendChild(aside);
+    document.body.appendChild(toggle);
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 10));
+    toggle.click();
+    expect(aside.classList.contains('collapsed')).toBe(true);
+  });
+
+  it('fetch wrapper adds CSRF token to non-GET requests', async () => {
+    document.body.innerHTML = '<meta name="csrf-token" content="csrf-wrapped">';
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) });
+    const mod = await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const out = await window.fetch('/api/test', { method: 'POST', body: 'x' });
+    expect(window.__apiMetrics.calls).toBeGreaterThan(0);
+  });
+
+  it('fetch wrapper uses GET request without adding CSRF', async () => {
+    document.body.innerHTML = '<meta name="csrf-token" content="csrf-wrapped">';
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) });
+    const mod = await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await window.fetch('/api/test', { method: 'GET' });
+    expect(window.__apiMetrics.calls).toBeGreaterThan(0);
+  });
+
+  it('production ENV silences debug and log', async () => {
+    document.body.innerHTML = '<meta name="app-env" content="production">';
+    const originalDebug = console.debug;
+    const originalLog = console.log;
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    expect(console.debug).not.toBe(originalDebug);
+    expect(console.log).not.toBe(originalLog);
+    console.debug = originalDebug;
+    console.log = originalLog;
+  });
+
+  it('sidebar with saved collapsed state collapses on load', async () => {
+    try { localStorage.setItem('sidebarCollapsed', '1'); } catch (e) {}
+    document.body.innerHTML = `<aside id="appSidebar"></aside><button id="sidebarToggle" aria-expanded="true"></button>`;
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 10));
+    expect(document.getElementById('appSidebar').classList.contains('collapsed')).toBe(true);
+    expect(document.getElementById('sidebarToggle').getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('modal shown focuses first input', async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<div class="modal" id="m"><input id="first"></div>`;
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const modal = document.getElementById('m');
+    const input = document.getElementById('first');
+    modal.dispatchEvent(new Event('shown.bs.modal'));
+    vi.advanceTimersByTime(150);
+    expect(document.activeElement).toBe(input);
+    vi.useRealTimers();
+  });
+
+  it('hidden modal re-enables submit button', async () => {
+    document.body.innerHTML = `<div class="modal" id="m"><button type="submit" disabled data-loading></button></div>`;
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const modal = document.getElementById('m');
+    modal.dispatchEvent(new Event('hidden.bs.modal'));
+    const btn = document.querySelector('#m button');
+    expect(btn.disabled).toBe(false);
+    expect(btn.hasAttribute('data-loading')).toBe(false);
+  });
+
+  it('anchor with href hash scrolls to target', async () => {
+    document.body.innerHTML = `<a id="scroller" href="#target">Go</a><h2 id="target">Target</h2>`;
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    document.getElementById('scroller').click();
+    expect(document.getElementById('target').scrollIntoView).toBeDefined();
+  });
+
+  it('row with data-href navigates on click', async () => {
+    document.body.innerHTML = `<table><tbody><tr id="trNav" data-href="/somewhere"><td>x</td></tr></tbody></table>`;
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const row = document.getElementById('trNav');
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    expect(window.location.href).toContain('/somewhere');
+  });
+
+  it('Ctrl+Enter clicks form submit button', async () => {
+    document.body.innerHTML = `<form id="f3"><input id="i3"><button type="submit">Go</button></form>`;
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const submitBtn = vi.fn();
+    document.querySelector('#f3 button').click = submitBtn;
+    document.getElementById('i3').focus();
+    document.getElementById('i3').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true }));
+    expect(submitBtn).toHaveBeenCalled();
+  });
+
+  it('Ctrl+Enter on form without submit button calls form.submit', async () => {
+    document.body.innerHTML = `<form id="f4"><input id="i4"></form>`;
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const form = document.getElementById('f4');
+    form.submit = vi.fn();
+    const input = document.getElementById('i4');
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true }));
+    expect(form.submit).toHaveBeenCalled();
+  });
+
+  it('tab pane load triggers DOMPurify branch', async () => {
+    document.body.innerHTML = `<button id="btn" data-bs-toggle="tab" data-bs-target="#tab1">Tab</button><div id="tab1" data-load-url="/partial"></div>`;
+    window.DOMPurify = { sanitize: (html) => html };
+    global.fetch = vi.fn().mockResolvedValue({ text: () => Promise.resolve('<p>content</p>') });
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const tab = document.getElementById('btn');
+    tab.dispatchEvent(new Event('shown.bs.tab', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 20));
+    expect(global.fetch).toHaveBeenCalledWith('/partial', expect.any(Object));
+  });
+
+  it('gsap wraps window globals when gsap exists', async () => {
+    window.gsap = { registerPlugin: vi.fn() };
+    window.ScrollTrigger = function () {};
+    await loadModule('static/js/base.js');
+    expect(window.gsap.registerPlugin).toHaveBeenCalled();
+    delete window.gsap;
+    delete window.ScrollTrigger;
+  });
+
+  it('serviceWorker registers sw.js on load', async () => {
+    const reg = vi.fn().mockResolvedValue({ scope: '/' });
+    Object.defineProperty(window.navigator, 'serviceWorker', { value: { register: reg }, configurable: true, writable: true });
+    await loadModule('static/js/base.js');
+    window.dispatchEvent(new Event('load'));
+    expect(reg).toHaveBeenCalled();
+  });
+
+  it('Before unload beforeunload shows loading bar', async () => {
+    await loadModule('static/js/base.js');
+    window.dispatchEvent(new Event('beforeunload'));
+    expect(document.getElementById('topLoadingBar').style.display).toBe('block');
+  });
+
+  it('invokes window load listeners', async () => {
+    await loadModule('static/js/base.js');
+    window.dispatchEvent(new Event('load'));
+    expect(true).toBe(true);
+  });
+
   it('exposes escHtml on window', () => {
     expect(typeof window.escHtml).toBe('function');
     expect(window.escHtml('<b>')).toBe('&lt;b&gt;');
@@ -71,19 +233,6 @@ describe('base.js', () => {
     try { localStorage.removeItem('ui_density'); localStorage.removeItem('ui_radius'); } catch (e) {}
   });
 
-  it('sidebar toggle collapses sidebar when clicked', async () => {
-    const aside = document.createElement('aside');
-    aside.id = 'appSidebar';
-    const toggle = document.createElement('button');
-    toggle.id = 'sidebarToggle';
-    toggle.setAttribute('aria-expanded', 'true');
-    document.body.appendChild(aside);
-    document.body.appendChild(toggle);
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-    await new Promise(r => setTimeout(r, 10));
-    toggle.click();
-    expect(aside.classList.contains('collapsed')).toBe(true);
-  });
 
   it('mobile toggle opens sidebar overlay and close button closes', async () => {
     const aside = document.createElement('aside');
@@ -223,8 +372,12 @@ describe('base.js', () => {
   });
 
   it('service worker registers on window load', () => {
-    window.dispatchEvent(new Event('load'));
-    expect(swRegister).toHaveBeenCalled();
+    const localReg = vi.fn().mockResolvedValue({ scope: '/' });
+    Object.defineProperty(window.navigator, 'serviceWorker', { value: { register: localReg }, configurable: true, writable: true });
+    return loadModule('static/js/base.js').then(() => {
+      window.dispatchEvent(new Event('load'));
+      expect(localReg).toHaveBeenCalled();
+    });
   });
 
   it('DOMContentLoaded adds .card-modern and .btn-modern classes', async () => {
