@@ -69,5 +69,5 @@
         __M6__={{ active_template.id if active_template else 'null' }};
         __M7__='/report-builder/templates/';
         </script>
-<script src="{{ url_for('static', filename='js/pages/report_builder/builder.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/report_builder/builder.js') }}"></script>
 {% endblock %}

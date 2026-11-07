@@ -131,5 +131,5 @@
         window.__M = window.__M || [];
         __M0__={{ states_json | safe }}; __M1__={{ teeth_json | safe }}; __M2__='{{ url_for("doctor.save_dental_chart") }}'; __M3__='{{ csrf_token() }}'; __M4__={{ patient.id }}; __M5__={{ visit_id or 'null' }};
         </script>
-<script src="{{ url_for('static', filename='js/pages/doctor/dental_chart.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/doctor/dental_chart.js') }}"></script>
 {% endblock %}

@@ -91,10 +91,10 @@
 
 <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/api-feedback.js') }}"></script>
-<script src="{{ url_for('static', filename='js/pages/portal/base.js') }}"></script>
-<script src="{{ url_for('static', filename='js/touch-mode.js') }}"></script>
-<script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/api-feedback.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/portal/base.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/touch-mode.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
   window.__VALIDATION_RULES__ = {{ validation_rules|default({})|tojson }};
 </script>

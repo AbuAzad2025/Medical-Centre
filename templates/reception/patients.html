@@ -381,6 +381,6 @@
         window.__M = window.__M || [];
         __M0__='{{ url_for('reception.view_patient', patient_id=patient.id) if patient else url_for('reception.patients') }}'; __M1__={{ 'true' if mode == 'edit' and patient else 'false' }};
         </script>
-<script src="{{ url_for('static', filename='js/pages/reception/patients.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/reception/patients.js') }}"></script>
 
 {% endblock %}

@@ -237,7 +237,7 @@
         window.__M = window.__M || [];
         __M0__='{{ csrf_token() if csrf_token else "" }}'; __M1__='{{ csrf_token() if csrf_token else "" }}';
         </script>
-<script src="{{ url_for('static', filename='js/pages/manager/pricing.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/manager/pricing.js') }}"></script>
 
 <style>
 .pricing-category-card {

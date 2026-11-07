@@ -159,5 +159,5 @@
         window.__M = window.__M || [];
         __M0__='{{ url_for("doctor.save_visit_summary", visit_id=visit.id) }}'; __M1__='{{ url_for("doctor.patient_queue") }}';
         </script>
-<script src="{{ url_for('static', filename='js/pages/doctor/visit_summary.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/doctor/visit_summary.js') }}"></script>
 {% endblock %}

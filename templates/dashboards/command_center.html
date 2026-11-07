@@ -50,6 +50,6 @@
   window.__CC_WIDGETS__ = {{ customizable_widgets|default([])|tojson }};
   window.__CC_HIDDEN__ = {{ hidden_widget_ids|default([])|tojson }};
 </script>
-<script src="{{ url_for('static', filename='js/dashboard-live.js') }}"></script>
-<script src="{{ url_for('static', filename='js/dashboard-customize.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/dashboard-live.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/dashboard-customize.js') }}"></script>
 {% endblock %}

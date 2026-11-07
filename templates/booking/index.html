@@ -53,5 +53,5 @@
         window.__M = window.__M || [];
         __M0__='{{ url_for('booking.api_available_doctors') }}'; __M1__='{{ url_for('booking.api_available_times') }}';
         </script>
-<script src="{{ url_for('static', filename='js/pages/booking/index.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/booking/index.js') }}"></script>
 {% endblock %}

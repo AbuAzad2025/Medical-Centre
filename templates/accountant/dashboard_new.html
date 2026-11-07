@@ -254,6 +254,6 @@
   'mainData': [stats.today_total or 0, stats.monthly_revenue or 0, stats.pending_amount or 0, stats.net_profit or 0, stats.revenue_cycle.collection_rate or 0]
 }|tojson }};
         </script>
-<script src="{{ url_for('static', filename='js/pages/accountant/dashboard_new.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/accountant/dashboard_new.js') }}"></script>
 
 {% endblock %}

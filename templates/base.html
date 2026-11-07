@@ -89,21 +89,21 @@
     <script src="{{ url_for('static', filename='vendor/gsap/gsap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/gsap/ScrollTrigger.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/api-feedback.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/global-errors.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/api-feedback.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/global-errors.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/base.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/events.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/performance.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/security.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/ux-enhance.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/focus-trap.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/ui-preferences.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/touch-mode.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/motion.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/base.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/events.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/performance.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/security.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/ux-enhance.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/focus-trap.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/ui-preferences.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/touch-mode.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/motion.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
     <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
     window.API_ROUTES = {
         dashboard_snapshot: {{ url_for('api_dashboard.dashboard_snapshot')|tojson }},

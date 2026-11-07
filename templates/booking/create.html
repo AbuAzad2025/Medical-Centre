@@ -45,5 +45,5 @@
         window.__M = window.__M || [];
         __M0__={{ preset_doctor_id or 'null' }}; __M1__={{ (preset_time|tojson) if preset_time else 'null' }}; __M2__='{{ url_for('booking.api_available_doctors') }}'; __M3__='{{ url_for('booking.api_available_times') }}'; __M4__='{{ url_for('booking.api_smart_slots') }}';
         </script>
-<script src="{{ url_for('static', filename='js/pages/booking/create.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/booking/create.js') }}"></script>
 {% endblock %}

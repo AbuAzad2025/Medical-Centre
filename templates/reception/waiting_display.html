@@ -68,6 +68,6 @@ body { background: var(--kiosk-bg); color: var(--kiosk-fg); }
         window.__M = window.__M || [];
         __M0__='{{ url_for('reception.api_display_waiting') }}';
         </script>
-<script src="{{ url_for('static', filename='js/pages/reception/waiting_display.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/reception/waiting_display.js') }}"></script>
 </body>
 </html>

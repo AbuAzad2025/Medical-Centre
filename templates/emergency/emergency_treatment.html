@@ -217,5 +217,5 @@
         window.__M = window.__M || [];
         __M0__='{{ url_for("emergency.emergency_treatment", visit_id=visit.id) }}'; __M1__='{{ url_for("emergency.emergency_visits") }}';
         </script>
-<script src="{{ url_for('static', filename='js/pages/emergency/emergency_treatment.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/emergency/emergency_treatment.js') }}"></script>
 {% endblock %}

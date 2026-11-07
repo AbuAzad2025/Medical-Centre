@@ -133,5 +133,5 @@
         window.__M = window.__M || [];
         __M0__={{ (doctor_templates or [])|tojson }};
         </script>
-<script src="{{ url_for('static', filename='js/pages/doctor/prescription.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/doctor/prescription.js') }}"></script>
 {% endblock %}

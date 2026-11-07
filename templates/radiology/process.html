@@ -412,7 +412,7 @@
         window.__M = window.__M || [];
         __M0__='{{ url_for("radiology.api_ai_assist") }}'; __M1__='{{ url_for("radiology.api_report_templates") }}'; __M2__='{{ url_for("radiology.api_report_macros") }}'; __M3__='{{BODY_PART}}'; __M4__='{{ url_for("radiology.upsert_report_macro") }}'; __M5__={{ url_for("radiology.delete_report_macro", macro_id="__M__") }}; __M6__={{ url_for("radiology.delete_report_template", template_id="__TPL__") }}; __M7__='{{ url_for("radiology.upsert_report_template") }}';
         </script>
-<script src="{{ url_for('static', filename='js/pages/radiology/process.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/radiology/process.js') }}"></script>
     {% else %}
     {{ page_header('_("_(" _(" _(" _(" _(" _("قائمة عمل الأشعة")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("طلبات الأشعة حسب الحالة")")")")")")")', icon='fas fa-x-ray', actions=[
         {'label': '_("_(" _(" _(" _(" _(" _("قيد الطلب (")")")")")")")' ~ (counts.requested if counts else 0) ~ ')', 'url': url_for('radiology.worklist', status='REQUESTED'), 'style': 'outline-primary'},

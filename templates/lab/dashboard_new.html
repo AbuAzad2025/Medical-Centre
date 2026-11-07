@@ -236,6 +236,6 @@
   'mainData': [stats.requested_count or 0, stats.in_progress_count or 0, stats.completed_today or 0, stats.predictive_insights.weekly_requests or 0, stats.predictive_insights.monthly_requests or 0]
 }|tojson }};
         </script>
-<script src="{{ url_for('static', filename='js/pages/lab/dashboard_new.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/lab/dashboard_new.js') }}"></script>
 
 {% endblock %}

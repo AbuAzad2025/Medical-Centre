@@ -461,5 +461,5 @@ __M1__='{{ url_for("super_admin.branding_print_preview") }}';
 __M2__='{{ url_for("super_admin.apply_branding_theme", theme_id=0) }}'.replace('/0', '');
 __CSRF__='{{ csrf_token() }}';
 </script>
-<script src="{{ url_for('static', filename='js/pages/super_admin/branding.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/super_admin/branding.js') }}"></script>
 {% endblock %}
