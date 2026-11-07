@@ -1,5 +1,5 @@
 {
-  "total_routes": 943,
+  "total_routes": 955,
   "routes": [
     {
       "endpoint": "main.index",
@@ -2285,6 +2285,120 @@
     {
       "endpoint": "data_warehouse.sync",
       "path": "/data-warehouse/sync",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.hl7_oru_create",
+      "path": "/device-integration/hl7/oru/create",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.hl7_oru_parse",
+      "path": "/device-integration/hl7/oru/parse",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.iot_alerts",
+      "path": "/device-integration/iot/alerts",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.iot_list_devices",
+      "path": "/device-integration/iot/devices",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.iot_register_device",
+      "path": "/device-integration/iot/devices",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.iot_device_status",
+      "path": "/device-integration/iot/devices/<device_id>/status",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.iot_record_reading",
+      "path": "/device-integration/iot/readings",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.mdi_alarms",
+      "path": "/device-integration/mdi/alarms",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.mdi_dashboard",
+      "path": "/device-integration/mdi/dashboard",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.mdi_list_devices",
+      "path": "/device-integration/mdi/devices",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.mdi_register_device",
+      "path": "/device-integration/mdi/devices",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "device_integration.mdi_record_parameter",
+      "path": "/device-integration/mdi/parameters",
       "methods": [
         "OPTIONS",
         "POST"
