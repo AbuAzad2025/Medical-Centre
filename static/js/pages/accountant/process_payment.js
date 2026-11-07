@@ -47,3 +47,5 @@ const baseCurrency = window.__M0__;
     methodSelect.addEventListener('change', togglePaymentFields);
     togglePaymentFields();
   }
+
+export {};

@@ -20,3 +20,5 @@ document.getElementById('registerBtn').addEventListener('click', async function(
     btn.textContent = origText;
   }
 });
+
+export {};

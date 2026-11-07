@@ -182,3 +182,5 @@ window.ENUMS.LABELS = {
   PLANNING: 'تخطيط',
   ON_HOLD: 'معلق',
 };
+
+export {};

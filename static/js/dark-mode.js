@@ -41,3 +41,5 @@
   window.toggleTheme = toggleTheme;
   window.getTheme = () => document.documentElement.getAttribute('data-theme') || LIGHT;
 })();
+
+export {};

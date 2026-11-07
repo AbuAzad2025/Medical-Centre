@@ -28,3 +28,5 @@ fetch(window.__M0__)
     })
     .catch(() => { document.getElementById('qcMainChart').parentNode.innerHTML = '<p class="text-muted text-center">تعذر تحميل البيانات</p>'; });
   document.querySelectorAll('.progress-dynamic').forEach(function(el){ el.style.width = (parseFloat(el.dataset.width) || 0) + '%'; });
+
+export {};

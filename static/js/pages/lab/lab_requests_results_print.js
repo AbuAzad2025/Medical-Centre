@@ -3,3 +3,5 @@ window.addEventListener('load', function() {
         window.print();
     }, 1000);
 });
+
+export {};

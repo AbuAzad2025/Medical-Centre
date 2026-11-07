@@ -482,3 +482,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // Backward compatibility: expose on window for legacy templates
+
+export {};

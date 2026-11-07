@@ -48,3 +48,5 @@ var __M = window.__M || [];
   });
   document.querySelectorAll('.progress-dynamic').forEach(function(el){ el.style.width = (parseFloat(el.dataset.width) || 0) + '%'; });
 })();
+
+export {};

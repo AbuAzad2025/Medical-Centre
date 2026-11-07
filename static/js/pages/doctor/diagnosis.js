@@ -42,3 +42,5 @@ document.addEventListener('DOMContentLoaded', function() {
         if (__diagnosisInterval) clearInterval(__diagnosisInterval);
     });
 });
+
+export {};

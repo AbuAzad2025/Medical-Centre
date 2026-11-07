@@ -31,3 +31,5 @@ const d = JSON.parse(el.textContent);
   });
   document.querySelectorAll('.progress-dynamic').forEach(function(el){ el.style.width = (parseFloat(el.dataset.width) || 0) + '%'; });
 }
+
+export {};

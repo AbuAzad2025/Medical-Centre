@@ -44,3 +44,5 @@ document.querySelector('[data-action="forgot-password"]')?.addEventListener('cli
         icon: 'info'
     });
 });
+
+export {};

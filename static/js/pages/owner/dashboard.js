@@ -109,3 +109,5 @@ Chart.defaults.font.family = "'Segoe UI', 'Tahoma', sans-serif";
     sparkline('sparkChurn', chartData.churnSpark, '#dc3545');
     sparkline('sparkUsers', chartData.userSpark, '#0dcaf0');
     }
+
+export {};

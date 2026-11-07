@@ -36,3 +36,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof fn === 'function') fn();
   } catch (_) {}
 });
+
+export {};

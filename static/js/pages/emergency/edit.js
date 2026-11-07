@@ -115,3 +115,5 @@ var __M = window.__M || [];
             Swal.fire({ title: 'لا تغييرات', text: 'لم يتم إجراء أي تغييرات', icon: 'info' });
         }
     });
+
+export {};

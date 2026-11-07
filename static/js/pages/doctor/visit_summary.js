@@ -36,3 +36,5 @@ document.getElementById('visitSummaryForm').addEventListener('submit', function(
         }
     });
 });
+
+export {};

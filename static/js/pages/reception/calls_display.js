@@ -61,3 +61,5 @@ const apiUrl = window.__M0__;
             if (!data) return;
             render(data.items || []);
         });
+
+export {};

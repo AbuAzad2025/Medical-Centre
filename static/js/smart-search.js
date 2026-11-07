@@ -1,113 +1,115 @@
-(function () {
-  'use strict';
+'use strict';
 
-  function debounce(fn, ms) {
-    let t;
-    return function (...args) {
-      clearTimeout(t);
-      t = setTimeout(() => fn.apply(this, args), ms);
-    };
-  }
+export function debounce(fn, ms) {
+  let t;
+  return function (...args) {
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, args), ms);
+  };
+}
 
-  function initSmartSearch(root) {
-    const api = root.dataset.api || '/api/search/patients';
-    const minChars = parseInt(root.dataset.min || '2', 10);
-    const input = root.querySelector('[data-smart-search-input]') || root.querySelector('input[type="text"]');
-    const results = root.querySelector('[data-smart-search-results]') || root.querySelector('.smart-search-results');
-    const hiddenId = root.dataset.targetId
-      ? document.getElementById(root.dataset.targetId)
-      : root.querySelector('input[type="hidden"]');
-    const infoEl = root.dataset.infoId ? document.getElementById(root.dataset.infoId) : null;
-    const onSelect = root.dataset.onSelect;
+export function initSmartSearch(root) {
+  const api = root.dataset.api || '/api/search/patients';
+  const minChars = parseInt(root.dataset.min || '2', 10);
+  const input = root.querySelector('[data-smart-search-input]') || root.querySelector('input[type="text"]');
+  const results = root.querySelector('[data-smart-search-results]') || root.querySelector('.smart-search-results');
+  const hiddenId = root.dataset.targetId
+    ? document.getElementById(root.dataset.targetId)
+    : root.querySelector('input[type="hidden"]');
+  const infoEl = root.dataset.infoId ? document.getElementById(root.dataset.infoId) : null;
+  const onSelect = root.dataset.onSelect;
 
-    if (!input || !results) return;
+  if (!input || !results) return;
 
-    const showResults = (html, visible) => {
-      results.innerHTML = html;
-      results.hidden = !visible;
-      results.classList.toggle('d-none', !visible);
-      results.style.display = visible ? 'block' : 'none';
-    };
+  const showResults = (html, visible) => {
+    results.innerHTML = html;
+    results.hidden = !visible;
+    results.classList.toggle('d-none', !visible);
+    results.style.display = visible ? 'block' : 'none';
+  };
 
-    const selectPatient = (patient) => {
-      if (hiddenId) hiddenId.value = patient.id;
-      if (infoEl) {
-        infoEl.innerHTML = '<strong>المريض المحدد:</strong> ';
-        const details = document.createTextNode(
-          `${patient.full_name} | الهوية: ${window.PiiMask ? window.PiiMask.nationalId(patient.national_id || '-') : (patient.national_id || '-')} | الهاتف: ${window.PiiMask ? window.PiiMask.phone(patient.phone || '-') : (patient.phone || '-')}`
-        );
-        infoEl.appendChild(details);
-        infoEl.classList.remove('d-none');
-        infoEl.style.display = 'block';
-      }
-      input.value = '';
+  const selectPatient = (patient) => {
+    if (hiddenId) hiddenId.value = patient.id;
+    if (infoEl) {
+      infoEl.innerHTML = '<strong>المريض المحدد:</strong> ';
+      const details = document.createTextNode(
+        `${patient.full_name} | الهوية: ${window.PiiMask ? window.PiiMask.nationalId(patient.national_id || '-') : (patient.national_id || '-')} | الهاتف: ${window.PiiMask ? window.PiiMask.phone(patient.phone || '-') : (patient.phone || '-')}`
+      );
+      infoEl.appendChild(details);
+      infoEl.classList.remove('d-none');
+      infoEl.style.display = 'block';
+    }
+    input.value = '';
+    showResults('', false);
+    root.dispatchEvent(new CustomEvent('smart-search:select', { detail: patient, bubbles: true }));
+    if (onSelect && typeof window[onSelect] === 'function') {
+      window[onSelect](patient);
+    }
+  };
+
+  let abortController = null;
+
+  const runSearch = debounce(() => {
+    const q = input.value.trim();
+    if (q.length < minChars) {
       showResults('', false);
-      root.dispatchEvent(new CustomEvent('smart-search:select', { detail: patient, bubbles: true }));
-      if (onSelect && typeof window[onSelect] === 'function') {
-        window[onSelect](patient);
-      }
-    };
-
-    let abortController = null;
-
-    const runSearch = debounce(() => {
-      const q = input.value.trim();
-      if (q.length < minChars) {
-        showResults('', false);
-        return;
-      }
-      showResults('<div class="list-group-item text-muted">جاري البحث...</div>', true);
-      if (abortController) abortController.abort();
-      abortController = new AbortController();
-      fetch(`${api}?q=${encodeURIComponent(q)}`, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        credentials: 'same-origin',
-        signal: abortController.signal,
-      })
-        .then((r) => r.json())
-        .then((data) => {
-          const list = data.patients || [];
-          if (!list.length) {
-            showResults('<div class="list-group-item text-muted">لا توجد نتائج</div>', true);
-            return;
-          }
-          results.innerHTML = '';
-          list.forEach((patient) => {
-            const item = document.createElement('button');
-            item.type = 'button';
-            item.className = 'list-group-item list-group-item-action text-start';
-            const nameDiv = document.createElement('div');
-            nameDiv.className = 'd-flex justify-content-between';
-            const nameStrong = document.createElement('strong');
-            nameStrong.textContent = patient.full_name;
-            const idSmall = document.createElement('small');
-            idSmall.textContent = patient.national_id || '';
-            nameDiv.appendChild(nameStrong);
-            nameDiv.appendChild(idSmall);
-            const phoneSmall = document.createElement('small');
-            phoneSmall.className = 'text-muted';
-            phoneSmall.textContent = patient.phone || '';
-            item.appendChild(nameDiv);
-            item.appendChild(phoneSmall);
-            item.addEventListener('click', () => selectPatient(patient));
-            results.appendChild(item);
-          });
-          showResults('', true);
-        })
-        .catch(() => {
-          showResults('<div class="list-group-item text-danger">خطأ في البحث</div>', true);
+      return;
+    }
+    showResults('<div class="list-group-item text-muted">جاري البحث...</div>', true);
+    if (abortController) abortController.abort();
+    abortController = new AbortController();
+    fetch(`${api}?q=${encodeURIComponent(q)}`, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+      signal: abortController.signal,
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const list = data.patients || [];
+        if (!list.length) {
+          showResults('<div class="list-group-item text-muted">لا توجد نتائج</div>', true);
+          return;
+        }
+        results.innerHTML = '';
+        list.forEach((patient) => {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'list-group-item list-group-item-action text-start';
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'd-flex justify-content-between';
+          const nameStrong = document.createElement('strong');
+          nameStrong.textContent = patient.full_name;
+          const idSmall = document.createElement('small');
+          idSmall.textContent = patient.national_id || '';
+          nameDiv.appendChild(nameStrong);
+          nameDiv.appendChild(idSmall);
+          const phoneSmall = document.createElement('small');
+          phoneSmall.className = 'text-muted';
+          phoneSmall.textContent = patient.phone || '';
+          item.appendChild(nameDiv);
+          item.appendChild(phoneSmall);
+          item.addEventListener('click', () => selectPatient(patient));
+          results.appendChild(item);
         });
-    }, 300);
+        showResults('', true);
+      })
+      .catch(() => {
+        showResults('<div class="list-group-item text-danger">خطأ في البحث</div>', true);
+      });
+  }, 300);
 
-    input.addEventListener('input', runSearch);
-    document.addEventListener('click', (e) => {
-      if (!root.contains(e.target)) showResults('', false);
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-smart-search]').forEach(initSmartSearch);
+  input.addEventListener('input', runSearch);
+  document.addEventListener('click', (e) => {
+    if (!root.contains(e.target)) showResults('', false);
   });
+}
 
-  window.initSmartSearch = initSmartSearch;
-})();
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-smart-search]').forEach(initSmartSearch);
+});
+
+window.initSmartSearch = initSmartSearch;
+
+// Backward compatibility
+if (typeof debounce !== 'undefined') window.debounce = debounce;
+if (typeof initSmartSearch !== 'undefined') window.initSmartSearch = initSmartSearch;

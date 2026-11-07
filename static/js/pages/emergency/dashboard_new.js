@@ -30,3 +30,5 @@ var __M = window.__M || [];
     options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
   });
 })();
+
+export {};

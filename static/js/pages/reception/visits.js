@@ -106,3 +106,5 @@ document.getElementById('visitsTable')?.addEventListener('contextmenu', function
     openTransfer(id);
 });
 })();
+
+export {};

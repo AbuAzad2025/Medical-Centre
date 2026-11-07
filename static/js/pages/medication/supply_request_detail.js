@@ -9,3 +9,5 @@ document.getElementById('approveBtn')?.addEventListener('click', async () => {
     if (window.showToast) window.showToast('حدث خطأ أثناء الموافقة على طلب التوريد'); else alert('حدث خطأ أثناء تحميل البيانات');
   }
 });
+
+export {};

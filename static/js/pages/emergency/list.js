@@ -9,3 +9,5 @@
             this.form.submit();
         });
     });
+
+export {};

@@ -9,3 +9,5 @@ document.addEventListener('keydown', function(e) {
     if (e.altKey && e.key.toLowerCase() === 'd') window.location.href = window.__M0__;
     if (e.altKey && e.key.toLowerCase() === 'r') window.location.href = window.__M1__;
 });
+
+export {};

@@ -74,3 +74,5 @@ const apiUrl = window.__M0__;
             renderList(document.getElementById('called-list'), data.called, 'لا يوجد');
             renderList(document.getElementById('waiting-list'), data.waiting, 'لا يوجد');
         });
+
+export {};

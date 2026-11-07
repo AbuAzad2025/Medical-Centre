@@ -457,3 +457,5 @@ document.addEventListener('DOMContentLoaded', () => {
         securityManager.destroy();
     });
 });
+
+export {};
