@@ -45,6 +45,12 @@ export function showSafetyModal(alerts, onOverride) {
   confirmBtn.className = 'btn btn-danger';
   confirmBtn.textContent = 'تأكيد التجاوز';
   confirmBtn.disabled = true;
+  const noteInput = formGroup.querySelector('#overrideNote');
+  if (noteInput) {
+    noteInput.addEventListener('input', function () {
+      confirmBtn.disabled = !noteInput.value.trim();
+    });
+  }
   confirmBtn.addEventListener('click', function () {
     const note = document.getElementById('overrideNote').value.trim();
     if (!note) return;
