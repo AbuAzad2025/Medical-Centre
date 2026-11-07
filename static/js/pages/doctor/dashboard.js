@@ -4,13 +4,13 @@
   }
 
 var __M = window.__M || [];
-const dashboardLayoutUrl = __M0__;
-const csrfToken = __M1__;
+const dashboardLayoutUrl = window.__M0__;
+const csrfToken = window.__M1__;
 const panelContainer = document.getElementById('doctorPanels');
 const settingsList = document.getElementById('dashboardSettingsList');
 const saveSettingsBtn = document.getElementById('saveDashboardSettings');
 
-function applyLayout(items) {
+export function applyLayout(items) {
     const map = {};
     (items || []).forEach(it => map[it.id] = it);
     const panels = panelContainer.querySelectorAll('.dashboard-panel');
@@ -23,7 +23,7 @@ function applyLayout(items) {
     });
 }
 
-function renderSettings(items) {
+export function renderSettings(items) {
     settingsList.innerHTML = '';
     (items || []).sort((a, b) => (a.order || 0) - (b.order || 0)).forEach(item => {
         const row = document.createElement('div');
@@ -39,7 +39,7 @@ function renderSettings(items) {
     });
 }
 
-async function loadLayout() {
+async export function loadLayout() {
     try {
         const r = await fetch(dashboardLayoutUrl, { credentials: 'same-origin' });
         if (!r.ok) throw new Error(r.status);
@@ -54,7 +54,7 @@ async function loadLayout() {
     }
 }
 
-async function saveLayout() {
+async export function saveLayout() {
     const items = [];
     settingsList.querySelectorAll('input[type="number"]').forEach(input => {
         const id = input.getAttribute('data-panel');
@@ -92,7 +92,7 @@ if (saveSettingsBtn) {
 let statsPolling = null;
 const STATS_POLL_INTERVAL_MS = 30000;
 
-async function refreshDashboardStats() {
+async export function refreshDashboardStats() {
     try {
         const r = await fetch((window.API_ROUTES && window.API_ROUTES.doctor_dashboard_stats) || '/doctor/api/dashboard-stats', { credentials: 'same-origin' });
         if (!r.ok) throw new Error(r.status);
@@ -118,13 +118,13 @@ async function refreshDashboardStats() {
     }
 }
 
-function startStatsPolling() {
+export function startStatsPolling() {
     if (statsPolling) clearInterval(statsPolling);
     refreshDashboardStats();
     statsPolling = setInterval(refreshDashboardStats, STATS_POLL_INTERVAL_MS);
 }
 
-function stopStatsPolling() {
+export function stopStatsPolling() {
     if (statsPolling) {
         clearInterval(statsPolling);
         statsPolling = null;
@@ -134,16 +134,16 @@ function stopStatsPolling() {
 document.addEventListener('keydown', function(e) {
     if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
     if (e.altKey && e.key.toLowerCase() === 'q') {
-        window.location.href = __M2__;
+        window.location.href = window.__M2__;
     }
     if (e.altKey && e.key.toLowerCase() === 'p') {
-        window.location.href = __M3__;
+        window.location.href = window.__M3__;
     }
     if (e.altKey && e.key.toLowerCase() === 'r') {
-        window.location.href = __M4__;
+        window.location.href = window.__M4__;
     }
     if (e.altKey && e.key.toLowerCase() === 'a') {
-        window.location.href = __M5__;
+        window.location.href = window.__M5__;
     }
 });
 
@@ -166,3 +166,13 @@ document.addEventListener('visibilitychange', function() {
 window.addEventListener('beforeunload', function() {
     stopStatsPolling();
 });
+
+
+// Backward compatibility
+if (typeof refreshDashboardStats !== "undefined") window.refreshDashboardStats = refreshDashboardStats;
+if (typeof renderSettings !== "undefined") window.renderSettings = renderSettings;
+if (typeof loadLayout !== "undefined") window.loadLayout = loadLayout;
+if (typeof stopStatsPolling !== "undefined") window.stopStatsPolling = stopStatsPolling;
+if (typeof saveLayout !== "undefined") window.saveLayout = saveLayout;
+if (typeof applyLayout !== "undefined") window.applyLayout = applyLayout;
+if (typeof startStatsPolling !== "undefined") window.startStatsPolling = startStatsPolling;

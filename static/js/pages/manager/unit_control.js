@@ -1,10 +1,10 @@
-function refreshUnits() {
+export function refreshUnits() {
     location.reload();
 }
 
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 
-function exportUnitsReport() {
+export function exportUnitsReport() {
     var rows = document.querySelectorAll('#unitsTable tbody tr');
     var csv = "\u0627\u0633\u0645 \u0627\u0644\u0648\u062d\u062f\u0629,\u0627\u0644\u0646\u0648\u0639,\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646,\u0627\u0644\u062d\u0627\u0644\u0629\n";
     rows.forEach(function(r) {
@@ -26,7 +26,7 @@ function exportUnitsReport() {
     URL.revokeObjectURL(link.href);
 }
 
-function toggleUnit(moduleName, btn) {
+export function toggleUnit(moduleName, btn) {
     var toggleUrl = (window.API_ROUTES && window.API_ROUTES.unit_toggle) || '/manager/api/units/toggle';
     var arName = btn ? btn.getAttribute('data-name-ar') || moduleName : moduleName;
     Swal.fire({
@@ -64,7 +64,7 @@ function toggleUnit(moduleName, btn) {
     });
 }
 
-function bulkActivate() {
+export function bulkActivate() {
     var toggleUrl = (window.API_ROUTES && window.API_ROUTES.unit_toggle) || '/manager/api/units/toggle';
     Swal.fire({
         title: '\u062a\u0623\u0643\u064a\u062f',
@@ -105,7 +105,7 @@ function bulkActivate() {
     });
 }
 
-function bulkDeactivate() {
+export function bulkDeactivate() {
     var toggleUrl = (window.API_ROUTES && window.API_ROUTES.unit_toggle) || '/manager/api/units/toggle';
     Swal.fire({
         title: '\u062a\u0623\u0643\u064a\u062f',
@@ -146,7 +146,7 @@ function bulkDeactivate() {
     });
 }
 
-function bulkRestart() {
+export function bulkRestart() {
     Swal.fire({
         title: '\u062a\u0623\u0643\u064a\u062f',
         text: '\u0647\u0644 \u062a\u0631\u064a\u062f \u0625\u0639\u0627\u062f\u0629 \u062a\u0634\u063a\u064a\u0644 \u062c\u0645\u064a\u0639 \u0627\u0644\u0648\u062d\u062f\u0627\u062a\u061f',
@@ -160,11 +160,11 @@ function bulkRestart() {
     });
 }
 
-function bulkExport() {
+export function bulkExport() {
     exportUnitsReport();
 }
 
-function filterUnits(status, e) {
+export function filterUnits(status, e) {
     var rows = document.querySelectorAll('#unitsTable tbody tr');
     rows.forEach(function(row) {
         if (status === 'all' || row.dataset.status === status) {
@@ -229,3 +229,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+
+// Backward compatibility
+if (typeof toggleUnit !== "undefined") window.toggleUnit = toggleUnit;
+if (typeof bulkActivate !== "undefined") window.bulkActivate = bulkActivate;
+if (typeof filterUnits !== "undefined") window.filterUnits = filterUnits;
+if (typeof bulkExport !== "undefined") window.bulkExport = bulkExport;
+if (typeof bulkRestart !== "undefined") window.bulkRestart = bulkRestart;
+if (typeof refreshUnits !== "undefined") window.refreshUnits = refreshUnits;
+if (typeof exportUnitsReport !== "undefined") window.exportUnitsReport = exportUnitsReport;
+if (typeof bulkDeactivate !== "undefined") window.bulkDeactivate = bulkDeactivate;

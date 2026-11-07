@@ -242,7 +242,7 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     } catch (e) {}
 }
 
-function debounce(func, wait) {
+export function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
         const later = () => {
@@ -254,7 +254,7 @@ function debounce(func, wait) {
     };
 }
 
-function validateForm(form) {
+export function validateForm(form) {
     const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
     let isValid = true;
     inputs.forEach(input => {
@@ -269,7 +269,7 @@ function validateForm(form) {
     return isValid;
 }
 
-function confirmNavigate(e, message) {
+export function confirmNavigate(e, message) {
     e.preventDefault();
     const url = e.currentTarget.href;
     if (typeof Swal === 'undefined') { alert(message); return false; }
@@ -288,7 +288,7 @@ function confirmNavigate(e, message) {
     return false;
 }
 
-function confirmSubmit(e, message) {
+export function confirmSubmit(e, message) {
     e.preventDefault();
     const form = e.currentTarget.form || e.currentTarget.closest('form');
     if (!form) return false;
@@ -308,7 +308,7 @@ function confirmSubmit(e, message) {
     return false;
 }
 
-function initAdvancedTable(tableId) {
+export function initAdvancedTable(tableId) {
     const table = document.getElementById(tableId);
     if (!table) return;
     if (table.previousElementSibling && table.previousElementSibling.classList.contains('form-control')) return;
@@ -347,7 +347,7 @@ function initAdvancedTable(tableId) {
     });
 }
 
-function updateClock() {
+export function updateClock() {
     const now = new Date();
     const timeString = now.toLocaleTimeString('ar-SA', {
         hour: '2-digit',
@@ -365,7 +365,7 @@ function updateClock() {
     });
 }
 
-function initAutoSave(formId, interval = 30000) {
+export function initAutoSave(formId, interval = 30000) {
     const form = document.getElementById(formId);
     if (!form) return;
     const inputs = form.querySelectorAll('input, select, textarea');
@@ -382,7 +382,7 @@ function initAutoSave(formId, interval = 30000) {
     }, interval);
 }
 
-function initPerformanceMonitoring() {
+export function initPerformanceMonitoring() {
     window.addEventListener('load', () => {
         const loadTime = performance.now();
     });
@@ -494,3 +494,14 @@ var __baseClockInterval = null;
 window.addEventListener('beforeunload', function() {
     if (__baseClockInterval) clearInterval(__baseClockInterval);
 });
+
+
+// Backward compatibility
+if (typeof confirmNavigate !== "undefined") window.confirmNavigate = confirmNavigate;
+if (typeof confirmSubmit !== "undefined") window.confirmSubmit = confirmSubmit;
+if (typeof updateClock !== "undefined") window.updateClock = updateClock;
+if (typeof debounce !== "undefined") window.debounce = debounce;
+if (typeof initPerformanceMonitoring !== "undefined") window.initPerformanceMonitoring = initPerformanceMonitoring;
+if (typeof initAdvancedTable !== "undefined") window.initAdvancedTable = initAdvancedTable;
+if (typeof validateForm !== "undefined") window.validateForm = validateForm;
+if (typeof initAutoSave !== "undefined") window.initAutoSave = initAutoSave;

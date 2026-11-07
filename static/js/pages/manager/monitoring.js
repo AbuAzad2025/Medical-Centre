@@ -1,12 +1,12 @@
 var __M = window.__M || [];
-function refreshMonitoring() {
+export function refreshMonitoring() {
     location.reload();
 }
 
-function exportMonitoringReport() {
+export function exportMonitoringReport() {
     const reportData = {
         timestamp: new Date().toISOString(),
-        units: __M0__,
+        units: window.__M0__,
         performance: {
             response_rate: 95,
             uptime: 99.9,
@@ -17,12 +17,12 @@ function exportMonitoringReport() {
 
     const csvContent = "data:text/csv;charset=utf-8,"
         + "الوحدة,الحالة,الإحصائيات\n"
-        + "الاستقبال,نشط,' + (' + __M1__ + ' || 0) + '\n"
-        + "الطبيب,نشط,' + (' + __M2__ + ' || 0) + '\n"
-        + "الطوارئ,نشط,' + (' + __M3__ + ' || 0) + '\n"
-        + "المختبر,نشط,' + (' + __M4__ + ' || 0) + '\n"
-        + "الأشعة,نشط,' + (' + __M5__ + ' || 0) + '\n"
-        + "المحاسبة,نشط,' + (' + __M6__ + ' || 0) + '\n";
+        + "الاستقبال,نشط,' + (' + window.__M1__ + ' || 0) + '\n"
+        + "الطبيب,نشط,' + (' + window.__M2__ + ' || 0) + '\n"
+        + "الطوارئ,نشط,' + (' + window.__M3__ + ' || 0) + '\n"
+        + "المختبر,نشط,' + (' + window.__M4__ + ' || 0) + '\n"
+        + "الأشعة,نشط,' + (' + window.__M5__ + ' || 0) + '\n"
+        + "المحاسبة,نشط,' + (' + window.__M6__ + ' || 0) + '\n";
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -33,15 +33,15 @@ function exportMonitoringReport() {
     document.body.removeChild(link);
 }
 
-function viewUnitDetails(unitKey) {
+export function viewUnitDetails(unitKey) {
     Swal.fire({ title: 'تفاصيل الوحدة', text: 'عرض تفاصيل الوحدة: ' + unitKey, icon: 'info' });
 }
 
-function refreshUnit(unitKey) {
+export function refreshUnit(unitKey) {
     Swal.fire({ title: 'تحديث', text: 'تحديث الوحدة: ' + unitKey, icon: 'info' });
 }
 
-function clearLogs() {
+export function clearLogs() {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد مسح جميع السجلات؟',
@@ -52,13 +52,13 @@ function clearLogs() {
     }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم مسح السجلات', icon: 'success' }); } });
 }
 
-function exportLogs() {
+export function exportLogs() {
     Swal.fire({ title: 'تم', text: 'تم تصدير السجلات', icon: 'success' });
 }
 
 setInterval(function() {
 
-    fetch(__M7__ + '?ajax=true', { credentials: 'same-origin' })
+    fetch(window.__M7__ + '?ajax=true', { credentials: 'same-origin' })
         .then(response => {
             if (!response.ok) throw new Error('http_' + response.status);
             return response.json();
@@ -74,7 +74,7 @@ setInterval(function() {
         });
 }, 60000);
 
-function updateUnitStatus(unitsStatus) {
+export function updateUnitStatus(unitsStatus) {
     const map = {
         reception: 'pending_visits',
         doctor: 'in_progress_visits',
@@ -106,3 +106,13 @@ function updateUnitStatus(unitsStatus) {
         }
     });
 }
+
+
+// Backward compatibility
+if (typeof clearLogs !== "undefined") window.clearLogs = clearLogs;
+if (typeof refreshMonitoring !== "undefined") window.refreshMonitoring = refreshMonitoring;
+if (typeof exportLogs !== "undefined") window.exportLogs = exportLogs;
+if (typeof exportMonitoringReport !== "undefined") window.exportMonitoringReport = exportMonitoringReport;
+if (typeof viewUnitDetails !== "undefined") window.viewUnitDetails = viewUnitDetails;
+if (typeof updateUnitStatus !== "undefined") window.updateUnitStatus = updateUnitStatus;
+if (typeof refreshUnit !== "undefined") window.refreshUnit = refreshUnit;

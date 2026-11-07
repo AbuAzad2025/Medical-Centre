@@ -1,8 +1,8 @@
-function refreshLogs() {
+export function refreshLogs() {
     location.reload();
 }
 
-function exportLogs() {
+export function exportLogs() {
     const csvContent = "data:text/csv;charset=utf-8,"
         + "الوقت,المستوى,المستخدم,العنوان IP,الحدث,التفاصيل\n"
         + "2024-01-15 10:30:25,CRITICAL,admin,192.168.1.100,محاولة دخول غير مصرح بها,محاولة الوصول إلى صفحة محظورة\n"
@@ -19,7 +19,7 @@ function exportLogs() {
     document.body.removeChild(link);
 }
 
-function filterLogs(level, e) {
+export function filterLogs(level, e) {
     const rows = document.querySelectorAll('#securityLogsTable tbody tr');
 
     rows.forEach(row => {
@@ -37,11 +37,11 @@ function filterLogs(level, e) {
     if (e) e.target.classList.add('active');
 }
 
-function viewLogDetails(logId) {
+export function viewLogDetails(logId) {
     Swal.fire({ title: 'تفاصيل السجل', text: 'عرض تفاصيل السجل: ' + logId, icon: 'info' });
 }
 
-function blockIP() {
+export function blockIP() {
     Swal.fire({
         title: 'حظر IP',
         input: 'text',
@@ -61,7 +61,7 @@ function blockIP() {
     });
 }
 
-function resetFailedLogins() {
+export function resetFailedLogins() {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إعادة تعيين جميع محاولات الدخول الفاشلة؟',
@@ -72,7 +72,7 @@ function resetFailedLogins() {
     }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم إعادة تعيين محاولات الدخول الفاشلة', icon: 'success' }); } });
 }
 
-function clearLogs() {
+export function clearLogs() {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد مسح السجلات القديمة (أكثر من 30 يوم)؟',
@@ -83,7 +83,7 @@ function clearLogs() {
     }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم مسح السجلات القديمة', icon: 'success' }); } });
 }
 
-function exportSecurityReport() {
+export function exportSecurityReport() {
     Swal.fire({ title: 'تم', text: 'تم تصدير تقرير الأمان', icon: 'success' });
 }
 
@@ -99,3 +99,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+
+// Backward compatibility
+if (typeof clearLogs !== "undefined") window.clearLogs = clearLogs;
+if (typeof blockIP !== "undefined") window.blockIP = blockIP;
+if (typeof exportSecurityReport !== "undefined") window.exportSecurityReport = exportSecurityReport;
+if (typeof filterLogs !== "undefined") window.filterLogs = filterLogs;
+if (typeof exportLogs !== "undefined") window.exportLogs = exportLogs;
+if (typeof viewLogDetails !== "undefined") window.viewLogDetails = viewLogDetails;
+if (typeof resetFailedLogins !== "undefined") window.resetFailedLogins = resetFailedLogins;
+if (typeof refreshLogs !== "undefined") window.refreshLogs = refreshLogs;
