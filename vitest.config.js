@@ -83,6 +83,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    environmentOptions: {
+      jsdom: {
+        url: 'http://localhost/',
+      },
+    },
     setupFiles: ['./tests/frontend/setup.js'],
     include: ['tests/frontend/**/*.test.js', 'tests/frontend/**/*.test.mjs'],
     coverage: {
