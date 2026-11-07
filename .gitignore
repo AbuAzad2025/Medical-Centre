@@ -158,3 +158,5 @@ nul
 .coverage.*
 COV_ALL.json
 coverage.xml
+/coverage_results.txt
+/test_results.txt
