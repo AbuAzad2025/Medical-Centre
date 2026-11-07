@@ -11,7 +11,7 @@ from migrations.migration_utils import column_exists, fk_exists, index_exists, t
 # The migration chain continues from s2_011_clean_schema through s3_* migrations.
 # Bump alongside scripts/ci/verify_migrations.py when a revision is appended.
 EXPECTED_HEADS = {
-    's4_001_rls_order_sets',
+    's4_002_device_integration',
 }
 
 

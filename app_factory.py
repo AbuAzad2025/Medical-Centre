@@ -1007,6 +1007,7 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     from routes.clinical_pathway_routes import pathway_bp
     from routes.custom_report_builder_routes import report_builder_bp
     from routes.data_warehouse_routes import data_warehouse_bp
+    from routes.device_integration_routes import device_bp
     from routes.dicom_routes import dicom_bp
     from routes.doctor import doctor_bp
     from routes.emar_routes import emar_bp
@@ -1270,6 +1271,7 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     except Exception:
         pass
     app.register_blueprint(dicom_bp, url_prefix='/dicom')
+    app.register_blueprint(device_bp, url_prefix='/device-integration')
     app.register_blueprint(portal_bp, url_prefix='/portal')
     app.register_blueprint(pop_health_bp, url_prefix='/population-health')
     app.register_blueprint(report_builder_bp, url_prefix='/report-builder')
