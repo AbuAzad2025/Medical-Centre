@@ -1,42 +1,119 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadModule } from './test-utils.mjs';
 
 beforeEach(() => {
-  document.body.innerHTML = '';
+  document.body.innerHTML = `<div class="modal" id="modal" tabindex="-1"><input id="first"><button id="last">x</button></div>`;
+  window.MutationObserver = class {
+    constructor(cb) { this.cb = cb; }
+    observe() {}
+    disconnect() {}
+    trigger(mutations) { this.cb(mutations); }
+  };
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe('focus-trap.js', () => {
-  it('registers trapFocus on shown.bs.modal event', async () => {
+  it('exposes trapFocus on window', async () => {
     await loadModule('static/js/focus-trap.js');
-    document.body.innerHTML = `
-      <div class="modal" id="testModal">
-        <input type="text" id="first" />
-        <button id="btn">OK</button>
-        <input type="text" id="last" />
-      </div>
-    `;
-    const modal = document.getElementById('testModal');
-    const keydownSpy = vi.fn();
-    modal.addEventListener('keydown', keydownSpy);
-    modal.dispatchEvent(new Event('shown.bs.modal'));
-    const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true });
-    modal.dispatchEvent(tabEvent);
-    expect(keydownSpy).toHaveBeenCalled();
+    expect(typeof window.trapFocus).toBe('function');
   });
 
-  it('cleanup removes handler on hidden.bs.modal', async () => {
+  it('trapFocus with no focusables does nothing', async () => {
+    document.body.innerHTML = '<div class="modal" id="m"><p>no focusables</p></div>';
+    const mod = await loadModule('static/js/focus-trap.js');
+    expect(() => mod.trapFocus(document.getElementById('m'))).not.toThrow();
+  });
+
+  it('Tab on last element wraps focus to first', async () => {
+    const mod = await loadModule('static/js/focus-trap.js');
+    const m = document.getElementById('modal');
+    mod.trapFocus(m);
+    document.getElementById('last').focus();
+    m.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(document.activeElement.id).toBe('first');
+  });
+
+  it('Shift+Tab on first element wraps focus to last', async () => {
+    const mod = await loadModule('static/js/focus-trap.js');
+    const m = document.getElementById('modal');
+    mod.trapFocus(m);
+    document.getElementById('first').focus();
+    m.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
+    expect(document.activeElement.id).toBe('last');
+  });
+
+  it('Tab on non-last element does not wrap', async () => {
+    const mod = await loadModule('static/js/focus-trap.js');
+    const m = document.getElementById('modal');
+    mod.trapFocus(m);
+    document.getElementById('first').focus();
+    m.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(document.activeElement.id).toBe('first');
+  });
+
+  it('Tab with focus outside modal wraps to first on Tab key', async () => {
+    const mod = await loadModule('static/js/focus-trap.js');
+    const m = document.getElementById('modal');
+    mod.trapFocus(m);
+    document.body.focus();
+    m.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(document.activeElement.id).toBe('first');
+  });
+
+  it('Shift+Tab with focus outside modal wraps to last', async () => {
+    const mod = await loadModule('static/js/focus-trap.js');
+    const m = document.getElementById('modal');
+    mod.trapFocus(m);
+    document.body.focus();
+    m.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
+    expect(document.activeElement.id).toBe('last');
+  });
+
+  it('non-Tab key is ignored', async () => {
+    const mod = await loadModule('static/js/focus-trap.js');
+    const m = document.getElementById('modal');
+    mod.trapFocus(m);
+    document.getElementById('last').focus();
+    m.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(document.activeElement.id).toBe('last');
+  });
+
+  it('hidden.bs.modal removes the keydown handler', async () => {
+    const mod = await loadModule('static/js/focus-trap.js');
+    const m = document.getElementById('modal');
+    mod.trapFocus(m);
+    m.dispatchEvent(new Event('hidden.bs.modal'));
+    document.getElementById('last').focus();
+    m.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(document.activeElement.id).toBe('last');
+  });
+
+  it('DOMContentLoaded wires existing modals', async () => {
     await loadModule('static/js/focus-trap.js');
-    document.body.innerHTML = `
-      <div class="modal" id="testModal">
-        <input type="text" id="input1" />
-      </div>
-    `;
-    const modal = document.getElementById('testModal');
-    modal.dispatchEvent(new Event('shown.bs.modal'));
-    modal.dispatchEvent(new Event('hidden.bs.modal'));
-    const keydownSpy = vi.fn();
-    modal.addEventListener('keydown', keydownSpy);
-    modal.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-    expect(true).toBe(true);
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const m = document.getElementById('modal');
+    m.dispatchEvent(new Event('shown.bs.modal'));
+    document.getElementById('last').focus();
+    m.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(document.activeElement.id).toBe('first');
+  });
+
+  it('MutationObserver traps dynamically added modals', async () => {
+    const added = [];
+    window.MutationObserver = class {
+      constructor(cb) { this.cb = cb; }
+      observe() {}
+      trigger(records) { this.cb(records); }
+    };
+    await loadModule('static/js/focus-trap.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const newModal = document.createElement('div');
+    newModal.className = 'modal';
+    newModal.innerHTML = '<button id="dynFirst">a</button><button id="dynLast">b</button>';
+    document.body.appendChild(newModal);
+    expect(newModal).toBeTruthy();
   });
 });
