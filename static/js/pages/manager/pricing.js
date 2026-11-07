@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function filterServices(category) {
+export function filterServices(category) {
     const rows = document.querySelectorAll('#pricingTable tbody tr');
     rows.forEach(row => {
         if (category === 'all' || row.getAttribute('data-category') === category) {
@@ -30,7 +30,7 @@ function filterServices(category) {
     });
 }
 
-function openAddModal() {
+export function openAddModal() {
     document.getElementById('serviceForm').reset();
     document.getElementById('serviceId').value = '';
     document.getElementById('serviceModalLabel').innerText = 'إضافة خدمة جديدة';
@@ -41,7 +41,7 @@ function openAddModal() {
     serviceModal.show();
 }
 
-function editService(id, data) {
+export function editService(id, data) {
     document.getElementById('serviceId').value = id;
     document.getElementById('serviceCode').value = data.code;
     document.getElementById('serviceName').value = data.name;
@@ -60,7 +60,7 @@ function editService(id, data) {
     serviceModal.show();
 }
 
-async function saveService() {
+export async function saveService() {
     const id = document.getElementById('serviceId').value;
     const isEdit = !!id;
 
@@ -94,7 +94,7 @@ async function saveService() {
             headers: {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': __M0__
+                'X-CSRFToken': window.__M0__
             },
             credentials: 'same-origin',
             body: JSON.stringify(data)
@@ -117,7 +117,7 @@ async function saveService() {
     }
 }
 
-async function deleteService(id) {
+export async function deleteService(id) {
     const result = await Swal.fire({
         title: 'هل أنت متأكد؟',
         text: "لن تتمكن من التراجع عن هذا الإجراء!",
@@ -136,7 +136,7 @@ async function deleteService(id) {
                 method: 'DELETE',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': __M1__
+                    'X-CSRFToken': window.__M1__
                 },
                 credentials: 'same-origin'
             });
@@ -157,3 +157,11 @@ async function deleteService(id) {
         }
     }
 }
+
+
+// Backward compatibility
+if (typeof deleteService !== "undefined") window.deleteService = deleteService;
+if (typeof editService !== "undefined") window.editService = editService;
+if (typeof openAddModal !== "undefined") window.openAddModal = openAddModal;
+if (typeof filterServices !== "undefined") window.filterServices = filterServices;
+if (typeof saveService !== "undefined") window.saveService = saveService;

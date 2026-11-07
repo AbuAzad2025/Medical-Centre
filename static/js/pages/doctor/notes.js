@@ -14,15 +14,15 @@ const dntActiveEl = document.getElementById('dnt_active');
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 let templatesCache = [];
 
-function autoResize() {
+export function autoResize() {
     if (!noteTextEl) return;
     noteTextEl.style.height = 'auto';
     noteTextEl.style.height = noteTextEl.scrollHeight + 'px';
 }
 
-async function fetchTemplates() {
+export async function fetchTemplates() {
     try {
-        const r = await fetch(__M0__, { method: 'GET', credentials: 'same-origin' });
+        const r = await fetch(window.__M0__, { method: 'GET', credentials: 'same-origin' });
         if (!r.ok) throw new Error(r.status);
         const data = await r.json().catch(() => ({}));
         const arr = data && data.templates ? data.templates : [];
@@ -34,7 +34,7 @@ async function fetchTemplates() {
     }
 }
 
-function fillTemplateSelect(templates) {
+export function fillTemplateSelect(templates) {
     if (!tplSelectEl) return;
     const selected = tplSelectEl.value || '';
     tplSelectEl.innerHTML = '<option value="">اختر</option>';
@@ -48,14 +48,14 @@ function fillTemplateSelect(templates) {
     if (selected) tplSelectEl.value = selected;
 }
 
-function resetTemplateForm() {
+export function resetTemplateForm() {
     dntIdEl.value = '';
     dntNameEl.value = '';
     dntTextEl.value = '';
     dntActiveEl.checked = true;
 }
 
-function renderTemplatesTable() {
+export function renderTemplatesTable() {
     if (!dntTableBody) return;
     dntTableBody.innerHTML = '';
     templatesCache.forEach(t => {
@@ -74,7 +74,7 @@ function renderTemplatesTable() {
     });
 }
 
-async function refreshTemplatesUI() {
+export async function refreshTemplatesUI() {
     await fetchTemplates();
     fillTemplateSelect(templatesCache);
     renderTemplatesTable();
@@ -154,7 +154,7 @@ if (dntForm) {
             is_active: dntActiveEl.checked
         };
         try {
-            const r = await fetch(__M1__, {
+            const r = await fetch(window.__M1__, {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
@@ -187,7 +187,7 @@ if (dntTableBody) {
         } else if (action === 'delete') {
             window.notify.confirm('هل تريد حذف هذا القالب؟', async function () {
             try {
-                const r = await fetch(__M2__.replace('__T__', encodeURIComponent(id)), {
+                const r = await fetch(window.__M2__.replace('__T__', encodeURIComponent(id)), {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {})
@@ -204,3 +204,12 @@ if (dntTableBody) {
         }
     });
 }
+
+
+// Backward compatibility
+if (typeof resetTemplateForm !== "undefined") window.resetTemplateForm = resetTemplateForm;
+if (typeof fetchTemplates !== "undefined") window.fetchTemplates = fetchTemplates;
+if (typeof renderTemplatesTable !== "undefined") window.renderTemplatesTable = renderTemplatesTable;
+if (typeof refreshTemplatesUI !== "undefined") window.refreshTemplatesUI = refreshTemplatesUI;
+if (typeof fillTemplateSelect !== "undefined") window.fillTemplateSelect = fillTemplateSelect;
+if (typeof autoResize !== "undefined") window.autoResize = autoResize;

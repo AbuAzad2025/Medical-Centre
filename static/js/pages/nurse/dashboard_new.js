@@ -7,7 +7,7 @@ if (typeof Chart !== 'undefined') {
 }
 
 var __M = window.__M || [];
-__M0__
+window.__M0__
 
 const el = document.getElementById('nurse-chart-data');
 if (el) {

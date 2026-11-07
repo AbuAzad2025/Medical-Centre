@@ -1,7 +1,7 @@
 var __M = window.__M || [];
-function loadDoctors(){
+export function loadDoctors(){
   const dept = document.getElementById('department_id').value;
-  const url = __M0__ + (dept ? ('?department_id='+dept) : '');
+  const url = window.__M0__ + (dept ? ('?department_id='+dept) : '');
   fetch(url).then(r=>{
     if (!r.ok) throw new Error(r.status);
     return r.json();
@@ -10,11 +10,11 @@ function loadDoctors(){
     (d.doctors||[]).forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=x.full_name; sel.appendChild(o); });
   }).catch(err => { });
 }
-function loadTimes(){
+export function loadTimes(){
   const doc = document.getElementById('doctor_id').value;
   const dt = document.getElementById('appointment_date').value;
   if(!doc || !dt) return;
-  const url = __M1__ + `?doctor_id=${doc}&date=${dt}`;
+  const url = window.__M1__ + `?doctor_id=${doc}&date=${dt}`;
   fetch(url).then(r=>{
     if (!r.ok) throw new Error(r.status);
     return r.json();
@@ -23,3 +23,8 @@ function loadTimes(){
     (d.available_times||[]).forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
   }).catch(err => { });
 }
+
+
+// Backward compatibility
+if (typeof loadTimes !== "undefined") window.loadTimes = loadTimes;
+if (typeof loadDoctors !== "undefined") window.loadDoctors = loadDoctors;

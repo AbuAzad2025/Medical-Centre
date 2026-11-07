@@ -91,7 +91,7 @@ if (addPatientFormEl) {
     });
 }
 
-function showConfirmModal(formData) {
+export function showConfirmModal(formData) {
     const patientSelect = document.getElementById('patient_id');
     const departmentSelect = document.getElementById('department_id');
     const doctorSelect = document.getElementById('doctor_id');
@@ -135,7 +135,7 @@ function showConfirmModal(formData) {
     }
 }
 
-function submitForm() {
+export function submitForm() {
     const form = document.getElementById('addPatientForm');
     const formData = new FormData(form);
 
@@ -174,3 +174,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+
+// Backward compatibility
+if (typeof showConfirmModal !== "undefined") window.showConfirmModal = showConfirmModal;
+if (typeof submitForm !== "undefined") window.submitForm = submitForm;

@@ -5,7 +5,7 @@ document.getElementById('emergencyTreatmentForm').addEventListener('submit', fun
     const formData = new FormData(this);
     const csrfToken = formData.get('csrf_token') || '';
 
-    fetch(__M0__, {
+    fetch(window.__M0__, {
         method: 'POST',
         credentials: 'same-origin',
         headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
@@ -19,7 +19,7 @@ document.getElementById('emergencyTreatmentForm').addEventListener('submit', fun
         if (data.success) {
             Swal.fire({ title: 'تم', text: 'تم حفظ العلاج الإسعافي بنجاح', icon: 'success' });
 
-            window.location.href = __M1__;
+            window.location.href = window.__M1__;
         } else {
             Swal.fire({ title: 'خطأ', text: 'خطأ: ' + (data.error || ''), icon: 'error' });
         }

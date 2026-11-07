@@ -7,7 +7,7 @@ if (typeof Chart !== 'undefined') {
 }
 
 var __M = window.__M || [];
-__M0__
+window.__M0__
 
 Chart.defaults.font.family = "'Segoe UI', 'Tahoma', sans-serif";
     Chart.defaults.color = '#6c757d';

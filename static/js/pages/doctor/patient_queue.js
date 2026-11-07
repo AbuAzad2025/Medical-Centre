@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const q = (this.value || '').trim();
       if (q.length < 2) { if (list) { list.style.display = 'none'; list.innerHTML=''; } return; }
       to = setTimeout(() => {
-        fetch(__M0__ + '?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
+        fetch(window.__M0__ + '?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
           .then(r => {
             if (!r.ok) throw new Error(r.status);
             return r.json();
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!pts.length) { list.innerHTML = '<div class="list-group-item text-muted">لا توجد نتائج</div>'; list.style.display='block'; return; }
             pts.forEach(p => {
               const item = document.createElement('a');
-              item.href = (typeof __M1__ !== 'undefined' ? __M1__.replace('0', p.id) : '#');
+              item.href = (typeof window.__M1__ !== 'undefined' ? window.__M1__.replace('0', p.id) : '#');
               item.className = 'list-group-item list-group-item-action';
               const headerDiv = document.createElement('div');
               headerDiv.className = 'd-flex w-100 justify-content-between';
@@ -47,12 +47,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-function refreshQueue() {
+export function refreshQueue() {
     const container = document.querySelector('.container-fluid');
     const dept = parseInt((container && container.getAttribute('data-dept')) || '0');
     if (!dept) return;
     const queueStatusUrl = (window.API_ROUTES && window.API_ROUTES.queue_status) || '/reception/api/queue-status/0';
-    fetch(queueStatusUrl.replace('/0', '/' + dept) + '?doctor_id=' + __M2__, { credentials: 'same-origin' })
+    fetch(queueStatusUrl.replace('/0', '/' + dept) + '?doctor_id=' + window.__M2__, { credentials: 'same-origin' })
         .then(r => {
             if (!r.ok) throw new Error(r.status);
             return r.json();
@@ -103,3 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+
+// Backward compatibility
+if (typeof refreshQueue !== "undefined") window.refreshQueue = refreshQueue;

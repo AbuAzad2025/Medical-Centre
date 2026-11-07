@@ -1,13 +1,13 @@
 var __M = window.__M || [];
-const entities = __M0__;
-const previewUrl = __M1__;
-const csrfToken = __M2__;
-const saveUrl = __M3__;
-const listUrl = __M4__;
-const initialConfig = __M5__ || {};
-let activeTemplateId = __M6__;
+const entities = window.__M0__;
+const previewUrl = window.__M1__;
+const csrfToken = window.__M2__;
+const saveUrl = window.__M3__;
+const listUrl = window.__M4__;
+const initialConfig = window.__M5__ || {};
+let activeTemplateId = window.__M6__;
 
-function renderFieldsForEntity(key, selectedFields) {
+export function renderFieldsForEntity(key, selectedFields) {
   const container = document.getElementById('fieldsContainer');
   container.innerHTML = '';
   if (!key || !entities[key]) return;
@@ -33,7 +33,7 @@ document.getElementById('templateSelect').addEventListener('change', function() 
   window.location.href = window.location.pathname + '?template=' + id;
 });
 
-function collectPayload() {
+export function collectPayload() {
   return {
     entity: document.getElementById('entitySelect').value,
     fields: Array.from(document.querySelectorAll('input[name="fields"]:checked')).map(cb => cb.value),
@@ -43,7 +43,7 @@ function collectPayload() {
   };
 }
 
-function renderTable(data) {
+export function renderTable(data) {
   const el = document.getElementById('reportResult');
   if (!data.success) {
     el.innerHTML = '<div class="alert alert-danger">'+ window.escHtml(String(data.message || 'تعذّر إنشاء التقرير')) +'</div>';
@@ -59,7 +59,7 @@ function renderTable(data) {
   el.innerHTML = html;
 }
 
-function generateReport() {
+export function generateReport() {
   const payload = collectPayload();
   fetch(previewUrl, {
     method: 'POST',
@@ -105,7 +105,7 @@ document.getElementById('saveTemplateBtn').addEventListener('click', function() 
 
 document.getElementById('runTemplateBtn').addEventListener('click', function() {
   if (!activeTemplateId) return;
-  const runUrl = __M7__ + activeTemplateId + '/run';
+  const runUrl = window.__M7__ + activeTemplateId + '/run';
   fetch(runUrl, {
     method: 'POST',
     headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken},
@@ -125,3 +125,10 @@ if (initialConfig.entity) {
     document.getElementById('runTemplateBtn').disabled = false;
   }
 }
+
+
+// Backward compatibility
+if (typeof renderTable !== "undefined") window.renderTable = renderTable;
+if (typeof collectPayload !== "undefined") window.collectPayload = collectPayload;
+if (typeof generateReport !== "undefined") window.generateReport = generateReport;
+if (typeof renderFieldsForEntity !== "undefined") window.renderFieldsForEntity = renderFieldsForEntity;

@@ -1,8 +1,8 @@
 var __M = window.__M || [];
-const csrfToken = __M0__;
+const csrfToken = window.__M0__;
 document.getElementById('approveBtn')?.addEventListener('click', async () => {
   try {
-    const res = await fetch(__M1__, { method: 'POST', headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
+    const res = await fetch(window.__M1__, { method: 'POST', headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
     if (!res.ok) throw new Error('http_' + res.status);
     if (res.ok) location.reload();
   } catch (err) {

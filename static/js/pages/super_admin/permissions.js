@@ -1,15 +1,15 @@
-function createPermission() {
+export function createPermission() {
     document.getElementById('modalTitle').textContent = 'إضافة صلاحية جديدة';
     document.getElementById('permissionForm').reset();
     document.getElementById('permissionModal').style.display = 'block';
 }
 
-function editPermission(id) {
+export function editPermission(id) {
     document.getElementById('modalTitle').textContent = 'تعديل الصلاحية';
     document.getElementById('permissionModal').style.display = 'block';
 }
 
-function deletePermission(id) {
+export function deletePermission(id) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من حذف هذه الصلاحية؟',
@@ -35,7 +35,7 @@ function deletePermission(id) {
     });
 }
 
-function closeModal() {
+export function closeModal() {
     document.getElementById('permissionModal').style.display = 'none';
 }
 
@@ -45,3 +45,10 @@ window.onclick = function(event) {
         closeModal();
     }
 }
+
+
+// Backward compatibility
+if (typeof closeModal !== "undefined") window.closeModal = closeModal;
+if (typeof createPermission !== "undefined") window.createPermission = createPermission;
+if (typeof deletePermission !== "undefined") window.deletePermission = deletePermission;
+if (typeof editPermission !== "undefined") window.editPermission = editPermission;

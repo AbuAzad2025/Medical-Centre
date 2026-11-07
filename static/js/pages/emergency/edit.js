@@ -12,7 +12,7 @@ var __M = window.__M || [];
             if (res.isConfirmed) {
                 const csrfEl = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
                 const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
-                fetch(__M0__, {
+                fetch(window.__M0__, {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
@@ -49,7 +49,7 @@ var __M = window.__M || [];
                 const transferNotes = res.value || '';
                 const csrfEl = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
                 const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
-                fetch(__M1__, {
+                fetch(window.__M1__, {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),

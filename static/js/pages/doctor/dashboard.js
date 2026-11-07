@@ -39,7 +39,7 @@ export function renderSettings(items) {
     });
 }
 
-async export function loadLayout() {
+export async function loadLayout() {
     try {
         const r = await fetch(dashboardLayoutUrl, { credentials: 'same-origin' });
         if (!r.ok) throw new Error(r.status);
@@ -54,7 +54,7 @@ async export function loadLayout() {
     }
 }
 
-async export function saveLayout() {
+export async function saveLayout() {
     const items = [];
     settingsList.querySelectorAll('input[type="number"]').forEach(input => {
         const id = input.getAttribute('data-panel');
@@ -92,7 +92,7 @@ if (saveSettingsBtn) {
 let statsPolling = null;
 const STATS_POLL_INTERVAL_MS = 30000;
 
-async export function refreshDashboardStats() {
+export async function refreshDashboardStats() {
     try {
         const r = await fetch((window.API_ROUTES && window.API_ROUTES.doctor_dashboard_stats) || '/doctor/api/dashboard-stats', { credentials: 'same-origin' });
         if (!r.ok) throw new Error(r.status);

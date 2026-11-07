@@ -18,19 +18,19 @@ if (searchInputEl) {
     });
 }
 
-function viewDepartment(departmentId) {
+export function viewDepartment(departmentId) {
     window.open((window.API_ROUTES && window.API_ROUTES.view_department) ? window.API_ROUTES.view_department.replace('/0', '/' + departmentId) : `/super-admin/department/${departmentId}`, '_blank');
 }
 
-function editDepartment(departmentId) {
+export function editDepartment(departmentId) {
     window.location.href = (window.API_ROUTES && window.API_ROUTES.edit_department) ? window.API_ROUTES.edit_department.replace('/0', '/' + departmentId) : `/super-admin/edit-department/${departmentId}`;
 }
 
-function manageStaff(departmentId) {
+export function manageStaff(departmentId) {
     window.location.href = (window.API_ROUTES && window.API_ROUTES.department_staff) ? window.API_ROUTES.department_staff.replace('/0', '/' + departmentId) : `/super-admin/department-staff/${departmentId}`;
 }
 
-function activateDepartment(departmentId) {
+export function activateDepartment(departmentId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من تفعيل هذا القسم؟',
@@ -61,7 +61,7 @@ function activateDepartment(departmentId) {
     });
 }
 
-function deactivateDepartment(departmentId) {
+export function deactivateDepartment(departmentId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من إلغاء تفعيل هذا القسم؟',
@@ -92,7 +92,7 @@ function deactivateDepartment(departmentId) {
     });
 }
 
-function exportDepartments() {
+export function exportDepartments() {
     window.open((window.API_ROUTES && window.API_ROUTES.export_departments) || '/super-admin/export-departments', '_blank');
 }
 
@@ -124,3 +124,12 @@ if (addDepartmentFormEl) {
         .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
     });
 }
+
+
+// Backward compatibility
+if (typeof exportDepartments !== "undefined") window.exportDepartments = exportDepartments;
+if (typeof deactivateDepartment !== "undefined") window.deactivateDepartment = deactivateDepartment;
+if (typeof manageStaff !== "undefined") window.manageStaff = manageStaff;
+if (typeof editDepartment !== "undefined") window.editDepartment = editDepartment;
+if (typeof viewDepartment !== "undefined") window.viewDepartment = viewDepartment;
+if (typeof activateDepartment !== "undefined") window.activateDepartment = activateDepartment;

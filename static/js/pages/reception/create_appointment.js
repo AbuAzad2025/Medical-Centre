@@ -1,5 +1,5 @@
 var __M = window.__M || [];
-function saveAppointment() {
+export function saveAppointment() {
     const form = document.getElementById('appointmentForm');
     const formData = new FormData(form);
     
@@ -20,7 +20,7 @@ function saveAppointment() {
     form.submit();
 }
 
-function resetForm() {
+export function resetForm() {
     Swal.fire({
         title: 'إعادة تعيين',
         text: 'هل تريد إعادة تعيين النموذج؟',
@@ -91,7 +91,7 @@ if (patientSearchEl) {
     }
 })();
 
-function selectPatient(patientId, patientName) {
+export function selectPatient(patientId, patientName) {
     document.getElementById('patient_id').value = patientId;
     document.getElementById('patient_search').value = patientName;
     document.getElementById('patient_suggestions').style.display = 'none';
@@ -104,7 +104,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
-function loadDoctors() {
+export function loadDoctors() {
     const appointmentType = document.getElementById('appointment_type').value;
     const departmentId = document.getElementById('department_id').value;
     const doctorSelect = document.getElementById('doctor_id');
@@ -215,10 +215,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    const isEdit = __M0__;
+    const isEdit = window.__M0__;
     if (!isEdit) {
         const today = new Date().toISOString().split('T')[0];
         const aptDate = document.getElementById('appointment_date');
         if (aptDate) aptDate.min = today;
     }
 });
+
+
+// Backward compatibility
+if (typeof selectPatient !== "undefined") window.selectPatient = selectPatient;
+if (typeof loadDoctors !== "undefined") window.loadDoctors = loadDoctors;
+if (typeof resetForm !== "undefined") window.resetForm = resetForm;
+if (typeof saveAppointment !== "undefined") window.saveAppointment = saveAppointment;

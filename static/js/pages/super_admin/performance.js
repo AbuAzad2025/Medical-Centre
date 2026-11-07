@@ -1,4 +1,4 @@
-function updatePerformanceData() {
+export function updatePerformanceData() {
     document.getElementById('cpu-usage').textContent = Math.floor(Math.random() * 100) + '%';
     document.getElementById('memory-usage').textContent = Math.floor(Math.random() * 100) + '%';
     document.getElementById('disk-usage').textContent = Math.floor(Math.random() * 100) + '%';
@@ -7,3 +7,7 @@ function updatePerformanceData() {
 
 setInterval(updatePerformanceData, 5000);
 updatePerformanceData();
+
+
+// Backward compatibility
+if (typeof updatePerformanceData !== "undefined") window.updatePerformanceData = updatePerformanceData;

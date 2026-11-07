@@ -1,7 +1,7 @@
 var __M = window.__M || [];
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 
-function swalInfo(message) {
+export function swalInfo(message) {
     Swal.fire({
         title: 'معلومة',
         text: message,
@@ -10,7 +10,7 @@ function swalInfo(message) {
     return false;
 }
 
-function swalConfirmOnly(e, message) {
+export function swalConfirmOnly(e, message) {
     e.preventDefault();
     Swal.fire({
         title: 'تأكيد',
@@ -23,7 +23,7 @@ function swalConfirmOnly(e, message) {
     return false;
 }
 
-function deleteUser(userId) {
+export function deleteUser(userId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من حذف هذا المستخدم نهائياً؟',
@@ -50,7 +50,7 @@ function deleteUser(userId) {
     });
 }
 
-function resetPassword(userId) {
+export function resetPassword(userId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إعادة تعيين كلمة مرور هذا المستخدم؟',
@@ -87,7 +87,7 @@ function resetPassword(userId) {
     });
 }
 
-function filterUsers(status, e) {
+export function filterUsers(status, e) {
     const rows = document.querySelectorAll('#usersTable tbody tr');
     rows.forEach(row => {
         if (status === 'all' || row.dataset.status === status) {
@@ -113,3 +113,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+
+// Backward compatibility
+if (typeof swalInfo !== "undefined") window.swalInfo = swalInfo;
+if (typeof swalConfirmOnly !== "undefined") window.swalConfirmOnly = swalConfirmOnly;
+if (typeof resetPassword !== "undefined") window.resetPassword = resetPassword;
+if (typeof deleteUser !== "undefined") window.deleteUser = deleteUser;
+if (typeof filterUsers !== "undefined") window.filterUsers = filterUsers;

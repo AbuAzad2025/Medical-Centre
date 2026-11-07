@@ -1,4 +1,4 @@
-function togglePassword(fieldId) {
+export function togglePassword(fieldId) {
     const field = document.getElementById(fieldId);
     const button = field.nextElementSibling;
     const icon = button.querySelector('i');
@@ -51,7 +51,7 @@ if (passwordEl) {
     });
 }
 
-function checkPasswordStrength(password) {
+export function checkPasswordStrength(password) {
     let score = 0;
     let feedback = [];
     
@@ -97,10 +97,16 @@ if (createUserFormEl) {
 
 const roleSelect = document.getElementById('role');
 const doctorPricingSection = document.getElementById('doctorPricingSection');
-function toggleDoctorPricing() {
+export function toggleDoctorPricing() {
     if (doctorPricingSection) doctorPricingSection.style.display = roleSelect.value === 'doctor' ? '' : 'none';
 }
 if (roleSelect) {
     roleSelect.addEventListener('change', toggleDoctorPricing);
     toggleDoctorPricing();
 }
+
+
+// Backward compatibility
+if (typeof toggleDoctorPricing !== "undefined") window.toggleDoctorPricing = toggleDoctorPricing;
+if (typeof togglePassword !== "undefined") window.togglePassword = togglePassword;
+if (typeof checkPasswordStrength !== "undefined") window.checkPasswordStrength = checkPasswordStrength;

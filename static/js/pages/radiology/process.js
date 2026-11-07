@@ -74,7 +74,7 @@ var __M = window.__M || [];
                     pacs_url: pacsUrlEl ? pacsUrlEl.value : ''
                 };
                 try {
-                    const r = await fetch(__M0__, {
+                    const r = await fetch(window.__M0__, {
                         method: 'POST',
                         headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                         credentials: 'same-origin',
@@ -109,7 +109,7 @@ var __M = window.__M || [];
 
             async function fetchTemplates() {
                 try {
-                    const r = await fetch(__M1__, { method: 'GET', credentials: 'same-origin' });
+                    const r = await fetch(window.__M1__, { method: 'GET', credentials: 'same-origin' });
                     if (!r.ok) throw new Error('http_' + r.status);
                     const data = await r.json().catch(() => ({}));
                     const arr = data && data.templates ? data.templates : [];
@@ -122,7 +122,7 @@ var __M = window.__M || [];
 
             async function fetchMacros() {
                 try {
-                    const r = await fetch(__M2__, { method: 'GET', credentials: 'same-origin' });
+                    const r = await fetch(window.__M2__, { method: 'GET', credentials: 'same-origin' });
                     if (!r.ok) throw new Error('http_' + r.status);
                     const data = await r.json().catch(() => ({}));
                     const arr = data && data.macros ? data.macros : [];
@@ -166,7 +166,7 @@ var __M = window.__M || [];
 
             function replaceBodyPart(text, bodyPart) {
                 const src = String(text || '');
-                return src.split(__M3__).join(bodyPart);
+                return src.split(window.__M3__).join(bodyPart);
             }
 
             function applyTemplateById(templateId) {
@@ -334,7 +334,7 @@ var __M = window.__M || [];
                         is_active: macroActiveEl.checked
                     };
                     try {
-                        const r = await fetch(__M4__, {
+                        const r = await fetch(window.__M4__, {
                             method: 'POST',
                             headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                             credentials: 'same-origin',
@@ -368,7 +368,7 @@ var __M = window.__M || [];
                         const ok = window.confirm('حذف الماكرو؟');
                         if (!ok) return;
                         try {
-                            const r = await fetch(__M5__.replace('__M__', encodeURIComponent(id)), {
+                            const r = await fetch(window.__M5__.replace('__M__', encodeURIComponent(id)), {
                                 method: 'POST',
                                 headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                                 credentials: 'same-origin'
@@ -414,7 +414,7 @@ var __M = window.__M || [];
                         const ok = window.confirm('حذف القالب؟');
                         if (!ok) return;
                         try {
-                            const r = await fetch(__M6__.replace('__TPL__', encodeURIComponent(id)), {
+                            const r = await fetch(window.__M6__.replace('__TPL__', encodeURIComponent(id)), {
                                 method: 'POST',
                                 headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                                 credentials: 'same-origin'
@@ -443,7 +443,7 @@ var __M = window.__M || [];
                         is_active: tplActiveEl.checked
                     };
                     try {
-                        const r = await fetch(__M7__, {
+                        const r = await fetch(window.__M7__, {
                             method: 'POST',
                             headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                             credentials: 'same-origin',

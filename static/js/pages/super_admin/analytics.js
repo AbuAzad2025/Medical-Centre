@@ -6,11 +6,11 @@ if (typeof Chart !== 'undefined') {
   Chart.defaults.font.family = "'Cairo', 'Tajawal', sans-serif";
 }
 
-function refreshAnalytics() {
+export function refreshAnalytics() {
     location.reload();
 }
 
-function exportAnalytics() {
+export function exportAnalytics() {
     const csvContent = "data:text/csv;charset=utf-8,"
         + "المؤشر,القيمة,التغيير\n"
         + "إجمالي المستخدمين,1234,+12%\n"
@@ -84,3 +84,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+
+// Backward compatibility
+if (typeof exportAnalytics !== "undefined") window.exportAnalytics = exportAnalytics;
+if (typeof refreshAnalytics !== "undefined") window.refreshAnalytics = refreshAnalytics;

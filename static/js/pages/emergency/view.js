@@ -33,7 +33,7 @@ var __M = window.__M || [];
                     .then(function(j){
                         if (j && j.success) {
                             Swal.fire({ title: 'تم', text: 'تم نقل الحالة بنجاح', icon: 'success' }).then(() => {
-                                window.location.href = __M0__;
+                                window.location.href = window.__M0__;
                             });
                         } else {
                             Swal.fire({ title: 'خطأ', text: (j && j.message) ? j.message : 'فشل نقل الحالة', icon: 'error' });

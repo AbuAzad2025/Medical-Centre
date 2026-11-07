@@ -1,6 +1,6 @@
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 
-function activateService(serviceId) {
+export function activateService(serviceId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من تفعيل هذه الخدمة؟',
@@ -31,7 +31,7 @@ function activateService(serviceId) {
     });
 }
 
-function deactivateService(serviceId) {
+export function deactivateService(serviceId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من إلغاء تفعيل هذه الخدمة؟',
@@ -61,3 +61,8 @@ function deactivateService(serviceId) {
         }
     });
 }
+
+
+// Backward compatibility
+if (typeof deactivateService !== "undefined") window.deactivateService = deactivateService;
+if (typeof activateService !== "undefined") window.activateService = activateService;

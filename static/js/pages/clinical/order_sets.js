@@ -1,6 +1,6 @@
 var __M = window.__M || [];
 
-async function createOrderSet() {
+export async function createOrderSet() {
     const name = document.getElementById('orderSetName')?.value;
     if (!name) {
         if (window.showToast) window.showToast('Name is required', 'error');
@@ -36,7 +36,7 @@ async function createOrderSet() {
     }
 }
 
-async function checkBPA(context) {
+export async function checkBPA(context) {
     try {
         const resp = await fetch('/order-sets/api/bpa/check', {
             method: 'POST',
@@ -54,3 +54,8 @@ async function checkBPA(context) {
 
 window.createOrderSet = createOrderSet;
 window.checkBPA = checkBPA;
+
+
+// Backward compatibility
+if (typeof createOrderSet !== "undefined") window.createOrderSet = createOrderSet;
+if (typeof checkBPA !== "undefined") window.checkBPA = checkBPA;

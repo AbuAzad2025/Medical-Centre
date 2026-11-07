@@ -1,6 +1,6 @@
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 
-function activateDepartment(deptId) {
+export function activateDepartment(deptId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من تفعيل هذا القسم؟',
@@ -29,7 +29,7 @@ function activateDepartment(deptId) {
     });
 }
 
-function deactivateDepartment(deptId) {
+export function deactivateDepartment(deptId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من إلغاء تفعيل هذا القسم؟',
@@ -57,3 +57,8 @@ function deactivateDepartment(deptId) {
         }
     });
 }
+
+
+// Backward compatibility
+if (typeof deactivateDepartment !== "undefined") window.deactivateDepartment = deactivateDepartment;
+if (typeof activateDepartment !== "undefined") window.activateDepartment = activateDepartment;

@@ -1,9 +1,9 @@
-function getCsrfToken() {
+export function getCsrfToken() {
     const el = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
     return el ? (el.value || el.content || '') : '';
 }
 
-function confirmAppointment(appointmentId) {
+export function confirmAppointment(appointmentId) {
     Swal.fire({
         title: 'تأكيد الموعد',
         text: 'هل تريد تأكيد هذا الموعد؟',
@@ -23,7 +23,7 @@ function confirmAppointment(appointmentId) {
     });
 }
 
-function cancelAppointment(appointmentId) {
+export function cancelAppointment(appointmentId) {
     Swal.fire({
         title: 'إلغاء الموعد',
         text: 'هل تريد إلغاء هذا الموعد؟',
@@ -43,7 +43,7 @@ function cancelAppointment(appointmentId) {
     });
 }
 
-function noShowAppointment(appointmentId) {
+export function noShowAppointment(appointmentId) {
     Swal.fire({
         title: 'لم يحضر',
         text: 'تأكيد وضع الموعد كـ لم يحضر؟',
@@ -62,3 +62,10 @@ function noShowAppointment(appointmentId) {
             .catch(err => Swal.fire({ title: 'خطأ', text: err.message || 'حدث خطأ', icon: 'error' }));
     });
 }
+
+
+// Backward compatibility
+if (typeof noShowAppointment !== "undefined") window.noShowAppointment = noShowAppointment;
+if (typeof getCsrfToken !== "undefined") window.getCsrfToken = getCsrfToken;
+if (typeof confirmAppointment !== "undefined") window.confirmAppointment = confirmAppointment;
+if (typeof cancelAppointment !== "undefined") window.cancelAppointment = cancelAppointment;

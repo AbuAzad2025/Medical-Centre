@@ -7,7 +7,7 @@ if (typeof Chart !== 'undefined') {
 }
 
 var __M = window.__M || [];
-fetch(__M0__)
+fetch(window.__M0__)
     .then(r => {
       if (!r.ok) throw new Error(r.status);
       return r.json();

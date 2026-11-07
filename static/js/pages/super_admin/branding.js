@@ -1,12 +1,12 @@
 var __M = window.__M || [];
 
-function saveBranding() {
+export function saveBranding() {
     const form = document.getElementById('brandingForm');
     const formData = new FormData(form);
     const csrfEl = form.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
     const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
 
-    fetch(__M0__, {
+    fetch(window.__M0__, {
         method: 'POST',
         body: formData,
         headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
@@ -30,7 +30,7 @@ function saveBranding() {
     });
 }
 
-function resetBranding() {
+export function resetBranding() {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إعادة تعيين جميع إعدادات العلامة التجارية إلى القيم الافتراضية؟',
@@ -41,12 +41,12 @@ function resetBranding() {
     }).then((res) => { if (res.isConfirmed) { location.reload(); } });
 }
 
-function selectTheme(themeId) {
+export function selectTheme(themeId) {
     const body = new FormData();
     const csrfToken = typeof __CSRF__ !== 'undefined' ? __CSRF__ : '';
     body.append('csrf_token', csrfToken);
 
-    fetch(`${__M2__}/${themeId}`, {
+    fetch(`${window.__M2__}/${themeId}`, {
         method: 'POST',
         body: body,
         headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
@@ -75,15 +75,15 @@ function selectTheme(themeId) {
     });
 }
 
-function reloadPrintPreview() {
+export function reloadPrintPreview() {
     const frame = document.getElementById('printPreviewFrame');
     if (!frame) return;
     const active = document.querySelector('#docTypeTabs .nav-link.active');
     const docType = active ? active.getAttribute('data-doc-type') : 'invoice';
-    frame.src = `${__M1__}?doc_type=${docType}&_=${Date.now()}`;
+    frame.src = `${window.__M1__}?doc_type=${docType}&_=${Date.now()}`;
 }
 
-function showDocFields(docType) {
+export function showDocFields(docType) {
     document.querySelectorAll('.doc-fields').forEach(el => {
         el.classList.toggle('d-none', el.getAttribute('data-doc') !== docType);
     });
@@ -141,10 +141,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const docType = this.getAttribute('data-doc-type');
             showDocFields(docType);
             const frame = document.getElementById('printPreviewFrame');
-            if (frame) frame.src = `${__M1__}?doc_type=${docType}&_=${Date.now()}`;
+            if (frame) frame.src = `${window.__M1__}?doc_type=${docType}&_=${Date.now()}`;
         });
     });
 
     const firstDoc = document.querySelector('#docTypeTabs .nav-link.active');
     if (firstDoc) showDocFields(firstDoc.getAttribute('data-doc-type'));
 });
+
+
+// Backward compatibility
+if (typeof resetBranding !== "undefined") window.resetBranding = resetBranding;
+if (typeof showDocFields !== "undefined") window.showDocFields = showDocFields;
+if (typeof reloadPrintPreview !== "undefined") window.reloadPrintPreview = reloadPrintPreview;
+if (typeof saveBranding !== "undefined") window.saveBranding = saveBranding;
+if (typeof selectTheme !== "undefined") window.selectTheme = selectTheme;

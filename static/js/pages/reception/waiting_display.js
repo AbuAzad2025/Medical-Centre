@@ -1,5 +1,5 @@
 var __M = window.__M || [];
-const apiUrl = __M0__;
+const apiUrl = window.__M0__;
         const clockEl = document.getElementById('live-clock');
         const queueSocket = io('/queue');
 

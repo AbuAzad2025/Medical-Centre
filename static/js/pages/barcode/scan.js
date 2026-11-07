@@ -1,10 +1,10 @@
 var __M = window.__M || [];
-function submitScan() {
+export function submitScan() {
   const barcode = document.getElementById('barcodeInput').value;
   const action = document.getElementById('scanAction').value;
-  fetch(__M0__, {
+  fetch(window.__M0__, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': __M1__},
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': window.__M1__},
     body: JSON.stringify({barcode: barcode, action: action})
   }).then(r => r.json()).then(data => {
     const el = document.getElementById('scanResult');
@@ -20,3 +20,7 @@ function submitScan() {
 document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') submitScan();
 });
+
+
+// Backward compatibility
+if (typeof submitScan !== "undefined") window.submitScan = submitScan;

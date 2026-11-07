@@ -1,4 +1,4 @@
-function refreshQueue() {
+export function refreshQueue() {
     location.reload();
 }
 
@@ -35,3 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
         row.style.animation = 'pulse 2s infinite';
     });
 });
+
+
+// Backward compatibility
+if (typeof refreshQueue !== "undefined") window.refreshQueue = refreshQueue;

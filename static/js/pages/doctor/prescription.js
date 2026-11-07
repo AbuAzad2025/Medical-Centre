@@ -1,7 +1,7 @@
 var __M = window.__M || [];
-const RX_TEMPLATES = __M0__;
+const RX_TEMPLATES = window.__M0__;
 
-function showSafetyModal(alerts, onOverride) {
+export function showSafetyModal(alerts, onOverride) {
   const existing = document.getElementById('safetyOverrideModal');
   if (existing) existing.remove();
   const modal = document.createElement('div');
@@ -63,7 +63,7 @@ function showSafetyModal(alerts, onOverride) {
   });
 }
 
-function parseMedicationRef(value) {
+export function parseMedicationRef(value) {
   const v = (value || '').trim();
   if (!v) return { id: '', label: '' };
   if (v.includes('|')) {
@@ -75,7 +75,7 @@ function parseMedicationRef(value) {
   return { id: '', label: v };
 }
 
-function createRxRow(initial) {
+export function createRxRow(initial) {
   const tbody = document.querySelector('#rxItemsTable tbody');
   const tr = document.createElement('tr');
   tr.innerHTML = `
@@ -125,7 +125,7 @@ function createRxRow(initial) {
   }
 }
 
-function ensureAtLeastOneRow() {
+export function ensureAtLeastOneRow() {
   const tbody = document.querySelector('#rxItemsTable tbody');
   if (!tbody.children.length) createRxRow();
 }
@@ -200,3 +200,10 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   });
 });
+
+
+// Backward compatibility
+if (typeof parseMedicationRef !== "undefined") window.parseMedicationRef = parseMedicationRef;
+if (typeof createRxRow !== "undefined") window.createRxRow = createRxRow;
+if (typeof showSafetyModal !== "undefined") window.showSafetyModal = showSafetyModal;
+if (typeof ensureAtLeastOneRow !== "undefined") window.ensureAtLeastOneRow = ensureAtLeastOneRow;

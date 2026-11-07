@@ -124,7 +124,7 @@ class LazyLoader {
     }
 }
 
-function debounce(func, wait, immediate = false) {
+export function debounce(func, wait, immediate = false) {
     let timeout;
     return function executedFunction(...args) {
         const later = () => {
@@ -138,7 +138,7 @@ function debounce(func, wait, immediate = false) {
     };
 }
 
-function throttle(func, limit) {
+export function throttle(func, limit) {
     let inThrottle;
     return function(...args) {
         if (!inThrottle) {
@@ -597,3 +597,8 @@ if (typeof module !== 'undefined' && module.exports) {
         throttle
     };
 }
+
+
+// Backward compatibility
+if (typeof throttle !== "undefined") window.throttle = throttle;
+if (typeof debounce !== "undefined") window.debounce = debounce;

@@ -6,7 +6,7 @@ if (addStaffFormEl) {
         e.preventDefault();
         const userId = document.getElementById('user_id').value;
         
-        fetch((window.API_ROUTES && window.API_ROUTES.add_department_staff) ? window.API_ROUTES.add_department_staff.replace('/0', '/' + __M0__) : `/super-admin/department-staff/${__M0__}/add`, {
+        fetch((window.API_ROUTES && window.API_ROUTES.add_department_staff) ? window.API_ROUTES.add_department_staff.replace('/0', '/' + window.__M0__) : `/super-admin/department-staff/${window.__M0__}/add`, {
             method: 'POST',
             headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
             credentials: 'same-origin',
@@ -27,7 +27,7 @@ if (addStaffFormEl) {
     });
 }
 
-function removeFromDepartment(userId) {
+export function removeFromDepartment(userId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من إزالة هذا الموظف من القسم؟',
@@ -37,7 +37,7 @@ function removeFromDepartment(userId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch((window.API_ROUTES && window.API_ROUTES.remove_department_staff) ? window.API_ROUTES.remove_department_staff.replace('/0', '/' + __M1__) : `/super-admin/department-staff/${__M1__}/remove`, {
+            fetch((window.API_ROUTES && window.API_ROUTES.remove_department_staff) ? window.API_ROUTES.remove_department_staff.replace('/0', '/' + window.__M1__) : `/super-admin/department-staff/${window.__M1__}/remove`, {
                 method: 'POST',
                 headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                 credentials: 'same-origin',
@@ -58,3 +58,7 @@ function removeFromDepartment(userId) {
         }
     });
 }
+
+
+// Backward compatibility
+if (typeof removeFromDepartment !== "undefined") window.removeFromDepartment = removeFromDepartment;

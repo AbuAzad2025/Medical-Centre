@@ -1,4 +1,4 @@
-function editRole(roleId) {
+export function editRole(roleId) {
             window.location.href = (window.API_ROUTES && window.API_ROUTES.edit_role) ? window.API_ROUTES.edit_role.replace('/0', '/' + roleId) : `/super-admin/roles/${roleId}/edit`;
         }
 
@@ -9,3 +9,7 @@ function editRole(roleId) {
         function manageDepartmentPermissions(roleId) {
             window.location.href = (window.API_ROUTES && window.API_ROUTES.manage_role_department_permissions) ? window.API_ROUTES.manage_role_department_permissions.replace('/0', '/' + roleId) : `/super-admin/roles/${roleId}/department-permissions`;
         }
+
+
+// Backward compatibility
+if (typeof editRole !== "undefined") window.editRole = editRole;

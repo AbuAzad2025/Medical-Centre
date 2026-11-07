@@ -1,10 +1,10 @@
 var __M = window.__M || [];
-const presetDoctorId = __M0__;
-const presetTime = __M1__;
+const presetDoctorId = window.__M0__;
+const presetTime = window.__M1__;
 
-function loadDoctors(){
+export function loadDoctors(){
   const dept = document.getElementById('department_id').value;
-  const url = __M2__ + (dept ? ('?department_id='+dept) : '');
+  const url = window.__M2__ + (dept ? ('?department_id='+dept) : '');
   fetch(url).then(r=>{
     if (!r.ok) throw new Error(r.status);
     return r.json();
@@ -23,7 +23,7 @@ function loadDoctors(){
   }).catch(err => { });
 }
 
-function loadTimes(){
+export function loadTimes(){
   const doc = document.getElementById('doctor_id').value;
   const dt = document.getElementById('appointment_date').value;
   const sel = document.getElementById('appointment_time');
@@ -31,7 +31,7 @@ function loadTimes(){
     if (!sel.value) sel.innerHTML = '<option value="">اختر الوقت</option>';
     return;
   }
-  const url = __M3__ + `?doctor_id=${doc}&date=${dt}`;
+  const url = window.__M3__ + `?doctor_id=${doc}&date=${dt}`;
   fetch(url).then(r=>{
     if (!r.ok) throw new Error(r.status);
     return r.json();
@@ -48,7 +48,7 @@ function loadTimes(){
   }).catch(err => { });
 }
 
-function loadSmartSlots(){
+export function loadSmartSlots(){
   const doc = document.getElementById('doctor_id').value;
   const dt = document.getElementById('appointment_date').value;
   const hint = document.getElementById('smartSlotsHint');
@@ -56,7 +56,7 @@ function loadSmartSlots(){
     if (hint) hint.textContent = 'اختر الطبيب والتاريخ أولاً';
     return;
   }
-  const url = __M4__ + `?doctor_id=${doc}&date=${dt}`;
+  const url = window.__M4__ + `?doctor_id=${doc}&date=${dt}`;
   fetch(url).then(r=>{
     if (!r.ok) throw new Error(r.status);
     return r.json();
@@ -79,3 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDoctors();
   }
 });
+
+
+// Backward compatibility
+if (typeof loadTimes !== "undefined") window.loadTimes = loadTimes;
+if (typeof loadDoctors !== "undefined") window.loadDoctors = loadDoctors;
+if (typeof loadSmartSlots !== "undefined") window.loadSmartSlots = loadSmartSlots;

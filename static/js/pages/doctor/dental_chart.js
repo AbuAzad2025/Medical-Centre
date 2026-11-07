@@ -1,9 +1,9 @@
 var __M = window.__M || [];
-const STATES = __M0__;
+const STATES = window.__M0__;
 let selectedFdi = null;
-let teethData = __M1__;
+let teethData = window.__M1__;
 
-function openToothModal(fdi) {
+export function openToothModal(fdi) {
     selectedFdi = fdi;
     document.getElementById('selectedFdi').textContent = fdi;
     const tooth = teethData[fdi] || {state:'sound', surfaces:{}, notes:''};
@@ -16,7 +16,7 @@ function openToothModal(fdi) {
     document.getElementById('toothEditorEmpty').style.display = 'none';
 }
 
-function applyToothState() {
+export function applyToothState() {
     if (!selectedFdi) return;
     const state = document.getElementById('toothStateSelect').value;
     const notes = document.getElementById('toothNotes').value;
@@ -29,7 +29,7 @@ function applyToothState() {
     updateSummary();
 }
 
-function updateSvgTooth(fdi, state) {
+export function updateSvgTooth(fdi, state) {
     const group = document.querySelector(`.tooth-group[data-fdi="${fdi}"]`);
     if (!group) return;
     const rect = group.querySelector('rect');
@@ -48,7 +48,7 @@ function updateSvgTooth(fdi, state) {
     }
 }
 
-function updateSummary() {
+export function updateSummary() {
     const counts = {};
     Object.values(teethData).forEach(t => { counts[t.state] = (counts[t.state]||0)+1; });
     const list = document.getElementById('summaryList');
@@ -65,12 +65,12 @@ function updateSummary() {
     if (list.innerHTML === '') list.innerHTML = '<li class="list-group-item text-muted">لا يوجد أسنان معدلة</li>';
 }
 
-function saveChart() {
-    fetch(__M2__, {
+export function saveChart() {
+    fetch(window.__M2__, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json', 'X-CSRFToken': __M3__, 'X-Requested-With': 'XMLHttpRequest'},
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': window.__M3__, 'X-Requested-With': 'XMLHttpRequest'},
         credentials: 'same-origin',
-        body: JSON.stringify({patient_id: __M4__, visit_id: __M5__, teeth: teethData, notes: ''})
+        body: JSON.stringify({patient_id: window.__M4__, visit_id: window.__M5__, teeth: teethData, notes: ''})
     })
     .then(r => {
         if (!r.ok) throw new Error(r.status);
@@ -84,3 +84,11 @@ function saveChart() {
 }
 
 updateSummary();
+
+
+// Backward compatibility
+if (typeof updateSummary !== "undefined") window.updateSummary = updateSummary;
+if (typeof applyToothState !== "undefined") window.applyToothState = applyToothState;
+if (typeof saveChart !== "undefined") window.saveChart = saveChart;
+if (typeof openToothModal !== "undefined") window.openToothModal = openToothModal;
+if (typeof updateSvgTooth !== "undefined") window.updateSvgTooth = updateSvgTooth;

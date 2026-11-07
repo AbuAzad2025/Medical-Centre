@@ -1,5 +1,5 @@
 var __M = window.__M || [];
-const baseCurrency = __M0__;
+const baseCurrency = window.__M0__;
   const currencySelect = document.getElementById('paymentCurrencySelect');
   const rateInfo = document.getElementById('exchangeRateInfo');
   const remainingDisplay = document.getElementById('remainingDisplay');

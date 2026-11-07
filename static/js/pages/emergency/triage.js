@@ -16,7 +16,7 @@ document.getElementById('triageForm').addEventListener('submit', function(e) {
     formData.set('vital_signs', JSON.stringify(vitalSigns));
 
     const csrfToken = formData.get('csrf_token') || '';
-    fetch(__M0__, {
+    fetch(window.__M0__, {
         method: 'POST',
         credentials: 'same-origin',
         headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
@@ -30,7 +30,7 @@ document.getElementById('triageForm').addEventListener('submit', function(e) {
         if (data.success) {
             Swal.fire({ title: 'تم', text: 'تم حفظ بيانات الفرز بنجاح', icon: 'success' });
 
-            window.location.href = __M1__;
+            window.location.href = window.__M1__;
         } else {
             Swal.fire({ title: 'خطأ', text: 'خطأ: ' + (data.error || ''), icon: 'error' });
         }

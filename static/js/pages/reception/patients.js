@@ -85,7 +85,7 @@ let smartSearchTimer = null;
     });
 })();
 
-function calcAgeModal() {
+export function calcAgeModal() {
     const v = document.getElementById('birth_date_modal').value;
     if (!v) { document.getElementById('age_modal').value = ''; return; }
     const b = new Date(v);
@@ -95,7 +95,7 @@ function calcAgeModal() {
     if (m < 0 || (m === 0 && t.getDate() < b.getDate())) age--;
     document.getElementById('age_modal').value = age;
 }
-function togglePregnancyModal() {
+export function togglePregnancyModal() {
     const g = document.getElementById('gender_modal');
     const ms = document.getElementById('marital_status_modal');
     const s = document.getElementById('pregnancy_section_modal');
@@ -111,7 +111,7 @@ function togglePregnancyModal() {
         const n = document.getElementById('pregnancy_notes_modal'); if (n) n.value = '';
     }
 }
-function calcPregnancyWeeksModal() {
+export function calcPregnancyWeeksModal() {
     const v = document.getElementById('last_menstruation_date_modal').value;
     if (!v) { document.getElementById('pregnancy_weeks_modal').value = ''; return; }
     const d = new Date(v);
@@ -162,7 +162,7 @@ togglePregnancyModal();
     }
     })();
 
-function calcAgeEdit() {
+export function calcAgeEdit() {
     const v = document.getElementById('birth_date_edit')?.value;
     if (!v) { const a = document.getElementById('age_edit'); if (a) a.value = ''; return; }
     const b = new Date(v);
@@ -173,7 +173,7 @@ function calcAgeEdit() {
     const a = document.getElementById('age_edit');
     if (a) a.value = age;
 }
-function togglePregnancyEdit() {
+export function togglePregnancyEdit() {
     const g = document.getElementById('gender_edit')?.value;
     const ms = document.getElementById('marital_status_edit')?.value;
     const s = document.getElementById('pregnancy_section_edit');
@@ -186,7 +186,7 @@ function togglePregnancyEdit() {
         const n = document.getElementById('pregnancy_notes_edit'); if (n) n.value = '';
     }
 }
-function calcPregnancyWeeksEdit() {
+export function calcPregnancyWeeksEdit() {
     const v = document.getElementById('last_menstruation_date_edit')?.value;
     if (!v) { const w = document.getElementById('pregnancy_weeks_edit'); if (w) w.value = ''; return; }
     const d = new Date(v);
@@ -216,7 +216,7 @@ document.getElementById('savePatientEditBtn')?.addEventListener('click', functio
         .then(d => {
             if (d.success) {
                 Swal.fire({ title: 'تم الحفظ', text: 'تم حفظ التعديلات بنجاح', icon: 'success' }).then(() => {
-                    location.href = __M0__;
+                    location.href = window.__M0__;
                 });
             } else {
                 Swal.fire({ title: 'خطأ', text: (d.message || 'تعذر حفظ التعديلات'), icon: 'error' });
@@ -224,7 +224,7 @@ document.getElementById('savePatientEditBtn')?.addEventListener('click', functio
         })
         .catch(e => Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ التعديلات', icon: 'error' }));
 });
-if (__M1__) {
+if (window.__M1__) {
     if (window.bootstrap && document.getElementById('editPatientModal')) {
         const modal = new bootstrap.Modal(document.getElementById('editPatientModal'));
         modal.show();
@@ -233,7 +233,7 @@ if (__M1__) {
     calcAgeEdit();
 }
 
-function confirmDeletePatient(btn) {
+export function confirmDeletePatient(btn) {
     const form = btn.closest('form');
     if (!form) return;
     Swal.fire({
@@ -249,3 +249,13 @@ function confirmDeletePatient(btn) {
         }
     });
 }
+
+
+// Backward compatibility
+if (typeof calcAgeEdit !== "undefined") window.calcAgeEdit = calcAgeEdit;
+if (typeof confirmDeletePatient !== "undefined") window.confirmDeletePatient = confirmDeletePatient;
+if (typeof calcAgeModal !== "undefined") window.calcAgeModal = calcAgeModal;
+if (typeof togglePregnancyModal !== "undefined") window.togglePregnancyModal = togglePregnancyModal;
+if (typeof calcPregnancyWeeksModal !== "undefined") window.calcPregnancyWeeksModal = calcPregnancyWeeksModal;
+if (typeof togglePregnancyEdit !== "undefined") window.togglePregnancyEdit = togglePregnancyEdit;
+if (typeof calcPregnancyWeeksEdit !== "undefined") window.calcPregnancyWeeksEdit = calcPregnancyWeeksEdit;

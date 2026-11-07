@@ -1,4 +1,4 @@
-function deletePricing(pricingId) {
+export function deletePricing(pricingId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من حذف هذا التسعير؟',
@@ -8,3 +8,7 @@ function deletePricing(pricingId) {
         cancelButtonText: 'إلغاء'
     }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'قريباً', text: 'سيتم تفعيل الحذف قريباً', icon: 'info' }); } });
 }
+
+
+// Backward compatibility
+if (typeof deletePricing !== "undefined") window.deletePricing = deletePricing;

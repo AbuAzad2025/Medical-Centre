@@ -6,7 +6,7 @@ if (runBtn) {
         const staff = parseInt(document.getElementById('what_if_staff').value || '0', 10);
         const rooms = parseInt(document.getElementById('what_if_rooms').value || '0', 10);
         try {
-            const r = await fetch(__M0__, {
+            const r = await fetch(window.__M0__, {
                 method: 'POST',
                 headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                 credentials: 'same-origin',

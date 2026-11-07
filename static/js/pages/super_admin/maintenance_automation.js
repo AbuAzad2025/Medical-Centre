@@ -10,7 +10,7 @@ if (saveBtn) {
       auto_backup: document.getElementById('auto_backup').value === 'true'
     };
     try {
-      const r = await fetch(__M0__, {
+      const r = await fetch(window.__M0__, {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         credentials: 'same-origin',

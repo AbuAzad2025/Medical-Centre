@@ -3,7 +3,7 @@ const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).cont
 const tbody = document.getElementById('queueSettingsBody');
 const saveBtn = document.getElementById('saveQueueSettingsBtn');
 
-function boolSelect(value) {
+export function boolSelect(value) {
   const v = value ? '1' : '0';
   return `
     <select class="form-select form-select-sm" data-type="bool" value="${v}">
@@ -13,16 +13,16 @@ function boolSelect(value) {
   `;
 }
 
-function intInput(value, min, max) {
+export function intInput(value, min, max) {
   const v = (value === null || value === undefined) ? '' : String(value);
   const mn = (min === null || min === undefined) ? '' : `min="${min}"`;
   const mx = (max === null || max === undefined) ? '' : `max="${max}"`;
   return `<input class="form-control form-control-sm" data-type="int" type="number" value="${v}" ${mn} ${mx}>`;
 }
 
-async function loadSettings() {
+export async function loadSettings() {
   try {
-    const r = await fetch(`__M0__?action=load`, { method: 'GET', credentials: 'same-origin' });
+    const r = await fetch(`window.__M0__?action=load`, { method: 'GET', credentials: 'same-origin' });
     if (!r.ok) throw new Error('http_' + r.status);
     const data = await r.json().catch(() => ({}));
     if (!data || !data.success) {
@@ -54,7 +54,7 @@ async function loadSettings() {
   }
 }
 
-function collectSettings() {
+export function collectSettings() {
   const rows = Array.from(tbody.querySelectorAll('tr[data-department-id]'));
   const items = rows.map(tr => {
     const deptId = parseInt(tr.dataset.departmentId, 10);
@@ -83,7 +83,7 @@ if (saveBtn) {
     saveBtn.disabled = true;
     const payload = collectSettings();
     try {
-      const r = await fetch(`__M1__`, {
+      const r = await fetch(`window.__M1__`, {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         credentials: 'same-origin',
@@ -110,3 +110,10 @@ if (saveBtn) {
 document.addEventListener('DOMContentLoaded', function () {
   loadSettings();
 });
+
+
+// Backward compatibility
+if (typeof intInput !== "undefined") window.intInput = intInput;
+if (typeof loadSettings !== "undefined") window.loadSettings = loadSettings;
+if (typeof collectSettings !== "undefined") window.collectSettings = collectSettings;
+if (typeof boolSelect !== "undefined") window.boolSelect = boolSelect;

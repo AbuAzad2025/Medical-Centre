@@ -18,19 +18,19 @@ if (searchInputEl) {
     });
 }
 
-function viewService(serviceId) {
+export function viewService(serviceId) {
     window.location.href = (window.API_ROUTES && window.API_ROUTES.view_service) ? window.API_ROUTES.view_service.replace('/0', '/' + serviceId) : `/super-admin/service/${serviceId}`;
 }
 
-function editService(serviceId) {
+export function editService(serviceId) {
     window.location.href = (window.API_ROUTES && window.API_ROUTES.edit_service) ? window.API_ROUTES.edit_service.replace('/0', '/' + serviceId) : `/super-admin/edit-service/${serviceId}`;
 }
 
-function managePricing(serviceId) {
+export function managePricing(serviceId) {
     window.location.href = (window.API_ROUTES && window.API_ROUTES.service_pricing) ? window.API_ROUTES.service_pricing.replace('/0', '/' + serviceId) : `/super-admin/service-pricing/${serviceId}`;
 }
 
-function activateService(serviceId) {
+export function activateService(serviceId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من تفعيل هذه الخدمة؟',
@@ -61,7 +61,7 @@ function activateService(serviceId) {
     });
 }
 
-function deactivateService(serviceId) {
+export function deactivateService(serviceId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل أنت متأكد من إلغاء تفعيل هذه الخدمة؟',
@@ -92,7 +92,7 @@ function deactivateService(serviceId) {
     });
 }
 
-function exportServices() {
+export function exportServices() {
     window.open((window.API_ROUTES && window.API_ROUTES.export_services) || '/super-admin/export-services', '_blank');
 }
 
@@ -124,3 +124,12 @@ if (addServiceFormEl) {
         .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
     });
 }
+
+
+// Backward compatibility
+if (typeof viewService !== "undefined") window.viewService = viewService;
+if (typeof exportServices !== "undefined") window.exportServices = exportServices;
+if (typeof editService !== "undefined") window.editService = editService;
+if (typeof deactivateService !== "undefined") window.deactivateService = deactivateService;
+if (typeof managePricing !== "undefined") window.managePricing = managePricing;
+if (typeof activateService !== "undefined") window.activateService = activateService;

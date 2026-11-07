@@ -7,7 +7,7 @@ document.getElementById('visitSummaryForm').addEventListener('submit', function(
     const csrfEl = this.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
     const csrfToken = csrfEl ? (csrfEl.value || csrfEl.content || '') : '';
 
-    fetch(__M0__, {
+    fetch(window.__M0__, {
         method: 'POST',
         headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         credentials: 'same-origin',
@@ -22,7 +22,7 @@ document.getElementById('visitSummaryForm').addEventListener('submit', function(
             if (typeof notify.success === 'function') {
                 notify.success('تم حفظ ملخص الزيارة بنجاح');
             }
-            window.location.href = __M1__;
+            window.location.href = window.__M1__;
             return;
         }
         const msg = (data && data.message) ? String(data.message) : 'تعذّر حفظ ملخص الزيارة. حاول مرة أخرى.';

@@ -1,6 +1,6 @@
 var __M = window.__M || [];
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
-function saveSettings() {
+export function saveSettings() {
     const forms = ['generalSettingsForm', 'securitySettingsForm', 'databaseSettingsForm', 'notificationsSettingsForm', 'backupSettingsForm'];
     const settings = {};
     forms.forEach(formId => {
@@ -18,7 +18,7 @@ function saveSettings() {
             });
         }
     });
-    fetch(__M0__, {
+    fetch(window.__M0__, {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         credentials: 'same-origin',
@@ -40,7 +40,7 @@ function saveSettings() {
     });
 }
 
-function resetSettings() {
+export function resetSettings() {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إعادة تعيين جميع الإعدادات إلى القيم الافتراضية؟',
@@ -51,10 +51,10 @@ function resetSettings() {
     }).then((result) => { if (result.isConfirmed) { location.reload(); } });
 }
 
-function testSmsConnection() {
+export function testSmsConnection() {
     const testPhone = prompt('أدخل رقم الهاتف المرسل إليه (مثال: +970599123456):');
     if (!testPhone) return;
-    fetch(__M5__, {
+    fetch(window.__M5__, {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         credentials: 'same-origin',
@@ -72,8 +72,8 @@ function testSmsConnection() {
     });
 }
 
-function processNotificationQueue() {
-    fetch(__M6__, {
+export function processNotificationQueue() {
+    fetch(window.__M6__, {
         method: 'POST',
         headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         credentials: 'same-origin'
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function testConnection() {
+export function testConnection() {
     const dbSettings = {
         host: document.getElementById('db_host').value,
         port: document.getElementById('db_port').value,
@@ -117,7 +117,7 @@ function testConnection() {
         password: document.getElementById('db_password').value
     };
     
-    fetch(__M1__ + '?action=test_db', {
+    fetch(window.__M1__ + '?action=test_db', {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         credentials: 'same-origin',
@@ -140,7 +140,7 @@ function testConnection() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    fetch(__M2__ + '?action=load', { credentials: 'same-origin' })
+    fetch(window.__M2__ + '?action=load', { credentials: 'same-origin' })
         .then(response => {
             if (!response.ok) throw new Error('http_' + response.status);
             return response.json();
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (window.showToast) window.showToast('حدث خطأ أثناء تحميل البيانات'); else alert('حدث خطأ أثناء تحميل البيانات');
         });
 
-    fetch(__M3__ + '?action=load', { credentials: 'same-origin' })
+    fetch(window.__M3__ + '?action=load', { credentials: 'same-origin' })
         .then(response => {
             if (!response.ok) throw new Error('http_' + response.status);
             return response.json();
@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const allowDebt = row.querySelector('.dept-debt').checked;
                 items.push({ department_id: deptId, max_queue_size: maxSize, payment_required: paymentRequired, emergency_payment_waived: emergencyWaived, force_entry_allowed: forceAllowed, average_wait_time: avgWait, allow_partial_payment: allowPartial, allow_debt: allowDebt });
             });
-            fetch(__M4__, {
+            fetch(window.__M4__, {
                 method: 'POST',
                 headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
                 credentials: 'same-origin',
@@ -227,3 +227,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+
+// Backward compatibility
+if (typeof testConnection !== "undefined") window.testConnection = testConnection;
+if (typeof saveSettings !== "undefined") window.saveSettings = saveSettings;
+if (typeof processNotificationQueue !== "undefined") window.processNotificationQueue = processNotificationQueue;
+if (typeof resetSettings !== "undefined") window.resetSettings = resetSettings;
+if (typeof testSmsConnection !== "undefined") window.testSmsConnection = testSmsConnection;

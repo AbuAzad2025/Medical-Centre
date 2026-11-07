@@ -8,7 +8,7 @@ document.getElementById('registerBtn').addEventListener('click', async function(
   try {
     var csrfEl = document.querySelector('meta[name="csrf-token"]');
     var csrfToken = csrfEl ? csrfEl.content : '';
-    const resp = await fetch(__M0__, {method: 'POST', credentials: 'same-origin', headers: {'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}});
+    const resp = await fetch(window.__M0__, {method: 'POST', credentials: 'same-origin', headers: {'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}});
     const data = await resp.json();
     document.getElementById('registerResult').innerHTML = '<div class="alert alert-success">تم إرسال التحدي. أكمل التسجيل عبر المتصفح.</div>';
     if(window.showToast) window.showToast('تم إرسال التحدي','success');
