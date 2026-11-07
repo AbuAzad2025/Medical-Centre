@@ -1,16 +1,16 @@
 var __M = window.__M || [];
 let currentTicketId = null;
-const currentUserRole = __M0__;
-const currentDoctorId = __M1__;
-const billingActive = __M2__;
+const currentUserRole = window.__M0__;
+const currentDoctorId = window.__M1__;
+const billingActive = window.__M2__;
 let __queueInterval = null;
 
-function getCsrfToken() {
+export function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
     return meta ? meta.getAttribute('content') : '';
 }
 
-function updateQueueStatus() {
+export function updateQueueStatus() {
     const params = new URLSearchParams();
     const dep = document.getElementById('filterDepartment');
     const st = document.getElementById('filterStatus');
@@ -48,7 +48,7 @@ function updateQueueStatus() {
         });
 }
 
-function updateWaitMetrics(departmentId) {
+export function updateWaitMetrics(departmentId) {
     const params = new URLSearchParams();
     if (departmentId) params.set('department_id', departmentId);
     fetch(((window.API_ROUTES && window.API_ROUTES.api_queue_wait_metrics) || '/reception/api/queue-wait-metrics') + `?${params.toString()}`, { credentials: 'same-origin' })
@@ -86,7 +86,7 @@ function updateWaitMetrics(departmentId) {
         });
 }
 
-function displayQueueStatusAll(status) {
+export function displayQueueStatusAll(status) {
     const tbody = document.querySelector('#queue-status-all tbody');
     const rows = [];
     const addRow = (t) => {
@@ -134,7 +134,7 @@ function displayQueueStatusAll(status) {
     tbody.innerHTML = tbodyHtml;
 }
 
-function callNextPatient(departmentId) {
+export function callNextPatient(departmentId) {
     const url = currentUserRole === 'doctor'
         ? `/reception/queue/call-next/${departmentId}?doctor_id=${currentDoctorId}`
         : `/reception/queue/call-next/${departmentId}`;
@@ -151,7 +151,7 @@ function callNextPatient(departmentId) {
         });
 }
 
-function callNextForSelectedDepartment() {
+export function callNextForSelectedDepartment() {
     const dep = document.getElementById('filterDepartment');
     if (!dep || !dep.value) {
         Swal.fire({ title: 'تنبيه', text: 'يرجى اختيار قسم أولاً لنداء المريض التالي', icon: 'info' });
@@ -160,13 +160,13 @@ function callNextForSelectedDepartment() {
     callNextPatient(dep.value);
 }
 
-function callPatient(ticketId) {
+export function callPatient(ticketId) {
     currentTicketId = ticketId;
     const modal = new bootstrap.Modal(document.getElementById('callPatientModal'));
     modal.show();
 }
 
-function startTreatment(ticketId) {
+export function startTreatment(ticketId) {
     fetch(((window.API_ROUTES && window.API_ROUTES.start_treatment) || '/reception/queue/start-treatment/0').replace('/0', '/' + ticketId), { credentials: 'same-origin' })
         .then(response => {
             if (!response.ok) throw new Error(response.status);
@@ -182,7 +182,7 @@ function startTreatment(ticketId) {
         });
 }
 
-function completeTreatment(ticketId) {
+export function completeTreatment(ticketId) {
     fetch(((window.API_ROUTES && window.API_ROUTES.complete_treatment) || '/reception/queue/complete-treatment/0').replace('/0', '/' + ticketId), { credentials: 'same-origin' })
         .then(response => {
             if (!response.ok) throw new Error(response.status);
@@ -196,19 +196,19 @@ function completeTreatment(ticketId) {
         });
 }
 
-function skipPatient(ticketId) {
+export function skipPatient(ticketId) {
     currentTicketId = ticketId;
     const modal = new bootstrap.Modal(document.getElementById('skipPatientModal'));
     modal.show();
 }
 
-function cancelTicket(ticketId) {
+export function cancelTicket(ticketId) {
     currentTicketId = ticketId;
     const modal = new bootstrap.Modal(document.getElementById('cancelTicketModal'));
     modal.show();
 }
 
-function transferVisit(visitId) {
+export function transferVisit(visitId) {
     document.getElementById('transfer_visit_id').value = visitId;
     const deptSelect = document.getElementById('transfer_department_id');
     const docSelect = document.getElementById('transfer_doctor_id');
@@ -272,7 +272,7 @@ if (transferVisitFormEl) {
     });
 }
 
-function returnToQueue(ticketId) {
+export function returnToQueue(ticketId) {
     Swal.fire({
         title: 'إرجاع للطابور',
         input: 'text',
@@ -300,13 +300,13 @@ function returnToQueue(ticketId) {
     });
 }
 
-function approveEmergencyDebt(ticketId) {
+export function approveEmergencyDebt(ticketId) {
     currentTicketId = ticketId;
     const modal = new bootstrap.Modal(document.getElementById('approveEmergencyDebtModal'));
     modal.show();
 }
 
-function approveForceEntry(ticketId) {
+export function approveForceEntry(ticketId) {
     currentTicketId = ticketId;
     const modal = new bootstrap.Modal(document.getElementById('approveForceEntryModal'));
     modal.show();
@@ -441,3 +441,21 @@ window.addEventListener('beforeunload', function() {
 document.addEventListener('DOMContentLoaded', function() {
     updateQueueStatus();
 });
+
+
+// Backward compatibility
+if (typeof completeTreatment !== "undefined") window.completeTreatment = completeTreatment;
+if (typeof skipPatient !== "undefined") window.skipPatient = skipPatient;
+if (typeof approveEmergencyDebt !== "undefined") window.approveEmergencyDebt = approveEmergencyDebt;
+if (typeof updateQueueStatus !== "undefined") window.updateQueueStatus = updateQueueStatus;
+if (typeof getCsrfToken !== "undefined") window.getCsrfToken = getCsrfToken;
+if (typeof callNextForSelectedDepartment !== "undefined") window.callNextForSelectedDepartment = callNextForSelectedDepartment;
+if (typeof callPatient !== "undefined") window.callPatient = callPatient;
+if (typeof displayQueueStatusAll !== "undefined") window.displayQueueStatusAll = displayQueueStatusAll;
+if (typeof callNextPatient !== "undefined") window.callNextPatient = callNextPatient;
+if (typeof cancelTicket !== "undefined") window.cancelTicket = cancelTicket;
+if (typeof transferVisit !== "undefined") window.transferVisit = transferVisit;
+if (typeof returnToQueue !== "undefined") window.returnToQueue = returnToQueue;
+if (typeof updateWaitMetrics !== "undefined") window.updateWaitMetrics = updateWaitMetrics;
+if (typeof startTreatment !== "undefined") window.startTreatment = startTreatment;
+if (typeof approveForceEntry !== "undefined") window.approveForceEntry = approveForceEntry;

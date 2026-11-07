@@ -1,10 +1,10 @@
 var __M = window.__M || [];
 
-function addNewUser() {
+export function addNewUser() {
     Swal.fire({ title: 'إضافة مستخدم', text: 'إضافة مستخدم جديد', icon: 'info' });
 }
 
-function exportUsers() {
+export function exportUsers() {
     var rows = document.querySelectorAll('#usersTable tbody tr');
     var csv = "data:text/csv;charset=utf-8,"
         + "\u0627\u0644\u0627\u0633\u0645,\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645,\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a,\u0627\u0644\u062f\u0648\u0631,\u0627\u0644\u0642\u0633\u0645,\u0627\u0644\u062d\u0627\u0644\u0629,\u0622\u062e\u0631 \u062f\u062e\u0648\u0644\n";
@@ -26,15 +26,15 @@ function exportUsers() {
     document.body.removeChild(link);
 }
 
-function viewUser(userId) {
+export function viewUser(userId) {
     Swal.fire({ title: 'عرض المستخدم', text: 'عرض تفاصيل المستخدم: ' + userId, icon: 'info' });
 }
 
-function editUser(userId) {
+export function editUser(userId) {
     Swal.fire({ title: 'تعديل المستخدم', text: 'تعديل المستخدم: ' + userId, icon: 'info' });
 }
 
-function toggleUser(userId) {
+export function toggleUser(userId) {
     Swal.fire({
         title: 'تغيير الحالة',
         text: 'هل تريد تغيير حالة هذا المستخدم؟',
@@ -49,7 +49,7 @@ function toggleUser(userId) {
     });
 }
 
-function resetPassword(userId) {
+export function resetPassword(userId) {
     Swal.fire({
         title: 'إعادة تعيين كلمة المرور',
         text: 'هل تريد إعادة تعيين كلمة مرور هذا المستخدم؟',
@@ -64,7 +64,7 @@ function resetPassword(userId) {
     });
 }
 
-function deleteUser(userId) {
+export function deleteUser(userId) {
     Swal.fire({
         title: 'حذف المستخدم',
         text: 'هل تريد حذف هذا المستخدم نهائياً؟',
@@ -79,7 +79,7 @@ function deleteUser(userId) {
     });
 }
 
-function filterUsers(filter, e) {
+export function filterUsers(filter, e) {
     const rows = document.querySelectorAll('#usersTable tbody tr');
 
     rows.forEach(row => {
@@ -101,7 +101,7 @@ function filterUsers(filter, e) {
     if (e) e.target.classList.add('active');
 }
 
-function bulkActivate() {
+export function bulkActivate() {
     Swal.fire({
         title: 'تفعيل المستخدمين',
         text: 'هل تريد تفعيل المستخدمين المحددين؟',
@@ -116,7 +116,7 @@ function bulkActivate() {
     });
 }
 
-function bulkDeactivate() {
+export function bulkDeactivate() {
     Swal.fire({
         title: 'تعطيل المستخدمين',
         text: 'هل تريد تعطيل المستخدمين المحددين؟',
@@ -131,7 +131,7 @@ function bulkDeactivate() {
     });
 }
 
-function bulkResetPassword() {
+export function bulkResetPassword() {
     Swal.fire({
         title: 'إعادة تعيين كلمات المرور',
         text: 'هل تريد إعادة تعيين كلمات مرور المستخدمين المحددين؟',
@@ -146,7 +146,7 @@ function bulkResetPassword() {
     });
 }
 
-function bulkExport() {
+export function bulkExport() {
 
     exportUsers();
 }
@@ -163,3 +163,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+
+// Backward compatibility
+if (typeof filterUsers !== "undefined") window.filterUsers = filterUsers;
+if (typeof bulkActivate !== "undefined") window.bulkActivate = bulkActivate;
+if (typeof resetPassword !== "undefined") window.resetPassword = resetPassword;
+if (typeof exportUsers !== "undefined") window.exportUsers = exportUsers;
+if (typeof addNewUser !== "undefined") window.addNewUser = addNewUser;
+if (typeof deleteUser !== "undefined") window.deleteUser = deleteUser;
+if (typeof editUser !== "undefined") window.editUser = editUser;
+if (typeof bulkDeactivate !== "undefined") window.bulkDeactivate = bulkDeactivate;
+if (typeof viewUser !== "undefined") window.viewUser = viewUser;
+if (typeof bulkResetPassword !== "undefined") window.bulkResetPassword = bulkResetPassword;
+if (typeof toggleUser !== "undefined") window.toggleUser = toggleUser;
+if (typeof bulkExport !== "undefined") window.bulkExport = bulkExport;

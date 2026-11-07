@@ -1,21 +1,21 @@
 var __M = window.__M || [];
 
-function getCsrfToken() {
+export function getCsrfToken() {
     const el = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
     return el ? (el.value || el.content || '') : '';
 }
 
-function createNewAppointment() {
+export function createNewAppointment() {
     location.href = (window.API_ROUTES && window.API_ROUTES.reception_create_appointment) || '/reception/create_appointment';
 }
 
-function createNewVisit() {
+export function createNewVisit() {
     location.href = (window.API_ROUTES && window.API_ROUTES.reception_create_visit) || '/reception/visits/create';
 }
 
-function exportAppointments() {
+export function exportAppointments() {
     var csvContent = "data:text/csv;charset=utf-8,"
-        + __M0__.map(function(a) {
+        + window.__M0__.map(function(a) {
             var patient = a.patient ? a.patient.full_name : "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f";
             var doctor = a.doctor ? a.doctor.full_name : "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f";
             var date = a.starts_at ? a.starts_at.split("T")[0] : "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f";
@@ -32,7 +32,7 @@ function exportAppointments() {
     document.body.removeChild(link);
 }
 
-function applyFilters() {
+export function applyFilters() {
     const searchInputEl = document.getElementById('searchInput');
     const searchTerm = searchInputEl ? (searchInputEl.value || '').trim() : '';
     const departmentFilter = document.getElementById('departmentFilter').value;
@@ -54,19 +54,19 @@ function applyFilters() {
     location.href = baseUrl + '?' + params.toString();
 }
 
-function clearFilters() {
+export function clearFilters() {
     const searchInputEl = document.getElementById('searchInput');
     if (searchInputEl) searchInputEl.value = '';
     document.getElementById('departmentFilter').value = '';
     document.getElementById('statusFilter').value = '';
     document.getElementById('doctorFilter').value = '';
     document.getElementById('dateFilter').value = '';
-    const perPage = document.getElementById('perPageFilter').value || __M1__;
+    const perPage = document.getElementById('perPageFilter').value || window.__M1__;
     const baseUrl = (window.API_ROUTES && window.API_ROUTES.reception_appointments) || '/reception/appointments';
     location.href = baseUrl + '?per_page=' + encodeURIComponent(perPage);
 }
 
-function filterAppointments(filter, btnEl) {
+export function filterAppointments(filter, btnEl) {
     const rows = document.querySelectorAll('#appointmentsTable tbody tr');
     const today = new Date().toISOString().split('T')[0];
 
@@ -88,12 +88,12 @@ function filterAppointments(filter, btnEl) {
     if (btnEl) btnEl.classList.add('active');
 }
 
-function viewAppointment(appointmentId) {
+export function viewAppointment(appointmentId) {
     var baseUrl = ((window.API_ROUTES && window.API_ROUTES.reception_view_appointment) || '/reception/view_appointment/0').replace('/0', '/' + appointmentId);
     location.href = baseUrl;
 }
 
-function confirmAppointment(appointmentId) {
+export function confirmAppointment(appointmentId) {
     Swal.fire({
         title: 'تأكيد الموعد',
         text: 'هل تريد تأكيد هذا الموعد؟',
@@ -114,12 +114,12 @@ function confirmAppointment(appointmentId) {
     });
 }
 
-function editAppointment(appointmentId) {
+export function editAppointment(appointmentId) {
     var baseUrl = ((window.API_ROUTES && window.API_ROUTES.reception_edit_appointment) || '/reception/edit_appointment/0').replace('/0', '/' + appointmentId);
     location.href = baseUrl;
 }
 
-function cancelAppointment(appointmentId) {
+export function cancelAppointment(appointmentId) {
     Swal.fire({
         title: 'إلغاء الموعد',
         text: 'هل تريد إلغاء هذا الموعد؟',
@@ -140,7 +140,7 @@ function cancelAppointment(appointmentId) {
     });
 }
 
-function noShowAppointment(appointmentId) {
+export function noShowAppointment(appointmentId) {
     Swal.fire({
         title: 'لم يحضر',
         text: 'تأكيد وضع الموعد كـ لم يحضر؟',
@@ -160,11 +160,11 @@ function noShowAppointment(appointmentId) {
     });
 }
 
-function generateReport() {
+export function generateReport() {
     Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير المواعيد', icon: 'info' });
 }
 
-function bulkActions() {
+export function bulkActions() {
     Swal.fire({ title: 'إجراءات', text: 'الإجراءات الجماعية', icon: 'info' });
 }
 
@@ -186,3 +186,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+
+// Backward compatibility
+if (typeof filterAppointments !== "undefined") window.filterAppointments = filterAppointments;
+if (typeof getCsrfToken !== "undefined") window.getCsrfToken = getCsrfToken;
+if (typeof editAppointment !== "undefined") window.editAppointment = editAppointment;
+if (typeof createNewVisit !== "undefined") window.createNewVisit = createNewVisit;
+if (typeof cancelAppointment !== "undefined") window.cancelAppointment = cancelAppointment;
+if (typeof noShowAppointment !== "undefined") window.noShowAppointment = noShowAppointment;
+if (typeof confirmAppointment !== "undefined") window.confirmAppointment = confirmAppointment;
+if (typeof generateReport !== "undefined") window.generateReport = generateReport;
+if (typeof bulkActions !== "undefined") window.bulkActions = bulkActions;
+if (typeof createNewAppointment !== "undefined") window.createNewAppointment = createNewAppointment;
+if (typeof clearFilters !== "undefined") window.clearFilters = clearFilters;
+if (typeof viewAppointment !== "undefined") window.viewAppointment = viewAppointment;
+if (typeof exportAppointments !== "undefined") window.exportAppointments = exportAppointments;
+if (typeof applyFilters !== "undefined") window.applyFilters = applyFilters;

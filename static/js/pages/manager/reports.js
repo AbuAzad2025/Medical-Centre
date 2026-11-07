@@ -1,40 +1,40 @@
-function generateReport() {
+export function generateReport() {
     Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير جديد', icon: 'info' });
 }
 
-function exportAllReports() {
+export function exportAllReports() {
     Swal.fire({ title: 'تصدير', text: 'تصدير جميع التقارير', icon: 'info' });
 }
 
-function viewPatientReports() {
+export function viewPatientReports() {
     Swal.fire({ title: 'عرض', text: 'عرض تقارير المرضى', icon: 'info' });
 }
 
-function viewFinancialReports() {
+export function viewFinancialReports() {
     Swal.fire({ title: 'عرض', text: 'عرض التقارير المالية', icon: 'info' });
 }
 
-function viewDoctorReports() {
+export function viewDoctorReports() {
     Swal.fire({ title: 'عرض', text: 'عرض تقارير الأطباء', icon: 'info' });
 }
 
-function viewAnalyticalReports() {
+export function viewAnalyticalReports() {
     Swal.fire({ title: 'عرض', text: 'عرض التقارير التحليلية', icon: 'info' });
 }
 
-function generateDailyReport() {
+export function generateDailyReport() {
     Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير يومي', icon: 'info' });
 }
 
-function generateWeeklyReport() {
+export function generateWeeklyReport() {
     Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير أسبوعي', icon: 'info' });
 }
 
-function generateMonthlyReport() {
+export function generateMonthlyReport() {
     Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير شهري', icon: 'info' });
 }
 
-function generateCustomReport() {
+export function generateCustomReport() {
 
     const form = document.getElementById('customReportForm');
     const formData = new FormData(form);
@@ -52,7 +52,7 @@ function generateCustomReport() {
     Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير مخصص: ' + JSON.stringify(reportData), icon: 'info' });
 }
 
-function filterReports(filter, e) {
+export function filterReports(filter, e) {
     const rows = document.querySelectorAll('#reportsTable tbody tr');
 
     rows.forEach(row => {
@@ -74,19 +74,19 @@ function filterReports(filter, e) {
     if (e) e.target.classList.add('active');
 }
 
-function viewReport(reportId) {
+export function viewReport(reportId) {
     Swal.fire({ title: 'عرض تقرير', text: 'عرض التقرير: ' + reportId, icon: 'info' });
 }
 
-function downloadReport(reportId) {
+export function downloadReport(reportId) {
     Swal.fire({ title: 'تحميل', text: 'تحميل التقرير: ' + reportId, icon: 'info' });
 }
 
-function shareReport(reportId) {
+export function shareReport(reportId) {
     Swal.fire({ title: 'مشاركة', text: 'مشاركة التقرير: ' + reportId, icon: 'info' });
 }
 
-function deleteReport(reportId) {
+export function deleteReport(reportId) {
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد حذف هذا التقرير؟',
@@ -109,3 +109,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+
+// Backward compatibility
+if (typeof downloadReport !== "undefined") window.downloadReport = downloadReport;
+if (typeof filterReports !== "undefined") window.filterReports = filterReports;
+if (typeof generateCustomReport !== "undefined") window.generateCustomReport = generateCustomReport;
+if (typeof shareReport !== "undefined") window.shareReport = shareReport;
+if (typeof deleteReport !== "undefined") window.deleteReport = deleteReport;
+if (typeof exportAllReports !== "undefined") window.exportAllReports = exportAllReports;
+if (typeof generateReport !== "undefined") window.generateReport = generateReport;
+if (typeof generateDailyReport !== "undefined") window.generateDailyReport = generateDailyReport;
+if (typeof viewReport !== "undefined") window.viewReport = viewReport;
+if (typeof generateMonthlyReport !== "undefined") window.generateMonthlyReport = generateMonthlyReport;
+if (typeof viewDoctorReports !== "undefined") window.viewDoctorReports = viewDoctorReports;
+if (typeof viewPatientReports !== "undefined") window.viewPatientReports = viewPatientReports;
+if (typeof viewAnalyticalReports !== "undefined") window.viewAnalyticalReports = viewAnalyticalReports;
+if (typeof viewFinancialReports !== "undefined") window.viewFinancialReports = viewFinancialReports;
+if (typeof generateWeeklyReport !== "undefined") window.generateWeeklyReport = generateWeeklyReport;
