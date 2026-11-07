@@ -22,7 +22,7 @@ export function intInput(value, min, max) {
 
 export async function loadSettings() {
   try {
-    const r = await fetch(`window.__M0__?action=load`, { method: 'GET', credentials: 'same-origin' });
+    const r = await fetch(`${window.__M0__}?action=load`, { method: 'GET', credentials: 'same-origin' });
     if (!r.ok) throw new Error('http_' + r.status);
     const data = await r.json().catch(() => ({}));
     if (!data || !data.success) {
@@ -83,7 +83,7 @@ if (saveBtn) {
     saveBtn.disabled = true;
     const payload = collectSettings();
     try {
-      const r = await fetch(`window.__M1__`, {
+      const r = await fetch(`${window.__M1__}`, {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         credentials: 'same-origin',
