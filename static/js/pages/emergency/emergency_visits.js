@@ -11,7 +11,7 @@ export function startTreatment(visitId) {
         cancelButtonText: 'إلغاء'
     }).then((res) => {
         if (res.isConfirmed) {
-            fetch(`window.__M0__`.replace('__VISIT_ID__', visitId), {
+            fetch(window.__M0__.replace('__VISIT_ID__', visitId), {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, __csrfToken ? { 'X-CSRFToken': __csrfToken } : {}),
@@ -48,7 +48,7 @@ export function completeVisit(visitId) {
     }).then((res) => {
         if (res.isConfirmed) {
             const notes = res.value || '';
-            fetch(`window.__M1__`.replace('__VISIT_ID__', visitId), {
+            fetch(window.__M1__.replace('__VISIT_ID__', visitId), {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: Object.assign({
