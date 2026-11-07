@@ -91,7 +91,9 @@ export function initSmartSearch(root) {
           item.addEventListener('click', () => selectPatient(patient));
           results.appendChild(item);
         });
-        showResults('', true);
+        results.hidden = false;
+        results.classList.remove('d-none');
+        results.style.display = 'block';
       })
       .catch(() => {
         showResults('<div class="list-group-item text-danger">خطأ في البحث</div>', true);
