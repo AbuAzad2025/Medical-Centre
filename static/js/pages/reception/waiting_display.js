@@ -4,6 +4,7 @@ const apiUrl = window.__M0__;
         const queueSocket = io('/queue');
 
         function renderList(el, items, emptyText) {
+            if (!el) return;
             el.innerHTML = '';
             if (!items || items.length === 0) {
                 const div = document.createElement('div');
