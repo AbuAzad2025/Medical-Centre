@@ -245,3 +245,48 @@ describe('events.js', () => {
     expect(mod.default).toBeDefined();
   });
 });
+describe('events.js raw action and fallback arms', () => {
+  it('filter-* with no matching window.filter* falls through to the camelCase path', async () => {
+    await loadModule('static/js/events.js');
+    const spy = vi.fn();
+    window.filterSlow = spy;
+    document.body.innerHTML = '<button data-action="filter-slow" data-value="x">F</button>';
+    // window.filterSlow already matches the primary guess
+    document.querySelector('[data-action]').click();
+    expect(spy).toHaveBeenCalledWith('x');
+  });
+
+  it('filter-* matching neither guess calls nothing and does not throw', async () => {
+    await loadModule('static/js/events.js');
+    document.body.innerHTML = '<button data-action="filter-nothere" data-value="x">F</button>';
+    expect(() => document.querySelector('[data-action]').click()).not.toThrow();
+  });
+
+  it('raw action with exactly one non-reserved dataset key passes it to the function', async () => {
+    await loadModule('static/js/events.js');
+    const spy = vi.fn();
+    window.viewItem = spy; // raw key must match window.viewItem exactly
+    document.body.innerHTML = '<button data-action="viewItem" data-user-id="42">V</button>';
+    document.querySelector('[data-action]').click();
+    expect(spy).toHaveBeenCalledWith('42');
+  });
+
+  it('raw action with one reserved id key still passes other single key', async () => {
+    await loadModule('static/js/events.js');
+    const spy = vi.fn();
+    window.actItem = spy;
+    document.body.innerHTML = '<button data-action="actItem" data-value="v" data-user-id="9">A</button>';
+    document.querySelector('[data-action]').click();
+    // value and id are excluded from idKeys, leaving userId as the single key
+    expect(spy).toHaveBeenCalledWith('9');
+  });
+
+  it('fn2 camelCase path with no value or id calls the function with nothing', async () => {
+    await loadModule('static/js/events.js');
+    const spy = vi.fn();
+    window.cleanupNow = spy;
+    document.body.innerHTML = '<button data-action="cleanup-now">Go</button>';
+    document.querySelector('[data-action]').click();
+    expect(spy).toHaveBeenCalledWith();
+  });
+});

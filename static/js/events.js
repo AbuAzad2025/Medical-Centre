@@ -88,14 +88,8 @@ export function initEventDelegation() {
         fn(el.dataset.value);
         return;
       }
-      fnName = action.replace(/-([a-z])/g, function (_, c) {
-        return c.toUpperCase();
-      });
-      fn = window[fnName];
-      if (typeof fn === 'function') {
-        fn(el.dataset.value);
-        return;
-      }
+      // No second candidate exists: the earlier guess always produces the
+      // same name, so we fall through to the generic handling below.
     }
     const fn = window[action];
     if (typeof fn === 'function') {
