@@ -33,6 +33,15 @@ describe('emergency/list.js', () => {
     expect(window.location.reload).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
+
+  it('setInterval check reloads when .status-active present', async () => {
+    document.body.innerHTML = '<div class="status-active"></div>';
+    vi.useFakeTimers();
+    await loadModule('static/js/pages/emergency/list.js');
+    vi.advanceTimersByTime(31000);
+    expect(window.location.reload).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
 });
 
 describe('super_admin/roles.js', () => {

@@ -46,4 +46,21 @@ describe('emergency/patient_queue.js', () => {
     await loadModule('static/js/pages/emergency/patient_queue.js');
     expect(typeof window.refreshQueue).toBe('function');
   });
+
+  it('setInterval triggers reload when table has rows', async () => {
+    vi.useFakeTimers();
+    await loadModule('static/js/pages/emergency/patient_queue.js');
+    vi.advanceTimersByTime(15000);
+    expect(window.location.reload).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('setInterval does not trigger reload when table empty', async () => {
+    document.body.innerHTML = '<table><tbody></tbody></table>';
+    vi.useFakeTimers();
+    await loadModule('static/js/pages/emergency/patient_queue.js');
+    vi.advanceTimersByTime(15000);
+    expect(window.location.reload).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
 });
