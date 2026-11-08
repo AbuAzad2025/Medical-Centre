@@ -32,10 +32,9 @@ describe('app.js', () => {
 
   it('still sets __csrfInitialized when csrf.js import path fails via fallback branch', async () => {
     window.__csrfInitialized = false;
-    const { renameSync } = await import('fs');
-    const real = 'static/js/csrf.js';
-    const bak = 'static/js/csrf.js.bak';
-    renameSync(real, bak);
+    vi.doMock('../../../static/js/csrf.js', () => { throw new Error('csrf.js unavailable'); });
+    window.csrfToken = 'preset-token';
+    document.getElementById('f1').innerHTML = '<input type="text" name="field">';
     try {
       await loadModule('static/js/app.js');
       document.dispatchEvent(new Event('DOMContentLoaded'));
@@ -43,7 +42,7 @@ describe('app.js', () => {
       expect(window.__csrfInitialized).toBe(true);
       expect(document.querySelector('#f1 input[name="csrf_token"]')).toBeTruthy();
     } finally {
-      renameSync(bak, real);
+      vi.doUnmock('../../../static/js/csrf.js');
     }
   });
 });
