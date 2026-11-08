@@ -8,10 +8,10 @@ import sys
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
 # Expected heads in the migration graph.
-# The migration chain continues from s2_011_clean_schema through s3_* migrations.
+# The migration chain continues from s2_011_clean_schema through s3_* and s4_* migrations.
 # Bump alongside scripts/ci/verify_migrations.py when a revision is appended.
 EXPECTED_HEADS = {
-    's4_002_device_integration',
+    's4_004_order_set_tables',
 }
 
 
