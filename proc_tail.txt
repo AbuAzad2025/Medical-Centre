@@ -1,0 +1,53 @@
+413:                     } else if (action === 'delete') {
+414:                         const ok = window.confirm('حذف القالب؟');
+415:                         if (!ok) return;
+416:                         try {
+417:                             const r = await fetch(window.__M6__.replace('__TPL__', encodeURIComponent(id)), {
+418:                                 method: 'POST',
+419:                                 headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+420:                                 credentials: 'same-origin'
+421:                             });
+422:                             if (!r.ok) {
+423:                                 if (window.notify) window.notify.error('تعذّر الحذف. حاول مرة أخرى.');
+424:                                 return;
+425:                             }
+426:                             await refreshTemplatesUI();
+427:                         } catch (err) {
+428:                             if (window.showToast) window.showToast('حدث خطأ أثناء الحذف'); else alert('حدث خطأ أثناء تحميل البيانات');
+429:                         }
+430:                     }
+431:                 });
+432:             }
+433:             if (tplForm) {
+434:                 tplForm.addEventListener('submit', async function (e) {
+435:                     e.preventDefault();
+436:                     const payload = {
+437:                         id: tplIdEl.value || undefined,
+438:                         name: tplNameEl.value || '',
+439:                         modality: tplModalityEl.value || 'XRAY',
+440:                         findings: tplFindingsEl.value || '',
+441:                         impression: tplImpressionEl.value || '',
+442:                         recommendations: tplRecommendationsEl.value || '',
+443:                         is_active: tplActiveEl.checked
+444:                     };
+445:                     try {
+446:                         const r = await fetch(window.__M7__, {
+447:                             method: 'POST',
+448:                             headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+449:                             credentials: 'same-origin',
+450:                             body: JSON.stringify(payload)
+451:                         });
+452:                         if (!r.ok) {
+453:                             if (window.notify) window.notify.error('تعذّر حفظ الماكرو. حاول مرة أخرى.');
+454:                             return;
+455:                         }
+456:                         resetTemplateForm();
+457:                         await refreshTemplatesUI();
+458:                     } catch (err) {
+459:                         if (window.showToast) window.showToast('حدث خطأ أثناء حفظ القالب'); else alert('حدث خطأ أثناء تحميل البيانات');
+460:                     }
+461:                 });
+462:             }
+463:         })();
+464: 
+465: export {};
