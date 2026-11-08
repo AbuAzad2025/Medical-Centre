@@ -357,3 +357,83 @@ describe('base.js clock lifecycle', () => {
     vi.useRealTimers();
   });
 });
+
+describe('base.js data-confirm click arms', () => {
+  it('data-confirm without message attribute is ignored', async () => {
+    document.body.innerHTML = '<button data-confirm="">Buy</button>';
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    window.Swal = { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) };
+    expect(() => document.querySelector('[data-confirm]').click()).not.toThrow();
+    expect(window.Swal.fire).not.toHaveBeenCalled();
+  });
+
+  it('data-confirm with confirmation navigates the anchor to its href', async () => {
+    document.body.innerHTML = '<a data-confirm="????" href="/delete/1">Delete</a>';
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    window.Swal = { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) };
+    window.location = { href: '' };
+    document.querySelector('a[data-confirm]').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(window.location.href).toBe('/delete/1');
+  });
+
+  it('data-confirm with placeholder href does not navigate', async () => {
+    document.body.innerHTML = '<a data-confirm="????" href="#">Delete</a>';
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    window.Swal = { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) };
+    window.location = { href: '' };
+    document.querySelector('a[data-confirm]').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(window.location.href).toBe('');
+  });
+
+  it('data-confirm on a form button submits its form on confirm', async () => {
+    document.body.innerHTML = '<form id="f"><button type="button" data-confirm="?????">Go</button></form>';
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const form = document.getElementById('f');
+    form.submit = vi.fn();
+    window.Swal = { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) };
+    document.querySelector('button[data-confirm]').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(form.submit).toHaveBeenCalled();
+  });
+
+  it('data-confirm on a cancel still does nothing', async () => {
+    document.body.innerHTML = '<a data-confirm="????" href="/delete/1">Delete</a>';
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    window.Swal = { fire: vi.fn().mockResolvedValue({ isConfirmed: false }) };
+    window.location = { href: '' };
+    document.querySelector('a[data-confirm]').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(window.location.href).toBe('');
+  });
+
+  it('data-confirm without Swal does nothing', async () => {
+    document.body.innerHTML = '<a data-confirm="????" href="/delete/1">Delete</a>';
+    delete window.Swal;
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    expect(() => document.querySelector('a[data-confirm]').click()).not.toThrow();
+  });
+});
+
+describe('base.js tooltip/popover init arms', () => {
+  it('tooltip and popover elements get bootstrap wrappers', async () => {
+    document.body.innerHTML = `
+      <button data-bs-toggle="tooltip" title="t">T</button>
+      <button data-bs-toggle="popover" data-bs-content="c">P</button>
+    `;
+    const tooltipSpy = vi.fn();
+    const popoverSpy = vi.fn();
+    window.bootstrap = { Tooltip: tooltipSpy, Popover: popoverSpy, Modal: { getOrCreateInstance: vi.fn(() => ({ show: vi.fn(), hide: vi.fn() })) } };
+    await loadModule('static/js/base.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    expect(tooltipSpy).toHaveBeenCalled();
+    expect(popoverSpy).toHaveBeenCalled();
+  });
+});

@@ -135,7 +135,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (result.isConfirmed) {
                         if (type === 'link') {
                             var href = target.getAttribute('href');
-                            if (href && href !== '#') window.location.href = href;
+                            // Placeholder links may have been rewritten to javascript: by
+                            // enforceSafeLinks at load, so '#' alone is not enough here.
+                            var looksPlaceholder = !href || href.trim() === '' || href.trim() === '#' || href.indexOf('javascript:') === 0;
+                            if (!looksPlaceholder) window.location.href = href;
                         } else {
                             var form = target.form || target.closest('form');
                             if (form) form.submit();
