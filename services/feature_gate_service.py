@@ -77,12 +77,20 @@ class FeatureGateService:
 
     @staticmethod
     def can_use(user, action: str) -> bool:
+        """True iff *user* holds *action*.
+
+        Delegates to ``AccessControlService.has_permission``. The old code
+        called a ``user_has_permission`` method that does not exist, so the
+        ``except`` caught the AttributeError and every call returned True -
+        an authorization check that always authorized. On error this now
+        fails closed (medical records must not hinge on a silent allow).
+        """
         try:
             from services.access_control_service import AccessControlService
 
-            return AccessControlService.user_has_permission(user, action)
+            return bool(AccessControlService.has_permission(user, action))
         except Exception:
-            return True
+            return False
 
     @staticmethod
     def product_profile(tenant_id: int) -> str | None:
