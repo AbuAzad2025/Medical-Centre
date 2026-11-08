@@ -7,7 +7,6 @@ import re
 import pytest
 from sqlalchemy import select
 
-from app.extensions import db
 from models.branding import BrandingSettings, SystemTheme
 from tests.tenant_context import ensure_test_user, login_test_client
 

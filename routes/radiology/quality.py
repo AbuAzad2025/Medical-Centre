@@ -105,26 +105,23 @@ def quality():
 
     modality_rows = []
     try:
-        rows = (
-            db.session.execute(
-                select(
-                    db.func.upper(RadiologyRequest.modality).label('modality'),
-                    db.func.count(RadiologyRequest.id).label('cnt'),
-                    db.func.avg(
-                        db.func.extract('epoch', RadiologyRequest.updated_at)
-                        - db.func.extract('epoch', RadiologyRequest.created_at)
-                    ).label('avg_sec'),
-                )
-                .filter(
-                    RadiologyRequest.status == OrderState.DONE,
-                    RadiologyRequest.updated_at >= start_dt,
-                    RadiologyRequest.updated_at <= end_dt,
-                )
-                .group_by(db.func.upper(RadiologyRequest.modality))
-                .order_by(db.func.count(RadiologyRequest.id).desc())
+        rows = db.session.execute(
+            select(
+                db.func.upper(RadiologyRequest.modality).label('modality'),
+                db.func.count(RadiologyRequest.id).label('cnt'),
+                db.func.avg(
+                    db.func.extract('epoch', RadiologyRequest.updated_at)
+                    - db.func.extract('epoch', RadiologyRequest.created_at)
+                ).label('avg_sec'),
             )
-            .all()
-        )
+            .filter(
+                RadiologyRequest.status == OrderState.DONE,
+                RadiologyRequest.updated_at >= start_dt,
+                RadiologyRequest.updated_at <= end_dt,
+            )
+            .group_by(db.func.upper(RadiologyRequest.modality))
+            .order_by(db.func.count(RadiologyRequest.id).desc())
+        ).all()
         for r in rows:
             modality_rows.append(
                 {

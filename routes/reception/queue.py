@@ -443,15 +443,12 @@ def get_smart_queue_management(department_id=None):
 
         # تحليل ساعات الذروة
         try:
-            peak_hours = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', QueueManagement.created_at).label('hour'),
-                        func.count(QueueManagement.id).label('count'),
-                    ).group_by(func.extract('hour', QueueManagement.created_at))
-                )
-                .all()
-            )
+            peak_hours = db.session.execute(
+                select(
+                    func.extract('hour', QueueManagement.created_at).label('hour'),
+                    func.count(QueueManagement.id).label('count'),
+                ).group_by(func.extract('hour', QueueManagement.created_at))
+            ).all()
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
             peak_hours = []
@@ -506,30 +503,24 @@ def get_patient_flow_analysis():
 
         # تحليل ساعات الذروة
         try:
-            hourly_flow = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', Visit.created_at).label('hour'),
-                        func.count(Visit.id).label('count'),
-                    )
-                    .filter(Visit.created_at >= week_ago)
-                    .group_by(func.extract('hour', Visit.created_at))
+            hourly_flow = db.session.execute(
+                select(
+                    func.extract('hour', Visit.created_at).label('hour'),
+                    func.count(Visit.id).label('count'),
                 )
-                .all()
-            )
+                .filter(Visit.created_at >= week_ago)
+                .group_by(func.extract('hour', Visit.created_at))
+            ).all()
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
             hourly_flow = []
 
         # تحليل الأقسام
-        department_flow = (
-            db.session.execute(
-                select(func.count(Visit.id).label('count'), Visit.department_id)
-                .filter(Visit.created_at >= week_ago)
-                .group_by(Visit.department_id)
-            )
-            .all()
-        )
+        department_flow = db.session.execute(
+            select(func.count(Visit.id).label('count'), Visit.department_id)
+            .filter(Visit.created_at >= week_ago)
+            .group_by(Visit.department_id)
+        ).all()
 
         return {
             'daily_flow': daily_flow,
@@ -559,28 +550,22 @@ def get_appointment_optimization():
         week_ahead = today + timedelta(days=7)
 
         # تحليل كثافة المواعيد
-        appointment_density = (
-            db.session.execute(
-                select(
-                    func.date(Appointment.starts_at).label('appointment_date'),
-                    func.count(Appointment.id).label('count'),
-                )
-                .filter(Appointment.starts_at >= today, Appointment.starts_at <= week_ahead)
-                .group_by(func.date(Appointment.starts_at))
+        appointment_density = db.session.execute(
+            select(
+                func.date(Appointment.starts_at).label('appointment_date'),
+                func.count(Appointment.id).label('count'),
             )
-            .all()
-        )
+            .filter(Appointment.starts_at >= today, Appointment.starts_at <= week_ahead)
+            .group_by(func.date(Appointment.starts_at))
+        ).all()
 
         # تحليل الأطباء
-        doctor_workload = (
-            db.session.execute(
-                select(User.id, User.full_name, func.count(Appointment.id).label('appointments'))
-                .join(Appointment, User.id == Appointment.doctor_id)
-                .filter(Appointment.starts_at >= today, Appointment.starts_at <= week_ahead)
-                .group_by(User.id, User.full_name)
-            )
-            .all()
-        )
+        doctor_workload = db.session.execute(
+            select(User.id, User.full_name, func.count(Appointment.id).label('appointments'))
+            .join(Appointment, User.id == Appointment.doctor_id)
+            .filter(Appointment.starts_at >= today, Appointment.starts_at <= week_ahead)
+            .group_by(User.id, User.full_name)
+        ).all()
 
         # اقتراحات التحسين
         optimizations = []
@@ -709,16 +694,13 @@ def get_workflow_automation():
         automation_suggestions = []
 
         # أتمتة المواعيد المتكررة
-        recurring_patients = (
-            db.session.execute(
-                select(Patient.id, func.count(Visit.id).label('visit_count'))
-                .join(Visit, Patient.id == Visit.patient_id)
-                .filter(Visit.created_at >= datetime.now().date() - timedelta(days=30))
-                .group_by(Patient.id)
-                .having(func.count(Visit.id) > 3)
-            )
-            .all()
-        )
+        recurring_patients = db.session.execute(
+            select(Patient.id, func.count(Visit.id).label('visit_count'))
+            .join(Visit, Patient.id == Visit.patient_id)
+            .filter(Visit.created_at >= datetime.now().date() - timedelta(days=30))
+            .group_by(Patient.id)
+            .having(func.count(Visit.id) > 3)
+        ).all()
 
         if recurring_patients:
             automation_suggestions.append(
@@ -893,29 +875,23 @@ def get_patient_demand_forecast(hours_ahead=4, days_window=14):
 
         hourly = []
         try:
-            hourly = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', Visit.created_at).label('hour'),
-                        func.count(Visit.id).label('count'),
-                    )
-                    .filter(Visit.created_at >= start_date)
-                    .group_by(func.extract('hour', Visit.created_at))
+            hourly = db.session.execute(
+                select(
+                    func.extract('hour', Visit.created_at).label('hour'),
+                    func.count(Visit.id).label('count'),
                 )
-                .all()
-            )
+                .filter(Visit.created_at >= start_date)
+                .group_by(func.extract('hour', Visit.created_at))
+            ).all()
         except Exception:
-            hourly = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', Visit.created_at).label('hour'),
-                        func.count(Visit.id).label('count'),
-                    )
-                    .filter(Visit.created_at >= start_date)
-                    .group_by(func.extract('hour', Visit.created_at))
+            hourly = db.session.execute(
+                select(
+                    func.extract('hour', Visit.created_at).label('hour'),
+                    func.count(Visit.id).label('count'),
                 )
-                .all()
-            )
+                .filter(Visit.created_at >= start_date)
+                .group_by(func.extract('hour', Visit.created_at))
+            ).all()
 
         avg_by_hour = {}
         for h in hourly:

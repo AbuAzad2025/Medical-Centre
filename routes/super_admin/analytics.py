@@ -574,15 +574,12 @@ def get_predictive_analytics():
 
         # تحليل ساعات الذروة
         try:
-            peak_hours = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', Visit.created_at).label('hour'),
-                        func.count(Visit.id).label('count'),
-                    ).group_by(func.extract('hour', Visit.created_at))
-                )
-                .all()
-            )
+            peak_hours = db.session.execute(
+                select(
+                    func.extract('hour', Visit.created_at).label('hour'),
+                    func.count(Visit.id).label('count'),
+                ).group_by(func.extract('hour', Visit.created_at))
+            ).all()
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
             peak_hours = []
@@ -734,15 +731,12 @@ def get_performance_optimization():
 
         # تحليل ساعات الذروة
         try:
-            peak_hours = (
-                db.session.execute(
-                    select(
-                        func.extract('hour', Visit.created_at).label('hour'),
-                        func.count(Visit.id).label('count'),
-                    ).group_by(func.extract('hour', Visit.created_at))
-                )
-                .all()
-            )
+            peak_hours = db.session.execute(
+                select(
+                    func.extract('hour', Visit.created_at).label('hour'),
+                    func.count(Visit.id).label('count'),
+                ).group_by(func.extract('hour', Visit.created_at))
+            ).all()
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
             peak_hours = []
@@ -760,14 +754,11 @@ def get_performance_optimization():
                 )
 
         # تحليل الأداء حسب الأقسام
-        department_load = (
-            db.session.execute(
-                select(func.count(Visit.id).label('count'), User.department_id)
-                .join(User, Visit.doctor_id == User.id)
-                .group_by(User.department_id)
-            )
-            .all()
-        )
+        department_load = db.session.execute(
+            select(func.count(Visit.id).label('count'), User.department_id)
+            .join(User, Visit.doctor_id == User.id)
+            .group_by(User.department_id)
+        ).all()
 
         if department_load:
             max_dept = max(department_load, key=lambda x: x.count)

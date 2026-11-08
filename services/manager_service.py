@@ -143,9 +143,9 @@ class ManagerService:
                 )
             ).scalar()
             count = db.session.execute(
-                select(func.count()).select_from(PatientSatisfactionSurvey).filter(
-                    PatientSatisfactionSurvey.submitted_at.isnot(None)
-                )
+                select(func.count())
+                .select_from(PatientSatisfactionSurvey)
+                .filter(PatientSatisfactionSurvey.submitted_at.isnot(None))
             ).scalar()
             return {'average_rating': float(avg) if avg else 0, 'total_responses': count}
         except Exception:

@@ -299,7 +299,7 @@ def fhir_observations():
     patient_id = request.args.get('patient', type=int)
     results = []
     if patient_id:
-        patient = _patient_or_404(patient_id)
+        _patient_or_404(patient_id)
         lab_results = (
             db.session.execute(select(LabResult).filter_by(patient_id=patient_id).limit(50))
             .scalars()
@@ -345,7 +345,7 @@ def fhir_conditions():
     patient_id = request.args.get('patient', type=int)
     conditions = []
     if patient_id:
-        patient = _patient_or_404(patient_id)
+        _patient_or_404(patient_id)
         # Get medical records as conditions
         from models.medical_record import MedicalRecord
 
@@ -394,7 +394,7 @@ def fhir_medication_requests():
     patient_id = request.args.get('patient', type=int)
     requests_list = []
     if patient_id:
-        patient = _patient_or_404(patient_id)
+        _patient_or_404(patient_id)
         from models.medication import Prescription
 
         prescriptions = (

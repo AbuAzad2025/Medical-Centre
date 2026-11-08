@@ -24,10 +24,12 @@ from services.report_center_service import ReportCenterService
 @pytest.fixture
 def deps(app, test_tenant):
     suffix = datetime.now(UTC).strftime('%H%M%S%f')
-    d1 = Department(name=f'ReportCenter-A-{suffix}', name_ar='القسم أ', is_active=True,
-                    tenant_id=test_tenant.id)
-    d2 = Department(name=f'ReportCenter-B-{suffix}', name_ar='القسم ب', is_active=True,
-                    tenant_id=test_tenant.id)
+    d1 = Department(
+        name=f'ReportCenter-A-{suffix}', name_ar='القسم أ', is_active=True, tenant_id=test_tenant.id
+    )
+    d2 = Department(
+        name=f'ReportCenter-B-{suffix}', name_ar='القسم ب', is_active=True, tenant_id=test_tenant.id
+    )
     db.session.add_all([d1, d2])
     db.session.commit()
     return d1, d2
@@ -97,8 +99,10 @@ class TestComparePeriods:
         db.session.commit()
 
         result = ReportCenterService.compare_periods(
-            _dt(2026, 3, 1), _dt(2026, 3, 31, 23, 59),
-            _dt(2026, 4, 1), _dt(2026, 4, 30, 23, 59),
+            _dt(2026, 3, 1),
+            _dt(2026, 3, 31, 23, 59),
+            _dt(2026, 4, 1),
+            _dt(2026, 4, 30, 23, 59),
         )
         assert result['a']['visits'] == 1
         assert result['a']['revenue'] == 100.0
@@ -122,14 +126,18 @@ class TestComparePeriods:
         )
         db.session.commit()
         filtered = ReportCenterService.compare_periods(
-            _dt(2026, 5, 1), _dt(2026, 5, 31, 23, 59),
-            _dt(2026, 4, 1), _dt(2026, 4, 30, 23, 59),
+            _dt(2026, 5, 1),
+            _dt(2026, 5, 31, 23, 59),
+            _dt(2026, 4, 1),
+            _dt(2026, 4, 30, 23, 59),
             department_id=d1.id,
         )
         assert filtered['a']['visits'] == 1
         filtered_other = ReportCenterService.compare_periods(
-            _dt(2026, 5, 1), _dt(2026, 5, 31, 23, 59),
-            _dt(2026, 4, 1), _dt(2026, 4, 30, 23, 59),
+            _dt(2026, 5, 1),
+            _dt(2026, 5, 31, 23, 59),
+            _dt(2026, 4, 1),
+            _dt(2026, 4, 30, 23, 59),
             department_id=d2.id,
         )
         assert filtered_other['a']['visits'] == 0
@@ -274,7 +282,6 @@ class TestRadiologyRevisionRate:
         from models.radiology_request import RadiologyRequest
 
         patient = _patient(test_tenant.id, datetime.now(UTC).strftime('%H%M%S%f'))
-        suffix = datetime.now(UTC).strftime('%H%M%S%f')
         req = RadiologyRequest(
             tenant_id=test_tenant.id,
             patient_id=patient.id,
@@ -296,9 +303,7 @@ class TestRadiologyRevisionRate:
                 )
             )
         db.session.commit()
-        out = ReportCenterService.radiology_revision_rate(
-            _dt(2026, 9, 1), _dt(2026, 9, 30, 23, 59)
-        )
+        out = ReportCenterService.radiology_revision_rate(_dt(2026, 9, 1), _dt(2026, 9, 30, 23, 59))
         assert out['reviewed'] == 2
         assert out['revised_after_review'] == 1
         assert out['rate'] == 50.0
@@ -326,9 +331,11 @@ class TestCapacityImpact:
         db.session.add(doctor)
         db.session.commit()
 
-        auto = db.session.execute(
-            select(StaffWorkSchedule).filter_by(user_id=doctor.id)
-        ).scalars().all()
+        auto = (
+            db.session.execute(select(StaffWorkSchedule).filter_by(user_id=doctor.id))
+            .scalars()
+            .all()
+        )
         assert {s.day_of_week for s in auto} == {0, 1, 2, 3, 4}
 
         # Extend to weekends so all 7 days carry a schedule

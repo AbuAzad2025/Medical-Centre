@@ -117,41 +117,26 @@ def reports():
             or 0
         )
 
-        by_status = (
-            db.session.execute(
-                select(Task.status, func.count(Task.id))
-                .join(User, User.id == Task.assigned_to)
-                .filter(
-                    User.role == 'nurse', Task.created_at >= start_dt, Task.created_at <= end_dt
-                )
-                .group_by(Task.status)
-            )
-            .all()
-        )
-        by_priority = (
-            db.session.execute(
-                select(Task.priority, func.count(Task.id))
-                .join(User, User.id == Task.assigned_to)
-                .filter(
-                    User.role == 'nurse', Task.created_at >= start_dt, Task.created_at <= end_dt
-                )
-                .group_by(Task.priority)
-            )
-            .all()
-        )
+        by_status = db.session.execute(
+            select(Task.status, func.count(Task.id))
+            .join(User, User.id == Task.assigned_to)
+            .filter(User.role == 'nurse', Task.created_at >= start_dt, Task.created_at <= end_dt)
+            .group_by(Task.status)
+        ).all()
+        by_priority = db.session.execute(
+            select(Task.priority, func.count(Task.id))
+            .join(User, User.id == Task.assigned_to)
+            .filter(User.role == 'nurse', Task.created_at >= start_dt, Task.created_at <= end_dt)
+            .group_by(Task.priority)
+        ).all()
 
-        by_department = (
-            db.session.execute(
-                select(Department.name_ar, func.count(Task.id))
-                .join(User, User.id == Task.assigned_to)
-                .outerjoin(Department, Department.id == User.department_id)
-                .filter(
-                    User.role == 'nurse', Task.created_at >= start_dt, Task.created_at <= end_dt
-                )
-                .group_by(Department.name_ar)
-            )
-            .all()
-        )
+        by_department = db.session.execute(
+            select(Department.name_ar, func.count(Task.id))
+            .join(User, User.id == Task.assigned_to)
+            .outerjoin(Department, Department.id == User.department_id)
+            .filter(User.role == 'nurse', Task.created_at >= start_dt, Task.created_at <= end_dt)
+            .group_by(Department.name_ar)
+        ).all()
 
         top_overdue = db.session.execute(
             base_q.filter(

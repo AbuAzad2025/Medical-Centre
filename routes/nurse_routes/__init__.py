@@ -175,14 +175,11 @@ def get_nursing_smart_analytics():
         completion_rate = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
         # تحليل أنواع المهام
-        task_types = (
-            db.session.execute(
-                select(Task.task_type, func.count(Task.id).label('count'))
-                .filter(Task.task_type == 'nursing')
-                .group_by(Task.task_type)
-            )
-            .all()
-        )
+        task_types = db.session.execute(
+            select(Task.task_type, func.count(Task.id).label('count'))
+            .filter(Task.task_type == 'nursing')
+            .group_by(Task.task_type)
+        ).all()
 
         return {
             'total_nurses': total_nurses,

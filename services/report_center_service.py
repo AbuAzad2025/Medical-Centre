@@ -138,21 +138,16 @@ class ReportCenterService:
         from models.department import Department
         from models.visit_transfer import VisitTransferLog
 
-        rows = (
-            db.session.execute(
-                select(
-                    VisitTransferLog.from_department_id.label('from_department_id'),
-                    VisitTransferLog.to_department_id.label('to_department_id'),
-                    func.count(VisitTransferLog.id).label('cnt'),
-                )
-                .filter(
-                    VisitTransferLog.created_at >= start_dt, VisitTransferLog.created_at <= end_dt
-                )
-                .group_by(VisitTransferLog.from_department_id, VisitTransferLog.to_department_id)
-                .order_by(desc(func.count(VisitTransferLog.id)))
+        rows = db.session.execute(
+            select(
+                VisitTransferLog.from_department_id.label('from_department_id'),
+                VisitTransferLog.to_department_id.label('to_department_id'),
+                func.count(VisitTransferLog.id).label('cnt'),
             )
-            .all()
-        )
+            .filter(VisitTransferLog.created_at >= start_dt, VisitTransferLog.created_at <= end_dt)
+            .group_by(VisitTransferLog.from_department_id, VisitTransferLog.to_department_id)
+            .order_by(desc(func.count(VisitTransferLog.id)))
+        ).all()
 
         dep_ids = set()
         for r in rows:
@@ -202,31 +197,25 @@ class ReportCenterService:
         booked = total - by_status.get('cancelled', 0)
         attendance_rate = round((attended / booked * 100), 2) if booked else 0
         no_show_rate = round((no_show / booked * 100), 2) if booked else 0
-        top_departments = (
-            db.session.execute(
-                select(OnlineBooking.department_id, func.count(OnlineBooking.id).label('cnt'))
-                .filter(OnlineBooking.created_at >= start_dt, OnlineBooking.created_at <= end_dt)
-                .group_by(OnlineBooking.department_id)
-                .order_by(desc(func.count(OnlineBooking.id)))
-                .limit(10)
-            )
-            .all()
-        )
+        top_departments = db.session.execute(
+            select(OnlineBooking.department_id, func.count(OnlineBooking.id).label('cnt'))
+            .filter(OnlineBooking.created_at >= start_dt, OnlineBooking.created_at <= end_dt)
+            .group_by(OnlineBooking.department_id)
+            .order_by(desc(func.count(OnlineBooking.id)))
+            .limit(10)
+        ).all()
 
-        top_doctors = (
-            db.session.execute(
-                select(OnlineBooking.doctor_id, func.count(OnlineBooking.id).label('cnt'))
-                .filter(
-                    OnlineBooking.created_at >= start_dt,
-                    OnlineBooking.created_at <= end_dt,
-                    OnlineBooking.doctor_id.isnot(None),
-                )
-                .group_by(OnlineBooking.doctor_id)
-                .order_by(desc(func.count(OnlineBooking.id)))
-                .limit(10)
+        top_doctors = db.session.execute(
+            select(OnlineBooking.doctor_id, func.count(OnlineBooking.id).label('cnt'))
+            .filter(
+                OnlineBooking.created_at >= start_dt,
+                OnlineBooking.created_at <= end_dt,
+                OnlineBooking.doctor_id.isnot(None),
             )
-            .all()
-        )
+            .group_by(OnlineBooking.doctor_id)
+            .order_by(desc(func.count(OnlineBooking.id)))
+            .limit(10)
+        ).all()
 
         return {
             'total': int(total),

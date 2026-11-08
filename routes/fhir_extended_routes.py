@@ -218,7 +218,9 @@ def fhir_immunizations():
     vaccine_ids = {v.vaccine_id for v in vax}
     vaccines = {}
     if vaccine_ids:
-        for vacc in db.session.execute(select(Vaccine).filter(Vaccine.id.in_(vaccine_ids))).scalars():
+        for vacc in db.session.execute(
+            select(Vaccine).filter(Vaccine.id.in_(vaccine_ids))
+        ).scalars():
             vaccines[vacc.id] = vacc
     entries = [
         {
@@ -226,11 +228,7 @@ def fhir_immunizations():
             'id': str(v.id),
             'status': (v.status or 'COMPLETED').lower(),
             'vaccineCode': {
-                'text': (
-                    vaccines[v.vaccine_id].name
-                    if v.vaccine_id in vaccines
-                    else 'Vaccine'
-                )
+                'text': (vaccines[v.vaccine_id].name if v.vaccine_id in vaccines else 'Vaccine')
             },
             'patient': {'reference': f'Patient/{v.patient_id}'},
             'occurrenceDateTime': v.administration_date.isoformat()
@@ -361,9 +359,8 @@ def fhir_related_persons():
     # never a 500.
     patient_id = request.args.get('patient', type=int)
     if patient_id:
-        from utils.tenant_query import TenantContextError
-
         from models.patient import Patient
+        from utils.tenant_query import TenantContextError
 
         try:
             if get_tenant_record(Patient, patient_id) is None:
@@ -571,9 +568,7 @@ def fhir_devices():
             'resourceType': 'Device',
             'id': str(d.id),
             'status': 'active' if d.is_active else 'inactive',
-            'deviceName': [
-                {'name': d.barcode_value, 'type': 'user-friendly-name'}
-            ],
+            'deviceName': [{'name': d.barcode_value, 'type': 'user-friendly-name'}],
         }
         for d in devices
     ]

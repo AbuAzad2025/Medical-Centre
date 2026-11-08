@@ -90,18 +90,15 @@ def get_pharmacy_smart_analytics():
         )
 
         # تحليل الفئات
-        categories = (
-            db.session.execute(
-                select(
-                    Medication.category,
-                    func.count(Medication.id).label('count'),
-                    func.sum(Medication.stock_quantity).label('total_stock'),
-                )
-                .filter(Medication.tenant_id == current_user.tenant_id)
-                .group_by(Medication.category)
+        categories = db.session.execute(
+            select(
+                Medication.category,
+                func.count(Medication.id).label('count'),
+                func.sum(Medication.stock_quantity).label('total_stock'),
             )
-            .all()
-        )
+            .filter(Medication.tenant_id == current_user.tenant_id)
+            .group_by(Medication.category)
+        ).all()
 
         # تحليل الاستخدام
         most_used_medications = (

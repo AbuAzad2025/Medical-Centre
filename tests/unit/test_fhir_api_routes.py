@@ -6,7 +6,6 @@ from datetime import UTC, date, datetime
 
 import pytest
 
-from app.extensions import db
 from models.patient import Patient
 from tests.tenant_context import ensure_test_user, login_test_client
 

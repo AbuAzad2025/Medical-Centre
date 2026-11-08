@@ -52,13 +52,18 @@ class TestReagentsList:
 
     def test_stock_filters(self, lab_client, reagent, db, test_tenant):
         low = LabReagent(
-            tenant_id=test_tenant.id, name='LowStock Reagent', stock_quantity=2,
-            minimum_stock=10, is_active=True,
+            tenant_id=test_tenant.id,
+            name='LowStock Reagent',
+            stock_quantity=2,
+            minimum_stock=10,
+            is_active=True,
         )
         db.session.add(low)
         db.session.commit()
         assert 'LowStock' in lab_client.get('/lab/reagents?stock=low').get_data(as_text=True)
-        assert 'Reagent Test A' in lab_client.get('/lab/reagents?stock=normal').get_data(as_text=True)
+        assert 'Reagent Test A' in lab_client.get('/lab/reagents?stock=normal').get_data(
+            as_text=True
+        )
         assert lab_client.get('/lab/reagents?stock=out').status_code == 200
 
     def test_expiry_filters(self, lab_client, reagent):
@@ -85,9 +90,11 @@ class TestAddReagent:
             follow_redirects=False,
         )
         assert resp.status_code == 302
-        created = db.session.execute(
-            select(LabReagent).filter_by(name='Brand New Reagent')
-        ).scalars().first()
+        created = (
+            db.session.execute(select(LabReagent).filter_by(name='Brand New Reagent'))
+            .scalars()
+            .first()
+        )
         assert created is not None
         assert created.stock_quantity == 25
         assert created.tenant_id == test_tenant.id
@@ -95,9 +102,10 @@ class TestAddReagent:
     def test_add_missing_name_redirects_without_row(self, lab_client):
         resp = lab_client.post('/lab/reagents/add', data={'supplier': 'Nobody'})
         assert resp.status_code == 302
-        assert db.session.execute(
-            select(LabReagent).filter_by(supplier='Nobody')
-        ).scalars().first() is None
+        assert (
+            db.session.execute(select(LabReagent).filter_by(supplier='Nobody')).scalars().first()
+            is None
+        )
 
     def test_add_invalid_numbers_defaults_zero(self, lab_client):
         resp = lab_client.post(
@@ -106,9 +114,9 @@ class TestAddReagent:
             follow_redirects=False,
         )
         assert resp.status_code == 302
-        created = db.session.execute(
-            select(LabReagent).filter_by(name='Weird Numbers')
-        ).scalars().first()
+        created = (
+            db.session.execute(select(LabReagent).filter_by(name='Weird Numbers')).scalars().first()
+        )
         assert created.stock_quantity == 0
         assert created.minimum_stock == 0
 
@@ -119,9 +127,11 @@ class TestAddReagent:
             follow_redirects=False,
         )
         assert resp.status_code == 302
-        created = db.session.execute(
-            select(LabReagent).filter_by(name='Bad Date Reagent')
-        ).scalars().first()
+        created = (
+            db.session.execute(select(LabReagent).filter_by(name='Bad Date Reagent'))
+            .scalars()
+            .first()
+        )
         assert created.expiry_date is None
 
 

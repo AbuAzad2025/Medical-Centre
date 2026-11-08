@@ -178,14 +178,11 @@ def dashboard():
         .scalars()
         .all()
     )
-    stats = (
-        db.session.execute(
-            select(
-                NursingAssessment.assessment_type,
-                func.count(NursingAssessment.id).label('count'),
-                func.avg(NursingAssessment.total_score).label('avg_score'),
-            ).group_by(NursingAssessment.assessment_type)
-        )
-        .all()
-    )
+    stats = db.session.execute(
+        select(
+            NursingAssessment.assessment_type,
+            func.count(NursingAssessment.id).label('count'),
+            func.avg(NursingAssessment.total_score).label('avg_score'),
+        ).group_by(NursingAssessment.assessment_type)
+    ).all()
     return render_template('nursing_assessment/dashboard.html', recent=recent, stats=stats)

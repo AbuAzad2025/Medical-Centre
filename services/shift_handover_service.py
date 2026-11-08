@@ -96,9 +96,7 @@ class ShiftHandoverService:
 
             pending_rx_ids = list(
                 db.session.execute(
-                    select(Prescription.id).where(
-                        Prescription.status.in_(('active', 'issued'))
-                    )
+                    select(Prescription.id).where(Prescription.status.in_(('active', 'issued')))
                 )
                 .scalars()
                 .all()

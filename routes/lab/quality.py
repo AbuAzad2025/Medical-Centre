@@ -106,28 +106,25 @@ def quality():
 
     repeats = []
     try:
-        dup_groups = (
-            db.session.execute(
-                select(
-                    LabResult.patient_id.label('patient_id'),
-                    LabResult.test_code.label('test_code'),
-                    db.func.count(LabResult.id).label('cnt'),
-                )
-                .join(LabRequest, LabRequest.id == LabResult.request_id)
-                .filter(
-                    LabRequest.status == OrderState.DONE,
-                    LabRequest.completed_at.isnot(None),
-                    LabRequest.completed_at >= start_dt,
-                    LabRequest.completed_at <= end_dt,
-                    LabResult.status == LabResultStatus.VALIDATED,
-                )
-                .group_by(LabResult.patient_id, LabResult.test_code)
-                .having(db.func.count(LabResult.id) > 1)
-                .order_by(db.func.count(LabResult.id).desc())
-                .limit(25)
+        dup_groups = db.session.execute(
+            select(
+                LabResult.patient_id.label('patient_id'),
+                LabResult.test_code.label('test_code'),
+                db.func.count(LabResult.id).label('cnt'),
             )
-            .all()
-        )
+            .join(LabRequest, LabRequest.id == LabResult.request_id)
+            .filter(
+                LabRequest.status == OrderState.DONE,
+                LabRequest.completed_at.isnot(None),
+                LabRequest.completed_at >= start_dt,
+                LabRequest.completed_at <= end_dt,
+                LabResult.status == LabResultStatus.VALIDATED,
+            )
+            .group_by(LabResult.patient_id, LabResult.test_code)
+            .having(db.func.count(LabResult.id) > 1)
+            .order_by(db.func.count(LabResult.id).desc())
+            .limit(25)
+        ).all()
         for g in dup_groups:
             repeats.append(
                 {'patient_id': g.patient_id, 'test_code': g.test_code, 'count': int(g.cnt or 0)}
@@ -137,35 +134,32 @@ def quality():
 
     test_tat_rows = []
     try:
-        rows = (
-            db.session.execute(
-                select(
-                    LabResult.test_code.label('test_code'),
-                    db.func.avg(
-                        db.func.extract('epoch', LabRequest.completed_at)
-                        - db.func.extract('epoch', LabRequest.created_at)
-                    ).label('avg_sec'),
-                    db.func.count(db.func.distinct(LabRequest.id)).label('requests_count'),
-                )
-                .join(LabRequest, LabRequest.id == LabResult.request_id)
-                .filter(
-                    LabRequest.status == OrderState.DONE,
-                    LabRequest.completed_at.isnot(None),
-                    LabRequest.completed_at >= start_dt,
-                    LabRequest.completed_at <= end_dt,
-                    LabResult.status == LabResultStatus.VALIDATED,
-                )
-                .group_by(LabResult.test_code)
-                .order_by(
-                    db.func.avg(
-                        db.func.extract('epoch', LabRequest.completed_at)
-                        - db.func.extract('epoch', LabRequest.created_at)
-                    ).desc()
-                )
-                .limit(30)
+        rows = db.session.execute(
+            select(
+                LabResult.test_code.label('test_code'),
+                db.func.avg(
+                    db.func.extract('epoch', LabRequest.completed_at)
+                    - db.func.extract('epoch', LabRequest.created_at)
+                ).label('avg_sec'),
+                db.func.count(db.func.distinct(LabRequest.id)).label('requests_count'),
             )
-            .all()
-        )
+            .join(LabRequest, LabRequest.id == LabResult.request_id)
+            .filter(
+                LabRequest.status == OrderState.DONE,
+                LabRequest.completed_at.isnot(None),
+                LabRequest.completed_at >= start_dt,
+                LabRequest.completed_at <= end_dt,
+                LabResult.status == LabResultStatus.VALIDATED,
+            )
+            .group_by(LabResult.test_code)
+            .order_by(
+                db.func.avg(
+                    db.func.extract('epoch', LabRequest.completed_at)
+                    - db.func.extract('epoch', LabRequest.created_at)
+                ).desc()
+            )
+            .limit(30)
+        ).all()
         for r in rows:
             test_tat_rows.append(
                 {

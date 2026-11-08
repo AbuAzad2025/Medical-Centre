@@ -90,18 +90,15 @@ def get_accounting_smart_analytics():
         collection_rate = (paid_invoices / total_invoices * 100) if total_invoices > 0 else 0
 
         # تحليل طرق الدفع
-        payment_methods = (
-            db.session.execute(
-                select(
-                    Payment.method,
-                    func.count(Payment.id).label('count'),
-                    func.sum(Payment.amount).label('total'),
-                )
-                .filter(Payment.tenant_id == current_user.tenant_id)
-                .group_by(Payment.method)
+        payment_methods = db.session.execute(
+            select(
+                Payment.method,
+                func.count(Payment.id).label('count'),
+                func.sum(Payment.amount).label('total'),
             )
-            .all()
-        )
+            .filter(Payment.tenant_id == current_user.tenant_id)
+            .group_by(Payment.method)
+        ).all()
 
         # تحليل الاتجاهات
         weekly_trend = db.session.execute(
@@ -205,20 +202,17 @@ def get_cash_flow_analysis():
         month_ago = today - timedelta(days=30)
 
         # التدفق النقدي اليومي
-        daily_cash_flow = (
-            db.session.execute(
-                select(
-                    func.date(Payment.created_at).label('date'),
-                    func.sum(Payment.amount).label('amount'),
-                )
-                .filter(
-                    Payment.tenant_id == current_user.tenant_id,
-                    Payment.created_at >= datetime.combine(week_ago, datetime.min.time()),
-                )
-                .group_by(func.date(Payment.created_at))
+        daily_cash_flow = db.session.execute(
+            select(
+                func.date(Payment.created_at).label('date'),
+                func.sum(Payment.amount).label('amount'),
             )
-            .all()
-        )
+            .filter(
+                Payment.tenant_id == current_user.tenant_id,
+                Payment.created_at >= datetime.combine(week_ago, datetime.min.time()),
+            )
+            .group_by(func.date(Payment.created_at))
+        ).all()
 
         # تحليل التدفق الأسبوعي
         weekly_inflow = (
@@ -275,32 +269,26 @@ def get_payment_optimization():
         from sqlalchemy import func
 
         # تحليل طرق الدفع
-        payment_method_analysis = (
-            db.session.execute(
-                select(
-                    Payment.method,
-                    func.count(Payment.id).label('count'),
-                    func.avg(Payment.amount).label('avg_amount'),
-                    func.sum(Payment.amount).label('total_amount'),
-                )
-                .filter(Payment.tenant_id == current_user.tenant_id)
-                .group_by(Payment.method)
+        payment_method_analysis = db.session.execute(
+            select(
+                Payment.method,
+                func.count(Payment.id).label('count'),
+                func.avg(Payment.amount).label('avg_amount'),
+                func.sum(Payment.amount).label('total_amount'),
             )
-            .all()
-        )
+            .filter(Payment.tenant_id == current_user.tenant_id)
+            .group_by(Payment.method)
+        ).all()
 
         # تحليل أوقات الدفع (متوافق مع أكثر من محرك قاعدة بيانات)
-        payment_times = (
-            db.session.execute(
-                select(
-                    func.extract('hour', Payment.created_at).label('hour'),
-                    func.count(Payment.id).label('count'),
-                )
-                .filter(Payment.tenant_id == current_user.tenant_id)
-                .group_by(func.extract('hour', Payment.created_at))
+        payment_times = db.session.execute(
+            select(
+                func.extract('hour', Payment.created_at).label('hour'),
+                func.count(Payment.id).label('count'),
             )
-            .all()
-        )
+            .filter(Payment.tenant_id == current_user.tenant_id)
+            .group_by(func.extract('hour', Payment.created_at))
+        ).all()
 
         # تحليل المدفوعات المتأخرة
         late_payments = db.session.execute(

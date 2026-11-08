@@ -79,14 +79,11 @@ def dashboard():
         ).scalar()
 
         # طرق الدفع الأكثر استخداماً
-        payment_methods = (
-            db.session.execute(
-                select(Payment.method, db.func.count(Payment.id).label('count')).group_by(
-                    Payment.method
-                )
+        payment_methods = db.session.execute(
+            select(Payment.method, db.func.count(Payment.id).label('count')).group_by(
+                Payment.method
             )
-            .all()
-        )
+        ).all()
 
         stats = {
             'payments_today': payments_today,
@@ -611,38 +608,32 @@ def payment_reports():
         today = datetime.now().date()
         week_ago = today - timedelta(days=7)
 
-        daily_payments = (
-            db.session.execute(
-                select(
-                    db.func.date(Payment.created_at).label('date'),
-                    db.func.count(Payment.id).label('count'),
-                    db.func.sum(Payment.amount).label('total'),
-                )
-                .filter(
-                    Payment.tenant_id == current_user.tenant_id,
-                    Payment.created_at >= datetime.combine(week_ago, datetime.min.time()),
-                )
-                .group_by(db.func.date(Payment.created_at))
+        daily_payments = db.session.execute(
+            select(
+                db.func.date(Payment.created_at).label('date'),
+                db.func.count(Payment.id).label('count'),
+                db.func.sum(Payment.amount).label('total'),
             )
-            .all()
-        )
+            .filter(
+                Payment.tenant_id == current_user.tenant_id,
+                Payment.created_at >= datetime.combine(week_ago, datetime.min.time()),
+            )
+            .group_by(db.func.date(Payment.created_at))
+        ).all()
 
         # تقرير طرق الدفع
-        method_stats = (
-            db.session.execute(
-                select(
-                    Payment.method,
-                    db.func.count(Payment.id).label('count'),
-                    db.func.sum(Payment.amount).label('total'),
-                )
-                .filter(
-                    Payment.tenant_id == current_user.tenant_id,
-                    Payment.created_at >= datetime.combine(week_ago, datetime.min.time()),
-                )
-                .group_by(Payment.method)
+        method_stats = db.session.execute(
+            select(
+                Payment.method,
+                db.func.count(Payment.id).label('count'),
+                db.func.sum(Payment.amount).label('total'),
             )
-            .all()
-        )
+            .filter(
+                Payment.tenant_id == current_user.tenant_id,
+                Payment.created_at >= datetime.combine(week_ago, datetime.min.time()),
+            )
+            .group_by(Payment.method)
+        ).all()
 
         return render_template(
             'accountant/financial_reports.html',
