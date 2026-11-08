@@ -54,7 +54,7 @@ def performance_metrics():
             'SELECT count(*) FROM prescriptions WHERE created_at::date = CURRENT_DATE'
         )
         audit_errors_today = scalar(
-            'SELECT count(*) FROM audit_trail '
+            'SELECT count(*) FROM audit_trails '
             "WHERE created_at::date = CURRENT_DATE AND action IN ('login_failed', 'force_logout', 'permission_denied')"
         )
 
@@ -230,13 +230,14 @@ def analytics():
     try:
         from datetime import timedelta
 
+        from sqlalchemy import func as sa_func
+
         from models.audit_trail import AuditTrail
         from models.medication import Prescription
         from models.patient import Patient
         from models.payment import Payment
         from models.user import User
         from models.visit import Visit
-        from sqlalchemy import func as sa_func
 
         today = date.today()
         last7 = [today - timedelta(days=i) for i in range(6, -1, -1)]
@@ -255,12 +256,15 @@ def analytics():
         ).one()
 
         prescriptions_today = db.session.execute(
-            select(sa_func.count()).select_from(Prescription)
+            select(sa_func.count())
+            .select_from(Prescription)
             .where(sa_func.date(Prescription.created_at) == today)
         ).scalar()
 
         audit_errors_today = db.session.execute(
-            select(sa_func.count()).select_from(AuditTrail).where(
+            select(sa_func.count())
+            .select_from(AuditTrail)
+            .where(
                 sa_func.date(AuditTrail.created_at) == today,
                 AuditTrail.action.in_(('login_failed', 'permission_denied')),
             )
@@ -327,7 +331,12 @@ def analytics():
         )
     except Exception:
         logging.exception('Analytics error: %s')
-        return render_template('super_admin/analytics.html', stats={}, chart={'visits': {'labels': [], 'data': []}, 'roles': {'labels': [], 'data': []}}, recent_audit=[])
+        return render_template(
+            'super_admin/analytics.html',
+            stats={},
+            chart={'visits': {'labels': [], 'data': []}, 'roles': {'labels': [], 'data': []}},
+            recent_audit=[],
+        )
 
 
 # دوال مساعدة للإحصائيات

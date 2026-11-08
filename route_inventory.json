@@ -1,5 +1,5 @@
 {
-  "total_routes": 955,
+  "total_routes": 958,
   "routes": [
     {
       "endpoint": "main.index",
@@ -9394,6 +9394,34 @@
       "methods": [
         "GET",
         "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "super_admin.performance_metrics",
+      "path": "/super-admin/api/performance",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "super_admin.force_logout_all_users",
+      "path": "/super-admin/system/force-logout-all",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "super_admin.optimize_database",
+      "path": "/super-admin/system/optimize-database",
+      "methods": [
         "OPTIONS",
         "POST"
       ],

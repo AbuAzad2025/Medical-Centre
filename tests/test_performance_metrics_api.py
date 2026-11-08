@@ -91,7 +91,9 @@ class TestPerformanceMetrics:
             phone='050' + format(uuid.uuid4().int % 10**7, '07d'),
         )
         db.session.add(patient)
-        department = Department(name=f'Perf-{uuid.uuid4().hex[:6]}', name_ar=f'أداء-{uuid.uuid4().hex[:6]}')
+        department = Department(
+            name=f'Perf-{uuid.uuid4().hex[:6]}', name_ar=f'أداء-{uuid.uuid4().hex[:6]}'
+        )
         db.session.add(department)
         db.session.commit()
         visit = Visit(
