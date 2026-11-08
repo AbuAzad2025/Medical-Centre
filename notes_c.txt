@@ -1,0 +1,88 @@
+128:     });
+129: }
+130: 
+131: if (templatesModalEl) {
+132:     templatesModalEl.addEventListener('show.bs.modal', function () {
+133:         resetTemplateForm();
+134:         refreshTemplatesUI();
+135:     });
+136: }
+137: if (dntRefreshBtn) {
+138:     dntRefreshBtn.addEventListener('click', function () {
+139:         refreshTemplatesUI();
+140:     });
+141: }
+142: if (dntResetBtn) {
+143:     dntResetBtn.addEventListener('click', function () {
+144:         resetTemplateForm();
+145:     });
+146: }
+147: if (dntForm) {
+148:     dntForm.addEventListener('submit', async function (e) {
+149:         e.preventDefault();
+150:         const payload = {
+151:             id: dntIdEl.value || undefined,
+152:             name: dntNameEl.value || '',
+153:             text: dntTextEl.value || '',
+154:             is_active: dntActiveEl.checked
+155:         };
+156:         try {
+157:             const r = await fetch(window.__M1__, {
+158:                 method: 'POST',
+159:                 credentials: 'same-origin',
+160:                 headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+161:                 body: JSON.stringify(payload)
+162:             });
+163:             if (!r.ok) {
+164:                 window.notify.error('تعذّر حفظ القالب. حاول مرة أخرى.');
+165:                 return;
+166:             }
+167:             resetTemplateForm();
+168:             await refreshTemplatesUI();
+169:         } catch (err) {
+170:             window.notify.error('انقطع الاتصال. تحقق من الشبكة وحاول مرة أخرى.');
+171:         }
+172:     });
+173: }
+174: if (dntTableBody) {
+175:     dntTableBody.addEventListener('click', async function (e) {
+176:         const btn = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
+177:         if (!btn) return;
+178:         const action = btn.getAttribute('data-action');
+179:         const id = btn.getAttribute('data-id');
+180:         const t = templatesCache.find(x => x && x.id === id);
+181:         if (!t) return;
+182:         if (action === 'edit') {
+183:             dntIdEl.value = t.id;
+184:             dntNameEl.value = t.name || '';
+185:             dntTextEl.value = t.text || '';
+186:             dntActiveEl.checked = t.is_active !== false;
+187:         } else if (action === 'delete') {
+188:             window.notify.confirm('هل تريد حذف هذا القالب؟', async function () {
+189:             try {
+190:                 const r = await fetch(window.__M2__.replace('__T__', encodeURIComponent(id)), {
+191:                     method: 'POST',
+192:                     credentials: 'same-origin',
+193:                     headers: Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {})
+194:                 });
+195:                 if (!r.ok) {
+196:                     window.notify.error('تعذّر حذف القالب. حاول مرة أخرى.');
+197:                     return;
+198:                 }
+199:                 await refreshTemplatesUI();
+200:             } catch (err) {
+201:                 window.notify.error('انقطع الاتصال. تحقق من الشبكة وحاول مرة أخرى.');
+202:             }
+203:             });
+204:         }
+205:     });
+206: }
+207: 
+208: 
+209: // Backward compatibility
+210: if (typeof resetTemplateForm !== "undefined") window.resetTemplateForm = resetTemplateForm;
+211: if (typeof fetchTemplates !== "undefined") window.fetchTemplates = fetchTemplates;
+212: if (typeof renderTemplatesTable !== "undefined") window.renderTemplatesTable = renderTemplatesTable;
+213: if (typeof refreshTemplatesUI !== "undefined") window.refreshTemplatesUI = refreshTemplatesUI;
+214: if (typeof fillTemplateSelect !== "undefined") window.fillTemplateSelect = fillTemplateSelect;
+215: if (typeof autoResize !== "undefined") window.autoResize = autoResize;

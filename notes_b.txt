@@ -1,0 +1,94 @@
+34:     }
+35: }
+36: 
+37: export function fillTemplateSelect(templates) {
+38:     if (!tplSelectEl) return;
+39:     const selected = tplSelectEl.value || '';
+40:     tplSelectEl.innerHTML = '<option value="">اختر</option>';
+41:     const active = templates.filter(t => t && t.is_active !== false);
+42:     active.forEach(t => {
+43:         const opt = document.createElement('option');
+44:         opt.value = t.id;
+45:         opt.textContent = t.name || '';
+46:         tplSelectEl.appendChild(opt);
+47:     });
+48:     if (selected) tplSelectEl.value = selected;
+49: }
+50: 
+51: export function resetTemplateForm() {
+52:     dntIdEl.value = '';
+53:     dntNameEl.value = '';
+54:     dntTextEl.value = '';
+55:     dntActiveEl.checked = true;
+56: }
+57: 
+58: export function renderTemplatesTable() {
+59:     if (!dntTableBody) return;
+60:     dntTableBody.innerHTML = '';
+61:     templatesCache.forEach(t => {
+62:         if (!t || !t.id) return;
+63:         const active = t.is_active !== false;
+64:         const tr = document.createElement('tr');
+65:         tr.innerHTML = `
+66:             <td>${window.escHtml(t.name)}</td>
+67:             <td>${active ? '<span class="badge bg-success">نعم</span>' : '<span class="badge bg-secondary">لا</span>'}</td>
+68:             <td class="text-end">
+69:                 <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${t.id}">تعديل</button>
+70:                 <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${t.id}">حذف</button>
+71:             </td>
+72:         `;
+73:         dntTableBody.appendChild(tr);
+74:     });
+75: }
+76: 
+77: export async function refreshTemplatesUI() {
+78:     await fetchTemplates();
+79:     fillTemplateSelect(templatesCache);
+80:     renderTemplatesTable();
+81: }
+82: 
+83: if (noteTextEl) {
+84:     noteTextEl.addEventListener('input', function() { autoResize(); });
+85: }
+86: 
+87: let autoSaveTimeout;
+88: if (noteTextEl) {
+89:     noteTextEl.addEventListener('input', function() {
+90:         clearTimeout(autoSaveTimeout);
+91:         autoSaveTimeout = setTimeout(function() {
+92:   function notifyErr(msg) {
+93:     if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
+94:     else console.warn('[doctor-page]', msg);
+95:   }
+96: 
+97:             sessionStorage.setItem('medical_notes_draft', noteTextEl.value);
+98:         }, 1000);
+99:     });
+100: }
+101: 
+102: document.addEventListener('DOMContentLoaded', function() {
+103:     const draft = sessionStorage.getItem('medical_notes_draft');
+104:     if (draft && noteTextEl) {
+105:         noteTextEl.value = draft;
+106:         autoResize();
+107:     }
+108:     refreshTemplatesUI();
+109: });
+110: 
+111: const form = document.querySelector('form');
+112: if (form) {
+113:     form.addEventListener('submit', function() {
+114:         sessionStorage.removeItem('medical_notes_draft');
+115:     });
+116: }
+117: 
+118: if (applyTplBtn) {
+119:     applyTplBtn.addEventListener('click', function() {
+120:         const id = tplSelectEl ? tplSelectEl.value : '';
+121:         if (!id || !noteTextEl) return;
+122:         const t = templatesCache.find(x => x && x.id === id);
+123:         if (!t) return;
+124:         const current = noteTextEl.value ? String(noteTextEl.value) : '';
+125:         const insert = String(t.text || '');
+126:         noteTextEl.value = current ? (current + "\n" + insert) : insert;
+127:         autoResize();

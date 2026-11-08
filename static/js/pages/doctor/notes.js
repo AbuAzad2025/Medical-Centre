@@ -84,16 +84,16 @@ if (noteTextEl) {
     noteTextEl.addEventListener('input', function() { autoResize(); });
 }
 
+function notifyErr(msg) {
+  if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
+  else console.warn('[doctor-page]', msg);
+}
+
 let autoSaveTimeout;
 if (noteTextEl) {
     noteTextEl.addEventListener('input', function() {
         clearTimeout(autoSaveTimeout);
         autoSaveTimeout = setTimeout(function() {
-  function notifyErr(msg) {
-    if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
-    else console.warn('[doctor-page]', msg);
-  }
-
             sessionStorage.setItem('medical_notes_draft', noteTextEl.value);
         }, 1000);
     });
