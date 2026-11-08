@@ -116,3 +116,23 @@ describe('dashboard_new fallback arms', () => {
     expect(document.querySelector('.progress-dynamic').style.width).toBe('0%');
   });
 });
+
+describe('dashboard_new preset-arm coverage for emergency/lab/radiology', () => {
+  for (const modulePath of [
+    'static/js/pages/emergency/dashboard_new.js',
+    'static/js/pages/lab/dashboard_new.js',
+    'static/js/pages/radiology/dashboard_new.js',
+    'static/js/pages/nurse/dashboard_new.js',
+  ]) {
+    it(`${modulePath}: preset font and preset __M are respected`, async () => {
+      makeChartMock(true);
+      window.Chart.defaults.plugins.legend.labels.font = { size: 16 };
+      window.__M = ['preset'];
+      document.body.innerHTML = '';
+      await loadModule(modulePath);
+      expect(window.Chart.defaults.plugins.legend.labels.font).toEqual({ size: 16 });
+      expect(window.__M).toEqual(['preset']);
+      delete window.__M;
+    });
+  }
+});
