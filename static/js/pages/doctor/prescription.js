@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
               })
               .then(function(d2) {
                 if (d2.success) { window.location.href = form.getAttribute('data-success-url') || window.location.href; }
-                else { showSafetyModal([d2.message || 'خطأ غير معروف'], function(){}); }
+                else { showSafetyModal([{ severity: 'warning', message: d2.message || 'خطأ غير معروف' }], function(){}); }
               })
               .catch(function() {
                 var errEl = document.getElementById('prescriptionError');
