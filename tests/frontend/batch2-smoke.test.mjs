@@ -4,7 +4,7 @@ import { loadModule } from './test-utils.mjs';
 const files = [
   'static/js/base.js',
   'static/js/pages/manager/unit_control.js',
-  'static/js/pages/super_admin/security_logs.js',
+  
   'static/js/pages/doctor/dashboard.js',
   'static/js/pages/manager/monitoring.js',
 ];

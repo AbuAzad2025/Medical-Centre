@@ -133,7 +133,6 @@ ORPHAN_KNOWN_LEGACY = {
     'js/pages/emergency/dashboard_new.js',  # template dashboard_new.html has no <script> tag
     'js/pages/lab/lab_requests_results_print.js',
     'js/pages/partials/_navbar.js',
-    'js/pages/super_admin/security_logs.js',
     'js/utils/pii_mask.js',  # used via security.js pii_mask, not direct url_for
     # TypeScript source files (compiled by Vite, not directly url_for'd)
     'js/accessibility.ts',
