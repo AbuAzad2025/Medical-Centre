@@ -458,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="col-md-4">
                 <div class="input-group">
-                    <input type="number" class="form-control custom-service-price" name="custom_service_price" placeholder="السعر" min="0" step="0.01" value="0" onchange="calculateVisitCost()">
+                    <input type="number" class="form-control custom-service-price" name="custom_service_price" placeholder="السعر" min="0" step="0.01" value="0">
                     <span class="input-group-text">₪</span>
                 </div>
             </div>
@@ -479,11 +479,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    document.getElementById('custom_services_container').addEventListener('input', function(e) {
+    const priceListener = function(e) {
         if (e.target.classList.contains('custom-service-price')) {
             calculateVisitCost();
         }
-    });
+    };
+    document.getElementById('custom_services_container').addEventListener('input', priceListener);
+    document.getElementById('custom_services_container').addEventListener('change', priceListener);
 });
 
 

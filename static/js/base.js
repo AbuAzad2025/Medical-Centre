@@ -409,14 +409,22 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.btn').forEach(btn => {
         btn.classList.add('btn-modern');
     });
+    // Hosts without the bootstrap bundle (kiosk, login, portal shell) must not
+    // crash on bare bootstrap references.
+    const bsTooltip = (typeof bootstrap !== 'undefined') && bootstrap.Tooltip;
+    const bsPopover = (typeof bootstrap !== 'undefined') && bootstrap.Popover;
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+    if (bsTooltip) {
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bsTooltip(tooltipTriggerEl);
+        });
+    }
     const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
+    if (bsPopover) {
+        popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bsPopover(popoverTriggerEl);
+        });
+    }
     function enforceSafeLinks(){
         document.querySelectorAll('a').forEach(function(a){
             var href = a.getAttribute('href') || '';

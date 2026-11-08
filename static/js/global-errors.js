@@ -1,5 +1,44 @@
 'use strict';
 
+// Standalone-safe escaping and URL validation. window.escHtml comes from base.js,
+// but this module also runs on minimal shells; never depend on load order.
+function esc(v) {
+  if (typeof window !== 'undefined' && typeof window.escHtml === 'function') {
+    return window.escHtml(v);
+  }
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+export function safeSameOriginUrl(raw) {
+  // Only root-relative or same-origin absolute URLs are allowed back into
+  // location.href / <a href>. Server-controlled redirect_url must never be
+  // able to smuggle javascript: or external-origin payloads.
+  if (!raw || typeof raw !== 'string') return '';
+  var url = raw.trim();
+  if (!url) return '';
+  if (url.indexOf('/') === 0) {
+    if (url.indexOf('//') === 0) return ''; // protocol-relative: outside origin
+    return url;
+  }
+  try {
+    var loc = window.location || {};
+    var origin = loc.origin;
+    if (!origin && loc.href) {
+      try { origin = new URL(loc.href).origin; } catch (_ignored) { origin = ''; }
+    }
+    if (!origin) return ''; // cannot determine same-origin: refuse
+    var parsed = new URL(url, origin);
+    return parsed.origin === origin ? parsed.href : '';
+  } catch (e) {
+    return '';
+  }
+}
+
 export function reportError(message, source) {
   var msg = message || 'حدث خطأ غير متوقع';
   if (window.notify && typeof window.notify.error === 'function') {
@@ -52,12 +91,12 @@ export function showEntitlementLock(payload) {
   overlay.innerHTML =
     '<div class="entitlement-lock-overlay__backdrop"></div>' +
     '<div class="entitlement-lock-screen entitlement-lock-overlay__panel" data-capability="' +
-    window.escHtml(String(capability)) + '">' +
+    esc(String(capability)) + '">' +
     '<div class="entitlement-lock-screen__icon" aria-hidden="true"><i class="fas fa-lock"></i></div>' +
-    '<h5 class="mb-2">' + window.escHtml(String(title)) + '</h5>' +
-    '<p class="text-muted mb-3">' + window.escHtml(String(message)) + '</p>' +
-    (upgradeUrl
-      ? '<a href="' + window.escHtml(String(upgradeUrl)) + '" class="btn btn-primary btn-sm">ترقية الباقة</a>'
+    '<h5 class="mb-2">' + esc(String(title)) + '</h5>' +
+    '<p class="text-muted mb-3">' + esc(String(message)) + '</p>' +
+    (safeSameOriginUrl(upgradeUrl)
+      ? '<a href="' + esc(safeSameOriginUrl(upgradeUrl)) + '" class="btn btn-primary btn-sm">ترقية الباقة</a>'
       : '<button type="button" class="btn btn-secondary btn-sm" data-dismiss-lock>إغلاق</button>') +
     '</div>';
   document.body.appendChild(overlay);
@@ -78,7 +117,13 @@ export function handleEntitlementStatus(response) {
   if (response.status !== 402 && response.status !== 403) return;
   parseJsonSafe(response).then(function (data) {
     if (data && data.redirect_url) {
-      window.location.href = data.redirect_url;
+      var safe = safeSameOriginUrl(data.redirect_url);
+      if (safe) {
+        window.location.href = safe;
+        return;
+      }
+      // Unsafe redirect target: show the lock dialog instead of navigating.
+      showEntitlementLock(data || {});
       return;
     }
     showEntitlementLock(data || {});
@@ -106,3 +151,4 @@ if (typeof showEntitlementLock !== 'undefined') window.showEntitlementLock = sho
 if (typeof parseJsonSafe !== 'undefined') window.parseJsonSafe = parseJsonSafe;
 if (typeof handleEntitlementStatus !== 'undefined') window.handleEntitlementStatus = handleEntitlementStatus;
 if (typeof wrapFetchWithEntitlementHandling !== 'undefined') window.wrapFetchWithEntitlementHandling = wrapFetchWithEntitlementHandling;
+if (typeof safeSameOriginUrl !== 'undefined') window.safeSameOriginUrl = safeSameOriginUrl;

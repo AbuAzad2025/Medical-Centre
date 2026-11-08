@@ -1,99 +1,93 @@
 {% extends "base.html" %}
-{% from "partials/_page_header.html" import page_header %}
+{% from 'partials/_page_header.html' import page_header %}
 
-{% block title %}التحليلات المتقدمة - السوبر أدمن{% endblock %}
+{% block title %}التحليلات - لوحة الأمان{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("التحليلات المتقدمة")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("تحليلات شاملة وإحصائيات مفصلة للنظام")")")")")")")', icon='fas fa-chart-line', actions=[
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-analytics', 'style': 'primary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تصدير التحليلات")")")")")")")', 'icon': 'fas fa-download', 'data_action': 'export-analytics', 'style': 'success'}
-    ]) }}
+{{ page_header(title='التحليلات', subtitle='إحصائيات حقيقية محسوبة مباشرة من قاعدة البيانات', icon='fas fa-chart-line', actions=[
+    {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-analytics', 'style': 'primary'},
+    {'type': 'button', 'label': 'تصدير التحليلات', 'icon': 'fas fa-download', 'data_action': 'export-analytics', 'style': 'success'}
+]) }}
 
-    <!-- Analytics Overview -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col ms-2">
-                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("إجمالي المستخدمين")")")")")")")') }}
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">1,234</div>
-                            <div class="text-xs text-success">
-                                <i class="fas fa-arrow-up me-1"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("+12% هذا الشهر")")")")")")")') }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
+<!-- KPI Overview -->
+<div class="stats-grid fade-in-up">
+    <div class="stat-card">
+        <div class="stat-icon info">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-value">{{ stats.total_users if stats.total_users is not none else '—' }}</div>
+        <div class="stat-label">إجمالي المستخدمين</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fas fa-procedures"></i>
+        </div>
+        <div class="stat-value">{{ stats.total_patients if stats.total_patients is not none else '—' }}</div>
+        <div class="stat-label">إجمالي المرضى</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fas fa-notes-medical"></i>
+        </div>
+        <div class="stat-value">{{ stats.total_visits if stats.total_visits is not none else '—' }}</div>
+        <div class="stat-label">إجمالي الزيارات</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon danger">
+            <i class="fas fa-stethoscope"></i>
+        </div>
+        <div class="stat-value">{{ stats.visits_today if stats.visits_today is not none else '—' }}</div>
+        <div class="stat-label">زيارات اليوم</div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">الزيارات خلال آخر 7 أيام</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="usageChart" width="400" height="200"></canvas>
             </div>
         </div>
+    </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col ms-2">
-                            <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("النشاط اليومي")")")")")")")') }}
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">89%</div>
-                            <div class="text-xs text-success">
-                                <i class="fas fa-arrow-up me-1"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("+5% من الأمس")")")")")")")') }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">توزيع المستخدمين حسب الدور</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="userDistributionChart" width="400" height="200"></canvas>
             </div>
         </div>
+    </div>
+</div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col ms-2">
-                            <div class="text-xs fw-bold text-info text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("الأداء")")")")")")")') }}
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">95%</div>
-                            <div class="text-xs text-info">
-                                <i class="fas fa-arrow-up me-1"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("+2% هذا الأسبوع")")")")")")")') }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-tachometer-alt fa-2x text-gray-300"></i>
+<!-- Today's activity from the database -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">مدفوعات اليوم</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="stat-item">
+                            <div class="stat-label">عدد المدفوعات</div>
+                            <div class="stat-value">{{ stats.payments_today if stats.payments_today is not none else '—' }}</div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col ms-2">
-                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("الأخطاء")")")")")")")') }}
-                            </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">23</div>
-                            <div class="text-xs text-warning">
-                                <i class="fas fa-arrow-down me-1"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("-15% من الأسبوع الماضي")")")")")")")') }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                    <div class="col-md-6">
+                        <div class="stat-item">
+                            <div class="stat-label">إجمالي المبلغ</div>
+                            <div class="stat-value">{{ '%.2f'|format(stats.payment_amount_today|float) if stats.payment_amount_today is not none else '—' }}</div>
                         </div>
                     </div>
                 </div>
@@ -101,261 +95,23 @@
         </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("اتجاهات الاستخدام")")")")")")")') }}</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="usageChart" width="400" height="200"></canvas>
-                </div>
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">نشاط اليوم</h6>
             </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("توزيع المستخدمين")")")")")")")') }}</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="userDistributionChart" width="400" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Performance Metrics -->
-    <div class="row mb-4">
-        <div class="col-lg-6">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("مؤشرات الأداء")")")")")")")') }}</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="metric-item">
-                                <div class="metric-icon bg-primary">
-                                    <i class="fas fa-server"></i>
-                                </div>
-                                <div class="metric-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("استجابة الخادم")")")")")")")') }}</h6>
-                                    <span class="metric-value">{{ _('_("_(" _(" _(" _(" _(" _("2.3 ثانية")")")")")")")') }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="metric-item">
-                                <div class="metric-icon bg-success">
-                                    <i class="fas fa-database"></i>
-                                </div>
-                                <div class="metric-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("استجابة قاعدة البيانات")")")")")")")') }}</h6>
-                                    <span class="metric-value">{{ _('_("_(" _(" _(" _(" _(" _("0.8 ثانية")")")")")")")') }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="metric-item">
-                                <div class="metric-icon bg-info">
-                                    <i class="fas fa-memory"></i>
-                                </div>
-                                <div class="metric-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("استخدام الذاكرة")")")")")")")') }}</h6>
-                                    <span class="metric-value">75%</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="metric-item">
-                                <div class="metric-icon bg-warning">
-                                    <i class="fas fa-hdd"></i>
-                                </div>
-                                <div class="metric-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("استخدام القرص")")")")")")")') }}</h6>
-                                    <span class="metric-value">60%</span>
-                                </div>
-                            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="stat-item">
+                            <div class="stat-label">وصفات طبية اليوم</div>
+                            <div class="stat-value">{{ stats.prescriptions_today if stats.prescriptions_today is not none else '—' }}</div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات النظام")")")")")")")') }}</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="stat-item">
-                                <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("الطلبات اليومية")")")")")")")') }}</div>
-                                <div class="stat-value">15,432</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="stat-item">
-                                <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("البيانات المعالجة")")")")")")")') }}</div>
-                                <div class="stat-value">2.5 GB</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="stat-item">
-                                <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("الجلسات النشطة")")")")")")")') }}</div>
-                                <div class="stat-value">156</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="stat-item">
-                                <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("وقت التشغيل")")")")")")")') }}</div>
-                                <div class="stat-value">99.9%</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- User Activity -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("نشاط المستخدمين")")")")")")")') }}</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المستخدم")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("آخر نشاط")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("عدد الجلسات")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت الإجمالي")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
-                                                A
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("أحمد محمد")")")")")")")') }}</div>
-                                                <small class="text-muted">admin</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("مدير")")")")")")")') }}</span></td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("منذ 5 دقائق")")")")")")")') }}</td>
-                                    <td>12</td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("8 ساعات")")")")")")")') }}</td>
-                                    <td><span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-2">
-                                                D
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("د. سارة أحمد")")")")")")")') }}</div>
-                                                <small class="text-muted">doctor</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("طبيب")")")")")")")') }}</span></td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("منذ 15 دقيقة")")")")")")")') }}</td>
-                                    <td>8</td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("6 ساعات")")")")")")")') }}</td>
-                                    <td><span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2">
-                                                R
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("ريم علي")")")")")")")') }}</div>
-                                                <small class="text-muted">reception</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("استقبال")")")")")")")') }}</span></td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("منذ 30 دقيقة")")")")")")")') }}</td>
-                                    <td>5</td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("4 ساعات")")")")")")")') }}</td>
-                                    <td><span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("غير نشط")")")")")")")') }}</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- System Health -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("صحة النظام")")")")")")")') }}</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="health-item">
-                                <div class="health-icon bg-success">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <div class="health-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("قاعدة البيانات")")")")")")")') }}</h6>
-                                    <span class="health-status text-success">{{ _('_("_(" _(" _(" _(" _(" _("ممتاز")")")")")")")') }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="health-item">
-                                <div class="health-icon bg-success">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <div class="health-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الخادم")")")")")")")') }}</h6>
-                                    <span class="health-status text-success">{{ _('_("_(" _(" _(" _(" _(" _("ممتاز")")")")")")")') }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="health-item">
-                                <div class="health-icon bg-warning">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                </div>
-                                <div class="health-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الذاكرة")")")")")")")') }}</h6>
-                                    <span class="health-status text-warning">{{ _('_("_(" _(" _(" _(" _(" _("جيد")")")")")")")') }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="health-item">
-                                <div class="health-icon bg-success">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <div class="health-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الشبكة")")")")")")")') }}</h6>
-                                    <span class="health-status text-success">{{ _('_("_(" _(" _(" _(" _(" _("ممتاز")")")")")")")') }}</span>
-                                </div>
-                            </div>
+                    <div class="col-md-6">
+                        <div class="stat-item">
+                            <div class="stat-label">أحداث الأمان اليوم<br><small class="text-muted">(فشل الدخول / منع الوصول)</small></div>
+                            <div class="stat-value">{{ stats.audit_errors_today if stats.audit_errors_today is not none else '—' }}</div>
                         </div>
                     </div>
                 </div>
@@ -364,42 +120,50 @@
     </div>
 </div>
 
+<!-- Latest real audit events -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">آخر أحداث التدقيق</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead>
+                            <tr>
+                                <th>المستخدم</th>
+                                <th>الإجراء</th>
+                                <th>نوع الكيان</th>
+                                <th>الوقت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in recent_audit %}
+                            <tr>
+                                <td>{{ row.user }}</td>
+                                <td>{{ row.action }}</td>
+                                <td>{{ row.entity }}</td>
+                                <td>{{ row.at }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">لا توجد أحداث تدقيق مسجلة حتى الآن</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-.metric-item {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    border: 1px solid #e3e6f0;
-    border-radius: 0.35rem;
-    margin-bottom: 1rem;
-    background: #fff;
-}
-.metric-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-inline-start: 1rem;
-    color: white;
-    font-size: 1.2rem;
-}
-.metric-info h6 {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #5a5c69;
-}
-.metric-value {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #5a5c69;
-}
 .stat-item {
     padding: 1rem;
     border: 1px solid #e3e6f0;
     border-radius: 0.35rem;
-    margin-bottom: 1rem;
     background: #fff;
     text-align: center;
 }
@@ -413,37 +177,12 @@
     font-weight: bold;
     color: #5a5c69;
 }
-.health-item {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    border: 1px solid #e3e6f0;
-    border-radius: 0.35rem;
-    background: #fff;
-    margin-bottom: 1rem;
-}
-.health-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-inline-start: 1rem;
-    color: white;
-    font-size: 1.2rem;
-}
-.health-info h6 {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #5a5c69;
-}
-.health-status {
-    font-size: 1rem;
-    font-weight: bold;
-}
 </style>
 
-
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
+    window.__M = window.__M || [];
+    __M0__={{ {'visits': chart.visits, 'roles': chart.roles} | tojson }};
+    __M1__={{ stats | tojson }};
+</script>
 <script type="module" src="{{ url_for('static', filename='js/pages/super_admin/analytics.js') }}"></script>
 {% endblock %}

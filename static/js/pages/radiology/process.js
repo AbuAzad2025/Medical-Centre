@@ -220,8 +220,8 @@ var __M = window.__M || [];
                         <td><span class="badge bg-light text-dark">${window.escHtml(String((t.modality || '').toUpperCase()))}</span></td>
                         <td>${active ? '<span class="badge bg-success">نعم</span>' : '<span class="badge bg-secondary">لا</span>'}</td>
                         <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${t.id}">تعديل</button>
-                            <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${t.id}">حذف</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${window.escHtml(String(t.id))}">تعديل</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${window.escHtml(String(t.id))}">حذف</button>
                         </td>
                     `;
                     tplTableBody.appendChild(tr);
@@ -247,8 +247,8 @@ var __M = window.__M || [];
                         <td>${window.escHtml(String(m.name || ''))}</td>
                         <td>${active ? '<span class="badge bg-success">نعم</span>' : '<span class="badge bg-secondary">لا</span>'}</td>
                         <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${m.id}">تعديل</button>
-                            <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${m.id}">حذف</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${window.escHtml(String(m.id))}">تعديل</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${window.escHtml(String(m.id))}">حذف</button>
                         </td>
                     `;
                     macroTableBody.appendChild(tr);

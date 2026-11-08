@@ -249,7 +249,9 @@ class TestSuperAdminAnalytics:
     def test_analytics_page(self, login_as, client, ctx):
         _make_superadmin(login_as, client, ctx)
         resp = client.get('/super-admin/analytics')
-        assert resp.status_code in (200, 302)
+        assert resp.status_code == 200
+        assert 'usageChart'.encode() in resp.data
+        assert 'userDistributionChart'.encode() in resp.data
 
     def test_reports_page(self, login_as, client, ctx):
         _make_superadmin(login_as, client, ctx)

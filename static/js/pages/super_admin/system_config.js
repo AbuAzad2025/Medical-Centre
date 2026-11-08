@@ -177,12 +177,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 data.items.forEach(item => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td data-id="${item.department_id}">${window.escHtml(String(item.department_name || ''))}</td>
-                        <td><input type="number" class="dept-max" value="${item.max_queue_size}" min="1" style="width:100px"></td>
+                        <td data-id="${window.escHtml(String(item.department_id ?? ''))}">${window.escHtml(String(item.department_name || ''))}</td>
+                        <td><input type="number" class="dept-max" value="${window.escHtml(String(item.max_queue_size ?? ''))}" min="1" style="width:100px"></td>
                         <td><input type="checkbox" class="dept-required" ${item.payment_required ? 'checked' : ''}></td>
                         <td><input type="checkbox" class="dept-emergency-waived" ${item.emergency_payment_waived ? 'checked' : ''}></td>
                         <td><input type="checkbox" class="dept-force" ${item.force_entry_allowed ? 'checked' : ''}></td>
-                        <td><input type="number" class="dept-avg" value="${item.average_wait_time}" min="5" max="240" style="width:120px"></td>
+                        <td><input type="number" class="dept-avg" value="${window.escHtml(String(item.average_wait_time ?? ''))}" min="5" max="240" style="width:120px"></td>
                         <td><input type="checkbox" class="dept-partial" ${item.allow_partial_payment ? 'checked' : ''}></td>
                         <td><input type="checkbox" class="dept-debt" ${item.allow_debt ? 'checked' : ''}></td>
                     `;

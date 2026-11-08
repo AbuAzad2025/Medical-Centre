@@ -55,20 +55,27 @@ class SecurityManager {
 
     setupInputSanitization() {
         this._blurHandler = (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-                this.sanitizeInput(e.target);
-            }
+            const target = e.target;
+            if (!target) return;
+            if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return;
+            const type = (target.type || '').toLowerCase();
+            // Never rewrite passwords: the value would be corrupted before submit.
+            if (type === 'password' || type === 'hidden') return;
+            this.sanitizeInput(target);
         };
         document.addEventListener('blur', this._blurHandler, true);
     }
 
     sanitizeInput(input) {
-        let value = input.value;
-        value = value.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-        value = value.replace(/javascript:/gi, '');
-        value = value.replace(/data:(?!image\/(png|jpg|jpeg|gif|svg))/gi, '');
-        value = value.replace(/\bon\w+\s*=/gi, '');
-        input.value = value;
+        const value = input.value || '';
+        // Only strip actual <script> blocks. Anything broader rewrites legitimate
+        // clinical text ("... on admission = ...") and corrupts the record.
+        // Server-side output escaping plus CSP are the real XSS defences.
+        const cleaned = value
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+            .replace(/<script\b[^>]*>/gi, '')
+            .replace(/<\/script>/gi, '');
+        if (cleaned !== value) input.value = cleaned;
     }
 
     setupXSSProtection() {

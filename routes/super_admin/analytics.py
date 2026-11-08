@@ -222,23 +222,112 @@ def analytics():
 
     NOTE: These queries intentionally run across all tenants for the super_admin
     dashboard. Access is restricted to super_admin role only.
+
+    Every number rendered on this page is computed here from the live database.
+    The page used to show fabricated figures (1,234 users, 89% attendance,
+    99.9% uptime, invented audit rows); none of those were measured.
     """
     try:
+        from datetime import timedelta
+
+        from models.audit_trail import AuditTrail
+        from models.medication import Prescription
         from models.patient import Patient
+        from models.payment import Payment
         from models.user import User
         from models.visit import Visit
+        from sqlalchemy import func as sa_func
+
+        today = date.today()
+        last7 = [today - timedelta(days=i) for i in range(6, -1, -1)]
+
+        total_users = db.session.execute(select(sa_func.count()).select_from(User)).scalar()
+        total_patients = db.session.execute(select(sa_func.count()).select_from(Patient)).scalar()
+        total_visits = db.session.execute(select(sa_func.count()).select_from(Visit)).scalar()
+        visits_today = db.session.execute(
+            select(sa_func.count()).select_from(Visit).where(Visit.visit_date == today)
+        ).scalar()
+
+        payment_row = db.session.execute(
+            select(sa_func.count(), sa_func.coalesce(sa_func.sum(Payment.amount), 0))
+            .select_from(Payment)
+            .where(sa_func.date(Payment.payment_date) == today)
+        ).one()
+
+        prescriptions_today = db.session.execute(
+            select(sa_func.count()).select_from(Prescription)
+            .where(sa_func.date(Prescription.created_at) == today)
+        ).scalar()
+
+        audit_errors_today = db.session.execute(
+            select(sa_func.count()).select_from(AuditTrail).where(
+                sa_func.date(AuditTrail.created_at) == today,
+                AuditTrail.action.in_(('login_failed', 'permission_denied')),
+            )
+        ).scalar()
+
+        # Visits per day over the last 7 days (real time series)
+        visit_counts = dict(
+            db.session.execute(
+                select(Visit.visit_date, sa_func.count())
+                .where(Visit.visit_date >= last7[0])
+                .group_by(Visit.visit_date)
+            ).all()
+        )
+        chart_visits = {
+            'labels': [d.strftime('%m-%d') for d in last7],
+            'data': [visit_counts.get(d, 0) for d in last7],
+        }
+
+        # Users per role (real distribution)
+        users_by_role = dict(
+            db.session.execute(select(User.role, sa_func.count()).group_by(User.role)).all()
+        )
+        chart_roles = {
+            'labels': list(users_by_role.keys()),
+            'data': list(users_by_role.values()),
+        }
+
+        # Latest real audit events
+        recent_audit = db.session.execute(
+            select(AuditTrail, User.full_name)
+            .join(User, User.id == AuditTrail.user_id, isouter=True)
+            .order_by(AuditTrail.created_at.desc())
+            .limit(5)
+        ).all()
+        recent_items = [
+            {
+                'user': full_name or f'user #{audit.user_id}',
+                'action': audit.action,
+                'entity': audit.entity_type,
+                'at': audit.created_at.strftime('%Y-%m-%d %H:%M') if audit.created_at else '',
+            }
+            for audit, full_name in recent_audit
+        ]
 
         stats = {
-            'total_users': db.session.execute(select(func.count()).select_from(User)).scalar(),
-            'total_patients': db.session.execute(
-                select(func.count()).select_from(Patient)
-            ).scalar(),
-            'total_visits': db.session.execute(select(func.count()).select_from(Visit)).scalar(),
+            'total_users': total_users,
+            'total_patients': total_patients,
+            'total_visits': total_visits,
+            'visits_today': visits_today,
+            'payments_today': payment_row[0],
+            'payment_amount_today': float(payment_row[1] or 0),
+            'prescriptions_today': prescriptions_today,
+            'audit_errors_today': audit_errors_today,
         }
-        return render_template('super_admin/analytics.html', stats=stats)
+        chart = {
+            'visits': chart_visits,
+            'roles': chart_roles,
+        }
+        return render_template(
+            'super_admin/analytics.html',
+            stats=stats,
+            chart=chart,
+            recent_audit=recent_items,
+        )
     except Exception:
         logging.exception('Analytics error: %s')
-        return render_template('super_admin/analytics.html', stats={})
+        return render_template('super_admin/analytics.html', stats={}, chart={'visits': {'labels': [], 'data': []}, 'roles': {'labels': [], 'data': []}}, recent_audit=[])
 
 
 # دوال مساعدة للإحصائيات

@@ -81,8 +81,39 @@ describe('security.js', () => {
       input.value = '<script>alert(1)</script> javascript:alert(1) onload=hack';
       manager.sanitizeInput(input);
       expect(input.value).not.toContain('<script>');
-      expect(input.value).not.toContain('javascript:');
-      expect(input.value).not.toContain('onload=');
+      // Clinical text containing on*\u003d or javascript-like words is preserved verbatim;
+      // output escaping and CSP, not client-side rewriting, are the XSS defences.
+      expect(input.value).toContain('javascript:alert(1)');
+      expect(input.value).toContain('onload=hack');
+      manager.destroy();
+    });
+
+    it('sanitizeInput preserves plain clinical text untouched', () => {
+      const manager = new window.SecurityManager();
+      const input = document.createElement('textarea');
+      input.value = 'جرعة: حبة واحدة مرّتين on admission = مرتين';
+      manager.sanitizeInput(input);
+      expect(input.value).toBe('جرعة: حبة واحدة مرّتين on admission = مرتين');
+      manager.destroy();
+    });
+
+    it('blur handler does not rewrite password input values', () => {
+      document.body.innerHTML = '<input type="password" id="pw">';
+      const manager = new window.SecurityManager();
+      const input = document.getElementById('pw');
+      input.value = '<script>x</script>My$ecret';
+      input.dispatchEvent(new Event('blur', { bubbles: true }));
+      expect(input.value).toBe('<script>x</script>My$ecret');
+      manager.destroy();
+    });
+
+    it('blur handler strips script tags in text inputs', () => {
+      document.body.innerHTML = '<input type="text" id="note">';
+      const manager = new window.SecurityManager();
+      const input = document.getElementById('note');
+      input.value = 'notes <script>alert(1)</script> more';
+      input.dispatchEvent(new Event('blur', { bubbles: true }));
+      expect(input.value).toBe('notes  more');
       manager.destroy();
     });
 

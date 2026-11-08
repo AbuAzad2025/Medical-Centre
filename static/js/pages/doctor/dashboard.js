@@ -30,10 +30,10 @@ export function renderSettings(items) {
         row.className = 'd-flex align-items-center justify-content-between border rounded p-2 mb-2';
         row.innerHTML = `
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="panel_${item.id}" ${item.enabled ? 'checked' : ''}>
-                <label class="form-check-label" for="panel_${item.id}">${window.escHtml(item.title || item.id)}</label>
+                <input class="form-check-input" type="checkbox" id="panel_${window.escHtml(String(item.id))}" ${item.enabled ? 'checked' : ''}>
+                <label class="form-check-label" for="panel_${window.escHtml(String(item.id))}">${window.escHtml(item.title || item.id)}</label>
             </div>
-            <input type="number" class="form-control form-control-sm" style="width: 80px;" value="${item.order || 0}" data-panel="${item.id}">
+            <input type="number" class="form-control form-control-sm" style="width: 80px;" value="${window.escHtml(String(item.order || 0))}" data-panel="${window.escHtml(String(item.id))}">
         `;
         settingsList.appendChild(row);
     });

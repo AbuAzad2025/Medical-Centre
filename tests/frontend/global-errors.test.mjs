@@ -180,3 +180,64 @@ describe('global-errors.js', () => {
     expect(typeof window.__wrapFetchEntitlement).toBe('function');
   });
 });
+describe('global-errors.js safeSameOriginUrl clamping', () => {
+  it('allows root-relative URLs', async () => {
+    const mod = await loadModule('static/js/global-errors.js');
+    expect(mod.safeSameOriginUrl('/auth/login')).toBe('/auth/login');
+    expect(mod.safeSameOriginUrl('/super-admin/upgrade')).toBe('/super-admin/upgrade');
+  });
+
+  it('rejects protocol-relative and absolute-external URLs', async () => {
+    const mod = await loadModule('static/js/global-errors.js');
+    expect(mod.safeSameOriginUrl('//evil.example.com/x')).toBe('');
+    expect(mod.safeSameOriginUrl('https://evil.example.com/x')).toBe('');
+  });
+
+  it('rejects javascript:, data: and vbscript: URLs', async () => {
+    const mod = await loadModule('static/js/global-errors.js');
+    expect(mod.safeSameOriginUrl('javascript:alert(1)')).toBe('');
+    expect(mod.safeSameOriginUrl('data:text/html,<script>alert(1)</script>')).toBe('');
+    expect(mod.safeSameOriginUrl('vbscript:msgbox(1)')).toBe('');
+  });
+
+  it('allows same-origin absolute URLs', async () => {
+    window.location = { origin: 'http://test.local', href: 'http://test.local/start' };
+    const mod = await loadModule('static/js/global-errors.js');
+    expect(mod.safeSameOriginUrl('http://test.local/upgrade')).toBe('http://test.local/upgrade');
+    expect(mod.safeSameOriginUrl('http://evil.test.local/upgrade')).toBe('');
+  });
+
+  it('handleEntitlementStatus with unsafe redirect_url shows lock instead of navigating', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true });
+    const mod = await loadModule('static/js/global-errors.js');
+    const originalHref = window.location.href;
+    const response = { status: 403, clone: () => response, json: () => Promise.resolve({ redirect_url: 'javascript:alert(1)', message: 'locked' }) };
+    mod.handleEntitlementStatus(response);
+    await new Promise(r => setTimeout(r, 30));
+    expect(window.location.href).toBe(originalHref);
+    expect(document.querySelector('.entitlement-lock-overlay')).not.toBeNull();
+  });
+
+  it('handleEntitlementStatus with same-origin redirect navigates', async () => {
+    const mod = await loadModule('static/js/global-errors.js');
+    const response = { status: 402, clone: () => response, json: () => Promise.resolve({ redirect_url: '/upgrade' }) };
+    mod.handleEntitlementStatus(response);
+    await new Promise(r => setTimeout(r, 30));
+    expect(window.location.href).toContain('/upgrade');
+  });
+
+  it('entitlement lock with unsafe upgrade_url renders dismiss button, not a link', async () => {
+    const mod = await loadModule('static/js/global-errors.js');
+    mod.showEntitlementLock({ upgrade_url: 'javascript:alert(1)', message: 'msg' });
+    expect(document.querySelector('.entitlement-lock-overlay a')).toBeNull();
+    expect(document.querySelector('[data-dismiss-lock]')).not.toBeNull();
+  });
+
+  it('entitlement lock with same-origin upgrade_url renders a safe link', async () => {
+    const mod = await loadModule('static/js/global-errors.js');
+    mod.showEntitlementLock({ upgrade_url: '/upgrade-plan', message: 'msg' });
+    const link = document.querySelector('.entitlement-lock-overlay a');
+    expect(link).not.toBeNull();
+    expect(link.getAttribute('href')).toBe('/upgrade-plan');
+  });
+});
