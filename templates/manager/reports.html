@@ -1,580 +1,82 @@
 {% extends "base.html" %}
-{% from "partials/_page_header.html" import page_header %}
+{% from 'partials/_page_header.html' import page_header %}
 
-{% block title %}التقارير - المدير{% endblock %}
+{% block title %}مركز التقارير - لوحة المدير{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("التقارير والإحصائيات")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("تقارير شاملة وإحصائيات مفصلة")")")")")")")', icon='fas fa-chart-bar', actions=[
-        {'label': '_("_(" _(" _(" _(" _(" _("مركز التقارير")")")")")")")', 'icon': 'fas fa-chart-line', 'url': url_for('manager.reports_center'), 'style': 'outline-primary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("إنشاء تقرير")")")")")")")', 'icon': 'fas fa-file-alt', 'data_action': 'generate-report', 'style': 'primary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تصدير جميع التقارير")")")")")")")', 'icon': 'fas fa-download', 'data_action': 'export-all-reports', 'style': 'success'}
-    ]) }}
+{{ page_header(title='مركز التقارير', subtitle='الوصول إلى تقارير وتحليلات حقيقية مبنية على بيانات النظام', icon='fas fa-chart-line') }}
 
-    <!-- Report Categories -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("فئات التقارير")")")")")")")') }}</h6>
+<div class="row g-4">
+    <div class="col-md-6 col-lg-4">
+        <a class="card h-100 text-decoration-none shadow-sm" href="{{ url_for('manager.reports_center') }}">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-balance-scale fa-2x text-primary me-3"></i>
+                    <h5 class="mb-0">مقارنة الفترات</h5>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <div class="report-category-card">
-                                <div class="category-icon">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                <div class="category-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("تقارير المرضى")")")")")")")') }}</h6>
-                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات المرضى والزيارات")")")")")")")') }}</p>
-                                    <button class="btn btn-sm btn-outline-primary" data-action="view-patient-reports">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("عرض التقارير")")")")")")")') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        {% if module_active('billing') %}
-                        <div class="col-md-3 mb-3">
-                            <div class="report-category-card">
-                                <div class="category-icon">
-                                    <i class="fas fa-dollar-sign"></i>
-                                </div>
-                                <div class="category-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("التقارير المالية")")")")")")")') }}</h6>
-                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الإيرادات والمصروفات")")")")")")")') }}</p>
-                                    <button class="btn btn-sm btn-outline-primary" data-action="view-financial-reports">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("عرض التقارير")")")")")")")') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                        <div class="col-md-3 mb-3">
-                            <div class="report-category-card">
-                                <div class="category-icon">
-                                    <i class="fas fa-user-md"></i>
-                                </div>
-                                <div class="category-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("تقارير الأطباء")")")")")")")') }}</h6>
-                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("أداء الأطباء والإنتاجية")")")")")")")') }}</p>
-                                    <button class="btn btn-sm btn-outline-primary" data-action="view-doctor-reports">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("عرض التقارير")")")")")")")') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="report-category-card">
-                                <div class="category-icon">
-                                    <i class="fas fa-chart-line"></i>
-                                </div>
-                                <div class="category-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("التقارير التحليلية")")")")")")")') }}</h6>
-                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تحليلات متقدمة واتجاهات")")")")")")")') }}</p>
-                                    <button class="btn btn-sm btn-outline-primary" data-action="view-analytical-reports">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("عرض التقارير")")")")")")")') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <p class="text-muted small mb-0">مقارنة الشهر/السنة الحالية بالسابقة، مع تفصيل التحويلات بين الأقسام والسعة ومتطلبات الحجز.</p>
             </div>
-        </div>
+        </a>
     </div>
 
-    <!-- Quick Reports -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("التقارير السريعة")")")")")")")') }}</h6>
+    <div class="col-md-6 col-lg-4">
+        <a class="card h-100 text-decoration-none shadow-sm" href="{{ url_for('manager.self_service') }}">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-chart-area fa-2x text-success me-3"></i>
+                    <h5 class="mb-0">التحليلات الذاتية</h5>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="quick-report-item">
-                                <div class="report-icon bg-primary">
-                                    <i class="fas fa-calendar-day"></i>
-                                </div>
-                                <div class="report-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("تقرير اليوم")")")")")")")') }}</h6>
-                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات اليوم الحالي")")")")")")")') }}</p>
-                                    <button class="btn btn-sm btn-primary" data-action="generate-daily-report">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("إنشاء التقرير")")")")")")")') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="quick-report-item">
-                                <div class="report-icon bg-success">
-                                    <i class="fas fa-calendar-week"></i>
-                                </div>
-                                <div class="report-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("تقرير الأسبوع")")")")")")")') }}</h6>
-                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات الأسبوع الحالي")")")")")")")') }}</p>
-                                    <button class="btn btn-sm btn-success" data-action="generate-weekly-report">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("إنشاء التقرير")")")")")")")') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="quick-report-item">
-                                <div class="report-icon bg-info">
-                                    <i class="fas fa-calendar-alt"></i>
-                                </div>
-                                <div class="report-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("تقرير الشهر")")")")")")")') }}</h6>
-                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات الشهر الحالي")")")")")")")') }}</p>
-                                    <button class="btn btn-sm btn-info" data-action="generate-monthly-report">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("إنشاء التقرير")")")")")")")') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <p class="text-muted small mb-0">تحليلات المرضى والزيارات والإيرادات والأقسام مع فلترة بالتاريخ — بيانات محسوبة من قاعدة البيانات.</p>
             </div>
-        </div>
+        </a>
     </div>
 
-    <!-- Custom Reports -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("التقارير المخصصة")")")")")")")') }}</h6>
+    <div class="col-md-6 col-lg-4">
+        <a class="card h-100 text-decoration-none shadow-sm" href="{{ url_for('manager.kpi_dashboard') }}">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-gauge-high fa-2x text-warning me-3"></i>
+                    <h5 class="mb-0">لوحة مؤشرات الأداء</h5>
                 </div>
-                <div class="card-body">
-                    <form id="customReportForm">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="report_type" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع التقرير")")")")")")")') }}</label>
-                                    <select class="form-control" id="report_type" name="report_type">
-                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر نوع التقرير")")")")")")")') }}</option>
-                                        <option value="patients">{{ _('_("_(" _(" _(" _(" _(" _("المرضى")")")")")")")') }}</option>
-                                        <option value="visits">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}</option>
-                                        {% if module_active('billing') %}<option value="financial">{{ _('_("_(" _(" _(" _(" _(" _("المالي")")")")")")")') }}</option>{% endif %}
-                                        <option value="doctors">{{ _('_("_(" _(" _(" _(" _(" _("الأطباء")")")")")")")') }}</option>
-                                        <option value="departments">{{ _('_("_(" _(" _(" _(" _(" _("الأقسام")")")")")")")') }}</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="date_from" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("من تاريخ")")")")")")")') }}</label>
-                                    <input type="date" class="form-control" id="date_from" name="date_from">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="date_to" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إلى تاريخ")")")")")")")') }}</label>
-                                    <input type="date" class="form-control" id="date_to" name="date_to">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="format" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تنسيق التقرير")")")")")")")') }}</label>
-                                    <select class="form-control" id="format" name="format">
-                                        <option value="pdf">PDF</option>
-                                        <option value="excel">Excel</option>
-                                        <option value="csv">CSV</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <button type="button" class="btn btn-primary" data-action="generate-custom-report">
-                                    <i class="fas fa-file-alt me-2"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("إنشاء التقرير المخصص")")")")")")")') }}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                <p class="text-muted small mb-0">مؤشرات الأداء الشهرية الحقيقية مع تفصيل عمليات الدفع الإجباري.</p>
             </div>
-        </div>
+        </a>
     </div>
 
-    <!-- Report History -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ التقارير")")")")")")")') }}</h6>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" data-action="filter-reports" data-value="all">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</button>
-                        <button class="btn btn-sm btn-outline-success" data-action="filter-reports" data-value="recent">{{ _('_("_(" _(" _(" _(" _(" _("الأحدث")")")")")")")') }}</button>
-                        <button class="btn btn-sm btn-outline-warning" data-action="filter-reports" data-value="favorite">{{ _('_("_(" _(" _(" _(" _(" _("المفضلة")")")")")")")') }}</button>
-                    </div>
+    <div class="col-md-6 col-lg-4">
+        <a class="card h-100 text-decoration-none shadow-sm" href="{{ url_for('report_builder.index') }}">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-file-pen fa-2x text-info me-3"></i>
+                    <h5 class="mb-0">منشئ التقارير المخصصة</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="reportsTable">
-                            <thead>
-                                <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("اسم التقرير")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحجم")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="report-icon-small me-2">
-                                                <i class="fas fa-file-pdf text-danger"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("تقرير المرضى اليومي")")")")")")")') }}</div>
-                                                <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تقرير شامل عن المرضى")")")")")")")') }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-primary">{{ _('_("_(" _(" _(" _(" _(" _("مرضى")")")")")")")') }}</span>
-                                    </td>
-                                    <td>2024-01-15 10:30</td>
-                                    <td>2.5 MB</td>
-                                    <td>
-                                        <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report1" title="_(" _(" _(" _(" _(" _("عرض")")")")")")">
-                                                <i class="fas fa-eye"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report1" title="_(" _(" _(" _(" _(" _("تحميل")")")")")")">
-                                                <i class="fas fa-download"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")') }}</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report1" title="_(" _(" _(" _(" _(" _("مشاركة")")")")")")">
-                                                <i class="fas fa-share"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("مشاركة")")")")")")")') }}</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report1" title="_(" _(" _(" _(" _(" _("حذف")")")")")")">
-                                                <i class="fas fa-trash"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="report-icon-small me-2">
-                                                <i class="fas fa-file-excel text-success"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("تقرير الإيرادات الشهري")")")")")")")') }}</div>
-                                                <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تقرير مالي شامل")")")")")")")') }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مالي")")")")")")")') }}</span>
-                                    </td>
-                                    <td>2024-01-14 15:45</td>
-                                    <td>1.8 MB</td>
-                                    <td>
-                                        <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report2" title="_(" _(" _(" _(" _(" _("عرض")")")")")")">
-                                                <i class="fas fa-eye"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report2" title="_(" _(" _(" _(" _(" _("تحميل")")")")")")">
-                                                <i class="fas fa-download"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")') }}</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report2" title="_(" _(" _(" _(" _(" _("مشاركة")")")")")")">
-                                                <i class="fas fa-share"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("مشاركة")")")")")")")') }}</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report2" title="_(" _(" _(" _(" _(" _("حذف")")")")")")">
-                                                <i class="fas fa-trash"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="report-icon-small me-2">
-                                                <i class="fas fa-file-csv text-info"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("تقرير الأطباء الأسبوعي")")")")")")")') }}</div>
-                                                <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("أداء الأطباء والإنتاجية")")")")")")")') }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("أطباء")")")")")")")') }}</span>
-                                    </td>
-                                    <td>2024-01-13 09:15</td>
-                                    <td>1.2 MB</td>
-                                    <td>
-                                        <span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("قيد الإنشاء")")")")")")")') }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report3" title="_(" _(" _(" _(" _(" _("عرض")")")")")")">
-                                                <i class="fas fa-eye"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report3" title="_(" _(" _(" _(" _(" _("تحميل")")")")")")">
-                                                <i class="fas fa-download"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")') }}</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report3" title="_(" _(" _(" _(" _(" _("مشاركة")")")")")")">
-                                                <i class="fas fa-share"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("مشاركة")")")")")")")') }}</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report3" title="_(" _(" _(" _(" _(" _("حذف")")")")")")">
-                                                <i class="fas fa-trash"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <p class="text-muted small mb-0">بناء ومعاينة وحفظ تشغيلات التقارير المخصصة مع قوالب محفوظة.</p>
             </div>
-        </div>
+        </a>
     </div>
 
-    <!-- Report Analytics -->
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("تحليلات التقارير")")")")")")")') }}</h6>
+    <div class="col-md-6 col-lg-4">
+        <a class="card h-100 text-decoration-none shadow-sm" href="{{ url_for('manager.drill_down', report_type='visits') }}">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-list-check fa-2x text-danger me-3"></i>
+                    <h5 class="mb-0">تفاصيل الزيارات</h5>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="analytics-item">
-                                <div class="analytics-icon bg-primary">
-                                    <i class="fas fa-chart-bar"></i>
-                                </div>
-                                <div class="analytics-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("إجمالي التقارير")")")")")")")') }}</h6>
-                                    <span class="analytics-value">156</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="analytics-item">
-                                <div class="analytics-icon bg-success">
-                                    <i class="fas fa-download"></i>
-                                </div>
-                                <div class="analytics-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("التحميلات")")")")")")")') }}</h6>
-                                    <span class="analytics-value">1,234</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="analytics-item">
-                                <div class="analytics-icon bg-info">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div class="analytics-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("متوسط وقت الإنشاء")")")")")")")') }}</h6>
-                                    <span class="analytics-value">{{ _('_("_(" _(" _(" _(" _(" _("2.3 دقيقة")")")")")")")') }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="analytics-item">
-                                <div class="analytics-icon bg-warning">
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <div class="analytics-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("التقارير المفضلة")")")")")")")') }}</h6>
-                                    <span class="analytics-value">23</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <p class="text-muted small mb-0">جدول آخر الزيارات المسجّلة (حتى 200 سجل) مع خيار تحديد القسم.</p>
             </div>
-        </div>
+        </a>
+    </div>
 
-        <div class="col-lg-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("التقارير الأكثر استخداماً")")")")")")")') }}</h6>
+    <div class="col-md-6 col-lg-4">
+        <a class="card h-100 text-decoration-none shadow-sm" href="{{ url_for('manager.drill_down', report_type='patients') }}">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-users fa-2x text-secondary me-3"></i>
+                    <h5 class="mb-0">تفاصيل المرضى</h5>
                 </div>
-                <div class="card-body">
-                    <div class="popular-reports">
-                        <div class="popular-report-item">
-                            <div class="report-name">{{ _('_("_(" _(" _(" _(" _(" _("تقرير المرضى اليومي")")")")")")")') }}</div>
-                            <div class="report-usage">
-                                <div class="progress">
-                                    <div class="progress-bar bg-primary" style="width: 85%"></div>
-                                </div>
-                                <span class="usage-text">85%</span>
-                            </div>
-                        </div>
-                        <div class="popular-report-item">
-                            <div class="report-name">{{ _('_("_(" _(" _(" _(" _(" _("تقرير الإيرادات الشهري")")")")")")")') }}</div>
-                            <div class="report-usage">
-                                <div class="progress">
-                                    <div class="progress-bar bg-success" style="width: 72%"></div>
-                                </div>
-                                <span class="usage-text">72%</span>
-                            </div>
-                        </div>
-                        <div class="popular-report-item">
-                            <div class="report-name">{{ _('_("_(" _(" _(" _(" _(" _("تقرير الأطباء الأسبوعي")")")")")")")') }}</div>
-                            <div class="report-usage">
-                                <div class="progress">
-                                    <div class="progress-bar bg-info" style="width: 68%"></div>
-                                </div>
-                                <span class="usage-text">68%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <p class="text-muted small mb-0">أحدث المرضى المسجلون في الفترة المحددة.</p>
             </div>
-        </div>
+        </a>
     </div>
 </div>
-
-<style>
-.report-category-card {
-    border: 1px solid #e3e6f0;
-    border-radius: 0.35rem;
-    padding: 1.5rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    background: #fff;
-}
-.report-category-card:hover {
-    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-    transform: translateY(-2px);
-}
-.category-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: #f8f9fc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
-    font-size: 1.5rem;
-    color: #5a5c69;
-}
-.category-info h6 {
-    margin-bottom: 0.5rem;
-    color: #5a5c69;
-}
-.quick-report-item {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    border: 1px solid #e3e6f0;
-    border-radius: 0.35rem;
-    background: #fff;
-    transition: all 0.3s ease;
-}
-.quick-report-item:hover {
-    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-    transform: translateY(-2px);
-}
-.report-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-inline-start: 1rem;
-    color: white;
-    font-size: 1.2rem;
-}
-.report-info h6 {
-    margin: 0 0 0.5rem 0;
-    color: #5a5c69;
-}
-.report-icon-small {
-    width: 25px;
-    height: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.analytics-item {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    border: 1px solid #e3e6f0;
-    border-radius: 0.35rem;
-    margin-bottom: 1rem;
-    background: #fff;
-}
-.analytics-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-inline-start: 1rem;
-    color: white;
-    font-size: 1.2rem;
-}
-.analytics-info h6 {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #5a5c69;
-}
-.analytics-value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #5a5c69;
-}
-.popular-reports {
-    padding: 0;
-}
-.popular-report-item {
-    padding: 1rem 0;
-    border-bottom: 1px solid #f8f9fc;
-}
-.popular-report-item:last-child {
-    border-bottom: none;
-}
-.report-name {
-    font-weight: bold;
-    color: #5a5c69;
-    margin-bottom: 0.5rem;
-}
-.report-usage {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-.report-usage .progress {
-    flex: 1;
-    height: 8px;
-}
-.usage-text {
-    font-weight: bold;
-    color: #5a5c69;
-    min-width: 40px;
-}
-#reportsTable {
-    font-size: 0.9rem;
-}
-.btn-group .btn {
-    margin: 0 1px;
-}
-</style>
-
-<script type="module" src="{{ url_for('static', filename='js/pages/manager/reports.js') }}"></script>
 {% endblock %}

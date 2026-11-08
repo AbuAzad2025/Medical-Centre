@@ -4,75 +4,73 @@ export function refreshMonitoring() {
 }
 
 export function exportMonitoringReport() {
-    const reportData = {
-        timestamp: new Date().toISOString(),
-        units: window.__M0__,
-        performance: {
-            response_rate: 95,
-            uptime: 99.9,
-            memory_usage: 75,
-            disk_usage: 60
-        }
+    // Export the real payload the page rendered — never invented figures.
+    const units = window.__M0__ || {};
+    const perf = window.__M7__ || {};
+
+    const rows = [
+        ['الوحدة', 'الحجم'],
+    ];
+    const countColumn = {
+        reception: 'pending_visits',
+        doctor: 'in_progress_visits',
+        emergency: 'emergency_visits',
+        lab: 'lab_requests',
+        radiology: 'radiology_requests',
+        accountant: 'open_invoices',
     };
+    Object.keys(units).forEach(key => {
+        const col = countColumn[key];
+        const val = col && units[key] ? units[key][col] : '';
+        rows.push([(units[key] && units[key].name) || key, val]);
+    });
+    if (perf.cpu_percent !== undefined) rows.push(['استهلاك المعالج %', Math.round(perf.cpu_percent)]);
+    if (perf.memory_percent !== undefined) rows.push(['استهلاك الذاكرة %', Math.round(perf.memory_percent)]);
+    if (perf.disk_percent !== undefined) rows.push(['استهلاك القرص %', Math.round(perf.disk_percent)]);
+    if (perf.uptime_hours !== undefined) rows.push(['وقت التشغيل (ساعة)', perf.uptime_hours]);
 
-    const csvContent = "data:text/csv;charset=utf-8,"
-        + "الوحدة,الحالة,الإحصائيات\n"
-        + `الاستقبال,نشط,${window.__M1__ || 0}\n`
-        + `الطبيب,نشط,${window.__M2__ || 0}\n`
-        + `الطوارئ,نشط,${window.__M3__ || 0}\n`
-        + `المختبر,نشط,${window.__M4__ || 0}\n`
-        + `الأشعة,نشط,${window.__M5__ || 0}\n`
-        + `المحاسبة,نشط,${window.__M6__ || 0}\n`;
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "monitoring_report_" + new Date().toISOString().split('T')[0] + ".csv");
+    const csv = rows
+        .map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\r\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'monitoring_report_' + new Date().toISOString().split('T')[0] + '.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
 export function viewUnitDetails(unitKey) {
-    Swal.fire({ title: 'تفاصيل الوحدة', text: 'عرض تفاصيل الوحدة: ' + unitKey, icon: 'info' });
-}
-
-export function refreshUnit(unitKey) {
-    Swal.fire({ title: 'تحديث', text: 'تحديث الوحدة: ' + unitKey, icon: 'info' });
-}
-
-export function clearLogs() {
+    const units = window.__M0__ || {};
+    const unit = units[unitKey];
+    if (!unit) {
+        Swal.fire({ title: 'تفاصيل الوحدة', text: 'لا توجد بيانات لهذه الوحدة', icon: 'info' });
+        return;
+    }
+    const countColumn = {
+        reception: 'pending_visits',
+        doctor: 'in_progress_visits',
+        emergency: 'emergency_visits',
+        lab: 'lab_requests',
+        radiology: 'radiology_requests',
+        accountant: 'open_invoices',
+    };
+    const col = countColumn[unitKey];
+    const val = col ? unit[col] : '-';
     Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد مسح جميع السجلات؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم مسح السجلات', icon: 'success' }); } });
+        title: unit.name || unitKey,
+        html: '<p class="text-start mb-1">الحالة: ' + (unit.status === 'active' ? 'نشطة' : 'معطّلة') + '</p>'
+            + '<p class="text-start mb-0">القيمة الحالية: <strong>' + val + '</strong></p>',
+        icon: 'info',
+    });
 }
 
-export function exportLogs() {
-    Swal.fire({ title: 'تم', text: 'تم تصدير السجلات', icon: 'success' });
+export function refreshUnit() {
+    location.reload();
 }
-
-setInterval(function() {
-
-    fetch(window.__M7__ + '?ajax=true', { credentials: 'same-origin' })
-        .then(response => {
-            if (!response.ok) throw new Error('http_' + response.status);
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-
-                updateUnitStatus(data.units_status);
-            }
-        })
-        .catch(error => {
-            console.warn('تعذر تحديث بيانات المراقبة');
-        });
-}, 60000);
 
 export function updateUnitStatus(unitsStatus) {
     const map = {
@@ -109,9 +107,7 @@ export function updateUnitStatus(unitsStatus) {
 
 
 // Backward compatibility
-if (typeof clearLogs !== "undefined") window.clearLogs = clearLogs;
 if (typeof refreshMonitoring !== "undefined") window.refreshMonitoring = refreshMonitoring;
-if (typeof exportLogs !== "undefined") window.exportLogs = exportLogs;
 if (typeof exportMonitoringReport !== "undefined") window.exportMonitoringReport = exportMonitoringReport;
 if (typeof viewUnitDetails !== "undefined") window.viewUnitDetails = viewUnitDetails;
 if (typeof updateUnitStatus !== "undefined") window.updateUnitStatus = updateUnitStatus;

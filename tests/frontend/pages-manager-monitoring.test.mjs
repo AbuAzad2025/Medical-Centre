@@ -18,15 +18,17 @@ beforeEach(() => {
   `;
   window.__M = [];
   window.escHtml = (s) => s;
-  window.__M0__ = 'units';
-  window.__M1__ = 'reception';
-  window.__M2__ = 'doctor';
-  window.__M3__ = 'emergency';
-  window.__M4__ = 'lab';
-  window.__M5__ = 'radiology';
-  window.__M6__ = 'accountant';
-  window.__M7__ = '/manager/api/monitoring/refresh';
+  window.__M0__ = {
+    reception: { name: 'الاستقبال', status: 'active', pending_visits: 5 },
+    doctor: { name: 'الأطباء', status: 'active', in_progress_visits: 3 },
+    emergency: { name: 'الطوارئ', status: 'active', emergency_visits: 2 },
+    lab: { name: 'المختبر', status: 'active', lab_requests: 25 },
+    radiology: { name: 'الأشعة', status: 'active', radiology_requests: 41 },
+    accountant: { name: 'المحاسب', status: 'active', open_invoices: 7 },
+  };
+  window.__M7__ = { cpu_percent: 32, memory_percent: 61, disk_percent: 48, uptime_hours: 12 };
   window.API_ROUTES = {};
+  window.location = { reload: vi.fn() };
   window.Swal = {
     fire: vi.fn().mockResolvedValue({ isConfirmed: true }),
     showLoading: vi.fn(),
@@ -39,51 +41,52 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe('monitoring.js', () => {
-  it('refreshMonitoring does not throw', async () => {
+  it('refreshMonitoring reloads the page', async () => {
     const mod = await loadModule('static/js/pages/manager/monitoring.js');
-    expect(() => mod.refreshMonitoring()).not.toThrow();
+    mod.refreshMonitoring();
+    expect(window.location.reload).toHaveBeenCalled();
   });
 
-  it('exportMonitoringReport creates link', async () => {
+  it('exportMonitoringReport creates a CSV link with real data', async () => {
     const mod = await loadModule('static/js/pages/manager/monitoring.js');
+    global.URL.createObjectURL = vi.fn(() => 'blob:x');
+    global.URL.revokeObjectURL = vi.fn();
     mod.exportMonitoringReport();
-    expect(document.body.innerHTML).toBeDefined();
+    expect(global.URL.createObjectURL).toHaveBeenCalled();
   });
 
-  it('viewUnitDetails shows info Swal', async () => {
+  it('exportMonitoringReport works with missing payloads', async () => {
+    delete window.__M0__;
+    delete window.__M7__;
+    const mod = await loadModule('static/js/pages/manager/monitoring.js');
+    global.URL.createObjectURL = vi.fn(() => 'blob:x');
+    global.URL.revokeObjectURL = vi.fn();
+    expect(() => mod.exportMonitoringReport()).not.toThrow();
+  });
+
+  it('viewUnitDetails shows real unit stats for a known key', async () => {
     const mod = await loadModule('static/js/pages/manager/monitoring.js');
     mod.viewUnitDetails('lab');
-    expect(window.Swal.fire).toHaveBeenCalled();
+    const args = window.Swal.fire.mock.calls[0][0];
+    expect(args.title).toBe('المختبر');
+    expect(args.html).toContain('25');
+    expect(args.html).toContain('نشطة');
   });
 
-  it('refreshUnit shows info Swal', async () => {
+  it('viewUnitDetails with unknown key shows a gentle message instead of fake values', async () => {
+    const mod = await loadModule('static/js/pages/manager/monitoring.js');
+    mod.viewUnitDetails('spaceship');
+    expect(window.Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ title: 'تفاصيل الوحدة' }));
+  });
+
+  it('refreshUnit reloads the page', async () => {
     const mod = await loadModule('static/js/pages/manager/monitoring.js');
     mod.refreshUnit('lab');
-    expect(window.Swal.fire).toHaveBeenCalled();
-  });
-
-  it('clearLogs confirm then clears', async () => {
-    const mod = await loadModule('static/js/pages/manager/monitoring.js');
-    mod.clearLogs();
-    await new Promise(r => setTimeout(r, 30));
-    expect(window.Swal.fire).toHaveBeenCalledTimes(2);
-  });
-
-  it('clearLogs cancel does not follow-up', async () => {
-    window.Swal.fire = vi.fn().mockResolvedValue({ isConfirmed: false });
-    const mod = await loadModule('static/js/pages/manager/monitoring.js');
-    mod.clearLogs();
-    await new Promise(r => setTimeout(r, 30));
-    expect(window.Swal.fire).toHaveBeenCalledTimes(1);
-  });
-
-  it('exportLogs shows success', async () => {
-    const mod = await loadModule('static/js/pages/manager/monitoring.js');
-    mod.exportLogs();
-    expect(window.Swal.fire).toHaveBeenCalled();
+    expect(window.location.reload).toHaveBeenCalled();
   });
 
   it('updateUnitStatus updates stats and badges', async () => {
@@ -98,36 +101,6 @@ describe('monitoring.js', () => {
     expect(document.getElementById('badge-lab-status').className).toContain('bg-warning');
     expect(document.getElementById('badge-radiology-status').className).toContain('bg-danger');
     expect(document.getElementById('badge-emergency-status').textContent).toBe('معطل');
-  });
-
-  it('setInterval auto-refresh fetches and updates status', async () => {
-    vi.useFakeTimers();
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true, units_status: { lab: { lab_requests: 99, status: 'active' } } }) });
-    await loadModule('static/js/pages/manager/monitoring.js');
-    await vi.advanceTimersByTimeAsync(60000);
-    expect(global.fetch).toHaveBeenCalled();
-    expect(document.getElementById('stat-lab-lab_requests').textContent).toBe('99');
-    vi.useRealTimers();
-  });
-
-  it('setInterval auto-refresh fetch failure logs warning', async () => {
-    vi.useFakeTimers();
-    global.fetch = vi.fn().mockRejectedValue(new Error('network'));
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    await loadModule('static/js/pages/manager/monitoring.js');
-    await vi.advanceTimersByTimeAsync(60000);
-    expect(warnSpy).toHaveBeenCalled();
-    warnSpy.mockRestore();
-    vi.useRealTimers();
-  });
-
-  it('setInterval auto-refresh with unsuccessful body does nothing', async () => {
-    vi.useFakeTimers();
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: false }) });
-    await loadModule('static/js/pages/manager/monitoring.js');
-    await vi.advanceTimersByTimeAsync(60000);
-    expect(document.getElementById('stat-lab-lab_requests').textContent).toBe('25');
-    vi.useRealTimers();
   });
 
   it('updateUnitStatus emergency warning threshold', async () => {

@@ -169,45 +169,42 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("معدل الاستجابة")")")")")")")') }}</div>
+                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("استهلاك المعالج")")")")")")")') }}</div>
                                 <div class="metric-value">
                                     <div class="progress">
-                                        <div class="progress-bar bg-success" style="width: 95%"></div>
+                                        <div class="progress-bar bg-success" style="width: {{ perf.cpu_percent | default(0) }}%"></div>
                                     </div>
-                                    <span class="metric-text">95%</span>
+                                    <span class="metric-text">{{ '%.0f'|format(perf.cpu_percent) ~ '%' if perf and perf.cpu_percent is defined else '—' }}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("وقت التشغيل")")")")")")")') }}</div>
+                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("استهلاك الذاكرة")")")")")")")') }}</div>
                                 <div class="metric-value">
                                     <div class="progress">
-                                        <div class="progress-bar bg-info" style="width: 99%"></div>
+                                        <div class="progress-bar bg-warning" style="width: {{ perf.memory_percent | default(0) }}%"></div>
                                     </div>
-                                    <span class="metric-text">99.9%</span>
+                                    <span class="metric-text">{{ '%.0f'|format(perf.memory_percent) ~ '%' if perf and perf.memory_percent is defined else '—' }}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("استخدام الذاكرة")")")")")")")') }}</div>
+                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("استهلاك القرص")")")")")")")') }}</div>
                                 <div class="metric-value">
                                     <div class="progress">
-                                        <div class="progress-bar bg-warning" style="width: 75%"></div>
+                                        <div class="progress-bar bg-primary" style="width: {{ perf.disk_percent | default(0) }}%"></div>
                                     </div>
-                                    <span class="metric-text">75%</span>
+                                    <span class="metric-text">{{ '%.0f'|format(perf.disk_percent) ~ '%' if perf and perf.disk_percent is defined else '—' }}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("استخدام القرص")")")")")")")') }}</div>
+                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("وقت التشغيل (ساعة)")")")")")")")') }}</div>
                                 <div class="metric-value">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-primary" style="width: 60%"></div>
-                                    </div>
-                                    <span class="metric-text">60%</span>
+                                    <span class="metric-text">{{ perf.uptime_hours | default('—') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -219,42 +216,50 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("تنبيهات النظام")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("الوحدات والطوابير")")")")")")")') }}</h6>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle me-2"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("جميع الوحدات تعمل بشكل طبيعي")")")")")")")') }}
-                    </div>
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("لا توجد تنبيهات جديدة")")")")")")")') }}
-                    </div>
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("مراجعة دورية للنسخ الاحتياطية")")")")")")")') }}
-                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for unit_key, unit in units_status.items() %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ unit.name }}</span>
+                            <span>
+                                {% if unit.status != 'active' %}
+                                <span class="badge bg-secondary">معطّلة</span>
+                                {% elif unit_key == 'reception' %}
+                                <span class="badge bg-{{ 'warning' if unit.pending_visits > 0 else 'success' }}">{{ unit.pending_visits }} منتظرة</span>
+                                {% elif unit_key == 'doctor' %}
+                                <span class="badge bg-{{ 'warning' if unit.in_progress_visits > 0 else 'success' }}">{{ unit.in_progress_visits }} قيد التنفيذ</span>
+                                {% elif unit_key == 'emergency' %}
+                                <span class="badge bg-{{ 'danger' if unit.emergency_visits > 8 else ('warning' if unit.emergency_visits > 0 else 'success') }}">{{ unit.emergency_visits }} طارئة</span>
+                                {% elif unit_key == 'lab' %}
+                                <span class="badge bg-secondary">{{ unit.lab_requests }} طلب</span>
+                                {% elif unit_key == 'radiology' %}
+                                <span class="badge bg-secondary">{{ unit.radiology_requests }} طلب</span>
+                                {% elif unit_key == 'accountant' %}
+                                <span class="badge bg-{{ 'warning' if unit.open_invoices > 0 else 'success' }}">{{ unit.open_invoices }} فاتورة مفتوحة</span>
+                                {% endif %}
+                            </span>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-muted">لا توجد بيانات</li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- System Logs -->
+    <!-- Latest tenant audit events -->
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("سجلات النظام")")")")")")")') }}</h6>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" onclick="clearLogs()">
-                            <i class="fas fa-trash me-1"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("مسح السجلات")")")")")")")') }}
-                        </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="exportLogs()">
-                            <i class="fas fa-download me-1"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("تصدير السجلات")")")")")")")') }}
-                        </button>
-                    </div>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("آخر أحداث التدقيق")")")")")")")') }}</h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshMonitoring()">
+                        <i class="fas fa-sync-alt me-1"></i>
+                        {{ _('_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")') }}
+                    </button>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -262,36 +267,22 @@
                             <thead>
                                 <tr>
                                     <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المستوى")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الوحدة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الرسالة")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراء")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الكيان")")")")")")")') }}</th>
+                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المستخدم")")")")")")")') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for row in recent_audit %}
                                 <tr>
-                                    <td>2024-01-15 10:30:25</td>
-                                    <td><span class="badge bg-success">INFO</span></td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("النظام")")")")")")")') }}</td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("تم تحديث حالة الوحدات بنجاح")")")")")")")') }}</td>
+                                    <td class="small text-muted">{{ row.at }}</td>
+                                    <td><span class="badge bg-info">{{ row.action }}</span></td>
+                                    <td>{{ row.entity }}</td>
+                                    <td>{{ row.user }}</td>
                                 </tr>
-                                <tr>
-                                    <td>2024-01-15 10:25:15</td>
-                                    <td><span class="badge bg-info">DEBUG</span></td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("قاعدة البيانات")")")")")")")') }}</td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("تم تنفيذ استعلام بنجاح")")")")")")")') }}</td>
-                                </tr>
-                                <tr>
-                                    <td>2024-01-15 10:20:05</td>
-                                    <td><span class="badge bg-warning">WARN</span></td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("الذاكرة")")")")")")")') }}</td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("استخدام الذاكرة مرتفع قليلاً")")")")")")")') }}</td>
-                                </tr>
-                                <tr>
-                                    <td>2024-01-15 10:15:30</td>
-                                    <td><span class="badge bg-success">INFO</span></td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("الشبكة")")")")")")")') }}</td>
-                                    <td>{{ _('_("_(" _(" _(" _(" _(" _("تم اختبار الاتصال بنجاح")")")")")")")') }}</td>
-                                </tr>
+                                {% else %}
+                                <tr><td colspan="4" class="text-center text-muted py-3">لا توجد أحداث تدقيق مسجلة حتى الآن</td></tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -413,7 +404,7 @@
 
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
-        __M0__={{ units_status|tojson }}; __M1__='{{ units_status.reception.pending_visits }}'; __M2__='{{ units_status.doctor.in_progress_visits }}'; __M3__='{{ units_status.emergency.emergency_visits }}'; __M4__='{{ units_status.lab.lab_requests }}'; __M5__='{{ units_status.radiology.radiology_requests }}'; __M6__='{{ units_status.accountant.open_invoices }}'; __M7__='{{ url_for("manager.analytics") }}';
+        __M0__={{ units_status|tojson }}; __M1__='{{ units_status.reception.pending_visits }}'; __M2__='{{ units_status.doctor.in_progress_visits }}'; __M3__='{{ units_status.emergency.emergency_visits }}'; __M7__={{ perf|tojson if perf else '{}' }};; __M4__='{{ units_status.lab.lab_requests }}'; __M5__='{{ units_status.radiology.radiology_requests }}'; __M6__='{{ units_status.accountant.open_invoices }}'; __M7__='{{ url_for("manager.analytics") }}';
         </script>
 <script type="module" src="{{ url_for('static', filename='js/pages/manager/monitoring.js') }}"></script>
 {% endblock %}

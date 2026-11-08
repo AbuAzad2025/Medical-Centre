@@ -109,13 +109,11 @@ describe('monitoring.js updateUnitStatus threshold branches', () => {
 });
 
 describe('monitoring.js report and teardown arms', () => {
-  it('report without any of the __M1__..__M6__ counters defaults them to zero', async () => {
-    window.__M1__ = undefined;
-    window.__M2__ = undefined;
-    window.__M3__ = undefined;
-    window.__M4__ = undefined;
-    window.__M5__ = undefined;
-    window.__M6__ = undefined;
+  it('report with no unit payload still exports a valid CSV', async () => {
+    global.URL.createObjectURL = vi.fn(() => 'blob:x');
+    global.URL.revokeObjectURL = vi.fn();
+    window.__M0__ = {};
+    window.__M7__ = {};
     const mod = await loadModule('static/js/pages/manager/monitoring.js');
     expect(() => mod.exportMonitoringReport()).not.toThrow();
   });

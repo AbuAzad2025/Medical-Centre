@@ -236,8 +236,75 @@ def analytics():
                 ).scalar(),
             },
         }
+        from models.audit_trail import AuditTrail
+        from models.user import User
+
+        # Real host/db performance counters (same source as the super_admin
+        # performance page); the manager page previously showed invented
+        # figures (95% response rate, 99.9% uptime, 75% memory, 60% disk).
+        perf = {}
+        try:
+            import time as _time
+
+            import psutil
+            from sqlalchemy import text
+
+            cpu = psutil.cpu_percent(interval=0.1)
+            memory = psutil.virtual_memory().percent
+            disk = psutil.disk_usage('/').percent
+            uptime_hours = round((_time.time() - psutil.boot_time()) / 3600, 1)
+
+            active_db_connections = None
+            db_size_mb = None
+            try:
+                active_db_connections = db.session.execute(
+                    text("SELECT count(*) FROM pg_stat_activity WHERE state = 'active'")
+                ).scalar()
+                db_size_bytes = db.session.execute(
+                    text('SELECT pg_database_size(current_database())')
+                ).scalar()
+                if db_size_bytes is not None:
+                    db_size_mb = round(int(db_size_bytes) / (1024 * 1024), 1)
+            except Exception:
+                logging.exception('performance database counters unavailable')
+
+            perf = {
+                'cpu_percent': cpu,
+                'memory_percent': memory,
+                'disk_percent': disk,
+                'uptime_hours': uptime_hours,
+                'active_db_connections': int(active_db_connections)
+                if active_db_connections is not None
+                else None,
+                'db_size_mb': db_size_mb,
+            }
+        except Exception:
+            logging.exception('psutil performance counters unavailable')
+
+        # Real latest audit events for this tenant — replaces the hardcoded
+        # 2024-01-15 placeholder rows that were rendered as if they were live logs.
+        recent_audit = db.session.execute(
+            select(AuditTrail, User.full_name)
+            .join(User, User.id == AuditTrail.user_id, isouter=True)
+            .where(AuditTrail.tenant_id == current_user.tenant_id)
+            .order_by(AuditTrail.created_at.desc())
+            .limit(10)
+        ).all()
+        recent_items = [
+            {
+                'user': full_name or f'user #{aud.user_id}',
+                'action': aud.action,
+                'entity': aud.entity_type,
+                'at': aud.created_at.strftime('%Y-%m-%d %H:%M') if aud.created_at else '',
+            }
+            for aud, full_name in recent_audit
+        ]
         return render_template(
-            'manager/monitoring.html', units_status=units_status, billing_active=billing_active
+            'manager/monitoring.html',
+            units_status=units_status,
+            billing_active=billing_active,
+            perf=perf,
+            recent_audit=recent_items,
         )
     except Exception:
         logging.exception('Error in analytics monitoring: %s')

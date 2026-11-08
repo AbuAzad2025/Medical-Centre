@@ -197,8 +197,8 @@ def dashboard():
             ).scalar()
             uptime_pct = round((1 - (error_logs / max(total_logs, 1))) * 100, 1)
         except Exception:
-            uptime_pct = 99.9
-        system_uptime_val = f'{uptime_pct}%'
+            uptime_pct = None  # unknown, not a fabricated healthy-looking figure
+        system_uptime_val = f'{uptime_pct}%' if uptime_pct is not None else None
 
         # Real AI insights as list
         ai_insights_list = []

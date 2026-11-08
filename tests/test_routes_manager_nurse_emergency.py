@@ -193,7 +193,8 @@ class TestManagerRoutes:
     def test_analytics(self, login_as, client, ctx):
         _make_role(login_as, client, ctx, 'manager')
         resp = client.get('/manager/analytics')
-        assert resp.status_code in (200, 302)
+        assert resp.status_code == 200
+        assert b'stat-reception-pending_visits' in resp.data
 
     def test_settings(self, login_as, client, ctx):
         _make_role(login_as, client, ctx, 'manager')
