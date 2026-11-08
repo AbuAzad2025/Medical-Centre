@@ -144,10 +144,12 @@ def test_lab_transition_raises_on_invalid(patch_db_session):
 
 def test_lab_enter_results_sets_values_and_meta(patch_db_session):
     session = patch_db_session()
-    result = SimpleNamespace(entered_by=None, entered_at=None)
+    result = SimpleNamespace(performed_by=None, updated_at=None)
     LabWorkflowService.enter_results(result, {'wbc': 6.2, 'rbc': 4.8}, entered_by=7)
     assert result.wbc == 6.2
     assert result.rbc == 4.8
-    assert result.entered_by == 7
-    assert result.entered_at is not None
+    # LabResult has no entered_by/entered_at columns; the data is persisted
+    # through performed_by/updated_at instead.
+    assert result.performed_by == 7
+    assert result.updated_at is not None
     assert result in session.added

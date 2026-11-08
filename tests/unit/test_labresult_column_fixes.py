@@ -7,12 +7,6 @@ columns (performed_by / value).
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-from unittest.mock import MagicMock
-
-import pytest
-
-from app.extensions import db
 from models.lab_request import LabResult
 from services.fhir_service import FHIRService
 
@@ -29,7 +23,9 @@ class TestEnterResults:
         )
         from app.modules.workflows.lab import LabWorkflowService
 
-        LabWorkflowService.enter_results(lab_result, {'value': '13.5', 'unit': 'g/dL'}, entered_by=42)
+        LabWorkflowService.enter_results(
+            lab_result, {'value': '13.5', 'unit': 'g/dL'}, entered_by=42
+        )
         assert lab_result.performed_by == 42
         assert lab_result.value == '13.5'
         assert lab_result.unit == 'g/dL'

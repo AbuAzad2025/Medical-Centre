@@ -29,8 +29,7 @@ def force_logout_all_users():
         updated = (
             db.session.execute(
                 select(func.count(User.id)).where(User.is_active == True)  # noqa: E712
-            )
-            .scalar()
+            ).scalar()
             or 0
         )
         db.session.execute(
@@ -51,7 +50,9 @@ def force_logout_all_users():
             )
         )
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        return jsonify({'success': True, 'message': f'تم إجبار {updated} مستخدم على تسجيل الخروج'}), 200
+        return jsonify(
+            {'success': True, 'message': f'تم إجبار {updated} مستخدم على تسجيل الخروج'}
+        ), 200
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('force_logout_all_users error')
@@ -67,8 +68,14 @@ def optimize_database():
         from sqlalchemy import text
 
         tables = (
-            'patients', 'visits', 'appointments', 'lab_requests',
-            'lab_results', 'prescriptions', 'audit_trail', 'purchase_orders',
+            'patients',
+            'visits',
+            'appointments',
+            'lab_requests',
+            'lab_results',
+            'prescriptions',
+            'audit_trail',
+            'purchase_orders',
         )
         with db.engine.connect().execution_options(isolation_level='AUTOCOMMIT') as conn:
             for table in tables:
@@ -93,7 +100,9 @@ def optimize_database():
             )
         )
         safe_commit(db.session, error_message='database commit failed', reraise=True)
-        return jsonify({'success': True, 'message': 'تم تحسين قاعدة البيانات (VACUUM ANALYZE)'}), 200
+        return jsonify(
+            {'success': True, 'message': 'تم تحسين قاعدة البيانات (VACUUM ANALYZE)'}
+        ), 200
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('optimize_database error')

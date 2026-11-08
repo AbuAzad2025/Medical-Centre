@@ -6,9 +6,6 @@ Covers parse_oru_message (PID-3, OBR-3, OBX extraction), create_results_from_oru
 
 from __future__ import annotations
 
-from unittest.mock import patch
-
-import pytest
 from sqlalchemy import select
 
 from app.extensions import db
@@ -41,14 +38,21 @@ def _make_lab_request(app, test_tenant, patient_id):
 
 
 def _oru(patient_id=None, order_id=None, obx_rows: list | None = None):
-    obx_rows = obx_rows if obx_rows is not None else [
-        ('HGB^Hemoglobin', '13.5', 'g/dL', '12-16', 'N'),
-    ]
-    pid = f'PID|||{patient_id}||ORU^Patient' if patient_id is not None else 'PID|||bad-id||ORU^Patient'
+    obx_rows = (
+        obx_rows
+        if obx_rows is not None
+        else [
+            ('HGB^Hemoglobin', '13.5', 'g/dL', '12-16', 'N'),
+        ]
+    )
+    pid = (
+        f'PID|||{patient_id}||ORU^Patient'
+        if patient_id is not None
+        else 'PID|||bad-id||ORU^Patient'
+    )
     obr = f'OBR|||{order_id}' if order_id is not None else 'OBR|||bad-order^TestOrder'
     obx = '\r'.join(
-        f'OBX||NM|{name}||{value}|{unit}|{ref}|{flag}'
-        for name, value, unit, ref, flag in obx_rows
+        f'OBX||NM|{name}||{value}|{unit}|{ref}|{flag}' for name, value, unit, ref, flag in obx_rows
     )
     return f'MSH|^~\\&|LAB|HOSP|||20240101||ORU^R01|123|P|2.5\r{pid}\r{obr}\r{obx}'
 
@@ -57,10 +61,14 @@ class TestParseOruMessage:
     def test_parse_extracts_patient_order_and_results(self, app, test_tenant):
         patient_id = _make_patient(app, test_tenant)
         order_id = _make_lab_request(app, test_tenant, patient_id)
-        raw = _oru(patient_id=patient_id, order_id=order_id, obx_rows=[
-            ('Hemoglobin', '14.2', 'g/dL', '12-16', 'N'),
-            ('Hematocrit', '42.0', '%', '37-47', 'N'),
-        ])
+        raw = _oru(
+            patient_id=patient_id,
+            order_id=order_id,
+            obx_rows=[
+                ('Hemoglobin', '14.2', 'g/dL', '12-16', 'N'),
+                ('Hematocrit', '42.0', '%', '37-47', 'N'),
+            ],
+        )
         parsed = HL7ORUService.parse_oru_message(raw, tenant_id=test_tenant.id)
         assert parsed['patient_id'] == patient_id
         assert parsed['order_id'] == order_id
@@ -104,9 +112,13 @@ class TestParseOruMessage:
     def test_parse_critical_flag_is_preserved(self, app, test_tenant):
         patient_id = _make_patient(app, test_tenant)
         order_id = _make_lab_request(app, test_tenant, patient_id)
-        raw = _oru(patient_id=patient_id, order_id=order_id, obx_rows=[
-            ('Potassium', '2.1', 'mmol/L', '3.5-5.0', 'LL'),
-        ])
+        raw = _oru(
+            patient_id=patient_id,
+            order_id=order_id,
+            obx_rows=[
+                ('Potassium', '2.1', 'mmol/L', '3.5-5.0', 'LL'),
+            ],
+        )
         parsed = HL7ORUService.parse_oru_message(raw, tenant_id=test_tenant.id)
         assert parsed['results'][0]['abnormal_flag'] == 'LL'
 
@@ -115,16 +127,22 @@ class TestCreateResultsFromOru:
     def test_creates_lab_results(self, app, test_tenant):
         patient_id = _make_patient(app, test_tenant)
         order_id = _make_lab_request(app, test_tenant, patient_id)
-        raw = _oru(patient_id=patient_id, order_id=order_id, obx_rows=[
-            ('Hemoglobin', '15.0', 'g/dL', '13-17', 'N'),
-        ])
+        raw = _oru(
+            patient_id=patient_id,
+            order_id=order_id,
+            obx_rows=[
+                ('Hemoglobin', '15.0', 'g/dL', '13-17', 'N'),
+            ],
+        )
         result = HL7ORUService.create_results_from_oru(raw, tenant_id=test_tenant.id)
         try:
             assert result['created']
             assert result['errors'] == []
-            rows = db.session.execute(
-                select(LabResult).where(LabResult.request_id == order_id)
-            ).scalars().all()
+            rows = (
+                db.session.execute(select(LabResult).where(LabResult.request_id == order_id))
+                .scalars()
+                .all()
+            )
             assert len(rows) == 1
             assert rows[0].test_name == 'Hemoglobin'
             assert rows[0].is_critical is False
@@ -135,14 +153,20 @@ class TestCreateResultsFromOru:
     def test_critical_flag_sets_is_critical(self, app, test_tenant):
         patient_id = _make_patient(app, test_tenant)
         order_id = _make_lab_request(app, test_tenant, patient_id)
-        raw = _oru(patient_id=patient_id, order_id=order_id, obx_rows=[
-            ('Potassium', '1.9', 'mmol/L', '3.5-5.0', 'LL'),
-        ])
+        raw = _oru(
+            patient_id=patient_id,
+            order_id=order_id,
+            obx_rows=[
+                ('Potassium', '1.9', 'mmol/L', '3.5-5.0', 'LL'),
+            ],
+        )
         result = HL7ORUService.create_results_from_oru(raw, tenant_id=test_tenant.id)
         try:
-            rows = db.session.execute(
-                select(LabResult).where(LabResult.request_id == order_id)
-            ).scalars().all()
+            rows = (
+                db.session.execute(select(LabResult).where(LabResult.request_id == order_id))
+                .scalars()
+                .all()
+            )
             assert rows[0].is_critical is True
             assert result['errors'] == []
         finally:
@@ -167,9 +191,13 @@ class TestHandleOruMessage:
     def test_returns_summary_when_order_and_results_present(self, app, test_tenant):
         patient_id = _make_patient(app, test_tenant)
         order_id = _make_lab_request(app, test_tenant, patient_id)
-        raw = _oru(patient_id=patient_id, order_id=order_id, obx_rows=[
-            ('Hemoglobin', '14.0', 'g/dL', '13-17', 'N'),
-        ])
+        raw = _oru(
+            patient_id=patient_id,
+            order_id=order_id,
+            obx_rows=[
+                ('Hemoglobin', '14.0', 'g/dL', '13-17', 'N'),
+            ],
+        )
         summary = HL7ORUService.handle_oru_message({}, raw)
         try:
             assert 'Created 1 results' in summary

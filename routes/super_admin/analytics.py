@@ -44,30 +44,48 @@ def performance_metrics():
         active_connections = scalar("SELECT count(*) FROM pg_stat_activity WHERE state = 'active'")
         db_size_bytes = scalar('SELECT pg_database_size(current_database())')
         visits_today = scalar('SELECT count(*) FROM visits WHERE visit_date = CURRENT_DATE')
-        payments_today = scalar('SELECT count(*) FROM payments WHERE payment_date::date = CURRENT_DATE')
-        payment_amount_today = scalar('SELECT coalesce(sum(amount), 0) FROM payments WHERE payment_date::date = CURRENT_DATE')
-        prescriptions_today = scalar('SELECT count(*) FROM prescriptions WHERE created_at::date = CURRENT_DATE')
+        payments_today = scalar(
+            'SELECT count(*) FROM payments WHERE payment_date::date = CURRENT_DATE'
+        )
+        payment_amount_today = scalar(
+            'SELECT coalesce(sum(amount), 0) FROM payments WHERE payment_date::date = CURRENT_DATE'
+        )
+        prescriptions_today = scalar(
+            'SELECT count(*) FROM prescriptions WHERE created_at::date = CURRENT_DATE'
+        )
         audit_errors_today = scalar(
-            "SELECT count(*) FROM audit_trail "
+            'SELECT count(*) FROM audit_trail '
             "WHERE created_at::date = CURRENT_DATE AND action IN ('login_failed', 'force_logout', 'permission_denied')"
         )
 
-        db_size_mb = round(int(db_size_bytes) / (1024 * 1024), 1) if db_size_bytes is not None else None
+        db_size_mb = (
+            round(int(db_size_bytes) / (1024 * 1024), 1) if db_size_bytes is not None else None
+        )
 
-        return jsonify({
-            'success': True,
-            'cpu_percent': cpu,
-            'memory_percent': memory,
-            'disk_percent': disk,
-            'uptime_hours': uptime_hours,
-            'active_db_connections': int(active_connections) if active_connections is not None else None,
-            'db_size_mb': db_size_mb,
-            'visits_today': int(visits_today) if visits_today is not None else None,
-            'payments_today': int(payments_today) if payments_today is not None else None,
-            'payment_amount_today': float(payment_amount_today) if payment_amount_today is not None else None,
-            'prescriptions_today': int(prescriptions_today) if prescriptions_today is not None else None,
-            'audit_errors_today': int(audit_errors_today) if audit_errors_today is not None else None,
-        })
+        return jsonify(
+            {
+                'success': True,
+                'cpu_percent': cpu,
+                'memory_percent': memory,
+                'disk_percent': disk,
+                'uptime_hours': uptime_hours,
+                'active_db_connections': int(active_connections)
+                if active_connections is not None
+                else None,
+                'db_size_mb': db_size_mb,
+                'visits_today': int(visits_today) if visits_today is not None else None,
+                'payments_today': int(payments_today) if payments_today is not None else None,
+                'payment_amount_today': float(payment_amount_today)
+                if payment_amount_today is not None
+                else None,
+                'prescriptions_today': int(prescriptions_today)
+                if prescriptions_today is not None
+                else None,
+                'audit_errors_today': int(audit_errors_today)
+                if audit_errors_today is not None
+                else None,
+            }
+        )
     except Exception:
         logging.exception('performance metrics error')
         return jsonify({'success': False, 'message': 'حدث خطأ في تحميل مقاييس الأداء'}), 500

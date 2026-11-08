@@ -80,7 +80,8 @@ class TestPerformanceMetrics:
             assert data['prescriptions_today'] >= 0
 
     def test_reports_real_db_counters_when_data_exists(self, db, app, login_as, client, ctx):
-        from datetime import date
+        from models.department import Department
+        from models.visit import Visit
 
         u = ctx.user(role='super_admin')
         patient = Patient(
@@ -90,12 +91,12 @@ class TestPerformanceMetrics:
             phone='050' + format(uuid.uuid4().int % 10**7, '07d'),
         )
         db.session.add(patient)
+        department = Department(name=f'Perf-{uuid.uuid4().hex[:6]}', name_ar=f'أداء-{uuid.uuid4().hex[:6]}')
+        db.session.add(department)
         db.session.commit()
-        from models.visit import Visit
-
         visit = Visit(
             patient_id=patient.id,
-            department_id=1,
+            department_id=department.id,
             status='OPEN',
             payment_status='PENDING',
             visit_type='REGULAR',
@@ -107,8 +108,8 @@ class TestPerformanceMetrics:
         resp = client.get('/super-admin/api/performance')
         assert resp.status_code == 200
         data = resp.get_json()
-        if data['visits_today'] is not None:
-            assert data['visits_today'] >= 1
+        assert data['visits_today'] is not None
+        assert data['visits_today'] >= 1
 
     def test_performance_page_renders(self, login_as, client, ctx):
         u = ctx.user(role='super_admin')
