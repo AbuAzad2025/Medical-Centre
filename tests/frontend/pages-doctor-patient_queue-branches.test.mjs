@@ -113,6 +113,36 @@ describe('patient_queue.js search branches', () => {
     expect(document.querySelector('#doctorPatientResults a').getAttribute('href')).toBe('#');
   });
 
+  it('empty query hides results without fetching', async () => {
+    global.fetch = vi.fn();
+    await loadModule('static/js/pages/doctor/patient_queue.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const input = document.getElementById('doctorPatientSearch');
+    input.value = '';
+    input.dispatchEvent(new Event('input'));
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(document.getElementById('doctorPatientResults').style.display).toBe('none');
+  });
+
+  it('patient with no phone or national_id renders without the pipe suffix', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ patients: [{ id: 4, full_name: 'NoInfo' }] }) });
+    await loadModule('static/js/pages/doctor/patient_queue.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const input = document.getElementById('doctorPatientSearch');
+    input.value = 'noinfo';
+    input.dispatchEvent(new Event('input'));
+    await vi.advanceTimersByTimeAsync(350);
+    expect(document.getElementById('doctorPatientResults').innerHTML).toContain('NoInfo');
+    expect(document.getElementById('doctorPatientResults').innerHTML).not.toContain('|');
+  });
+
+  it('refreshQueue falls back to the default queue-status URL when API_ROUTES is unset', async () => {
+    delete window.API_ROUTES;
+    const mod = await loadModule('static/js/pages/doctor/patient_queue.js');
+    mod.refreshQueue();
+    expect(global.fetch.mock.calls[0][0]).toContain('/reception/api/queue-status/4');
+  });
+
   it('missing list element does not crash the handler', async () => {
     document.getElementById('doctorPatientResults').remove();
     await loadModule('static/js/pages/doctor/patient_queue.js');
