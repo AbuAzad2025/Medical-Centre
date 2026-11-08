@@ -2,43 +2,43 @@
 {% block title %}إنشاء حجز{% endblock %}
 {% block content %}
 <div class="container">
-  <h2 class="mb-3"><i class="fas fa-calendar-check me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("إنشاء حجز جديد")")")")")")")') }}</h2>
+  <h2 class="mb-3"><i class="fas fa-calendar-check me-2"></i> {{ _(_('إنشاء حجز جديد')) }}</h2>
   <form method="post" action="{{ url_for('booking.create_booking') }}" class="card p-3 shadow-sm">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="row g-3">
-      <div class="col-md-3"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم الأول")")")")")")")') }}</label><input name="first_name" class="form-control" required value="{{ patient_prefill.first_name if patient_prefill else '' }}"></div>
-      <div class="col-md-3"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم العائلة")")")")")")")') }}</label><input name="last_name" class="form-control" required value="{{ patient_prefill.last_name if patient_prefill else '' }}"></div>
-      <div class="col-md-3"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("هاتف")")")")")")")') }}</label><input name="phone" class="form-control" required value="{{ patient_prefill.phone if patient_prefill else '' }}"></div>
-      <div class="col-md-3"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("بريد")")")")")")")') }}</label><input name="email" type="email" class="form-control" value="{{ patient_prefill.email if patient_prefill and patient_prefill.email else '' }}"></div>
-      <div class="col-md-6"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</label><select id="department_id" name="department_id" class="form-select" required onchange="loadDoctors()">
-        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر القسم")")")")")")")') }}</option>
+      <div class="col-md-3"><label class="form-label">{{ _(_('الاسم الأول')) }}</label><input name="first_name" class="form-control" required value="{{ patient_prefill.first_name if patient_prefill else '' }}"></div>
+      <div class="col-md-3"><label class="form-label">{{ _(_('اسم العائلة')) }}</label><input name="last_name" class="form-control" required value="{{ patient_prefill.last_name if patient_prefill else '' }}"></div>
+      <div class="col-md-3"><label class="form-label">{{ _(_('هاتف')) }}</label><input name="phone" class="form-control" required value="{{ patient_prefill.phone if patient_prefill else '' }}"></div>
+      <div class="col-md-3"><label class="form-label">{{ _(_('بريد')) }}</label><input name="email" type="email" class="form-control" value="{{ patient_prefill.email if patient_prefill and patient_prefill.email else '' }}"></div>
+      <div class="col-md-6"><label class="form-label">{{ _(_('القسم')) }}</label><select id="department_id" name="department_id" class="form-select" required onchange="loadDoctors()">
+        <option value="">{{ _(_('اختر القسم')) }}</option>
         {% for d in departments or [] %}<option value="{{ d.id }}" {% if preset_department_id and preset_department_id == d.id %}selected{% endif %}>{{ d.name_ar or d.name }}</option>{% endfor %}
       </select></div>
-      <div class="col-md-6"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</label><select id="doctor_id" name="doctor_id" class="form-select" required onchange="loadTimes()">
-        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الطبيب")")")")")")")') }}</option>
+      <div class="col-md-6"><label class="form-label">{{ _(_('الطبيب')) }}</label><select id="doctor_id" name="doctor_id" class="form-select" required onchange="loadTimes()">
+        <option value="">{{ _(_('اختر الطبيب')) }}</option>
         {% for doc in doctors or [] %}<option value="{{ doc.id }}" {% if preset_doctor_id and preset_doctor_id == doc.id %}selected{% endif %}>{{ doc.full_name }}</option>{% endfor %}
       </select></div>
-      <div class="col-md-4"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</label><input id="appointment_date" name="appointment_date" type="date" class="form-control" required value="{{ preset_date or '' }}" onchange="loadTimes()"></div>
-      <div class="col-md-4"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوقت المتاح")")")")")")")') }}</label>
+      <div class="col-md-4"><label class="form-label">{{ _(_('التاريخ')) }}</label><input id="appointment_date" name="appointment_date" type="date" class="form-control" required value="{{ preset_date or '' }}" onchange="loadTimes()"></div>
+      <div class="col-md-4"><label class="form-label">{{ _(_('الوقت المتاح')) }}</label>
         <select id="appointment_time" name="appointment_time" class="form-select" required>
-          <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الوقت")")")")")")")') }}</option>
+          <option value="">{{ _(_('اختر الوقت')) }}</option>
           {% if preset_time %}<option value="{{ preset_time }}" selected>{{ preset_time }}</option>{% endif %}
         </select>
       </div>
-      <div class="col-md-4"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع الموعد")")")")")")")') }}</label>
+      <div class="col-md-4"><label class="form-label">{{ _(_('نوع الموعد')) }}</label>
         <select id="visit_type" name="visit_type" class="form-select">
-          <option value="first">{{ _('_("_(" _(" _(" _(" _(" _("أول زيارة")")")")")")")') }}</option>
-          <option value="follow_up">{{ _('_("_(" _(" _(" _(" _(" _("متابعة")")")")")")")') }}</option>
-          <option value="telemedicine">{{ _('_("_(" _(" _(" _(" _(" _("تطبيب عن بُعد")")")")")")")') }}</option>
+          <option value="first">{{ _(_('أول زيارة')) }}</option>
+          <option value="follow_up">{{ _(_('متابعة')) }}</option>
+          <option value="telemedicine">{{ _(_('تطبيب عن بُعد')) }}</option>
         </select>
       </div>
       <div class="col-12">
-        <button type="button" class="btn btn-outline-primary" onclick="loadSmartSlots()">{{ _('_("_(" _(" _(" _(" _(" _("اقتراح وقت ذكي")")")")")")")') }}</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadSmartSlots()">{{ _(_('اقتراح وقت ذكي')) }}</button>
         <span id="smartSlotsHint" class="text-muted ms-2"></span>
       </div>
-      <div class="col-12"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label><textarea name="notes" class="form-control" rows="3"></textarea></div>
+      <div class="col-12"><label class="form-label">{{ _(_('ملاحظات')) }}</label><textarea name="notes" class="form-control" rows="3"></textarea></div>
     </div>
-    <div class="mt-3 d-flex gap-2"><button class="btn btn-primary" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button><a class="btn btn-secondary" href="{{ url_for('booking.index') }}">{{ _('_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")') }}</a></div>
+    <div class="mt-3 d-flex gap-2"><button class="btn btn-primary" type="submit">{{ _(_('حفظ')) }}</button><a class="btn btn-secondary" href="{{ url_for('booking.index') }}">{{ _(_('رجوع')) }}</a></div>
   </form>
 </div>
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">

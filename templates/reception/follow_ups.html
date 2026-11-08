@@ -5,29 +5,29 @@
 
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("المتابعات")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("طلبات متابعة صادرة من الطبيب للجدولة عبر الاستقبال")")")")")")")', icon='fas fa-calendar-check', actions=[{'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'icon': 'fas fa-arrow-right', 'url': url_for('reception.dashboard'), 'style': 'secondary'}]) }}
+  {{ page_header(_('المتابعات'), subtitle=_('طلبات متابعة صادرة من الطبيب للجدولة عبر الاستقبال'), icon='fas fa-calendar-check', actions=[{'label': _('رجوع'), 'icon': 'fas fa-arrow-right', 'url': url_for('reception.dashboard'), 'style': 'secondary'}]) }}
 
   <form method="GET" class="row g-3 mb-3">
     <div class="col-md-5">
-      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("البحث")")")")")")")') }}</label>
-      <input class="form-control" name="search" value="{{ search or '' }}" placeholder="_(" _(" _(" _(" _(" _("اسم، هاتف، هوية")")")")")")">
+      <label class="form-label">{{ _(_('البحث')) }}</label>
+      <input class="form-control" name="search" value="{{ search or '' }}" placeholder="اسم، هاتف، هوية">
     </div>
     <div class="col-md-3">
       <label class="form-label">{{ _('الحالة') }}</label>
       <select class="form-control" name="status">
-        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</option>
-        <option value="PENDING" {% if selected_status == 'PENDING' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("معلّق")")")")")")")') }}</option>
-        <option value="SCHEDULED" {% if selected_status == 'SCHEDULED' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مجدول")")")")")")")') }}</option>
-        <option value="DONE" {% if selected_status == 'DONE' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</option>
-        <option value="CANCELLED" {% if selected_status == 'CANCELLED' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("ملغي")")")")")")")') }}</option>
+        <option value="">{{ _(_('الكل')) }}</option>
+        <option value="PENDING" {% if selected_status == 'PENDING' %}selected{% endif %}>{{ _(_('معلّق')) }}</option>
+        <option value="SCHEDULED" {% if selected_status == 'SCHEDULED' %}selected{% endif %}>{{ _(_('مجدول')) }}</option>
+        <option value="DONE" {% if selected_status == 'DONE' %}selected{% endif %}>{{ _(_('مكتمل')) }}</option>
+        <option value="CANCELLED" {% if selected_status == 'CANCELLED' %}selected{% endif %}>{{ _(_('ملغي')) }}</option>
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ المتابعة")")")")")")")') }}</label>
+      <label class="form-label">{{ _(_('تاريخ المتابعة')) }}</label>
       <input type="date" class="form-control" name="date" value="{{ selected_date or '' }}">
     </div>
     <div class="col-md-1 d-flex align-items-end">
-      <button class="btn btn-primary w-100" type="submit" title="_(" _(" _(" _(" _(" _("تصفية")")")")")")" aria-label="_(" _(" _(" _(" _(" _("تصفية المتابعات")")")")")")"><i class="fas fa-filter"></i> <span class="btn-label">{{ _('تصفية') }}</span></button>
+      <button class="btn btn-primary w-100" type="submit" title="تصفية" aria-label="تصفية المتابعات"><i class="fas fa-filter"></i> <span class="btn-label">{{ _('تصفية') }}</span></button>
     </div>
   </form>
 
@@ -42,10 +42,10 @@
             <tr>
               <th>#</th>
               <th>{{ _('المريض') }}</th>
-              <th>{{ _('_("الهاتف")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ مقترح")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+              <th>{{ _(_('الهاتف')) }}</th>
+              <th>{{ _(_('الطبيب')) }}</th>
+              <th>{{ _(_('تاريخ مقترح')) }}</th>
+              <th>{{ _(_('الحالة')) }}</th>
               <th class="min-w-260"></th>
             </tr>
           </thead>
@@ -59,13 +59,13 @@
                 <td>{{ f.suggested_date.strftime('%Y-%m-%d') if f.suggested_date else '-' }}</td>
                 <td>
                   {% if f.status == 'PENDING' %}
-                    <span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("معلّق")")")")")")")') }}</span>
+                    <span class="badge bg-warning text-dark">{{ _(_('معلّق')) }}</span>
                   {% elif f.status == 'SCHEDULED' %}
-                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مجدول")")")")")")")') }}</span>
+                    <span class="badge bg-success">{{ _(_('مجدول')) }}</span>
                   {% elif f.status == 'DONE' %}
-                    <span class="badge bg-info text-dark">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
+                    <span class="badge bg-info text-dark">{{ _(_('مكتمل')) }}</span>
                   {% elif f.status == 'CANCELLED' %}
-                    <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("ملغي")")")")")")")') }}</span>
+                    <span class="badge bg-secondary">{{ _(_('ملغي')) }}</span>
                   {% else %}
                     <span class="badge bg-light text-dark">{{ f.status | enum_label('AppointmentState') }}</span>
                   {% endif %}
@@ -75,16 +75,16 @@
                   <div class="btn-group">
                     {% if f.patient %}
                     <a class="btn btn-sm btn-outline-primary" href="{{ url_for('reception.view_patient', patient_id=f.patient.id) }}">
-                      <i class="fas fa-user me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("ملف المريض")")")")")")")') }}
+                      <i class="fas fa-user me-1"></i> {{ _(_('ملف المريض')) }}
                     </a>
                     {% endif %}
                     {% if f.status == 'PENDING' %}
                     <a class="btn btn-sm btn-primary" href="{{ url_for('reception.create_appointment', patient_id=f.patient_id, doctor_id=f.doctor_id, department_id=dept_id, date=(f.suggested_date.strftime('%Y-%m-%d') if f.suggested_date else ''), type='follow_up', follow_up_id=f.id) }}">
-                      <i class="fas fa-calendar-plus me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("جدولة موعد")")")")")")")') }}
+                      <i class="fas fa-calendar-plus me-1"></i> {{ _(_('جدولة موعد')) }}
                     </a>
                     {% elif f.status == 'SCHEDULED' and f.appointment_id %}
                     <a class="btn btn-sm btn-outline-success" href="{{ url_for('reception.view_appointment', appointment_id=f.appointment_id) }}">
-                      <i class="fas fa-eye me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("عرض الموعد")")")")")")")') }}
+                      <i class="fas fa-eye me-1"></i> {{ _(_('عرض الموعد')) }}
                     </a>
                     {% endif %}
                   </div>
@@ -92,7 +92,7 @@
               </tr>
             {% else %}
               <tr>
-                <td colspan="7" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد متابعات")")")")")")")') }}</td>
+                <td colspan="7" class="text-center text-muted">{{ _(_('لا توجد متابعات')) }}</td>
               </tr>
             {% endfor %}
           </tbody>

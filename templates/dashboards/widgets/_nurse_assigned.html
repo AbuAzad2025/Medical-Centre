@@ -1,8 +1,8 @@
 <div class="cc-widget cc-widget--lg" data-widget-id="nurse_assigned">
-  <div class="cc-widget__head"><span><i class="fas fa-user-nurse me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("زيارات اليوم")")")")")")")') }}</span></div>
+  <div class="cc-widget__head"><span><i class="fas fa-user-nurse me-1"></i> {{ _(_('زيارات اليوم')) }}</span></div>
   <div class="cc-widget__body table-responsive">
     <table class="table table-hover mb-0">
-      <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th></tr></thead>
+      <thead><tr><th>{{ _(_('المريض')) }}</th><th>{{ _(_('القسم')) }}</th><th>{{ _(_('الحالة')) }}</th></tr></thead>
       <tbody>
       {% for v in widget_data.lists.assigned or [] %}
       <tr>
@@ -11,7 +11,7 @@
         <td><span class="badge bg-secondary">{{ v.status | enum_label('VisitState') }}</span></td>
       </tr>
       {% else %}
-      <tr><td colspan="3" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا زيارات")")")")")")")') }}</td></tr>
+      <tr><td colspan="3" class="text-center text-muted py-3">{{ _(_('لا زيارات')) }}</td></tr>
       {% endfor %}
       </tbody>
     </table>

@@ -7,26 +7,26 @@
 
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>{{ _('المنشأة:') }}</strong> {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else '—') }}</span>
-<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم الروشتة:")")")")")")")') }}</strong> {{ prescription.prescription_number or prescription.id }}</span>
-<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ:")")")")")")")') }}</strong> {{ prescription.created_at.strftime('%Y-%m-%d %H:%M') if prescription.created_at else '—' }}</span>
-<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong> {{ prescription.status | enum_label('PrescriptionState') if prescription.status else '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _(_('رقم الروشتة:')) }}</strong> {{ prescription.prescription_number or prescription.id }}</span>
+<span class="print-doc-meta__item"><strong>{{ _(_('التاريخ:')) }}</strong> {{ prescription.created_at.strftime('%Y-%m-%d %H:%M') if prescription.created_at else '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _(_('الحالة:')) }}</strong> {{ prescription.status | enum_label('PrescriptionState') if prescription.status else '—' }}</span>
 {% endblock %}
 
 {% block subject_strip %}
 <div class="print-subject-strip__grid">
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</span><span>{{ prescription.patient.full_name }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الهوية")")")")")")")') }}</span><span>{{ prescription.patient.national_id or '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</span><span>{{ prescription.patient.phone or '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الجنس")")")")")")")') }}</span><span>{{ prescription.patient.gender or '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</span><span>{{ prescription.doctor.full_name if prescription.doctor else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الترخيص")")")")")")")') }}</span><span>{{ prescription.doctor.license_number if prescription.doctor else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('المريض')) }}</span><span>{{ prescription.patient.full_name }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الهوية')) }}</span><span>{{ prescription.patient.national_id or '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الهاتف')) }}</span><span>{{ prescription.patient.phone or '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الجنس')) }}</span><span>{{ prescription.patient.gender or '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الطبيب')) }}</span><span>{{ prescription.doctor.full_name if prescription.doctor else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الترخيص')) }}</span><span>{{ prescription.doctor.license_number if prescription.doctor else '—' }}</span></div>
 </div>
 {% endblock %}
 
 {% block body %}
 {% if prescription.diagnosis %}
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("التشخيص")")")")")")")') }}</h3>
+    <h3 class="print-section__title">{{ _(_('التشخيص')) }}</h3>
     <div>{{ prescription.diagnosis }}</div>
 </div>
 {% endif %}
@@ -34,11 +34,11 @@
 <table class="print-table">
     <thead>
         <tr>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("الجرعة")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("التكرار")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("المدة")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("التعليمات")")")")")")")') }}</th>
+            <th>{{ _(_('الدواء')) }}</th>
+            <th>{{ _(_('الجرعة')) }}</th>
+            <th>{{ _(_('التكرار')) }}</th>
+            <th>{{ _(_('المدة')) }}</th>
+            <th>{{ _(_('التعليمات')) }}</th>
         </tr>
     </thead>
     <tbody>
@@ -53,17 +53,17 @@
             <td>{{ parts[0] if parts and parts[0] else '—' }}</td>
             <td>{{ parts[1] if parts|length > 1 else '—' }}</td>
             <td>{{ item.duration_days or '—' }}</td>
-            <td class="text-end">{{ item.instructions or '_("_(" _(" _(" _(" _(" _("اتبع تعليمات الطبيب")")")")")")")' }}</td>
+            <td class="text-end">{{ item.instructions or _('اتبع تعليمات الطبيب') }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="5">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد أدوية")")")")")")")') }}</td></tr>
+        <tr><td colspan="5">{{ _(_('لا توجد أدوية')) }}</td></tr>
         {% endfor %}
     </tbody>
 </table>
 
 {% if prescription.notes %}
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("تعليمات إضافية")")")")")")")') }}</h3>
+    <h3 class="print-section__title">{{ _(_('تعليمات إضافية')) }}</h3>
     <div>{{ prescription.notes }}</div>
 </div>
 {% endif %}
@@ -72,16 +72,16 @@
 {% block signatures %}
 <div class="print-signature-box">
     <div class="print-signature-line"></div>
-    <div class="print-signature-label">{{ _('_("_(" _(" _(" _(" _(" _("توقيع الطبيب")")")")")")")') }}</div>
+    <div class="print-signature-label">{{ _(_('توقيع الطبيب')) }}</div>
 </div>
 <div class="print-signature-box">
     <div class="print-signature-line"></div>
-    <div class="print-signature-label">{{ _('_("_(" _(" _(" _(" _(" _("ختم المركز")")")")")")")') }}</div>
+    <div class="print-signature-label">{{ _(_('ختم المركز')) }}</div>
 </div>
 {% endblock %}
 
 {% block legal_footer %}
-<p><strong>{{ _('_("_(" _(" _(" _(" _(" _("هذه الروشتة صالحة لمدة 30 يوماً من تاريخ الإصدار")")")")")")")') }}</strong></p>
+<p><strong>{{ _(_('هذه الروشتة صالحة لمدة 30 يوماً من تاريخ الإصدار')) }}</strong></p>
 <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
 {% endblock %}
 

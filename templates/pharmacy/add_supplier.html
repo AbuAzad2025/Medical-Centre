@@ -8,16 +8,16 @@
         <form method="POST">
             {{ csrf() }}
             <div class="row g-3">
-                <div class="col-md-6"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }} <span class="text-danger">*</span></label><input name="name" class="form-control" required value="{{ supplier.name if supplier else '' }}"></div>
-                <div class="col-md-6"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("جهة الاتصال")")")")")")")') }}</label><input name="contact_person" class="form-control" value="{{ supplier.contact_person if supplier else '' }}"></div>
-                <div class="col-md-4"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</label><input name="phone" class="form-control" value="{{ supplier.phone if supplier else '' }}"></div>
-                <div class="col-md-4"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("البريد الإلكتروني")")")")")")")') }}</label><input name="email" class="form-control" type="email" value="{{ supplier.email if supplier else '' }}"></div>
-                <div class="col-md-4"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الرقم الضريبي")")")")")")")') }}</label><input name="tax_id" class="form-control" value="{{ supplier.tax_id if supplier else '' }}"></div>
-                <div class="col-12"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</label><textarea name="address" class="form-control">{{ supplier.address if supplier else '' }}</textarea></div>
-                <div class="col-12"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label><textarea name="notes" class="form-control">{{ supplier.notes if supplier else '' }}</textarea></div>
+                <div class="col-md-6"><label class="form-label">{{ _(_('الاسم')) }} <span class="text-danger">*</span></label><input name="name" class="form-control" required value="{{ supplier.name if supplier else '' }}"></div>
+                <div class="col-md-6"><label class="form-label">{{ _(_('جهة الاتصال')) }}</label><input name="contact_person" class="form-control" value="{{ supplier.contact_person if supplier else '' }}"></div>
+                <div class="col-md-4"><label class="form-label">{{ _(_('الهاتف')) }}</label><input name="phone" class="form-control" value="{{ supplier.phone if supplier else '' }}"></div>
+                <div class="col-md-4"><label class="form-label">{{ _(_('البريد الإلكتروني')) }}</label><input name="email" class="form-control" type="email" value="{{ supplier.email if supplier else '' }}"></div>
+                <div class="col-md-4"><label class="form-label">{{ _(_('الرقم الضريبي')) }}</label><input name="tax_id" class="form-control" value="{{ supplier.tax_id if supplier else '' }}"></div>
+                <div class="col-12"><label class="form-label">{{ _(_('العنوان')) }}</label><textarea name="address" class="form-control">{{ supplier.address if supplier else '' }}</textarea></div>
+                <div class="col-12"><label class="form-label">{{ _(_('ملاحظات')) }}</label><textarea name="notes" class="form-control">{{ supplier.notes if supplier else '' }}</textarea></div>
                 <div class="col-12">
-                    <button class="btn btn-primary"><i class="fas fa-save ms-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
-                    <a href="{{ url_for('medication.suppliers') }}" class="btn btn-outline-secondary">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</a>
+                    <button class="btn btn-primary"><i class="fas fa-save ms-1"></i>{{ _(_('حفظ')) }}</button>
+                    <a href="{{ url_for('medication.suppliers') }}" class="btn btn-outline-secondary">{{ _(_('إلغاء')) }}</a>
                 </div>
             </div>
         </form>

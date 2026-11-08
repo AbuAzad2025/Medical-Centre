@@ -2,13 +2,13 @@
 {% block title %}الروشتات{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("الروشتات")")")")")")")') }}</h2>
+  <h2 class="mb-3">{{ _(_('الروشتات')) }}</h2>
   <div class="card"><div class="card-body">
-    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الجرعة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ")")")")")")")') }}</th></tr></thead><tbody>
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الدواء')) }}</th><th>{{ _(_('الجرعة')) }}</th><th>{{ _(_('تاريخ')) }}</th></tr></thead><tbody>
       {% for p in prescriptions or [] %}
       <tr><td>{{ p.id }}</td><td>{{ p.visit.patient.full_name if p.visit and p.visit.patient else '' }}</td><td>{{ p.medication_name }}</td><td>{{ p.dosage }}</td><td>{{ p.created_at }}</td></tr>
       {% else %}
-      <tr><td colspan="5" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد روشتات")")")")")")")') }}</td></tr>
+      <tr><td colspan="5" class="text-center">{{ _(_('لا توجد روشتات')) }}</td></tr>
       {% endfor %}
     </tbody></table></div>
   </div></div>

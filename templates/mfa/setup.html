@@ -6,12 +6,12 @@
     <div class="col-md-8 col-lg-6">
       <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-          <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إعداد المصادقة الثنائية (2FA)")")")")")")")') }}</h5>
+          <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>{{ _(_('إعداد المصادقة الثنائية (2FA)')) }}</h5>
         </div>
         <div class="card-body">
           <div class="alert alert-info">
-            <strong>{{ _('_("_(" _(" _(" _(" _(" _("الخطوة 1:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("امسح رمز QR باستخدام تطبيق المصادقة (Google Authenticator أو Microsoft Authenticator)")")")")")")")') }}<br>
-            <strong>{{ _('_("_(" _(" _(" _(" _(" _("الخطوة 2:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("أدخل الرمز المكون من 6 أرقام للتأكيد.")")")")")")")') }}
+            <strong>{{ _(_('الخطوة 1:')) }}</strong> {{ _(_('امسح رمز QR باستخدام تطبيق المصادقة (Google Authenticator أو Microsoft Authenticator)')) }}<br>
+            <strong>{{ _(_('الخطوة 2:')) }}</strong> {{ _(_('أدخل الرمز المكون من 6 أرقام للتأكيد.')) }}
           </div>
 
           <div class="text-center mb-4">
@@ -20,18 +20,18 @@
             {% endif %}
             <div class="mt-2">
               <code class="bg-light p-2 rounded d-inline-block">{{ secret }}</code>
-              <small class="d-block text-muted">{{ _('_("_(" _(" _(" _(" _(" _("انسخ هذا السر إذا لم تتمكن من مسح QR")")")")")")")') }}</small>
+              <small class="d-block text-muted">{{ _(_('انسخ هذا السر إذا لم تتمكن من مسح QR')) }}</small>
             </div>
           </div>
 
           <form method="post">
             {{ csrf() }}
             <div class="mb-3">
-              <label for="code" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رمز التحقق (6 أرقام)")")")")")")")') }}</label>
+              <label for="code" class="form-label">{{ _(_('رمز التحقق (6 أرقام)')) }}</label>
               <input type="text" class="form-control text-center fs-4" id="code" name="code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required autocomplete="off">
             </div>
             <div class="d-grid">
-              <button type="submit" class="btn btn-success">{{ _('_("_(" _(" _(" _(" _(" _("تفعيل 2FA")")")")")")")') }}</button>
+              <button type="submit" class="btn btn-success">{{ _(_('تفعيل 2FA')) }}</button>
             </div>
           </form>
         </div>

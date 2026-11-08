@@ -5,34 +5,34 @@
 
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("الخط الزمني للمريض")")")")")")")', subtitle=(patient.full_name ~ (' - ' ~ patient.phone if patient.phone else '')), icon='fas fa-stream', actions=[
-      {'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.patients'), 'style': 'secondary'},
-      {'label': '_("_(" _(" _(" _(" _(" _("السجل الطبي")")")")")")")', 'icon': 'fas fa-notes-medical', 'url': url_for('doctor.medical_history', patient_id=patient.id), 'style': 'outline-primary'},
-      {'label': '_("_(" _(" _(" _(" _(" _("الوصفات")")")")")")")', 'icon': 'fas fa-file-prescription', 'url': url_for('doctor.prescriptions_history', patient_id=patient.id), 'style': 'outline-info'}
+  {{ page_header(_('الخط الزمني للمريض'), subtitle=(patient.full_name ~ (' - ' ~ patient.phone if patient.phone else '')), icon='fas fa-stream', actions=[
+      {'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.patients'), 'style': 'secondary'},
+      {'label': _('السجل الطبي'), 'icon': 'fas fa-notes-medical', 'url': url_for('doctor.medical_history', patient_id=patient.id), 'style': 'outline-primary'},
+      {'label': _('الوصفات'), 'icon': 'fas fa-file-prescription', 'url': url_for('doctor.prescriptions_history', patient_id=patient.id), 'style': 'outline-info'}
   ]) }}
 
   <div class="row mb-3">
     <div class="col-12">
       <div class="d-flex flex-wrap gap-2 mb-3">
-        {% for key, label in [('visit','_("_(" _(" _(" _(" _(" _("زيارات")")")")")")")'),('lab','_("_(" _(" _(" _(" _(" _("مختبر")")")")")")")'),('radiology','_("_(" _(" _(" _(" _(" _("أشعة")")")")")")")'),('prescription','_("_(" _(" _(" _(" _(" _("وصفات")")")")")")")'),('record','_("_(" _(" _(" _(" _(" _("سجلات")")")")")")")'),('appointment','_("_(" _(" _(" _(" _(" _("مواعيد")")")")")")")')] %}
+        {% for key, label in [('visit',_('زيارات')),('lab',_('مختبر')),('radiology',_('أشعة')),('prescription',_('وصفات')),('record',_('سجلات')),('appointment',_('مواعيد'))] %}
         <span class="badge bg-light text-dark border">{{ label }}: {{ event_summary.get(key, 0) if event_summary is defined else 0 }}</span>
         {% endfor %}
       </div>
       <div class="card shadow-sm">
         <div class="card-body">
           <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-sm {% if not filter_type %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id) }}">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</a>
-            <a class="btn btn-sm {% if filter_type == 'visit' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='visit') }}">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}</a>
+            <a class="btn btn-sm {% if not filter_type %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id) }}">{{ _(_('الكل')) }}</a>
+            <a class="btn btn-sm {% if filter_type == 'visit' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='visit') }}">{{ _(_('الزيارات')) }}</a>
             {% if module_active('lab') %}
-            <a class="btn btn-sm {% if filter_type == 'lab' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='lab') }}">{{ _('_("_(" _(" _(" _(" _(" _("المختبر")")")")")")")') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'lab' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='lab') }}">{{ _(_('المختبر')) }}</a>
             {% endif %}
             {% if module_active('radiology') %}
-            <a class="btn btn-sm {% if filter_type == 'radiology' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='radiology') }}">{{ _('_("_(" _(" _(" _(" _(" _("الأشعة")")")")")")")') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'radiology' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='radiology') }}">{{ _(_('الأشعة')) }}</a>
             {% endif %}
-            <a class="btn btn-sm {% if filter_type == 'prescription' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='prescription') }}">{{ _('_("_(" _(" _(" _(" _(" _("الوصفات")")")")")")")') }}</a>
-            <a class="btn btn-sm {% if filter_type == 'record' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='record') }}">{{ _('_("_(" _(" _(" _(" _(" _("السجلات")")")")")")")') }}</a>
-            <a class="btn btn-sm {% if filter_type == 'appointment' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='appointment') }}">{{ _('_("_(" _(" _(" _(" _(" _("المواعيد")")")")")")")') }}</a>
-            <a class="btn btn-sm {% if filter_type == 'follow_up' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='follow_up') }}">{{ _('_("_(" _(" _(" _(" _(" _("المتابعات")")")")")")")') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'prescription' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='prescription') }}">{{ _(_('الوصفات')) }}</a>
+            <a class="btn btn-sm {% if filter_type == 'record' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='record') }}">{{ _(_('السجلات')) }}</a>
+            <a class="btn btn-sm {% if filter_type == 'appointment' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='appointment') }}">{{ _(_('المواعيد')) }}</a>
+            <a class="btn btn-sm {% if filter_type == 'follow_up' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='follow_up') }}">{{ _(_('المتابعات')) }}</a>
           </div>
         </div>
       </div>
@@ -67,10 +67,10 @@
               <table class="table table-striped align-middle">
                 <thead>
                   <tr>
-                    <th class="min-w-180">{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-                    <th class="min-w-140">{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
-                    <th>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</th>
-                    <th class="min-w-120">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                    <th class="min-w-180">{{ _(_('التاريخ')) }}</th>
+                    <th class="min-w-140">{{ _(_('النوع')) }}</th>
+                    <th>{{ _(_('العنوان')) }}</th>
+                    <th class="min-w-120">{{ _(_('الحالة')) }}</th>
                     <th class="min-w-140"></th>
                   </tr>
                 </thead>
@@ -80,19 +80,19 @@
                       <td>{{ e.dt|format_datetime }}</td>
                       <td>
                         {% if e.type == 'visit' %}
-                          <span class="badge bg-primary">{{ _('_("_(" _(" _(" _(" _(" _("زيارة")")")")")")")') }}</span>
+                          <span class="badge bg-primary">{{ _(_('زيارة')) }}</span>
                         {% elif module_active('lab') and e.type == 'lab' %}
-                          <span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("مختبر")")")")")")")') }}</span>
+                          <span class="badge bg-warning text-dark">{{ _(_('مختبر')) }}</span>
                         {% elif module_active('radiology') and e.type == 'radiology' %}
-                          <span class="badge bg-info text-dark">{{ _('_("_(" _(" _(" _(" _(" _("أشعة")")")")")")")') }}</span>
+                          <span class="badge bg-info text-dark">{{ _(_('أشعة')) }}</span>
                         {% elif e.type == 'prescription' %}
-                          <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("وصفة")")")")")")")') }}</span>
+                          <span class="badge bg-success">{{ _(_('وصفة')) }}</span>
                         {% elif e.type == 'record' %}
-                          <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("سجل")")")")")")")') }}</span>
+                          <span class="badge bg-secondary">{{ _(_('سجل')) }}</span>
                         {% elif e.type == 'appointment' %}
-                          <span class="badge bg-dark">{{ _('_("_(" _(" _(" _(" _(" _("موعد")")")")")")")') }}</span>
+                          <span class="badge bg-dark">{{ _(_('موعد')) }}</span>
                         {% elif e.type == 'follow_up' %}
-                          <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("متابعة")")")")")")")') }}</span>
+                          <span class="badge bg-danger">{{ _(_('متابعة')) }}</span>
                         {% else %}
                           <span class="badge bg-light text-dark">{{ e.type }}</span>
                         {% endif %}
@@ -108,7 +108,7 @@
                         {% if e.link %}
                           <a href="{{ e.link }}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-eye me-1"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}
+                            {{ _(_('عرض')) }}
                           </a>
                         {% else %}
                           <span class="text-muted small">—</span>
@@ -122,7 +122,7 @@
           {% else %}
             <div class="text-center py-5 text-muted">
               <i class="fas fa-stream fa-3x mb-3"></i>
-              <div>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات لعرضها")")")")")")")') }}</div>
+              <div>{{ _(_('لا توجد بيانات لعرضها')) }}</div>
             </div>
           {% endif %}
           {% if pagination is defined and pagination %}

@@ -2,11 +2,11 @@
 {% block title %}الأجنحة{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("الأجنحة")")")")")")")') }}</h2>
+  <h2 class="mb-4">{{ _(_('الأجنحة')) }}</h2>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الكود")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("السعة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الطابق")")")")")")")') }}</th><th></th></tr></thead>
+        <thead><tr><th>{{ _(_('الاسم')) }}</th><th>{{ _(_('الكود')) }}</th><th>{{ _(_('النوع')) }}</th><th>{{ _(_('السعة')) }}</th><th>{{ _(_('الطابق')) }}</th><th></th></tr></thead>
         <tbody>
         {% for w in wards %}
           <tr>
@@ -15,10 +15,10 @@
             <td><span class="badge bg-info">{{ w.ward_type }}</span></td>
             <td>{{ w.capacity }}</td>
             <td>{{ w.floor or '-' }}</td>
-            <td><a href="{{ url_for('bed.ward_detail', ward_id=w.id) }}" class="btn btn-sm btn-outline-primary">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</a></td>
+            <td><a href="{{ url_for('bed.ward_detail', ward_id=w.id) }}" class="btn btn-sm btn-outline-primary">{{ _(_('عرض')) }}</a></td>
           </tr>
         {% else %}
-          <tr><td colspan="6" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد أجنحة")")")")")")")') }}</td></tr>
+          <tr><td colspan="6" class="text-muted text-center">{{ _(_('لا يوجد أجنحة')) }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

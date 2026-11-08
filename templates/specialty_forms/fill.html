@@ -4,7 +4,7 @@
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
         <h4 class="mb-0"><i class="fas fa-pen me-2 text-primary"></i>تعبئة: {{ form.name }}</h4>
-        <a href="{{ url_for('specialty_forms.view_form', form_id=form.id) }}" class="btn btn-outline-secondary btn-sm">{{ _('_("_(" _(" _(" _(" _(" _("عرض النموذج")")")")")")")') }}</a>
+        <a href="{{ url_for('specialty_forms.view_form', form_id=form.id) }}" class="btn btn-outline-secondary btn-sm">{{ _(_('عرض النموذج')) }}</a>
     </div>
 </div>
 <form method="post">
@@ -13,17 +13,17 @@
         <div class="card-body">
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label class="form-label" for="patient_id">{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }} <span class="text-danger">*</span></label>
-                    <select class="form-select" id="patient_id" name="patient_id" required aria-label="_(" _(" _(" _(" _(" _("اختيار المريض")")")")")")">
-                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("— اختر مريضاً —")")")")")")")') }}</option>
+                    <label class="form-label" for="patient_id">{{ _(_('المريض')) }} <span class="text-danger">*</span></label>
+                    <select class="form-select" id="patient_id" name="patient_id" required aria-label="اختيار المريض">
+                        <option value="">{{ _(_('— اختر مريضاً —')) }}</option>
                         {% for p in patients %}
                         <option value="{{ p.id }}">{{ p.first_name }} {{ p.last_name }}{% if p.national_id %} ({{ p.national_id }}){% endif %}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label" for="visit_id">{{ _('_("_(" _(" _(" _(" _(" _("الزيارة (اختياري)")")")")")")")') }}</label>
-                    <input type="number" class="form-control" id="visit_id" name="visit_id" min="1" placeholder="_(" _(" _(" _(" _(" _("رقم الزيارة")")")")")")" aria-label="_(" _(" _(" _(" _(" _("رقم الزيارة")")")")")")">
+                    <label class="form-label" for="visit_id">{{ _(_('الزيارة (اختياري)')) }}</label>
+                    <input type="number" class="form-control" id="visit_id" name="visit_id" min="1" placeholder="رقم الزيارة" aria-label="رقم الزيارة">
                 </div>
             </div>
             <hr>
@@ -37,7 +37,7 @@
                 <textarea class="form-control" id="field_{{ field.name }}" name="field_{{ field.name }}" rows="3" {% if field.required %}required{% endif %} aria-label="{{ field.label }}">{{ field.default_value or '' }}</textarea>
                 {% elif field.field_type == 'select' %}
                 <select class="form-select" id="field_{{ field.name }}" name="field_{{ field.name }}" {% if field.required %}required{% endif %} aria-label="{{ field.label }}">
-                    <option value="">{{ _('_("_(" _(" _(" _(" _(" _("— اختر —")")")")")")")') }}</option>
+                    <option value="">{{ _(_('— اختر —')) }}</option>
                     {% for opt in field.options or [] %}
                     <option value="{{ opt }}" {% if field.default_value == opt %}selected{% endif %}>{{ opt }}</option>
                     {% endfor %}
@@ -60,12 +60,12 @@
                 {% endif %}
             </div>
             {% else %}
-            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد حقول في هذه النسخة.")")")")")")")') }}</p>
+            <p class="text-muted">{{ _(_('لا توجد حقول في هذه النسخة.')) }}</p>
             {% endfor %}
         </div>
     </div>
   {% if version.fields %}
-    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("حفظ الإجابات")")")")")")")') }}</button>
+    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>{{ _(_('حفظ الإجابات')) }}</button>
   {% endif %}
 </form>
 {% endblock %}

@@ -6,20 +6,20 @@
 {% block content %}
 {% if module_active('lab') %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("طلبات المختبر")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة طلبات التحاليل")")")")")")")', icon='fas fa-flask', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة للوحة التحكم")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.dashboard'), 'style': 'secondary'}]) }}
+    {{ page_header(_('طلبات المختبر'), subtitle=_('إدارة طلبات التحاليل'), icon='fas fa-flask', actions=[{'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.dashboard'), 'style': 'secondary'}]) }}
 
     <!-- Lab Requests List -->
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("طلبات التحاليل")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('طلبات التحاليل')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="text-center py-5">
                         <i class="fas fa-flask fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد طلبات تحاليل")")")")")")")') }}</h5>
-                        <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("ستظهر طلبات التحاليل هنا عند إنشائها")")")")")")")') }}</p>
+                        <h5 class="text-muted">{{ _(_('لا توجد طلبات تحاليل')) }}</h5>
+                        <p class="text-muted">{{ _(_('ستظهر طلبات التحاليل هنا عند إنشائها')) }}</p>
                     </div>
                 </div>
             </div>
@@ -27,6 +27,6 @@
     </div>
 </div>
 {% else %}
-<div class="container-fluid"><div class="alert alert-warning mt-3">{{ _('_("_(" _(" _(" _(" _(" _("وحدة المختبر غير مفعلة لهذه المنشأة")")")")")")")') }}</div></div>
+<div class="container-fluid"><div class="alert alert-warning mt-3">{{ _(_('وحدة المختبر غير مفعلة لهذه المنشأة')) }}</div></div>
 {% endif %}
 {% endblock %}

@@ -4,15 +4,15 @@
 <div class="container-fluid">
   <h2 class="mb-4">eMAR <span class="text-muted">{{ today }}</span></h2>
   <div class="row g-3 mb-4">
-    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ pending|length }}</h5><span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("معلقة")")")")")")")') }}</span></div></div>
-    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ given|length }}</h5><span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مُعطاة")")")")")")")') }}</span></div></div>
-    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ administrations|length }}</h5><span class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</span></div></div>
+    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ pending|length }}</h5><span class="text-muted">{{ _(_('معلقة')) }}</span></div></div>
+    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ given|length }}</h5><span class="text-muted">{{ _(_('مُعطاة')) }}</span></div></div>
+    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ administrations|length }}</h5><span class="text-muted">{{ _(_('الكل')) }}</span></div></div>
   </div>
   <div class="card">
-    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("الأدوية المعلقة")")")")")")")') }}</div>
+    <div class="card-header">{{ _(_('الأدوية المعلقة')) }}</div>
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت المجدول")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الجرعة")")")")")")")') }}</th><th></th></tr></thead>
+        <thead><tr><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الدواء')) }}</th><th>{{ _(_('الوقت المجدول')) }}</th><th>{{ _(_('الجرعة')) }}</th><th></th></tr></thead>
         <tbody>
         {% for a in pending %}
           <tr>
@@ -23,12 +23,12 @@
             <td>
               <form method="post" action="{{ url_for('emar.administer', admin_id=a.id) }}" class="d-inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn btn-sm btn-success" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("إعطاء")")")")")")")') }}</button>
+                <button class="btn btn-sm btn-success" type="submit">{{ _(_('إعطاء')) }}</button>
               </form>
             </td>
           </tr>
         {% else %}
-          <tr><td colspan="5" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد أدوية معلقة")")")")")")")') }}</td></tr>
+          <tr><td colspan="5" class="text-muted text-center">{{ _(_('لا يوجد أدوية معلقة')) }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

@@ -6,8 +6,8 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h1 class="h3 mb-0"><i class="fas fa-credit-card me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("خزنة البطاقات المصرفية")")")")")")")') }}</h1>
-            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إدارة البطاقات المصرفية المخزنة بأمان")")")")")")")') }}</p>
+            <h1 class="h3 mb-0"><i class="fas fa-credit-card me-2"></i>{{ _(_('خزنة البطاقات المصرفية')) }}</h1>
+            <p class="text-muted">{{ _(_('إدارة البطاقات المصرفية المخزنة بأمان')) }}</p>
         </div>
     </div>
 
@@ -18,7 +18,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي البطاقات")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('إجمالي البطاقات')) }}</h6>
                             <h2 class="mb-0">{{ cards|length }}</h2>
                         </div>
                         <i class="fas fa-credit-card fa-2x opacity-50"></i>
@@ -31,7 +31,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("بطاقات نشطة")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('بطاقات نشطة')) }}</h6>
                             <h2 class="mb-0">{{ cards|selectattr('is_active')|list|length }}</h2>
                         </div>
                         <i class="fas fa-check-circle fa-2x opacity-50"></i>
@@ -44,7 +44,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("بطاقات منتهية")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('بطاقات منتهية')) }}</h6>
                             <h2 class="mb-0">{{ cards|selectattr('is_expired')|list|length }}</h2>
                         </div>
                         <i class="fas fa-calendar-times fa-2x opacity-50"></i>
@@ -57,7 +57,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المعاملات")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('إجمالي المعاملات')) }}</h6>
                             <h2 class="mb-0">{{ total_transactions }}</h2>
                         </div>
                         <i class="fas fa-exchange-alt fa-2x opacity-50"></i>
@@ -70,27 +70,27 @@
     <!-- Search & Filters -->
     <div class="card mb-4">
         <div class="card-header">
-            <h6 class="mb-0"><i class="fas fa-filter me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تصفية")")")")")")")') }}</h6>
+            <h6 class="mb-0"><i class="fas fa-filter me-1"></i>{{ _(_('تصفية')) }}</h6>
         </div>
         <div class="card-body">
             <form method="GET" class="row g-3">
                 <div class="col-md-4">
-                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("بحث")")")")")")")') }}</label>
-                    <input type="text" name="search" class="form-control" placeholder="_(" _(" _(" _(" _(" _("اسم، رقم البطاقة، بريد إلكتروني...")")")")")")" value="{{ request.args.get('search', '') }}">
+                    <label class="form-label">{{ _(_('بحث')) }}</label>
+                    <input type="text" name="search" class="form-control" placeholder="اسم، رقم البطاقة، بريد إلكتروني..." value="{{ request.args.get('search', '') }}">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</label>
+                    <label class="form-label">{{ _(_('الحالة')) }}</label>
                     <select name="status" class="form-select">
-                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("جميع الحالات")")")")")")")') }}</option>
-                        <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</option>
-                        <option value="inactive" {% if request.args.get('status') == 'inactive' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("غير نشط")")")")")")")') }}</option>
-                        <option value="expired" {% if request.args.get('status') == 'expired' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("منتهي")")")")")")")') }}</option>
+                        <option value="">{{ _(_('جميع الحالات')) }}</option>
+                        <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>{{ _(_('نشط')) }}</option>
+                        <option value="inactive" {% if request.args.get('status') == 'inactive' %}selected{% endif %}>{{ _(_('غير نشط')) }}</option>
+                        <option value="expired" {% if request.args.get('status') == 'expired' %}selected{% endif %}>{{ _(_('منتهي')) }}</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع البطاقة")")")")")")")') }}</label>
+                    <label class="form-label">{{ _(_('نوع البطاقة')) }}</label>
                     <select name="card_type" class="form-select">
-                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("جميع الأنواع")")")")")")")') }}</option>
+                        <option value="">{{ _(_('جميع الأنواع')) }}</option>
                         <option value="visa" {% if request.args.get('card_type') == 'visa' %}selected{% endif %}>Visa</option>
                         <option value="mastercard" {% if request.args.get('card_type') == 'mastercard' %}selected{% endif %}>Mastercard</option>
                         <option value="amex" {% if request.args.get('card_type') == 'amex' %}selected{% endif %}>American Express</option>
@@ -98,7 +98,7 @@
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-filter me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تصفية")")")")")")")') }}
+                        <i class="fas fa-filter me-1"></i>{{ _(_('تصفية')) }}
                     </button>
                 </div>
                 <div class="col-md-1 d-flex align-items-end">
@@ -113,7 +113,7 @@
     <!-- Cards Table -->
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("البطاقات المخزنة")")")")")")")') }}</h5>
+            <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>{{ _(_('البطاقات المخزنة')) }}</h5>
         </div>
         <div class="card-body">
             {% if cards %}
@@ -121,14 +121,14 @@
                 <table class="table table-hover table-striped">
                     <thead class="table-dark">
                         <tr>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("المالك")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("البنك")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("نوع البطاقة")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الرقم المقنع")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الانتهاء")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإضافة")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
+                            <th>{{ _(_('المالك')) }}</th>
+                            <th>{{ _(_('البنك')) }}</th>
+                            <th>{{ _(_('نوع البطاقة')) }}</th>
+                            <th>{{ _(_('الرقم المقنع')) }}</th>
+                            <th>{{ _(_('تاريخ الانتهاء')) }}</th>
+                            <th>{{ _(_('الحالة')) }}</th>
+                            <th>{{ _(_('تاريخ الإضافة')) }}</th>
+                            <th>{{ _(_('الإجراءات')) }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -140,7 +140,7 @@
                                     <br><small class="text-muted">{{ card.owner_email }}</small>
                                 </div>
                             </td>
-                            <td>{{ card.bank_name or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                            <td>{{ card.bank_name or _('غير محدد') }}</td>
                             <td>
                                 <span class="badge {% if card.card_type == 'visa' %}bg-primary{% elif card.card_type == 'mastercard' %}bg-danger{% elif card.card_type == 'amex' %}bg-info{% else %}bg-secondary{% endif %}">
                                     {{ card.card_type|upper }}
@@ -157,23 +157,23 @@
                             </td>
                             <td>
                                 {% if card.is_active and not card.is_expired %}
-                                <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span>
+                                <span class="badge bg-success">{{ _(_('نشط')) }}</span>
                                 {% elif card.is_expired %}
-                                <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("منتهي")")")")")")")') }}</span>
+                                <span class="badge bg-danger">{{ _(_('منتهي')) }}</span>
                                 {% else %}
-                                <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("غير نشط")")")")")")")') }}</span>
+                                <span class="badge bg-secondary">{{ _(_('غير نشط')) }}</span>
                                 {% endif %}
                             </td>
                             <td>{{ card.created_at.strftime('%Y-%m-%d') }}</td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <button type="button" class="btn btn-outline-primary" onclick="viewCard({{ card.id }})" title="_(" _(" _(" _(" _(" _("عرض التفاصيل")")")")")")">
+                                    <button type="button" class="btn btn-outline-primary" onclick="viewCard({{ card.id }})" title="عرض التفاصيل">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button type="button" class="btn btn-outline-warning" onclick="editCard({{ card.id }})" title="_(" _(" _(" _(" _(" _("تعديل")")")")")")">
+                                    <button type="button" class="btn btn-outline-warning" onclick="editCard({{ card.id }})" title="تعديل">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button type="button" class="btn btn-outline-danger" onclick="deleteCard({{ card.id }})" title="_(" _(" _(" _(" _(" _("حذف")")")")")")">
+                                    <button type="button" class="btn btn-outline-danger" onclick="deleteCard({{ card.id }})" title="حذف">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -186,7 +186,7 @@
             <div class="text-center py-5">
                 <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
                 <h5 class="text-muted">{{ _('لا توجد بطاقات مخزنة') }}</h5>
-                <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("ابدأ بإضافة بطاقة مصرفية جديدة")")")")")")")') }}</p>
+                <p class="text-muted">{{ _(_('ابدأ بإضافة بطاقة مصرفية جديدة')) }}</p>
             </div>
             {% endif %}
         </div>

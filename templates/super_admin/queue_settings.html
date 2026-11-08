@@ -3,30 +3,30 @@
 {% block title %}إعدادات الطوابير{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("إعدادات الطوابير")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("ضبط إعدادات الطابور حسب القسم")")")")")")")', icon='fas fa-stream', actions=[
-      {'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('super_admin.dashboard'), 'style': 'secondary'},
-      {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")', 'icon': 'fas fa-save', 'id': 'saveQueueSettingsBtn', 'style': 'primary'}
+  {{ page_header(_('إعدادات الطوابير'), subtitle=_('ضبط إعدادات الطابور حسب القسم'), icon='fas fa-stream', actions=[
+      {'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'url': url_for('super_admin.dashboard'), 'style': 'secondary'},
+      {'type': 'button', 'label': _('حفظ'), 'icon': 'fas fa-save', 'id': 'saveQueueSettingsBtn', 'style': 'primary'}
   ]) }}
 
   <div class="card shadow">
-    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("الأقسام")")")")")")")') }}</div>
+    <div class="card-header">{{ _(_('الأقسام')) }}</div>
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-striped align-middle mb-0" id="queueSettingsTable">
           <thead class="bg-light">
             <tr>
-              <th class="ps-3">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th>
-              <th style="width: 140px;">{{ _('_("_(" _(" _(" _(" _(" _("أقصى حجم")")")")")")")') }}</th>
-              <th style="width: 140px;">{{ _('_("_(" _(" _(" _(" _(" _("دفع مطلوب")")")")")")")') }}</th>
-              <th style="width: 170px;">{{ _('_("_(" _(" _(" _(" _(" _("إعفاء طوارئ")")")")")")")') }}</th>
-              <th style="width: 170px;">{{ _('_("_(" _(" _(" _(" _(" _("دخول قسري")")")")")")")') }}</th>
-              <th style="width: 170px;">{{ _('_("_(" _(" _(" _(" _(" _("متوسط انتظار")")")")")")")') }}</th>
-              <th style="width: 170px;">{{ _('_("_(" _(" _(" _(" _(" _("دفع جزئي")")")")")")")') }}</th>
-              <th style="width: 140px;">{{ _('_("_(" _(" _(" _(" _(" _("دين")")")")")")")') }}</th>
+              <th class="ps-3">{{ _(_('القسم')) }}</th>
+              <th style="width: 140px;">{{ _(_('أقصى حجم')) }}</th>
+              <th style="width: 140px;">{{ _(_('دفع مطلوب')) }}</th>
+              <th style="width: 170px;">{{ _(_('إعفاء طوارئ')) }}</th>
+              <th style="width: 170px;">{{ _(_('دخول قسري')) }}</th>
+              <th style="width: 170px;">{{ _(_('متوسط انتظار')) }}</th>
+              <th style="width: 170px;">{{ _(_('دفع جزئي')) }}</th>
+              <th style="width: 140px;">{{ _(_('دين')) }}</th>
             </tr>
           </thead>
           <tbody id="queueSettingsBody">
-            <tr><td colspan="8" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("جاري التحميل...")")")")")")")') }}</td></tr>
+            <tr><td colspan="8" class="text-center text-muted py-4">{{ _(_('جاري التحميل...')) }}</td></tr>
           </tbody>
         </table>
       </div>

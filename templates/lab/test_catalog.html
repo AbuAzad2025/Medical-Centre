@@ -4,17 +4,17 @@
 {% block title %}كتالوج الفحوصات المخبرية{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("كتالوج الفحوصات المخبرية")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة تعريفات الفحوصات القياسية")")")")")")")', icon='fas fa-book', actions=[
-      {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("إضافة فحص")")")")")")")', 'icon': 'fas fa-plus', 'data_bs_toggle': 'modal', 'data_bs_target': '#addModal', 'style': 'primary'},
-      {'label': '_("_(" _(" _(" _(" _(" _("الباقات")")")")")")")', 'icon': 'fas fa-layer-group', 'url': url_for('lab.test_panels'), 'style': 'outline-primary'},
-      {'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('lab.dashboard'), 'style': 'secondary'}
+  {{ page_header(_('كتالوج الفحوصات المخبرية'), subtitle=_('إدارة تعريفات الفحوصات القياسية'), icon='fas fa-book', actions=[
+      {'type': 'button', 'label': _('إضافة فحص'), 'icon': 'fas fa-plus', 'data_bs_toggle': 'modal', 'data_bs_target': '#addModal', 'style': 'primary'},
+      {'label': _('الباقات'), 'icon': 'fas fa-layer-group', 'url': url_for('lab.test_panels'), 'style': 'outline-primary'},
+      {'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'url': url_for('lab.dashboard'), 'style': 'secondary'}
   ]) }}
 
   <form method="GET" class="row g-3 mb-3">
     <div class="col-md-3">
-      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التصنيف")")")")")")")') }}</label>
+      <label class="form-label">{{ _(_('التصنيف')) }}</label>
       <select class="form-select" name="category" onchange="this.form.submit()">
-        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</option>
+        <option value="">{{ _(_('الكل')) }}</option>
         {% for c in categories %}
         <option value="{{ c }}" {% if selected_category == c %}selected{% endif %}>{{ c }}</option>
         {% endfor %}
@@ -28,15 +28,15 @@
         <table class="table table-striped align-middle">
           <thead>
             <tr>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الكود")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم (عربي)")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم (إنجليزي)")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("التصنيف")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الوحدة")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("المدى المرجعي")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("السعر")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</th>
-              <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("إجراءات")")")")")")")') }}</th>
+              <th>{{ _(_('الكود')) }}</th>
+              <th>{{ _(_('الاسم (عربي)')) }}</th>
+              <th>{{ _(_('الاسم (إنجليزي)')) }}</th>
+              <th>{{ _(_('التصنيف')) }}</th>
+              <th>{{ _(_('الوحدة')) }}</th>
+              <th>{{ _(_('المدى المرجعي')) }}</th>
+              <th>{{ _(_('السعر')) }}</th>
+              <th>{{ _(_('نشط')) }}</th>
+              <th class="text-end">{{ _(_('إجراءات')) }}</th>
             </tr>
           </thead>
           <tbody>
@@ -49,10 +49,10 @@
               <td>{{ t.unit or '-' }}</td>
               <td>{{ t.default_reference_range or '-' }}</td>
               <td>{{ t.price or '-' }}</td>
-              <td>{% if t.is_active %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نعم")")")")")")")') }}</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
+              <td>{% if t.is_active %}<span class="badge bg-success">{{ _(_('نعم')) }}</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
               <td class="text-end">
                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ t.id }}"><i class="fas fa-edit"></i></button>
-                <form method="post" action="{{ url_for('lab.test_catalog_delete', id=t.id) }}" class="d-inline" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("حذف الفحص؟")")")")")")")')">
+                <form method="post" action="{{ url_for('lab.test_catalog_delete', id=t.id) }}" class="d-inline" onsubmit="return confirm(_('حذف الفحص؟'))">
                   {{ csrf() }}
                   <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
                 </form>
@@ -69,15 +69,15 @@
                       {% include 'lab/test_catalog_form_body.html' %}
                     </div>
                     <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-                      <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+                      <button type="submit" class="btn btn-primary">{{ _(_('حفظ')) }}</button>
                     </div>
                   </div>
                 </form>
               </div>
             </div>
             {% else %}
-            <tr><td colspan="9" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد فحوصات")")")")")")")') }}</td></tr>
+            <tr><td colspan="9" class="text-center text-muted py-4">{{ _(_('لا توجد فحوصات')) }}</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -91,15 +91,15 @@
     <form method="post" action="{{ url_for('lab.test_catalog_add') }}">
       {{ csrf() }}
       <div class="modal-content">
-        <div class="modal-header"><h5>{{ _('_("_(" _(" _(" _(" _(" _("إضافة فحص جديد")")")")")")")') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header"><h5>{{ _(_('إضافة فحص جديد')) }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
           {% with t=None %}
           {% include 'lab/test_catalog_form_body.html' %}
           {% endwith %}
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-          <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("إضافة")")")")")")")') }}</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+          <button type="submit" class="btn btn-primary">{{ _(_('إضافة')) }}</button>
         </div>
       </div>
     </form>

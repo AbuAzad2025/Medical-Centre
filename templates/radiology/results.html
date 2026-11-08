@@ -2,18 +2,18 @@
 {% block title %}نتائج الأشعة{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("نتائج الأشعة المكتملة")")")")")")")') }}</h2>
+  <h2 class="mb-3">{{ _(_('نتائج الأشعة المكتملة')) }}</h2>
   <div class="card"><div class="card-body">
     <div class="table-responsive">
       <table class="table table-striped align-middle">
         <thead>
           <tr>
             <th>#</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("الفحص")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("النتيجة")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("مراجعة ثانية")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإكمال")")")")")")")') }}</th>
+            <th>{{ _(_('المريض')) }}</th>
+            <th>{{ _(_('الفحص')) }}</th>
+            <th>{{ _(_('النتيجة')) }}</th>
+            <th>{{ _(_('مراجعة ثانية')) }}</th>
+            <th>{{ _(_('تاريخ الإكمال')) }}</th>
           </tr>
         </thead>
         <tbody>
@@ -27,18 +27,18 @@
               {% if res %}
                 <span class="badge bg-success">VALIDATED</span>
                 {% if res.is_critical %}
-                  <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("حرج")")")")")")")') }}</span>
+                  <span class="badge bg-danger">{{ _(_('حرج')) }}</span>
                 {% endif %}
                 {% if res.revised_after_review %}
-                  <span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("مُعدّل بعد مراجعة")")")")")")")') }}</span>
+                  <span class="badge bg-warning text-dark">{{ _(_('مُعدّل بعد مراجعة')) }}</span>
                 {% endif %}
               {% else %}
-                <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد نتيجة")")")")")")")') }}</span>
+                <span class="badge bg-secondary">{{ _(_('لا توجد نتيجة')) }}</span>
               {% endif %}
             </td>
             <td>
               {% if res and res.reviewed_at %}
-                <span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("تمت")")")")")")")') }}</span>
+                <span class="badge bg-info">{{ _(_('تمت')) }}</span>
               {% else %}
                 <span class="badge bg-secondary">لا</span>
               {% endif %}
@@ -46,7 +46,7 @@
             <td>{{ req.updated_at or req.created_at }}</td>
           </tr>
           {% else %}
-          <tr><td colspan="6" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا نتائج")")")")")")")') }}</td></tr>
+          <tr><td colspan="6" class="text-center">{{ _(_('لا نتائج')) }}</td></tr>
           {% endfor %}
         </tbody>
       </table>

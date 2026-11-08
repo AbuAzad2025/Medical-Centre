@@ -5,10 +5,10 @@
 {% block header_actions %}
 <div class="d-flex gap-2">
     <button class="owner-btn owner-btn-outline" onclick="location.reload()">
-        <i class="fas fa-sync"></i> {{ _('_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")') }}
+        <i class="fas fa-sync"></i> {{ _(_('تحديث')) }}
     </button>
     <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
-        <i class="fas fa-arrow-right"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}
+        <i class="fas fa-arrow-right"></i> {{ _(_('العودة')) }}
     </a>
 </div>
 {% endblock %}
@@ -20,28 +20,28 @@
         <div class="owner-kpi owner-kpi-info">
             <div class="owner-kpi-icon"><i class="fas fa-database"></i></div>
             <div class="owner-kpi-value">{{ metrics.db_size_mb }} <small class="fs-6">MB</small></div>
-            <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("حجم قاعدة البيانات")")")")")")")') }}</div>
+            <div class="owner-kpi-label">{{ _(_('حجم قاعدة البيانات')) }}</div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6 animate-fadeInUp delay-2">
         <div class="owner-kpi owner-kpi-success">
             <div class="owner-kpi-icon"><i class="fas fa-user-check"></i></div>
             <div class="owner-kpi-value">{{ metrics.active_tenants }}</div>
-            <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("العملاء النشطون")")")")")")")') }}</div>
+            <div class="owner-kpi-label">{{ _(_('العملاء النشطون')) }}</div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6 animate-fadeInUp delay-3">
         <div class="owner-kpi owner-kpi-warning">
             <div class="owner-kpi-icon"><i class="fas fa-ticket-alt"></i></div>
             <div class="owner-kpi-value">{{ metrics.open_tickets }}</div>
-            <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("تذاكر الدعم المفتوحة")")")")")")")') }}</div>
+            <div class="owner-kpi-label">{{ _(_('تذاكر الدعم المفتوحة')) }}</div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6 animate-fadeInUp delay-4">
         <div class="owner-kpi owner-kpi-primary">
             <div class="owner-kpi-icon"><i class="fas fa-clock"></i></div>
             <div class="owner-kpi-value">{{ now().strftime('%H:%M') if now is defined else '-' }}</div>
-            <div class="owner-kpi-label">{{ _('_("_(" _(" _(" _(" _(" _("آخر فحص للنظام")")")")")")")') }}</div>
+            <div class="owner-kpi-label">{{ _(_('آخر فحص للنظام')) }}</div>
         </div>
     </div>
 </div>
@@ -51,7 +51,7 @@
     <div class="col-lg-7 animate-fadeInUp delay-5">
         <div class="owner-card h-100">
             <div class="owner-card-header">
-                <h6 class="owner-card-title"><i class="fas fa-heartbeat text-danger"></i> {{ _('_("_(" _(" _(" _(" _(" _("فحوصات صحة النظام")")")")")")")') }}</h6>
+                <h6 class="owner-card-title"><i class="fas fa-heartbeat text-danger"></i> {{ _(_('فحوصات صحة النظام')) }}</h6>
             </div>
             <div class="owner-card-body">
                 <div class="row g-3">
@@ -61,7 +61,7 @@
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <i class="fas {{ c.icon }} fa-lg {% if c.status == 'ok' %}text-success{% elif c.status == 'error' %}text-danger{% else %}text-warning{% endif %}"></i>
                                 <span class="badge {% if c.status == 'ok' %}bg-success{% elif c.status == 'error' %}bg-danger{% else %}bg-warning{% endif %}">
-                                    {{ '_("_(" _(" _(" _(" _(" _("سليم")")")")")")")' if c.status == 'ok' else '_("_(" _(" _(" _(" _(" _("خطأ")")")")")")")' if c.status == 'error' else '_("_(" _(" _(" _(" _(" _("تنبيه")")")")")")")' }}
+                                    {{ _('سليم') if c.status == 'ok' else _('خطأ') if c.status == 'error' else _('تنبيه') }}
                                 </span>
                             </div>
                             <div class="fw-bold small">{{ c.name }}</div>
@@ -78,7 +78,7 @@
     <div class="col-lg-5 animate-fadeInUp delay-5">
         <div class="owner-card h-100">
             <div class="owner-card-header">
-                <h6 class="owner-card-title"><i class="fas fa-history text-secondary"></i> {{ _('_("_(" _(" _(" _(" _(" _("النشاط الأخير")")")")")")")') }}</h6>
+                <h6 class="owner-card-title"><i class="fas fa-history text-secondary"></i> {{ _(_('النشاط الأخير')) }}</h6>
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
@@ -97,13 +97,13 @@
                     </div>
                     {% else %}
                     <div class="owner-empty py-4">
-                        <p class="small mb-0">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد سجلات نشطة")")")")")")")') }}</p>
+                        <p class="small mb-0">{{ _(_('لا توجد سجلات نشطة')) }}</p>
                     </div>
                     {% endfor %}
                 </div>
             </div>
             <div class="owner-card-footer text-center">
-                <a href="{{ url_for('owner.owner_audit_logs') }}" class="small text-decoration-none">{{ _('_("_(" _(" _(" _(" _(" _("مشاهدة السجل الكامل")")")")")")")') }}</a>
+                <a href="{{ url_for('owner.owner_audit_logs') }}" class="small text-decoration-none">{{ _(_('مشاهدة السجل الكامل')) }}</a>
             </div>
         </div>
     </div>

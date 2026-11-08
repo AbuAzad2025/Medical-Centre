@@ -2,13 +2,13 @@
 {% block title %}المشتريات{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="fas fa-boxes ms-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("سجل المشتريات")")")")")")")') }}</h4>
-    <a href="{{ url_for('medication.add_purchase') }}" class="btn btn-primary"><i class="fas fa-plus ms-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("إضافة مشتريات")")")")")")")') }}</a>
+    <h4 class="mb-0"><i class="fas fa-boxes ms-2"></i>{{ _(_('سجل المشتريات')) }}</h4>
+    <a href="{{ url_for('medication.add_purchase') }}" class="btn btn-primary"><i class="fas fa-plus ms-1"></i>{{ _(_('إضافة مشتريات')) }}</a>
 </div>
 <div class="card">
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
-            <thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المورد")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("رقم التشغيلة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الكمية")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("سعر الشراء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("سعر البيع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الشراء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الصلاحية")")")")")")")') }}</th></tr></thead>
+            <thead><tr><th>#</th><th>{{ _(_('الدواء')) }}</th><th>{{ _(_('المورد')) }}</th><th>{{ _(_('رقم التشغيلة')) }}</th><th>{{ _(_('الكمية')) }}</th><th>{{ _(_('سعر الشراء')) }}</th><th>{{ _(_('سعر البيع')) }}</th><th>{{ _(_('تاريخ الشراء')) }}</th><th>{{ _(_('تاريخ الصلاحية')) }}</th></tr></thead>
             <tbody>
             {% for p in purchases %}
             <tr>
@@ -23,7 +23,7 @@
                 <td class="small">{{ p.expiry_date.strftime('%Y-%m-%d') if p.expiry_date else '-' }}</td>
             </tr>
             {% else %}
-            <tr><td colspan="9" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مشتريات بعد")")")")")")")') }}</td></tr>
+            <tr><td colspan="9" class="text-center text-muted py-4">{{ _(_('لا توجد مشتريات بعد')) }}</td></tr>
             {% endfor %}
             </tbody>
         </table>

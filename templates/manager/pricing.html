@@ -5,8 +5,8 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("إدارة الأسعار والتسعير")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة شاملة لأسعار الخدمات الطبية وقواعد التسعير لكافة أقسام المركز")")")")")")")', icon='fas fa-dollar-sign', actions=[
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("إضافة خدمة جديدة")")")")")")")', 'icon': 'fas fa-plus', 'data_action': 'open-add-modal', 'style': 'primary'}
+    {{ page_header(_('إدارة الأسعار والتسعير'), subtitle=_('إدارة شاملة لأسعار الخدمات الطبية وقواعد التسعير لكافة أقسام المركز'), icon='fas fa-dollar-sign', actions=[
+        {'type': 'button', 'label': _('إضافة خدمة جديدة'), 'icon': 'fas fa-plus', 'data_action': 'open-add-modal', 'style': 'primary'}
     ]) }}
 
     <!-- Pricing Categories Stats -->
@@ -14,7 +14,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("فئات التسعير")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('فئات التسعير')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -24,8 +24,8 @@
                                     <i class="fas fa-user-md fa-2x"></i>
                                 </div>
                                 <div class="category-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("استشارات الأطباء")")")")")")")') }}</h6>
-                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("عرض خدمات الأطباء")")")")")")")') }}</p>
+                                    <h6>{{ _(_('استشارات الأطباء')) }}</h6>
+                                    <p class="text-muted">{{ _(_('عرض خدمات الأطباء')) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -35,8 +35,8 @@
                                     <i class="fas fa-flask fa-2x"></i>
                                 </div>
                                 <div class="category-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("فحوصات المختبر")")")")")")")') }}</h6>
-                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("عرض التحاليل المخبرية")")")")")")")') }}</p>
+                                    <h6>{{ _(_('فحوصات المختبر')) }}</h6>
+                                    <p class="text-muted">{{ _(_('عرض التحاليل المخبرية')) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -46,8 +46,8 @@
                                     <i class="fas fa-x-ray fa-2x"></i>
                                 </div>
                                 <div class="category-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("فحوصات الأشعة")")")")")")")') }}</h6>
-                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("عرض الفحوصات الإشعاعية")")")")")")")') }}</p>
+                                    <h6>{{ _(_('فحوصات الأشعة')) }}</h6>
+                                    <p class="text-muted">{{ _(_('عرض الفحوصات الإشعاعية')) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -57,8 +57,8 @@
                                     <i class="fas fa-procedures fa-2x"></i>
                                 </div>
                                 <div class="category-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الخدمات العامة")")")")")")")') }}</h6>
-                                    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("عرض الخدمات الأخرى")")")")")")")') }}</p>
+                                    <h6>{{ _(_('الخدمات العامة')) }}</h6>
+                                    <p class="text-muted">{{ _(_('عرض الخدمات الأخرى')) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -73,10 +73,10 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("قائمة الخدمات والأسعار")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('قائمة الخدمات والأسعار')) }}</h6>
                     <div class="d-flex gap-2">
-                        <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="_(" _(" _(" _(" _(" _("بحث باسم الخدمة أو الكود...")")")")")")" style="width: 250px;">
-                        <button class="btn btn-sm btn-outline-primary" onclick="filterServices('all')">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</button>
+                        <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="بحث باسم الخدمة أو الكود..." style="width: 250px;">
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterServices('all')">{{ _(_('الكل')) }}</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -84,14 +84,14 @@
                         <table class="table table-bordered table-hover" id="pricingTable">
                             <thead class="table-light">
                                 <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الكود")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("اسم الخدمة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الفئة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("السعر الأساسي")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("سعر الطوارئ")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("سعر التأمين")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
+                                    <th>{{ _(_('الكود')) }}</th>
+                                    <th>{{ _(_('اسم الخدمة')) }}</th>
+                                    <th>{{ _(_('الفئة')) }}</th>
+                                    <th>{{ _(_('السعر الأساسي')) }}</th>
+                                    <th>{{ _(_('سعر الطوارئ')) }}</th>
+                                    <th>{{ _(_('سعر التأمين')) }}</th>
+                                    <th>{{ _(_('الحالة')) }}</th>
+                                    <th>{{ _(_('الإجراءات')) }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -108,13 +108,13 @@
                                     </td>
                                     <td>
                                         {% if service.category == 'doctor' %}
-                                            <span class="badge bg-primary">{{ _('_("_(" _(" _(" _(" _(" _("طبيب")")")")")")")') }}</span>
+                                            <span class="badge bg-primary">{{ _(_('طبيب')) }}</span>
                                         {% elif service.category == 'lab' %}
-                                            <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مختبر")")")")")")")') }}</span>
+                                            <span class="badge bg-success">{{ _(_('مختبر')) }}</span>
                                         {% elif service.category == 'radiology' %}
-                                            <span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("أشعة")")")")")")")') }}</span>
+                                            <span class="badge bg-info">{{ _(_('أشعة')) }}</span>
                                         {% else %}
-                                            <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("عام")")")")")")")') }}</span>
+                                            <span class="badge bg-secondary">{{ _(_('عام')) }}</span>
                                         {% endif %}
                                     </td>
                                     <td class="text-primary fw-bold">{{ "%.2f"|format(service.base_price) }} ₪</td>
@@ -122,16 +122,16 @@
                                     <td class="text-info">{{ "%.2f"|format(service.insurance_price or 0) }} ₪</td>
                                     <td>
                                         {% if service.is_active %}
-                                            <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span>
+                                            <span class="badge bg-success">{{ _(_('نشط')) }}</span>
                                         {% else %}
-                                            <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</span>
+                                            <span class="badge bg-danger">{{ _(_('معطل')) }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary" onclick='editService({{ service.id }}, {{ service|tojson }})' title="_(" _(" _(" _(" _(" _("تعديل")")")")")")">
+                                        <button class="btn btn-sm btn-outline-primary" onclick='editService({{ service.id }}, {{ service|tojson }})' title="تعديل">
                                             <i class="fas fa-edit"></i> <span class="btn-label">{{ _('تعديل') }}</span>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteService({{ service.id }})" title="_(" _(" _(" _(" _(" _("حذف")")")")")")">
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteService({{ service.id }})" title="حذف">
                                             <i class="fas fa-trash"></i> <span class="btn-label">{{ _('حذف') }}</span>
                                         </button>
                                     </td>
@@ -151,7 +151,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="serviceModalLabel">{{ _('_("_(" _(" _(" _(" _(" _("إضافة خدمة جديدة")")")")")")")') }}</h5>
+                <h5 class="modal-title" id="serviceModalLabel">{{ _(_('إضافة خدمة جديدة')) }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -159,22 +159,22 @@
                     <input type="hidden" id="serviceId">
                     <div class="row mb-3">
                                 <div class="col-md-4">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("كود الخدمة")")")")")")")') }} <span class="text-danger">*</span></label>
+                                    <label class="form-label">{{ _(_('كود الخدمة')) }} <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="serviceCode" required>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الفئة")")")")")")")') }} <span class="text-danger">*</span></label>
+                                    <label class="form-label">{{ _(_('الفئة')) }} <span class="text-danger">*</span></label>
                                     <select class="form-select" id="serviceCategory" required>
-                                        <option value="general">{{ _('_("_(" _(" _(" _(" _(" _("عام")")")")")")")') }}</option>
-                                        <option value="doctor">{{ _('_("_(" _(" _(" _(" _(" _("طبيب")")")")")")")') }}</option>
-                                        <option value="lab">{{ _('_("_(" _(" _(" _(" _(" _("مختبر")")")")")")")') }}</option>
-                                        <option value="radiology">{{ _('_("_(" _(" _(" _(" _(" _("أشعة")")")")")")")') }}</option>
+                                        <option value="general">{{ _(_('عام')) }}</option>
+                                        <option value="doctor">{{ _(_('طبيب')) }}</option>
+                                        <option value="lab">{{ _(_('مختبر')) }}</option>
+                                        <option value="radiology">{{ _(_('أشعة')) }}</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم المختص")")")")")")")') }}</label>
+                                    <label class="form-label">{{ _(_('القسم المختص')) }}</label>
                                     <select class="form-select" id="serviceDepartment">
-                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("-- اختر القسم --")")")")")")")') }}</option>
+                                        <option value="">{{ _(_('-- اختر القسم --')) }}</option>
                                         {% for dept in departments %}
                                         <option value="{{ dept.id }}">{{ dept.name_ar or dept.name }}</option>
                                         {% endfor %}
@@ -183,51 +183,51 @@
                             </div>
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم بالعربية")")")")")")")') }} <span class="text-danger">*</span></label>
+                                    <label class="form-label">{{ _(_('الاسم بالعربية')) }} <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="serviceNameAr" required>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم بالإنجليزية")")")")")")")') }} <span class="text-danger">*</span></label>
+                                    <label class="form-label">{{ _(_('الاسم بالإنجليزية')) }} <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="serviceName" required>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-md-4">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("السعر الأساسي (شيكل)")")")")")")")') }} <span class="text-danger">*</span></label>
+                                    <label class="form-label">{{ _(_('السعر الأساسي (شيكل)')) }} <span class="text-danger">*</span></label>
                                     <input type="number" step="0.01" class="form-control" id="basePrice" required>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("سعر الطوارئ")")")")")")")') }}</label>
+                                    <label class="form-label">{{ _(_('سعر الطوارئ')) }}</label>
                                     <input type="number" step="0.01" class="form-control" id="emergencyPrice">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("سعر التأمين")")")")")")")') }}</label>
+                                    <label class="form-label">{{ _(_('سعر التأمين')) }}</label>
                                     <input type="number" step="0.01" class="form-control" id="insurancePrice">
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المدة التقريبية (دقيقة)")")")")")")")') }}</label>
-                                    <input type="number" class="form-control" id="serviceDuration" placeholder="_(" _(" _(" _(" _(" _("مثلاً: 15")")")")")")">
+                                    <label class="form-label">{{ _(_('المدة التقريبية (دقيقة)')) }}</label>
+                                    <input type="number" class="form-control" id="serviceDuration" placeholder="مثلاً: 15">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحد الأقصى اليومي")")")")")")")') }}</label>
-                                    <input type="number" class="form-control" id="serviceMaxDaily" placeholder="_(" _(" _(" _(" _(" _("اتركه فارغاً إذا غير محدود")")")")")")">
+                                    <label class="form-label">{{ _(_('الحد الأقصى اليومي')) }}</label>
+                                    <input type="number" class="form-control" id="serviceMaxDaily" placeholder="اتركه فارغاً إذا غير محدود">
                                 </div>
                             </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('الوصف')) }}</label>
                         <textarea class="form-control" id="serviceDescription" rows="2"></textarea>
                     </div>
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" id="isActive" checked>
-                        <label class="form-check-label" for="isActive">{{ _('_("_(" _(" _(" _(" _(" _("الخدمة نشطة")")")")")")")') }}</label>
+                        <label class="form-check-label" for="isActive">{{ _(_('الخدمة نشطة')) }}</label>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-                <button type="button" class="btn btn-primary" onclick="saveService()">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+                <button type="button" class="btn btn-primary" onclick="saveService()">{{ _(_('حفظ')) }}</button>
             </div>
         </div>
     </div>

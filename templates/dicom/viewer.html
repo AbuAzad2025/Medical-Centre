@@ -2,19 +2,19 @@
 {% block title %}DICOM Viewer{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">DICOM Viewer — {{ study.study_description or '_("_(" _(" _(" _(" _(" _("بدون وصف")")")")")")")' }}</h2>
+  <h2 class="mb-4">DICOM Viewer — {{ study.study_description or _('بدون وصف') }}</h2>
   <div class="card">
     <div class="card-body text-center">
       <div class="alert alert-info">
-        {{ _('_("_(" _(" _(" _(" _(" _("DICOM Viewer متكامل — يتطلب مكتبة Cornerstone أو OHIF Viewer.")")")")")")")') }}<br>
+        {{ _(_('DICOM Viewer متكامل — يتطلب مكتبة Cornerstone أو OHIF Viewer.')) }}<br>
         <strong>Study UID:</strong> <code>{{ study.study_instance_uid }}</code><br>
         <strong>Modality:</strong> {{ study.modality }} — <strong>Series:</strong> {{ study.series_count }} — <strong>Images:</strong> {{ study.instance_count }}
       </div>
       <div id="dicomContainer" class="border rounded bg-dark dicom-preview-container">
-        <div>{{ _('_("_(" _(" _(" _(" _(" _("صورة DICOM #1 (Preview placeholder)")")")")")")")') }}</div>
+        <div>{{ _(_('صورة DICOM #1 (Preview placeholder)')) }}</div>
       </div>
       <div class="mt-3">
-        <a href="{{ url_for('dicom.studies') }}" class="btn btn-secondary">{{ _('_("_(" _(" _(" _(" _(" _("العودة للدراسات")")")")")")")') }}</a>
+        <a href="{{ url_for('dicom.studies') }}" class="btn btn-secondary">{{ _(_('العودة للدراسات')) }}</a>
       </div>
     </div>
   </div>

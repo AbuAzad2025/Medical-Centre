@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container py-4">
-  <h4><i class="bi bi-clipboard-pulse me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("لوحة تقييمات التمريض")")")")")")")') }}</h4>
+  <h4><i class="bi bi-clipboard-pulse me-2"></i>{{ _(_('لوحة تقييمات التمريض')) }}</h4>
   <div class="row g-3 mb-4">
     {% for s in stats %}
     <div class="col-md-3">
@@ -17,7 +17,7 @@
   </div>
   <div class="table-responsive">
     <table class="table table-striped">
-      <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الدرجة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المخاطر")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th></tr></thead>
+      <thead><tr><th>{{ _(_('المريض')) }}</th><th>{{ _(_('النوع')) }}</th><th>{{ _(_('الدرجة')) }}</th><th>{{ _(_('المخاطر')) }}</th><th>{{ _(_('التاريخ')) }}</th></tr></thead>
       <tbody>
         {% for a in recent %}
         <tr>

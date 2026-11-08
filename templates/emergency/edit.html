@@ -153,8 +153,8 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="form-header">
-                <h2><i class="fas fa-ambulance"></i> {{ _('_("_(" _(" _(" _(" _(" _("تعديل حالة الطوارئ")")")")")")")') }}</h2>
-                <p class="mb-0">{{ emergency.patient.name if emergency.patient else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }} - {{ emergency.emergency_date.strftime('%Y-%m-%d %H:%M') if emergency.emergency_date else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</p>
+                <h2><i class="fas fa-ambulance"></i> {{ _(_('تعديل حالة الطوارئ')) }}</h2>
+                <p class="mb-0">{{ emergency.patient.name if emergency.patient else _('غير محدد') }} - {{ emergency.emergency_date.strftime('%Y-%m-%d %H:%M') if emergency.emergency_date else _('غير محدد') }}</p>
             </div>
         </div>
     </div>
@@ -165,28 +165,28 @@
             <div class="col-md-8">
                 <!-- Emergency Info -->
                 <div class="emergency-info">
-                    <h6><i class="fas fa-info-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("معلومات حالة الطوارئ")")")")")")")') }}</h6>
-                    <p>تاريخ الحالة: {{ emergency.emergency_date.strftime('%Y-%m-%d %H:%M') if emergency.emergency_date else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</p>
-                    <p>الطبيب: {{ emergency.doctor.name if emergency.doctor else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</p>
-                    <p>الأولوية: {{ emergency.priority or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</p>
+                    <h6><i class="fas fa-info-circle"></i> {{ _(_('معلومات حالة الطوارئ')) }}</h6>
+                    <p>تاريخ الحالة: {{ emergency.emergency_date.strftime('%Y-%m-%d %H:%M') if emergency.emergency_date else _('غير محدد') }}</p>
+                    <p>الطبيب: {{ emergency.doctor.name if emergency.doctor else _('غير محدد') }}</p>
+                    <p>الأولوية: {{ emergency.priority or _('غير محدد') }}</p>
                 </div>
 
                 <!-- Change Log -->
                 <div class="change-log">
-                    <h6><i class="fas fa-history"></i> {{ _('_("_(" _(" _(" _(" _(" _("سجل التغييرات")")")")")")")') }}</h6>
-                    <p>{{ _('_("_(" _(" _(" _(" _(" _("سيتم تسجيل جميع التغييرات في سجل النظام مع الوقت والتاريخ")")")")")")")') }}</p>
+                    <h6><i class="fas fa-history"></i> {{ _(_('سجل التغييرات')) }}</h6>
+                    <p>{{ _(_('سيتم تسجيل جميع التغييرات في سجل النظام مع الوقت والتاريخ')) }}</p>
                 </div>
 
                 <!-- Basic Information -->
                 <div class="form-container">
                     <div class="form-section">
-                        <h5><i class="fas fa-ambulance"></i> {{ _('_("_(" _(" _(" _(" _(" _("المعلومات الأساسية")")")")")")")') }}</h5>
+                        <h5><i class="fas fa-ambulance"></i> {{ _(_('المعلومات الأساسية')) }}</h5>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }} <span class="required">*</span></label>
+                                    <label class="form-label">{{ _(_('المريض')) }} <span class="required">*</span></label>
                                     <select name="patient_id" class="form-control" required>
-                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر المريض")")")")")")")') }}</option>
+                                        <option value="">{{ _(_('اختر المريض')) }}</option>
                                         {% for patient in patients %}
                                         <option value="{{ patient.id }}" {% if emergency.patient_id == patient.id %}selected{% endif %}>
                                             {{ patient.name }} - {{ patient.phone }}
@@ -197,9 +197,9 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }} <span class="required">*</span></label>
+                                    <label class="form-label">{{ _(_('الطبيب')) }} <span class="required">*</span></label>
                                     <select name="doctor_id" class="form-control" required>
-                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الطبيب")")")")")")")') }}</option>
+                                        <option value="">{{ _(_('اختر الطبيب')) }}</option>
                                         {% for doctor in doctors %}
                                         <option value="{{ doctor.id }}" {% if emergency.doctor_id == doctor.id %}selected{% endif %}>
                                             د. {{ doctor.name }}
@@ -213,13 +213,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الطوارئ")")")")")")")') }} <span class="required">*</span></label>
+                                    <label class="form-label">{{ _(_('تاريخ الطوارئ')) }} <span class="required">*</span></label>
                                     <input type="date" name="emergency_date" class="form-control" value="{{ emergency.emergency_date.strftime('%Y-%m-%d') if emergency.emergency_date else '' }}" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("وقت الطوارئ")")")")")")")') }} <span class="required">*</span></label>
+                                    <label class="form-label">{{ _(_('وقت الطوارئ')) }} <span class="required">*</span></label>
                                     <input type="time" name="emergency_time" class="form-control" value="{{ emergency.emergency_time.strftime('%H:%M') if emergency.emergency_time else '' }}" required>
                                 </div>
                             </div>
@@ -228,23 +228,23 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }} <span class="required">*</span></label>
+                                    <label class="form-label">{{ _(_('الأولوية')) }} <span class="required">*</span></label>
                                     <select name="priority" class="form-control" required>
-                                        <option value="low" {% if emergency.priority == 'low' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("منخفضة")")")")")")")') }}</option>
-                                        <option value="medium" {% if emergency.priority == 'medium' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("متوسطة")")")")")")")') }}</option>
-                                        <option value="high" {% if emergency.priority == 'high' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("عالية")")")")")")")') }}</option>
-                                        <option value="critical" {% if emergency.priority == 'critical' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("حرجة")")")")")")")') }}</option>
+                                        <option value="low" {% if emergency.priority == 'low' %}selected{% endif %}>{{ _(_('منخفضة')) }}</option>
+                                        <option value="medium" {% if emergency.priority == 'medium' %}selected{% endif %}>{{ _(_('متوسطة')) }}</option>
+                                        <option value="high" {% if emergency.priority == 'high' %}selected{% endif %}>{{ _(_('عالية')) }}</option>
+                                        <option value="critical" {% if emergency.priority == 'critical' %}selected{% endif %}>{{ _(_('حرجة')) }}</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</label>
+                                    <label class="form-label">{{ _(_('الحالة')) }}</label>
                                     <select name="status" class="form-control">
-                                        <option value="active" {% if emergency.status == 'active' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("نشطة")")")")")")")') }}</option>
-                                        <option value="resolved" {% if emergency.status == 'resolved' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("محلولة")")")")")")")') }}</option>
-                                        <option value="transferred" {% if emergency.status == 'transferred' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("منقولة")")")")")")")') }}</option>
-                                        <option value="cancelled" {% if emergency.status == 'cancelled' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("ملغية")")")")")")")') }}</option>
+                                        <option value="active" {% if emergency.status == 'active' %}selected{% endif %}>{{ _(_('نشطة')) }}</option>
+                                        <option value="resolved" {% if emergency.status == 'resolved' %}selected{% endif %}>{{ _(_('محلولة')) }}</option>
+                                        <option value="transferred" {% if emergency.status == 'transferred' %}selected{% endif %}>{{ _(_('منقولة')) }}</option>
+                                        <option value="cancelled" {% if emergency.status == 'cancelled' %}selected{% endif %}>{{ _(_('ملغية')) }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -253,45 +253,45 @@
 
                     <!-- Chief Complaint -->
                     <div class="form-section">
-                        <h5><i class="fas fa-comment-medical"></i> {{ _('_("_(" _(" _(" _(" _(" _("الشكوى الرئيسية")")")")")")")') }}</h5>
+                        <h5><i class="fas fa-comment-medical"></i> {{ _(_('الشكوى الرئيسية')) }}</h5>
                         <div class="form-group">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الشكوى الرئيسية")")")")")")")') }} <span class="required">*</span></label>
-                            <textarea name="chief_complaint" class="form-control" rows="3" placeholder="_(" _(" _(" _(" _(" _("وصف الشكوى الرئيسية للمريض")")")")")")" required>{{ emergency.chief_complaint or '' }}</textarea>
+                            <label class="form-label">{{ _(_('الشكوى الرئيسية')) }} <span class="required">*</span></label>
+                            <textarea name="chief_complaint" class="form-control" rows="3" placeholder="وصف الشكوى الرئيسية للمريض" required>{{ emergency.chief_complaint or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الأعراض")")")")")")")') }}</label>
-                            <textarea name="symptoms" class="form-control" rows="4" placeholder="_(" _(" _(" _(" _(" _("وصف الأعراض الحالية")")")")")")">{{ emergency.symptoms or '' }}</textarea>
+                            <label class="form-label">{{ _(_('الأعراض')) }}</label>
+                            <textarea name="symptoms" class="form-control" rows="4" placeholder="وصف الأعراض الحالية">{{ emergency.symptoms or '' }}</textarea>
                         </div>
                     </div>
 
                     <!-- Vital Signs -->
                     <div class="form-section">
-                        <h5><i class="fas fa-heartbeat"></i> {{ _('_("_(" _(" _(" _(" _(" _("العلامات الحيوية")")")")")")")') }}</h5>
+                        <h5><i class="fas fa-heartbeat"></i> {{ _(_('العلامات الحيوية')) }}</h5>
                         <div class="vital-signs">
                             <div class="vital-sign-item">
                                 <div class="vital-sign-value">{{ emergency.vital_signs.get('bp_systolic', '') if emergency.vital_signs else '' }}</div>
-                                <div class="vital-sign-label">{{ _('_("_(" _(" _(" _(" _(" _("ضغط الدم (الانقباضي)")")")")")")")') }}</div>
-                                <input type="number" name="vital_signs_bp_systolic" class="form-control mt-2" value="{{ emergency.vital_signs.get('bp_systolic', '') if emergency.vital_signs else '' }}" placeholder="_(" _(" _(" _(" _(" _("مم زئبق")")")")")")">
+                                <div class="vital-sign-label">{{ _(_('ضغط الدم (الانقباضي)')) }}</div>
+                                <input type="number" name="vital_signs_bp_systolic" class="form-control mt-2" value="{{ emergency.vital_signs.get('bp_systolic', '') if emergency.vital_signs else '' }}" placeholder="مم زئبق">
                             </div>
                             <div class="vital-sign-item">
                                 <div class="vital-sign-value">{{ emergency.vital_signs.get('bp_diastolic', '') if emergency.vital_signs else '' }}</div>
-                                <div class="vital-sign-label">{{ _('_("_(" _(" _(" _(" _(" _("ضغط الدم (الانبساطي)")")")")")")")') }}</div>
-                                <input type="number" name="vital_signs_bp_diastolic" class="form-control mt-2" value="{{ emergency.vital_signs.get('bp_diastolic', '') if emergency.vital_signs else '' }}" placeholder="_(" _(" _(" _(" _(" _("مم زئبق")")")")")")">
+                                <div class="vital-sign-label">{{ _(_('ضغط الدم (الانبساطي)')) }}</div>
+                                <input type="number" name="vital_signs_bp_diastolic" class="form-control mt-2" value="{{ emergency.vital_signs.get('bp_diastolic', '') if emergency.vital_signs else '' }}" placeholder="مم زئبق">
                             </div>
                             <div class="vital-sign-item">
                                 <div class="vital-sign-value">{{ emergency.vital_signs.get('heart_rate', '') if emergency.vital_signs else '' }}</div>
-                                <div class="vital-sign-label">{{ _('_("_(" _(" _(" _(" _(" _("معدل النبض")")")")")")")') }}</div>
-                                <input type="number" name="vital_signs_heart_rate" class="form-control mt-2" value="{{ emergency.vital_signs.get('heart_rate', '') if emergency.vital_signs else '' }}" placeholder="_(" _(" _(" _(" _(" _("نبضة/دقيقة")")")")")")">
+                                <div class="vital-sign-label">{{ _(_('معدل النبض')) }}</div>
+                                <input type="number" name="vital_signs_heart_rate" class="form-control mt-2" value="{{ emergency.vital_signs.get('heart_rate', '') if emergency.vital_signs else '' }}" placeholder="نبضة/دقيقة">
                             </div>
                             <div class="vital-sign-item">
                                 <div class="vital-sign-value">{{ emergency.vital_signs.get('temperature', '') if emergency.vital_signs else '' }}</div>
-                                <div class="vital-sign-label">{{ _('_("_(" _(" _(" _(" _(" _("درجة الحرارة")")")")")")")') }}</div>
+                                <div class="vital-sign-label">{{ _(_('درجة الحرارة')) }}</div>
                                 <input type="number" name="vital_signs_temperature" class="form-control mt-2" value="{{ emergency.vital_signs.get('temperature', '') if emergency.vital_signs else '' }}" placeholder="°C">
                             </div>
                             <div class="vital-sign-item">
                                 <div class="vital-sign-value">{{ emergency.vital_signs.get('oxygen_saturation', '') if emergency.vital_signs else '' }}</div>
-                                <div class="vital-sign-label">{{ _('_("_(" _(" _(" _(" _(" _("تشبع الأكسجين")")")")")")")') }}</div>
+                                <div class="vital-sign-label">{{ _(_('تشبع الأكسجين')) }}</div>
                                 <input type="number" name="vital_signs_oxygen_saturation" class="form-control mt-2" value="{{ emergency.vital_signs.get('oxygen_saturation', '') if emergency.vital_signs else '' }}" placeholder="%">
                             </div>
                         </div>
@@ -299,63 +299,63 @@
 
                     <!-- Assessment and Treatment -->
                     <div class="form-section">
-                        <h5><i class="fas fa-stethoscope"></i> {{ _('_("_(" _(" _(" _(" _(" _("التقييم والعلاج")")")")")")")') }}</h5>
+                        <h5><i class="fas fa-stethoscope"></i> {{ _(_('التقييم والعلاج')) }}</h5>
                         <div class="form-group">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التقييم الأولي")")")")")")")') }}</label>
-                            <textarea name="initial_assessment" class="form-control" rows="4" placeholder="_(" _(" _(" _(" _(" _("التقييم الأولي للحالة")")")")")")">{{ emergency.initial_assessment or '' }}</textarea>
+                            <label class="form-label">{{ _(_('التقييم الأولي')) }}</label>
+                            <textarea name="initial_assessment" class="form-control" rows="4" placeholder="التقييم الأولي للحالة">{{ emergency.initial_assessment or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("العلاج المقدم")")")")")")")') }}</label>
-                            <textarea name="treatment_given" class="form-control" rows="4" placeholder="_(" _(" _(" _(" _(" _("العلاج الذي تم تقديمه")")")")")")">{{ emergency.treatment_given or '' }}</textarea>
+                            <label class="form-label">{{ _(_('العلاج المقدم')) }}</label>
+                            <textarea name="treatment_given" class="form-control" rows="4" placeholder="العلاج الذي تم تقديمه">{{ emergency.treatment_given or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الأدوية المعطاة")")")")")")")') }}</label>
-                            <textarea name="medications_given" class="form-control" rows="3" placeholder="_(" _(" _(" _(" _(" _("الأدوية التي تم إعطاؤها")")")")")")">{{ emergency.medications_given or '' }}</textarea>
+                            <label class="form-label">{{ _(_('الأدوية المعطاة')) }}</label>
+                            <textarea name="medications_given" class="form-control" rows="3" placeholder="الأدوية التي تم إعطاؤها">{{ emergency.medications_given or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات المنجزة")")")")")")")') }}</label>
-                            <textarea name="procedures_performed" class="form-control" rows="3" placeholder="_(" _(" _(" _(" _(" _("الإجراءات الطبية التي تم إنجازها")")")")")")">{{ emergency.procedures_performed or '' }}</textarea>
+                            <label class="form-label">{{ _(_('الإجراءات المنجزة')) }}</label>
+                            <textarea name="procedures_performed" class="form-control" rows="3" placeholder="الإجراءات الطبية التي تم إنجازها">{{ emergency.procedures_performed or '' }}</textarea>
                         </div>
                     </div>
 
                     <!-- Response and Final Assessment -->
                     <div class="form-section">
-                        <h5><i class="fas fa-check-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("الاستجابة والتقييم النهائي")")")")")")")') }}</h5>
+                        <h5><i class="fas fa-check-circle"></i> {{ _(_('الاستجابة والتقييم النهائي')) }}</h5>
                         <div class="form-group">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاستجابة للعلاج")")")")")")")') }}</label>
-                            <textarea name="response_to_treatment" class="form-control" rows="3" placeholder="_(" _(" _(" _(" _(" _("استجابة المريض للعلاج")")")")")")">{{ emergency.response_to_treatment or '' }}</textarea>
+                            <label class="form-label">{{ _(_('الاستجابة للعلاج')) }}</label>
+                            <textarea name="response_to_treatment" class="form-control" rows="3" placeholder="استجابة المريض للعلاج">{{ emergency.response_to_treatment or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التقييم النهائي")")")")")")")') }}</label>
-                            <textarea name="final_assessment" class="form-control" rows="4" placeholder="_(" _(" _(" _(" _(" _("التقييم النهائي للحالة")")")")")")">{{ emergency.final_assessment or '' }}</textarea>
+                            <label class="form-label">{{ _(_('التقييم النهائي')) }}</label>
+                            <textarea name="final_assessment" class="form-control" rows="4" placeholder="التقييم النهائي للحالة">{{ emergency.final_assessment or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تعليمات الخروج")")")")")")")') }}</label>
-                            <textarea name="discharge_instructions" class="form-control" rows="4" placeholder="_(" _(" _(" _(" _(" _("تعليمات للمريض عند الخروج")")")")")")">{{ emergency.discharge_instructions or '' }}</textarea>
+                            <label class="form-label">{{ _(_('تعليمات الخروج')) }}</label>
+                            <textarea name="discharge_instructions" class="form-control" rows="4" placeholder="تعليمات للمريض عند الخروج">{{ emergency.discharge_instructions or '' }}</textarea>
                         </div>
                     </div>
 
                     <!-- Follow-up -->
                     <div class="form-section">
-                        <h5><i class="fas fa-calendar-check"></i> {{ _('_("_(" _(" _(" _(" _(" _("المتابعة")")")")")")")') }}</h5>
+                        <h5><i class="fas fa-calendar-check"></i> {{ _(_('المتابعة')) }}</h5>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("متابعة مطلوبة")")")")")")")') }}</label>
+                                    <label class="form-label">{{ _(_('متابعة مطلوبة')) }}</label>
                                     <div class="form-check">
                                         <input type="checkbox" name="follow_up_required" class="form-check-input" {% if emergency.follow_up_required %}checked{% endif %}>
-                                        <label class="form-check-label">{{ _('_("_(" _(" _(" _(" _(" _("يحتاج متابعة")")")")")")")') }}</label>
+                                        <label class="form-check-label">{{ _(_('يحتاج متابعة')) }}</label>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ المتابعة")")")")")")")') }}</label>
+                                    <label class="form-label">{{ _(_('تاريخ المتابعة')) }}</label>
                                     <input type="date" name="follow_up_date" class="form-control" value="{{ emergency.follow_up_date.strftime('%Y-%m-%d') if emergency.follow_up_date else '' }}">
                                 </div>
                             </div>
@@ -364,10 +364,10 @@
 
                     <!-- Notes -->
                     <div class="form-section">
-                        <h5><i class="fas fa-sticky-note"></i> {{ _('_("_(" _(" _(" _(" _(" _("ملاحظات إضافية")")")")")")")') }}</h5>
+                        <h5><i class="fas fa-sticky-note"></i> {{ _(_('ملاحظات إضافية')) }}</h5>
                         <div class="form-group">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label>
-                            <textarea name="notes" class="form-control" rows="4" placeholder="_(" _(" _(" _(" _(" _("أي ملاحظات إضافية")")")")")")">{{ emergency.notes or '' }}</textarea>
+                            <label class="form-label">{{ _(_('ملاحظات')) }}</label>
+                            <textarea name="notes" class="form-control" rows="4" placeholder="أي ملاحظات إضافية">{{ emergency.notes or '' }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -376,38 +376,38 @@
             <div class="col-md-4">
                 <!-- Quick Actions -->
                 <div class="form-container">
-                    <h5><i class="fas fa-bolt"></i> {{ _('_("_(" _(" _(" _(" _(" _("إجراءات سريعة")")")")")")")') }}</h5>
+                    <h5><i class="fas fa-bolt"></i> {{ _(_('إجراءات سريعة')) }}</h5>
                     <div class="d-grid gap-2">
                         <a href="{{ url_for('emergency.view_emergency_case', id=emergency.id) }}" class="btn btn-outline-info">
-                            <i class="fas fa-eye"></i> {{ _('_("_(" _(" _(" _(" _(" _("عرض الحالة")")")")")")")') }}
+                            <i class="fas fa-eye"></i> {{ _(_('عرض الحالة')) }}
                         </a>
                         {% if module_active('reception') %}
                         <a href="{{ url_for('reception.view_patient', patient_id=emergency.patient.id) if emergency.patient else '#' }}" class="btn btn-outline-primary">
-                            <i class="fas fa-user"></i> {{ _('_("_(" _(" _(" _(" _(" _("بيانات المريض")")")")")")")') }}
+                            <i class="fas fa-user"></i> {{ _(_('بيانات المريض')) }}
                         </a>
                         {% endif %}
                         <button type="button" class="btn btn-outline-success" onclick="resolveEmergency()">
-                            <i class="fas fa-check"></i> {{ _('_("_(" _(" _(" _(" _(" _("حل الحالة")")")")")")")') }}
+                            <i class="fas fa-check"></i> {{ _(_('حل الحالة')) }}
                         </button>
                         <button type="button" class="btn btn-outline-warning" onclick="transferEmergency()">
-                            <i class="fas fa-ambulance"></i> {{ _('_("_(" _(" _(" _(" _(" _("نقل الحالة")")")")")")")') }}
+                            <i class="fas fa-ambulance"></i> {{ _(_('نقل الحالة')) }}
                         </button>
                     </div>
                 </div>
 
                 <!-- Emergency Statistics -->
                 <div class="form-container">
-                    <h5><i class="fas fa-chart-bar"></i> {{ _('_("_(" _(" _(" _(" _(" _("إحصائيات الحالة")")")")")")")') }}</h5>
+                    <h5><i class="fas fa-chart-bar"></i> {{ _(_('إحصائيات الحالة')) }}</h5>
                     <div class="row text-center">
                         <div class="col-6">
                             <div class="border-end">
                                 <h4 class="text-primary">{{ emergency.priority|title }}</h4>
-                                <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</small>
+                                <small class="text-muted">{{ _(_('الأولوية')) }}</small>
                             </div>
                         </div>
                         <div class="col-6">
                             <h4 class="text-success">{{ emergency.status | enum_label('EmergencyStatus') }}</h4>
-                            <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</small>
+                            <small class="text-muted">{{ _(_('الحالة')) }}</small>
                         </div>
                     </div>
                 </div>
@@ -416,10 +416,10 @@
                 <div class="form-container">
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary btn-save">
-                            <i class="fas fa-save"></i> {{ _('_("_(" _(" _(" _(" _(" _("حفظ التغييرات")")")")")")")') }}
+                            <i class="fas fa-save"></i> {{ _(_('حفظ التغييرات')) }}
                         </button>
                         <a href="{{ url_for('emergency.view_emergency_case', id=emergency.id) }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-times"></i> {{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}
+                            <i class="fas fa-times"></i> {{ _(_('إلغاء')) }}
                         </a>
                     </div>
                 </div>

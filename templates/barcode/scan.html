@@ -2,22 +2,22 @@
 {% block title %}مسح الباركود{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("مسح الباركود / QR")")")")")")")') }}</h2>
+  <h2 class="mb-4">{{ _(_('مسح الباركود / QR')) }}</h2>
   <div class="card p-4 mx-auto max-w-500">
     <div class="mb-3">
-      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("أدخل الباركود")")")")")")")') }}</label>
-      <input type="text" id="barcodeInput" class="form-control form-control-lg" placeholder="_(" _(" _(" _(" _(" _("امسح الباركود هنا...")")")")")")" autofocus>
+      <label class="form-label">{{ _(_('أدخل الباركود')) }}</label>
+      <input type="text" id="barcodeInput" class="form-control form-control-lg" placeholder="امسح الباركود هنا..." autofocus>
     </div>
     <div class="mb-3">
-      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الإجراء")")")")")")")') }}</label>
-      <select id="scanAction" class="form-select" title="_(" _(" _(" _(" _(" _("اختر إجراء المسح")")")")")")">
-        <option value="VERIFY">{{ _('_("_(" _(" _(" _(" _(" _("تحقق")")")")")")")') }}</option>
-        <option value="ADMINISTER">{{ _('_("_(" _(" _(" _(" _(" _("إعطاء دواء")")")")")")")') }}</option>
-        <option value="DISPENSE">{{ _('_("_(" _(" _(" _(" _(" _("صرف")")")")")")")') }}</option>
-        <option value="COLLECT">{{ _('_("_(" _(" _(" _(" _(" _("جمع عينة")")")")")")")') }}</option>
+      <label class="form-label">{{ _(_('الإجراء')) }}</label>
+      <select id="scanAction" class="form-select" title="اختر إجراء المسح">
+        <option value="VERIFY">{{ _(_('تحقق')) }}</option>
+        <option value="ADMINISTER">{{ _(_('إعطاء دواء')) }}</option>
+        <option value="DISPENSE">{{ _(_('صرف')) }}</option>
+        <option value="COLLECT">{{ _(_('جمع عينة')) }}</option>
       </select>
     </div>
-    <button class="btn btn-primary btn-lg" onclick="submitScan()">{{ _('_("_(" _(" _(" _(" _(" _("تأكيد")")")")")")")') }}</button>
+    <button class="btn btn-primary btn-lg" onclick="submitScan()">{{ _(_('تأكيد')) }}</button>
     <div id="scanResult" class="mt-3"></div>
   </div>
 </div>

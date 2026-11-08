@@ -3,12 +3,12 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-cubes me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("إدارة Packages")")")")")")")') }}</h4></div>
+        <div class="col"><h4><i class="fas fa-cubes me-2 text-primary"></i>{{ _(_('إدارة Packages')) }}</h4></div>
         <div class="col-auto">
             <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createPackageModal">
-                <i class="fas fa-plus me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("Package جديد")")")")")")")') }}
+                <i class="fas fa-plus me-1"></i> {{ _(_('Package جديد')) }}
             </button>
-            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _(_('العودة')) }}</a>
         </div>
     </div>
 
@@ -30,35 +30,35 @@
                     <p class="text-muted small">{{ pkg.name_ar or '-' }}</p>
                     <p class="small"><strong>Slug:</strong> {{ pkg.slug }}</p>
                     <hr>
-                    <p class="fw-bold small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("الإصدارات:")")")")")")")') }}</p>
+                    <p class="fw-bold small mb-1">{{ _(_('الإصدارات:')) }}</p>
                     <ul class="list-group list-group-flush small mb-3">
                         {% for v in pkg.versions %}
                         <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                             <span>
                                 v{{ v.version }}
-                                {% if v.is_deprecated %}<span class="badge bg-warning text-dark ms-1">{{ _('_("_(" _(" _(" _(" _(" _("مهمل")")")")")")")') }}</span>{% endif %}
+                                {% if v.is_deprecated %}<span class="badge bg-warning text-dark ms-1">{{ _(_('مهمل')) }}</span>{% endif %}
                             </span>
                             <span class="text-muted d-flex align-items-center gap-2">
                                 {{ v.entitlements|length }} إمكانية · {{ v.pricing|length }} تسعير
-                                <button class="btn btn-sm btn-outline-primary py-0 px-1" data-bs-toggle="modal" data-bs-target="#editVersionModal{{ v.id }}" title="_(" _(" _(" _(" _(" _("تعديل")")")")")")"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-outline-primary py-0 px-1" data-bs-toggle="modal" data-bs-target="#editVersionModal{{ v.id }}" title="تعديل"><i class="fas fa-edit"></i></button>
                                 {% if not v.is_deprecated %}
-                                <form method="post" action="{{ url_for('owner.owner_deprecate_package_version', version_id=v.id) }}" class="d-inline" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("هل أنت متأكد من تعطيل هذا الإصدار؟")")")")")")")')">
+                                <form method="post" action="{{ url_for('owner.owner_deprecate_package_version', version_id=v.id) }}" class="d-inline" onsubmit="return confirm(_('هل أنت متأكد من تعطيل هذا الإصدار؟'))">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-1" title="_(" _(" _(" _(" _(" _("تعطيل الإصدار")")")")")")"><i class="fas fa-ban"></i></button>
+                                    <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-1" title="تعطيل الإصدار"><i class="fas fa-ban"></i></button>
                                 </form>
                                 {% endif %}
                                 <form method="post" action="{{ url_for('owner.owner_delete_package_version', version_id=v.id) }}" class="d-inline" onsubmit="return confirm('تأكيد حذف الإصدار v{{ v.version }}؟');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" title="_(" _(" _(" _(" _(" _("حذف")")")")")")"><i class="fas fa-trash"></i></button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" title="حذف"><i class="fas fa-trash"></i></button>
                                 </form>
                             </span>
                         </li>
                         {% else %}
-                        <li class="list-group-item px-0 text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد إصدارات")")")")")")")') }}</li>
+                        <li class="list-group-item px-0 text-muted">{{ _(_('لا توجد إصدارات')) }}</li>
                         {% endfor %}
                     </ul>
                     <button class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#createVersionModal{{ pkg.id }}">
-                        <i class="fas fa-code-branch me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("إصدار جديد")")")")")")")') }}
+                        <i class="fas fa-code-branch me-1"></i> {{ _(_('إصدار جديد')) }}
                     </button>
                 </div>
             </div>
@@ -80,17 +80,17 @@
                                 <input type="text" name="version" class="form-control" placeholder="1.1.0" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("سجل التغييرات")")")")")")")') }}</label>
+                                <label class="form-label">{{ _(_('سجل التغييرات')) }}</label>
                                 <textarea name="changelog" class="form-control" rows="2"></textarea>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="copy_from_latest" id="copyLatest{{ pkg.id }}" checked>
-                                <label class="form-check-label" for="copyLatest{{ pkg.id }}">{{ _('_("_(" _(" _(" _(" _(" _("نسخ الإمكانيات والتسعير من آخر إصدار")")")")")")")') }}</label>
+                                <label class="form-check-label" for="copyLatest{{ pkg.id }}">{{ _(_('نسخ الإمكانيات والتسعير من آخر إصدار')) }}</label>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-                            <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("إنشاء")")")")")")")') }}</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+                            <button type="submit" class="btn btn-primary">{{ _(_('إنشاء')) }}</button>
                         </div>
                     </form>
                 </div>
@@ -98,7 +98,7 @@
         </div>
         {% else %}
         <div class="col-12">
-            <div class="alert alert-light text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد Packages. أنشئ Package جديد للبدء.")")")")")")")') }}</div>
+            <div class="alert alert-light text-center">{{ _(_('لا توجد Packages. أنشئ Package جديد للبدء.')) }}</div>
         </div>
         {% endfor %}
     </div>
@@ -111,16 +111,16 @@
             <form method="post" action="{{ url_for('owner.owner_create_package') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-header">
-                    <h5 class="modal-title">{{ _('_("_(" _(" _(" _(" _(" _("Package جديد")")")")")")")') }}</h5>
+                    <h5 class="modal-title">{{ _(_('Package جديد')) }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('الاسم')) }}</label>
                         <input type="text" name="name" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم بالعربية")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('الاسم بالعربية')) }}</label>
                         <input type="text" name="name_ar" class="form-control">
                     </div>
                     <div class="mb-3">
@@ -128,7 +128,7 @@
                         <input type="text" name="slug" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الفئة")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('الفئة')) }}</label>
                         <select name="category" class="form-select">
                             <option value="bundle">Bundle</option>
                             <option value="addon">Add-on</option>
@@ -136,13 +136,13 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الإصدار الأولي")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('الإصدار الأولي')) }}</label>
                         <input type="text" name="version" class="form-control" value="1.0.0">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("إنشاء")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _(_('إنشاء')) }}</button>
                 </div>
             </form>
         </div>
@@ -166,11 +166,11 @@
                         <input type="text" name="name" class="form-control" value="{{ pkg.name }}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم بالعربية")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('الاسم بالعربية')) }}</label>
                         <input type="text" name="name_ar" class="form-control" value="{{ pkg.name_ar or '' }}">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الفئة")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('الفئة')) }}</label>
                         <select name="category" class="form-select">
                             <option value="bundle" {{ 'selected' if pkg.category == 'bundle' else '' }}>Bundle</option>
                             <option value="addon" {{ 'selected' if pkg.category == 'addon' else '' }}>Add-on</option>
@@ -179,12 +179,12 @@
                     </div>
                     <div class="mb-3 form-check">
                         <input class="form-check-input" type="checkbox" name="is_active" id="pkgActive{{ pkg.id }}" {{ 'checked' if pkg.is_active else '' }}>
-                        <label class="form-check-label" for="pkgActive{{ pkg.id }}">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</label>
+                        <label class="form-check-label" for="pkgActive{{ pkg.id }}">{{ _(_('نشط')) }}</label>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _(_('حفظ')) }}</button>
                 </div>
             </form>
         </div>
@@ -208,17 +208,17 @@
                         <input type="text" name="version" class="form-control" value="{{ v.version }}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("سجل التغييرات")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('سجل التغييرات')) }}</label>
                         <textarea name="changelog" class="form-control" rows="2">{{ v.changelog or '' }}</textarea>
                     </div>
                     <div class="mb-3 form-check">
                         <input class="form-check-input" type="checkbox" name="is_deprecated" id="verDeprecated{{ v.id }}" {{ 'checked' if v.is_deprecated else '' }}>
-                        <label class="form-check-label" for="verDeprecated{{ v.id }}">{{ _('_("_(" _(" _(" _(" _(" _("مهمل (Deprecated)")")")")")")")') }}</label>
+                        <label class="form-check-label" for="verDeprecated{{ v.id }}">{{ _(_('مهمل (Deprecated)')) }}</label>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _(_('حفظ')) }}</button>
                 </div>
             </form>
         </div>

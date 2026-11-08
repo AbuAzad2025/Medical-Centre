@@ -5,40 +5,40 @@
 
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("مركز التقارير")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("اختر تقريراً وحدد فترة وفلاتر أساسية")")")")")")")', icon='fas fa-chart-bar', actions=[
-    {'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('manager.dashboard'), 'style': 'secondary'}
+  {{ page_header(_('مركز التقارير'), subtitle=_('اختر تقريراً وحدد فترة وفلاتر أساسية'), icon='fas fa-chart-bar', actions=[
+    {'label': _('رجوع'), 'icon': 'fas fa-arrow-left', 'url': url_for('manager.dashboard'), 'style': 'secondary'}
   ]) }}
 
   <form method="GET" class="card border-0 shadow-sm mb-4">
     <div class="card-body">
       <div class="row g-3 align-items-end">
         <div class="col-md-4">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التقرير")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('التقرير')) }}</label>
           <select class="form-select" name="report" required>
-            <option value="" {% if not report %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("اختر")")")")")")")') }}</option>
-            <option value="compare_month" {% if report == 'compare_month' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مقارنة شهر بشهر")")")")")")")') }}</option>
-            <option value="compare_year" {% if report == 'compare_year' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مقارنة سنة بسنة")")")")")")")') }}</option>
-            <option value="transfers" {% if report == 'transfers' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("تحويلات الأقسام (عبر الاستقبال)")")")")")")")') }}</option>
-            <option value="capacity" {% if report == 'capacity' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("تأثير الغياب على القدرة الاستيعابية")")")")")")")') }}</option>
-            <option value="booking" {% if report == 'booking' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("تقارير الحجز")")")")")")")') }}</option>
-            <option value="emergency_times" {% if report == 'emergency_times' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("زمن الحالات بين مراحل الطوارئ")")")")")")")') }}</option>
-            <option value="radiology_revision" {% if report == 'radiology_revision' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("نسبة تقارير الأشعة المعدلة بعد مراجعة ثانية")")")")")")")') }}</option>
+            <option value="" {% if not report %}selected{% endif %}>{{ _(_('اختر')) }}</option>
+            <option value="compare_month" {% if report == 'compare_month' %}selected{% endif %}>{{ _(_('مقارنة شهر بشهر')) }}</option>
+            <option value="compare_year" {% if report == 'compare_year' %}selected{% endif %}>{{ _(_('مقارنة سنة بسنة')) }}</option>
+            <option value="transfers" {% if report == 'transfers' %}selected{% endif %}>{{ _(_('تحويلات الأقسام (عبر الاستقبال)')) }}</option>
+            <option value="capacity" {% if report == 'capacity' %}selected{% endif %}>{{ _(_('تأثير الغياب على القدرة الاستيعابية')) }}</option>
+            <option value="booking" {% if report == 'booking' %}selected{% endif %}>{{ _(_('تقارير الحجز')) }}</option>
+            <option value="emergency_times" {% if report == 'emergency_times' %}selected{% endif %}>{{ _(_('زمن الحالات بين مراحل الطوارئ')) }}</option>
+            <option value="radiology_revision" {% if report == 'radiology_revision' %}selected{% endif %}>{{ _(_('نسبة تقارير الأشعة المعدلة بعد مراجعة ثانية')) }}</option>
           </select>
         </div>
 
         <div class="col-md-2">
-          <label class="form-label"_(" _(" _(" _(" _(" _(">من</label>
-          <input type=")")")")")")"date" class="form-control" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
+          <label class="form-label">من</label>
+          <input type="date" class="form-control" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
         </div>
         <div class="col-md-2">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إلى")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('إلى')) }}</label>
           <input type="date" class="form-control" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
         </div>
 
         <div class="col-md-3">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('القسم')) }}</label>
           <select class="form-select" name="department_id">
-            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("كل الأقسام")")")")")")")') }}</option>
+            <option value="">{{ _(_('كل الأقسام')) }}</option>
             {% for d in departments or [] %}
               <option value="{{ d.id }}" {% if department_id and department_id == d.id %}selected{% endif %}>{{ d.name_ar or d.name }}</option>
             {% endfor %}
@@ -46,7 +46,7 @@
         </div>
 
         <div class="col-md-1">
-          <button class="btn btn-primary w-100" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</button>
+          <button class="btn btn-primary w-100" type="submit">{{ _(_('عرض')) }}</button>
         </div>
       </div>
     </div>
@@ -55,15 +55,15 @@
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("قوالب التقارير المحفوظة")")")")")")")') }}</h5>
+        <h5 class="mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>{{ _(_('قوالب التقارير المحفوظة')) }}</h5>
         <a href="{{ url_for('report_builder.builder') }}" class="btn btn-outline-primary btn-sm">
-          <i class="fas fa-plus me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("منشئ تقارير جديد")")")")")")")') }}
+          <i class="fas fa-plus me-1"></i>{{ _(_('منشئ تقارير جديد')) }}
         </a>
       </div>
       {% if saved_templates %}
         <div class="table-responsive">
           <table class="table table-sm table-hover mb-0">
-            <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("آخر تحديث")")")")")")")') }}</th><th></th></tr></thead>
+            <thead><tr><th>{{ _(_('الاسم')) }}</th><th>{{ _(_('الوصف')) }}</th><th>{{ _(_('آخر تحديث')) }}</th><th></th></tr></thead>
             <tbody>
               {% for tpl in saved_templates %}
                 <tr>
@@ -71,7 +71,7 @@
                   <td class="text-muted">{{ tpl.description or '—' }}</td>
                   <td>{{ tpl.updated_at.strftime('%Y-%m-%d') if tpl.updated_at else '—' }}</td>
                   <td class="text-end">
-                    <a href="{{ url_for('report_builder.builder', template=tpl.id) }}" class="btn btn-sm btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("فتح في المنشئ")")")")")")")') }}</a>
+                    <a href="{{ url_for('report_builder.builder', template=tpl.id) }}" class="btn btn-sm btn-primary">{{ _(_('فتح في المنشئ')) }}</a>
                   </td>
                 </tr>
               {% endfor %}
@@ -79,7 +79,7 @@
           </table>
         </div>
       {% else %}
-        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد قوالب محفوظة بعد. أنشئ تقريراً مخصصاً واحفظه من")")")")")")")') }} <a href="{{ url_for('report_builder.builder') }}">{{ _('_("_(" _(" _(" _(" _(" _("منشئ التقارير")")")")")")")') }}</a>.</p>
+        <p class="text-muted mb-0">{{ _(_('لا توجد قوالب محفوظة بعد. أنشئ تقريراً مخصصاً واحفظه من')) }} <a href="{{ url_for('report_builder.builder') }}">{{ _(_('منشئ التقارير')) }}</a>.</p>
       {% endif %}
     </div>
   </div>
@@ -88,21 +88,21 @@
     <div class="card border-0 shadow-sm">
       <div class="card-body">
         {% if report in ['compare_month', 'compare_year'] and result.compare %}
-          <h5 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("مقارنة")")")")")")")') }}</h5>
+          <h5 class="mb-3">{{ _(_('مقارنة')) }}</h5>
           <div class="table-responsive">
             <table class="table table-striped mb-0">
               <thead>
                 <tr>
                   <th></th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الفترة A")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الفترة B")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الفرق")")")")")")")') }}</th>
+                  <th>{{ _(_('الفترة A')) }}</th>
+                  <th>{{ _(_('الفترة B')) }}</th>
+                  <th>{{ _(_('الفرق')) }}</th>
                   <th>%</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>{{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}</td>
+                  <td>{{ _(_('الزيارات')) }}</td>
                   <td>{{ result.compare.a.visits }}</td>
                   <td>{{ result.compare.b.visits }}</td>
                   <td>{{ result.compare.delta.visits }}</td>
@@ -110,7 +110,7 @@
                 </tr>
                 {% if module_active('billing') %}
                 <tr>
-                  <td>{{ _('_("_(" _(" _(" _(" _(" _("الإيراد")")")")")")")') }}</td>
+                  <td>{{ _(_('الإيراد')) }}</td>
                   <td>{{ result.compare.a.revenue }}</td>
                   <td>{{ result.compare.b.revenue }}</td>
                   <td>{{ result.compare.delta.revenue }}</td>
@@ -121,10 +121,10 @@
             </table>
           </div>
         {% elif report == 'transfers' and result.transfers %}
-          <h5 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("تحويلات الأقسام")")")")")")")') }}</h5>
+          <h5 class="mb-3">{{ _(_('تحويلات الأقسام')) }}</h5>
           <div class="table-responsive">
             <table class="table table-striped mb-0">
-              <thead><tr><th>من</th><th>{{ _('_("إلى")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("العدد")")")")")")")') }}</th></tr></thead>
+              <thead><tr><th>من</th><th>{{ _(_('إلى')) }}</th><th>{{ _(_('العدد')) }}</th></tr></thead>
               <tbody>
                 {% for r in result.transfers %}
                   <tr><td>{{ r.from }}</td><td>{{ r.to }}</td><td>{{ r.count }}</td></tr>
@@ -133,10 +133,10 @@
             </table>
           </div>
         {% elif report == 'capacity' and result.capacity %}
-          <h5 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("تأثير الغياب على القدرة الاستيعابية")")")")")")")') }}</h5>
+          <h5 class="mb-3">{{ _(_('تأثير الغياب على القدرة الاستيعابية')) }}</h5>
           <div class="table-responsive">
             <table class="table table-striped mb-0">
-              <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("ساعات مجدولة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("ساعات غياب")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("% تأثير")")")")")")")') }}</th></tr></thead>
+              <thead><tr><th>{{ _(_('القسم')) }}</th><th>{{ _(_('ساعات مجدولة')) }}</th><th>{{ _(_('ساعات غياب')) }}</th><th>{{ _(_('% تأثير')) }}</th></tr></thead>
               <tbody>
                 {% for r in result.capacity %}
                   <tr><td>{{ r.department }}</td><td>{{ r.scheduled_hours }}</td><td>{{ r.absence_hours }}</td><td>{{ r.impact_percent }}</td></tr>
@@ -145,39 +145,39 @@
             </table>
           </div>
         {% elif report == 'booking' and result.booking %}
-          <h5 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("تقارير الحجز")")")")")")")') }}</h5>
+          <h5 class="mb-3">{{ _(_('تقارير الحجز')) }}</h5>
           <div class="row g-3 mb-3">
-            <div class="col-md-3"><div class="p-3 border rounded bg-light">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي الحجوزات:")")")")")")")') }} <strong>{{ result.booking.total }}</strong></div></div>
-            <div class="col-md-3"><div class="p-3 border rounded bg-light">{{ _('_("_(" _(" _(" _(" _(" _("نسبة الحضور:")")")")")")")') }} <strong>{{ result.booking.attendance_rate }}%</strong></div></div>
-            <div class="col-md-3"><div class="p-3 border rounded bg-light">{{ _('_("_(" _(" _(" _(" _(" _("نسبة عدم الحضور:")")")")")")")') }} <strong>{{ result.booking.no_show_rate }}%</strong></div></div>
-            <div class="col-md-3"><div class="p-3 border rounded bg-light">{{ _('_("_(" _(" _(" _(" _(" _("المؤكد:")")")")")")")') }} <strong>{{ result.booking.by_status.confirmed }}</strong></div></div>
+            <div class="col-md-3"><div class="p-3 border rounded bg-light">{{ _(_('إجمالي الحجوزات:')) }} <strong>{{ result.booking.total }}</strong></div></div>
+            <div class="col-md-3"><div class="p-3 border rounded bg-light">{{ _(_('نسبة الحضور:')) }} <strong>{{ result.booking.attendance_rate }}%</strong></div></div>
+            <div class="col-md-3"><div class="p-3 border rounded bg-light">{{ _(_('نسبة عدم الحضور:')) }} <strong>{{ result.booking.no_show_rate }}%</strong></div></div>
+            <div class="col-md-3"><div class="p-3 border rounded bg-light">{{ _(_('المؤكد:')) }} <strong>{{ result.booking.by_status.confirmed }}</strong></div></div>
           </div>
           <div class="row g-3">
             <div class="col-md-6">
-              <h6 class="mb-2">{{ _('_("_(" _(" _(" _(" _(" _("أكثر الأقسام")")")")")")")') }}</h6>
+              <h6 class="mb-2">{{ _(_('أكثر الأقسام')) }}</h6>
               <div class="table-responsive">
                 <table class="table table-striped mb-0">
-                  <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("العدد")")")")")")")') }}</th></tr></thead>
+                  <thead><tr><th>{{ _(_('القسم')) }}</th><th>{{ _(_('العدد')) }}</th></tr></thead>
                   <tbody>
                     {% for r in result.booking.top_departments_named or [] %}
                       <tr><td>{{ r.label }}</td><td>{{ r.count }}</td></tr>
                     {% else %}
-                      <tr><td colspan="2" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد")")")")")")")') }}</td></tr>
+                      <tr><td colspan="2" class="text-center text-muted">{{ _(_('لا يوجد')) }}</td></tr>
                     {% endfor %}
                   </tbody>
                 </table>
               </div>
             </div>
             <div class="col-md-6">
-              <h6 class="mb-2">{{ _('_("_(" _(" _(" _(" _(" _("أكثر الأطباء")")")")")")")') }}</h6>
+              <h6 class="mb-2">{{ _(_('أكثر الأطباء')) }}</h6>
               <div class="table-responsive">
                 <table class="table table-striped mb-0">
-                  <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("العدد")")")")")")")') }}</th></tr></thead>
+                  <thead><tr><th>{{ _(_('الطبيب')) }}</th><th>{{ _(_('العدد')) }}</th></tr></thead>
                   <tbody>
                     {% for r in result.booking.top_doctors_named or [] %}
                       <tr><td>{{ r.label }}</td><td>{{ r.count }}</td></tr>
                     {% else %}
-                      <tr><td colspan="2" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد")")")")")")")') }}</td></tr>
+                      <tr><td colspan="2" class="text-center text-muted">{{ _(_('لا يوجد')) }}</td></tr>
                     {% endfor %}
                   </tbody>
                 </table>
@@ -185,26 +185,26 @@
             </div>
           </div>
         {% elif report == 'emergency_times' and result.emergency_times %}
-          <h5 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("زمن الحالات بين المراحل")")")")")")")') }}</h5>
+          <h5 class="mb-3">{{ _(_('زمن الحالات بين المراحل')) }}</h5>
           <div class="mb-2 text-muted">عدد الحالات: {{ result.emergency_times.cases }}</div>
           <div class="table-responsive">
             <table class="table table-striped mb-0">
-              <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("المرحلة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("متوسط دقائق")")")")")")")') }}</th></tr></thead>
+              <thead><tr><th>{{ _(_('المرحلة')) }}</th><th>{{ _(_('متوسط دقائق')) }}</th></tr></thead>
               <tbody>
                 {% for k, v in (result.emergency_times.avg_minutes or {}).items() %}
                   <tr><td>{{ k }}</td><td>{{ v }}</td></tr>
                 {% else %}
-                  <tr><td colspan="2" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد")")")")")")")') }}</td></tr>
+                  <tr><td colspan="2" class="text-center text-muted">{{ _(_('لا يوجد')) }}</td></tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
         {% elif report == 'radiology_revision' and result.radiology_revision %}
-          <h5 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("تقارير الأشعة المعدلة بعد مراجعة ثانية")")")")")")")') }}</h5>
+          <h5 class="mb-3">{{ _(_('تقارير الأشعة المعدلة بعد مراجعة ثانية')) }}</h5>
           <div class="row g-3">
-            <div class="col-md-4"><div class="p-3 border rounded bg-light">{{ _('_("_(" _(" _(" _(" _(" _("مراجعة ثانية:")")")")")")")') }} <strong>{{ result.radiology_revision.reviewed }}</strong></div></div>
-            <div class="col-md-4"><div class="p-3 border rounded bg-light">{{ _('_("_(" _(" _(" _(" _(" _("تعديل بعد المراجعة:")")")")")")")') }} <strong>{{ result.radiology_revision.revised_after_review }}</strong></div></div>
-            <div class="col-md-4"><div class="p-3 border rounded bg-light">{{ _('_("_(" _(" _(" _(" _(" _("النسبة:")")")")")")")') }} <strong>{{ result.radiology_revision.rate }}%</strong></div></div>
+            <div class="col-md-4"><div class="p-3 border rounded bg-light">{{ _(_('مراجعة ثانية:')) }} <strong>{{ result.radiology_revision.reviewed }}</strong></div></div>
+            <div class="col-md-4"><div class="p-3 border rounded bg-light">{{ _(_('تعديل بعد المراجعة:')) }} <strong>{{ result.radiology_revision.revised_after_review }}</strong></div></div>
+            <div class="col-md-4"><div class="p-3 border rounded bg-light">{{ _(_('النسبة:')) }} <strong>{{ result.radiology_revision.rate }}%</strong></div></div>
           </div>
         {% endif %}
       </div>

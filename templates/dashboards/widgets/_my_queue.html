@@ -1,8 +1,8 @@
 <div class="cc-widget cc-widget--md" data-widget-id="my_queue">
-  <div class="cc-widget__head"><span><i class="fas fa-stethoscope me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("قائمة الانتظار")")")")")")")') }}</span></div>
+  <div class="cc-widget__head"><span><i class="fas fa-stethoscope me-1"></i> {{ _(_('قائمة الانتظار')) }}</span></div>
   <div class="cc-widget__body table-responsive">
     <table class="table table-hover mb-0">
-      <thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th></th></tr></thead>
+      <thead><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الحالة')) }}</th><th></th></tr></thead>
       <tbody>
       {% for v in widget_data.lists.waiting_list or [] %}
       <tr>
@@ -10,10 +10,10 @@
         <td>{{ v.patient.full_name if v.patient else '—' }}</td>
         <td><span class="badge bg-secondary">{{ v.status | enum_label('VisitState') }}</span></td>
         {% if module_active('doctor') %}
-        <td><a href="{{ url_for('doctor.patient_details', visit_id=v.id) }}" class="btn btn-sm btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("فتح")")")")")")")') }}</a></td>
+        <td><a href="{{ url_for('doctor.patient_details', visit_id=v.id) }}" class="btn btn-sm btn-primary">{{ _(_('فتح')) }}</a></td>
         {% endif %}      </tr>
       {% else %}
-      <tr><td colspan="4" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا مرضى بالانتظار")")")")")")")') }}</td></tr>
+      <tr><td colspan="4" class="text-center text-muted py-3">{{ _(_('لا مرضى بالانتظار')) }}</td></tr>
       {% endfor %}
       </tbody>
     </table>

@@ -3,24 +3,24 @@
 {% block title %}إنشاء طلب توريد{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("إنشاء طلب توريد")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("اختر الأدوية المطلوبة وحدد الكمية")")")")")")")', icon='fas fa-plus', actions=[
-      {'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('medication.supply_requests'), 'style': 'secondary'}
+  {{ page_header(_('إنشاء طلب توريد'), subtitle=_('اختر الأدوية المطلوبة وحدد الكمية'), icon='fas fa-plus', actions=[
+      {'label': _('رجوع'), 'icon': 'fas fa-arrow-left', 'url': url_for('medication.supply_requests'), 'style': 'secondary'}
   ]) }}
 
   <form method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="card shadow mb-3">
-      <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("الأدوية منخفضة المخزون")")")")")")")') }}</div>
+      <div class="card-header">{{ _(_('الأدوية منخفضة المخزون')) }}</div>
       <div class="card-body">
         <div class="table-responsive">
           <table class="table table-striped align-middle">
             <thead>
               <tr>
                 <th class="w-50"></th>
-                <th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th>
-                <th class="w-120">{{ _('_("_(" _(" _(" _(" _(" _("المخزون")")")")")")")') }}</th>
-                <th class="w-140">{{ _('_("_(" _(" _(" _(" _(" _("الحد الأدنى")")")")")")")') }}</th>
-                <th class="w-160">{{ _('_("_(" _(" _(" _(" _(" _("الكمية المطلوبة")")")")")")")') }}</th>
+                <th>{{ _(_('الدواء')) }}</th>
+                <th class="w-120">{{ _(_('المخزون')) }}</th>
+                <th class="w-140">{{ _(_('الحد الأدنى')) }}</th>
+                <th class="w-160">{{ _(_('الكمية المطلوبة')) }}</th>
               </tr>
             </thead>
             <tbody>
@@ -37,21 +37,21 @@
                   </td>
                 </tr>
               {% else %}
-                <tr><td colspan="5" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد أدوية منخفضة المخزون")")")")")")")') }}</td></tr>
+                <tr><td colspan="5" class="text-center text-muted">{{ _(_('لا توجد أدوية منخفضة المخزون')) }}</td></tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
 
         <div class="mt-3">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('ملاحظات')) }}</label>
           <textarea class="form-control" name="notes" rows="3"></textarea>
         </div>
       </div>
     </div>
 
     <div class="d-flex justify-content-end">
-      <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>{{ _(_('حفظ')) }}</button>
     </div>
   </form>
 </div>

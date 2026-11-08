@@ -2,11 +2,11 @@
 {% block title %}سجل الأدوية — <bdi>{{ patient.full_name }}</bdi>{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("سجل الأدوية —")")")")")")")') }} <bdi>{{ patient.full_name }}</bdi></h2>
+  <h2 class="mb-4">{{ _(_('سجل الأدوية —')) }} <bdi>{{ patient.full_name }}</bdi></h2>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ/الوقت")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الجرعة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الممرضة")")")")")")")') }}</th></tr></thead>
+        <thead><tr><th>{{ _(_('التاريخ/الوقت')) }}</th><th>{{ _(_('الدواء')) }}</th><th>{{ _(_('الجرعة')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('الممرضة')) }}</th></tr></thead>
         <tbody>
         {% for a in administrations %}
           <tr>
@@ -17,7 +17,7 @@
             <td><bdi>{{ a.nurse.full_name if a.nurse else '-' }}</bdi></td>
           </tr>
         {% else %}
-          <tr><td colspan="5" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد سجل")")")")")")")') }}</td></tr>
+          <tr><td colspan="5" class="text-muted text-center">{{ _(_('لا يوجد سجل')) }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

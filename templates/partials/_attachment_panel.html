@@ -1,10 +1,10 @@
 {% macro attachment_panel(files, entity_type, entity_id, upload_url) %}
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="fas fa-paperclip me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("المرفقات")")")")")")")') }}</span>
+        <span><i class="fas fa-paperclip me-1"></i> {{ _(_('المرفقات')) }}</span>
         {% if upload_url %}
         <a href="{{ upload_url }}?type={{ entity_type }}&id={{ entity_id }}" class="btn btn-sm btn-outline-primary">
-            <i class="fas fa-upload"></i> {{ _('_("_(" _(" _(" _(" _(" _("رفع")")")")")")")') }}
+            <i class="fas fa-upload"></i> {{ _(_('رفع')) }}
         </a>
         {% endif %}
     </div>
@@ -27,7 +27,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-muted text-center py-2 mb-0">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مرفقات")")")")")")")') }}</p>
+        <p class="text-muted text-center py-2 mb-0">{{ _(_('لا توجد مرفقات')) }}</p>
         {% endif %}
     </div>
 </div>

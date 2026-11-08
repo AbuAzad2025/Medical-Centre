@@ -2,22 +2,22 @@
 {% block title %}المسارات العلاجية{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("المسارات العلاجية")")")")")")")') }}</h2>
+  <h2 class="mb-4">{{ _(_('المسارات العلاجية')) }}</h2>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التخصص")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المدة المتوقعة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th></th></tr></thead>
+        <thead><tr><th>{{ _(_('الاسم')) }}</th><th>{{ _(_('التخصص')) }}</th><th>{{ _(_('المدة المتوقعة')) }}</th><th>{{ _(_('الحالة')) }}</th><th></th></tr></thead>
         <tbody>
         {% for p in pathways %}
           <tr>
             <td>{{ p.name }}</td>
             <td>{{ p.specialty or '-' }}</td>
             <td>{{ p.expected_duration_days or '-' }} يوم</td>
-            <td>{% if p.is_active %}<span class="badge bg-success">{{ _('نشط') }}</span>{% else %}<span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</span>{% endif %}</td>
-            <td><a href="{{ url_for('pathway.pathway_detail', pathway_id=p.id) }}" class="btn btn-sm btn-outline-primary">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</a></td>
+            <td>{% if p.is_active %}<span class="badge bg-success">{{ _('نشط') }}</span>{% else %}<span class="badge bg-secondary">{{ _(_('معطل')) }}</span>{% endif %}</td>
+            <td><a href="{{ url_for('pathway.pathway_detail', pathway_id=p.id) }}" class="btn btn-sm btn-outline-primary">{{ _(_('عرض')) }}</a></td>
           </tr>
         {% else %}
-          <tr><td colspan="5" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد مسارات")")")")")")")') }}</td></tr>
+          <tr><td colspan="5" class="text-muted text-center">{{ _(_('لا يوجد مسارات')) }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

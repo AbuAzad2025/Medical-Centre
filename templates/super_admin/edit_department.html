@@ -21,7 +21,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="name" class="form-label">
                                     <i class="fas fa-tag text-primary me-2"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("اسم القسم *")")")")")")")') }}
+                                    {{ _(_('اسم القسم *')) }}
                                 </label>
                                 <input type="text" class="form-control" id="name" name="name" 
                                        value="{{ department.name_ar or '' }}" required>
@@ -30,7 +30,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="name_en" class="form-label">
                                     <i class="fas fa-globe text-info me-2"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("الاسم بالإنجليزية")")")")")")")') }}
+                                    {{ _(_('الاسم بالإنجليزية')) }}
                                 </label>
                                 <input type="text" class="form-control" id="name_en" name="name_en" 
                                        value="{{ department.name or '' }}">
@@ -41,7 +41,7 @@
                             <div class="col-md-12 mb-3">
                                 <label for="description" class="form-label">
                                     <i class="fas fa-align-right text-success me-2"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}
+                                    {{ _(_('الوصف')) }}
                                 </label>
                                 <textarea class="form-control" id="description" name="description" 
                                           rows="3">{{ department.description or '' }}</textarea>
@@ -52,7 +52,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="location" class="form-label">
                                     <i class="fas fa-map-marker-alt text-danger me-2"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("الموقع")")")")")")")') }}
+                                    {{ _(_('الموقع')) }}
                                 </label>
                                 <input type="text" class="form-control" id="location" name="location" 
                                        value="{{ department.location or '' }}">
@@ -61,7 +61,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="phone" class="form-label">
                                     <i class="fas fa-phone text-success me-2"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}
+                                    {{ _(_('الهاتف')) }}
                                 </label>
                                 <input type="text" class="form-control" id="phone" name="phone" 
                                        value="{{ department.phone or '' }}">
@@ -72,12 +72,12 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">
                                     <i class="fas fa-toggle-on text-info me-2"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}
+                                    {{ _(_('الحالة')) }}
                                 </label>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
                                            {% if department.is_active %}checked{% endif %}>
-                                    <label class="form-check-label" for="is_active">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</label>
+                                    <label class="form-check-label" for="is_active">{{ _(_('نشط')) }}</label>
                                 </div>
                             </div>
                         </div>
@@ -87,15 +87,15 @@
                                 <div class="d-flex gap-2">
                                     <button type="submit" class="btn btn-warning btn-lg">
                                         <i class="fas fa-save me-2"></i>
-                                        {{ _('_("_(" _(" _(" _(" _(" _("حفظ التغييرات")")")")")")")') }}
+                                        {{ _(_('حفظ التغييرات')) }}
                                     </button>
                                     <a href="{{ url_for('super_admin.view_department', department_id=department.id) }}" class="btn btn-info btn-lg">
                                         <i class="fas fa-eye me-2"></i>
-                                        {{ _('_("_(" _(" _(" _(" _(" _("عرض التفاصيل")")")")")")")') }}
+                                        {{ _(_('عرض التفاصيل')) }}
                                     </a>
                                     <a href="{{ url_for('super_admin.departments') }}" class="btn btn-secondary btn-lg">
                                         <i class="fas fa-times me-2"></i>
-                                        {{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}
+                                        {{ _(_('إلغاء')) }}
                                     </a>
                                 </div>
                             </div>

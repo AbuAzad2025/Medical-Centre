@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("سجل تدقيق PHI")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("مراقبة شاملة لجميع الوصول للبيانات الصحية المحمية")")")")")")")', icon='fas fa-clipboard-list', actions=[
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-audit-logs', 'style': 'primary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تصدير السجلات")")")")")")")', 'icon': 'fas fa-download', 'data_action': 'export-audit-logs', 'style': 'success'}
+    {{ page_header(_('سجل تدقيق PHI'), subtitle=_('مراقبة شاملة لجميع الوصول للبيانات الصحية المحمية'), icon='fas fa-clipboard-list', actions=[
+        {'type': 'button', 'label': _('تحديث'), 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-audit-logs', 'style': 'primary'},
+        {'type': 'button', 'label': _('تصدير السجلات'), 'icon': 'fas fa-download', 'data_action': 'export-audit-logs', 'style': 'success'}
     ]) }}
 
     <!-- Audit Overview Stats -->
@@ -18,7 +18,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("إجمالي السجلات")")")")")")")') }}
+                                {{ _(_('إجمالي السجلات')) }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ total }}</div>
                         </div>
@@ -36,9 +36,9 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("السجلات اليوم")")")")")")")') }}
+                                {{ _(_('السجلات اليوم')) }}
                             </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800" id="today-count">{{ _('_("_(" _(" _(" _(" _(" _("جاري التحميل...")")")")")")")') }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="today-count">{{ _(_('جاري التحميل...')) }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
@@ -54,9 +54,9 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-info text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("المستخدمين الفريدين")")")")")")")') }}
+                                {{ _(_('المستخدمين الفريدين')) }}
                             </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800" id="unique-users-count">{{ _('_("_(" _(" _(" _(" _(" _("جاري التحميل...")")")")")")")') }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="unique-users-count">{{ _(_('جاري التحميل...')) }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -72,9 +72,9 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("الأحداث الحرجة (DELETE/UPDATE)")")")")")")")') }}
+                                {{ _(_('الأحداث الحرجة (DELETE/UPDATE)')) }}
                             </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800" id="critical-count">{{ _('_("_(" _(" _(" _(" _(" _("جاري التحميل...")")")")")")")') }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="critical-count">{{ _(_('جاري التحميل...')) }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
@@ -90,16 +90,16 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("تصفية السجلات")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('تصفية السجلات')) }}</h6>
                 </div>
                 <div class="card-body">
                     <form id="auditFiltersForm" method="GET">
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="action_filter" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع العمل")")")")")")")') }}</label>
+                                    <label for="action_filter" class="form-label">{{ _(_('نوع العمل')) }}</label>
                                     <select class="form-control" id="action_filter" name="action_filter">
-                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("جميع الأعمال")")")")")")")') }}</option>
+                                        <option value="">{{ _(_('جميع الأعمال')) }}</option>
                                         {% for act in actions %}
                                         <option value="{{ act }}" {% if filters.action_filter == act %}selected{% endif %}>{{ act }}</option>
                                         {% endfor %}
@@ -108,9 +108,9 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="model_filter" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("النموذج المستهدف")")")")")")")') }}</label>
+                                    <label for="model_filter" class="form-label">{{ _(_('النموذج المستهدف')) }}</label>
                                     <select class="form-control" id="model_filter" name="model_filter">
-                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("جميع النماذج")")")")")")")') }}</option>
+                                        <option value="">{{ _(_('جميع النماذج')) }}</option>
                                         {% for mdl in models %}
                                         <option value="{{ mdl }}" {% if filters.model_filter == mdl %}selected{% endif %}>{{ mdl }}</option>
                                         {% endfor %}
@@ -119,9 +119,9 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="user_filter" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المستخدم")")")")")")")') }}</label>
+                                    <label for="user_filter" class="form-label">{{ _(_('المستخدم')) }}</label>
                                     <select class="form-control" id="user_filter" name="user_filter">
-                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("جميع المستخدمين")")")")")")")') }}</option>
+                                        <option value="">{{ _(_('جميع المستخدمين')) }}</option>
                                         {% for u in users %}
                                         <option value="{{ u.id }}" {% if filters.user_filter == u.id|string %}selected{% endif %}>{{ u.full_name }} ({{ u.username }})</option>
                                         {% endfor %}
@@ -130,8 +130,8 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="patient_id_filter" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("معرف المريض")")")")")")")') }}</label>
-                                    <input type="number" class="form-control" id="patient_id_filter" name="patient_id_filter" value="{{ filters.patient_id_filter or '' }}" placeholder="_(" _(" _(" _(" _(" _("مثال: 123")")")")")")">
+                                    <label for="patient_id_filter" class="form-label">{{ _(_('معرف المريض')) }}</label>
+                                    <input type="number" class="form-control" id="patient_id_filter" name="patient_id_filter" value="{{ filters.patient_id_filter or '' }}" placeholder="مثال: 123">
                                 </div>
                             </div>
                         </div>
@@ -144,7 +144,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="date_to" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إلى تاريخ")")")")")")")') }}</label>
+                                    <label for="date_to" class="form-label">{{ _(_('إلى تاريخ')) }}</label>
                                     <input type="date" class="form-control" id="date_to" name="date_to" value="{{ filters.date_to or '' }}">
                                 </div>
                             </div>
@@ -154,7 +154,7 @@
                                     <div class="d-grid">
                                         <button type="submit" class="btn btn-primary">
                                             <i class="fas fa-filter me-2"></i>
-                                            {{ _('_("_(" _(" _(" _(" _(" _("تطبيق التصفية")")")")")")")') }}
+                                            {{ _(_('تطبيق التصفية')) }}
                                         </button>
                                     </div>
                                 </div>
@@ -165,7 +165,7 @@
                                     <div class="d-grid">
                                         <a href="{{ url_for('super_admin.audit_trail') }}" class="btn btn-secondary">
                                             <i class="fas fa-times me-2"></i>
-                                            {{ _('_("_(" _(" _(" _(" _(" _("مسح التصفية")")")")")")")') }}
+                                            {{ _(_('مسح التصفية')) }}
                                         </a>
                                     </div>
                                 </div>
@@ -182,7 +182,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("سجلات تدقيق PHI")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('سجلات تدقيق PHI')) }}</h6>
                     <div class="d-flex gap-2">
                         <span class="badge bg-primary" id="showing-count">عرض {{ audit_logs|length }} من {{ total }}</span>
                     </div>
@@ -192,50 +192,50 @@
                         <table class="table table-bordered table-hover" id="auditLogsTable">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المستخدم")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("العمل")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المورد المستهدف")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("معرف المورد")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("عنوان IP")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التغييرات")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
+                                    <th>{{ _(_('الوقت')) }}</th>
+                                    <th>{{ _(_('المستخدم')) }}</th>
+                                    <th>{{ _(_('العمل')) }}</th>
+                                    <th>{{ _(_('المورد المستهدف')) }}</th>
+                                    <th>{{ _(_('معرف المورد')) }}</th>
+                                    <th>{{ _(_('عنوان IP')) }}</th>
+                                    <th>{{ _(_('التغييرات')) }}</th>
+                                    <th>{{ _(_('الإجراءات')) }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for log in audit_logs %}
                                 <tr>
-                                    <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                    <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else _('غير محدد') }}</td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
                                                 {{ log.actor.full_name[0] if log.actor and log.actor.full_name else 'U' }}
                                             </div>
                                             <div>
-                                                <div class="fw-bold">{{ log.actor.full_name if log.actor else '_("_(" _(" _(" _(" _(" _("نظام")")")")")")")' }}</div>
+                                                <div class="fw-bold">{{ log.actor.full_name if log.actor else _('نظام') }}</div>
                                                 <small class="text-muted">{{ log.actor.username if log.actor else 'system' }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         {% if log.action == 'CREATE' %}
-                                            <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("إنشاء")")")")")")")') }}</span>
+                                            <span class="badge bg-success">{{ _(_('إنشاء')) }}</span>
                                         {% elif log.action == 'UPDATE' %}
-                                            <span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")') }}</span>
+                                            <span class="badge bg-warning text-dark">{{ _(_('تحديث')) }}</span>
                                         {% elif log.action == 'DELETE' %}
-                                            <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</span>
+                                            <span class="badge bg-danger">{{ _(_('حذف')) }}</span>
                                         {% elif log.action == 'VIEW' %}
-                                            <span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</span>
+                                            <span class="badge bg-info">{{ _(_('عرض')) }}</span>
                                         {% else %}
                                             <span class="badge bg-light text-dark">{{ log.action }}</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ log.target_model or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                    <td>{{ log.target_model or _('غير محدد') }}</td>
                                     <td>{{ log.target_id or '—' }}</td>
                                     <td>{{ log.ip_address or '—' }}</td>
                                     <td>
                                         {% if log.changes %}
-                                            <button class="btn btn-sm btn-outline-primary" onclick="showChangesModal({{ log.changes|tojson }})" title="_(" _(" _(" _(" _(" _("عرض التغييرات")")")")")")">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showChangesModal({{ log.changes|tojson }})" title="عرض التغييرات">
                                                 <i class="fas fa-eye"></i> {{ _('عرض') }}
                                             </button>
                                         {% else %}
@@ -244,7 +244,7 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="showLogDetails({{ log|tojson }})" title="_(" _(" _(" _(" _(" _("عرض التفاصيل الكاملة")")")")")")">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showLogDetails({{ log|tojson }})" title="عرض التفاصيل الكاملة">
                                                 <i class="fas fa-eye"></i> <span class="btn-label">{{ _('تفاصيل') }}</span>
                                             </button>
                                         </div>
@@ -254,7 +254,7 @@
                                 <tr>
                                     <td colspan="8" class="text-center text-muted py-4">
                                         <i class="fas fa-inbox fa-2x mb-2"></i>
-                                        <p class="mb-0">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد سجلات مطابقة للتصفية الحالية")")")")")")")') }}</p>
+                                        <p class="mb-0">{{ _(_('لا توجد سجلات مطابقة للتصفية الحالية')) }}</p>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -267,10 +267,10 @@
                         <div class="text-muted small">إجمالي {{ total }} سجل</div>
                         <div class="btn-group">
                             <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
-                               href="{{ url_for('super_admin.audit_trail', page=page-1, **request.args) }}">{{ _('_("_(" _(" _(" _(" _(" _("السابق")")")")")")")') }}</a>
+                               href="{{ url_for('super_admin.audit_trail', page=page-1, **request.args) }}">{{ _(_('السابق')) }}</a>
                             <span class="btn btn-outline-secondary">صفحة {{ page }} من {{ pages if pages > 0 else 1 }}</span>
                             <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
-                               href="{{ url_for('super_admin.audit_trail', page=page+1, **request.args) }}">{{ _('_("_(" _(" _(" _(" _(" _("التالي")")")")")")")') }}</a>
+                               href="{{ url_for('super_admin.audit_trail', page=page+1, **request.args) }}">{{ _(_('التالي')) }}</a>
                         </div>
                     </div>
                 </div>
@@ -283,14 +283,14 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل التغييرات")")")")")")")') }}</h5>
+                    <h5 class="modal-title">{{ _(_('تفاصيل التغييرات')) }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <pre id="changes-content" class="bg-light p-3 rounded" style="max-height: 400px; overflow: auto;"></pre>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إغلاق")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إغلاق')) }}</button>
                 </div>
             </div>
         </div>
@@ -301,14 +301,14 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل السجل الكامل")")")")")")")') }}</h5>
+                    <h5 class="modal-title">{{ _(_('تفاصيل السجل الكامل')) }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <pre id="details-content" class="bg-light p-3 rounded" style="max-height: 400px; overflow: auto;"></pre>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إغلاق")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إغلاق')) }}</button>
                 </div>
             </div>
         </div>
@@ -319,32 +319,32 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إجراءات التدقيق")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('إجراءات التدقيق')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-primary w-100" onclick="exportAuditLogs('csv')">
                                 <i class="fas fa-file-csv me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("تصدير CSV")")")")")")")') }}
+                                {{ _(_('تصدير CSV')) }}
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-success w-100" onclick="exportAuditLogs('json')">
                                 <i class="fas fa-file-code me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("تصدير JSON")")")")")")")') }}
+                                {{ _(_('تصدير JSON')) }}
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-warning w-100" onclick="exportAuditLogs('excel')">
                                 <i class="fas fa-file-excel me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("Excel (CSV)")")")")")")")') }}
+                                {{ _(_('Excel (CSV)')) }}
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-info w-100" onclick="refreshAuditLogs()">
                                 <i class="fas fa-sync-alt me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("تحديث الآن")")")")")")")') }}
+                                {{ _(_('تحديث الآن')) }}
                             </button>
                         </div>
                     </div>

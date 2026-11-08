@@ -6,7 +6,7 @@
 #}
 {% macro audit_badge(entity) %}
 {% if entity and entity.created_at %}
-<span class="text-muted small" title="_(" _(" _(" _(" _(" _("سجل الإنشاء والتعديل")")")")")")">
+<span class="text-muted small" title="سجل الإنشاء والتعديل">
     <i class="fas fa-clock me-1"></i>
     {{ entity.created_at|format_datetime }}
     {% if entity.updated_at and entity.updated_at != entity.created_at %}

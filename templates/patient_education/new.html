@@ -1,44 +1,44 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container py-4">
-  <h4><i class="bi bi-book me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("مادة تعليمية جديدة")")")")")")")') }}</h4>
+  <h4><i class="bi bi-book me-2"></i>{{ _(_('مادة تعليمية جديدة')) }}</h4>
   <div class="card shadow-sm">
     <div class="card-body">
       <form method="post" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="mb-3">
-          <label for="title" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</label>
+          <label for="title" class="form-label">{{ _(_('العنوان')) }}</label>
           <input type="text" class="form-control" id="title" name="title" required>
         </div>
         <div class="row g-3 mb-3">
           <div class="col-md-6">
-            <label for="category" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التصنيف")")")")")")")') }}</label>
+            <label for="category" class="form-label">{{ _(_('التصنيف')) }}</label>
             <select class="form-select" id="category" name="category">
-              <option value="medication">{{ _('_("_(" _(" _(" _(" _(" _("دواء")")")")")")")') }}</option><option value="disease">{{ _('_("_(" _(" _(" _(" _(" _("مرض")")")")")")")') }}</option>
-              <option value="procedure">{{ _('_("_(" _(" _(" _(" _(" _("إجراء")")")")")")")') }}</option><option value="lifestyle">{{ _('_("_(" _(" _(" _(" _(" _("نمط حياة")")")")")")")') }}</option>
-              <option value="nutrition">{{ _('_("_(" _(" _(" _(" _(" _("تغذية")")")")")")")') }}</option><option value="post_op">{{ _('_("_(" _(" _(" _(" _(" _("ما بعد الجراحة")")")")")")")') }}</option>
-              <option value="general" selected>{{ _('_("_(" _(" _(" _(" _(" _("عام")")")")")")")') }}</option>
+              <option value="medication">{{ _(_('دواء')) }}</option><option value="disease">{{ _(_('مرض')) }}</option>
+              <option value="procedure">{{ _(_('إجراء')) }}</option><option value="lifestyle">{{ _(_('نمط حياة')) }}</option>
+              <option value="nutrition">{{ _(_('تغذية')) }}</option><option value="post_op">{{ _(_('ما بعد الجراحة')) }}</option>
+              <option value="general" selected>{{ _(_('عام')) }}</option>
             </select>
           </div>
           <div class="col-md-6">
-            <label for="language" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اللغة")")")")")")")') }}</label>
-            <select class="form-select" id="language" name="language"><option value="ar">{{ _('_("_(" _(" _(" _(" _(" _("العربية")")")")")")")') }}</option><option value="en">English</option></select>
+            <label for="language" class="form-label">{{ _(_('اللغة')) }}</label>
+            <select class="form-select" id="language" name="language"><option value="ar">{{ _(_('العربية')) }}</option><option value="en">English</option></select>
           </div>
         </div>
         <div class="mb-3">
-          <label for="content_html" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("محتوى HTML")")")")")")")') }}</label>
+          <label for="content_html" class="form-label">{{ _(_('محتوى HTML')) }}</label>
           <textarea class="form-control" id="content_html" name="content_html" rows="5"></textarea>
         </div>
         <div class="mb-3">
-          <label for="content_text" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نص بديل")")")")")")")') }}</label>
+          <label for="content_text" class="form-label">{{ _(_('نص بديل')) }}</label>
           <textarea class="form-control" id="content_text" name="content_text" rows="3"></textarea>
         </div>
         <div class="mb-3">
-          <label for="file" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ملف مرفق (PDF/صورة/فيديو)")")")")")")")') }}</label>
+          <label for="file" class="form-label">{{ _(_('ملف مرفق (PDF/صورة/فيديو)')) }}</label>
           <input type="file" class="form-control" id="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.mp4,.webm">
         </div>
         <div class="d-grid">
-          <button type="submit" class="btn btn-success">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+          <button type="submit" class="btn btn-success">{{ _(_('حفظ')) }}</button>
         </div>
       </form>
     </div>

@@ -2,7 +2,7 @@
   Workflow status stepper — shows progress through stages.
   Usage:
       {% from 'partials/_status_stepper.html' import status_stepper %}
-      {{ status_stepper(stages=[_('_("_(" _(" _(" _(" _(" _("مسودة")")")")")")")'), _('_("_(" _(" _(" _(" _(" _("مراجعة")")")")")")")'), _('_("_(" _(" _(" _(" _(" _("اعتماد")")")")")")")'), _('_("_(" _(" _(" _(" _(" _("تنفيذ")")")")")")")')],
+      {{ status_stepper(stages=[_(_('مسودة')), _(_('مراجعة')), _(_('اعتماد')), _(_('تنفيذ'))],
                         current_index=1) }}
 #}
 {% macro status_stepper(stages, current_index=0) %}

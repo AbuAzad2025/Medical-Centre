@@ -3,9 +3,9 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-puzzle-piece me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("إدارة الوحدات العالمية")")")")")")")') }}</h4></div>
+        <div class="col"><h4><i class="fas fa-puzzle-piece me-2 text-primary"></i>{{ _(_('إدارة الوحدات العالمية')) }}</h4></div>
         <div class="col-auto">
-            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _(_('العودة')) }}</a>
         </div>
     </div>
 
@@ -21,7 +21,7 @@
                     <span class="badge bg-light text-dark">{{ m.category }}</span>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted small">{{ m.description or '_("_(" _(" _(" _(" _(" _("لا وصف")")")")")")")' }}</p>
+                    <p class="text-muted small">{{ m.description or _('لا وصف') }}</p>
                     <div class="mb-2">
                         <span class="badge bg-info me-1">{{ m.tenant_count }} تينانت نشط</span>
                         {% if m.required_modules %}
@@ -29,7 +29,7 @@
                         {% endif %}
                     </div>
                     {% if m.capabilities %}
-                    <p class="small text-muted mb-1">{{ _('_("_(" _(" _(" _(" _(" _("القدرات:")")")")")")")') }}</p>
+                    <p class="small text-muted mb-1">{{ _(_('القدرات:')) }}</p>
                     <div class="mb-3">
                         {% for c in m.capabilities %}
                         <span class="badge bg-light text-dark border me-1">{{ c }}</span>
@@ -39,14 +39,14 @@
                     <form method="post" action="{{ url_for('owner.owner_toggle_module_global', module_name=m.name) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-sm w-100 {{ 'btn-outline-danger' if m.is_active else 'btn-outline-success' }}">
-                            {{ '_("_(" _(" _(" _(" _(" _("تعطيل عالمياً")")")")")")")' if m.is_active else '_("_(" _(" _(" _(" _(" _("تفعيل عالمياً")")")")")")")' }}
+                            {{ _('تعطيل عالمياً') if m.is_active else _('تفعيل عالمياً') }}
                         </button>
                     </form>
                 </div>
             </div>
         </div>
         {% else %}
-        <div class="col-12"><p class="text-muted text-center py-5">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد وحدات مسجلة")")")")")")")') }}</p></div>
+        <div class="col-12"><p class="text-muted text-center py-5">{{ _(_('لا توجد وحدات مسجلة')) }}</p></div>
         {% endfor %}
     </div>
 </div>

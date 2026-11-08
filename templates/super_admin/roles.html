@@ -156,16 +156,16 @@
     <div class="super-admin-container">
         <!-- Header Section -->
         <div class="header-section">
-            <h1><i class="fas fa-user-tag"></i> {{ _('_("_(" _(" _(" _(" _(" _("إدارة الأدوار")")")")")")")') }}</h1>
-            <p>{{ _('_("_(" _(" _(" _(" _(" _("إدارة الأدوار والصلاحيات في النظام")")")")")")")') }}</p>
+            <h1><i class="fas fa-user-tag"></i> {{ _(_('إدارة الأدوار')) }}</h1>
+            <p>{{ _(_('إدارة الأدوار والصلاحيات في النظام')) }}</p>
             <div class="d-flex justify-content-center gap-2 mt-3">
                 <a href="{{ url_for('super_admin.permissions_matrix') }}" class="btn btn-light">
                     <i class="fas fa-th me-1"></i>
-                    {{ _('_("_(" _(" _(" _(" _(" _("مصفوفة الصلاحيات")")")")")")")') }}
+                    {{ _(_('مصفوفة الصلاحيات')) }}
                 </a>
                 <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-outline-light">
                     <i class="fas fa-arrow-left me-1"></i>
-                    {{ _('_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")') }}
+                    {{ _(_('رجوع')) }}
                 </a>
             </div>
         </div>
@@ -182,11 +182,11 @@
                 </div>
                 
                 <div class="role-description">
-                    {{ role.description or '_("_(" _(" _(" _(" _(" _("وصف الدور غير محدد")")")")")")")' }}
+                    {{ role.description or _('وصف الدور غير محدد') }}
                 </div>
                 
                 <div class="permissions-list">
-                    <h6><i class="fas fa-key"></i> {{ _('_("_(" _(" _(" _(" _(" _("الصلاحيات:")")")")")")")') }}</h6>
+                    <h6><i class="fas fa-key"></i> {{ _(_('الصلاحيات:')) }}</h6>
                     {% if role.permissions %}
                         {% set perms = role.get_permissions_dict() %}
                         {% for category, actions in perms.items() %}
@@ -199,23 +199,23 @@
                         {% endfor %}
                     {% else %}
                     <div class="permission-item">
-                        <div class="permission-text text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد صلاحيات محددة")")")")")")")') }}</div>
+                        <div class="permission-text text-muted">{{ _(_('لا توجد صلاحيات محددة')) }}</div>
                     </div>
                     {% endif %}
                 </div>
                 
                 <div class="role-actions d-flex gap-2">
-                    <button class="btn btn-primary flex-fill shadow-sm" data-action="editRole" data-role-id="role.id" title="_(" _(" _(" _(" _(" _("تعديل الدور")")")")")")">
+                    <button class="btn btn-primary flex-fill shadow-sm" data-action="editRole" data-role-id="role.id" title="تعديل الدور">
                         <i class="fas fa-edit me-1"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("تعديل")")")")")")")') }}
+                        {{ _(_('تعديل')) }}
                     </button>
-                    <button class="btn btn-success flex-fill shadow-sm" data-action="managePermissions" data-role-id="role.id" title="_(" _(" _(" _(" _(" _("إدارة الصلاحيات")")")")")")">
+                    <button class="btn btn-success flex-fill shadow-sm" data-action="managePermissions" data-role-id="role.id" title="إدارة الصلاحيات">
                         <i class="fas fa-key me-1"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("الصلاحيات")")")")")")")') }}
+                        {{ _(_('الصلاحيات')) }}
                     </button>
-                    <button class="btn btn-outline-primary flex-fill shadow-sm" data-action="manageDepartmentPermissions" data-role-id="role.id" title="_(" _(" _(" _(" _(" _("صلاحيات الأقسام")")")")")")">
+                    <button class="btn btn-outline-primary flex-fill shadow-sm" data-action="manageDepartmentPermissions" data-role-id="role.id" title="صلاحيات الأقسام">
                         <i class="fas fa-building me-1"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("الأقسام")")")")")")")') }}
+                        {{ _(_('الأقسام')) }}
                     </button>
                 </div>
             </div>
@@ -240,14 +240,14 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم الدور")")")")")")")') }}</label>
+                                    <label for="name" class="form-label">{{ _(_('اسم الدور')) }}</label>
                                     <input type="text" class="form-control" id="name" name="name" 
                                            value="{{ role.name }}" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="description" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("وصف الدور")")")")")")")') }}</label>
+                                    <label for="description" class="form-label">{{ _(_('وصف الدور')) }}</label>
                                     <textarea class="form-control" id="description" name="description" rows="3">{{ role.description }}</textarea>
                                 </div>
                             </div>
@@ -255,7 +255,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="mb-3">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الصلاحيات")")")")")")")') }}</label>
+                                    <label class="form-label">{{ _(_('الصلاحيات')) }}</label>
                                     <div class="row">
                                         {% for permission in all_permissions %}
                                         <div class="col-md-4 mb-2">
@@ -278,11 +278,11 @@
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-warning">
                                 <i class="fas fa-save me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("حفظ التغييرات")")")")")")")') }}
+                                {{ _(_('حفظ التغييرات')) }}
                             </button>
                             <a href="{{ url_for('super_admin.roles') }}" class="btn btn-secondary">
                                 <i class="fas fa-times me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}
+                                {{ _(_('إلغاء')) }}
                             </a>
                         </div>
                     </form>
@@ -297,7 +297,7 @@
                 <div class="card-header bg-success text-white">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-user-plus me-2"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("إنشاء دور جديد")")")")")")")') }}
+                        {{ _(_('إنشاء دور جديد')) }}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -306,13 +306,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم الدور")")")")")")")') }}</label>
+                                    <label for="name" class="form-label">{{ _(_('اسم الدور')) }}</label>
                                     <input type="text" class="form-control" id="name" name="name" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="description" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("وصف الدور")")")")")")")') }}</label>
+                                    <label for="description" class="form-label">{{ _(_('وصف الدور')) }}</label>
                                     <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                                 </div>
                             </div>
@@ -320,7 +320,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="mb-3">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الصلاحيات")")")")")")")') }}</label>
+                                    <label class="form-label">{{ _(_('الصلاحيات')) }}</label>
                                     <div class="row">
                                         {% for permission in permissions %}
                                         <div class="col-md-4 mb-2">
@@ -342,11 +342,11 @@
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-success">
                                 <i class="fas fa-save me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("إنشاء الدور")")")")")")")') }}
+                                {{ _(_('إنشاء الدور')) }}
                             </button>
                             <a href="{{ url_for('super_admin.roles') }}" class="btn btn-secondary">
                                 <i class="fas fa-times me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}
+                                {{ _(_('إلغاء')) }}
                             </a>
                         </div>
                     </form>

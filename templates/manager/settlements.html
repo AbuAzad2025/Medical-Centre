@@ -8,42 +8,42 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-handshake me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تسويات مالية")")")")")")")') }}</h5>
-                    <a class="btn btn-outline-success btn-sm" href="{{ url_for('manager.settlements_export', mode=stats.mode, doctor_id=selected_doctor_id, department_id=selected_department_id, month=selected_month) }}"><i class="fas fa-file-csv"></i> {{ _('_("_(" _(" _(" _(" _(" _("تصدير CSV")")")")")")")') }}</a>
+                    <h5 class="mb-0"><i class="fas fa-handshake me-2"></i>{{ _(_('تسويات مالية')) }}</h5>
+                    <a class="btn btn-outline-success btn-sm" href="{{ url_for('manager.settlements_export', mode=stats.mode, doctor_id=selected_doctor_id, department_id=selected_department_id, month=selected_month) }}"><i class="fas fa-file-csv"></i> {{ _(_('تصدير CSV')) }}</a>
                 </div>
                 <div class="card-body">
                     <form method="GET" action="{{ url_for('manager.settlements') }}" class="row g-3">
                         <div class="col-md-2">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('النوع')) }}</label>
                             <select class="form-control" name="mode">
-                                <option value="doctor" {% if stats.mode=='doctor' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("طبيب")")")")")")")') }}</option>
-                                <option value="department" {% if stats.mode=='department' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("قسم")")")")")")")') }}</option>
+                                <option value="doctor" {% if stats.mode=='doctor' %}selected{% endif %}>{{ _(_('طبيب')) }}</option>
+                                <option value="department" {% if stats.mode=='department' %}selected{% endif %}>{{ _(_('قسم')) }}</option>
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الطبيب')) }}</label>
                             <select class="form-control" name="doctor_id">
-                                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الطبيب")")")")")")")') }}</option>
+                                <option value="">{{ _(_('اختر الطبيب')) }}</option>
                                 {% for d in doctors %}
                                 <option value="{{ d.id }}" {% if selected_doctor_id==d.id %}selected{% endif %}>{{ d.full_name }}{% if d.department %} - {{ d.department.name_ar or d.department.name }}{% endif %}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('القسم')) }}</label>
                             <select class="form-control" name="department_id">
-                                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر القسم")")")")")")")') }}</option>
+                                <option value="">{{ _(_('اختر القسم')) }}</option>
                                 {% for dep in departments %}
                                 <option value="{{ dep.id }}" {% if selected_department_id==dep.id %}selected{% endif %}>{{ dep.name_ar or dep.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الشهر")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الشهر')) }}</label>
                             <input type="month" class="form-control" name="month" value="{{ selected_month or (stats.period_start.strftime('%Y-%m') if stats.period_start) }}">
                         </div>
                         <div class="col-md-2 align-self-end">
-                            <button class="btn btn-primary w-100"><i class="fas fa-filter"></i> {{ _('_("_(" _(" _(" _(" _(" _("تطبيق")")")")")")")') }}</button>
+                            <button class="btn btn-primary w-100"><i class="fas fa-filter"></i> {{ _(_('تطبيق')) }}</button>
                         </div>
                     </form>
                 </div>
@@ -55,7 +55,7 @@
         <div class="col-xl-2 col-md-4 mb-3">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="text-xs fw-bold text-primary text-uppercase mb-1">{{ _('_("_(" _(" _(" _(" _(" _("عدد الزيارات")")")")")")")') }}</div>
+                    <div class="text-xs fw-bold text-primary text-uppercase mb-1">{{ _(_('عدد الزيارات')) }}</div>
                     <div class="h5 mb-0 fw-bold text-gray-800">{{ stats.count }}</div>
                 </div>
             </div>
@@ -63,7 +63,7 @@
         <div class="col-xl-2 col-md-4 mb-3">
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="text-xs fw-bold text-info text-uppercase mb-1">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المبلغ")")")")")")")') }}</div>
+                    <div class="text-xs fw-bold text-info text-uppercase mb-1">{{ _(_('إجمالي المبلغ')) }}</div>
                     <div class="h5 mb-0 fw-bold text-gray-800">{{ stats.total_amount|round(2) }}</div>
                 </div>
             </div>
@@ -71,7 +71,7 @@
         <div class="col-xl-2 col-md-4 mb-3">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="text-xs fw-bold text-success text-uppercase mb-1">{{ _('_("_(" _(" _(" _(" _(" _("مدفوع")")")")")")")') }}</div>
+                    <div class="text-xs fw-bold text-success text-uppercase mb-1">{{ _(_('مدفوع')) }}</div>
                     <div class="h5 mb-0 fw-bold text-gray-800">{{ stats.paid_amount|round(2) }}</div>
                 </div>
             </div>
@@ -79,7 +79,7 @@
         <div class="col-xl-2 col-md-4 mb-3">
             <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="text-xs fw-bold text-warning text-uppercase mb-1">{{ _('_("_(" _(" _(" _(" _(" _("متبقي")")")")")")")') }}</div>
+                    <div class="text-xs fw-bold text-warning text-uppercase mb-1">{{ _(_('متبقي')) }}</div>
                     <div class="h5 mb-0 fw-bold text-gray-800">{{ stats.remaining_amount|round(2) }}</div>
                 </div>
             </div>
@@ -87,7 +87,7 @@
         <div class="col-xl-2 col-md-4 mb-3">
             <div class="card border-left-dark shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="text-xs fw-bold text-dark text-uppercase mb-1">{{ _('_("_(" _(" _(" _(" _(" _("حصة الطبيب")")")")")")")') }}</div>
+                    <div class="text-xs fw-bold text-dark text-uppercase mb-1">{{ _(_('حصة الطبيب')) }}</div>
                     <div class="h5 mb-0 fw-bold text-gray-800">{{ stats.doctor_fee_total|round(2) }}</div>
                 </div>
             </div>
@@ -95,7 +95,7 @@
         <div class="col-xl-2 col-md-4 mb-3">
             <div class="card border-left-secondary shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="text-xs fw-bold text-secondary text-uppercase mb-1">{{ _('_("_(" _(" _(" _(" _(" _("حصة المركز")")")")")")")') }}</div>
+                    <div class="text-xs fw-bold text-secondary text-uppercase mb-1">{{ _(_('حصة المركز')) }}</div>
                     <div class="h5 mb-0 fw-bold text-gray-800">{{ stats.service_share_total|round(2) }}</div>
                 </div>
             </div>
@@ -114,15 +114,15 @@
                             <thead>
                                 <tr>
                                     <th>{{ _('التاريخ') }}</th>
-                                    <th>{{ _('_("القسم")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("نوع الزيارة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجمالي")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المدفوع")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المتبقي")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("حصة الطبيب")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("حصة المركز")")")")")")")') }}</th>
+                                    <th>{{ _(_('القسم')) }}</th>
+                                    <th>{{ _(_('الطبيب')) }}</th>
+                                    <th>{{ _(_('المريض')) }}</th>
+                                    <th>{{ _(_('نوع الزيارة')) }}</th>
+                                    <th>{{ _(_('الإجمالي')) }}</th>
+                                    <th>{{ _(_('المدفوع')) }}</th>
+                                    <th>{{ _(_('المتبقي')) }}</th>
+                                    <th>{{ _(_('حصة الطبيب')) }}</th>
+                                    <th>{{ _(_('حصة المركز')) }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -143,7 +143,7 @@
                                 {% endfor %}
                                 {% if not items %}
                                 <tr>
-                                    <td colspan="10" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد زيارات ضمن هذه الفترة")")")")")")")') }}</td>
+                                    <td colspan="10" class="text-center text-muted">{{ _(_('لا توجد زيارات ضمن هذه الفترة')) }}</td>
                                 </tr>
                                 {% endif %}
                             </tbody>

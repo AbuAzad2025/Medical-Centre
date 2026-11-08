@@ -1,30 +1,30 @@
 {% extends "portal/base.html" %}
 {% block title %}الإعدادات والموافقات{% endblock %}
 {% block content %}
-<h4 class="mb-3"><i class="fas fa-user-shield me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("الإعدادات والموافقات")")")")")")")') }}</h4>
+<h4 class="mb-3"><i class="fas fa-user-shield me-2 text-primary"></i>{{ _(_('الإعدادات والموافقات')) }}</h4>
 <div class="portal-card p-4" style="max-width:640px">
   <form method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <h6 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("التنبيهات")")")")")")")') }}</h6>
+    <h6 class="mb-3">{{ _(_('التنبيهات')) }}</h6>
     <div class="form-check mb-2">
       <input class="form-check-input" type="checkbox" name="notify_results" value="1" id="notify_results" {% if preferences.notify_results %}checked{% endif %}>
-      <label class="form-check-label" for="notify_results">{{ _('_("_(" _(" _(" _(" _(" _("إشعاري عند توفر نتائج جديدة (غير حرجة)")")")")")")")') }}</label>
+      <label class="form-check-label" for="notify_results">{{ _(_('إشعاري عند توفر نتائج جديدة (غير حرجة)')) }}</label>
     </div>
     <div class="form-check mb-3">
       <input class="form-check-input" type="checkbox" name="notify_appointments" value="1" id="notify_appointments" {% if preferences.notify_appointments %}checked{% endif %}>
-      <label class="form-check-label" for="notify_appointments">{{ _('_("_(" _(" _(" _(" _(" _("تذكيري بالمواعيد القادمة")")")")")")")') }}</label>
+      <label class="form-check-label" for="notify_appointments">{{ _(_('تذكيري بالمواعيد القادمة')) }}</label>
     </div>
     <hr>
-    <h6 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("الخصوصية والموافقات")")")")")")")') }}</h6>
+    <h6 class="mb-3">{{ _(_('الخصوصية والموافقات')) }}</h6>
     <div class="form-check mb-2">
       <input class="form-check-input" type="checkbox" name="marketing_contact" value="1" id="marketing_contact" {% if preferences.marketing_contact %}checked{% endif %}>
-      <label class="form-check-label" for="marketing_contact">{{ _('_("_(" _(" _(" _(" _(" _("السماح بالتواصل الترويجي من المركز")")")")")")")') }}</label>
+      <label class="form-check-label" for="marketing_contact">{{ _(_('السماح بالتواصل الترويجي من المركز')) }}</label>
     </div>
     <div class="form-check mb-3">
       <input class="form-check-input" type="checkbox" name="telemedicine_consent" value="1" id="telemedicine_consent" {% if preferences.telemedicine_consent %}checked{% endif %}>
-      <label class="form-check-label" for="telemedicine_consent">{{ _('_("_(" _(" _(" _(" _(" _("الموافقة على جلسات التطبيب عن بُعد")")")")")")")') }}</label>
+      <label class="form-check-label" for="telemedicine_consent">{{ _(_('الموافقة على جلسات التطبيب عن بُعد')) }}</label>
     </div>
-    <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("حفظ التفضيلات")")")")")")")') }}</button>
+    <button type="submit" class="btn btn-primary">{{ _(_('حفظ التفضيلات')) }}</button>
   </form>
 </div>
 {% endblock %}

@@ -3,29 +3,29 @@
 {% block title %}مستودع البيانات{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("مستودع البيانات")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("لقطات تحليلية قابلة للتصدير")")")")")")")', icon='fas fa-database', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'url': url_for('super_admin.dashboard'), 'style': 'secondary'}]) }}
+  {{ page_header(_('مستودع البيانات'), subtitle=_('لقطات تحليلية قابلة للتصدير'), icon='fas fa-database', actions=[{'label': _('العودة'), 'url': url_for('super_admin.dashboard'), 'style': 'secondary'}]) }}
 
   <div class="card shadow-sm">
     <div class="card-body">
       <div class="row">
         <div class="col-md-3 text-center">
           <div class="h3">{{ snapshot.visits or 0 }}</div>
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('الزيارات')) }}</div>
         </div>
         <div class="col-md-3 text-center">
           <div class="h3">{{ snapshot.appointments or 0 }}</div>
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("المواعيد")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('المواعيد')) }}</div>
         </div>
         <div class="col-md-3 text-center">
           <div class="h3">{{ snapshot.payments_total or 0 }}</div>
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الإيرادات")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('الإيرادات')) }}</div>
         </div>
         <div class="col-md-3 text-center">
           <div class="h3">{{ snapshot.new_patients or 0 }}</div>
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مرضى جدد")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('مرضى جدد')) }}</div>
         </div>
       </div>
-      <a class="btn btn-outline-primary mt-3" href="{{ url_for('super_admin.data_warehouse_export') }}">{{ _('_("_(" _(" _(" _(" _(" _("تصدير اللقطة")")")")")")")') }}</a>
+      <a class="btn btn-outline-primary mt-3" href="{{ url_for('super_admin.data_warehouse_export') }}">{{ _(_('تصدير اللقطة')) }}</a>
     </div>
   </div>
 </div>

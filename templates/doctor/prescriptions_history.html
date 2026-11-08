@@ -2,29 +2,29 @@
 {% block title %}تاريخ الوصفات{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الوصفات:")")")")")")")') }} <bdi>{{ patient.full_name }}</bdi></h2>
+  <h2 class="mb-3">{{ _(_('تاريخ الوصفات:')) }} <bdi>{{ patient.full_name }}</bdi></h2>
   <div class="card shadow-sm"><div class="card-body">
-    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("رقم الوصفة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الجرعة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التكرار")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المدة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ")")")")")")")') }}</th><th></th></tr></thead><tbody>
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>{{ _(_('رقم الوصفة')) }}</th><th>{{ _(_('الدواء')) }}</th><th>{{ _(_('الجرعة')) }}</th><th>{{ _(_('التكرار')) }}</th><th>{{ _(_('المدة')) }}</th><th>{{ _(_('تاريخ')) }}</th><th></th></tr></thead><tbody>
       {% for p in prescriptions or [] %}
         {% for item in p.items.all() %}
         {% set parts = (item.dosage or '').split(' | ', 1) %}
         <tr>
           <td>{{ p.id }}</td>
           <td>{{ p.prescription_number }}</td>
-          <td>{{ item.medication.trade_name if item.medication else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+          <td>{{ item.medication.trade_name if item.medication else _('غير محدد') }}</td>
           <td>{{ parts[0] if parts and parts[0] else '' }}</td>
           <td>{{ parts[1] if parts|length > 1 else '' }}</td>
           <td>{{ item.duration_days }}</td>
           <td>{{ p.created_at.strftime('%Y-%m-%d') if p.created_at else '' }}</td>
           <td class="text-end">
             <a class="btn btn-sm btn-outline-primary" href="{{ url_for('doctor.print_prescription', prescription_id=p.id) }}" target="_blank">
-              <i class="fas fa-print"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("طباعة")")")")")")")') }}</span>
+              <i class="fas fa-print"></i> <span class="btn-label">{{ _(_('طباعة')) }}</span>
             </a>
           </td>
         </tr>
         {% endfor %}
       {% else %}
-      <tr><td colspan="8" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد وصفات")")")")")")")') }}</td></tr>
+      <tr><td colspan="8" class="text-center">{{ _(_('لا توجد وصفات')) }}</td></tr>
       {% endfor %}
     </tbody></table></div>
   </div></div>

@@ -3,15 +3,15 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-exchange-alt me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("تغيير الخطة")")")")")")")') }}</h4></div>
+        <div class="col"><h4><i class="fas fa-exchange-alt me-2 text-primary"></i>{{ _(_('تغيير الخطة')) }}</h4></div>
         <div class="col-auto">
-            <a href="{{ url_for('super_admin.subscription_status') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("حالة الاشتراك")")")")")")")') }}</a>
+            <a href="{{ url_for('super_admin.subscription_status') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _(_('حالة الاشتراك')) }}</a>
         </div>
     </div>
 
     <div class="alert alert-info">
         <i class="fas fa-info-circle me-2"></i>
-        {{ _('_("_(" _(" _(" _(" _(" _("الخطة الحالية:")")")")")")")') }}
+        {{ _(_('الخطة الحالية:')) }}
         <strong>
             {% if base_line %}
                 {{ base_line.package_version.package.name }} v{{ base_line.package_version.version }} ({{ base_line.billing_type }})
@@ -28,12 +28,12 @@
                     <thead class="table-light">
                         <tr>
                             <th>Package</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الإصدار")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الفئة")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الإمكانيات")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحدود")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("التسعير")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("إجراء")")")")")")")') }}</th>
+                            <th>{{ _(_('الإصدار')) }}</th>
+                            <th>{{ _(_('الفئة')) }}</th>
+                            <th>{{ _(_('الإمكانيات')) }}</th>
+                            <th>{{ _(_('الحدود')) }}</th>
+                            <th>{{ _(_('التسعير')) }}</th>
+                            <th>{{ _(_('إجراء')) }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -68,16 +68,16 @@
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <input type="hidden" name="package_version_id" value="{{ v.id }}">
                                     <select name="billing_type" class="form-select form-select-sm w-auto">
-                                        <option value="monthly">{{ _('_("_(" _(" _(" _(" _(" _("شهري")")")")")")")') }}</option>
-                                        <option value="yearly">{{ _('_("_(" _(" _(" _(" _(" _("سنوي")")")")")")")') }}</option>
+                                        <option value="monthly">{{ _(_('شهري')) }}</option>
+                                        <option value="yearly">{{ _(_('سنوي')) }}</option>
                                     </select>
-                                    <button type="submit" name="action" value="upgrade" class="btn btn-sm btn-outline-primary">{{ _('_("_(" _(" _(" _(" _(" _("ترقية")")")")")")")') }}</button>
-                                    <button type="submit" name="action" value="downgrade" class="btn btn-sm btn-outline-warning">{{ _('_("_(" _(" _(" _(" _(" _("تخفيض")")")")")")")') }}</button>
+                                    <button type="submit" name="action" value="upgrade" class="btn btn-sm btn-outline-primary">{{ _(_('ترقية')) }}</button>
+                                    <button type="submit" name="action" value="downgrade" class="btn btn-sm btn-outline-warning">{{ _(_('تخفيض')) }}</button>
                                 </form>
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="7" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد خطط متاحة")")")")")")")') }}</td></tr>
+                        <tr><td colspan="7" class="text-center text-muted py-4">{{ _(_('لا توجد خطط متاحة')) }}</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

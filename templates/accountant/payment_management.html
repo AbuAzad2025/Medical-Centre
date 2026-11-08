@@ -6,10 +6,10 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('إدارة المدفوعات', subtitle='_("مرحباً ")' ~ current_user.full_name, icon='fas fa-credit-card', actions=[
-        {'label': '_("_(" _(" _(" _(" _(" _("العودة للوحة التحكم")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('accountant.dashboard'), 'style': 'secondary'},
-        {'label': '_("_(" _(" _(" _(" _(" _("إقفال اليوم")")")")")")")', 'icon': 'fas fa-calendar-day', 'url': url_for('accountant.daily_audit_report'), 'style': 'outline-primary'},
-        {'label': '_("_(" _(" _(" _(" _(" _("الديون")")")")")")")', 'icon': 'fas fa-hand-holding-usd', 'url': url_for('accountant.debt_tracking_report'), 'style': 'outline-danger'}
+    {{ page_header('إدارة المدفوعات', subtitle=_('مرحباً ') ~ current_user.full_name, icon='fas fa-credit-card', actions=[
+        {'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-left', 'url': url_for('accountant.dashboard'), 'style': 'secondary'},
+        {'label': _('إقفال اليوم'), 'icon': 'fas fa-calendar-day', 'url': url_for('accountant.daily_audit_report'), 'style': 'outline-primary'},
+        {'label': _('الديون'), 'icon': 'fas fa-hand-holding-usd', 'url': url_for('accountant.debt_tracking_report'), 'style': 'outline-danger'}
     ]) }}
 
     <!-- Payment Management -->
@@ -17,16 +17,16 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إدارة المدفوعات")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('إدارة المدفوعات')) }}</h6>
                 </div>
                 <div class="card-body">
                     <form class="row g-2 align-items-end mb-3" method="GET" action="{{ url_for('accountant.financial') }}">
                         <div class="col-md-9">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("بحث عن مريض (اسم/هاتف/رقم وطني/رقم ملف)")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('بحث عن مريض (اسم/هاتف/رقم وطني/رقم ملف)')) }}</label>
                             <input type="text" class="form-control" name="q" value="{{ q or '' }}">
                         </div>
                         <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary w-100">{{ _('_("_(" _(" _(" _(" _(" _("بحث")")")")")")")') }}</button>
+                            <button type="submit" class="btn btn-primary w-100">{{ _(_('بحث')) }}</button>
                         </div>
                     </form>
 
@@ -35,11 +35,11 @@
                         <table class="table table-sm table-striped align-middle">
                             <thead>
                                 <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الملف")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الهوية")")")")")")")') }}</th>
-                                    <th class="text-end w-170">{{ _('_("_(" _(" _(" _(" _(" _("إجراء")")")")")")")') }}</th>
+                                    <th>{{ _(_('الملف')) }}</th>
+                                    <th>{{ _(_('الاسم')) }}</th>
+                                    <th>{{ _(_('الهاتف')) }}</th>
+                                    <th>{{ _(_('الهوية')) }}</th>
+                                    <th class="text-end w-170">{{ _(_('إجراء')) }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -50,10 +50,10 @@
                                     <td>{{ p.phone or '-' }}</td>
                                     <td>{{ p.national_id or '-' }}</td>
                                     <td class="text-end">
-                                        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('accountant.financial') }}?patient_id={{ p.id }}">{{ _('_("_(" _(" _(" _(" _(" _("كشف الحساب")")")")")")")') }}</a>
+                                        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('accountant.financial') }}?patient_id={{ p.id }}">{{ _(_('كشف الحساب')) }}</a>
                                     </td>
                                 </tr>
-                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td></tr>{% endfor %}
+                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -66,10 +66,10 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h5 class="mb-1">{{ _('_("_(" _(" _(" _(" _(" _("كشف حساب:")")")")")")")') }} <bdi>{{ selected_patient.full_name }}</bdi></h5>
+                                            <h5 class="mb-1">{{ _(_('كشف حساب:')) }} <bdi>{{ selected_patient.full_name }}</bdi></h5>
                                             <div class="text-muted">هاتف: {{ selected_patient.phone or '-' }} | هوية: {{ selected_patient.national_id or '-' }}</div>
                                         </div>
-                                        <a class="btn btn-outline-secondary" href="{{ url_for('accountant.financial') }}">{{ _('_("_(" _(" _(" _(" _(" _("تفريغ")")")")")")")') }}</a>
+                                        <a class="btn btn-outline-secondary" href="{{ url_for('accountant.financial') }}">{{ _(_('تفريغ')) }}</a>
                                     </div>
                                 </div>
                             </div>
@@ -81,7 +81,7 @@
                             <div class="info-box bg-light">
                                 <span class="info-box-icon"><i class="fas fa-file-invoice"></i></span>
                                 <div class="info-box-content">
-                                    <span class="info-box-text">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي الفواتير")")")")")")")') }}</span>
+                                    <span class="info-box-text">{{ _(_('إجمالي الفواتير')) }}</span>
                                     <span class="info-box-number">{{ "%.2f"|format(statement.totals.total_billed) }}</span>
                                 </div>
                             </div>
@@ -90,7 +90,7 @@
                             <div class="info-box bg-light">
                                 <span class="info-box-icon"><i class="fas fa-coins"></i></span>
                                 <div class="info-box-content">
-                                    <span class="info-box-text">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المدفوع")")")")")")")') }}</span>
+                                    <span class="info-box-text">{{ _(_('إجمالي المدفوع')) }}</span>
                                     <span class="info-box-number">{{ "%.2f"|format(statement.totals.total_paid) }}</span>
                                 </div>
                             </div>
@@ -99,7 +99,7 @@
                             <div class="info-box bg-light">
                                 <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span>
                                 <div class="info-box-content">
-                                    <span class="info-box-text">{{ _('_("_(" _(" _(" _(" _(" _("المتبقي (زيارات غير مسددة)")")")")")")")') }}</span>
+                                    <span class="info-box-text">{{ _(_('المتبقي (زيارات غير مسددة)')) }}</span>
                                     <span class="info-box-number">{{ "%.2f"|format(statement.totals.total_remaining) }}</span>
                                 </div>
                             </div>
@@ -109,19 +109,19 @@
                     <div class="row">
                         <div class="col-lg-7 mb-3">
                             <div class="card shadow-sm">
-                                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}</div>
+                                <div class="card-header">{{ _(_('الزيارات')) }}</div>
                                 <div class="card-body p-0">
                                     <div class="table-responsive">
                                         <table class="table table-sm mb-0">
                                             <thead>
                                                 <tr>
-                                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("زيارة")")")")")")")') }}</th>
-                                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-                                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th>
-                                                    <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("الإجمالي")")")")")")")') }}</th>
-                                                    <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("المدفوع")")")")")")")') }}</th>
-                                                    <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("المتبقي")")")")")")")') }}</th>
-                                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("حالة الدفع")")")")")")")') }}</th>
+                                                    <th>{{ _(_('زيارة')) }}</th>
+                                                    <th>{{ _(_('التاريخ')) }}</th>
+                                                    <th>{{ _(_('القسم')) }}</th>
+                                                    <th class="text-end">{{ _(_('الإجمالي')) }}</th>
+                                                    <th class="text-end">{{ _(_('المدفوع')) }}</th>
+                                                    <th class="text-end">{{ _(_('المتبقي')) }}</th>
+                                                    <th>{{ _(_('حالة الدفع')) }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -135,7 +135,7 @@
                                                     <td class="text-end">{{ "%.2f"|format(v.remaining_amount or 0) }}</td>
                                                     <td>{{ payment_status_badge(v) }}</td>
                                                 </tr>
-                                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td></tr>{% endfor %}
+                                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                                             </tbody>
                                         </table>
                                     </div>
@@ -144,16 +144,16 @@
                         </div>
                         <div class="col-lg-5 mb-3">
                             <div class="card shadow-sm">
-                                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("المدفوعات (مؤكدة)")")")")")")")') }}</div>
+                                <div class="card-header">{{ _(_('المدفوعات (مؤكدة)')) }}</div>
                                 <div class="card-body p-0">
                                     <div class="table-responsive">
                                         <table class="table table-sm mb-0">
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
-                                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-                                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الطريقة")")")")")")")') }}</th>
-                                                    <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("المبلغ")")")")")")")') }}</th>
+                                                    <th>{{ _(_('التاريخ')) }}</th>
+                                                    <th>{{ _(_('الطريقة')) }}</th>
+                                                    <th class="text-end">{{ _(_('المبلغ')) }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -164,7 +164,7 @@
                                                     <td>{{ pmt.method_display }}</td>
                                                     <td class="text-end">{{ "%.2f"|format(pmt.amount or 0) }}</td>
                                                 </tr>
-                                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td></tr>{% endfor %}
+                                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                                             </tbody>
                                         </table>
                                     </div>

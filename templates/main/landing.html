@@ -6,37 +6,37 @@
             <div class="logo-mark">A</div>
             <div class="brand-name">
                 AZAD Medical
-                <small>{{ _('_("_(" _(" _(" _(" _(" _("شركة أزاد للأنظمة الذكية")")")")")")")') }}</small>
+                <small>{{ _(_('شركة أزاد للأنظمة الذكية')) }}</small>
             </div>
         </a>
         <div class="nav-links">
-            <a href="{{ url_for('main.about_system') }}">{{ _('_("_(" _(" _(" _(" _(" _("حول النظام")")")")")")")') }}</a>
-            <a href="{{ url_for('main.technical_support') }}">{{ _('_("_(" _(" _(" _(" _(" _("الدعم الفني")")")")")")")') }}</a>
-            <a href="{{ url_for('auth.login', mode='owner') }}"><i class="fas fa-crown"></i> {{ _('_("_(" _(" _(" _(" _(" _("لوحة المالك")")")")")")")') }}</a>
-            <a href="{{ url_for('auth.login') }}" class="btn-login"><i class="fas fa-sign-in-alt"></i> <span>{{ _('_("_(" _(" _(" _(" _(" _("تسجيل الدخول")")")")")")")') }}</span></a>
+            <a href="{{ url_for('main.about_system') }}">{{ _(_('حول النظام')) }}</a>
+            <a href="{{ url_for('main.technical_support') }}">{{ _(_('الدعم الفني')) }}</a>
+            <a href="{{ url_for('auth.login', mode='owner') }}"><i class="fas fa-crown"></i> {{ _(_('لوحة المالك')) }}</a>
+            <a href="{{ url_for('auth.login') }}" class="btn-login"><i class="fas fa-sign-in-alt"></i> <span>{{ _(_('تسجيل الدخول')) }}</span></a>
         </div>
     </header>
 
     <section class="lp-hero">
-        <div class="hero-badge"><i class="fas fa-shield-alt"></i> {{ _('_("_(" _(" _(" _(" _(" _("منصة سحابية متعددة المستأجرين")")")")")")")') }}</div>
-        <h1>{{ _('_("_(" _(" _(" _(" _(" _("منصة")")")")")")")') }} <span>{{ _('_("_(" _(" _(" _(" _(" _("أزاد")")")")")")")') }}</span> {{ _('_("_(" _(" _(" _(" _(" _("الطبية")")")")")")")') }}</h1>
-        <p>{{ _('_("_(" _(" _(" _(" _(" _("نظام متكامل لإدارة المرافق الصحية — حلول ذكية وآمنة للعيادات والمستشفيات والمختبرات ومراكز الأشعة والصيدليات ومراكز الطوارئ.")")")")")")")') }}</p>
+        <div class="hero-badge"><i class="fas fa-shield-alt"></i> {{ _(_('منصة سحابية متعددة المستأجرين')) }}</div>
+        <h1>{{ _(_('منصة')) }} <span>{{ _(_('أزاد')) }}</span> {{ _(_('الطبية')) }}</h1>
+        <p>{{ _(_('نظام متكامل لإدارة المرافق الصحية — حلول ذكية وآمنة للعيادات والمستشفيات والمختبرات ومراكز الأشعة والصيدليات ومراكز الطوارئ.')) }}</p>
         <div class="hero-actions">
-            <a href="{{ url_for('auth.login') }}" class="btn-primary"><i class="fas fa-sign-in-alt"></i> {{ _('_("_(" _(" _(" _(" _(" _("تسجيل الدخول للعيادة/الصيدلية")")")")")")")') }}</a>
-            <a href="{{ url_for('auth.register', mode='saas') }}" class="btn-secondary"><i class="fas fa-user-plus"></i> {{ _('_("_(" _(" _(" _(" _(" _("طلب اشتراك/حساب جديد")")")")")")")') }}</a>
-            <a href="{{ url_for('auth.login', mode='owner') }}" class="btn-secondary"><i class="fas fa-crown"></i> {{ _('_("_(" _(" _(" _(" _(" _("لوحة المالك/المشرف")")")")")")")') }}</a>
+            <a href="{{ url_for('auth.login') }}" class="btn-primary"><i class="fas fa-sign-in-alt"></i> {{ _(_('تسجيل الدخول للعيادة/الصيدلية')) }}</a>
+            <a href="{{ url_for('auth.register', mode='saas') }}" class="btn-secondary"><i class="fas fa-user-plus"></i> {{ _(_('طلب اشتراك/حساب جديد')) }}</a>
+            <a href="{{ url_for('auth.login', mode='owner') }}" class="btn-secondary"><i class="fas fa-crown"></i> {{ _(_('لوحة المالك/المشرف')) }}</a>
         </div>
 
         <div class="lp-search-tenant">
             <div class="search-box">
-                <input type="text" id="tenantSearchInput" placeholder="_(" _(" _(" _(" _(" _("ابحث عن عيادتك/صيدليتك بالاسم أو الرمز...")")")")")")" autocomplete="off" aria-label="Search your clinic">
-                <button type="button" id="tenantSearchBtn"><i class="fas fa-search"></i> {{ _('_("_(" _(" _(" _(" _(" _("ابحث عن عيادتك")")")")")")")') }}</button>
+                <input type="text" id="tenantSearchInput" placeholder="ابحث عن عيادتك/صيدليتك بالاسم أو الرمز..." autocomplete="off" aria-label="Search your clinic">
+                <button type="button" id="tenantSearchBtn"><i class="fas fa-search"></i> {{ _(_('ابحث عن عيادتك')) }}</button>
             </div>
-            <p class="text-center mt-2 text-white-50 small">{{ _('_("_(" _(" _(" _(" _(" _("أدخل اسم العيادة أو الرمز المختصر للانتقال إلى بوابة الدخول الخاصة بها")")")")")")")') }}</p>
+            <p class="text-center mt-2 text-white-50 small">{{ _(_('أدخل اسم العيادة أو الرمز المختصر للانتقال إلى بوابة الدخول الخاصة بها')) }}</p>
         </div>
 
         <div class="owner-link">
-            <a href="{{ url_for('auth.login', mode='owner') }}"><i class="fas fa-crown"></i> {{ _('_("_(" _(" _(" _(" _(" _("أنت مالك المنصة؟ تسجيل الدخول للوحة التحكم")")")")")")")') }}</a>
+            <a href="{{ url_for('auth.login', mode='owner') }}"><i class="fas fa-crown"></i> {{ _(_('أنت مالك المنصة؟ تسجيل الدخول للوحة التحكم')) }}</a>
         </div>
     </section>
 
@@ -52,8 +52,8 @@
     } %}
 
     <section class="lp-section">
-        <h2 class="lp-section-title">{{ _('_("_(" _(" _(" _(" _(" _("باقات المنصة")")")")")")")') }}</h2>
-        <p class="lp-section-subtitle">{{ _('_("_(" _(" _(" _(" _(" _("حلول مرنة تناسب مختلف أنواع المنشآت الصحية — من العيادة الصغيرة إلى المستشفى الكامل")")")")")")")') }}</p>
+        <h2 class="lp-section-title">{{ _(_('باقات المنصة')) }}</h2>
+        <p class="lp-section-subtitle">{{ _(_('حلول مرنة تناسب مختلف أنواع المنشآت الصحية — من العيادة الصغيرة إلى المستشفى الكامل')) }}</p>
         <div class="cap-grid">
             {% for g in grouped %}
             {% for b in g.list %}
@@ -72,54 +72,54 @@
         <div class="overview-grid">
             <div class="overview-item">
                 <div class="ov-icon"><i class="fas fa-calendar-check"></i></div>
-                <h3>{{ _('_("_(" _(" _(" _(" _(" _("إدارة المواعيد")")")")")")")') }}</h3>
-                <p>{{ _('_("_(" _(" _(" _(" _(" _("جدولة وتنظيم مواعيد المرضى مع إشعارات تلقائية وتذكيرات ذكية")")")")")")")') }}</p>
+                <h3>{{ _(_('إدارة المواعيد')) }}</h3>
+                <p>{{ _(_('جدولة وتنظيم مواعيد المرضى مع إشعارات تلقائية وتذكيرات ذكية')) }}</p>
             </div>
             <div class="overview-item">
                 <div class="ov-icon"><i class="fas fa-file-medical"></i></div>
-                <h3>{{ _('_("_(" _(" _(" _(" _(" _("ملفات المرضى")")")")")")")') }}</h3>
-                <p>{{ _('_("_(" _(" _(" _(" _(" _("سجل طبي إلكتروني شامل مع إمكانية الوصول السريع للتاريخ المرضي")")")")")")")') }}</p>
+                <h3>{{ _(_('ملفات المرضى')) }}</h3>
+                <p>{{ _(_('سجل طبي إلكتروني شامل مع إمكانية الوصول السريع للتاريخ المرضي')) }}</p>
             </div>
             <div class="overview-item">
                 <div class="ov-icon"><i class="fas fa-flask"></i></div>
-                <h3>{{ _('_("_(" _(" _(" _(" _(" _("المختبر والأشعة")")")")")")")') }}</h3>
-                <p>{{ _('_("_(" _(" _(" _(" _(" _("إدارة الفحوصات المخبرية والصور الإشعاعية مع نتائج فورية")")")")")")")') }}</p>
+                <h3>{{ _(_('المختبر والأشعة')) }}</h3>
+                <p>{{ _(_('إدارة الفحوصات المخبرية والصور الإشعاعية مع نتائج فورية')) }}</p>
             </div>
             <div class="overview-item">
                 <div class="ov-icon"><i class="fas fa-receipt"></i></div>
-                <h3>{{ _('_("_(" _(" _(" _(" _(" _("الفواتير والمحاسبة")")")")")")")') }}</h3>
-                <p>{{ _('_("_(" _(" _(" _(" _(" _("فوترة دقيقة وتقارير مالية شاملة مع دعم طرق الدفع المتعددة")")")")")")")') }}</p>
+                <h3>{{ _(_('الفواتير والمحاسبة')) }}</h3>
+                <p>{{ _(_('فوترة دقيقة وتقارير مالية شاملة مع دعم طرق الدفع المتعددة')) }}</p>
             </div>
             <div class="overview-item">
                 <div class="ov-icon"><i class="fas fa-capsules"></i></div>
-                <h3>{{ _('_("_(" _(" _(" _(" _(" _("الصيدلية والمخزون")")")")")")")') }}</h3>
-                <p>{{ _('_("_(" _(" _(" _(" _(" _("إدارة المخزون الدوائي وتتبع الصرف والصلاحية")")")")")")")') }}</p>
+                <h3>{{ _(_('الصيدلية والمخزون')) }}</h3>
+                <p>{{ _(_('إدارة المخزون الدوائي وتتبع الصرف والصلاحية')) }}</p>
             </div>
             <div class="overview-item">
                 <div class="ov-icon"><i class="fas fa-building"></i></div>
-                <h3>{{ _('_("_(" _(" _(" _(" _(" _("إدارة متعددة المستأجرين")")")")")")")') }}</h3>
-                <p>{{ _('_("_(" _(" _(" _(" _(" _("عزل كامل للبيانات بين المنشآت مع لوحات تحكم مخصصة لكل دور")")")")")")")') }}</p>
+                <h3>{{ _(_('إدارة متعددة المستأجرين')) }}</h3>
+                <p>{{ _(_('عزل كامل للبيانات بين المنشآت مع لوحات تحكم مخصصة لكل دور')) }}</p>
             </div>
         </div>
     </section>
 
     <section class="lp-contact">
-        <h2>{{ _('_("_(" _(" _(" _(" _(" _("تواصل معنا لبدء استخدام المنصة")")")")")")")') }}</h2>
-        <p>{{ _('_("_(" _(" _(" _(" _(" _("للحصول على عرض توضيحي أو للاستفسار عن الباقات، تواصل مع فريق المبيعات.")")")")")")")') }}</p>
+        <h2>{{ _(_('تواصل معنا لبدء استخدام المنصة')) }}</h2>
+        <p>{{ _(_('للحصول على عرض توضيحي أو للاستفسار عن الباقات، تواصل مع فريق المبيعات.')) }}</p>
         <div class="contact-links">
-            <a href="https://wa.me/972562150193" target="_blank" rel="noopener" class="whatsapp"><i class="fab fa-whatsapp"></i> {{ _('_("_(" _(" _(" _(" _(" _("واتساب: 0562150193")")")")")")")') }}</a>
+            <a href="https://wa.me/972562150193" target="_blank" rel="noopener" class="whatsapp"><i class="fab fa-whatsapp"></i> {{ _(_('واتساب: 0562150193')) }}</a>
             <a href="tel:0562150193"><i class="fas fa-phone"></i> 0562150193</a>
         </div>
     </section>
 
     <footer class="lp-footer">
         <div class="links">
-            <a href="{{ url_for('main.about_system') }}">{{ _('_("_(" _(" _(" _(" _(" _("حول النظام")")")")")")")') }}</a>
-            <a href="{{ url_for('main.privacy_policy') }}">{{ _('_("_(" _(" _(" _(" _(" _("سياسة الخصوصية")")")")")")")') }}</a>
-            <a href="{{ url_for('main.terms_of_use') }}">{{ _('_("_(" _(" _(" _(" _(" _("شروط الاستخدام")")")")")")")') }}</a>
-            <a href="https://wa.me/972562150193" target="_blank" rel="noopener">{{ _('_("_(" _(" _(" _(" _(" _("الدعم الفني")")")")")")")') }}</a>
+            <a href="{{ url_for('main.about_system') }}">{{ _(_('حول النظام')) }}</a>
+            <a href="{{ url_for('main.privacy_policy') }}">{{ _(_('سياسة الخصوصية')) }}</a>
+            <a href="{{ url_for('main.terms_of_use') }}">{{ _(_('شروط الاستخدام')) }}</a>
+            <a href="https://wa.me/972562150193" target="_blank" rel="noopener">{{ _(_('الدعم الفني')) }}</a>
         </div>
-        <p>{{ _('_("_(" _(" _(" _(" _(" _("تصميم وتطوير:")")")")")")")') }} <strong>{{ _('_("_(" _(" _(" _(" _(" _("شركة أزاد للأنظمة الذكية")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("— رام الله، فلسطين &copy; 2026")")")")")")")') }}</p>
+        <p>{{ _(_('تصميم وتطوير:')) }} <strong>{{ _(_('شركة أزاد للأنظمة الذكية')) }}</strong> {{ _(_('— رام الله، فلسطين &copy; 2026')) }}</p>
     </footer>
 
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">

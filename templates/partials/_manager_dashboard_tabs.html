@@ -8,7 +8,7 @@
                         <div class="card-header border-0" style="background: var(--warning-gradient); color: white;">
                             <h5 class="mb-0">
                                 <i class="fas fa-chart-line me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("التحليلات الذكية المتقدمة")")")")")")")') }}
+                                {{ _(_('التحليلات الذكية المتقدمة')) }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -18,8 +18,8 @@
                                         <div class="icon-circle mx-auto bg-primary bg-opacity-10 mb-3" style="width: 80px; height: 80px;">
                                             <i class="fas fa-users fa-3x text-primary floating-animation"></i>
                                         </div>
-                                        <h6>{{ _('_("_(" _(" _(" _(" _(" _("إدارة الموظفين")")")")")")")') }}</h6>
-                                        <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مراقبة أداء الموظفين والإنتاجية")")")")")")")') }}</p>
+                                        <h6>{{ _(_('إدارة الموظفين')) }}</h6>
+                                        <p class="text-muted">{{ _(_('مراقبة أداء الموظفين والإنتاجية')) }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -27,8 +27,8 @@
                                         <div class="icon-circle mx-auto bg-success bg-opacity-10 mb-3" style="width: 80px; height: 80px;">
                                             <i class="fas fa-chart-bar fa-3x text-success floating-animation"></i>
                                         </div>
-                                        <h6>{{ _('_("_(" _(" _(" _(" _(" _("التقارير المالية")")")")")")")') }}</h6>
-                                        <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تحليل الإيرادات والمصروفات")")")")")")")') }}</p>
+                                        <h6>{{ _(_('التقارير المالية')) }}</h6>
+                                        <p class="text-muted">{{ _(_('تحليل الإيرادات والمصروفات')) }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -36,8 +36,8 @@
                                         <div class="icon-circle mx-auto bg-warning bg-opacity-10 mb-3" style="width: 80px; height: 80px;">
                                             <i class="fas fa-cogs fa-3x text-warning floating-animation"></i>
                                         </div>
-                                        <h6>{{ _('_("_(" _(" _(" _(" _(" _("إدارة النظام")")")")")")")') }}</h6>
-                                        <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مراقبة أداء النظام والصيانة")")")")")")")') }}</p>
+                                        <h6>{{ _(_('إدارة النظام')) }}</h6>
+                                        <p class="text-muted">{{ _(_('مراقبة أداء النظام والصيانة')) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -52,7 +52,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المرضى")")")")")")")') }}</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _(_('إجمالي المرضى')) }}</div>
                                     <div class="h2 mb-0 fw-bold gradient-text">{{ stats.total_patients or 0 }}</div>
                                     <small class="text-muted">جدد اليوم: {{ stats.new_patients_today or 0 }}</small>
                                 </div>
@@ -68,7 +68,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("زيارات اليوم")")")")")")")') }}</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _(_('زيارات اليوم')) }}</div>
                                     <div class="h2 mb-0 fw-bold gradient-text">{{ stats.visits_today or 0 }}</div>
                                     <small class="text-muted">مؤرشفة اليوم: {{ stats.completed_visits_today or 0 }}</small>
                                 </div>
@@ -85,7 +85,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("إيراد اليوم")")")")")")")') }}</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _(_('إيراد اليوم')) }}</div>
                                     <div class="h2 mb-0 fw-bold gradient-text">{{ "%.2f"|format(stats.today_revenue or 0) }}</div>
                                     <small class="text-muted">إيراد الشهر: {{ "%.2f"|format(stats.month_revenue or 0) }}</small>
                                 </div>
@@ -102,7 +102,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("موافقات معلّقة")")")")")")")') }}</div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">{{ _(_('موافقات معلّقة')) }}</div>
                                     <div class="h2 mb-0 fw-bold gradient-text">{{ stats.pending_force_payment_approvals or 0 }}</div>
                                     <small class="text-muted">المستخدمون النشطون: {{ stats.active_users or 0 }}</small>
                                 </div>
@@ -111,8 +111,8 @@
                                 </div>
                             </div>
                             <div class="d-flex gap-2 mt-3">
-                                <a class="btn btn-sm btn-outline-secondary w-100" href="{{ url_for('manager.analytics') }}">{{ _('_("_(" _(" _(" _(" _(" _("المراقبة")")")")")")")') }}</a>
-                                <a class="btn btn-sm btn-outline-primary w-100" href="{{ url_for('manager.kpi_dashboard') }}">{{ _('_("_(" _(" _(" _(" _(" _("مؤشرات الأداء")")")")")")")') }}</a>
+                                <a class="btn btn-sm btn-outline-secondary w-100" href="{{ url_for('manager.analytics') }}">{{ _(_('المراقبة')) }}</a>
+                                <a class="btn btn-sm btn-outline-primary w-100" href="{{ url_for('manager.kpi_dashboard') }}">{{ _(_('مؤشرات الأداء')) }}</a>
                             </div>
                         </div>
                     </div>
@@ -123,18 +123,18 @@
                 <div class="col-lg-6 mb-3">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-bold"><i class="fas fa-calendar-day me-2 text-info"></i>{{ _('_("_(" _(" _(" _(" _(" _("مواعيد اليوم")")")")")")")') }}</h6>
-                            <a href="{{ url_for('reception.appointments') }}" class="btn btn-sm btn-outline-info">{{ _('_("_(" _(" _(" _(" _(" _("كل المواعيد")")")")")")")') }}</a>
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-calendar-day me-2 text-info"></i>{{ _(_('مواعيد اليوم')) }}</h6>
+                            <a href="{{ url_for('reception.appointments') }}" class="btn btn-sm btn-outline-info">{{ _(_('كل المواعيد')) }}</a>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-striped align-middle mb-0">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th class="ps-3">{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                            <th class="ps-3">{{ _(_('المريض')) }}</th>
+                                            <th>{{ _(_('الطبيب')) }}</th>
+                                            <th>{{ _(_('الوقت')) }}</th>
+                                            <th>{{ _(_('الحالة')) }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -146,7 +146,7 @@
                                             <td><span class="badge bg-{% if a.status=='CHECKED_IN' %}success{% elif a.status=='CONFIRMED' %}primary{% else %}secondary{% endif %}">{{ a.status | enum_label }}</span></td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="4" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مواعيد اليوم")")")")")")")') }}</td></tr>
+                                        <tr><td colspan="4" class="text-center text-muted py-4">{{ _(_('لا توجد مواعيد اليوم')) }}</td></tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -157,18 +157,18 @@
                 <div class="col-lg-6 mb-3">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>{{ _('_("_(" _(" _(" _(" _(" _("موافقات الدفع القسري المعلّقة")")")")")")")') }}</h6>
-                            <a href="{{ url_for('manager.force_payment_approvals') }}" class="btn btn-sm btn-outline-warning">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</a>
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>{{ _(_('موافقات الدفع القسري المعلّقة')) }}</h6>
+                            <a href="{{ url_for('manager.force_payment_approvals') }}" class="btn btn-sm btn-outline-warning">{{ _(_('الكل')) }}</a>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-striped align-middle mb-0">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th class="ps-3">{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("القيمة")")")")")")")') }}</th>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("السبب")")")")")")")') }}</th>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
+                                            <th class="ps-3">{{ _(_('المريض')) }}</th>
+                                            <th>{{ _(_('القيمة')) }}</th>
+                                            <th>{{ _(_('السبب')) }}</th>
+                                            <th>{{ _(_('الوقت')) }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -180,7 +180,7 @@
                                             <td class="small text-muted">{{ v.created_at.strftime('%H:%M') if v.created_at else '-' }}</td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="4" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد موافقات معلّقة")")")")")")")') }}</td></tr>
+                                        <tr><td colspan="4" class="text-center text-muted py-4">{{ _(_('لا توجد موافقات معلّقة')) }}</td></tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -194,17 +194,17 @@
                 <div class="col-lg-7 mb-3">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-bold"><i class="fas fa-sitemap me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("أداء الأقسام (آخر 30 يوم)")")")")")")")') }}</h6>
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-sitemap me-2 text-primary"></i>{{ _(_('أداء الأقسام (آخر 30 يوم)')) }}</h6>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-striped align-middle mb-0">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th class="ps-3">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th>
-                                            <th style="width: 140px;">{{ _('_("_(" _(" _(" _(" _(" _("زيارات مفتوحة")")")")")")")') }}</th>
-                                            <th style="width: 140px;">{{ _('_("_(" _(" _(" _(" _(" _("مؤرشفة")")")")")")")') }}</th>
-                                            <th style="width: 170px;">{{ _('_("_(" _(" _(" _(" _(" _("متوسط الدقائق")")")")")")")') }}</th>
+                                            <th class="ps-3">{{ _(_('القسم')) }}</th>
+                                            <th style="width: 140px;">{{ _(_('زيارات مفتوحة')) }}</th>
+                                            <th style="width: 140px;">{{ _(_('مؤرشفة')) }}</th>
+                                            <th style="width: 170px;">{{ _(_('متوسط الدقائق')) }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -220,8 +220,8 @@
                                             <td colspan="4">
                                                 <div class="empty-state-smart">
                                                     <div class="empty-icon-wrap"><i class="fas fa-sitemap"></i></div>
-                                                    <h5>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</h5>
-                                                    <p>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات أداء للأقسام متاحة حالياً.")")")")")")")') }}</p>
+                                                    <h5>{{ _(_('لا توجد بيانات')) }}</h5>
+                                                    <p>{{ _(_('لا توجد بيانات أداء للأقسام متاحة حالياً.')) }}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -235,16 +235,16 @@
                 <div class="col-lg-5 mb-3">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-bold"><i class="fas fa-user-md me-2 text-success"></i>{{ _('_("_(" _(" _(" _(" _(" _("أفضل الأطباء (آخر 30 يوم)")")")")")")")') }}</h6>
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-user-md me-2 text-success"></i>{{ _(_('أفضل الأطباء (آخر 30 يوم)')) }}</h6>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-striped align-middle mb-0">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th class="ps-3">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th>
-                                            <th style="width: 120px;">{{ _('_("_(" _(" _(" _(" _(" _("مؤرشفة")")")")")")")') }}</th>
-                                            <th style="width: 160px;">{{ _('_("_(" _(" _(" _(" _(" _("متوسط الدقائق")")")")")")")') }}</th>
+                                            <th class="ps-3">{{ _(_('الطبيب')) }}</th>
+                                            <th style="width: 120px;">{{ _(_('مؤرشفة')) }}</th>
+                                            <th style="width: 160px;">{{ _(_('متوسط الدقائق')) }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -261,8 +261,8 @@
                                             <td colspan="3">
                                                 <div class="empty-state-smart">
                                                     <div class="empty-icon-wrap"><i class="fas fa-user-md"></i></div>
-                                                    <h5>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</h5>
-                                                    <p>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات أداء للأطباء متاحة حالياً.")")")")")")")') }}</p>
+                                                    <h5>{{ _(_('لا توجد بيانات')) }}</h5>
+                                                    <p>{{ _(_('لا توجد بيانات أداء للأطباء متاحة حالياً.')) }}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -285,7 +285,7 @@
                         <div class="card-header bg-gradient-primary text-white border-0">
                             <h5 class="mb-0">
                                 <i class="fas fa-chart-bar me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("التحليلات الذكية")")")")")")")') }}
+                                {{ _(_('التحليلات الذكية')) }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -293,33 +293,33 @@
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-primary fw-bold">{{ stats.smart_analytics.patient_growth_rate or 0 }}%</h4>
-                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("معدل نمو المرضى")")")")")")")') }}</p>
+                                        <p class="text-muted mb-0">{{ _(_('معدل نمو المرضى')) }}</p>
                                     </div>
                                 </div>
                                 {% if module_active('billing') %}
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-success fw-bold">{{ stats.smart_analytics.revenue_growth_rate or 0 }}%</h4>
-                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("معدل نمو الإيرادات")")")")")")")') }}</p>
+                                        <p class="text-muted mb-0">{{ _(_('معدل نمو الإيرادات')) }}</p>
                                     </div>
                                 </div>
                                 {% endif %}
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-info fw-bold">{{ stats.smart_analytics.avg_visit_duration or 0 }} دقيقة</h4>
-                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("متوسط مدة الزيارة")")")")")")")') }}</p>
+                                        <p class="text-muted mb-0">{{ _(_('متوسط مدة الزيارة')) }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-warning fw-bold">{{ stats.smart_analytics.completion_rate or 0 }}%</h4>
-                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("معدل الإنجاز")")")")")")")') }}</p>
+                                        <p class="text-muted mb-0">{{ _(_('معدل الإنجاز')) }}</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="mt-3 text-center">
                                 <span class="badge bg-{{ 'success' if stats.smart_analytics.trend == 'growing' else 'warning' if stats.smart_analytics.trend == 'stable' else 'danger' }} rounded-pill px-3 py-2">
-                                    {{ '_("_(" _(" _(" _(" _(" _("نمو")")")")")")")' if stats.smart_analytics.trend == 'growing' else '_("_(" _(" _(" _(" _(" _("مستقر")")")")")")")' if stats.smart_analytics.trend == 'stable' else '_("_(" _(" _(" _(" _(" _("تراجع")")")")")")")' }}
+                                    {{ _('نمو') if stats.smart_analytics.trend == 'growing' else _('مستقر') if stats.smart_analytics.trend == 'stable' else _('تراجع') }}
                                 </span>
                             </div>
                         </div>
@@ -338,7 +338,7 @@
                         <div class="card-header bg-gradient-success text-white border-0">
                             <h5 class="mb-0">
                                 <i class="fas fa-lightbulb me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("رؤى الأعمال")")")")")")")') }}
+                                {{ _(_('رؤى الأعمال')) }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -355,7 +355,7 @@
                             <div class="empty-state-smart">
                                 <div class="empty-icon-wrap"><i class="fas fa-lightbulb"></i></div>
                                 <h5>{{ _('لا توجد رؤى') }}</h5>
-                                <p>{{ _('_("لا توجد رؤى أعمال متاحة حالياً. ستظهر هنا عندما تتوفر بيانات كافية للتحليل.")') }}</p>
+                                <p>{{ _(_('لا توجد رؤى أعمال متاحة حالياً. ستظهر هنا عندما تتوفر بيانات كافية للتحليل.')) }}</p>
                             </div>
                             {% endfor %}
                         </div>
@@ -374,7 +374,7 @@
                         <div class="card-header bg-gradient-info text-white border-0">
                             <h5 class="mb-0">
                                 <i class="fas fa-tachometer-alt me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("مقاييس الأداء")")")")")")")') }}
+                                {{ _(_('مقاييس الأداء')) }}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -382,25 +382,25 @@
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-success fw-bold">{{ stats.performance_metrics.completion_rate }}%</h4>
-                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("معدل الإنجاز")")")")")")")') }}</p>
+                                        <p class="text-muted mb-0">{{ _(_('معدل الإنجاز')) }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-primary fw-bold">{{ stats.performance_metrics.appointment_rate }}%</h4>
-                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("معدل المواعيد")")")")")")")') }}</p>
+                                        <p class="text-muted mb-0">{{ _(_('معدل المواعيد')) }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-warning fw-bold">{{ stats.performance_metrics.avg_wait_time }} دقيقة</h4>
-                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("متوسط وقت الانتظار")")")")")")")') }}</p>
+                                        <p class="text-muted mb-0">{{ _(_('متوسط وقت الانتظار')) }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-info fw-bold">{{ stats.performance_metrics.overall_score }}%</h4>
-                                        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("النقاط الإجمالية")")")")")")")') }}</p>
+                                        <p class="text-muted mb-0">{{ _(_('النقاط الإجمالية')) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -420,11 +420,11 @@
                         <div class="card-header bg-gradient-dark text-white border-0">
                             <h5 class="mb-0">
                                 <i class="fas fa-chart-line me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("التوقعات المالية")")")")")")")') }}
+                                {{ _(_('التوقعات المالية')) }}
                             </h5>
                         </div>
                         <div class="card-body">
-                            <p>{{ _('_("_(" _(" _(" _(" _(" _("محتوى التوقعات المالية...")")")")")")")') }}</p>
+                            <p>{{ _(_('محتوى التوقعات المالية...')) }}</p>
                         </div>
                     </div>
                 </div>
@@ -438,39 +438,39 @@
                 <div class="col-lg-6 mb-4">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-gradient-dark text-white border-0">
-                            <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تحليلات المواعيد والزيارات")")")")")")")') }}</h5>
+                            <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>{{ _(_('تحليلات المواعيد والزيارات')) }}</h5>
                         </div>
                         <div class="card-body">
-                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("زيارات 30 يوم")")")")")")")') }}</span><strong>{{ stats.bi_insights.visits_30d or 0 }}</strong></div>
-                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("زيارات مكتملة")")")")")")")') }}</span><strong>{{ stats.bi_insights.completed_30d or 0 }}</strong></div>
-                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("مواعيد 30 يوم")")")")")")")') }}</span><strong>{{ stats.bi_insights.appointments_30d or 0 }}</strong></div>
-                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("معدل التحويل")")")")")")")') }}</span><strong>{{ stats.bi_insights.conversion_rate or 0 }}%</strong></div>
-                            <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("عدم الحضور")")")")")")")') }}</span><strong>{{ stats.bi_insights.no_show_rate or 0 }}%</strong></div>
-                            <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("الإلغاء")")")")")")")') }}</span><strong>{{ stats.bi_insights.cancel_rate or 0 }}%</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _(_('زيارات 30 يوم')) }}</span><strong>{{ stats.bi_insights.visits_30d or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _(_('زيارات مكتملة')) }}</span><strong>{{ stats.bi_insights.completed_30d or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _(_('مواعيد 30 يوم')) }}</span><strong>{{ stats.bi_insights.appointments_30d or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _(_('معدل التحويل')) }}</span><strong>{{ stats.bi_insights.conversion_rate or 0 }}%</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>{{ _(_('عدم الحضور')) }}</span><strong>{{ stats.bi_insights.no_show_rate or 0 }}%</strong></div>
+                            <div class="d-flex justify-content-between"><span>{{ _(_('الإلغاء')) }}</span><strong>{{ stats.bi_insights.cancel_rate or 0 }}%</strong></div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6 mb-4">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-gradient-warning text-white border-0">
-                            <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("سيناريوهات What-if")")")")")")")') }}</h5>
+                            <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>{{ _(_('سيناريوهات What-if')) }}</h5>
                         </div>
                         <div class="card-body">
                             <div class="row g-2 mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إضافة طاقم")")")")")")")') }}</label>
+                                    <label class="form-label">{{ _(_('إضافة طاقم')) }}</label>
                                     <input type="number" class="form-control" id="what_if_staff" value="0">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إضافة غرف")")")")")")")') }}</label>
+                                    <label class="form-label">{{ _(_('إضافة غرف')) }}</label>
                                     <input type="number" class="form-control" id="what_if_rooms" value="0">
                                 </div>
                             </div>
-                            <button class="btn btn-outline-dark w-100 mb-3" id="runWhatIf">{{ _('_("_(" _(" _(" _(" _(" _("تنفيذ السيناريو")")")")")")")') }}</button>
+                            <button class="btn btn-outline-dark w-100 mb-3" id="runWhatIf">{{ _(_('تنفيذ السيناريو')) }}</button>
                             <div class="border rounded p-3">
-                                <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("طاقة المعالجة")")")")")")")') }}</span><strong id="whatIfThroughput">-</strong></div>
-                                <div class="d-flex justify-content-between mb-2"><span>{{ _('_("_(" _(" _(" _(" _(" _("زمن الانتظار")")")")")")")') }}</span><strong id="whatIfWait">-</strong></div>
-                                <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("إيراد متوقع")")")")")")")') }}</span><strong id="whatIfRevenue">-</strong></div>
+                                <div class="d-flex justify-content-between mb-2"><span>{{ _(_('طاقة المعالجة')) }}</span><strong id="whatIfThroughput">-</strong></div>
+                                <div class="d-flex justify-content-between mb-2"><span>{{ _(_('زمن الانتظار')) }}</span><strong id="whatIfWait">-</strong></div>
+                                <div class="d-flex justify-content-between"><span>{{ _(_('إيراد متوقع')) }}</span><strong id="whatIfRevenue">-</strong></div>
                             </div>
                         </div>
                     </div>

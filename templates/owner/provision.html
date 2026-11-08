@@ -3,9 +3,9 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-plus-circle me-2 text-success"></i>{{ _('_("_(" _(" _(" _(" _(" _("إنشاء عميل جديد (SaaS Provisioning)")")")")")")")') }}</h4></div>
+        <div class="col"><h4><i class="fas fa-plus-circle me-2 text-success"></i>{{ _(_('إنشاء عميل جديد (SaaS Provisioning)')) }}</h4></div>
         <div class="col-auto">
-            <a href="{{ url_for('owner.owner_subscriptions') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("الاشتراكات")")")")")")")') }}</a>
+            <a href="{{ url_for('owner.owner_subscriptions') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _(_('الاشتراكات')) }}</a>
         </div>
     </div>
     <div class="card">
@@ -14,21 +14,21 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم المؤسسة *")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('اسم المؤسسة *')) }}</label>
                         <input type="text" name="name" class="form-control" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("Slug (مُعرف فريد) *")")")")")")")') }}</label>
-                        <input type="text" name="slug" class="form-control" required placeholder="_(" _(" _(" _(" _(" _("اسم-الشركة")")")")")")">
+                        <label class="form-label">{{ _(_('Slug (مُعرف فريد) *')) }}</label>
+                        <input type="text" name="slug" class="form-control" required placeholder="اسم-الشركة">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("بريد التواصل *")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('بريد التواصل *')) }}</label>
                         <input type="email" name="contact_email" class="form-control" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الملف الشخصي (Product Profile)")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('الملف الشخصي (Product Profile)')) }}</label>
                         <select name="product_profile_code" class="form-select">
-                            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("بدون تحديد")")")")")")")') }}</option>
+                            <option value="">{{ _(_('بدون تحديد')) }}</option>
                             {% for p in profiles %}
                             <option value="{{ p.value }}">{{ p.value.replace('_', ' ').title() }}</option>
                             {% endfor %}
@@ -37,34 +37,34 @@
                     <div class="col-md-6">
                         <label class="form-label">Package Version *</label>
                         <select name="package_version_id" class="form-select" required>
-                            <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر Package")")")")")")")') }}</option>
+                            <option value="">{{ _(_('اختر Package')) }}</option>
                             {% for v in package_versions %}
                             <option value="{{ v.id }}">{{ v.package.name }} v{{ v.version }} ({{ v.package.category }})</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع الفوترة *")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('نوع الفوترة *')) }}</label>
                         <select name="billing_type" class="form-select">
-                            <option value="monthly">{{ _('_("_(" _(" _(" _(" _(" _("شهري")")")")")")")') }}</option>
-                            <option value="yearly">{{ _('_("_(" _(" _(" _(" _(" _("سنوي")")")")")")")') }}</option>
+                            <option value="monthly">{{ _(_('شهري')) }}</option>
+                            <option value="yearly">{{ _(_('سنوي')) }}</option>
                         </select>
                     </div>
-                    <div class="col-12 mt-3"><hr><h6 class="text-primary"><i class="fas fa-user-shield me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("بيانات مدير المنشأة (يتم إنشاؤه تلقائياً)")")")")")")")') }}</h6></div>
+                    <div class="col-12 mt-3"><hr><h6 class="text-primary"><i class="fas fa-user-shield me-2"></i>{{ _(_('بيانات مدير المنشأة (يتم إنشاؤه تلقائياً)')) }}</h6></div>
                     <div class="col-md-4">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم المستخدم *")")")")")")")') }}</label>
-                        <input type="text" name="admin_username" class="form-control" required placeholder="_(" _(" _(" _(" _(" _("مدير")")")")")")">
+                        <label class="form-label">{{ _(_('اسم المستخدم *')) }}</label>
+                        <input type="text" name="admin_username" class="form-control" required placeholder="مدير">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("كلمة المرور *")")")")")")")') }}</label>
-                        <input type="text" name="admin_password" class="form-control" required placeholder="_(" _(" _(" _(" _(" _("كلمة-المرور")")")")")")">
+                        <label class="form-label">{{ _(_('كلمة المرور *')) }}</label>
+                        <input type="text" name="admin_password" class="form-control" required placeholder="كلمة-المرور">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم الكامل")")")")")")")') }}</label>
-                        <input type="text" name="admin_full_name" class="form-control" placeholder="_(" _(" _(" _(" _(" _("مدير المنشأة")")")")")")">
+                        <label class="form-label">{{ _(_('الاسم الكامل')) }}</label>
+                        <input type="text" name="admin_full_name" class="form-control" placeholder="مدير المنشأة">
                     </div>
                     <div class="col-12">
-                        <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("إنشاء العميل")")")")")")")') }}</button>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> {{ _(_('إنشاء العميل')) }}</button>
                     </div>
                 </div>
             </form>

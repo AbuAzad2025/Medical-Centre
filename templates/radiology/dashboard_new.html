@@ -3,10 +3,10 @@
 {% block title %}لوحة تحكم الأشعة{% endblock %}
 {% block content %}
 <div class="container-fluid py-3">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("قسم الأشعة")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة الطلبات والتقارير ومراقبة الجودة")")")")")")")', icon='fas fa-x-ray', actions=[
-      {'label': '_("_(" _(" _(" _(" _(" _("الطلبات")")")")")")")', 'icon': 'fas fa-list', 'url': url_for('radiology.requests'), 'style': 'info'},
-      {'label': '_("_(" _(" _(" _(" _(" _("التقارير")")")")")")")', 'icon': 'fas fa-file-alt', 'url': url_for('radiology.reports'), 'style': 'outline-light'},
-      {'label': '_("_(" _(" _(" _(" _(" _("الجودة")")")")")")")', 'icon': 'fas fa-chart-line', 'url': url_for('radiology.quality'), 'style': 'outline-light'}
+  {{ page_header(_('قسم الأشعة'), subtitle=_('إدارة الطلبات والتقارير ومراقبة الجودة'), icon='fas fa-x-ray', actions=[
+      {'label': _('الطلبات'), 'icon': 'fas fa-list', 'url': url_for('radiology.requests'), 'style': 'info'},
+      {'label': _('التقارير'), 'icon': 'fas fa-file-alt', 'url': url_for('radiology.reports'), 'style': 'outline-light'},
+      {'label': _('الجودة'), 'icon': 'fas fa-chart-line', 'url': url_for('radiology.quality'), 'style': 'outline-light'}
   ]) }}
 
   <!-- KPI Cards -->
@@ -16,12 +16,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("طلبات اليوم")")")")")")")') }}</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('طلبات اليوم')) }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.today_requests or 0 }}</h3>
             </div>
             <div class="bg-primary bg-opacity-10 p-3 rounded"><i class="fas fa-x-ray text-primary fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("معلقة:")")")")")")")') }} <strong class="text-warning">{{ stats.pending_requests or 0 }}</strong></div>
+          <div class="small text-muted">{{ _(_('معلقة:')) }} <strong class="text-warning">{{ stats.pending_requests or 0 }}</strong></div>
           <canvas id="sparkToday" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -31,12 +31,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("مكتملة اليوم")")")")")")")') }}</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('مكتملة اليوم')) }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.completed_today or 0 }}</h3>
             </div>
             <div class="bg-success bg-opacity-10 p-3 rounded"><i class="fas fa-check-circle text-success fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("معدل الإنجاز:")")")")")")")') }} <strong class="text-success">{{ stats.smart_analytics.completion_rate or 0 }}%</strong></div>
+          <div class="small text-muted">{{ _(_('معدل الإنجاز:')) }} <strong class="text-success">{{ stats.smart_analytics.completion_rate or 0 }}%</strong></div>
           <canvas id="sparkCompleted" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -46,12 +46,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("وقت المعالجة")")")")")")")') }}</h6>
-              <h3 class="mb-0 fw-bold">{{ stats.smart_analytics.avg_processing_time or 0 }} <small class="fs-6 text-muted"_(" _(" _(" _(" _(" _(">س</small></h3>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('وقت المعالجة')) }}</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.smart_analytics.avg_processing_time or 0 }} <small class="fs-6 text-muted">س</small></h3>
             </div>
-            <div class=")")")")")")"bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-clock text-info fa-lg"></i></div>
+            <div class="bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-clock text-info fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الكفاءة:")")")")")")")') }} <strong class="text-dark">{{ stats.smart_analytics.efficiency_score or 0 }}/100</strong></div>
+          <div class="small text-muted">{{ _(_('الكفاءة:')) }} <strong class="text-dark">{{ stats.smart_analytics.efficiency_score or 0 }}/100</strong></div>
           <canvas id="sparkTime" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -61,12 +61,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("جودة التقارير")")")")")")")') }}</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('جودة التقارير')) }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.quality_assurance.quality_score or 100 }}%</h3>
             </div>
             <div class="bg-warning bg-opacity-10 p-3 rounded"><i class="fas fa-shield-alt text-warning fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("حرجة:")")")")")")")') }} <strong class="text-danger">{{ stats.report_analysis.critical_reports or 0 }}</strong></div>
+          <div class="small text-muted">{{ _(_('حرجة:')) }} <strong class="text-danger">{{ stats.report_analysis.critical_reports or 0 }}</strong></div>
           <canvas id="sparkQuality" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -77,7 +77,7 @@
   <div class="row g-3 mb-4">
     <div class="col-md-8">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("أداء الأشعة — طلبات وإنجاز")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>{{ _(_('أداء الأشعة — طلبات وإنجاز')) }}</h6></div>
         <div class="card-body"><canvas id="radMainChart" height="260"></canvas></div>
       </div>
     </div>
@@ -85,20 +85,20 @@
       <div class="row g-3">
         <div class="col-12">
           <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-success me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("حالة المعدات")")")")")")")') }}</h6></div>
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-success me-2"></i>{{ _(_('حالة المعدات')) }}</h6></div>
             <div class="card-body"><canvas id="equipmentChart" height="180"></canvas></div>
           </div>
         </div>
         <div class="col-12">
           <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-brain text-info me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("التنبؤ بالطلبات")")")")")")")') }}</h6></div>
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-brain text-info me-2"></i>{{ _(_('التنبؤ بالطلبات')) }}</h6></div>
             <div class="card-body text-center">
               <h2 class="fw-bold text-primary">{{ stats.predictive_insights.predicted_demand or 0 }}</h2>
-              <p class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("طلب متوقع هذا الأسبوع")")")")")")")') }}</p>
+              <p class="text-muted small">{{ _(_('طلب متوقع هذا الأسبوع')) }}</p>
               <div class="small text-start mt-2">
-                <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("أسبوعي")")")")")")")') }}</span><strong>{{ stats.predictive_insights.weekly_requests or 0 }}</strong></div>
-                <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("شهري")")")")")")")') }}</span><strong>{{ stats.predictive_insights.monthly_requests or 0 }}</strong></div>
-                <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("معدل النمو")")")")")")")') }}</span><strong class="{{ 'text-success' if (stats.predictive_insights.growth_rate or 0) > 0 else 'text-danger' }}">{{ stats.predictive_insights.growth_rate or 0 }}%</strong></div>
+                <div class="d-flex justify-content-between"><span>{{ _(_('أسبوعي')) }}</span><strong>{{ stats.predictive_insights.weekly_requests or 0 }}</strong></div>
+                <div class="d-flex justify-content-between"><span>{{ _(_('شهري')) }}</span><strong>{{ stats.predictive_insights.monthly_requests or 0 }}</strong></div>
+                <div class="d-flex justify-content-between"><span>{{ _(_('معدل النمو')) }}</span><strong class="{{ 'text-success' if (stats.predictive_insights.growth_rate or 0) > 0 else 'text-danger' }}">{{ stats.predictive_insights.growth_rate or 0 }}%</strong></div>
               </div>
             </div>
           </div>
@@ -112,36 +112,36 @@
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("دقة التقارير")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('دقة التقارير')) }}</div>
           <h3 class="fw-bold text-success">{{ stats.quality_assurance.report_accuracy or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("دقة التقارير")")")")")")"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("دقة التقارير")")")")")")" data-width="{{ stats.quality_assurance.report_accuracy or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="دقة التقارير"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="دقة التقارير" data-width="{{ stats.quality_assurance.report_accuracy or 0 }}"></div></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("جودة الصور")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('جودة الصور')) }}</div>
           <h3 class="fw-bold text-primary">{{ stats.quality_assurance.image_quality_score or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("جودة الصور")")")")")")"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("جودة الصور")")")")")")" data-width="{{ stats.quality_assurance.image_quality_score or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="جودة الصور"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="جودة الصور" data-width="{{ stats.quality_assurance.image_quality_score or 0 }}"></div></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("الامتثال الإشعاعي")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('الامتثال الإشعاعي')) }}</div>
           <h3 class="fw-bold text-info">{{ stats.quality_assurance.radiation_compliance or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("الامتثال الإشعاعي")")")")")")"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("الامتثال الإشعاعي")")")")")")" data-width="{{ stats.quality_assurance.radiation_compliance or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="الامتثال الإشعاعي"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="الامتثال الإشعاعي" data-width="{{ stats.quality_assurance.radiation_compliance or 0 }}"></div></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("معدات نشطة")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('معدات نشطة')) }}</div>
           <h3 class="fw-bold text-warning">{{ stats.equipment_status.active_equipment or 0 }}</h3>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("صيانة:")")")")")")")') }} <strong class="text-danger">{{ stats.equipment_status.maintenance_count or 0 }}</strong></div>
+          <div class="small text-muted">{{ _(_('صيانة:')) }} <strong class="text-danger">{{ stats.equipment_status.maintenance_count or 0 }}</strong></div>
         </div>
       </div>
     </div>
@@ -151,34 +151,34 @@
   <div class="row g-3 mb-4">
     <div class="col-md-6">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("اقتراحات التحسين")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i>{{ _(_('اقتراحات التحسين')) }}</h6></div>
         <div class="card-body">
-          {% if stats.imaging_optimization.optimization_suggestions %}<div class="list-group list-group-flush">{% for s in stats.imaging_optimization.optimization_suggestions %}<div class="list-group-item px-0"><i class="fas fa-angle-left text-warning me-2"></i>{{ s }}</div>{% endfor %}</div>{% else %}<p class="text-muted text-center my-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد اقتراحات حالياً — الأداء ممتاز")")")")")")")') }}</p>{% endif %}
+          {% if stats.imaging_optimization.optimization_suggestions %}<div class="list-group list-group-flush">{% for s in stats.imaging_optimization.optimization_suggestions %}<div class="list-group-item px-0"><i class="fas fa-angle-left text-warning me-2"></i>{{ s }}</div>{% endfor %}</div>{% else %}<p class="text-muted text-center my-3">{{ _(_('لا توجد اقتراحات حالياً — الأداء ممتاز')) }}</p>{% endif %}
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إجراءات سريعة")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>{{ _(_('إجراءات سريعة')) }}</h6></div>
         <div class="card-body">
           <div class="d-grid gap-2">
-            <a href="{{ url_for('radiology.requests') }}" class="btn btn-primary btn-sm"><i class="fas fa-list me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("عرض الطلبات")")")")")")")') }}</a>
-            <a href="{{ url_for('radiology.reports') }}" class="btn btn-success btn-sm"><i class="fas fa-file-alt me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("كتابة تقرير")")")")")")")') }}</a>
-            <a href="{{ url_for('radiology.quality') }}" class="btn btn-info btn-sm"><i class="fas fa-chart-bar me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("تقرير الجودة")")")")")")")') }}</a>
+            <a href="{{ url_for('radiology.requests') }}" class="btn btn-primary btn-sm"><i class="fas fa-list me-1"></i> {{ _(_('عرض الطلبات')) }}</a>
+            <a href="{{ url_for('radiology.reports') }}" class="btn btn-success btn-sm"><i class="fas fa-file-alt me-1"></i> {{ _(_('كتابة تقرير')) }}</a>
+            <a href="{{ url_for('radiology.quality') }}" class="btn btn-info btn-sm"><i class="fas fa-chart-bar me-1"></i> {{ _(_('تقرير الجودة')) }}</a>
           </div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-cogs text-secondary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("أتمتة سير العمل")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-cogs text-secondary me-2"></i>{{ _(_('أتمتة سير العمل')) }}</h6></div>
         <div class="card-body text-center">
           <h2 class="fw-bold text-primary">{{ stats.workflow_automation.automation_rate or 0 }}%</h2>
-          <p class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("نسبة الأتمتة")")")")")")")') }}</p>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("نسبة الأتمتة")")")")")")">
-            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("نسبة الأتمتة")")")")")")" data-width="{{ stats.workflow_automation.automation_rate or 0 }}"></div>
+          <p class="text-muted small">{{ _(_('نسبة الأتمتة')) }}</p>
+          <div class="progress mb-2 prog-thin" title="نسبة الأتمتة">
+            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="نسبة الأتمتة" data-width="{{ stats.workflow_automation.automation_rate or 0 }}"></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("وقت موفر:")")")")")")")') }} <strong>{{ stats.workflow_automation.time_saved or 0 }} س</strong></div>
+          <div class="small text-muted">{{ _(_('وقت موفر:')) }} <strong>{{ stats.workflow_automation.time_saved or 0 }} س</strong></div>
         </div>
       </div>
     </div>
@@ -187,14 +187,14 @@
   <!-- Recent Requests Table -->
   <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-      <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("آخر طلبات الأشعة")")")")")")")') }}</h6>
-      <a href="{{ url_for('radiology.requests') }}" class="small text-decoration-none">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</a>
+      <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>{{ _(_('آخر طلبات الأشعة')) }}</h6>
+      <a href="{{ url_for('radiology.requests') }}" class="small text-decoration-none">{{ _(_('الكل')) }}</a>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
-            <tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الفحص")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th></tr>
+            <tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الفحص')) }}</th><th>{{ _(_('النوع')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('الأولوية')) }}</th><th>{{ _(_('الوقت')) }}</th><th>{{ _(_('الإجراءات')) }}</th></tr>
           </thead>
           <tbody>
             {% for req in recent_requests %}
@@ -211,14 +211,14 @@
               <td class="small text-muted">{{ req.created_at.strftime('%Y-%m-%d %H:%M') if req.created_at else '-' }}</td>
               <td>
                 <div class="d-flex gap-1">
-                  <a href="{{ url_for('radiology.reports', request_id=req.id) }}" class="btn btn-sm btn-outline-primary" title="_(" _(" _(" _(" _(" _("تقرير")")")")")")"><i class="fas fa-file-alt"></i> <span class="btn-label">زر</span></a>
+                  <a href="{{ url_for('radiology.reports', request_id=req.id) }}" class="btn btn-sm btn-outline-primary" title="تقرير"><i class="fas fa-file-alt"></i> <span class="btn-label">زر</span></a>
                   {% if req.status != 'DONE' %}
-                  <a href="{{ url_for('radiology.tests') }}" class="btn btn-sm btn-outline-success" title="_(" _(" _(" _(" _(" _("إجراء")")")")")")"><i class="fas fa-play"></i> <span class="btn-label">{{ _('تشغيل') }}</span></a>
+                  <a href="{{ url_for('radiology.tests') }}" class="btn btn-sm btn-outline-success" title="إجراء"><i class="fas fa-play"></i> <span class="btn-label">{{ _('تشغيل') }}</span></a>
                   {% endif %}
                 </div>
               </td>
             </tr>
-            {% else %}<tr><td colspan="8" class="text-muted text-center py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد طلبات")")")")")")")') }}</td></tr>
+            {% else %}<tr><td colspan="8" class="text-muted text-center py-4">{{ _(_('لا توجد طلبات')) }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

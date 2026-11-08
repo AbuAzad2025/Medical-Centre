@@ -2,11 +2,11 @@
 {% block title %}التنبيهات السريرية{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("التنبيهات السريرية")")")")")")")') }}</h2>
+  <h2 class="mb-4">{{ _(_('التنبيهات السريرية')) }}</h2>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الخطورة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("مُعترف")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تجاوز")")")")")")")') }}</th></tr></thead>
+        <thead><tr><th>{{ _(_('التاريخ')) }}</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('العنوان')) }}</th><th>{{ _(_('الخطورة')) }}</th><th>{{ _(_('مُعترف')) }}</th><th>{{ _(_('تجاوز')) }}</th></tr></thead>
         <tbody>
         {% for a in alerts %}
           <tr>
@@ -14,11 +14,11 @@
             <td>{{ a.patient.full_name if a.patient else '-' }}</td>
             <td>{{ a.alert_title }}</td>
             <td><span class="badge bg-{% if a.severity=='CRITICAL' %}danger{% elif a.severity=='HIGH' %}warning{% else %}info{% endif %}">{{ a.severity }}</span></td>
-            <td>{% if a.acknowledged_at %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نعم")")")")")")")') }}</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
-            <td>{% if a.overridden %}<span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("نعم")")")")")")")') }}</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
+            <td>{% if a.acknowledged_at %}<span class="badge bg-success">{{ _(_('نعم')) }}</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
+            <td>{% if a.overridden %}<span class="badge bg-warning">{{ _(_('نعم')) }}</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
           </tr>
         {% else %}
-          <tr><td colspan="6" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد تنبيهات")")")")")")")') }}</td></tr>
+          <tr><td colspan="6" class="text-muted text-center">{{ _(_('لا يوجد تنبيهات')) }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

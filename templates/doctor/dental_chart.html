@@ -4,15 +4,15 @@
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
         <div class="col">
-            <h4><i class="fas fa-tooth me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("خريطة الأسنان —")")")")")")")') }} <bdi>{{ patient.full_name }}</bdi></h4>
-            <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("FDI numbering | اضغط على السن لتغيير حالته")")")")")")")') }}</small>
+            <h4><i class="fas fa-tooth me-2 text-primary"></i>{{ _(_('خريطة الأسنان —')) }} <bdi>{{ patient.full_name }}</bdi></h4>
+            <small class="text-muted">{{ _(_('FDI numbering | اضغط على السن لتغيير حالته')) }}</small>
         </div>
         <div class="col-auto">
             <a href="{{ url_for('doctor.patient_details', visit_id=visit_id) if visit_id else url_for('doctor.patients') }}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-arrow-left me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}
+                <i class="fas fa-arrow-left me-1"></i> {{ _(_('العودة')) }}
             </a>
             <button class="btn btn-sm btn-primary" onclick="saveChart()">
-                <i class="fas fa-save me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}
+                <i class="fas fa-save me-1"></i> {{ _(_('حفظ')) }}
             </button>
         </div>
     </div>
@@ -67,8 +67,8 @@
                             {% endfor %}
                         </g>
                         <!-- Labels -->
-                        <text x="300" y="20" text-anchor="middle" font-size="12" fill="#6b7280">{{ _('_("_(" _(" _(" _(" _(" _("الفك العلوي")")")")")")")') }}</text>
-                        <text x="300" y="490" text-anchor="middle" font-size="12" fill="#6b7280">{{ _('_("_(" _(" _(" _(" _(" _("الفك السفلي")")")")")")")') }}</text>
+                        <text x="300" y="20" text-anchor="middle" font-size="12" fill="#6b7280">{{ _(_('الفك العلوي')) }}</text>
+                        <text x="300" y="490" text-anchor="middle" font-size="12" fill="#6b7280">{{ _(_('الفك السفلي')) }}</text>
                     </svg>
                 </div>
             </div>
@@ -78,12 +78,12 @@
         <div class="col-lg-4">
             <div class="card mb-3">
                 <div class="card-header bg-primary text-white">
-                    <i class="fas fa-edit me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("تعديل السن")")")")")")")') }}
+                    <i class="fas fa-edit me-1"></i> {{ _(_('تعديل السن')) }}
                 </div>
                 <div class="card-body" id="toothEditor" class="d-none">
-                    <h6 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("السن")")")")")")")') }} <span id="selectedFdi" class="badge bg-dark"></span></h6>
+                    <h6 class="mb-3">{{ _(_('السن')) }} <span id="selectedFdi" class="badge bg-dark"></span></h6>
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('الحالة')) }}</label>
                         <select class="form-select form-select-sm" id="toothStateSelect">
                             {% for key, info in states.items() %}
                             <option value="{{ key }}">{{ info.label }}</option>
@@ -91,31 +91,31 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الأسطح (اختياري)")")")")")")")') }}</label>
-                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_occlusal" value="occlusal"><label class="form-check-label">{{ _('_("_(" _(" _(" _(" _(" _("علوي")")")")")")")') }}</label></div>
-                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_buccal" value="buccal"><label class="form-check-label">{{ _('_("_(" _(" _(" _(" _(" _("وجهي")")")")")")")') }}</label></div>
-                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_lingual" value="lingual"><label class="form-check-label">{{ _('_("_(" _(" _(" _(" _(" _("لساني")")")")")")")') }}</label></div>
-                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_mesial" value="mesial"><label class="form-check-label">{{ _('_("_(" _(" _(" _(" _(" _("قريب")")")")")")")') }}</label></div>
-                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_distal" value="distal"><label class="form-check-label">{{ _('_("_(" _(" _(" _(" _(" _("بعيد")")")")")")")') }}</label></div>
+                        <label class="form-label">{{ _(_('الأسطح (اختياري)')) }}</label>
+                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_occlusal" value="occlusal"><label class="form-check-label">{{ _(_('علوي')) }}</label></div>
+                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_buccal" value="buccal"><label class="form-check-label">{{ _(_('وجهي')) }}</label></div>
+                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_lingual" value="lingual"><label class="form-check-label">{{ _(_('لساني')) }}</label></div>
+                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_mesial" value="mesial"><label class="form-check-label">{{ _(_('قريب')) }}</label></div>
+                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_distal" value="distal"><label class="form-check-label">{{ _(_('بعيد')) }}</label></div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label>
+                        <label class="form-label">{{ _(_('ملاحظات')) }}</label>
                         <textarea class="form-control form-control-sm" id="toothNotes" rows="2"></textarea>
                     </div>
                     <button class="btn btn-sm btn-success w-100" onclick="applyToothState()">
-                        <i class="fas fa-check me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("تطبيق")")")")")")")') }}
+                        <i class="fas fa-check me-1"></i> {{ _(_('تطبيق')) }}
                     </button>
                 </div>
                 <div class="card-body text-muted text-center" id="toothEditorEmpty">
                     <i class="fas fa-hand-pointer fa-2x mb-2"></i><br>
-                    {{ _('_("_(" _(" _(" _(" _(" _("اضغط على سن في الخريطة لتعديله")")")")")")")') }}
+                    {{ _(_('اضغط على سن في الخريطة لتعديله')) }}
                 </div>
             </div>
 
             <!-- Summary -->
             <div class="card">
                 <div class="card-header">
-                    <i class="fas fa-clipboard-list me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("ملخص")")")")")")")') }}
+                    <i class="fas fa-clipboard-list me-1"></i> {{ _(_('ملخص')) }}
                 </div>
                 <div class="card-body">
                     <ul class="list-group list-group-flush small" id="summaryList">

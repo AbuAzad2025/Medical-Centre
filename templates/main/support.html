@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}الدعم الفني - {{ branding.organization_name if branding else '_("المركز الصحي المتخصص")' }}{% endblock %}
+{% block title %}الدعم الفني - {{ branding.organization_name if branding else _('المركز الصحي المتخصص') }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -19,8 +19,8 @@
 {% block content %}
 <div class="support-hero">
     <div class="container">
-        <h1>{{ _('_("_(" _(" _(" _(" _(" _("مركز الدعم الفني")")")")")")")') }}</h1>
-        <p>{{ _('_("_(" _(" _(" _(" _(" _("نحن هنا لمساعدتك — فريق الدعم الفني لمنصة أزاد الطبية")")")")")")")') }}</p>
+        <h1>{{ _(_('مركز الدعم الفني')) }}</h1>
+        <p>{{ _(_('نحن هنا لمساعدتك — فريق الدعم الفني لمنصة أزاد الطبية')) }}</p>
     </div>
 </div>
 <div class="container py-5">
@@ -33,51 +33,51 @@
                         <div class="col-md-6">
                             <div class="contact-box">
                                 <i class="fas fa-phone" style="color:#0c4a6e;"></i>
-                                <h4>{{ _('_("_(" _(" _(" _(" _(" _("اتصل بنا")")")")")")")') }}</h4>
+                                <h4>{{ _(_('اتصل بنا')) }}</h4>
                                 <p>{{ branding.organization_phone if branding else '+970-XX-XXXXXXX' }}</p>
-                                <small>{{ _('_("_(" _(" _(" _(" _(" _("متاح 24/7 للحالات الطارئة")")")")")")")') }}</small>
+                                <small>{{ _(_('متاح 24/7 للحالات الطارئة')) }}</small>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="contact-box">
                                 <i class="fas fa-envelope" style="color:#0d9488;"></i>
-                                <h4>{{ _('_("_(" _(" _(" _(" _(" _("راسلنا")")")")")")")') }}</h4>
+                                <h4>{{ _(_('راسلنا')) }}</h4>
                                 <p>{{ branding.organization_email if branding else 'support@medical-center.com' }}</p>
-                                <small>{{ _('_("_(" _(" _(" _(" _(" _("سنرد عليك خلال 24 ساعة")")")")")")")') }}</small>
+                                <small>{{ _(_('سنرد عليك خلال 24 ساعة')) }}</small>
                             </div>
                         </div>
                     </div>
 
                     <div class="support-info mb-4 p-4" style="background:#f0f5fa;border-radius:12px;">
-                        <h5 class="fw-bold mb-2">{{ _('_("_(" _(" _(" _(" _(" _("معلومات الدعم التقني للنظام")")")")")")")') }}</h5>
-                        <p class="mb-1">{{ _('_("_(" _(" _(" _(" _(" _("تم تطوير هذا النظام وتشغيله بواسطة")")")")")")")') }} <strong>{{ developer_company or '_("_(" _(" _(" _(" _(" _("شركة أزاد للأنظمة الذكية")")")")")")")' }}</strong>.</p>
-                        <p class="mb-0">{{ _('_("_(" _(" _(" _(" _(" _("للدعم المباشر من المطور:")")")")")")")') }} <strong>{{ developer_name or '_("_(" _(" _(" _(" _(" _("أحمد غنام")")")")")")")' }}</strong></p>
+                        <h5 class="fw-bold mb-2">{{ _(_('معلومات الدعم التقني للنظام')) }}</h5>
+                        <p class="mb-1">{{ _(_('تم تطوير هذا النظام وتشغيله بواسطة')) }} <strong>{{ developer_company or _('شركة أزاد للأنظمة الذكية') }}</strong>.</p>
+                        <p class="mb-0">{{ _(_('للدعم المباشر من المطور:')) }} <strong>{{ developer_name or _('أحمد غنام') }}</strong></p>
                     </div>
 
                     <div class="faq-section mt-5">
-                        <h5 class="fw-bold mb-4">{{ _('_("_(" _(" _(" _(" _(" _("الأسئلة الشائعة")")")")")")")') }}</h5>
+                        <h5 class="fw-bold mb-4">{{ _(_('الأسئلة الشائعة')) }}</h5>
                         <div class="accordion" id="accordionExample">
                             <div class="accordion-item border-0 mb-2 shadow-sm">
                                 <h2 class="accordion-header" id="headingOne">
                                     <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("نسيت كلمة المرور، ماذا أفعل؟")")")")")")")') }}
+                                        {{ _(_('نسيت كلمة المرور، ماذا أفعل؟')) }}
                                     </button>
                                 </h2>
                                 <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                                     <div class="accordion-body">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("يمكنك استعادة كلمة المرور من خلال صفحة تسجيل الدخول بالضغط على \")")")")")")" _(" _(" _(" _(" _("نسيت كلمة المرور\")")")")")"_(" _(" _(" _(" _(" _("، أو التواصل مع مسؤول النظام في مؤسستك.")")")")")")")') }}
+                                        {{ _('يمكنك استعادة كلمة المرور من خلال صفحة تسجيل الدخول بالضغط على \"نسيت كلمة المرور\"، أو التواصل مع مسؤول النظام في مؤسستك.') }}
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-item border-0 mb-2 shadow-sm">
                                 <h2 class="accordion-header" id="headingTwo">
                                     <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("النظام بطيء، ما السبب؟")")")")")")")') }}
+                                        {{ _(_('النظام بطيء، ما السبب؟')) }}
                                     </button>
                                 </h2>
                                 <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
                                     <div class="accordion-body">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("قد يكون السبب ضعف في اتصال الإنترنت لديك. حاول تحديث الصفحة أو التحقق من الاتصال. إذا استمرت المشكلة، يرجى التواصل مع الدعم الفني.")")")")")")")') }}
+                                        {{ _(_('قد يكون السبب ضعف في اتصال الإنترنت لديك. حاول تحديث الصفحة أو التحقق من الاتصال. إذا استمرت المشكلة، يرجى التواصل مع الدعم الفني.')) }}
                                     </div>
                                 </div>
                             </div>

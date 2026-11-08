@@ -4,17 +4,17 @@
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h2 class="mb-1">{{ _('_("_(" _(" _(" _(" _(" _("تقرير الاستعلامات البطيئة")")")")")")")') }}</h2>
+      <h2 class="mb-1">{{ _(_('تقرير الاستعلامات البطيئة')) }}</h2>
       <div class="text-muted">أعلى {{ limit }} استعلام بحسب متوسط الزمن</div>
     </div>
     <div class="d-flex gap-2">
       <form method="post" action="{{ url_for('finance.capture_slow_queries_weekly') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="limit" value="{{ limit }}">
-        <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("حفظ تقرير أسبوعي")")")")")")")') }}</button>
+        <button type="submit" class="btn btn-primary">{{ _(_('حفظ تقرير أسبوعي')) }}</button>
       </form>
-      <a href="{{ url_for('finance.slow_queries_weekly') }}" class="btn btn-outline-secondary">{{ _('_("_(" _(" _(" _(" _(" _("التقارير الأسبوعية")")")")")")")') }}</a>
-      <a href="{{ url_for('finance.dashboard') }}" class="btn btn-secondary">{{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
+      <a href="{{ url_for('finance.slow_queries_weekly') }}" class="btn btn-outline-secondary">{{ _(_('التقارير الأسبوعية')) }}</a>
+      <a href="{{ url_for('finance.dashboard') }}" class="btn btn-secondary">{{ _(_('العودة')) }}</a>
     </div>
   </div>
 
@@ -23,12 +23,12 @@
     <div class="card-body">
       <div class="row g-2">
         <div class="col-md-6">
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("آخر إعادة ضبط للإحصائيات")")")")")")")') }}</div>
-          <div class="fw-bold">{{ report.reset_time or '_("_(" _(" _(" _(" _(" _("غير متوفر")")")")")")")' }}</div>
+          <div class="text-muted">{{ _(_('آخر إعادة ضبط للإحصائيات')) }}</div>
+          <div class="fw-bold">{{ report.reset_time or _('غير متوفر') }}</div>
         </div>
         <div class="col-md-6">
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظة")")")")")")")') }}</div>
-          <div class="fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("النتائج منذ آخر إعادة ضبط pg_stat_statements")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('ملاحظة')) }}</div>
+          <div class="fw-bold">{{ _(_('النتائج منذ آخر إعادة ضبط pg_stat_statements')) }}</div>
         </div>
       </div>
     </div>
@@ -41,11 +41,11 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الاستعلام")")")")")")")') }}</th>
-              <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("الاستدعاءات")")")")")")")') }}</th>
-              <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("متوسط الزمن (ms)")")")")")")")') }}</th>
-              <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("الزمن الكلي (ms)")")")")")")")') }}</th>
-              <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("الصفوف")")")")")")")') }}</th>
+              <th>{{ _(_('الاستعلام')) }}</th>
+              <th class="text-end">{{ _(_('الاستدعاءات')) }}</th>
+              <th class="text-end">{{ _(_('متوسط الزمن (ms)')) }}</th>
+              <th class="text-end">{{ _(_('الزمن الكلي (ms)')) }}</th>
+              <th class="text-end">{{ _(_('الصفوف')) }}</th>
             </tr>
           </thead>
           <tbody>
@@ -60,7 +60,7 @@
             </tr>
             {% else %}
             <tr>
-              <td colspan="6" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات حالياً")")")")")")")') }}</td>
+              <td colspan="6" class="text-center">{{ _(_('لا توجد بيانات حالياً')) }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -70,7 +70,7 @@
   </div>
   {% else %}
   <div class="alert alert-warning">
-    {{ report.message if report and report.message else '_("_(" _(" _(" _(" _(" _("تعذر تحميل البيانات")")")")")")")' }}
+    {{ report.message if report and report.message else _('تعذر تحميل البيانات') }}
   </div>
   {% endif %}
 </div>

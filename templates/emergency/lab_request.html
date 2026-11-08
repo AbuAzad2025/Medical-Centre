@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("طلب فحوصات للمريض")")")")")")")', subtitle=(emergency.patient.full_name if emergency and emergency.patient else ''), actions=[{'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'url': url_for('emergency.patient_queue'), 'style': 'secondary'}]) }}
+    {{ page_header(_('طلب فحوصات للمريض'), subtitle=(emergency.patient.full_name if emergency and emergency.patient else ''), actions=[{'label': _('رجوع'), 'url': url_for('emergency.patient_queue'), 'style': 'secondary'}]) }}
 
     <div class="row">
         <div class="col-12">
@@ -15,39 +15,39 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="row">
                             <div class="col-md-8">
-                                <label class="form-label" for="testsSelect">{{ _('_("_(" _(" _(" _(" _(" _("الفحوصات المطلوبة")")")")")")")') }}</label>
+                                <label class="form-label" for="testsSelect">{{ _(_('الفحوصات المطلوبة')) }}</label>
                                 <select class="form-select" id="testsSelect" name="tests[]" multiple required size="8">
-                                    <option value="CBC">{{ _('_("_(" _(" _(" _(" _(" _("صورة دم كاملة (CBC)")")")")")")")') }}</option>
-                                    <option value="RBS">{{ _('_("_(" _(" _(" _(" _(" _("سكر عشوائي (RBS)")")")")")")")') }}</option>
-                                    <option value="BUN">{{ _('_("_(" _(" _(" _(" _(" _("يوريا (BUN)")")")")")")")') }}</option>
-                                    <option value="CREAT">{{ _('_("_(" _(" _(" _(" _(" _("كرياتينين (Creatinine)")")")")")")")') }}</option>
-                                    <option value="LYTES">{{ _('_("_(" _(" _(" _(" _(" _("أملاح (Electrolytes)")")")")")")")') }}</option>
-                                    <option value="LFT">{{ _('_("_(" _(" _(" _(" _(" _("وظائف كبد (LFT)")")")")")")")') }}</option>
-                                    <option value="COAG">{{ _('_("_(" _(" _(" _(" _(" _("تخثر (Coagulation)")")")")")")")') }}</option>
-                                    <option value="CRP">{{ _('_("_(" _(" _(" _(" _(" _("بروتين سي التفاعلي (CRP)")")")")")")")') }}</option>
-                                    <option value="TROP">{{ _('_("_(" _(" _(" _(" _(" _("التروبونين (Troponin)")")")")")")")') }}</option>
-                                    <option value="URINE">{{ _('_("_(" _(" _(" _(" _(" _("تحليل بول (Urine Analysis)")")")")")")")') }}</option>
+                                    <option value="CBC">{{ _(_('صورة دم كاملة (CBC)')) }}</option>
+                                    <option value="RBS">{{ _(_('سكر عشوائي (RBS)')) }}</option>
+                                    <option value="BUN">{{ _(_('يوريا (BUN)')) }}</option>
+                                    <option value="CREAT">{{ _(_('كرياتينين (Creatinine)')) }}</option>
+                                    <option value="LYTES">{{ _(_('أملاح (Electrolytes)')) }}</option>
+                                    <option value="LFT">{{ _(_('وظائف كبد (LFT)')) }}</option>
+                                    <option value="COAG">{{ _(_('تخثر (Coagulation)')) }}</option>
+                                    <option value="CRP">{{ _(_('بروتين سي التفاعلي (CRP)')) }}</option>
+                                    <option value="TROP">{{ _(_('التروبونين (Troponin)')) }}</option>
+                                    <option value="URINE">{{ _(_('تحليل بول (Urine Analysis)')) }}</option>
                                 </select>
-                                <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("اضغط Ctrl (أو Cmd) لاختيار أكثر من فحص")")")")")")")') }}</small>
+                                <small class="text-muted">{{ _(_('اضغط Ctrl (أو Cmd) لاختيار أكثر من فحص')) }}</small>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label" for="urgencySelect">{{ _('_("_(" _(" _(" _(" _(" _("درجة الاستعجال")")")")")")")') }}</label>
+                                    <label class="form-label" for="urgencySelect">{{ _(_('درجة الاستعجال')) }}</label>
                                     <select class="form-select" id="urgencySelect" name="urgency">
-                                        <option value="ROUTINE" selected>{{ _('_("_(" _(" _(" _(" _(" _("روتيني")")")")")")")') }}</option>
-                                        <option value="URGENT">{{ _('_("_(" _(" _(" _(" _(" _("عاجل")")")")")")")') }}</option>
-                                        <option value="STAT">{{ _('_("_(" _(" _(" _(" _(" _("فوري")")")")")")")') }}</option>
+                                        <option value="ROUTINE" selected>{{ _(_('روتيني')) }}</option>
+                                        <option value="URGENT">{{ _(_('عاجل')) }}</option>
+                                        <option value="STAT">{{ _(_('فوري')) }}</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label" for="notesField">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label>
-                                    <textarea class="form-control" id="notesField" name="notes" rows="4" placeholder="_(" _(" _(" _(" _(" _("ملاحظات للطبيب أو المختبر")")")")")")"></textarea>
+                                    <label class="form-label" for="notesField">{{ _(_('ملاحظات')) }}</label>
+                                    <textarea class="form-control" id="notesField" name="notes" rows="4" placeholder="ملاحظات للطبيب أو المختبر"></textarea>
                                 </div>
                             </div>
                         </div>
                         <div class="row mt-3">
                             <div class="col-12">
-                                <button type="submit" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("إرسال الطلب")")")")")")")') }}</button>
+                                <button type="submit" class="btn btn-primary">{{ _(_('إرسال الطلب')) }}</button>
                             </div>
                         </div>
                     </form>

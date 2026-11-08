@@ -9,10 +9,10 @@
                 <input type="date" name="start" class="form-control form-control-sm" value="{{ start }}">
                 <input type="date" name="end" class="form-control form-control-sm" value="{{ end }}">
                 <select name="department_id" class="form-select form-select-sm">
-                    <option value="">{{ _('_("_(" _(" _(" _(" _(" _("كل الأقسام")")")")")")")') }}</option>
+                    <option value="">{{ _(_('كل الأقسام')) }}</option>
                     {% for d in departments %}<option value="{{ d.id }}" {% if request.args.get('department_id')|int == d.id %}selected{% endif %}>{{ d.name_ar or d.name }}</option>{% endfor %}
                 </select>
-                <button class="btn btn-sm btn-primary" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("تطبيق")")")")")")")') }}</button>
+                <button class="btn btn-sm btn-primary" type="submit">{{ _(_('تطبيق')) }}</button>
             </form>
         </div>
     </div>
@@ -21,11 +21,11 @@
             <table class="table table-hover mb-0">
                 <thead>
                     {% if report_type == 'visits' %}
-                    <tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th></tr>
+                    <tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('القسم')) }}</th><th>{{ _(_('الطبيب')) }}</th><th>{{ _(_('التاريخ')) }}</th><th>{{ _(_('الحالة')) }}</th></tr>
                     {% elif report_type == 'revenue' and module_active('billing') %}
-                    <tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الزيارة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المبلغ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الطريقة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th></tr>
+                    <tr><th>#</th><th>{{ _(_('الزيارة')) }}</th><th>{{ _(_('المبلغ')) }}</th><th>{{ _(_('الطريقة')) }}</th><th>{{ _(_('التاريخ')) }}</th></tr>
                     {% elif report_type == 'patients' %}
-                    <tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الجنس")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th></tr>
+                    <tr><th>#</th><th>{{ _(_('الاسم')) }}</th><th>{{ _(_('الجنس')) }}</th><th>{{ _(_('التاريخ')) }}</th></tr>
                     {% endif %}
                 </thead>
                 <tbody>
@@ -52,7 +52,7 @@
                     {% endif %}
                 </tr>
                 {% else %}
-                <tr><td colspan="{% if report_type == 'visits' %}6{% elif report_type == 'revenue' %}5{% else %}4{% endif %}" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا نتائج")")")")")")")') }}</td></tr>
+                <tr><td colspan="{% if report_type == 'visits' %}6{% elif report_type == 'revenue' %}5{% else %}4{% endif %}" class="text-muted text-center">{{ _(_('لا نتائج')) }}</td></tr>
                 {% endfor %}
                 </tbody>
             </table>

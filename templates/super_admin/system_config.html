@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("إعدادات النظام")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة شاملة لإعدادات النظام")")")")")")")', icon='fas fa-cogs', actions=[
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("حفظ الإعدادات")")")")")")")', 'icon': 'fas fa-save', 'data_action': 'saveSettings', 'style': 'primary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("إعادة تعيين")")")")")")")', 'icon': 'fas fa-undo', 'data_action': 'resetSettings', 'style': 'secondary'}
+    {{ page_header(_('إعدادات النظام'), subtitle=_('إدارة شاملة لإعدادات النظام'), icon='fas fa-cogs', actions=[
+        {'type': 'button', 'label': _('حفظ الإعدادات'), 'icon': 'fas fa-save', 'data_action': 'saveSettings', 'style': 'primary'},
+        {'type': 'button', 'label': _('إعادة تعيين'), 'icon': 'fas fa-undo', 'data_action': 'resetSettings', 'style': 'secondary'}
     ]) }}
 
     <!-- System Settings Tabs -->
@@ -18,27 +18,27 @@
                     <ul class="nav nav-tabs card-header-tabs" id="settingsTabs" role="tablist">
                         <li class="nav-item">
                             <a class="nav-link active" id="general-tab" data-bs-toggle="tab" href="#general" role="tab">
-                                <i class="fas fa-cog me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("عام")")")")")")")') }}
+                                <i class="fas fa-cog me-2"></i>{{ _(_('عام')) }}
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="security-tab" data-bs-toggle="tab" href="#security" role="tab">
-                                <i class="fas fa-shield-alt me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الأمان")")")")")")")') }}
+                                <i class="fas fa-shield-alt me-2"></i>{{ _(_('الأمان')) }}
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="database-tab" data-bs-toggle="tab" href="#database" role="tab">
-                                <i class="fas fa-database me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("قاعدة البيانات")")")")")")")') }}
+                                <i class="fas fa-database me-2"></i>{{ _(_('قاعدة البيانات')) }}
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="notifications-tab" data-bs-toggle="tab" href="#notifications" role="tab">
-                                <i class="fas fa-bell me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الإشعارات")")")")")")")') }}
+                                <i class="fas fa-bell me-2"></i>{{ _(_('الإشعارات')) }}
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="backup-tab" data-bs-toggle="tab" href="#backup" role="tab">
-                                <i class="fas fa-archive me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("النسخ الاحتياطية")")")")")")")') }}
+                                <i class="fas fa-archive me-2"></i>{{ _(_('النسخ الاحتياطية')) }}
                             </a>
                         </li>
                     </ul>
@@ -51,16 +51,16 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="system_name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم النظام")")")")")")")') }}</label>
+                                            <label for="system_name" class="form-label">{{ _(_('اسم النظام')) }}</label>
                                             <input type="text" class="form-control" id="system_name" name="system_name" 
-                                                   value="_(" _(" _(" _(" _(" _("النظام الصحي")")")")")")" placeholder="_(" _(" _(" _(" _(" _("أدخل اسم النظام")")")")")")">
+                                                   value="النظام الصحي" placeholder="أدخل اسم النظام">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="system_version" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إصدار النظام")")")")")")")') }}</label>
+                                            <label for="system_version" class="form-label">{{ _(_('إصدار النظام')) }}</label>
                                             <input type="text" class="form-control" id="system_version" name="system_version" 
-                                                   value="1.0.0" placeholder="_(" _(" _(" _(" _(" _("أدخل إصدار النظام")")")")")")">
+                                                   value="1.0.0" placeholder="أدخل إصدار النظام">
                                         </div>
                                     </div>
                                 </div>
@@ -68,20 +68,20 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="timezone" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المنطقة الزمنية")")")")")")")') }}</label>
+                                            <label for="timezone" class="form-label">{{ _(_('المنطقة الزمنية')) }}</label>
                                             <select class="form-control" id="timezone" name="timezone">
-                                                <option value="Asia/Gaza">{{ _('_("_(" _(" _(" _(" _(" _("غزة (Asia/Gaza)")")")")")")")') }}</option>
-                                                <option value="Asia/Jerusalem">{{ _('_("_(" _(" _(" _(" _(" _("القدس (Asia/Jerusalem)")")")")")")")') }}</option>
+                                                <option value="Asia/Gaza">{{ _(_('غزة (Asia/Gaza)')) }}</option>
+                                                <option value="Asia/Jerusalem">{{ _(_('القدس (Asia/Jerusalem)')) }}</option>
                                                 <option value="UTC">UTC</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اللغة")")")")")")")') }}</label>
+                                            <label class="form-label">{{ _(_('اللغة')) }}</label>
                                             <div class="form-control bg-light text-muted" aria-readonly="true">
-                                                <i class="fas fa-language me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("العربية")")")")")")")') }}
-                                                <small class="d-block text-muted mt-1">{{ _('_("_(" _(" _(" _(" _(" _("اللغة الوحيدة المدعومة حالياً")")")")")")")') }}</small>
+                                                <i class="fas fa-language me-2"></i>{{ _(_('العربية')) }}
+                                                <small class="d-block text-muted mt-1">{{ _(_('اللغة الوحيدة المدعومة حالياً')) }}</small>
                                             </div>
                                         </div>
                                     </div>
@@ -90,17 +90,17 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="currency" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("العملة")")")")")")")') }}</label>
+                                            <label for="currency" class="form-label">{{ _(_('العملة')) }}</label>
                                             <select class="form-control" id="currency" name="currency">
-                                                <option value="ILS">{{ _('_("_(" _(" _(" _(" _(" _("شيكل (ILS)")")")")")")")') }}</option>
-                                                <option value="USD">{{ _('_("_(" _(" _(" _(" _(" _("دولار (USD)")")")")")")")') }}</option>
-                                                <option value="EUR">{{ _('_("_(" _(" _(" _(" _(" _("يورو (EUR)")")")")")")")') }}</option>
+                                                <option value="ILS">{{ _(_('شيكل (ILS)')) }}</option>
+                                                <option value="USD">{{ _(_('دولار (USD)')) }}</option>
+                                                <option value="EUR">{{ _(_('يورو (EUR)')) }}</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="date_format" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تنسيق التاريخ")")")")")")")') }}</label>
+                                    <label for="date_format" class="form-label">{{ _(_('تنسيق التاريخ')) }}</label>
                                     <select class="form-control" id="date_format" name="date_format">
                                         <option value="dd/mm/yyyy">dd/mm/yyyy</option>
                                         <option value="mm/dd/yyyy">mm/dd/yyyy</option>
@@ -114,13 +114,13 @@
                             <div class="col-md-6">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="allow_partial_payment_global" name="allow_partial_payment_global">
-                                    <label class="form-check-label" for="allow_partial_payment_global">{{ _('_("_(" _(" _(" _(" _(" _("السماح بالدفع الجزئي (عام)")")")")")")")') }}</label>
+                                    <label class="form-check-label" for="allow_partial_payment_global">{{ _(_('السماح بالدفع الجزئي (عام)')) }}</label>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="allow_debt_global" name="allow_debt_global">
-                                    <label class="form-check-label" for="allow_debt_global">{{ _('_("_(" _(" _(" _(" _(" _("السماح بالدين (عام)")")")")")")")') }}</label>
+                                    <label class="form-check-label" for="allow_debt_global">{{ _(_('السماح بالدين (عام)')) }}</label>
                                 </div>
                             </div>
                         </div>
@@ -129,28 +129,28 @@
                             <div class="col-12">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h6 class="mb-0">{{ _('_("_(" _(" _(" _(" _(" _("إعدادات الدفع حسب الأقسام")")")")")")")') }}</h6>
+                                        <h6 class="mb-0">{{ _(_('إعدادات الدفع حسب الأقسام')) }}</h6>
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
                                             <table class="table table-striped" id="deptQueueTable">
                                                 <thead>
                                                     <tr>
-                                                        <th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th>
-                                                        <th>{{ _('_("_(" _(" _(" _(" _(" _("الحجم الأقصى للطابور")")")")")")")') }}</th>
-                                                        <th>{{ _('_("_(" _(" _(" _(" _(" _("يتطلب دفع")")")")")")")') }}</th>
-                                                        <th>{{ _('_("_(" _(" _(" _(" _(" _("إعفاء دفع الطوارئ")")")")")")")') }}</th>
-                                                        <th>{{ _('_("_(" _(" _(" _(" _(" _("السماح بالدخول القوي")")")")")")")') }}</th>
-                                                        <th>{{ _('_("_(" _(" _(" _(" _(" _("متوسط وقت الانتظار (دقيقة)")")")")")")")') }}</th>
-                                                        <th>{{ _('_("_(" _(" _(" _(" _(" _("السماح بالدفع الجزئي")")")")")")")') }}</th>
-                                                        <th>{{ _('_("_(" _(" _(" _(" _(" _("السماح بالدين")")")")")")")') }}</th>
+                                                        <th>{{ _(_('القسم')) }}</th>
+                                                        <th>{{ _(_('الحجم الأقصى للطابور')) }}</th>
+                                                        <th>{{ _(_('يتطلب دفع')) }}</th>
+                                                        <th>{{ _(_('إعفاء دفع الطوارئ')) }}</th>
+                                                        <th>{{ _(_('السماح بالدخول القوي')) }}</th>
+                                                        <th>{{ _(_('متوسط وقت الانتظار (دقيقة)')) }}</th>
+                                                        <th>{{ _(_('السماح بالدفع الجزئي')) }}</th>
+                                                        <th>{{ _(_('السماح بالدين')) }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody></tbody>
                                             </table>
                                         </div>
                                         <div class="text-end">
-                                            <button class="btn btn-primary" id="saveDeptQueueSettings">{{ _('_("_(" _(" _(" _(" _(" _("حفظ إعدادات الأقسام")")")")")")")') }}</button>
+                                            <button class="btn btn-primary" id="saveDeptQueueSettings">{{ _(_('حفظ إعدادات الأقسام')) }}</button>
                                         </div>
                                     </div>
                                 </div>
@@ -165,14 +165,14 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="session_timeout" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("مهلة الجلسة (دقيقة)")")")")")")")') }}</label>
+                                            <label for="session_timeout" class="form-label">{{ _(_('مهلة الجلسة (دقيقة)')) }}</label>
                                             <input type="number" class="form-control" id="session_timeout" name="session_timeout" 
                                                    value="30" min="5" max="480">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="max_login_attempts" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("عدد محاولات الدخول")")")")")")")') }}</label>
+                                            <label for="max_login_attempts" class="form-label">{{ _(_('عدد محاولات الدخول')) }}</label>
                                             <input type="number" class="form-control" id="max_login_attempts" name="max_login_attempts" 
                                                    value="5" min="3" max="10">
                                         </div>
@@ -181,14 +181,14 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="login_attempt_window_minutes" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نافذة احتساب المحاولات (دقائق)")")")")")")")') }}</label>
+                                            <label for="login_attempt_window_minutes" class="form-label">{{ _(_('نافذة احتساب المحاولات (دقائق)')) }}</label>
                                             <input type="number" class="form-control" id="login_attempt_window_minutes" name="login_attempt_window_minutes"
                                                    value="15" min="1" max="120">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="login_lockout_minutes" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("مدة التجميد بعد التجاوز (دقائق)")")")")")")")') }}</label>
+                                            <label for="login_lockout_minutes" class="form-label">{{ _(_('مدة التجميد بعد التجاوز (دقائق)')) }}</label>
                                             <input type="number" class="form-control" id="login_lockout_minutes" name="login_lockout_minutes"
                                                    value="15" min="1" max="240">
                                         </div>
@@ -198,14 +198,14 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="password_min_length" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحد الأدنى لكلمة المرور")")")")")")")') }}</label>
+                                            <label for="password_min_length" class="form-label">{{ _(_('الحد الأدنى لكلمة المرور')) }}</label>
                                             <input type="number" class="form-control" id="password_min_length" name="password_min_length" 
                                                    value="8" min="6" max="20">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="password_expiry_days" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("انتهاء صلاحية كلمة المرور (يوم)")")")")")")")') }}</label>
+                                            <label for="password_expiry_days" class="form-label">{{ _(_('انتهاء صلاحية كلمة المرور (يوم)')) }}</label>
                                             <input type="number" class="form-control" id="password_expiry_days" name="password_expiry_days" 
                                                    value="90" min="30" max="365">
                                         </div>
@@ -217,7 +217,7 @@
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="two_factor_auth" name="two_factor_auth">
                                             <label class="form-check-label" for="two_factor_auth">
-                                                {{ _('_("_(" _(" _(" _(" _(" _("تفعيل المصادقة الثنائية")")")")")")")') }}
+                                                {{ _(_('تفعيل المصادقة الثنائية')) }}
                                             </label>
                                         </div>
                                     </div>
@@ -228,7 +228,7 @@
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="ip_whitelist" name="ip_whitelist">
                                             <label class="form-check-label" for="ip_whitelist">
-                                                {{ _('_("_(" _(" _(" _(" _(" _("قائمة IP المسموحة")")")")")")")') }}
+                                                {{ _(_('قائمة IP المسموحة')) }}
                                             </label>
                                         </div>
                                     </div>
@@ -242,16 +242,16 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="db_host" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("خادم قاعدة البيانات")")")")")")")') }}</label>
+                                            <label for="db_host" class="form-label">{{ _(_('خادم قاعدة البيانات')) }}</label>
                                             <input type="text" class="form-control" id="db_host" name="db_host" 
-                                                   value="localhost" placeholder="_(" _(" _(" _(" _(" _("أدخل عنوان الخادم")")")")")")">
+                                                   value="localhost" placeholder="أدخل عنوان الخادم">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="db_port" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("منفذ قاعدة البيانات")")")")")")")') }}</label>
+                                            <label for="db_port" class="form-label">{{ _(_('منفذ قاعدة البيانات')) }}</label>
                                             <input type="number" class="form-control" id="db_port" name="db_port" 
-                                                   value="5432" placeholder="_(" _(" _(" _(" _(" _("أدخل المنفذ")")")")")")">
+                                                   value="5432" placeholder="أدخل المنفذ">
                                         </div>
                                     </div>
                                 </div>
@@ -259,16 +259,16 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="db_name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم قاعدة البيانات")")")")")")")') }}</label>
+                                            <label for="db_name" class="form-label">{{ _(_('اسم قاعدة البيانات')) }}</label>
                                             <input type="text" class="form-control" id="db_name" name="db_name" 
-                                                   value="medical_system" placeholder="_(" _(" _(" _(" _(" _("أدخل اسم قاعدة البيانات")")")")")")">
+                                                   value="medical_system" placeholder="أدخل اسم قاعدة البيانات">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="db_username" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم المستخدم")")")")")")")') }}</label>
+                                            <label for="db_username" class="form-label">{{ _(_('اسم المستخدم')) }}</label>
                                             <input type="text" class="form-control" id="db_username" name="db_username" 
-                                                   value="postgres" placeholder="_(" _(" _(" _(" _(" _("أدخل اسم المستخدم")")")")")")">
+                                                   value="postgres" placeholder="أدخل اسم المستخدم">
                                         </div>
                                     </div>
                                 </div>
@@ -276,17 +276,17 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="db_password" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("كلمة المرور")")")")")")")') }}</label>
+                                            <label for="db_password" class="form-label">{{ _(_('كلمة المرور')) }}</label>
                                             <input type="password" class="form-control" id="db_password" name="db_password" 
-                                                   placeholder="_(" _(" _(" _(" _(" _("أدخل كلمة المرور")")")")")")">
+                                                   placeholder="أدخل كلمة المرور">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="db_ssl" class="form-label">SSL</label>
                                             <select class="form-control" id="db_ssl" name="db_ssl">
-                                                <option value="false">{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</option>
-                                                <option value="true">{{ _('_("_(" _(" _(" _(" _(" _("مفعل")")")")")")")') }}</option>
+                                                <option value="false">{{ _(_('معطل')) }}</option>
+                                                <option value="true">{{ _(_('مفعل')) }}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -296,7 +296,7 @@
                                     <div class="col-md-12">
                                         <button type="button" class="btn btn-info" onclick="testConnection()">
                                             <i class="fas fa-plug me-2"></i>
-                                            {{ _('_("_(" _(" _(" _(" _(" _("اختبار الاتصال")")")")")")")') }}
+                                            {{ _(_('اختبار الاتصال')) }}
                                         </button>
                                     </div>
                                 </div>
@@ -309,16 +309,16 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="email_host" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("خادم البريد الإلكتروني")")")")")")")') }}</label>
+                                            <label for="email_host" class="form-label">{{ _(_('خادم البريد الإلكتروني')) }}</label>
                                             <input type="text" class="form-control" id="email_host" name="email_host" 
-                                                   value="smtp.gmail.com" placeholder="_(" _(" _(" _(" _(" _("أدخل عنوان الخادم")")")")")")">
+                                                   value="smtp.gmail.com" placeholder="أدخل عنوان الخادم">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="email_port" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("منفذ البريد الإلكتروني")")")")")")")') }}</label>
+                                            <label for="email_port" class="form-label">{{ _(_('منفذ البريد الإلكتروني')) }}</label>
                                             <input type="number" class="form-control" id="email_port" name="email_port" 
-                                                   value="587" placeholder="_(" _(" _(" _(" _(" _("أدخل المنفذ")")")")")")">
+                                                   value="587" placeholder="أدخل المنفذ">
                                         </div>
                                     </div>
                                 </div>
@@ -326,16 +326,16 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="email_username" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم المستخدم")")")")")")")') }}</label>
+                                            <label for="email_username" class="form-label">{{ _(_('اسم المستخدم')) }}</label>
                                             <input type="text" class="form-control" id="email_username" name="email_username" 
-                                                   placeholder="_(" _(" _(" _(" _(" _("أدخل اسم المستخدم")")")")")")">
+                                                   placeholder="أدخل اسم المستخدم">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="email_password" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("كلمة المرور")")")")")")")') }}</label>
+                                            <label for="email_password" class="form-label">{{ _(_('كلمة المرور')) }}</label>
                                             <input type="password" class="form-control" id="email_password" name="email_password" 
-                                                   placeholder="_(" _(" _(" _(" _(" _("أدخل كلمة المرور")")")")")")">
+                                                   placeholder="أدخل كلمة المرور">
                                         </div>
                                     </div>
                                 </div>
@@ -347,16 +347,16 @@
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="sms_enabled" name="sms_enabled">
                                                 <label class="form-check-label" for="sms_enabled">
-                                                    {{ _('_("_(" _(" _(" _(" _(" _("تفعيل إرسال الرسائل النصية")")")")")")")') }}
+                                                    {{ _(_('تفعيل إرسال الرسائل النصية')) }}
                                                 </label>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="sms_provider" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("مزود الخدمة")")")")")")")') }}</label>
+                                            <label for="sms_provider" class="form-label">{{ _(_('مزود الخدمة')) }}</label>
                                             <select class="form-control" id="sms_provider" name="sms_provider">
-                                                <option value="log">{{ _('_("_(" _(" _(" _(" _(" _("تسجيل فقط (تجريبي)")")")")")")")') }}</option>
+                                                <option value="log">{{ _(_('تسجيل فقط (تجريبي)')) }}</option>
                                                 <option value="twilio">Twilio</option>
                                             </select>
                                         </div>
@@ -375,14 +375,14 @@
                                             <div class="mb-3">
                                                 <label for="twilio_auth_token" class="form-label">Twilio Auth Token</label>
                                                 <input type="password" class="form-control" id="twilio_auth_token" name="twilio_auth_token" 
-                                                       placeholder="_(" _(" _(" _(" _(" _("أدخل رمز التوثيق")")")")")")">
+                                                       placeholder="أدخل رمز التوثيق">
                                             </div>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <label for="twilio_phone_number" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رقم المرسل")")")")")")")') }}</label>
+                                                <label for="twilio_phone_number" class="form-label">{{ _(_('رقم المرسل')) }}</label>
                                                 <input type="text" class="form-control" id="twilio_phone_number" name="twilio_phone_number" 
                                                        placeholder="+12025551234" dir="ltr">
                                             </div>
@@ -393,7 +393,7 @@
                                                 <div>
                                                     <button type="button" class="btn btn-outline-info" onclick="testSmsConnection()">
                                                         <i class="fas fa-comment-dots me-2"></i>
-                                                        {{ _('_("_(" _(" _(" _(" _(" _("إرسال رسالة تجريبية")")")")")")")') }}
+                                                        {{ _(_('إرسال رسالة تجريبية')) }}
                                                     </button>
                                                 </div>
                                             </div>
@@ -405,7 +405,7 @@
                                     <div class="col-md-12">
                                         <button type="button" class="btn btn-outline-secondary" onclick="processNotificationQueue()">
                                             <i class="fas fa-play me-2"></i>
-                                            {{ _('_("_(" _(" _(" _(" _(" _("معالجة طابور الإشعارات المعلقة")")")")")")")') }}
+                                            {{ _(_('معالجة طابور الإشعارات المعلقة')) }}
                                         </button>
                                     </div>
                                 </div>
@@ -418,17 +418,17 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="backup_frequency" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تكرار النسخ الاحتياطية")")")")")")")') }}</label>
+                                            <label for="backup_frequency" class="form-label">{{ _(_('تكرار النسخ الاحتياطية')) }}</label>
                                             <select class="form-control" id="backup_frequency" name="backup_frequency">
-                                                <option value="daily">{{ _('_("_(" _(" _(" _(" _(" _("يومي")")")")")")")') }}</option>
-                                                <option value="weekly">{{ _('_("_(" _(" _(" _(" _(" _("أسبوعي")")")")")")")') }}</option>
-                                                <option value="monthly">{{ _('_("_(" _(" _(" _(" _(" _("شهري")")")")")")")') }}</option>
+                                                <option value="daily">{{ _(_('يومي')) }}</option>
+                                                <option value="weekly">{{ _(_('أسبوعي')) }}</option>
+                                                <option value="monthly">{{ _(_('شهري')) }}</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="backup_retention" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("عدد النسخ المحفوظة")")")")")")")') }}</label>
+                                            <label for="backup_retention" class="form-label">{{ _(_('عدد النسخ المحفوظة')) }}</label>
                                             <input type="number" class="form-control" id="backup_retention" name="backup_retention" 
                                                    value="7" min="1" max="30">
                                         </div>
@@ -438,16 +438,16 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="backup_location" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("موقع النسخ الاحتياطية")")")")")")")') }}</label>
+                                            <label for="backup_location" class="form-label">{{ _(_('موقع النسخ الاحتياطية')) }}</label>
                                             <input type="text" class="form-control" id="backup_location" name="backup_location" 
-                                                   value="/backups" placeholder="_(" _(" _(" _(" _(" _("أدخل المسار")")")")")")">
+                                                   value="/backups" placeholder="أدخل المسار">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="backup_compression" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ضغط النسخ")")")")")")")') }}</label>
+                                            <label for="backup_compression" class="form-label">{{ _(_('ضغط النسخ')) }}</label>
                                             <select class="form-control" id="backup_compression" name="backup_compression">
-                                                <option value="none">{{ _('_("_(" _(" _(" _(" _(" _("بدون ضغط")")")")")")")') }}</option>
+                                                <option value="none">{{ _(_('بدون ضغط')) }}</option>
                                                 <option value="zip">ZIP</option>
                                                 <option value="gzip">GZIP</option>
                                             </select>
@@ -460,7 +460,7 @@
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="auto_backup" name="auto_backup" checked>
                                             <label class="form-check-label" for="auto_backup">
-                                                {{ _('_("_(" _(" _(" _(" _(" _("النسخ الاحتياطية التلقائية")")")")")")")') }}
+                                                {{ _(_('النسخ الاحتياطية التلقائية')) }}
                                             </label>
                                         </div>
                                     </div>

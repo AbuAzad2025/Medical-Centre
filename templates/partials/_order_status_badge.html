@@ -1,6 +1,6 @@
 {% macro order_status_badge(status, order_type='lab') %}
 {%- set colors = {'draft': 'secondary', 'ordered': 'primary', 'sample_collected': 'info', 'in_progress': 'warning', 'completed': 'success', 'reviewed': 'success', 'cancelled': 'danger'} %}
-{%- set labels = {'draft': _('_("_(" _(" _(" _(" _(" _("مسودة")")")")")")")'), 'ordered': _('_("_(" _(" _(" _(" _(" _("مطلوب")")")")")")")'), 'sample_collected': _('_("_(" _(" _(" _(" _(" _("تم أخذ العينة")")")")")")")'), 'in_progress': _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")'), 'completed': _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")'), 'reviewed': _('_("_(" _(" _(" _(" _(" _("تمت المراجعة")")")")")")")'), 'cancelled': _('_("_(" _(" _(" _(" _(" _("ملغي")")")")")")")')} %}
+{%- set labels = {'draft': _(_('مسودة')), 'ordered': _(_('مطلوب')), 'sample_collected': _(_('تم أخذ العينة')), 'in_progress': _(_('قيد التنفيذ')), 'completed': _(_('مكتمل')), 'reviewed': _(_('تمت المراجعة')), 'cancelled': _(_('ملغي'))} %}
 <span class="badge bg-{{ colors.get(status, 'secondary') }}">
     {{ labels.get(status, status) }}
 </span>

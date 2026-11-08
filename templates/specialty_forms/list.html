@@ -3,9 +3,9 @@
 {% block content %}
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
-        <h4 class="mb-0"><i class="fas fa-file-medical me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("النماذج التخصصية")")")")")")")') }}</h4>
+        <h4 class="mb-0"><i class="fas fa-file-medical me-2 text-primary"></i>{{ _(_('النماذج التخصصية')) }}</h4>
         {% if user_role in ['manager','admin','super_admin'] %}
-        <a href="{{ url_for('specialty_forms.new_form') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("نموذج جديد")")")")")")")') }}</a>
+        <a href="{{ url_for('specialty_forms.new_form') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> {{ _(_('نموذج جديد')) }}</a>
         {% endif %}
     </div>
 </div>
@@ -15,11 +15,11 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
-                        <th>{{ _('_("_(" _(" _(" _(" _(" _("التخصص")")")")")")")') }}</th>
-                        <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                        <th>{{ _('_("_(" _(" _(" _(" _(" _("آخر نسخة منشورة")")")")")")")') }}</th>
-                        <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
+                        <th>{{ _(_('الاسم')) }}</th>
+                        <th>{{ _(_('التخصص')) }}</th>
+                        <th>{{ _(_('الحالة')) }}</th>
+                        <th>{{ _(_('آخر نسخة منشورة')) }}</th>
+                        <th>{{ _(_('الإجراءات')) }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -27,7 +27,7 @@
                     <tr>
                         <td class="fw-bold">{{ f.name }}</td>
                         <td>{{ f.specialty or '-' }}</td>
-                        <td><span class="badge bg-{{ 'success' if f.is_active else 'secondary' }}">{{ '_("_(" _(" _(" _(" _(" _("نشط")")")")")")")' if f.is_active else '_("_(" _(" _(" _(" _(" _("معطل")")")")")")")' }}</span></td>
+                        <td><span class="badge bg-{{ 'success' if f.is_active else 'secondary' }}">{{ _('نشط') if f.is_active else _('معطل') }}</span></td>
                         <td>
                             {% if f.latest_published_version %}
                             v{{ f.latest_published_version.version_number }} ({{ f.latest_published_version.published_at.strftime('%Y-%m-%d') if f.latest_published_version.published_at else '-' }})
@@ -36,22 +36,22 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for('specialty_forms.view_form', form_id=f.id) }}" class="btn btn-sm btn-outline-primary">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</a>
+                            <a href="{{ url_for('specialty_forms.view_form', form_id=f.id) }}" class="btn btn-sm btn-outline-primary">{{ _(_('عرض')) }}</a>
                             {% if f.latest_published_version %}
-                            <a href="{{ url_for('specialty_forms.fill_form', form_id=f.id) }}" class="btn btn-sm btn-outline-success">{{ _('_("_(" _(" _(" _(" _(" _("تعبئة")")")")")")")') }}</a>
-                            <a href="{{ url_for('specialty_forms.list_submissions', form_id=f.id) }}" class="btn btn-sm btn-outline-info">{{ _('_("_(" _(" _(" _(" _(" _("إجابات")")")")")")")') }}</a>
+                            <a href="{{ url_for('specialty_forms.fill_form', form_id=f.id) }}" class="btn btn-sm btn-outline-success">{{ _(_('تعبئة')) }}</a>
+                            <a href="{{ url_for('specialty_forms.list_submissions', form_id=f.id) }}" class="btn btn-sm btn-outline-info">{{ _(_('إجابات')) }}</a>
                             {% endif %}
                             {% if user_role in ['manager','admin','super_admin'] %}
                             {% for ver in f.versions %}
                             {% if ver.status == 'draft' %}
-                            <a href="{{ url_for('specialty_forms.edit_version', form_id=f.id, version_id=ver.id) }}" class="btn btn-sm btn-outline-secondary">{{ _('_("_(" _(" _(" _(" _(" _("تعديل مسودة")")")")")")")') }}</a>
+                            <a href="{{ url_for('specialty_forms.edit_version', form_id=f.id, version_id=ver.id) }}" class="btn btn-sm btn-outline-secondary">{{ _(_('تعديل مسودة')) }}</a>
                             {% endif %}
                             {% endfor %}
                             {% endif %}
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="5"><div class="text-center text-muted py-5">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد نماذج بعد")")")")")")")') }}</div></td></tr>
+                    <tr><td colspan="5"><div class="text-center text-muted py-5">{{ _(_('لا توجد نماذج بعد')) }}</div></td></tr>
                     {% endfor %}
                 </tbody>
             </table>

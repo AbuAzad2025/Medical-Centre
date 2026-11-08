@@ -2,7 +2,7 @@
 {% if visit %}
 <div class="card mb-3 animate-in">
     <div class="card-header">
-        <i class="fas fa-arrow-right"></i> {{ _('_("_(" _(" _(" _(" _(" _("الإجراءات التالية")")")")")")")') }}
+        <i class="fas fa-arrow-right"></i> {{ _(_('الإجراءات التالية')) }}
     </div>
     <div class="card-body">
         {% set actions = next_actions if next_actions is not none else visit_next_actions(visit) %}
@@ -13,7 +13,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-muted mb-0">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد إجراءات متاحة — الزيارة مكتملة")")")")")")")') }}</p>
+        <p class="text-muted mb-0">{{ _(_('لا توجد إجراءات متاحة — الزيارة مكتملة')) }}</p>
         {% endif %}
     </div>
 </div>

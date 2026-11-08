@@ -5,11 +5,11 @@
     <div class="col-md-8">
       <div class="card shadow-sm border-success">
         <div class="card-header bg-success text-white">
-          <h5 class="mb-0"><i class="bi bi-key me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تم تفعيل 2FA بنجاح!")")")")")")")') }}</h5>
+          <h5 class="mb-0"><i class="bi bi-key me-2"></i>{{ _(_('تم تفعيل 2FA بنجاح!')) }}</h5>
         </div>
         <div class="card-body">
           <div class="alert alert-warning">
-            <strong>{{ _('_("_(" _(" _(" _(" _(" _("احفظ هذه الأرقام الاحتياطية في مكان آمن.")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("كل رمز يُستخدم مرة واحدة فقط.")")")")")")")') }}
+            <strong>{{ _(_('احفظ هذه الأرقام الاحتياطية في مكان آمن.')) }}</strong> {{ _(_('كل رمز يُستخدم مرة واحدة فقط.')) }}
           </div>
           <div class="row g-2">
             {% for code in codes %}
@@ -19,7 +19,7 @@
             {% endfor %}
           </div>
           <div class="d-grid mt-3">
-            <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("الذهاب للوحة التحكم")")")")")")")') }}</a>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">{{ _(_('الذهاب للوحة التحكم')) }}</a>
           </div>
         </div>
       </div>

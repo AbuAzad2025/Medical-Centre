@@ -36,27 +36,27 @@
     {% endmacro %}
 
     {% if stats.total_patients is defined %}
-    {{ stat_card(_('_("_(" _(" _(" _(" _(" _("إجمالي المرضى")")")")")")")'), stats.total_patients, 'fa-users', '#0ea5e9', '#0ea5e9', url_for('reception.patients') if 'reception' in request.endpoint or True else '#') }}
+    {{ stat_card(_(_('إجمالي المرضى')), stats.total_patients, 'fa-users', '#0ea5e9', '#0ea5e9', url_for('reception.patients') if 'reception' in request.endpoint or True else '#') }}
     {% endif %}
 
     {% if stats.today_visits is defined %}
-    {{ stat_card(_('_("_(" _(" _(" _(" _(" _("زيارات اليوم")")")")")")")'), stats.today_visits, 'fa-calendar-check', '#10b981', '#10b981', '#') }}
+    {{ stat_card(_(_('زيارات اليوم')), stats.today_visits, 'fa-calendar-check', '#10b981', '#10b981', '#') }}
     {% endif %}
 
     {% if stats.pending_labs is defined %}
-    {{ stat_card(_('_("_(" _(" _(" _(" _(" _("فحوصات معلقة")")")")")")")'), stats.pending_labs, 'fa-flask', '#0ea5e9', '#0ea5e9', '#') }}
+    {{ stat_card(_(_('فحوصات معلقة')), stats.pending_labs, 'fa-flask', '#0ea5e9', '#0ea5e9', '#') }}
     {% endif %}
 
     {% if stats.active_prescriptions is defined %}
-    {{ stat_card(_('_("_(" _(" _(" _(" _(" _("وصفات نشطة")")")")")")")'), stats.active_prescriptions, 'fa-prescription', '#2563eb', '#2563eb', '#') }}
+    {{ stat_card(_(_('وصفات نشطة')), stats.active_prescriptions, 'fa-prescription', '#2563eb', '#2563eb', '#') }}
     {% endif %}
 
     {% if stats.monthly_revenue is defined %}
-    {{ stat_card(_('_("_(" _(" _(" _(" _(" _("إيرادات الشهر")")")")")")")'), stats.monthly_revenue, 'fa-coins', '#10b981', '#10b981', '#') }}
+    {{ stat_card(_(_('إيرادات الشهر')), stats.monthly_revenue, 'fa-coins', '#10b981', '#10b981', '#') }}
     {% endif %}
 
     {% if stats.bed_occupancy is defined %}
-    {{ stat_card(_('_("_(" _(" _(" _(" _(" _("إشغال الأسرة")")")")")")")'), stats.bed_occupancy, 'fa-bed', '#0ea5e9', '#0ea5e9', '#') }}
+    {{ stat_card(_(_('إشغال الأسرة')), stats.bed_occupancy, 'fa-bed', '#0ea5e9', '#0ea5e9', '#') }}
     {% endif %}
 </div>
 

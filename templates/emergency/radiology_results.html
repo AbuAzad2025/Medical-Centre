@@ -2,17 +2,17 @@
 {% block title %}نتائج أشعة الطوارئ{% endblock %}
 {% block content %}
 <div class="container">
-  <h2 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("نتائج الأشعة:")")")")")")")') }} <bdi>{{ patient.full_name }}</bdi></h2>
+  <h2 class="mb-3">{{ _(_('نتائج الأشعة:')) }} <bdi>{{ patient.full_name }}</bdi></h2>
   <div class="card"><div class="card-body">
     <div class="table-responsive">
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("رقم الطلب")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("نوع الفحص")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("منطقة الفحص")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+            <th>{{ _(_('رقم الطلب')) }}</th>
+            <th>{{ _(_('نوع الفحص')) }}</th>
+            <th>{{ _(_('منطقة الفحص')) }}</th>
+            <th>{{ _(_('الحالة')) }}</th>
+            <th>{{ _(_('التاريخ')) }}</th>
           </tr>
         </thead>
         <tbody>
@@ -23,13 +23,13 @@
             <td>{{ r.body_part or '-' }}</td>
             <td>
               {% if r.status == 'REQUESTED' %}
-                <span class="badge text-bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("مطلوب")")")")")")")') }}</span>
+                <span class="badge text-bg-warning">{{ _(_('مطلوب')) }}</span>
               {% elif r.status == 'IN_PROGRESS' %}
-                <span class="badge text-bg-info">{{ _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")') }}</span>
+                <span class="badge text-bg-info">{{ _(_('قيد التنفيذ')) }}</span>
               {% elif r.status == 'DONE' %}
-                <span class="badge text-bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
+                <span class="badge text-bg-success">{{ _(_('مكتمل')) }}</span>
               {% elif r.status == 'CANCELLED' %}
-                <span class="badge text-bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("ملغي")")")")")")")') }}</span>
+                <span class="badge text-bg-danger">{{ _(_('ملغي')) }}</span>
               {% else %}
                 <span class="badge text-bg-secondary">{{ r.status | enum_label('OrderState') }}</span>
               {% endif %}
@@ -37,7 +37,7 @@
             <td>{{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '-' }}</td>
           </tr>
           {% else %}
-          <tr><td colspan="5" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا نتائج")")")")")")")') }}</td></tr>
+          <tr><td colspan="5" class="text-center">{{ _(_('لا نتائج')) }}</td></tr>
           {% endfor %}
         </tbody>
       </table>

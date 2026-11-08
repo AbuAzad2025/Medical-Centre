@@ -2,12 +2,12 @@
 {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4><i class="bi bi-calculator me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("سيناريوهات What-If")")")")")")")') }}</h4>
-    <a href="{{ url_for('what_if.new_scenario') }}" class="btn btn-success"><i class="bi bi-plus-lg"></i> {{ _('_("_(" _(" _(" _(" _(" _("سيناريو جديد")")")")")")")') }}</a>
+    <h4><i class="bi bi-calculator me-2"></i>{{ _(_('سيناريوهات What-If')) }}</h4>
+    <a href="{{ url_for('what_if.new_scenario') }}" class="btn btn-success"><i class="bi bi-plus-lg"></i> {{ _(_('سيناريو جديد')) }}</a>
   </div>
   <div class="table-responsive">
     <table class="table table-striped">
-      <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الزيارات/يوم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإيراد/يوم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الزيادة المتوقعة")")")")")")")') }}</th><th></th></tr></thead>
+      <thead><tr><th>{{ _(_('الاسم')) }}</th><th>{{ _(_('النوع')) }}</th><th>{{ _(_('الزيارات/يوم')) }}</th><th>{{ _(_('الإيراد/يوم')) }}</th><th>{{ _(_('الزيادة المتوقعة')) }}</th><th></th></tr></thead>
       <tbody>
         {% for s in scenarios %}
         <tr>
@@ -16,10 +16,10 @@
           <td>{{ s.projected_visits_per_day or '—' }}</td>
           <td>{{ s.projected_revenue_per_day or '—' }}</td>
           <td>{{ "%.1f"|format(s.projected_capacity_increase or 0) }}%</td>
-          <td><a href="{{ url_for('what_if.view_scenario', scenario_id=s.id) }}" class="btn btn-sm btn-outline-primary">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</a></td>
+          <td><a href="{{ url_for('what_if.view_scenario', scenario_id=s.id) }}" class="btn btn-sm btn-outline-primary">{{ _(_('عرض')) }}</a></td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد سيناريوهات")")")")")")")') }}</td></tr>
+        <tr><td colspan="6" class="text-center text-muted">{{ _(_('لا توجد سيناريوهات')) }}</td></tr>
         {% endfor %}
       </tbody>
     </table>

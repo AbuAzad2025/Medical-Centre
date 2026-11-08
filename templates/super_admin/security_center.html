@@ -7,10 +7,10 @@
       <div class="card border-0 shadow-sm">
         <div class="card-body d-flex justify-content-between align-items-center">
           <div>
-            <h2 class="mb-1 text-danger"><i class="fas fa-shield-alt me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("مركز الأمان")")")")")")")') }}</h2>
-            <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("ملخص متقدم للأحداث الأمنية")")")")")")")') }}</div>
+            <h2 class="mb-1 text-danger"><i class="fas fa-shield-alt me-2"></i>{{ _(_('مركز الأمان')) }}</h2>
+            <div class="text-muted">{{ _(_('ملخص متقدم للأحداث الأمنية')) }}</div>
           </div>
-          <a class="btn btn-secondary" href="{{ url_for('super_admin.dashboard') }}">{{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
+          <a class="btn btn-secondary" href="{{ url_for('super_admin.dashboard') }}">{{ _(_('العودة')) }}</a>
         </div>
       </div>
     </div>
@@ -21,7 +21,7 @@
       <div class="card shadow-sm">
         <div class="card-body text-center">
           <div class="h3">{{ stats.failed_logins_24h or 0 }}</div>
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("محاولات فاشلة 24 ساعة")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('محاولات فاشلة 24 ساعة')) }}</div>
         </div>
       </div>
     </div>
@@ -29,7 +29,7 @@
       <div class="card shadow-sm">
         <div class="card-body text-center">
           <div class="h3">{{ stats.critical_logs_24h or 0 }}</div>
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("سجلات حرجة 24 ساعة")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('سجلات حرجة 24 ساعة')) }}</div>
         </div>
       </div>
     </div>
@@ -37,7 +37,7 @@
       <div class="card shadow-sm">
         <div class="card-body text-center">
           <div class="h3">{{ stats.unresolved_security_events or 0 }}</div>
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("أحداث غير محلولة")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('أحداث غير محلولة')) }}</div>
         </div>
       </div>
     </div>
@@ -45,7 +45,7 @@
 
   <div class="card shadow-sm">
     <div class="card-header">
-      <h5 class="mb-0">{{ _('_("_(" _(" _(" _(" _(" _("أحدث الأحداث")")")")")")")') }}</h5>
+      <h5 class="mb-0">{{ _(_('أحدث الأحداث')) }}</h5>
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -53,9 +53,9 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+              <th>{{ _(_('العنوان')) }}</th>
+              <th>{{ _(_('الوصف')) }}</th>
+              <th>{{ _(_('التاريخ')) }}</th>
             </tr>
           </thead>
           <tbody>
@@ -67,7 +67,7 @@
               <td>{{ e.created_at.strftime('%Y-%m-%d %H:%M') if e.created_at else '-' }}</td>
             </tr>
             {% else %}
-            <tr><td colspan="4" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td></tr>
+            <tr><td colspan="4" class="text-center text-muted">{{ _(_('لا توجد بيانات')) }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

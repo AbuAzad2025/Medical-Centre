@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("مراقبة النظام")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("مراقبة شاملة لحالة جميع وحدات النظام")")")")")")")', icon='fas fa-eye', actions=[
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-monitoring', 'style': 'primary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تصدير تقرير")")")")")")")', 'icon': 'fas fa-file-excel', 'data_action': 'export-monitoring-report', 'style': 'success'}
+    {{ page_header(_('مراقبة النظام'), subtitle=_('مراقبة شاملة لحالة جميع وحدات النظام'), icon='fas fa-eye', actions=[
+        {'type': 'button', 'label': _('تحديث'), 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-monitoring', 'style': 'primary'},
+        {'type': 'button', 'label': _('تصدير تقرير'), 'icon': 'fas fa-file-excel', 'data_action': 'export-monitoring-report', 'style': 'success'}
     ]) }}
 
     <!-- System Status Overview -->
@@ -15,7 +15,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("حالة النظام العامة")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('حالة النظام العامة')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -25,8 +25,8 @@
                                     <i class="fas fa-server"></i>
                                 </div>
                                 <div class="status-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("خادم قاعدة البيانات")")")")")")")') }}</h6>
-                                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("متصل")")")")")")")') }}</span>
+                                    <h6>{{ _(_('خادم قاعدة البيانات')) }}</h6>
+                                    <span class="badge bg-success">{{ _(_('متصل')) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -36,8 +36,8 @@
                                     <i class="fas fa-memory"></i>
                                 </div>
                                 <div class="status-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الذاكرة")")")")")")")') }}</h6>
-                                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("طبيعية")")")")")")")') }}</span>
+                                    <h6>{{ _(_('الذاكرة')) }}</h6>
+                                    <span class="badge bg-success">{{ _(_('طبيعية')) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -47,8 +47,8 @@
                                     <i class="fas fa-hdd"></i>
                                 </div>
                                 <div class="status-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("مساحة القرص")")")")")")")') }}</h6>
-                                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("متاحة")")")")")")")') }}</span>
+                                    <h6>{{ _(_('مساحة القرص')) }}</h6>
+                                    <span class="badge bg-success">{{ _(_('متاحة')) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -58,8 +58,8 @@
                                     <i class="fas fa-network-wired"></i>
                                 </div>
                                 <div class="status-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الشبكة")")")")")")")') }}</h6>
-                                    <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مستقرة")")")")")")")') }}</span>
+                                    <h6>{{ _(_('الشبكة')) }}</h6>
+                                    <span class="badge bg-success">{{ _(_('مستقرة')) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -74,7 +74,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("حالة الوحدات")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('حالة الوحدات')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -100,7 +100,7 @@
                                     <div class="unit-info">
                                         <h6 class="unit-name">{{ unit.name }}</h6>
                                         <span id="badge-{{ unit_key }}-status" class="badge bg-{{ 'success' if unit.status == 'active' else 'danger' }}">
-                                            {{ '_("_(" _(" _(" _(" _(" _("نشط")")")")")")")' if unit.status == 'active' else '_("_(" _(" _(" _(" _(" _("معطل")")")")")")")' }}
+                                            {{ _('نشط') if unit.status == 'active' else _('معطل') }}
                                         </span>
                                     </div>
                                 </div>
@@ -108,32 +108,32 @@
                                     <div class="unit-stats">
                                         {% if unit_key == 'reception' %}
                                             <div class="stat-item">
-                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات المعلقة:")")")")")")")') }}</span>
+                                                <span class="stat-label">{{ _(_('الزيارات المعلقة:')) }}</span>
                                                 <span id="stat-reception-pending_visits" class="stat-value">{{ unit.pending_visits }}</span>
                                             </div>
                                         {% elif unit_key == 'doctor' %}
                                             <div class="stat-item">
-                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات قيد التنفيذ:")")")")")")")') }}</span>
+                                                <span class="stat-label">{{ _(_('الزيارات قيد التنفيذ:')) }}</span>
                                                 <span id="stat-doctor-in_progress_visits" class="stat-value">{{ unit.in_progress_visits }}</span>
                                             </div>
                                         {% elif unit_key == 'emergency' %}
                                             <div class="stat-item">
-                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("حالات الطوارئ:")")")")")")")') }}</span>
+                                                <span class="stat-label">{{ _(_('حالات الطوارئ:')) }}</span>
                                                 <span id="stat-emergency-emergency_visits" class="stat-value">{{ unit.emergency_visits }}</span>
                                             </div>
                                         {% elif unit_key == 'lab' %}
                                             <div class="stat-item">
-                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("طلبات المختبر:")")")")")")")') }}</span>
+                                                <span class="stat-label">{{ _(_('طلبات المختبر:')) }}</span>
                                                 <span id="stat-lab-lab_requests" class="stat-value">{{ unit.lab_requests }}</span>
                                             </div>
                                         {% elif unit_key == 'radiology' %}
                                             <div class="stat-item">
-                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("طلبات الأشعة:")")")")")")")') }}</span>
+                                                <span class="stat-label">{{ _(_('طلبات الأشعة:')) }}</span>
                                                 <span id="stat-radiology-radiology_requests" class="stat-value">{{ unit.radiology_requests }}</span>
                                             </div>
                                         {% elif unit_key == 'accountant' and module_active('billing') %}
                                             <div class="stat-item">
-                                                <span class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("الفواتير المفتوحة:")")")")")")")') }}</span>
+                                                <span class="stat-label">{{ _(_('الفواتير المفتوحة:')) }}</span>
                                                 <span id="stat-accountant-open_invoices" class="stat-value">{{ unit.open_invoices }}</span>
                                             </div>
                                         {% endif %}
@@ -141,11 +141,11 @@
                                     <div class="unit-actions">
                                         <button class="btn btn-sm btn-outline-primary" onclick="viewUnitDetails('{{ unit_key }}')">
                                             <i class="fas fa-eye me-1"></i>
-                                            {{ _('_("_(" _(" _(" _(" _(" _("تفاصيل")")")")")")")') }}
+                                            {{ _(_('تفاصيل')) }}
                                         </button>
                                         <button class="btn btn-sm btn-outline-success" onclick="refreshUnit('{{ unit_key }}')">
                                             <i class="fas fa-sync-alt me-1"></i>
-                                            {{ _('_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")') }}
+                                            {{ _(_('تحديث')) }}
                                         </button>
                                     </div>
                                 </div>
@@ -163,13 +163,13 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("مؤشرات الأداء")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('مؤشرات الأداء')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("استهلاك المعالج")")")")")")")') }}</div>
+                                <div class="metric-label">{{ _(_('استهلاك المعالج')) }}</div>
                                 <div class="metric-value">
                                     <div class="progress">
                                         <div class="progress-bar bg-success" style="width: {{ perf.cpu_percent | default(0) }}%"></div>
@@ -180,7 +180,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("استهلاك الذاكرة")")")")")")")') }}</div>
+                                <div class="metric-label">{{ _(_('استهلاك الذاكرة')) }}</div>
                                 <div class="metric-value">
                                     <div class="progress">
                                         <div class="progress-bar bg-warning" style="width: {{ perf.memory_percent | default(0) }}%"></div>
@@ -191,7 +191,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("استهلاك القرص")")")")")")")') }}</div>
+                                <div class="metric-label">{{ _(_('استهلاك القرص')) }}</div>
                                 <div class="metric-value">
                                     <div class="progress">
                                         <div class="progress-bar bg-primary" style="width: {{ perf.disk_percent | default(0) }}%"></div>
@@ -202,7 +202,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="metric-item">
-                                <div class="metric-label">{{ _('_("_(" _(" _(" _(" _(" _("وقت التشغيل (ساعة)")")")")")")")') }}</div>
+                                <div class="metric-label">{{ _(_('وقت التشغيل (ساعة)')) }}</div>
                                 <div class="metric-value">
                                     <span class="metric-text">{{ perf.uptime_hours | default('—') }}</span>
                                 </div>
@@ -216,7 +216,7 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("الوحدات والطوابير")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('الوحدات والطوابير')) }}</h6>
                 </div>
                 <div class="card-body">
                     <ul class="list-group list-group-flush">
@@ -255,10 +255,10 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("آخر أحداث التدقيق")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('آخر أحداث التدقيق')) }}</h6>
                     <button class="btn btn-sm btn-outline-primary" onclick="refreshMonitoring()">
                         <i class="fas fa-sync-alt me-1"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")') }}
+                        {{ _(_('تحديث')) }}
                     </button>
                 </div>
                 <div class="card-body">
@@ -266,10 +266,10 @@
                         <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراء")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الكيان")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المستخدم")")")")")")")') }}</th>
+                                    <th>{{ _(_('الوقت')) }}</th>
+                                    <th>{{ _(_('الإجراء')) }}</th>
+                                    <th>{{ _(_('الكيان')) }}</th>
+                                    <th>{{ _(_('المستخدم')) }}</th>
                                 </tr>
                             </thead>
                             <tbody>

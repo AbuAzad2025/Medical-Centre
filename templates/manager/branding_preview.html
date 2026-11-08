@@ -10,10 +10,10 @@
 </div>
 <div class="print-preview-content">
     <p><strong>{{ _('اللون الأساسي:') }}</strong> <span style="color: {{ ui.primary_color }}">{{ ui.primary_color }}</span></p>
-    <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الوحدات النشطة:")")")")")")")') }}</strong> {{ branding.active_modules if branding.active_modules is defined else 'N/A' }}</p>
-    <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("رأس المطبوع:")")")")")")")') }}</strong></p>
-    <div class="border p-3 mb-3">{{ print_header_html|safe if print_header_html else '_("_(" _(" _(" _(" _(" _("(افتراضي)")")")")")")")' }}</div>
-    <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("تذييل المطبوع:")")")")")")")') }}</strong></p>
-    <div class="border p-3">{{ print_footer_html|safe if print_footer_html else '_("_(" _(" _(" _(" _(" _("(افتراضي)")")")")")")")' }}</div>
+    <p><strong>{{ _(_('الوحدات النشطة:')) }}</strong> {{ branding.active_modules if branding.active_modules is defined else 'N/A' }}</p>
+    <p><strong>{{ _(_('رأس المطبوع:')) }}</strong></p>
+    <div class="border p-3 mb-3">{{ print_header_html|safe if print_header_html else _('(افتراضي)') }}</div>
+    <p><strong>{{ _(_('تذييل المطبوع:')) }}</strong></p>
+    <div class="border p-3">{{ print_footer_html|safe if print_footer_html else _('(افتراضي)') }}</div>
 </div>
 {% endblock %}

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0f4c81">
-    <title>{{ _('_("_(" _(" _(" _(" _(" _("شاشة الانتظار")")")")")")")') }}</title>
+    <title>{{ _(_('شاشة الانتظار')) }}</title>
     <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.rtl.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
@@ -28,10 +28,10 @@ body { background: var(--kiosk-bg); color: var(--kiosk-fg); }
         <div class="header mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="mb-1">{{ _('_("_(" _(" _(" _(" _(" _("شاشة الانتظار")")")")")")")') }}</h2>
+                    <h2 class="mb-1">{{ _(_('شاشة الانتظار')) }}</h2>
                     <div id="live-clock"></div>
                 </div>
-                <div class="fs-5">{{ _('_("_(" _(" _(" _(" _(" _("يرجى متابعة رقم الدور")")")")")")")') }}</div>
+                <div class="fs-5">{{ _(_('يرجى متابعة رقم الدور')) }}</div>
             </div>
         </div>
 
@@ -39,7 +39,7 @@ body { background: var(--kiosk-bg); color: var(--kiosk-fg); }
             <div class="col-lg-4">
                 <div class="card card-dark h-100">
                     <div class="card-body">
-                        <h5 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("يتم الآن")")")")")")")') }}</h5>
+                        <h5 class="mb-3">{{ _(_('يتم الآن')) }}</h5>
                         <div id="current-list" class="d-grid gap-2"></div>
                     </div>
                 </div>
@@ -47,7 +47,7 @@ body { background: var(--kiosk-bg); color: var(--kiosk-fg); }
             <div class="col-lg-4">
                 <div class="card card-dark h-100">
                     <div class="card-body">
-                        <h5 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("تم الاستدعاء")")")")")")")') }}</h5>
+                        <h5 class="mb-3">{{ _(_('تم الاستدعاء')) }}</h5>
                         <div id="called-list" class="d-grid gap-2"></div>
                     </div>
                 </div>
@@ -55,7 +55,7 @@ body { background: var(--kiosk-bg); color: var(--kiosk-fg); }
             <div class="col-lg-4">
                 <div class="card card-dark h-100">
                     <div class="card-body">
-                        <h5 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("قائمة الانتظار")")")")")")")') }}</h5>
+                        <h5 class="mb-3">{{ _(_('قائمة الانتظار')) }}</h5>
                         <div id="waiting-list" class="d-grid gap-2"></div>
                     </div>
                 </div>

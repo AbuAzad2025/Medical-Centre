@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("ملخص الزيارة")")")")")")")', subtitle=(visit.patient.full_name ~ '_("_(" _(" _(" _(" _(" _(" - رقم الزيارة: ")")")")")")")' ~ (visit.visit_id_number or visit.id)), icon='fas fa-file-medical', actions=[
-        {'label': '_("_(" _(" _(" _(" _(" _("العودة للطابور")")")")")")")', 'icon': 'fas fa-arrow-right', 'url': url_for('doctor.patient_queue'), 'style': 'secondary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("طباعة")")")")")")")', 'icon': 'fas fa-print', 'data_action': 'print', 'style': 'primary'}
+    {{ page_header(_('ملخص الزيارة'), subtitle=(visit.patient.full_name ~ _(' - رقم الزيارة: ') ~ (visit.visit_id_number or visit.id)), icon='fas fa-file-medical', actions=[
+        {'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-right', 'url': url_for('doctor.patient_queue'), 'style': 'secondary'},
+        {'type': 'button', 'label': _('طباعة'), 'icon': 'fas fa-print', 'data_action': 'print', 'style': 'primary'}
     ]) }}
 
     <!-- Visit Summary -->
@@ -17,7 +17,7 @@
                 <div class="card-header py-3">
                     <h6 class="m-0 fw-bold text-primary">
                         <i class="fas fa-file-medical me-2"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("ملخص الزيارة الطبية")")")")")")")') }}
+                        {{ _(_('ملخص الزيارة الطبية')) }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -27,24 +27,24 @@
                             <div class="col-md-6">
                                 <div class="card border-left-info">
                                     <div class="card-body">
-                                        <h6 class="text-info">{{ _('_("_(" _(" _(" _(" _(" _("بيانات المريض")")")")")")")') }}</h6>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الاسم:")")")")")")")') }}</strong> {{ visit.patient.full_name }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("العمر:")")")")")")")') }}</strong> {{ visit.patient.age or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }} سنة</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الجنس:")")")")")")")') }}</strong> {{ visit.patient.get_gender_display() }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم الزيارة:")")")")")")")') }}</strong> {{ visit.visit_id_number or visit.id }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الزيارة:")")")")")")")') }}</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("وقت الزيارة:")")")")")")")') }}</strong> {{ visit.visit_time.strftime('%H:%M') }}</p>
+                                        <h6 class="text-info">{{ _(_('بيانات المريض')) }}</h6>
+                                        <p><strong>{{ _(_('الاسم:')) }}</strong> {{ visit.patient.full_name }}</p>
+                                        <p><strong>{{ _(_('العمر:')) }}</strong> {{ visit.patient.age or _('غير محدد') }} سنة</p>
+                                        <p><strong>{{ _(_('الجنس:')) }}</strong> {{ visit.patient.get_gender_display() }}</p>
+                                        <p><strong>{{ _(_('رقم الزيارة:')) }}</strong> {{ visit.visit_id_number or visit.id }}</p>
+                                        <p><strong>{{ _(_('تاريخ الزيارة:')) }}</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
+                                        <p><strong>{{ _(_('وقت الزيارة:')) }}</strong> {{ visit.visit_time.strftime('%H:%M') }}</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="card border-left-warning">
                                     <div class="card-body">
-                                        <h6 class="text-warning">{{ _('_("_(" _(" _(" _(" _(" _("بيانات الطبيب")")")")")")")') }}</h6>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب:")")")")")")")') }}</strong> د. {{ current_user.full_name }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("التخصص:")")")")")")")') }}</strong> {{ current_user.department }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم الطبيب:")")")")")")")') }}</strong> {{ current_user.id }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ التقرير:")")")")")")")') }}</strong> {{ moment().format('YYYY-MM-DD') }}</p>
+                                        <h6 class="text-warning">{{ _(_('بيانات الطبيب')) }}</h6>
+                                        <p><strong>{{ _(_('الطبيب:')) }}</strong> د. {{ current_user.full_name }}</p>
+                                        <p><strong>{{ _(_('التخصص:')) }}</strong> {{ current_user.department }}</p>
+                                        <p><strong>{{ _(_('رقم الطبيب:')) }}</strong> {{ current_user.id }}</p>
+                                        <p><strong>{{ _(_('تاريخ التقرير:')) }}</strong> {{ moment().format('YYYY-MM-DD') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -53,23 +53,23 @@
                         <!-- Visit Details -->
                         <div class="row">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل الزيارة")")")")")")")') }}</h6>
+                                <h6 class="text-primary mb-3">{{ _(_('تفاصيل الزيارة')) }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="chief_complaint">{{ _('_("_(" _(" _(" _(" _(" _("الشكوى الرئيسية")")")")")")")') }}</label>
+                                    <label for="chief_complaint">{{ _(_('الشكوى الرئيسية')) }}</label>
                                     <textarea class="form-control" id="chief_complaint" name="chief_complaint" rows="3" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل الشكوى الرئيسية للمريض")")")")")")"></textarea>
+                                              placeholder="أدخل الشكوى الرئيسية للمريض"></textarea>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="history_of_present_illness">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ المرض الحالي")")")")")")")') }}</label>
+                                    <label for="history_of_present_illness">{{ _(_('تاريخ المرض الحالي')) }}</label>
                                     <textarea class="form-control" id="history_of_present_illness" name="history_of_present_illness" rows="3" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل تاريخ المرض الحالي")")")")")")"></textarea>
+                                              placeholder="أدخل تاريخ المرض الحالي"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -77,16 +77,16 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="physical_examination">{{ _('_("_(" _(" _(" _(" _(" _("الفحص السريري")")")")")")")') }}</label>
+                                    <label for="physical_examination">{{ _(_('الفحص السريري')) }}</label>
                                     <textarea class="form-control" id="physical_examination" name="physical_examination" rows="4" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل نتائج الفحص السريري")")")")")")"></textarea>
+                                              placeholder="أدخل نتائج الفحص السريري"></textarea>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="vital_signs">{{ _('_("_(" _(" _(" _(" _(" _("العلامات الحيوية")")")")")")")') }}</label>
+                                    <label for="vital_signs">{{ _(_('العلامات الحيوية')) }}</label>
                                     <textarea class="form-control" id="vital_signs" name="vital_signs" rows="4" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل العلامات الحيوية (ضغط الدم، النبض، الحرارة، إلخ)")")")")")")"></textarea>
+                                              placeholder="أدخل العلامات الحيوية (ضغط الدم، النبض، الحرارة، إلخ)"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -94,16 +94,16 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="diagnosis">{{ _('_("_(" _(" _(" _(" _(" _("التشخيص")")")")")")")') }}</label>
+                                    <label for="diagnosis">{{ _(_('التشخيص')) }}</label>
                                     <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل التشخيص النهائي")")")")")")"></textarea>
+                                              placeholder="أدخل التشخيص النهائي"></textarea>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="treatment_plan">{{ _('_("_(" _(" _(" _(" _(" _("خطة العلاج")")")")")")")') }}</label>
+                                    <label for="treatment_plan">{{ _(_('خطة العلاج')) }}</label>
                                     <textarea class="form-control" id="treatment_plan" name="treatment_plan" rows="3" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل خطة العلاج")")")")")")"></textarea>
+                                              placeholder="أدخل خطة العلاج"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -111,9 +111,9 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label for="recommendations">{{ _('_("_(" _(" _(" _(" _(" _("التوصيات")")")")")")")') }}</label>
+                                    <label for="recommendations">{{ _(_('التوصيات')) }}</label>
                                     <textarea class="form-control" id="recommendations" name="recommendations" rows="3" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل التوصيات للمريض")")")")")")"></textarea>
+                                              placeholder="أدخل التوصيات للمريض"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -121,14 +121,14 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label for="follow_up">{{ _('_("_(" _(" _(" _(" _(" _("موعد المتابعة")")")")")")")') }}</label>
+                                    <label for="follow_up">{{ _(_('موعد المتابعة')) }}</label>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <input type="date" class="form-control" id="follow_up_date" name="follow_up_date">
                                         </div>
                                         <div class="col-md-6">
                                             <input type="text" class="form-control" id="follow_up_notes" name="follow_up_notes" 
-                                                   placeholder="_(" _(" _(" _(" _(" _("ملاحظات المتابعة")")")")")")">
+                                                   placeholder="ملاحظات المتابعة">
                                         </div>
                                     </div>
                                 </div>
@@ -140,11 +140,11 @@
                             <div class="col-12 text-center">
                                 <button type="submit" class="btn btn-primary btn-lg">
                                     <i class="fas fa-save me-1"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("حفظ ملخص الزيارة")")")")")")")') }}
+                                    {{ _(_('حفظ ملخص الزيارة')) }}
                                 </button>
                                 <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-secondary btn-lg me-2">
                                     <i class="fas fa-arrow-right me-1"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("العودة للطابور")")")")")")")') }}
+                                    {{ _(_('العودة للطابور')) }}
                                 </a>
                             </div>
                         </div>

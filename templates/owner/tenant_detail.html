@@ -9,19 +9,19 @@
             <span class="badge bg-{{ 'success' if tenant.status.value=='active' else 'warning' if tenant.status.value=='pending' else 'danger' }}">{{ tenant.status.value }}</span>
         </div>
         <div class="col-auto d-flex gap-2 flex-wrap">
-            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editTenantModal"><i class="fas fa-edit me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تعديل بيانات العميل")")")")")")")') }}</button>
-            <a href="{{ url_for('owner.owner_tenant_usage', tenant_id=tenant.id) }}" class="btn btn-sm btn-outline-info"><i class="fas fa-chart-bar me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("استخدام الموارد")")")")")")")') }}</a>
-            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
+            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editTenantModal"><i class="fas fa-edit me-1"></i>{{ _(_('تعديل بيانات العميل')) }}</button>
+            <a href="{{ url_for('owner.owner_tenant_usage', tenant_id=tenant.id) }}" class="btn btn-sm btn-outline-info"><i class="fas fa-chart-bar me-1"></i>{{ _(_('استخدام الموارد')) }}</a>
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i>{{ _(_('العودة')) }}</a>
         </div>
     </div>
 
     <ul class="nav nav-tabs mb-3" id="tenantDetailTabs" role="tablist">
-        <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-general" type="button">{{ _('_("_(" _(" _(" _(" _(" _("عام")")")")")")")') }}</button></li>
-        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-subscription" type="button">{{ _('_("_(" _(" _(" _(" _(" _("اشتراك")")")")")")")') }}</button></li>
-        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-modules" type="button">{{ _('_("_(" _(" _(" _(" _(" _("وحدات")")")")")")")') }}</button></li>
-        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-limits" type="button">{{ _('_("_(" _(" _(" _(" _(" _("حدود")")")")")")")') }}</button></li>
-        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-features" type="button">{{ _('_("_(" _(" _(" _(" _(" _("ميزات")")")")")")")') }}</button></li>
-        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-users" type="button">{{ _('_("_(" _(" _(" _(" _(" _("مستخدمون")")")")")")")') }}</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-general" type="button">{{ _(_('عام')) }}</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-subscription" type="button">{{ _(_('اشتراك')) }}</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-modules" type="button">{{ _(_('وحدات')) }}</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-limits" type="button">{{ _(_('حدود')) }}</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-features" type="button">{{ _(_('ميزات')) }}</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-users" type="button">{{ _(_('مستخدمون')) }}</button></li>
     </ul>
 
     <div class="tab-content">
@@ -29,43 +29,43 @@
             <div class="row g-3">
                 <div class="col-lg-6">
                     <div class="card h-100">
-                        <div class="card-header fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("معلومات العميل")")")")")")")') }}</div>
+                        <div class="card-header fw-bold">{{ _(_('معلومات العميل')) }}</div>
                         <div class="card-body">
-                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الاسم:")")")")")")")') }}</strong> {{ tenant.name }}</p>
-                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الاسم العربي:")")")")")")")') }}</strong> {{ tenant.name_ar or '-' }}</p>
+                            <p><strong>{{ _(_('الاسم:')) }}</strong> {{ tenant.name }}</p>
+                            <p><strong>{{ _(_('الاسم العربي:')) }}</strong> {{ tenant.name_ar or '-' }}</p>
                             <p><strong>Slug:</strong> <code>{{ tenant.slug }}</code></p>
                             <p><strong>Domain:</strong> {{ tenant.domain or '-' }}</p>
                             <p><strong>Subdomain:</strong> {{ tenant.subdomain or '-' }}</p>
-                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("البريد:")")")")")")")') }}</strong> {{ tenant.contact_email }}</p>
-                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف:")")")")")")")') }}</strong> {{ tenant.contact_phone or '-' }}</p>
-                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الرقم الضريبي:")")")")")")")') }}</strong> {{ tenant.tax_number or '-' }}</p>
-                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("نوع العيادة:")")")")")")")') }}</strong> {{ tenant.product_profile_code or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</p>
-                            <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الباقة:")")")")")")")') }}</strong> {{ bundle_name or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</p>
+                            <p><strong>{{ _(_('البريد:')) }}</strong> {{ tenant.contact_email }}</p>
+                            <p><strong>{{ _(_('الهاتف:')) }}</strong> {{ tenant.contact_phone or '-' }}</p>
+                            <p><strong>{{ _(_('الرقم الضريبي:')) }}</strong> {{ tenant.tax_number or '-' }}</p>
+                            <p><strong>{{ _(_('نوع العيادة:')) }}</strong> {{ tenant.product_profile_code or _('غير محدد') }}</p>
+                            <p><strong>{{ _(_('الباقة:')) }}</strong> {{ bundle_name or _('غير محدد') }}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="card h-100">
-                        <div class="card-header fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("إجراءات")")")")")")")') }}</div>
+                        <div class="card-header fw-bold">{{ _(_('إجراءات')) }}</div>
                         <div class="card-body d-grid gap-2">
                             <form method="post" action="{{ url_for('owner.owner_renew_tenant', tenant_id=tenant.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-success btn-sm" title="">
-                                    {{ _('_("_(" _(" _(" _(" _(" _("تجديد الاشتراك")")")")")")")') }}
+                                    {{ _(_('تجديد الاشتراك')) }}
                                 </button>
                             </form>
                             {% if tenant.status.value != 'suspended' %}
                             <form method="post" action="{{ url_for('owner.owner_suspend_tenant', tenant_id=tenant.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-warning btn-sm" title="">
-                                    {{ _('_("_(" _(" _(" _(" _(" _("إيقاف مؤقت")")")")")")")') }}
+                                    {{ _(_('إيقاف مؤقت')) }}
                                 </button>
                             </form>
                             {% else %}
                             <form method="post" action="{{ url_for('owner.owner_activate_tenant', tenant_id=tenant.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-success btn-sm" title="">
-                                    {{ _('_("_(" _(" _(" _(" _(" _("تفعيل")")")")")")")') }}
+                                    {{ _(_('تفعيل')) }}
                                 </button>
                             </form>
                             {% endif %}
@@ -77,15 +77,15 @@
 
         <div class="tab-pane fade" id="tab-subscription">
             <div class="card">
-                <div class="card-header fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("الاشتراك")")")")")")")') }}</div>
+                <div class="card-header fw-bold">{{ _(_('الاشتراك')) }}</div>
                 <div class="card-body">
-                    <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("النوع:")")")")")")")') }}</strong> {{ tenant.subscription_type.value if tenant.subscription_type else '-' }}</p>
-                    <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الخطة:")")")")")")")') }}</strong> {{ tenant.plan.name if tenant.plan else '-' }}</p>
-                    <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("بداية:")")")")")")")') }}</strong> {{ tenant.subscription_start or '-' }}</p>
-                    <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("نهاية:")")")")")")")') }}</strong> {{ tenant.subscription_end or '-' }}</p>
-                    <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("فترة سماح:")")")")")")")') }}</strong> {{ tenant.grace_period_end or '-' }}</p>
-                    <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("نشط ومدفوع:")")")")")")")') }}</strong> {{ '_("_(" _(" _(" _(" _(" _("نعم")")")")")")")' if tenant.is_active_and_paid() else '_("_(" _(" _(" _(" _(" _("لا")")")")")")")' }}</p>
-                    <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("طريقة التخزين:")")")")")")")') }}</strong> {{ tenant.storage_mode.value }}</p>
+                    <p><strong>{{ _(_('النوع:')) }}</strong> {{ tenant.subscription_type.value if tenant.subscription_type else '-' }}</p>
+                    <p><strong>{{ _(_('الخطة:')) }}</strong> {{ tenant.plan.name if tenant.plan else '-' }}</p>
+                    <p><strong>{{ _(_('بداية:')) }}</strong> {{ tenant.subscription_start or '-' }}</p>
+                    <p><strong>{{ _(_('نهاية:')) }}</strong> {{ tenant.subscription_end or '-' }}</p>
+                    <p><strong>{{ _(_('فترة سماح:')) }}</strong> {{ tenant.grace_period_end or '-' }}</p>
+                    <p><strong>{{ _(_('نشط ومدفوع:')) }}</strong> {{ _('نعم') if tenant.is_active_and_paid() else _('لا') }}</p>
+                    <p><strong>{{ _(_('طريقة التخزين:')) }}</strong> {{ tenant.storage_mode.value }}</p>
                 </div>
             </div>
         </div>
@@ -93,10 +93,10 @@
         <div class="tab-pane fade" id="tab-modules">
             <div class="card">
                 <div class="card-header fw-bold d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-puzzle-piece me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("الوحدات")")")")")")")') }}</span>
+                    <span><i class="fas fa-puzzle-piece me-1"></i>{{ _(_('الوحدات')) }}</span>
                     <div class="d-flex gap-2 align-items-center">
-                        <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("اضغط للتفعيل/التعطيل")")")")")")")') }}</small>
-                        <a href="{{ url_for('owner.owner_activate_default_modules', tenant_id=tenant.id) }}" class="btn btn-sm btn-success" onclick="return confirm('_("_(" _(" _(" _(" _(" _("تفعيل جميع الوحدات الافتراضية لهذه الباقة؟")")")")")")")')"><i class="fas fa-play me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تفعيل الافتراضية")")")")")")")') }}</a>
+                        <small class="text-muted">{{ _(_('اضغط للتفعيل/التعطيل')) }}</small>
+                        <a href="{{ url_for('owner.owner_activate_default_modules', tenant_id=tenant.id) }}" class="btn btn-sm btn-success" onclick="return confirm(_('تفعيل جميع الوحدات الافتراضية لهذه الباقة؟'))"><i class="fas fa-play me-1"></i>{{ _(_('تفعيل الافتراضية')) }}</a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -112,7 +112,7 @@
                     </div>
                     {% if feature_flags %}
                     <hr>
-                    <h6 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("ميزات مفعّلة")")")")")")")') }}</h6>
+                    <h6 class="text-muted">{{ _(_('ميزات مفعّلة')) }}</h6>
                     <div class="d-flex flex-wrap gap-2">
                         {% for f in feature_flags %}
                         <span class="badge bg-info">{{ f.feature_key }}</span>
@@ -128,41 +128,41 @@
             <div class="row g-3">
                 <div class="col-md-3">
                     <div class="card text-center"><div class="card-body">
-                        <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("المستخدمون")")")")")")")') }}</small>
+                        <small class="text-muted">{{ _(_('المستخدمون')) }}</small>
                         <h4>{{ user_count }} / {{ bundle_limits.max_users or '∞' }}</h4>
                     </div></div>
                 </div>
                 <div class="col-md-3">
                     <div class="card text-center"><div class="card-body">
-                        <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("المرضى")")")")")")")') }}</small>
+                        <small class="text-muted">{{ _(_('المرضى')) }}</small>
                         <h4>{{ patient_count }} / {{ bundle_limits.max_patients or '∞' }}</h4>
                     </div></div>
                 </div>
                 <div class="col-md-3">
                     <div class="card text-center"><div class="card-body">
-                        <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("التخزين (GB)")")")")")")")') }}</small>
+                        <small class="text-muted">{{ _(_('التخزين (GB)')) }}</small>
                         <h4>{{ bundle_limits.storage_gb or '∞' }}</h4>
                     </div></div>
                 </div>
                 <div class="col-md-3">
                     <div class="card text-center"><div class="card-body">
-                        <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("API / شهر")")")")")")")') }}</small>
+                        <small class="text-muted">{{ _(_('API / شهر')) }}</small>
                         <h4>{{ bundle_limits.api_calls_per_month or '∞' }}</h4>
                     </div></div>
                 </div>
             </div>
             {% else %}
-            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا حدود باقة محددة لهذا العميل.")")")")")")")') }}</p>
+            <p class="text-muted">{{ _(_('لا حدود باقة محددة لهذا العميل.')) }}</p>
             {% endif %}
         </div>
 
         <div class="tab-pane fade" id="tab-features">
             <div class="card">
                 <div class="card-header fw-bold d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-flag me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("ميزات العميل (Feature Flags)")")")")")")")') }}</span>
-                    <form method="post" action="{{ url_for('owner.owner_toggle_tenant_feature', tenant_id=tenant.id, feature_key='__new__') }}" class="d-flex gap-2" onsubmit="event.preventDefault(); var key=prompt('_("_(" _(" _(" _(" _(" _("اسم الميزة الجديدة (بالإنجليزي):")")")")")")")'); if(key){ this.action=this.action.replace('__new__', key); this.submit(); }">
+                    <span><i class="fas fa-flag me-1"></i>{{ _(_('ميزات العميل (Feature Flags)')) }}</span>
+                    <form method="post" action="{{ url_for('owner.owner_toggle_tenant_feature', tenant_id=tenant.id, feature_key='__new__') }}" class="d-flex gap-2" onsubmit="event.preventDefault(); var key=prompt(_('اسم الميزة الجديدة (بالإنجليزي):')); if(key){ this.action=this.action.replace('__new__', key); this.submit(); }">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-plus me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("إضافة ميزة")")")")")")")') }}</button>
+                        <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-plus me-1"></i>{{ _(_('إضافة ميزة')) }}</button>
                     </form>
                 </div>
                 <div class="card-body">
@@ -174,19 +174,19 @@
                                 <div class="card-body d-flex justify-content-between align-items-center">
                                     <div>
                                         <h6 class="mb-1">{{ feature }}</h6>
-                                        <span class="badge bg-{{ 'success' if is_enabled else 'secondary' }}">{{ '_("_(" _(" _(" _(" _(" _("مفعّلة")")")")")")")' if is_enabled else '_("_(" _(" _(" _(" _(" _("معطّلة")")")")")")")' }}</span>
+                                        <span class="badge bg-{{ 'success' if is_enabled else 'secondary' }}">{{ _('مفعّلة') if is_enabled else _('معطّلة') }}</span>
                                     </div>
                                     <form method="post" action="{{ url_for('owner.owner_toggle_tenant_feature', tenant_id=tenant.id, feature_key=feature) }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn btn-sm {{ 'btn-outline-danger' if is_enabled else 'btn-outline-success' }}">
-                                            {{ '_("_(" _(" _(" _(" _(" _("إيقاف")")")")")")")' if is_enabled else '_("_(" _(" _(" _(" _(" _("تفعيل")")")")")")")' }}
+                                            {{ _('إيقاف') if is_enabled else _('تفعيل') }}
                                         </button>
                                     </form>
                                 </div>
                             </div>
                         </div>
                         {% else %}
-                        <div class="col-12"><p class="text-muted text-center py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا ميزات معرّفة")")")")")")")') }}</p></div>
+                        <div class="col-12"><p class="text-muted text-center py-3">{{ _(_('لا ميزات معرّفة')) }}</p></div>
                         {% endfor %}
                     </div>
                 </div>
@@ -197,7 +197,7 @@
             <div class="card">
                 <div class="card-header fw-bold d-flex justify-content-between align-items-center">
                     <span>المستخدمون ({{ user_count }})</span>
-                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addUserForm"><i class="fas fa-plus me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("إضافة مستخدم")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addUserForm"><i class="fas fa-plus me-1"></i>{{ _(_('إضافة مستخدم')) }}</button>
                 </div>
                 <div class="collapse p-3 border-bottom" id="addUserForm">
                     <form method="post" action="{{ url_for('owner.owner_tenant_detail', tenant_id=tenant.id) }}">
@@ -205,13 +205,13 @@
                         <input type="hidden" name="action" value="create_user">
                         <div class="row g-2">
                             <div class="col-md-3">
-                                <input type="text" name="username" class="form-control form-control-sm" placeholder="_(" _(" _(" _(" _(" _("اسم المستخدم")")")")")")" required>
+                                <input type="text" name="username" class="form-control form-control-sm" placeholder="اسم المستخدم" required>
                             </div>
                             <div class="col-md-3">
-                                <input type="password" name="password" class="form-control form-control-sm" placeholder="_(" _(" _(" _(" _(" _("كلمة المرور")")")")")")" required>
+                                <input type="password" name="password" class="form-control form-control-sm" placeholder="كلمة المرور" required>
                             </div>
                             <div class="col-md-3">
-                                <input type="text" name="full_name" class="form-control form-control-sm" placeholder="_(" _(" _(" _(" _(" _("الاسم الكامل")")")")")")">
+                                <input type="text" name="full_name" class="form-control form-control-sm" placeholder="الاسم الكامل">
                             </div>
                             <div class="col-md-3">
                                 <button type="submit" class="btn btn-sm btn-success w-100"><i class="fas fa-save me-1"></i>{{ _('حفظ') }}</button>
@@ -221,7 +221,7 @@
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-sm mb-0">
-                        <thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("اسم المستخدم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th></tr></thead>
+                        <thead><tr><th>#</th><th>{{ _(_('الاسم')) }}</th><th>{{ _(_('اسم المستخدم')) }}</th><th>{{ _(_('الدور')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('الإجراءات')) }}</th></tr></thead>
                         <tbody>
                         {% for u in tenant.users %}
                         <tr>
@@ -230,7 +230,7 @@
                             <td><code>{{ u.username }}</code></td>
                             <td><span class="badge bg-info">{{ u.role }}</span></td>
                             <td>
-                                {% if u.is_active %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span>{% else %}<span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</span>{% endif %}
+                                {% if u.is_active %}<span class="badge bg-success">{{ _(_('نشط')) }}</span>{% else %}<span class="badge bg-secondary">{{ _(_('معطل')) }}</span>{% endif %}
                             </td>
                             <td>
                                 <div class="d-flex gap-1 flex-wrap">
@@ -243,12 +243,12 @@
                                             data-active="{{ '1' if u.is_active else '0' }}"
                                             data-admin="{{ '1' if u.is_admin else '0' }}"
                                             data-bs-toggle="modal" data-bs-target="#editTenantUserModal">
-                                        <i class="fas fa-edit" title="_(" _(" _(" _(" _(" _("تعديل")")")")")")"></i>
+                                        <i class="fas fa-edit" title="تعديل"></i>
                                     </button>
                                     {% if u.role not in ('super_admin', 'owner') %}
                                     <form method="post" action="{{ url_for('owner.owner_toggle_user_active', user_id=u.id) }}" class="d-inline">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm {{ 'btn-outline-warning' if u.is_active else 'btn-outline-success' }}" title="{{ '_("_(" _(" _(" _(" _(" _("إيقاف")")")")")")")' if u.is_active else '_("_(" _(" _(" _(" _(" _("تفعيل")")")")")")")' }}">
+                                        <button type="submit" class="btn btn-sm {{ 'btn-outline-warning' if u.is_active else 'btn-outline-success' }}" title="{{ _('إيقاف') if u.is_active else _('تفعيل') }}">
                                             <i class="fas {{ 'fa-pause' if u.is_active else 'fa-play' }}"></i>
                                         </button>
                                     </form>
@@ -256,22 +256,22 @@
                                             data-id="{{ u.id }}"
                                             data-username="{{ u.username }}"
                                             data-bs-toggle="modal" data-bs-target="#resetTenantUserPwdModal">
-                                        <i class="fas fa-key" title="_(" _(" _(" _(" _(" _("تعيين كلمة مرور")")")")")")"></i>
+                                        <i class="fas fa-key" title="تعيين كلمة مرور"></i>
                                     </button>
-                                    <form method="post" action="{{ url_for('owner.owner_reveal_user_password', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("سيتم إعادة تعيين كلمة المرور وعرضها. متأكد؟")")")")")")")')">
+                                    <form method="post" action="{{ url_for('owner.owner_reveal_user_password', user_id=u.id) }}" class="d-inline" onsubmit="return confirm(_('سيتم إعادة تعيين كلمة المرور وعرضها. متأكد؟'))">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-info" title="_(" _(" _(" _(" _(" _("كشف كلمة المرور")")")")")")"><i class="fas fa-eye"></i></button>
+                                        <button type="submit" class="btn btn-sm btn-outline-info" title="كشف كلمة المرور"><i class="fas fa-eye"></i></button>
                                     </form>
                                     <form method="post" action="{{ url_for('owner.owner_delete_user', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('تأكيد حذف {{ u.username }}؟');">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="_(" _(" _(" _(" _(" _("حذف")")")")")")"><i class="fas fa-trash"></i></button>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف"><i class="fas fa-trash"></i></button>
                                     </form>
                                     {% endif %}
                                 </div>
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="6" class="text-muted text-center py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا مستخدمين")")")")")")")') }}</td></tr>
+                        <tr><td colspan="6" class="text-muted text-center py-3">{{ _(_('لا مستخدمين')) }}</td></tr>
                         {% endfor %}
                         </tbody>
                     </table>
@@ -288,41 +288,41 @@
             <form method="post" action="{{ url_for('owner.owner_edit_tenant', tenant_id=tenant.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تعديل بيانات العميل")")")")")")")') }}</h5>
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>{{ _(_('تعديل بيانات العميل')) }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم (إنجليزي) *")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الاسم (إنجليزي) *')) }}</label>
                             <input type="text" name="name" class="form-control" value="{{ tenant.name }}" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم (عربي)")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الاسم (عربي)')) }}</label>
                             <input type="text" name="name_ar" class="form-control" value="{{ tenant.name_ar or '' }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("البريد الإلكتروني")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('البريد الإلكتروني')) }}</label>
                             <input type="email" name="contact_email" class="form-control" value="{{ tenant.contact_email or '' }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الهاتف')) }}</label>
                             <input type="text" name="contact_phone" class="form-control" value="{{ tenant.contact_phone or '' }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الرقم الضريبي")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الرقم الضريبي')) }}</label>
                             <input type="text" name="tax_number" class="form-control" value="{{ tenant.tax_number or '' }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("النطاق (Domain)")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('النطاق (Domain)')) }}</label>
                             <input type="text" name="domain" class="form-control" value="{{ tenant.domain or '' }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("النطاق الفرعي (Subdomain)")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('النطاق الفرعي (Subdomain)')) }}</label>
                             <input type="text" name="subdomain" class="form-control" value="{{ tenant.subdomain or '' }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع التخزين")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('نوع التخزين')) }}</label>
                             <select name="storage_mode" class="form-select">
                                 {% for sm in ['shared','dedicated','hybrid'] %}
                                 <option value="{{ sm }}" {{ 'selected' if tenant.storage_mode.value == sm else '' }}>{{ sm }}</option>
@@ -330,18 +330,18 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الباقة")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الباقة')) }}</label>
                             <select name="product_profile_code" class="form-select">
-                                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("-- بدون باقة --")")")")")")")') }}</option>
+                                <option value="">{{ _(_('-- بدون باقة --')) }}</option>
                                 {% for b in bundles %}
                                 <option value="{{ b.profile_code }}" {{ 'selected' if tenant.product_profile_code == b.profile_code else '' }}>{{ b.name_ar or b.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("خطة الاشتراك")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('خطة الاشتراك')) }}</label>
                             <select name="plan_id" class="form-select">
-                                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("-- بدون خطة --")")")")")")")') }}</option>
+                                <option value="">{{ _(_('-- بدون خطة --')) }}</option>
                                 {% for p in plans %}
                                 <option value="{{ p.id }}" {{ 'selected' if tenant.plan_id == p.id else '' }}>{{ p.name }} ({{ p.base_price }} {{ p.currency }})</option>
                                 {% endfor %}
@@ -350,8 +350,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("حفظ التعديلات")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>{{ _(_('حفظ التعديلات')) }}</button>
                 </div>
             </form>
         </div>
@@ -364,46 +364,46 @@
             <form method="post" id="editTenantUserForm" action="">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تعديل مستخدم")")")")")")")') }}</h5>
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>{{ _(_('تعديل مستخدم')) }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم المستخدم")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('اسم المستخدم')) }}</label>
                             <input type="text" name="username" id="teuUsername" class="form-control" readonly>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم الكامل")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الاسم الكامل')) }}</label>
                             <input type="text" name="full_name" id="teuFullName" class="form-control">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("البريد الإلكتروني")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('البريد الإلكتروني')) }}</label>
                             <input type="email" name="email" id="teuEmail" class="form-control">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الدور')) }}</label>
                             <input type="text" name="role" id="teuRole" class="form-control">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الحالة')) }}</label>
                             <select name="is_active" id="teuActive" class="form-select">
-                                <option value="1">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</option>
-                                <option value="0">{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</option>
+                                <option value="1">{{ _(_('نشط')) }}</option>
+                                <option value="0">{{ _(_('معطل')) }}</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("أدمن")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('أدمن')) }}</label>
                             <select name="is_admin" id="teuAdmin" class="form-select">
-                                <option value="1">{{ _('_("_(" _(" _(" _(" _(" _("نعم")")")")")")")') }}</option>
-                                <option value="0"_(" _(" _(" _(" _(" _(">لا</option>
+                                <option value="1">{{ _(_('نعم')) }}</option>
+                                <option value="0">لا</option>
                             </select>
                         </div>
                     </div>
                 </div>
-                <div class=")")")")")")"modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>{{ _(_('حفظ')) }}</button>
                 </div>
             </form>
         </div>
@@ -418,20 +418,20 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="user_id" id="rtuUserId" value="">
                 <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تعيين كلمة مرور")")")")")")")') }}</h5>
+                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>{{ _(_('تعيين كلمة مرور')) }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small" id="rtuUserLabel"></p>
                     <div class="mb-3">
-                        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("كلمة المرور الجديدة (6 أحرف على الأقل)")")")")")")")') }}</label>
-                        <input type="text" name="password" id="rtuPassword" class="form-control" required minlength="6" placeholder="_(" _(" _(" _(" _(" _("اترك فارغاً لتوليد تلقائي")")")")")")">
-                        <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("يمكن ترك الحقل فارغاً لتوليد كلمة مرور عشوائية")")")")")")")') }}</small>
+                        <label class="form-label">{{ _(_('كلمة المرور الجديدة (6 أحرف على الأقل)')) }}</label>
+                        <input type="text" name="password" id="rtuPassword" class="form-control" required minlength="6" placeholder="اترك فارغاً لتوليد تلقائي">
+                        <small class="text-muted">{{ _(_('يمكن ترك الحقل فارغاً لتوليد كلمة مرور عشوائية')) }}</small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تعيين")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>{{ _(_('تعيين')) }}</button>
                 </div>
             </form>
         </div>

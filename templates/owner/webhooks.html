@@ -5,10 +5,10 @@
 {% block header_actions %}
 <div class="d-flex gap-2">
     <a href="{{ url_for('owner.owner_api_keys_page') }}" class="owner-btn owner-btn-outline-primary">
-        <i class="fas fa-key"></i> {{ _('_("_(" _(" _(" _(" _(" _("إدارة مفاتيح API")")")")")")")') }}
+        <i class="fas fa-key"></i> {{ _(_('إدارة مفاتيح API')) }}
     </a>
     <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
-        <i class="fas fa-arrow-right"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة للوحة التحكم")")")")")")")') }}
+        <i class="fas fa-arrow-right"></i> {{ _(_('العودة للوحة التحكم')) }}
     </a>
 </div>
 {% endblock %}
@@ -21,9 +21,9 @@
             <i class="fas fa-plug fa-lg"></i>
         </div>
         <div>
-            <h6 class="fw-bold mb-1">{{ _('_("_(" _(" _(" _(" _(" _("ما هي نقاط الـ Webhook؟")")")")")")")') }}</h6>
+            <h6 class="fw-bold mb-1">{{ _(_('ما هي نقاط الـ Webhook؟')) }}</h6>
             <p class="text-muted small mb-0">
-                {{ _('_("_(" _(" _(" _(" _(" _("تسمح لك نقاط الـ Webhook بإرسال تنبيهات تلقائية مشفرة فورا إلى الخوادم الخارجية بمجرد حدوث أفعال معينة في المنصة (مثل إنشاء عميل جديد أو تجديد اشتراك).")")")")")")")') }}
+                {{ _(_('تسمح لك نقاط الـ Webhook بإرسال تنبيهات تلقائية مشفرة فورا إلى الخوادم الخارجية بمجرد حدوث أفعال معينة في المنصة (مثل إنشاء عميل جديد أو تجديد اشتراك).')) }}
             </p>
         </div>
     </div>
@@ -37,7 +37,7 @@
             <div class="owner-card-header">
                 <h6 class="owner-card-title">
                     <i class="fas fa-plus-circle text-primary me-2"></i>
-                    {{ _('_("_(" _(" _(" _(" _(" _("إضافةWebhook جديد")")")")")")")') }}
+                    {{ _(_('إضافةWebhook جديد')) }}
                 </h6>
             </div>
             <div class="owner-card-body">
@@ -45,33 +45,33 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     
                     <div class="owner-form-group">
-                        <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم المعرف")")")")")")")') }}</label>
-                        <input type="text" name="name" class="owner-input" placeholder="_(" _(" _(" _(" _(" _("e.g. نظام محاسبة خارجي")")")")")")" required>
+                        <label class="owner-form-label">{{ _(_('الاسم المعرف')) }}</label>
+                        <input type="text" name="name" class="owner-input" placeholder="e.g. نظام محاسبة خارجي" required>
                     </div>
 
                     <div class="owner-form-group">
-                        <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("رابط استقبال البيانات (URL)")")")")")")")') }}</label>
+                        <label class="owner-form-label">{{ _(_('رابط استقبال البيانات (URL)')) }}</label>
                         <input type="url" name="url" class="owner-input" placeholder="https://api.example.com/webhooks" required>
                     </div>
 
                     <div class="owner-form-group">
-                        <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("الأحداث المستهدفة (Events)")")")")")")")') }}</label>
-                        <input type="text" name="events" class="owner-input" placeholder="_(" _(" _(" _(" _(" _("مثال: tenant.created, subscription.renewed")")")")")")">
+                        <label class="owner-form-label">{{ _(_('الأحداث المستهدفة (Events)')) }}</label>
+                        <input type="text" name="events" class="owner-input" placeholder="مثال: tenant.created, subscription.renewed">
                         <div class="mt-2 text-muted x-small">
-                            <i class="fas fa-info-circle me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("افصل بين الأحداث بفاصلة، أو اتركها فارغة للاستماع لكافة الأحداث.")")")")")")")') }}
+                            <i class="fas fa-info-circle me-1"></i> {{ _(_('افصل بين الأحداث بفاصلة، أو اتركها فارغة للاستماع لكافة الأحداث.')) }}
                         </div>
                     </div>
 
                     <div class="owner-form-group">
-                        <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("مفتاح التوقيع السري (Secret Key)")")")")")")")') }}</label>
+                        <label class="owner-form-label">{{ _(_('مفتاح التوقيع السري (Secret Key)')) }}</label>
                         <input type="text" name="secret" class="owner-input" placeholder="whsec_...">
                         <div class="mt-2 text-muted x-small">
-                            <i class="fas fa-lock me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("يستخدم لتوقيع الحمولة والتحقق من موثوقية الرسالة المستلمة.")")")")")")")') }}
+                            <i class="fas fa-lock me-1"></i> {{ _(_('يستخدم لتوقيع الحمولة والتحقق من موثوقية الرسالة المستلمة.')) }}
                         </div>
                     </div>
 
                     <button type="submit" class="owner-btn owner-btn-success w-100 mt-4">
-                        <i class="fas fa-check-circle me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("إضافة نقطة النهاية")")")")")")")') }}
+                        <i class="fas fa-check-circle me-2"></i> {{ _(_('إضافة نقطة النهاية')) }}
                     </button>
                 </form>
             </div>
@@ -84,7 +84,7 @@
             <div class="owner-card-header">
                 <h6 class="owner-card-title">
                     <i class="fas fa-list-ul text-success me-2"></i>
-                    {{ _('_("_(" _(" _(" _(" _(" _("قائمة الـ Webhooks النشطة")")")")")")")') }}
+                    {{ _(_('قائمة الـ Webhooks النشطة')) }}
                 </h6>
                 <span class="badge bg-success-light text-success x-small">{{ webhooks|length }} نقطة نشطة</span>
             </div>
@@ -92,10 +92,10 @@
                 <table class="owner-table mb-0">
                     <thead>
                         <tr>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم المعرف")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("رابط الاستقبال")")")")")")")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الأحداث")")")")")")")') }}</th>
-                            <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
+                            <th>{{ _(_('الاسم المعرف')) }}</th>
+                            <th>{{ _(_('رابط الاستقبال')) }}</th>
+                            <th>{{ _(_('الأحداث')) }}</th>
+                            <th class="text-end">{{ _(_('الإجراءات')) }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -114,14 +114,14 @@
                                         <span class="badge bg-light text-dark border x-small">{{ ev.strip() }}</span>
                                         {% endfor %}
                                     {% else %}
-                                        <span class="badge bg-info-light text-info x-small">{{ _('_("_(" _(" _(" _(" _(" _("كل الأحداث")")")")")")")') }}</span>
+                                        <span class="badge bg-info-light text-info x-small">{{ _(_('كل الأحداث')) }}</span>
                                     {% endif %}
                                 </div>
                             </td>
                             <td class="text-end">
-                                <form method="post" action="{{ url_for('owner.owner_delete_webhook', webhook_id=w.id) }}" class="d-inline" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("⚠️ هل أنت متأكد من حذف نقطة الـ Webhook هذه؟ سيتوقف نقل البيانات التلقائي للرابط المذكور فوراً.")")")")")")")');">
+                                <form method="post" action="{{ url_for('owner.owner_delete_webhook', webhook_id=w.id) }}" class="d-inline" onsubmit="return confirm(_('⚠️ هل أنت متأكد من حذف نقطة الـ Webhook هذه؟ سيتوقف نقل البيانات التلقائي للرابط المذكور فوراً.'));">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="_(" _(" _(" _(" _(" _("حذف الـ Webhook")")")")")")">
+                                    <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="حذف الـ Webhook">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>
@@ -131,8 +131,8 @@
                         <tr>
                             <td colspan="4" class="owner-empty py-5">
                                 <i class="fas fa-plug fa-3x text-muted opacity-25"></i>
-                                <h5 class="mt-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد نقاط Webhook مسجّلة")")")")")")")') }}</h5>
-                                <p class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("استخدم النموذج الجانبي لإضافة أول نقطة ربط خارجي.")")")")")")")') }}</p>
+                                <h5 class="mt-3">{{ _(_('لا توجد نقاط Webhook مسجّلة')) }}</h5>
+                                <p class="small text-muted">{{ _(_('استخدم النموذج الجانبي لإضافة أول نقطة ربط خارجي.')) }}</p>
                             </td>
                         </tr>
                         {% endfor %}

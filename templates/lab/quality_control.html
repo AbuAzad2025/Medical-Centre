@@ -3,57 +3,57 @@
 {% block title %}ضبط جودة المختبر{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("ضبط جودة المختبر")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("تسجيل قراءات QC ومتابعتها")")")")")")")', icon='fas fa-sliders-h', actions=[
-      {'label': '_("_(" _(" _(" _(" _(" _("مؤشرات الجودة")")")")")")")', 'icon': 'fas fa-shield-alt', 'url': url_for('lab.quality'), 'style': 'outline-primary'},
-      {'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('lab.dashboard'), 'style': 'secondary'}
+  {{ page_header(_('ضبط جودة المختبر'), subtitle=_('تسجيل قراءات QC ومتابعتها'), icon='fas fa-sliders-h', actions=[
+      {'label': _('مؤشرات الجودة'), 'icon': 'fas fa-shield-alt', 'url': url_for('lab.quality'), 'style': 'outline-primary'},
+      {'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'url': url_for('lab.dashboard'), 'style': 'secondary'}
   ]) }}
 
   <div class="card shadow mb-4">
-    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("إضافة سجل")")")")")")")') }}</div>
+    <div class="card-header">{{ _(_('إضافة سجل')) }}</div>
     <div class="card-body">
       <form method="POST" class="row g-3">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="col-md-2">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("كود التحليل")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('كود التحليل')) }}</label>
           <input class="form-control" name="test_code" required>
         </div>
         <div class="col-md-3">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم التحليل")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('اسم التحليل')) }}</label>
           <input class="form-control" name="test_name">
         </div>
         <div class="col-md-2">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المستوى")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('المستوى')) }}</label>
           <select class="form-select" name="control_level">
-            <option value="LOW">{{ _('_("_(" _(" _(" _(" _(" _("منخفض")")")")")")")') }}</option>
-            <option value="NORMAL" selected>{{ _('_("_(" _(" _(" _(" _(" _("طبيعي")")")")")")")') }}</option>
-            <option value="HIGH">{{ _('_("_(" _(" _(" _(" _(" _("مرتفع")")")")")")")') }}</option>
+            <option value="LOW">{{ _(_('منخفض')) }}</option>
+            <option value="NORMAL" selected>{{ _(_('طبيعي')) }}</option>
+            <option value="HIGH">{{ _(_('مرتفع')) }}</option>
           </select>
         </div>
         <div class="col-md-2">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القراءة")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('القراءة')) }}</label>
           <input class="form-control" name="measured_value" required>
         </div>
         <div class="col-md-1">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوحدة")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('الوحدة')) }}</label>
           <input class="form-control" name="unit">
         </div>
         <div class="col-md-2">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المدى المتوقع")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('المدى المتوقع')) }}</label>
           <input class="form-control" name="expected_range">
         </div>
         <div class="col-md-2">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("النتيجة")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('النتيجة')) }}</label>
           <select class="form-select" name="status">
-            <option value="PASS" selected>{{ _('_("_(" _(" _(" _(" _(" _("مطابق")")")")")")")') }}</option>
-            <option value="FAIL">{{ _('_("_(" _(" _(" _(" _(" _("غير مطابق")")")")")")")') }}</option>
+            <option value="PASS" selected>{{ _(_('مطابق')) }}</option>
+            <option value="FAIL">{{ _(_('غير مطابق')) }}</option>
           </select>
         </div>
         <div class="col-md-10">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('ملاحظات')) }}</label>
           <input class="form-control" name="notes">
         </div>
         <div class="col-12 d-flex justify-content-end">
-          <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+          <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>{{ _(_('حفظ')) }}</button>
         </div>
       </form>
     </div>
@@ -66,13 +66,13 @@
         <table class="table table-striped align-middle">
           <thead>
             <tr>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الكود")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("المستوى")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("القراءة")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("المدى")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+              <th>{{ _(_('التاريخ')) }}</th>
+              <th>{{ _(_('الكود')) }}</th>
+              <th>{{ _(_('الاسم')) }}</th>
+              <th>{{ _(_('المستوى')) }}</th>
+              <th>{{ _(_('القراءة')) }}</th>
+              <th>{{ _(_('المدى')) }}</th>
+              <th>{{ _(_('الحالة')) }}</th>
             </tr>
           </thead>
           <tbody>
@@ -93,7 +93,7 @@
                 </td>
               </tr>
             {% else %}
-              <tr><td colspan="7" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد سجلات")")")")")")")') }}</td></tr>
+              <tr><td colspan="7" class="text-center text-muted">{{ _(_('لا توجد سجلات')) }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

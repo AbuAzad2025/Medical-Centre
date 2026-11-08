@@ -2,12 +2,12 @@
 {% block title %}طرق الدفع{% endblock %}
 {% block content %}
 <div class="container">
-  <h2 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("طرق الدفع")")")")")")")') }}</h2>
+  <h2 class="mb-3">{{ _(_('طرق الدفع')) }}</h2>
   <ul class="list-group">
     {% for m in methods or [] %}
     <li class="list-group-item">{{ m }}</li>
     {% else %}
-    <li class="list-group-item">{{ _('_("_(" _(" _(" _(" _(" _("لا طرق")")")")")")")') }}</li>
+    <li class="list-group-item">{{ _(_('لا طرق')) }}</li>
     {% endfor %}
   </ul>
 </div>

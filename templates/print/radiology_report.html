@@ -7,49 +7,49 @@
 
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>{{ _('رقم الطلب:') }}</strong> {{ radiology_result.request.request_number if radiology_result.request else '—' }}</span>
-<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ التقرير:")")")")")")")') }}</strong> {{ radiology_result.created_at.strftime('%Y-%m-%d %H:%M') if radiology_result.created_at else '—' }}</span>
-<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong> {{ radiology_result.status | enum_label('OrderState') if radiology_result.status else '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _(_('تاريخ التقرير:')) }}</strong> {{ radiology_result.created_at.strftime('%Y-%m-%d %H:%M') if radiology_result.created_at else '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _(_('الحالة:')) }}</strong> {{ radiology_result.status | enum_label('OrderState') if radiology_result.status else '—' }}</span>
 {% endblock %}
 
 {% block subject_strip %}
 <div class="print-subject-strip__grid">
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</span><span>{{ radiology_result.patient.full_name }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الهوية")")")")")")")') }}</span><span>{{ radiology_result.patient.national_id or '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("نوع الفحص")")")")")")")') }}</span><span>{{ radiology_result.request.modality if radiology_result.request else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("المنطقة")")")")")")")') }}</span><span>{{ radiology_result.request.body_part if radiology_result.request else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب المشرف")")")")")")")') }}</span><span>{{ radiology_result.request.requester.full_name if radiology_result.request and radiology_result.request.requester else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الفني")")")")")")")') }}</span><span>{{ radiology_result.performer.full_name if radiology_result.performer else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('المريض')) }}</span><span>{{ radiology_result.patient.full_name }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الهوية')) }}</span><span>{{ radiology_result.patient.national_id or '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('نوع الفحص')) }}</span><span>{{ radiology_result.request.modality if radiology_result.request else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('المنطقة')) }}</span><span>{{ radiology_result.request.body_part if radiology_result.request else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الطبيب المشرف')) }}</span><span>{{ radiology_result.request.requester.full_name if radiology_result.request and radiology_result.request.requester else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الفني')) }}</span><span>{{ radiology_result.performer.full_name if radiology_result.performer else '—' }}</span></div>
 </div>
 {% endblock %}
 
 {% block body %}
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("النتائج والملاحظات")")")")")")")') }}</h3>
-    <div class="ws-pre-line">{{ radiology_result.findings or '_("_(" _(" _(" _(" _(" _("لم يتم تحديد النتائج بعد")")")")")")")' }}</div>
+    <h3 class="print-section__title">{{ _(_('النتائج والملاحظات')) }}</h3>
+    <div class="ws-pre-line">{{ radiology_result.findings or _('لم يتم تحديد النتائج بعد') }}</div>
 </div>
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("الانطباع والتشخيص")")")")")")")') }}</h3>
-    <div class="ws-pre-line">{{ radiology_result.impression or '_("_(" _(" _(" _(" _(" _("لم يتم تحديد الانطباع بعد")")")")")")")' }}</div>
+    <h3 class="print-section__title">{{ _(_('الانطباع والتشخيص')) }}</h3>
+    <div class="ws-pre-line">{{ radiology_result.impression or _('لم يتم تحديد الانطباع بعد') }}</div>
 </div>
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("التوصيات")")")")")")")') }}</h3>
-    <div class="ws-pre-line">{{ radiology_result.notes or '_("_(" _(" _(" _(" _(" _("لا توجد توصيات إضافية")")")")")")")' }}</div>
+    <h3 class="print-section__title">{{ _(_('التوصيات')) }}</h3>
+    <div class="ws-pre-line">{{ radiology_result.notes or _('لا توجد توصيات إضافية') }}</div>
 </div>
 {% endblock %}
 
 {% block signatures %}
 <div class="print-signature-box">
     <div class="print-signature-line"></div>
-    <div class="print-signature-label">{{ _('_("_(" _(" _(" _(" _(" _("توقيع الطبيب المشرف")")")")")")")') }}</div>
+    <div class="print-signature-label">{{ _(_('توقيع الطبيب المشرف')) }}</div>
 </div>
 <div class="print-signature-box">
     <div class="print-signature-line"></div>
-    <div class="print-signature-label">{{ _('_("_(" _(" _(" _(" _(" _("ختم المركز")")")")")")")') }}</div>
+    <div class="print-signature-label">{{ _(_('ختم المركز')) }}</div>
 </div>
 {% endblock %}
 
 {% block legal_footer %}
-<p><strong>{{ _('_("_(" _(" _(" _(" _(" _("هذا التقرير صالح للاستخدام الطبي")")")")")")")') }}</strong></p>
+<p><strong>{{ _(_('هذا التقرير صالح للاستخدام الطبي')) }}</strong></p>
 <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
 {% endblock %}
 

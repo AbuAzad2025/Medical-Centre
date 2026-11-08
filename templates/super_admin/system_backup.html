@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("النسخ الاحتياطية")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة شاملة للنسخ الاحتياطية")")")")")")")', icon='fas fa-archive', actions=[
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("إنشاء نسخة احتياطية")")")")")")")', 'icon': 'fas fa-plus', 'data_action': 'create-backup', 'style': 'primary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("جدولة نسخة احتياطية")")")")")")")', 'icon': 'fas fa-clock', 'data_action': 'schedule-backup', 'style': 'success'}
+    {{ page_header(_('النسخ الاحتياطية'), subtitle=_('إدارة شاملة للنسخ الاحتياطية'), icon='fas fa-archive', actions=[
+        {'type': 'button', 'label': _('إنشاء نسخة احتياطية'), 'icon': 'fas fa-plus', 'data_action': 'create-backup', 'style': 'primary'},
+        {'type': 'button', 'label': _('جدولة نسخة احتياطية'), 'icon': 'fas fa-clock', 'data_action': 'schedule-backup', 'style': 'success'}
     ]) }}
 
     <!-- Backup Status -->
@@ -18,7 +18,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("إجمالي النسخ")")")")")")")') }}
+                                {{ _(_('إجمالي النسخ')) }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">24</div>
                         </div>
@@ -36,7 +36,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("آخر نسخة احتياطية")")")")")")")') }}
+                                {{ _(_('آخر نسخة احتياطية')) }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ stats.last_backup if stats and stats.last_backup else '—' }}</div>
                         </div>
@@ -54,7 +54,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-info text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("المساحة المستخدمة")")")")")")")') }}
+                                {{ _(_('المساحة المستخدمة')) }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ stats.size if stats and stats.size is not none else 0 }} GB</div>
                         </div>
@@ -72,7 +72,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("وتيرة النسخ الاحتياطي")")")")")")")') }}
+                                {{ _(_('وتيرة النسخ الاحتياطي')) }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ settings.frequency if settings and settings.frequency else '—' }}</div>
                         </div>
@@ -90,32 +90,32 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إجراءات النسخ الاحتياطية")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('إجراءات النسخ الاحتياطية')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-primary w-100" data-action="create-full-backup">
                                 <i class="fas fa-database me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("نسخة احتياطية كاملة")")")")")")")') }}
+                                {{ _(_('نسخة احتياطية كاملة')) }}
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-info w-100" data-action="create-incremental-backup">
                                 <i class="fas fa-plus-circle me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("نسخة احتياطية تدريجية")")")")")")")') }}
+                                {{ _(_('نسخة احتياطية تدريجية')) }}
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-warning w-100" data-action="create-database-backup">
                                 <i class="fas fa-table me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("نسخة احتياطية لقاعدة البيانات")")")")")")")') }}
+                                {{ _(_('نسخة احتياطية لقاعدة البيانات')) }}
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-success w-100" data-action="create-files-backup">
                                 <i class="fas fa-folder me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("نسخة احتياطية للملفات")")")")")")")') }}
+                                {{ _(_('نسخة احتياطية للملفات')) }}
                             </button>
                         </div>
                     </div>
@@ -129,12 +129,12 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("قائمة النسخ الاحتياطية")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('قائمة النسخ الاحتياطية')) }}</h6>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" data-action="filter-backups" data-value="all">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</button>
-                        <button class="btn btn-sm btn-outline-success" data-action="filter-backups" data-value="completed">{{ _('_("_(" _(" _(" _(" _(" _("مكتملة")")")")")")")') }}</button>
-                        <button class="btn btn-sm btn-outline-warning" data-action="filter-backups" data-value="in_progress">{{ _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")') }}</button>
-                        <button class="btn btn-sm btn-outline-danger" data-action="filter-backups" data-value="failed">{{ _('_("_(" _(" _(" _(" _(" _("فاشلة")")")")")")")') }}</button>
+                        <button class="btn btn-sm btn-outline-primary" data-action="filter-backups" data-value="all">{{ _(_('الكل')) }}</button>
+                        <button class="btn btn-sm btn-outline-success" data-action="filter-backups" data-value="completed">{{ _(_('مكتملة')) }}</button>
+                        <button class="btn btn-sm btn-outline-warning" data-action="filter-backups" data-value="in_progress">{{ _(_('قيد التنفيذ')) }}</button>
+                        <button class="btn btn-sm btn-outline-danger" data-action="filter-backups" data-value="failed">{{ _(_('فاشلة')) }}</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -142,13 +142,13 @@
                         <table class="table table-bordered" id="backupsTable">
                             <thead>
                                 <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("اسم النسخة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحجم")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("المدة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
+                                    <th>{{ _(_('اسم النسخة')) }}</th>
+                                    <th>{{ _(_('النوع')) }}</th>
+                                    <th>{{ _(_('التاريخ')) }}</th>
+                                    <th>{{ _(_('الحجم')) }}</th>
+                                    <th>{{ _(_('الحالة')) }}</th>
+                                    <th>{{ _(_('المدة')) }}</th>
+                                    <th>{{ _(_('الإجراءات')) }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -170,7 +170,7 @@
                                     <td>{{ (backup.backup_size / 1024 / 1024)|round(2) }} MB</td>
                                     <td>
                                         <span class="badge bg-{{ 'success' if backup.backup_status == 'COMPLETED' else 'danger' if backup.backup_status == 'FAILED' else 'warning' }}">
-                                            {{ '_("_(" _(" _(" _(" _(" _("مكتملة")")")")")")")' if backup.backup_status == 'COMPLETED' else '_("_(" _(" _(" _(" _(" _("فاشلة")")")")")")")' if backup.backup_status == 'FAILED' else '_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")' }}
+                                            {{ _('مكتملة') if backup.backup_status == 'COMPLETED' else _('فاشلة') if backup.backup_status == 'FAILED' else _('قيد التنفيذ') }}
                                         </span>
                                     </td>
                                     <td>
@@ -187,17 +187,17 @@
                 </td>
                 <td>
                     <div class="btn-group" role="group">
-                        <a href="{{ url_for('backup.download_backup', backup_id=backup.id) }}" class="btn btn-sm btn-outline-success" title="_(" _(" _(" _(" _(" _("تحميل")")")")")")">
+                        <a href="{{ url_for('backup.download_backup', backup_id=backup.id) }}" class="btn btn-sm btn-outline-success" title="تحميل">
                             <i class="fas fa-download"></i> <span class="btn-label">{{ _('تصدير') }}</span>
                         </a>
-                        <button class="btn btn-sm btn-outline-info" data-action="restoreBackup" data-value="{{ backup.id }}" title="_(" _(" _(" _(" _(" _("استعادة")")")")")")">
+                        <button class="btn btn-sm btn-outline-info" data-action="restoreBackup" data-value="{{ backup.id }}" title="استعادة">
                             <i class="fas fa-undo"></i> <span class="btn-label">{{ _('تراجع') }}</span>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" data-action="deleteBackup" data-value="{{ backup.id }}" title="_(" _(" _(" _(" _(" _("حذف")")")")")")">
+                        <button class="btn btn-sm btn-outline-danger" data-action="deleteBackup" data-value="{{ backup.id }}" title="حذف">
                             <i class="fas fa-trash"></i> <span class="btn-label">{{ _('حذف') }}</span>
                         </button>
                         {% if backup.backup_status == 'FAILED' %}
-                        <button class="btn btn-sm btn-outline-warning" data-action="retryBackup" data-value="{{ backup.backup_type }}" title="_(" _(" _(" _(" _(" _("إعادة المحاولة")")")")")")">
+                        <button class="btn btn-sm btn-outline-warning" data-action="retryBackup" data-value="{{ backup.backup_type }}" title="إعادة المحاولة">
                             <i class="fas fa-redo"></i> <span class="btn-label">{{ _('إعادة') }}</span>
                         </button>
                         {% endif %}
@@ -206,7 +206,7 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="7" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد نسخ احتياطية")")")")")")")') }}</td>
+                                    <td colspan="7" class="text-center">{{ _(_('لا توجد نسخ احتياطية')) }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -222,24 +222,24 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إعدادات النسخ الاحتياطية")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('إعدادات النسخ الاحتياطية')) }}</h6>
                 </div>
                 <div class="card-body">
                     <form id="backupSettingsForm">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="backup_frequency" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تكرار النسخ الاحتياطية")")")")")")")') }}</label>
+                                    <label for="backup_frequency" class="form-label">{{ _(_('تكرار النسخ الاحتياطية')) }}</label>
                                     <select class="form-control" id="backup_frequency" name="backup_frequency">
-                                        <option value="daily" {% if settings.frequency == 'daily' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("يومي")")")")")")")') }}</option>
-                                        <option value="weekly" {% if settings.frequency == 'weekly' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("أسبوعي")")")")")")")') }}</option>
-                                        <option value="monthly" {% if settings.frequency == 'monthly' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("شهري")")")")")")")') }}</option>
+                                        <option value="daily" {% if settings.frequency == 'daily' %}selected{% endif %}>{{ _(_('يومي')) }}</option>
+                                        <option value="weekly" {% if settings.frequency == 'weekly' %}selected{% endif %}>{{ _(_('أسبوعي')) }}</option>
+                                        <option value="monthly" {% if settings.frequency == 'monthly' %}selected{% endif %}>{{ _(_('شهري')) }}</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="backup_retention" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("عدد النسخ المحفوظة")")")")")")")') }}</label>
+                                    <label for="backup_retention" class="form-label">{{ _(_('عدد النسخ المحفوظة')) }}</label>
                                     <input type="number" class="form-control" id="backup_retention" name="backup_retention" 
                                            value="{{ settings.retention }}" min="1" max="30">
                                 </div>
@@ -248,16 +248,16 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="backup_location" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("موقع النسخ الاحتياطية")")")")")")")') }}</label>
+                                    <label for="backup_location" class="form-label">{{ _(_('موقع النسخ الاحتياطية')) }}</label>
                                     <input type="text" class="form-control" id="backup_location" name="backup_location" 
-                                           value="{{ settings.location }}" placeholder="_(" _(" _(" _(" _(" _("أدخل المسار")")")")")")">
+                                           value="{{ settings.location }}" placeholder="أدخل المسار">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="backup_compression" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ضغط النسخ")")")")")")")') }}</label>
+                                    <label for="backup_compression" class="form-label">{{ _(_('ضغط النسخ')) }}</label>
                                     <select class="form-control" id="backup_compression" name="backup_compression">
-                                        <option value="none" {% if settings.compression == 'none' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("بدون ضغط")")")")")")")') }}</option>
+                                        <option value="none" {% if settings.compression == 'none' %}selected{% endif %}>{{ _(_('بدون ضغط')) }}</option>
                                         <option value="zip" {% if settings.compression == 'zip' %}selected{% endif %}>ZIP</option>
                                         <option value="gzip" {% if settings.compression == 'gzip' %}selected{% endif %}>GZIP</option>
                                     </select>
@@ -269,7 +269,7 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="auto_backup" name="auto_backup" {% if settings.auto_backup %}checked{% endif %}>
                                     <label class="form-check-label" for="auto_backup">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("النسخ الاحتياطية التلقائية")")")")")")")') }}
+                                        {{ _(_('النسخ الاحتياطية التلقائية')) }}
                                     </label>
                                 </div>
                             </div>
@@ -278,7 +278,7 @@
                             <div class="col-md-12">
                                 <button type="button" class="btn btn-primary" data-action="save-backup-settings">
                                     <i class="fas fa-save me-2"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("حفظ الإعدادات")")")")")")")') }}
+                                    {{ _(_('حفظ الإعدادات')) }}
                                 </button>
                             </div>
                         </div>
@@ -293,7 +293,7 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات تفصيلية")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('إحصائيات تفصيلية')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -303,7 +303,7 @@
                                     <i class="fas fa-archive"></i>
                                 </div>
                                 <div class="stat-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("إجمالي النسخ")")")")")")")') }}</h6>
+                                    <h6>{{ _(_('إجمالي النسخ')) }}</h6>
                                     <span class="stat-value">{{ stats.get('total', 0) }}</span>
                                 </div>
                             </div>
@@ -314,7 +314,7 @@
                                     <i class="fas fa-check-circle"></i>
                                 </div>
                                 <div class="stat-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("النسخ الناجحة")")")")")")")') }}</h6>
+                                    <h6>{{ _(_('النسخ الناجحة')) }}</h6>
                                     <span class="stat-value">{{ stats.get('success', 0) }}</span>
                                 </div>
                             </div>
@@ -325,7 +325,7 @@
                                     <i class="fas fa-times-circle"></i>
                                 </div>
                                 <div class="stat-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("النسخ الفاشلة")")")")")")")') }}</h6>
+                                    <h6>{{ _(_('النسخ الفاشلة')) }}</h6>
                                     <span class="stat-value">{{ stats.get('failed', 0) }}</span>
                                 </div>
                             </div>
@@ -336,7 +336,7 @@
                                     <i class="fas fa-hdd"></i>
                                 </div>
                                 <div class="stat-info">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("المساحة المستخدمة")")")")")")")') }}</h6>
+                                    <h6>{{ _(_('المساحة المستخدمة')) }}</h6>
                                     <span class="stat-value">{{ stats.get('size', 0) }} GB</span>
                                 </div>
                             </div>
@@ -349,25 +349,25 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("التقارير")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('التقارير')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
                         <button class="btn btn-primary w-100" data-action="generate-backup-report">
                             <i class="fas fa-file-alt me-2"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("تقرير النسخ الاحتياطية")")")")")")")') }}
+                            {{ _(_('تقرير النسخ الاحتياطية')) }}
                         </button>
                     </div>
                     <div class="mb-3">
                         <button class="btn btn-success w-100" data-action="export-backup-logs">
                             <i class="fas fa-download me-2"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("تصدير سجلات النسخ")")")")")")")') }}
+                            {{ _(_('تصدير سجلات النسخ')) }}
                         </button>
                     </div>
                     <div class="mb-3">
                         <button class="btn btn-info w-100" data-action="view-backup-history">
                             <i class="fas fa-history me-2"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("تاريخ النسخ الاحتياطية")")")")")")")') }}
+                            {{ _(_('تاريخ النسخ الاحتياطية')) }}
                         </button>
                     </div>
                 </div>

@@ -5,7 +5,7 @@
     {% endif %}
     <div class="print-header-default__body">
         <div class="print-header-default__title">
-            {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else _(_('_("_(" _(" _(" _(" _(" _("المركز الصحي")")")")")")")'))) }}
+            {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else _(_(_('المركز الصحي')))) }}
         </div>
         {% if branding and branding.organization_name_en %}
         <div class="print-header-default__sub">{{ branding.organization_name_en }}</div>

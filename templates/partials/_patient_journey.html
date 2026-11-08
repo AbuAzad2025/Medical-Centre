@@ -9,16 +9,16 @@
 #}
 {% if current_step is defined %}
 {% set steps = [
-    {'id':1,'icon':'fa-user-plus','label_en':'Registration','label_ar':'_("_(" _(" _(" _(" _(" _("التسجيل")")")")")")")'},
-    {'id':2,'icon':'fa-heart-pulse','label_en':'Triage','label_ar':'_("_(" _(" _(" _(" _(" _("الفرز")")")")")")")'},
-    {'id':3,'icon':'fa-stethoscope','label_en':'Doctor','label_ar':'_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")'},
-    {'id':4,'icon':'fa-flask','label_en':'Lab/Rad','label_ar':'_("_(" _(" _(" _(" _(" _("فحوصات")")")")")")")'},
-    {'id':5,'icon':'fa-pills','label_en':'Pharmacy','label_ar':'_("_(" _(" _(" _(" _(" _("الصيدلية")")")")")")")'},
-    {'id':6,'icon':'fa-circle-check','label_en':'Discharge','label_ar':'_("_(" _(" _(" _(" _(" _("الخروج")")")")")")")'}
+    {'id':1,'icon':'fa-user-plus','label_en':'Registration','label_ar':_('التسجيل')},
+    {'id':2,'icon':'fa-heart-pulse','label_en':'Triage','label_ar':_('الفرز')},
+    {'id':3,'icon':'fa-stethoscope','label_en':'Doctor','label_ar':_('الطبيب')},
+    {'id':4,'icon':'fa-flask','label_en':'Lab/Rad','label_ar':_('فحوصات')},
+    {'id':5,'icon':'fa-pills','label_en':'Pharmacy','label_ar':_('الصيدلية')},
+    {'id':6,'icon':'fa-circle-check','label_en':'Discharge','label_ar':_('الخروج')}
 ] %}
 <div class="journey-tracker mb-4">
     <h6 class="journey-tracker__title">
-        <i class="fas fa-route journey-tracker__title-icon"></i>{{ _('_("_(" _(" _(" _(" _(" _("مسار المريض")")")")")")")') }}
+        <i class="fas fa-route journey-tracker__title-icon"></i>{{ _(_('مسار المريض')) }}
     </h6>
     <div class="journey-steps">
         {% for s in steps %}

@@ -7,10 +7,10 @@
 <div class="container-fluid">
     {{ page_header(
         title='تفاصيل طلب التحليل',
-        subtitle='_("عرض تفاصيل طلب التحليل")',
+        subtitle=_('عرض تفاصيل طلب التحليل'),
         icon='fas fa-clipboard-list',
         actions=[
-            {'url': url_for('lab.dashboard'), 'label': '_("_(" _(" _(" _(" _(" _("العودة للوحة التحكم")")")")")")")', 'icon': 'fas fa-arrow-right', 'style': 'secondary'}
+            {'url': url_for('lab.dashboard'), 'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-right', 'style': 'secondary'}
         ]
     ) }}
 
@@ -21,29 +21,29 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-user me-2"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("معلومات المريض")")")")")")")') }}
+                        {{ _(_('معلومات المريض')) }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3">
-                            <strong>{{ _('_("_(" _(" _(" _(" _(" _("الاسم:")")")")")")")') }}</strong> {{ lab_request.patient.full_name }}
+                            <strong>{{ _(_('الاسم:')) }}</strong> {{ lab_request.patient.full_name }}
                         </div>
                         <div class="col-md-3">
-                            <strong>{{ _('_("_(" _(" _(" _(" _(" _("العمر:")")")")")")")') }}</strong> {{ lab_request.patient.age }} سنة
+                            <strong>{{ _(_('العمر:')) }}</strong> {{ lab_request.patient.age }} سنة
                         </div>
                         <div class="col-md-3">
-                            <strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم الهوية:")")")")")")")') }}</strong> {{ lab_request.patient.id_number }}
+                            <strong>{{ _(_('رقم الهوية:')) }}</strong> {{ lab_request.patient.id_number }}
                         </div>
                         <div class="col-md-3">
-                            <strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم الهاتف:")")")")")")")') }}</strong> {{ lab_request.patient.phone }}
+                            <strong>{{ _(_('رقم الهاتف:')) }}</strong> {{ lab_request.patient.phone }}
                         </div>
                     </div>
                     <div class="mt-3 text-end">
                         {% if module_active('reception') %}
                         <a href="{{ url_for('reception.view_patient', patient_id=lab_request.patient.id) }}" class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-eye me-1"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("عرض ملف المريض")")")")")")")') }}
+                            {{ _(_('عرض ملف المريض')) }}
                         </a>
                         {% endif %}
                     </div>
@@ -59,27 +59,27 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-flask me-2"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("معلومات طلب التحليل")")")")")")")') }}
+                        {{ _(_('معلومات طلب التحليل')) }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-4">
-                            <strong>{{ _('_("_(" _(" _(" _(" _(" _("نوع التحليل:")")")")")")")') }}</strong> {{ lab_request.get_test_type_display() }}
+                            <strong>{{ _(_('نوع التحليل:')) }}</strong> {{ lab_request.get_test_type_display() }}
                         </div>
                         <div class="col-md-4">
-                            <strong>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الطلب:")")")")")")")') }}</strong> {{ lab_request.created_at.strftime('%Y-%m-%d') }}
+                            <strong>{{ _(_('تاريخ الطلب:')) }}</strong> {{ lab_request.created_at.strftime('%Y-%m-%d') }}
                         </div>
                         <div class="col-md-4">
-                            <strong>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب:")")")")")")")') }}</strong> {{ lab_request.doctor.full_name if lab_request.doctor else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}
+                            <strong>{{ _(_('الطبيب:')) }}</strong> {{ lab_request.doctor.full_name if lab_request.doctor else _('غير محدد') }}
                         </div>
                     </div>
                     <div class="row mt-3">
                         <div class="col-md-6">
-                            <strong>{{ _('_("_(" _(" _(" _(" _(" _("سبب التحليل:")")")")")")")') }}</strong> {{ lab_request.reason }}
+                            <strong>{{ _(_('سبب التحليل:')) }}</strong> {{ lab_request.reason }}
                         </div>
                         <div class="col-md-6">
-                            <strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong> 
+                            <strong>{{ _(_('الحالة:')) }}</strong> 
                             <span class="badge {% if lab_request.status == 'completed' %}bg-success{% elif lab_request.status == 'in_progress' %}bg-warning{% elif lab_request.status == 'pending' %}bg-info{% else %}bg-danger{% endif %}">
                                 {{ lab_request.get_status_display() }}
                             </span>
@@ -88,7 +88,7 @@
                     {% if lab_request.notes %}
                     <div class="row mt-3">
                         <div class="col-12">
-                            <strong>{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات إضافية:")")")")")")")') }}</strong> {{ lab_request.notes }}
+                            <strong>{{ _(_('ملاحظات إضافية:')) }}</strong> {{ lab_request.notes }}
                         </div>
                     </div>
                     {% endif %}
@@ -105,7 +105,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-chart-line me-2"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("نتائج التحاليل")")")")")")")') }}
+                        {{ _(_('نتائج التحاليل')) }}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -113,11 +113,11 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("اسم التحليل")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("النتيجة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الوحدة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("القيمة الطبيعية")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                    <th>{{ _(_('اسم التحليل')) }}</th>
+                                    <th>{{ _(_('النتيجة')) }}</th>
+                                    <th>{{ _(_('الوحدة')) }}</th>
+                                    <th>{{ _(_('القيمة الطبيعية')) }}</th>
+                                    <th>{{ _(_('الحالة')) }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -150,7 +150,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-cogs me-2"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}
+                        {{ _(_('الإجراءات')) }}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -158,26 +158,26 @@
                         {% if (lab_request.status|upper) in ['PENDING','REQUESTED'] %}
                         <a href="{{ url_for('lab.worklist') }}" class="btn btn-primary">
                             <i class="fas fa-cog me-1"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("معالجة الطلب")")")")")")")') }}
+                            {{ _(_('معالجة الطلب')) }}
                         </a>
                         {% endif %}
                         {% if (lab_request.status|upper) == 'IN_PROGRESS' %}
                         <a href="{{ url_for('lab.worklist') }}" class="btn btn-success">
                             <i class="fas fa-edit me-1"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("إدخال النتائج")")")")")")")') }}
+                            {{ _(_('إدخال النتائج')) }}
                         </a>
                         {% endif %}
                         <a href="{{ url_for('lab.print_request', id=lab_request.id) }}" class="btn btn-info" target="_blank">
                             <i class="fas fa-print me-1"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("طباعة الطلب")")")")")")")') }}
+                            {{ _(_('طباعة الطلب')) }}
                         </a>
                         <a href="{{ url_for('lab.worklist') }}" class="btn btn-warning">
                             <i class="fas fa-paper-plane me-1"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("إرسال النتائج")")")")")")")') }}
+                            {{ _(_('إرسال النتائج')) }}
                         </a>
                         <a href="{{ url_for('lab.dashboard') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-right me-1"></i>
-                            {{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}
+                            {{ _(_('العودة')) }}
                         </a>
                     </div>
                 </div>

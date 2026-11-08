@@ -3,10 +3,10 @@
 {% block title %}لوحة تحكم التمريض{% endblock %}
 {% block content %}
 <div class="container-fluid py-3">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("قسم التمريض")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("رعاية المرضى والعلامات الحيوية وإدارة الأدوية")")")")")")")', icon='fas fa-user-nurse', actions=[
-      {'label': '_("_(" _(" _(" _(" _(" _("رعاية المرضى")")")")")")")', 'icon': 'fas fa-heartbeat', 'url': url_for('nurse.patients'), 'style': 'light'},
-      {'label': '_("_(" _(" _(" _(" _(" _("الأدوية")")")")")")")', 'icon': 'fas fa-pills', 'url': url_for('nurse.medications'), 'style': 'warning'},
-      {'label': '_("_(" _(" _(" _(" _(" _("العلامات الحيوية")")")")")")")', 'icon': 'fas fa-stethoscope', 'url': url_for('nurse.vital_signs'), 'style': 'outline-light'}
+  {{ page_header(_('قسم التمريض'), subtitle=_('رعاية المرضى والعلامات الحيوية وإدارة الأدوية'), icon='fas fa-user-nurse', actions=[
+      {'label': _('رعاية المرضى'), 'icon': 'fas fa-heartbeat', 'url': url_for('nurse.patients'), 'style': 'light'},
+      {'label': _('الأدوية'), 'icon': 'fas fa-pills', 'url': url_for('nurse.medications'), 'style': 'warning'},
+      {'label': _('العلامات الحيوية'), 'icon': 'fas fa-stethoscope', 'url': url_for('nurse.vital_signs'), 'style': 'outline-light'}
   ]) }}
 
   <div class="row g-3 mb-4">
@@ -15,12 +15,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("المرضى اليوم")")")")")")")') }}</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('المرضى اليوم')) }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.patients_today or 0 }}</h3>
             </div>
             <div class="bg-primary bg-opacity-10 p-3 rounded"><i class="fas fa-users text-primary fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي:")")")")")")")') }} <strong>{{ total_patients or 0 }}</strong></div>
+          <div class="small text-muted">{{ _(_('إجمالي:')) }} <strong>{{ total_patients or 0 }}</strong></div>
           <canvas id="sparkToday" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -30,12 +30,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("زيارات نشطة")")")")")")")') }}</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('زيارات نشطة')) }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.active_visits or 0 }}</h3>
             </div>
             <div class="bg-success bg-opacity-10 p-3 rounded"><i class="fas fa-calendar-check text-success fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("زيارات اليوم:")")")")")")")') }} <strong>{{ today_visits or 0 }}</strong></div>
+          <div class="small text-muted">{{ _(_('زيارات اليوم:')) }} <strong>{{ today_visits or 0 }}</strong></div>
           <canvas id="sparkActive" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -45,12 +45,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("مهام معلقة")")")")")")")') }}</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('مهام معلقة')) }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.pending_tasks or 0 }}</h3>
             </div>
             <div class="bg-warning bg-opacity-10 p-3 rounded"><i class="fas fa-tasks text-warning fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("أدوية ناقصة:")")")")")")")') }} <strong class="text-danger">{{ stats.medications_needed or 0 }}</strong></div>
+          <div class="small text-muted">{{ _(_('أدوية ناقصة:')) }} <strong class="text-danger">{{ stats.medications_needed or 0 }}</strong></div>
           <canvas id="sparkTasks" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -60,12 +60,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("كفاءة التمريض")")")")")")")') }}</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('كفاءة التمريض')) }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.smart_analytics.efficiency_score or 0 }}%</h3>
             </div>
             <div class="bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-chart-line text-info fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مهام مكتملة:")")")")")")")') }} <strong>{{ stats.smart_analytics.completed_tasks or 0 }}</strong></div>
+          <div class="small text-muted">{{ _(_('مهام مكتملة:')) }} <strong>{{ stats.smart_analytics.completed_tasks or 0 }}</strong></div>
           <canvas id="sparkEff" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -75,7 +75,7 @@
   <div class="row g-3 mb-4">
     <div class="col-md-8">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("أداء التمريض — مؤشرات رئيسية")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>{{ _(_('أداء التمريض — مؤشرات رئيسية')) }}</h6></div>
         <div class="card-body"><canvas id="nurseMainChart" height="260"></canvas></div>
       </div>
     </div>
@@ -83,26 +83,26 @@
       <div class="row g-3">
         <div class="col-12">
           <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-heartbeat text-danger me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("العلامات الحيوية")")")")")")")') }}</h6></div>
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-heartbeat text-danger me-2"></i>{{ _(_('العلامات الحيوية')) }}</h6></div>
             <div class="card-body">
               <div class="small text-start">
-                <div class="d-flex justify-content-between mb-1"><span>{{ _('_("_(" _(" _(" _(" _(" _("إجمالي القياسات")")")")")")")') }}</span><strong>{{ stats.vital_signs_monitoring.total_vital_signs or 0 }}</strong></div>
-                <div class="d-flex justify-content-between mb-1"><span>{{ _('_("_(" _(" _(" _(" _(" _("شاذة")")")")")")")') }}</span><strong class="text-warning">{{ stats.vital_signs_monitoring.abnormal_vital_signs or 0 }}</strong></div>
-                <div class="d-flex justify-content-between mb-1"><span>{{ _('_("_(" _(" _(" _(" _(" _("حرجة")")")")")")")') }}</span><strong class="text-danger">{{ stats.vital_signs_monitoring.critical_alerts or 0 }}</strong></div>
-                <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("الدرجة")")")")")")")') }}</span><strong class="text-success">{{ stats.vital_signs_monitoring.monitoring_score or 0 }}%</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>{{ _(_('إجمالي القياسات')) }}</span><strong>{{ stats.vital_signs_monitoring.total_vital_signs or 0 }}</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>{{ _(_('شاذة')) }}</span><strong class="text-warning">{{ stats.vital_signs_monitoring.abnormal_vital_signs or 0 }}</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>{{ _(_('حرجة')) }}</span><strong class="text-danger">{{ stats.vital_signs_monitoring.critical_alerts or 0 }}</strong></div>
+                <div class="d-flex justify-content-between"><span>{{ _(_('الدرجة')) }}</span><strong class="text-success">{{ stats.vital_signs_monitoring.monitoring_score or 0 }}%</strong></div>
               </div>
             </div>
           </div>
         </div>
         <div class="col-12">
           <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-brain text-info me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تنبؤ الأعمال")")")")")")")') }}</h6></div>
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-brain text-info me-2"></i>{{ _(_('تنبؤ الأعمال')) }}</h6></div>
             <div class="card-body">
               <div class="small text-start">
-                <div class="d-flex justify-content-between mb-1"><span>{{ _('_("_(" _(" _(" _(" _(" _("أسبوعي")")")")")")")') }}</span><strong>{{ stats.predictive_insights.weekly_tasks or 0 }}</strong></div>
-                <div class="d-flex justify-content-between mb-1"><span>{{ _('_("_(" _(" _(" _(" _(" _("شهري")")")")")")")') }}</span><strong>{{ stats.predictive_insights.monthly_tasks or 0 }}</strong></div>
-                <div class="d-flex justify-content-between mb-1"><span>{{ _('_("_(" _(" _(" _(" _(" _("معدل النمو")")")")")")")') }}</span><strong class="{{ 'text-success' if (stats.predictive_insights.growth_rate or 0) > 0 else 'text-danger' }}">{{ stats.predictive_insights.growth_rate or 0 }}%</strong></div>
-                <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("دقة التنبؤ")")")")")")")') }}</span><strong>{{ stats.predictive_insights.workload_forecast_accuracy or 0 }}%</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>{{ _(_('أسبوعي')) }}</span><strong>{{ stats.predictive_insights.weekly_tasks or 0 }}</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>{{ _(_('شهري')) }}</span><strong>{{ stats.predictive_insights.monthly_tasks or 0 }}</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>{{ _(_('معدل النمو')) }}</span><strong class="{{ 'text-success' if (stats.predictive_insights.growth_rate or 0) > 0 else 'text-danger' }}">{{ stats.predictive_insights.growth_rate or 0 }}%</strong></div>
+                <div class="d-flex justify-content-between"><span>{{ _(_('دقة التنبؤ')) }}</span><strong>{{ stats.predictive_insights.workload_forecast_accuracy or 0 }}%</strong></div>
               </div>
             </div>
           </div>
@@ -116,36 +116,36 @@
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("دقة الأدوية")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('دقة الأدوية')) }}</div>
           <h3 class="fw-bold text-success">{{ stats.medication_management.medication_efficiency or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("دقة الأدوية")")")")")")"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("دقة الأدوية")")")")")")" data-width="{{ stats.medication_management.medication_efficiency or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="دقة الأدوية"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="دقة الأدوية" data-width="{{ stats.medication_management.medication_efficiency or 0 }}"></div></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("امتثال العلامات الحيوية")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('امتثال العلامات الحيوية')) }}</div>
           <h3 class="fw-bold text-primary">{{ stats.vital_signs_monitoring.monitoring_score or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("امتثال العلامات")")")")")")"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("امتثال العلامات")")")")")")" data-width="{{ stats.vital_signs_monitoring.monitoring_score or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="امتثال العلامات"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="امتثال العلامات" data-width="{{ stats.vital_signs_monitoring.monitoring_score or 0 }}"></div></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("درجة السلامة")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('درجة السلامة')) }}</div>
           <h3 class="fw-bold text-info">{{ stats.quality_indicators.safety_score or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("درجة السلامة")")")")")")"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("درجة السلامة")")")")")")" data-width="{{ stats.quality_indicators.safety_score or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="درجة السلامة"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="درجة السلامة" data-width="{{ stats.quality_indicators.safety_score or 0 }}"></div></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("الامتثال البروتوكولي")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('الامتثال البروتوكولي')) }}</div>
           <h3 class="fw-bold text-warning">{{ stats.nursing_protocols_compliance_rate or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("الامتثال البروتوكولي")")")")")")"><div class="progress-bar bg-warning progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("الامتثال البروتوكولي")")")")")")" data-width="{{ stats.nursing_protocols_compliance_rate or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="الامتثال البروتوكولي"><div class="progress-bar bg-warning progress-dynamic" role="progressbar" title="الامتثال البروتوكولي" data-width="{{ stats.nursing_protocols_compliance_rate or 0 }}"></div></div>
         </div>
       </div>
     </div>
@@ -154,34 +154,34 @@
   <div class="row g-3 mb-4">
     <div class="col-md-6">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle text-warning me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تنبيهات السلامة")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle text-warning me-2"></i>{{ _(_('تنبيهات السلامة')) }}</h6></div>
         <div class="card-body">
-          {% if safety_alerts and safety_alerts.vitals_alerts_count %}<div class="list-group list-group-flush">{% for a in safety_alerts.vitals_alerts %}<div class="list-group-item px-0 d-flex justify-content-between"><span><i class="fas fa-heartbeat text-danger me-2"></i>{{ a.patient_name }}</span><a href="{{ a.url }}" class="small">{{ _('_("_(" _(" _(" _(" _(" _("فحص")")")")")")")') }}</a></div>{% endfor %}</div>{% else %}<p class="text-muted text-center my-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد تنبيهات حرجة حالياً")")")")")")")') }}</p>{% endif %}
+          {% if safety_alerts and safety_alerts.vitals_alerts_count %}<div class="list-group list-group-flush">{% for a in safety_alerts.vitals_alerts %}<div class="list-group-item px-0 d-flex justify-content-between"><span><i class="fas fa-heartbeat text-danger me-2"></i>{{ a.patient_name }}</span><a href="{{ a.url }}" class="small">{{ _(_('فحص')) }}</a></div>{% endfor %}</div>{% else %}<p class="text-muted text-center my-3">{{ _(_('لا توجد تنبيهات حرجة حالياً')) }}</p>{% endif %}
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إجراءات سريعة")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>{{ _(_('إجراءات سريعة')) }}</h6></div>
         <div class="card-body">
           <div class="d-grid gap-2">
-            <a href="{{ url_for('nurse.vital_signs') }}" class="btn btn-danger btn-sm"><i class="fas fa-heartbeat me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("قياس حيوي")")")")")")")') }}</a>
-            <a href="{{ url_for('nurse.medication_administration') }}" class="btn btn-success btn-sm"><i class="fas fa-pills me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("إعطاء دواء")")")")")")")') }}</a>
-            <a href="{{ url_for('nurse.tasks') }}" class="btn btn-primary btn-sm"><i class="fas fa-tasks me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("المهام")")")")")")")') }}</a>
+            <a href="{{ url_for('nurse.vital_signs') }}" class="btn btn-danger btn-sm"><i class="fas fa-heartbeat me-1"></i> {{ _(_('قياس حيوي')) }}</a>
+            <a href="{{ url_for('nurse.medication_administration') }}" class="btn btn-success btn-sm"><i class="fas fa-pills me-1"></i> {{ _(_('إعطاء دواء')) }}</a>
+            <a href="{{ url_for('nurse.tasks') }}" class="btn btn-primary btn-sm"><i class="fas fa-tasks me-1"></i> {{ _(_('المهام')) }}</a>
           </div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-cogs text-secondary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("أتمتة سير العمل")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-cogs text-secondary me-2"></i>{{ _(_('أتمتة سير العمل')) }}</h6></div>
         <div class="card-body text-center">
           <h2 class="fw-bold text-primary">{{ stats.workflow_automation.automation_score or 0 }}%</h2>
-          <p class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("درجة الأتمتة")")")")")")")') }}</p>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("درجة الأتمتة")")")")")")">
-            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("درجة الأتمتة")")")")")")" data-width="{{ stats.workflow_automation.automation_score or 0 }}"></div>
+          <p class="text-muted small">{{ _(_('درجة الأتمتة')) }}</p>
+          <div class="progress mb-2 prog-thin" title="درجة الأتمتة">
+            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="درجة الأتمتة" data-width="{{ stats.workflow_automation.automation_score or 0 }}"></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("وقت المعالجة:")")")")")")")') }} <strong>{{ stats.workflow_automation.avg_processing_time or 0 }} د</strong></div>
+          <div class="small text-muted">{{ _(_('وقت المعالجة:')) }} <strong>{{ stats.workflow_automation.avg_processing_time or 0 }} د</strong></div>
         </div>
       </div>
     </div>
@@ -189,14 +189,14 @@
 
   <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-      <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("الزيارات النشطة")")")")")")")') }}</h6>
-      <a href="{{ url_for('nurse.patient_care') }}" class="small text-decoration-none">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</a>
+      <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>{{ _(_('الزيارات النشطة')) }}</h6>
+      <a href="{{ url_for('nurse.patient_care') }}" class="small text-decoration-none">{{ _(_('الكل')) }}</a>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
-            <tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th></tr>
+            <tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('القسم')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('الوقت')) }}</th><th>{{ _(_('الإجراءات')) }}</th></tr>
           </thead>
           <tbody>
             {% for v in active_visits_list %}
@@ -211,13 +211,13 @@
               <td class="small text-muted">{{ v.created_at.strftime('%Y-%m-%d %H:%M') if v.created_at else '-' }}</td>
               <td>
                 <div class="d-flex gap-1">
-                  <a href="{{ url_for('nurse.vital_signs', visit_id=v.id) }}" class="btn btn-sm btn-outline-danger" title="_(" _(" _(" _(" _(" _("حيوي")")")")")")"><i class="fas fa-heartbeat"></i> <span class="btn-label">{{ _('نبض') }}</span></a>
-                  <a href="{{ url_for('nurse.medication_administration', visit_id=v.id) }}" class="btn btn-sm btn-outline-success" title="_(" _(" _(" _(" _(" _("دواء")")")")")")"><i class="fas fa-pills"></i> <span class="btn-label">{{ _('أدوية') }}</span></a>
-                  <a href="{{ url_for('nurse.patient_monitoring', visit_id=v.id) }}" class="btn btn-sm btn-outline-primary" title="_(" _(" _(" _(" _(" _("مراقبة")")")")")")"><i class="fas fa-eye"></i> <span class="btn-label">{{ _('عرض') }}</span></a>
+                  <a href="{{ url_for('nurse.vital_signs', visit_id=v.id) }}" class="btn btn-sm btn-outline-danger" title="حيوي"><i class="fas fa-heartbeat"></i> <span class="btn-label">{{ _('نبض') }}</span></a>
+                  <a href="{{ url_for('nurse.medication_administration', visit_id=v.id) }}" class="btn btn-sm btn-outline-success" title="دواء"><i class="fas fa-pills"></i> <span class="btn-label">{{ _('أدوية') }}</span></a>
+                  <a href="{{ url_for('nurse.patient_monitoring', visit_id=v.id) }}" class="btn btn-sm btn-outline-primary" title="مراقبة"><i class="fas fa-eye"></i> <span class="btn-label">{{ _('عرض') }}</span></a>
                 </div>
               </td>
             </tr>
-            {% else %}<tr><td colspan="6" class="text-muted text-center py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد زيارات نشطة")")")")")")")') }}</td></tr>
+            {% else %}<tr><td colspan="6" class="text-muted text-center py-4">{{ _(_('لا توجد زيارات نشطة')) }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

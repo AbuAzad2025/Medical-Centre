@@ -2,37 +2,37 @@
 {% block title %}لوحة تحكم الصيدلية{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="fas fa-pills ms-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("لوحة تحكم الصيدلية")")")")")")")') }}</h4>
+    <h4 class="mb-0"><i class="fas fa-pills ms-2"></i>{{ _(_('لوحة تحكم الصيدلية')) }}</h4>
     <a href="{{ url_for('medication.pos') }}" class="btn btn-success">
-        <i class="fas fa-cash-register ms-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("نقطة البيع")")")")")")")') }}
+        <i class="fas fa-cash-register ms-1"></i>{{ _(_('نقطة البيع')) }}
     </a>
 </div>
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card card-stat bg-primary">
             <div class="icon-bg"><i class="fas fa-pills"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("الأدوية")")")")")")")') }}</h6>
+            <h6>{{ _(_('الأدوية')) }}</h6>
             <h3>{{ medications_count }}</h3>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card card-stat bg-warning">
             <div class="icon-bg"><i class="fas fa-exclamation-triangle"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("منخفضة المخزون")")")")")")")') }}</h6>
+            <h6>{{ _(_('منخفضة المخزون')) }}</h6>
             <h3>{{ low_stock_count }}</h3>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card card-stat bg-success">
             <div class="icon-bg"><i class="fas fa-prescription-bottle-alt"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("مبيعات اليوم")")")")")")")') }}</h6>
+            <h6>{{ _(_('مبيعات اليوم')) }}</h6>
             <h3>{{ today_sales }} ₪</h3>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card card-stat bg-info">
             <div class="icon-bg"><i class="fas fa-calendar-alt"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("مبيعات الشهر")")")")")")")') }}</h6>
+            <h6>{{ _(_('مبيعات الشهر')) }}</h6>
             <h3>{{ month_sales }} ₪</h3>
         </div>
     </div>
@@ -41,12 +41,12 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header bg-white d-flex justify-content-between">
-                <h5 class="mb-0"><i class="fas fa-exclamation-triangle ms-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("أدوية منخفضة المخزون")")")")")")")') }}</h5>
-                <a href="{{ url_for('medication.stock_alerts') }}" class="btn btn-sm btn-outline-warning">{{ _('_("_(" _(" _(" _(" _(" _("عرض الكل")")")")")")")') }}</a>
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle ms-2"></i>{{ _(_('أدوية منخفضة المخزون')) }}</h5>
+                <a href="{{ url_for('medication.stock_alerts') }}" class="btn btn-sm btn-outline-warning">{{ _(_('عرض الكل')) }}</a>
             </div>
             <div class="card-body p-0">
                 <table class="table table-hover mb-0">
-                    <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المخزون")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحد الأدنى")")")")")")")') }}</th></tr></thead>
+                    <thead><tr><th>{{ _(_('الدواء')) }}</th><th>{{ _(_('المخزون')) }}</th><th>{{ _(_('الحد الأدنى')) }}</th></tr></thead>
                     <tbody>
                     {% for m in low_stock_list %}
                     <tr>
@@ -55,7 +55,7 @@
                         <td>{{ m.minimum_stock }}</td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="3" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد أدوية منخفضة المخزون")")")")")")")') }}</td></tr>
+                    <tr><td colspan="3" class="text-center text-muted">{{ _(_('لا توجد أدوية منخفضة المخزون')) }}</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -65,12 +65,12 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header bg-white d-flex justify-content-between">
-                <h5 class="mb-0"><i class="fas fa-prescription ms-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("روشتات في الانتظار")")")")")")")') }}</h5>
-                <a href="{{ url_for('medication.prescriptions') }}" class="btn btn-sm btn-outline-primary">{{ _('_("_(" _(" _(" _(" _(" _("عرض الكل")")")")")")")') }}</a>
+                <h5 class="mb-0"><i class="fas fa-prescription ms-2"></i>{{ _(_('روشتات في الانتظار')) }}</h5>
+                <a href="{{ url_for('medication.prescriptions') }}" class="btn btn-sm btn-outline-primary">{{ _(_('عرض الكل')) }}</a>
             </div>
             <div class="card-body p-0">
                 <table class="table table-hover mb-0">
-                    <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th></tr></thead>
+                    <thead><tr><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('التاريخ')) }}</th></tr></thead>
                     <tbody>
                     {% for rx in pending_prescriptions %}
                     <tr>
@@ -79,7 +79,7 @@
                         <td class="small text-muted">{{ rx.created_at.strftime('%Y-%m-%d') if rx.created_at else '-' }}</td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="3" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد روشتات في الانتظار")")")")")")")') }}</td></tr>
+                    <tr><td colspan="3" class="text-center text-muted">{{ _(_('لا توجد روشتات في الانتظار')) }}</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -91,12 +91,12 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header bg-white d-flex justify-content-between">
-                <h5 class="mb-0"><i class="fas fa-shopping-cart ms-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("مبيعات اليوم")")")")")")")') }}</h5>
-                <a href="{{ url_for('medication.sales_history') }}" class="btn btn-sm btn-outline-info">{{ _('_("_(" _(" _(" _(" _(" _("عرض الكل")")")")")")")') }}</a>
+                <h5 class="mb-0"><i class="fas fa-shopping-cart ms-2"></i>{{ _(_('مبيعات اليوم')) }}</h5>
+                <a href="{{ url_for('medication.sales_history') }}" class="btn btn-sm btn-outline-info">{{ _(_('عرض الكل')) }}</a>
             </div>
             <div class="card-body p-0">
                 <table class="table table-hover mb-0">
-                    <thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("القيمة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th></tr></thead>
+                    <thead><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('القيمة')) }}</th><th>{{ _(_('الوقت')) }}</th></tr></thead>
                     <tbody>
                     {% for s in recent_sales %}
                     <tr>
@@ -106,7 +106,7 @@
                         <td class="small text-muted">{{ s.created_at.strftime('%H:%M') if s.created_at else '-' }}</td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="4" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مبيعات اليوم")")")")")")")') }}</td></tr>
+                    <tr><td colspan="4" class="text-center text-muted">{{ _(_('لا توجد مبيعات اليوم')) }}</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -118,28 +118,28 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="fas fa-shopping-cart ms-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("روابط سريعة")")")")")")")') }}</h5>
+                <h5 class="mb-0"><i class="fas fa-shopping-cart ms-2"></i>{{ _(_('روابط سريعة')) }}</h5>
             </div>
             <div class="card-body">
                 <div class="row g-2">
                     <div class="col-md-3">
                         <a href="{{ url_for('medication.pos') }}" class="btn btn-success btn-lg w-100 py-3">
-                            <i class="fas fa-cash-register fa-2x d-block mb-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("نقطة البيع")")")")")")")') }}
+                            <i class="fas fa-cash-register fa-2x d-block mb-2"></i>{{ _(_('نقطة البيع')) }}
                         </a>
                     </div>
                     <div class="col-md-3">
                         <a href="{{ url_for('medication.sales_history') }}" class="btn btn-info btn-lg w-100 py-3 text-white">
-                            <i class="fas fa-file-invoice fa-2x d-block mb-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("المبيعات")")")")")")")') }}
+                            <i class="fas fa-file-invoice fa-2x d-block mb-2"></i>{{ _(_('المبيعات')) }}
                         </a>
                     </div>
                     <div class="col-md-3">
                         <a href="{{ url_for('medication.suppliers') }}" class="btn btn-secondary btn-lg w-100 py-3">
-                            <i class="fas fa-truck fa-2x d-block mb-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الموردين")")")")")")")') }}
+                            <i class="fas fa-truck fa-2x d-block mb-2"></i>{{ _(_('الموردين')) }}
                         </a>
                     </div>
                     <div class="col-md-3">
                         <a href="{{ url_for('medication.purchases') }}" class="btn btn-primary btn-lg w-100 py-3">
-                            <i class="fas fa-boxes fa-2x d-block mb-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("المشتريات")")")")")")")') }}
+                            <i class="fas fa-boxes fa-2x d-block mb-2"></i>{{ _(_('المشتريات')) }}
                         </a>
                     </div>
                 </div>

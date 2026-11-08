@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ _('_("_(" _(" _(" _(" _(" _("غير متصل — Azad Medical")")")")")")")') }}</title>
+  <title>{{ _(_('غير متصل — Azad Medical')) }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.rtl.min.css') }}">
@@ -16,9 +16,9 @@
 <body>
   <div class="offline-card">
     <div class="offline-icon">📡</div>
-    <h2>{{ _('_("_(" _(" _(" _(" _(" _("أنت غير متصل")")")")")")")') }}</h2>
-    <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.")")")")")")")') }}</p>
-    <button class="btn btn-primary" type="button" onclick="location.reload()">{{ _('_("_(" _(" _(" _(" _(" _("إعادة المحاولة")")")")")")")') }}</button>
+    <h2>{{ _(_('أنت غير متصل')) }}</h2>
+    <p class="text-muted">{{ _(_('يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.')) }}</p>
+    <button class="btn btn-primary" type="button" onclick="location.reload()">{{ _(_('إعادة المحاولة')) }}</button>
   </div>
 </body>
 </html>

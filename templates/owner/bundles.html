@@ -3,10 +3,10 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-boxes me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("إدارة الباقات")")")")")")")') }}</h4></div>
+        <div class="col"><h4><i class="fas fa-boxes me-2 text-primary"></i>{{ _(_('إدارة الباقات')) }}</h4></div>
         <div class="col-auto">
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createBundleModal"><i class="fas fa-plus me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("باقة جديدة")")")")")")")') }}</button>
-            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createBundleModal"><i class="fas fa-plus me-1"></i>{{ _(_('باقة جديدة')) }}</button>
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> {{ _(_('العودة')) }}</a>
         </div>
     </div>
     <div class="row g-3" id="bundlesContainer">
@@ -32,39 +32,39 @@
                         </div>
                     </div>
                     <hr>
-                    <p class="small fw-bold text-muted mb-1">{{ _('_("_(" _(" _(" _(" _(" _("الحدود:")")")")")")")') }}</p>
+                    <p class="small fw-bold text-muted mb-1">{{ _(_('الحدود:')) }}</p>
                     <div class="d-flex flex-wrap gap-2 mb-3">
-                        <span class="badge bg-info"><i class="fas fa-users me-1"></i>المستخدمين: {{ b.max_users or '_("غير محدود")' }}</span>
-                        <span class="badge bg-info"><i class="fas fa-user-injured me-1"></i>المرضى: {{ b.max_patients or '_("غير محدود")' }}</span>
-                        <span class="badge bg-info"><i class="fas fa-database me-1"></i>التخزين: {{ b.storage_gb or '_("غير محدود"_(" _(" _(" _(" _(" _(")\\\\\\' }} جيجابايت</span>
-                        <span class=")")")")")")"badge bg-info"><i class="fas fa-globe me-1"></i>استدعاءات API: {{ b.api_calls_per_month or '_("غير محدود"_(" _(" _(" _(" _(" _(")\\\\\\' }} /شهر</span>
+                        <span class="badge bg-info"><i class="fas fa-users me-1"></i>المستخدمين: {{ b.max_users or _('غير محدود') }}</span>
+                        <span class="badge bg-info"><i class="fas fa-user-injured me-1"></i>المرضى: {{ b.max_patients or _('غير محدود') }}</span>
+                        <span class="badge bg-info"><i class="fas fa-database me-1"></i>التخزين: {{ b.storage_gb or _('غير محدود') }} جيجابايت</span>
+                        <span class="badge bg-info"><i class="fas fa-globe me-1"></i>استدعاءات API: {{ b.api_calls_per_month or _('غير محدود') }} /شهر</span>
                     </div>
-                    <p class=")")")")")")"small fw-bold text-muted mb-1">{{ _('_("_(" _(" _(" _(" _(" _("الوحدات المضمنة:")")")")")")")') }}</p>
+                    <p class="small fw-bold text-muted mb-1">{{ _(_('الوحدات المضمنة:')) }}</p>
                     <div class="mb-3">
                         {% set module_list = b.get_modules() if b.get_modules is defined else (b.modules.split(',') if b.modules else []) %}
                         {% for m in module_list %}
                         <span class="badge bg-light text-dark border me-1 mb-1">{{ m }}</span>
                         {% else %}
-                        <span class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("لا وحدات")")")")")")")') }}</span>
+                        <span class="text-muted small">{{ _(_('لا وحدات')) }}</span>
                         {% endfor %}
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="badge bg-{{ 'success' if b.is_active else 'danger' }}">{{ '_("_(" _(" _(" _(" _(" _("نشط")")")")")")")' if b.is_active else '_("_(" _(" _(" _(" _(" _("معطل")")")")")")")' }}</span>
-                            <span class="badge bg-{{ 'success' if b.is_public else 'secondary' }}">{{ '_("_(" _(" _(" _(" _(" _("عام")")")")")")")' if b.is_public else '_("_(" _(" _(" _(" _(" _("خاص")")")")")")")' }}</span>
+                            <span class="badge bg-{{ 'success' if b.is_active else 'danger' }}">{{ _('نشط') if b.is_active else _('معطل') }}</span>
+                            <span class="badge bg-{{ 'success' if b.is_public else 'secondary' }}">{{ _('عام') if b.is_public else _('خاص') }}</span>
                         </div>
                         <small class="text-muted">{{ b.profile_code or '-' }}</small>
                     </div>
                     <hr>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary btn-sm edit-bundle-btn" data-id="{{ b.id }}"><i class="fas fa-edit me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تعديل")")")")")")")') }}</button>
-                        <button class="btn btn-outline-danger btn-sm delete-bundle-btn" data-id="{{ b.id }}" data-name="{{ b.name_ar or b.name }}"><i class="fas fa-trash me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</button>
+                        <button class="btn btn-outline-primary btn-sm edit-bundle-btn" data-id="{{ b.id }}"><i class="fas fa-edit me-1"></i>{{ _(_('تعديل')) }}</button>
+                        <button class="btn btn-outline-danger btn-sm delete-bundle-btn" data-id="{{ b.id }}" data-name="{{ b.name_ar or b.name }}"><i class="fas fa-trash me-1"></i>{{ _(_('حذف')) }}</button>
                     </div>
                 </div>
             </div>
         </div>
         {% else %}
-        <div class="col-12"><p class="text-muted text-center py-5">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد باقات. قم بإنشاء أول باقة.")")")")")")")') }}</p></div>
+        <div class="col-12"><p class="text-muted text-center py-5">{{ _(_('لا توجد باقات. قم بإنشاء أول باقة.')) }}</p></div>
         {% endfor %}
     </div>
 </div>
@@ -75,17 +75,17 @@
         <div class="modal-content">
             <form id="createBundleForm">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("باقة جديدة")")")")")")")') }}</h5>
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>{{ _(_('باقة جديدة')) }}</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم (إنجليزي) *")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الاسم (إنجليزي) *')) }}</label>
                             <input type="text" name="name" class="form-control" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم (عربي) *")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الاسم (عربي) *')) }}</label>
                             <input type="text" name="name_ar" class="form-control" required>
                         </div>
                         <div class="col-md-6">
@@ -93,27 +93,27 @@
                             <input type="text" name="slug" class="form-control" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رمز الملف الشخصي")")")")")")")') }}</label>
-                            <input type="text" name="profile_code" class="form-control" placeholder="_(" _(" _(" _(" _(" _("اختياري")")")")")")">
+                            <label class="form-label">{{ _(_('رمز الملف الشخصي')) }}</label>
+                            <input type="text" name="profile_code" class="form-control" placeholder="اختياري">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الوصف')) }}</label>
                             <textarea name="description_ar" class="form-control" rows="2"></textarea>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("السعر الشهري *")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('السعر الشهري *')) }}</label>
                             <input type="number" name="monthly_price" class="form-control" step="0.01" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("السعر السنوي *")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('السعر السنوي *')) }}</label>
                             <input type="number" name="yearly_price" class="form-control" step="0.01" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رسوم التأسيس")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('رسوم التأسيس')) }}</label>
                             <input type="number" name="setup_fee" class="form-control" step="0.01" value="0">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("العملة")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('العملة')) }}</label>
                             <select name="currency" class="form-control">
                                 <option value="SAR">SAR</option>
                                 <option value="USD">USD</option>
@@ -122,40 +122,40 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحد الأقصى للمستخدمين")")")")")")")') }}</label>
-                            <input type="number" name="max_users" class="form-control" placeholder="_(" _(" _(" _(" _(" _("فارغ = غير محدود")")")")")")">
+                            <label class="form-label">{{ _(_('الحد الأقصى للمستخدمين')) }}</label>
+                            <input type="number" name="max_users" class="form-control" placeholder="فارغ = غير محدود">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحد الأقصى للمرضى")")")")")")")') }}</label>
-                            <input type="number" name="max_patients" class="form-control" placeholder="_(" _(" _(" _(" _(" _("فارغ = غير محدود")")")")")")">
+                            <label class="form-label">{{ _(_('الحد الأقصى للمرضى')) }}</label>
+                            <input type="number" name="max_patients" class="form-control" placeholder="فارغ = غير محدود">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التخزين (جيجابايت)")")")")")")")') }}</label>
-                            <input type="number" name="storage_gb" class="form-control" placeholder="_(" _(" _(" _(" _(" _("فارغ = غير محدود")")")")")")">
+                            <label class="form-label">{{ _(_('التخزين (جيجابايت)')) }}</label>
+                            <input type="number" name="storage_gb" class="form-control" placeholder="فارغ = غير محدود">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("استدعاءات API شهرياً")")")")")")")') }}</label>
-                            <input type="number" name="api_calls_per_month" class="form-control" placeholder="_(" _(" _(" _(" _(" _("فارغ = غير محدود")")")")")")">
+                            <label class="form-label">{{ _(_('استدعاءات API شهرياً')) }}</label>
+                            <input type="number" name="api_calls_per_month" class="form-control" placeholder="فارغ = غير محدود">
                         </div>
                         <div class="col-md-6 d-flex align-items-end gap-3 pb-2">
                             <div class="form-check">
                                 <input type="checkbox" name="is_public" class="form-check-input" id="newIsPublic" checked>
-                                <label class="form-check-label" for="newIsPublic">{{ _('_("_(" _(" _(" _(" _(" _("عام")")")")")")")') }}</label>
+                                <label class="form-check-label" for="newIsPublic">{{ _(_('عام')) }}</label>
                             </div>
                             <div class="form-check">
                                 <input type="checkbox" name="is_active" class="form-check-input" id="newIsActive" checked>
-                                <label class="form-check-label" for="newIsActive">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</label>
+                                <label class="form-check-label" for="newIsActive">{{ _(_('نشط')) }}</label>
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوحدات (أسماء مفصولة بفواصل)")")")")")")")') }}</label>
-                            <input type="text" name="modules" class="form-control" placeholder="_(" _(" _(" _(" _(" _("مثال: doctor,reception,appointments")")")")")")">
+                            <label class="form-label">{{ _(_('الوحدات (أسماء مفصولة بفواصل)')) }}</label>
+                            <input type="text" name="modules" class="form-control" placeholder="مثال: doctor,reception,appointments">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>{{ _(_('حفظ')) }}</button>
                 </div>
             </form>
         </div>
@@ -169,17 +169,17 @@
             <form id="editBundleForm">
                 <input type="hidden" name="id" id="editBundleId">
                 <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تعديل باقة")")")")")")")') }}</h5>
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>{{ _(_('تعديل باقة')) }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم (إنجليزي) *")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الاسم (إنجليزي) *')) }}</label>
                             <input type="text" name="name" id="editName" class="form-control" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم (عربي) *")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الاسم (عربي) *')) }}</label>
                             <input type="text" name="name_ar" id="editNameAr" class="form-control" required>
                         </div>
                         <div class="col-md-6">
@@ -187,27 +187,27 @@
                             <input type="text" id="editSlug" class="form-control" disabled>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رمز الملف الشخصي")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('رمز الملف الشخصي')) }}</label>
                             <input type="text" name="profile_code" id="editProfileCode" class="form-control">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('الوصف')) }}</label>
                             <textarea name="description_ar" id="editDescriptionAr" class="form-control" rows="2"></textarea>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("السعر الشهري *")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('السعر الشهري *')) }}</label>
                             <input type="number" name="monthly_price" id="editMonthlyPrice" class="form-control" step="0.01" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("السعر السنوي *")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('السعر السنوي *')) }}</label>
                             <input type="number" name="yearly_price" id="editYearlyPrice" class="form-control" step="0.01" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رسوم التأسيس")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('رسوم التأسيس')) }}</label>
                             <input type="number" name="setup_fee" id="editSetupFee" class="form-control" step="0.01">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("العملة")")")")")")")') }}</label>
+                            <label class="form-label">{{ _(_('العملة')) }}</label>
                             <select name="currency" id="editCurrency" class="form-control">
                                 <option value="SAR">SAR</option>
                                 <option value="USD">USD</option>
@@ -216,40 +216,40 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحد الأقصى للمستخدمين")")")")")")")') }}</label>
-                            <input type="number" name="max_users" id="editMaxUsers" class="form-control" placeholder="_(" _(" _(" _(" _(" _("فارغ = غير محدود")")")")")")">
+                            <label class="form-label">{{ _(_('الحد الأقصى للمستخدمين')) }}</label>
+                            <input type="number" name="max_users" id="editMaxUsers" class="form-control" placeholder="فارغ = غير محدود">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحد الأقصى للمرضى")")")")")")")') }}</label>
-                            <input type="number" name="max_patients" id="editMaxPatients" class="form-control" placeholder="_(" _(" _(" _(" _(" _("فارغ = غير محدود")")")")")")">
+                            <label class="form-label">{{ _(_('الحد الأقصى للمرضى')) }}</label>
+                            <input type="number" name="max_patients" id="editMaxPatients" class="form-control" placeholder="فارغ = غير محدود">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التخزين (جيجابايت)")")")")")")")') }}</label>
-                            <input type="number" name="storage_gb" id="editStorageGb" class="form-control" placeholder="_(" _(" _(" _(" _(" _("فارغ = غير محدود")")")")")")">
+                            <label class="form-label">{{ _(_('التخزين (جيجابايت)')) }}</label>
+                            <input type="number" name="storage_gb" id="editStorageGb" class="form-control" placeholder="فارغ = غير محدود">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("استدعاءات API شهرياً")")")")")")")') }}</label>
-                            <input type="number" name="api_calls_per_month" id="editApiCalls" class="form-control" placeholder="_(" _(" _(" _(" _(" _("فارغ = غير محدود")")")")")")">
+                            <label class="form-label">{{ _(_('استدعاءات API شهرياً')) }}</label>
+                            <input type="number" name="api_calls_per_month" id="editApiCalls" class="form-control" placeholder="فارغ = غير محدود">
                         </div>
                         <div class="col-md-6 d-flex align-items-end gap-3 pb-2">
                             <div class="form-check">
                                 <input type="checkbox" name="is_public" class="form-check-input" id="editIsPublic">
-                                <label class="form-check-label" for="editIsPublic">{{ _('_("_(" _(" _(" _(" _(" _("عام")")")")")")")') }}</label>
+                                <label class="form-check-label" for="editIsPublic">{{ _(_('عام')) }}</label>
                             </div>
                             <div class="form-check">
                                 <input type="checkbox" name="is_active" class="form-check-input" id="editIsActive">
-                                <label class="form-check-label" for="editIsActive">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</label>
+                                <label class="form-check-label" for="editIsActive">{{ _(_('نشط')) }}</label>
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوحدات (أسماء مفصولة بفواصل)")")")")")")")') }}</label>
-                            <input type="text" name="modules" id="editModules" class="form-control" placeholder="_(" _(" _(" _(" _(" _("مثال: doctor,reception,appointments")")")")")")">
+                            <label class="form-label">{{ _(_('الوحدات (أسماء مفصولة بفواصل)')) }}</label>
+                            <input type="text" name="modules" id="editModules" class="form-control" placeholder="مثال: doctor,reception,appointments">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button>
-                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("حفظ التعديلات")")")")")")")') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>{{ _(_('حفظ التعديلات')) }}</button>
                 </div>
             </form>
         </div>

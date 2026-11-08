@@ -14,11 +14,11 @@
       <div>الملاحظات: {{ visit.medical_record.notes if visit.medical_record else '' }}</div>
       <hr>
       <div class="mt-4">
-        <strong>{{ _('_("_(" _(" _(" _(" _(" _("التوقيع الرقمي للطبيب:")")")")")")")') }}</strong>
+        <strong>{{ _(_('التوقيع الرقمي للطبيب:')) }}</strong>
         {% if current_user.digital_signature %}
           <div class="mt-2">{{ current_user.digital_signature }}</div>
         {% else %}
-          <div class="mt-2 text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد توقيع رقمي محفوظ")")")")")")")') }}</div>
+          <div class="mt-2 text-muted">{{ _(_('لا يوجد توقيع رقمي محفوظ')) }}</div>
         {% endif %}
       </div>
     </div>

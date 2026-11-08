@@ -2,32 +2,32 @@
 {% block title %}ثيمات النظام{% endblock %}
 {% block content %}
 <div class="container-fluid">
-    <div class="row mb-3"><div class="col"><h4><i class="fas fa-paint-brush me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("ثيمات النظام")")")")")")")') }}</h4></div></div>
+    <div class="row mb-3"><div class="col"><h4><i class="fas fa-paint-brush me-2"></i>{{ _(_('ثيمات النظام')) }}</h4></div></div>
     <div class="row g-3">
         <div class="col-lg-4">
             <div class="card">
-                <div class="card-header fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("ثيم جديد")")")")")")")') }}</div>
+                <div class="card-header fw-bold">{{ _(_('ثيم جديد')) }}</div>
                 <div class="card-body">
                     <form method="post" action="{{ url_for('owner.owner_themes') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <div class="mb-2"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم (EN)")")")")")")")') }}</label><input name="name" class="form-control" required></div>
-                        <div class="mb-2"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم (AR)")")")")")")")') }}</label><input name="name_ar" class="form-control" required></div>
-                        <div class="mb-2"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+                        <div class="mb-2"><label class="form-label">{{ _(_('الاسم (EN)')) }}</label><input name="name" class="form-control" required></div>
+                        <div class="mb-2"><label class="form-label">{{ _(_('الاسم (AR)')) }}</label><input name="name_ar" class="form-control" required></div>
+                        <div class="mb-2"><label class="form-label">{{ _(_('الوصف')) }}</label><textarea name="description" class="form-control" rows="2"></textarea></div>
                         <div class="row g-2">
-                            <div class="col-6"><label class="form-label small">{{ _('_("_(" _(" _(" _(" _(" _("أساسي")")")")")")")') }}</label><input type="color" name="primary_color" class="form-control form-control-color" value="#2563eb"></div>
-                            <div class="col-6"><label class="form-label small">{{ _('_("_(" _(" _(" _(" _(" _("ثانوي")")")")")")")') }}</label><input type="color" name="secondary_color" class="form-control form-control-color" value="#10b981"></div>
-                            <div class="col-6"><label class="form-label small">{{ _('_("_(" _(" _(" _(" _(" _("تمييز")")")")")")")') }}</label><input type="color" name="accent_color" class="form-control form-control-color" value="#f59e0b"></div>
-                            <div class="col-6"><label class="form-label small">{{ _('_("_(" _(" _(" _(" _(" _("خلفية")")")")")")")') }}</label><input type="color" name="background_color" class="form-control form-control-color" value="#f8fafc"></div>
+                            <div class="col-6"><label class="form-label small">{{ _(_('أساسي')) }}</label><input type="color" name="primary_color" class="form-control form-control-color" value="#2563eb"></div>
+                            <div class="col-6"><label class="form-label small">{{ _(_('ثانوي')) }}</label><input type="color" name="secondary_color" class="form-control form-control-color" value="#10b981"></div>
+                            <div class="col-6"><label class="form-label small">{{ _(_('تمييز')) }}</label><input type="color" name="accent_color" class="form-control form-control-color" value="#f59e0b"></div>
+                            <div class="col-6"><label class="form-label small">{{ _(_('خلفية')) }}</label><input type="color" name="background_color" class="form-control form-control-color" value="#f8fafc"></div>
                         </div>
                         <input type="hidden" name="text_color" value="#1f2937">
-                        <button type="submit" class="btn btn-primary mt-3">{{ _('_("_(" _(" _(" _(" _(" _("حفظ الثيم")")")")")")")') }}</button>
+                        <button type="submit" class="btn btn-primary mt-3">{{ _(_('حفظ الثيم')) }}</button>
                     </form>
                 </div>
             </div>
         </div>
         <div class="col-lg-8">
             <div class="card">
-                <div class="card-header fw-bold">{{ _('_("_(" _(" _(" _(" _(" _("الثيمات المسجّلة")")")")")")")') }}</div>
+                <div class="card-header fw-bold">{{ _(_('الثيمات المسجّلة')) }}</div>
                 <div class="card-body">
                     <div class="row g-3">
                         {% for theme in themes %}
@@ -40,23 +40,23 @@
                                 </div>
                                 <strong>{{ theme.name_ar }}</strong>
                                 <div class="small text-muted">{{ theme.name }}</div>
-                                {% if theme.is_default %}<span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("افتراضي")")")")")")")') }}</span>{% endif %}
+                                {% if theme.is_default %}<span class="badge bg-warning text-dark">{{ _(_('افتراضي')) }}</span>{% endif %}
                                 <div class="mt-2 d-flex gap-1">
                                     <form method="post" action="{{ url_for('owner.owner_delete_theme', theme_id=theme.id) }}" style="display:inline">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('_("_(" _(" _(" _(" _(" _("حذف الثيم؟")")")")")")")')"><i class="fas fa-trash"></i></button>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm(_('حذف الثيم؟'))"><i class="fas fa-trash"></i></button>
                                     </form>
                                     {% if not theme.is_default %}
                                     <form method="post" action="{{ url_for('owner.owner_set_default_theme', theme_id=theme.id) }}" style="display:inline">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-warning"><i class="fas fa-check-circle"></i> {{ _('_("_(" _(" _(" _(" _(" _("تعيين كافتراضي")")")")")")")') }}</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-warning"><i class="fas fa-check-circle"></i> {{ _(_('تعيين كافتراضي')) }}</button>
                                     </form>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                         {% else %}
-                        <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا ثيمات — أنشئ الأول من النموذج.")")")")")")")') }}</p>
+                        <p class="text-muted">{{ _(_('لا ثيمات — أنشئ الأول من النموذج.')) }}</p>
                         {% endfor %}
                     </div>
                 </div>

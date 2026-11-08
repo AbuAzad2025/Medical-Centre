@@ -6,8 +6,8 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h1 class="h3 mb-0"><i class="fas fa-chart-line me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات النظام")")")")")")")') }}</h1>
-            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("نظرة عامة على صحة وأداء النظام")")")")")")")') }}</p>
+            <h1 class="h3 mb-0"><i class="fas fa-chart-line me-2"></i>{{ _(_('إحصائيات النظام')) }}</h1>
+            <p class="text-muted">{{ _(_('نظرة عامة على صحة وأداء النظام')) }}</p>
         </div>
     </div>
 
@@ -18,7 +18,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المنشآت")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('إجمالي المنشآت')) }}</h6>
                             <h2 class="mb-0">{{ stats.total_tenants }}</h2>
                         </div>
                         <i class="fas fa-building fa-2x opacity-50"></i>
@@ -31,7 +31,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("منشآت نشطة")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('منشآت نشطة')) }}</h6>
                             <h2 class="mb-0">{{ stats.active_tenants }}</h2>
                         </div>
                         <i class="fas fa-check-circle fa-2x opacity-50"></i>
@@ -44,7 +44,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المستخدمين")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('إجمالي المستخدمين')) }}</h6>
                             <h2 class="mb-0">{{ stats.total_users }}</h2>
                         </div>
                         <i class="fas fa-users fa-2x opacity-50"></i>
@@ -57,7 +57,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("مستخدمين نشطين")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('مستخدمين نشطين')) }}</h6>
                             <h2 class="mb-0">{{ stats.active_users }}</h2>
                         </div>
                         <i class="fas fa-user-check fa-2x opacity-50"></i>
@@ -73,7 +73,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي النسخ الاحتياطية")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('إجمالي النسخ الاحتياطية')) }}</h6>
                             <h2 class="mb-0">{{ stats.total_backups }}</h2>
                         </div>
                         <i class="fas fa-database fa-2x opacity-50"></i>
@@ -86,7 +86,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("نسخ مكتملة")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('نسخ مكتملة')) }}</h6>
                             <h2 class="mb-0">{{ stats.completed_backups }}</h2>
                         </div>
                         <i class="fas fa-check-circle fa-2x opacity-50"></i>
@@ -99,7 +99,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("نسخ فاشلة")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('نسخ فاشلة')) }}</h6>
                             <h2 class="mb-0">{{ stats.failed_backups }}</h2>
                         </div>
                         <i class="fas fa-exclamation-triangle fa-2x opacity-50"></i>
@@ -112,7 +112,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">{{ _('_("_(" _(" _(" _(" _(" _("معدل النجاح")")")")")")")') }}</h6>
+                            <h6 class="card-title mb-1">{{ _(_('معدل النجاح')) }}</h6>
                             <h2 class="mb-0">
                                 {% if stats.total_backups > 0 %}
                                     {{ '%.1f' % ((stats.completed_backups / stats.total_backups * 100)) }}%
@@ -131,20 +131,20 @@
     <!-- Detailed Stats Table -->
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-table me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل إضافية")")")")")")")') }}</h5>
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>{{ _(_('تفاصيل إضافية')) }}</h5>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("معلومات النظام")")")")")")")') }}</h6>
+                    <h6>{{ _(_('معلومات النظام')) }}</h6>
                     <table class="table table-sm">
                         <tbody>
                             <tr>
-                                <td>{{ _('_("_(" _(" _(" _(" _(" _("إصدار التطبيق")")")")")")")') }}</td>
+                                <td>{{ _(_('إصدار التطبيق')) }}</td>
                                 <td class="text-end">3.1</td>
                             </tr>
                             <tr>
-                                <td>{{ _('_("_(" _(" _(" _(" _(" _("قاعدة البيانات")")")")")")")') }}</td>
+                                <td>{{ _(_('قاعدة البيانات')) }}</td>
                                 <td class="text-end">PostgreSQL 16</td>
                             </tr>
                             <tr>
@@ -159,23 +159,23 @@
                     </table>
                 </div>
                 <div class="col-md-6">
-                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات التخزين")")")")")")")') }}</h6>
+                    <h6>{{ _(_('إحصائيات التخزين')) }}</h6>
                     <table class="table table-sm">
                         <tbody>
                             <tr>
-                                <td>{{ _('_("_(" _(" _(" _(" _(" _("إجمالي النسخ الاحتياطية")")")")")")")') }}</td>
+                                <td>{{ _(_('إجمالي النسخ الاحتياطية')) }}</td>
                                 <td class="text-end">{{ stats.total_backups }}</td>
                             </tr>
                             <tr>
-                                <td>{{ _('_("_(" _(" _(" _(" _(" _("مكتملة بنجاح")")")")")")")') }}</td>
+                                <td>{{ _(_('مكتملة بنجاح')) }}</td>
                                 <td class="text-end text-success">{{ stats.completed_backups }}</td>
                             </tr>
                             <tr>
-                                <td>{{ _('_("_(" _(" _(" _(" _(" _("فاشلة")")")")")")")') }}</td>
+                                <td>{{ _(_('فاشلة')) }}</td>
                                 <td class="text-end text-danger">{{ stats.failed_backups }}</td>
                             </tr>
                             <tr>
-                                <td>{{ _('_("_(" _(" _(" _(" _(" _("معدل النجاح")")")")")")")') }}</td>
+                                <td>{{ _(_('معدل النجاح')) }}</td>
                                 <td class="text-end">
                                     {% if stats.total_backups > 0 %}
                                         <span class="text-success">{{ '%.1f' % ((stats.completed_backups / stats.total_backups * 100)) }}%</span>

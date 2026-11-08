@@ -2,44 +2,44 @@
 {% block title %}لوحة تحكم الفوترة{% endblock %}
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-  <h4 class="mb-0"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("لوحة تحكم الفوترة")")")")")")")') }}</h4>
+  <h4 class="mb-0"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>{{ _(_('لوحة تحكم الفوترة')) }}</h4>
   <div class="d-flex flex-wrap gap-2">
-    <a href="{{ url_for('finance.invoices') }}" class="btn btn-primary btn-sm"><i class="fas fa-list me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("الفواتير")")")")")")")') }}</a>
-    <a href="{{ url_for('finance.payments') }}" class="btn btn-outline-success btn-sm"><i class="fas fa-money-bill-wave me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("المدفوعات")")")")")")")') }}</a>
+    <a href="{{ url_for('finance.invoices') }}" class="btn btn-primary btn-sm"><i class="fas fa-list me-1"></i>{{ _(_('الفواتير')) }}</a>
+    <a href="{{ url_for('finance.payments') }}" class="btn btn-outline-success btn-sm"><i class="fas fa-money-bill-wave me-1"></i>{{ _(_('المدفوعات')) }}</a>
   </div>
 </div>
 
 <div class="alert alert-info border-0 shadow-sm mb-4" role="note">
   <i class="fas fa-info-circle me-1"></i>
-  <strong>{{ _('_("_(" _(" _(" _(" _(" _("سياسة الاسترجاع:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("طلبات الاسترجاع تمر بموافقة المحاسب قبل التنفيذ. لا يُنفَّذ استرجاع تلقائي من هذه اللوحة.")")")")")")")') }}
+  <strong>{{ _(_('سياسة الاسترجاع:')) }}</strong> {{ _(_('طلبات الاسترجاع تمر بموافقة المحاسب قبل التنفيذ. لا يُنفَّذ استرجاع تلقائي من هذه اللوحة.')) }}
 </div>
 
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
         <div class="card card-stat bg-primary">
             <div class="icon-bg"><i class="fas fa-file-invoice-dollar"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("الفواتير اليوم")")")")")")")') }}</h6>
+            <h6>{{ _(_('الفواتير اليوم')) }}</h6>
             <h3>{{ today_invoices }}</h3>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card card-stat bg-success">
             <div class="icon-bg"><i class="fas fa-money-bill-wave"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("المدفوعات")")")")")")")') }}</h6>
+            <h6>{{ _(_('المدفوعات')) }}</h6>
             <h3>{{ today_payments }}</h3>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card card-stat bg-warning">
             <div class="icon-bg"><i class="fas fa-hourglass-half"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("معلقة")")")")")")")') }}</h6>
+            <h6>{{ _(_('معلقة')) }}</h6>
             <h3>{{ pending_invoices }}</h3>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card card-stat bg-danger">
             <div class="icon-bg"><i class="fas fa-undo"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("المسترجعة")")")")")")")') }}</h6>
+            <h6>{{ _(_('المسترجعة')) }}</h6>
             <h3>{{ refunded_count }}</h3>
         </div>
     </div>
@@ -50,7 +50,7 @@
   <div class="col-md-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
-        <h6 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إيرادات مسجّلة")")")")")")")') }}</h6>
+        <h6 class="text-muted">{{ _(_('إيرادات مسجّلة')) }}</h6>
         <h4>{{ "%.2f"|format(stats.total_revenue or 0) }}</h4>
       </div>
     </div>
@@ -58,7 +58,7 @@
   <div class="col-md-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
-        <h6 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مدفوعات مؤقتة")")")")")")")') }}</h6>
+        <h6 class="text-muted">{{ _(_('مدفوعات مؤقتة')) }}</h6>
         <h4>{{ stats.pending_payments or 0 }}</h4>
       </div>
     </div>
@@ -66,21 +66,21 @@
   <div class="col-md-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
-        <h6 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("زيارات مقفولة مالياً")")")")")")")') }}</h6>
+        <h6 class="text-muted">{{ _(_('زيارات مقفولة مالياً')) }}</h6>
         <h4>{{ stats.locked_visits or 0 }}</h4>
       </div>
     </div>
   </div>
 </div>
 {% else %}
-<div class="alert alert-secondary mb-4"><i class="fas fa-lock me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("التحليلات المالية المتقدمة غير متاحة في باقتك.")")")")")")")') }}</div>
+<div class="alert alert-secondary mb-4"><i class="fas fa-lock me-1"></i>{{ _(_('التحليلات المالية المتقدمة غير متاحة في باقتك.')) }}</div>
 {% endif %}
 
 <div class="card">
-    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الفواتير الأخيرة")")")")")")")') }}</h5></div>
+    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2"></i>{{ _(_('الفواتير الأخيرة')) }}</h5></div>
     <div class="card-body p-0 dashboard-table-wrap">
         <table class="table table-hover mb-0 clinical-table table-medical-responsive">
-            <thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المبلغ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th></tr></thead>
+            <thead><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('المبلغ')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('التاريخ')) }}</th></tr></thead>
             <tbody>
             {% for inv in recent_invoices %}
             <tr>

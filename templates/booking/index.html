@@ -3,49 +3,49 @@
 {% block content %}
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0"><i class="fas fa-calendar-plus me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("الحجز")")")")")")")') }}</h2>
+    <h2 class="mb-0"><i class="fas fa-calendar-plus me-2"></i> {{ _(_('الحجز')) }}</h2>
     <div class="d-flex gap-2">
       {% if current_user.is_authenticated and has_permission('patient.portal') %}
-        <a class="btn btn-outline-primary" href="{{ url_for('booking.dashboard_portal') }}">{{ _('_("_(" _(" _(" _(" _(" _("حسابي")")")")")")")') }}</a>
+        <a class="btn btn-outline-primary" href="{{ url_for('booking.dashboard_portal') }}">{{ _(_('حسابي')) }}</a>
       {% else %}
-        <a class="btn btn-outline-primary" href="{{ url_for('booking.register') }}">{{ _('_("_(" _(" _(" _(" _(" _("إنشاء حساب")")")")")")")') }}</a>
-        <a class="btn btn-outline-secondary" href="{{ url_for('auth.login') }}">{{ _('_("_(" _(" _(" _(" _(" _("تسجيل الدخول")")")")")")")') }}</a>
+        <a class="btn btn-outline-primary" href="{{ url_for('booking.register') }}">{{ _(_('إنشاء حساب')) }}</a>
+        <a class="btn btn-outline-secondary" href="{{ url_for('auth.login') }}">{{ _(_('تسجيل الدخول')) }}</a>
       {% endif %}
     </div>
   </div>
   <form class="card p-3 shadow-sm" method="get" action="{{ url_for('booking.create_booking') }}">
     <div class="row g-3">
       <div class="col-md-4">
-        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</label>
+        <label class="form-label">{{ _(_('القسم')) }}</label>
         <select id="department_id" name="department_id" class="form-select" onchange="loadDoctors()">
-          <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر القسم")")")")")")")') }}</option>
+          <option value="">{{ _(_('اختر القسم')) }}</option>
           {% for d in departments or [] %}
           <option value="{{ d.id }}">{{ d.name_ar or d.name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-md-4">
-        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</label>
+        <label class="form-label">{{ _(_('الطبيب')) }}</label>
         <select id="doctor_id" name="doctor_id" class="form-select" onchange="loadTimes()">
-          <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الطبيب")")")")")")")') }}</option>
+          <option value="">{{ _(_('اختر الطبيب')) }}</option>
           {% for doc in doctors or [] %}
           <option value="{{ doc.id }}">{{ doc.full_name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-md-4">
-        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</label>
+        <label class="form-label">{{ _(_('التاريخ')) }}</label>
         <input id="appointment_date" name="appointment_date" type="date" class="form-control" onchange="loadTimes()">
       </div>
       <div class="col-md-4">
-        <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوقت المتاح")")")")")")")') }}</label>
+        <label class="form-label">{{ _(_('الوقت المتاح')) }}</label>
         <select id="appointment_time" name="appointment_time" class="form-select">
-          <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الوقت")")")")")")")') }}</option>
+          <option value="">{{ _(_('اختر الوقت')) }}</option>
         </select>
       </div>
     </div>
     <div class="mt-3 d-flex gap-2">
-      <button class="btn btn-primary" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("متابعة")")")")")")")') }}</button>
+      <button class="btn btn-primary" type="submit">{{ _(_('متابعة')) }}</button>
     </div>
   </form>
 </div>

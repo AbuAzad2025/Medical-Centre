@@ -5,20 +5,20 @@
 {% block content %}
 <div class="container-fluid">
     <div class="card shadow mb-4">
-        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("إدارة الغيابات")")")")")")")') }}</div>
+        <div class="card-header">{{ _(_('إدارة الغيابات')) }}</div>
         <div class="card-body">
             <form method="GET" action="{{ url_for('reception.reception_staff_absence') }}" class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الموظف")")")")")")")') }}</label>
+                    <label class="form-label">{{ _(_('الموظف')) }}</label>
                     <select class="form-control" name="user_id" required>
-                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الموظف")")")")")")")') }}</option>
+                        <option value="">{{ _(_('اختر الموظف')) }}</option>
                         {% for u in users %}
                         <option value="{{ u.id }}" {% if selected_user_id == u.id %}selected{% endif %}>{{ u.full_name }} ({{ u.get_role_display() }})</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-3 align-self-end">
-                    <button class="btn btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</button>
+                    <button class="btn btn-primary">{{ _(_('عرض')) }}</button>
                 </div>
             </form>
 
@@ -27,19 +27,19 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="user_id" value="{{ selected_user_id }}">
                 <div class="col-md-3">
-                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("من تاريخ")")")")")")")') }}</label>
+                    <label class="form-label">{{ _(_('من تاريخ')) }}</label>
                     <input type="date" class="form-control" name="start_date" required>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إلى تاريخ")")")")")")")') }}</label>
+                    <label class="form-label">{{ _(_('إلى تاريخ')) }}</label>
                     <input type="date" class="form-control" name="end_date" required>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("السبب")")")")")")")') }}</label>
+                    <label class="form-label">{{ _(_('السبب')) }}</label>
                     <input type="text" class="form-control" name="reason">
                 </div>
                 <div class="col-12">
-                    <button class="btn btn-success">{{ _('_("_(" _(" _(" _(" _(" _("إضافة")")")")")")")') }}</button>
+                    <button class="btn btn-success">{{ _(_('إضافة')) }}</button>
                 </div>
             </form>
 
@@ -50,8 +50,8 @@
                     <thead>
                         <tr>
                             <th>من</th>
-                            <th>{{ _('_("إلى")') }}</th>
-                            <th>{{ _('_("_(" _(" _(" _(" _(" _("السبب")")")")")")")') }}</th>
+                            <th>{{ _(_('إلى')) }}</th>
+                            <th>{{ _(_('السبب')) }}</th>
                         </tr>
                     </thead>
                     <tbody>

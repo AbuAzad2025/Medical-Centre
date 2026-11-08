@@ -3,15 +3,15 @@
 {% block title %}جلسة التطبيب عن بُعد{% endblock %}
 {% block content %}
 <div class="container">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("جلسة التطبيب عن بُعد")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("الحجز رقم ")")")")")")")' ~ booking.id, icon='fas fa-video') }}
+  {{ page_header(_('جلسة التطبيب عن بُعد'), subtitle=_('الحجز رقم ') ~ booking.id, icon='fas fa-video') }}
   <div class="card shadow-sm">
     <div class="card-body">
       {% if meeting_link %}
-        <div class="alert alert-info">{{ _('_("_(" _(" _(" _(" _(" _("رابط الجلسة:")")")")")")")') }} <a href="{{ meeting_link }}">{{ meeting_link }}</a></div>
+        <div class="alert alert-info">{{ _(_('رابط الجلسة:')) }} <a href="{{ meeting_link }}">{{ meeting_link }}</a></div>
       {% else %}
-        <div class="alert alert-warning">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد رابط للجلسة")")")")")")")') }}</div>
+        <div class="alert alert-warning">{{ _(_('لا يوجد رابط للجلسة')) }}</div>
       {% endif %}
-      <a class="btn btn-secondary" href="{{ url_for('booking.dashboard_portal') }}">{{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}</a>
+      <a class="btn btn-secondary" href="{{ url_for('booking.dashboard_portal') }}">{{ _(_('العودة')) }}</a>
     </div>
   </div>
 </div>

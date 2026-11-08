@@ -10,41 +10,41 @@
     <ul class="nav nav-pills mb-4" id="managerTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
-                <i class="fas fa-home me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("نظرة عامة")")")")")")")') }}
+                <i class="fas fa-home me-2"></i> {{ _(_('نظرة عامة')) }}
             </button>
         </li>
         {% if stats and stats.smart_analytics %}
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab" aria-controls="analytics" aria-selected="false">
-                <i class="fas fa-chart-bar me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("التحليلات الذكية")")")")")")")') }}
+                <i class="fas fa-chart-bar me-2"></i> {{ _(_('التحليلات الذكية')) }}
             </button>
         </li>
         {% endif %}
         {% if stats.business_insights %}
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="insights-tab" data-bs-toggle="tab" data-bs-target="#insights" type="button" role="tab" aria-controls="insights" aria-selected="false">
-                <i class="fas fa-lightbulb me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("رؤى الأعمال")")")")")")")') }}
+                <i class="fas fa-lightbulb me-2"></i> {{ _(_('رؤى الأعمال')) }}
             </button>
         </li>
         {% endif %}
         {% if stats.performance_metrics %}
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button" role="tab" aria-controls="performance" aria-selected="false">
-                <i class="fas fa-tachometer-alt me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("مقاييس الأداء")")")")")")")') }}
+                <i class="fas fa-tachometer-alt me-2"></i> {{ _(_('مقاييس الأداء')) }}
             </button>
         </li>
         {% endif %}
         {% if stats.financial_forecasting %}
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="forecasting-tab" data-bs-toggle="tab" data-bs-target="#forecasting" type="button" role="tab" aria-controls="forecasting" aria-selected="false">
-                <i class="fas fa-chart-line me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("التوقعات المالية")")")")")")")') }}
+                <i class="fas fa-chart-line me-2"></i> {{ _(_('التوقعات المالية')) }}
             </button>
         </li>
         {% endif %}
         {% if stats.bi_insights %}
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="bi-tab" data-bs-toggle="tab" data-bs-target="#bi" type="button" role="tab" aria-controls="bi" aria-selected="false">
-                <i class="fas fa-project-diagram me-2"></i> {{ _('_("_(" _(" _(" _(" _(" _("BI و What-if")")")")")")")') }}
+                <i class="fas fa-project-diagram me-2"></i> {{ _(_('BI و What-if')) }}
             </button>
         </li>
         {% endif %}

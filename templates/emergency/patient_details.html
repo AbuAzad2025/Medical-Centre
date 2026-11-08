@@ -13,7 +13,7 @@
                         <div class="col-md-8">
                             <h2 class="mb-1 text-danger">
                                 <i class="fas fa-heartbeat me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("تفاصيل حالة الطوارئ")")")")")")")') }}
+                                {{ _(_('تفاصيل حالة الطوارئ')) }}
                             </h2>
                             <p class="text-muted mb-0">{{ emergency.patient.full_name }} - {{ emergency.priority }}</p>
                         </div>
@@ -21,11 +21,11 @@
                             <div class="d-flex gap-2">
                                 <a href="{{ url_for('emergency.patient_queue') }}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left me-1"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("العودة للطابور")")")")")")")') }}
+                                    {{ _(_('العودة للطابور')) }}
                                 </a>
                                 <a href="{{ url_for('emergency.triage', emergency_id=emergency.id) }}" class="btn btn-warning">
                                     <i class="fas fa-stethoscope me-1"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("التقييم")")")")")")")') }}
+                                    {{ _(_('التقييم')) }}
                                 </a>
                             </div>
                         </div>
@@ -41,33 +41,33 @@
             <div class="card shadow">
                 <div class="card-header">
                     <h6 class="m-0 fw-bold text-danger">
-                        <i class="fas fa-user me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("معلومات المريض")")")")")")")') }}
+                        <i class="fas fa-user me-2"></i>{{ _(_('معلومات المريض')) }}
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("الاسم الكامل:")")")")")")")') }}</strong><br>
+                        <strong>{{ _(_('الاسم الكامل:')) }}</strong><br>
                         {{ emergency.patient.full_name }}
                     </div>
                     <div class="mb-3">
-                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم الهوية:")")")")")")")') }}</strong><br>
+                        <strong>{{ _(_('رقم الهوية:')) }}</strong><br>
                         {{ emergency.patient.national_id }}
                     </div>
                     <div class="mb-3">
-                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الميلاد:")")")")")")")') }}</strong><br>
-                        {{ emergency.patient.date_of_birth.strftime('%Y-%m-%d') if emergency.patient.date_of_birth else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}
+                        <strong>{{ _(_('تاريخ الميلاد:')) }}</strong><br>
+                        {{ emergency.patient.date_of_birth.strftime('%Y-%m-%d') if emergency.patient.date_of_birth else _('غير محدد') }}
                     </div>
                     <div class="mb-3">
-                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("الجنس:")")")")")")")') }}</strong><br>
-                        {{ emergency.patient.gender or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}
+                        <strong>{{ _(_('الجنس:')) }}</strong><br>
+                        {{ emergency.patient.gender or _('غير محدد') }}
                     </div>
                     <div class="mb-3">
-                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف:")")")")")")")') }}</strong><br>
-                        {{ emergency.patient.phone or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}
+                        <strong>{{ _(_('الهاتف:')) }}</strong><br>
+                        {{ emergency.patient.phone or _('غير محدد') }}
                     </div>
                     <div class="mb-3">
-                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("البريد الإلكتروني:")")")")")")")') }}</strong><br>
-                        {{ emergency.patient.email or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}
+                        <strong>{{ _(_('البريد الإلكتروني:')) }}</strong><br>
+                        {{ emergency.patient.email or _('غير محدد') }}
                     </div>
                 </div>
             </div>
@@ -77,47 +77,47 @@
             <div class="card shadow">
                 <div class="card-header">
                     <h6 class="m-0 fw-bold text-danger">
-                        <i class="fas fa-ambulance me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("معلومات الطوارئ")")")")")")")') }}
+                        <i class="fas fa-ambulance me-2"></i>{{ _(_('معلومات الطوارئ')) }}
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم الحالة:")")")")")")")') }}</strong><br>
+                        <strong>{{ _(_('رقم الحالة:')) }}</strong><br>
                         {{ emergency.id }}
                     </div>
                     <div class="mb-3">
-                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية:")")")")")")")') }}</strong><br>
+                        <strong>{{ _(_('الأولوية:')) }}</strong><br>
                         {% if emergency.priority == 'CRITICAL' %}
-                            <span class="badge text-bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("حرجة")")")")")")")') }}</span>
+                            <span class="badge text-bg-danger">{{ _(_('حرجة')) }}</span>
                         {% elif emergency.priority == 'URGENT' %}
-                            <span class="badge text-bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("عاجلة")")")")")")")') }}</span>
+                            <span class="badge text-bg-warning">{{ _(_('عاجلة')) }}</span>
                         {% elif emergency.priority == 'HIGH' %}
-                            <span class="badge text-bg-info">{{ _('_("_(" _(" _(" _(" _(" _("عالية")")")")")")")') }}</span>
+                            <span class="badge text-bg-info">{{ _(_('عالية')) }}</span>
                         {% else %}
-                            <span class="badge text-bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("عادية")")")")")")")') }}</span>
+                            <span class="badge text-bg-secondary">{{ _(_('عادية')) }}</span>
                         {% endif %}
                     </div>
                     <div class="mb-3">
-                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong><br>
+                        <strong>{{ _(_('الحالة:')) }}</strong><br>
                         {% if emergency.status == 'TRIAGE' %}
-                            <span class="badge text-bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("تحتاج تقييم")")")")")")")') }}</span>
+                            <span class="badge text-bg-warning">{{ _(_('تحتاج تقييم')) }}</span>
                         {% elif emergency.status == 'TREATMENT' %}
-                            <span class="badge text-bg-info">{{ _('_("_(" _(" _(" _(" _(" _("قيد العلاج")")")")")")")') }}</span>
+                            <span class="badge text-bg-info">{{ _(_('قيد العلاج')) }}</span>
                         {% elif emergency.status == 'OBSERVATION' %}
-                            <span class="badge text-bg-success">{{ _('_("_(" _(" _(" _(" _(" _("تحت المراقبة")")")")")")")') }}</span>
+                            <span class="badge text-bg-success">{{ _(_('تحت المراقبة')) }}</span>
                         {% elif emergency.status == 'COMPLETED' %}
-                            <span class="badge text-bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتملة")")")")")")")') }}</span>
+                            <span class="badge text-bg-success">{{ _(_('مكتملة')) }}</span>
                         {% else %}
                             <span class="badge text-bg-secondary">{{ emergency.status | enum_label('EmergencyStatus') }}</span>
                         {% endif %}
                     </div>
                     <div class="mb-3">
-                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("وقت الوصول:")")")")")")")') }}</strong><br>
-                        {{ emergency.created_at.strftime('%Y-%m-%d %H:%M') if emergency.created_at else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}
+                        <strong>{{ _(_('وقت الوصول:')) }}</strong><br>
+                        {{ emergency.created_at.strftime('%Y-%m-%d %H:%M') if emergency.created_at else _('غير محدد') }}
                     </div>
                     <div class="mb-3">
-                        <strong>{{ _('_("_(" _(" _(" _(" _(" _("نوع الطوارئ:")")")")")")")') }}</strong><br>
-                        {{ emergency.emergency_type or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}
+                        <strong>{{ _(_('نوع الطوارئ:')) }}</strong><br>
+                        {{ emergency.emergency_type or _('غير محدد') }}
                     </div>
                 </div>
             </div>
@@ -127,14 +127,14 @@
             <div class="card shadow">
                 <div class="card-header">
                     <h6 class="m-0 fw-bold text-danger">
-                        <i class="fas fa-tools me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات السريعة")")")")")")")') }}
+                        <i class="fas fa-tools me-2"></i>{{ _(_('الإجراءات السريعة')) }}
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         {% if emergency.status == 'TRIAGE' %}
                             <a href="{{ url_for('emergency.triage', emergency_id=emergency.id) }}" class="btn btn-warning w-100">
-                                <i class="fas fa-stethoscope me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تقييم الحالة")")")")")")")') }}
+                                <i class="fas fa-stethoscope me-2"></i>{{ _(_('تقييم الحالة')) }}
                             </a>
                         {% endif %}
                         
@@ -142,36 +142,36 @@
                             <form method="POST" action="{{ url_for('emergency.start_treatment', emergency_id=emergency.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-success w-100">
-                                    <i class="fas fa-play me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("بدء العلاج")")")")")")")') }}
+                                    <i class="fas fa-play me-2"></i>{{ _(_('بدء العلاج')) }}
                                 </button>
                             </form>
                         {% endif %}
                         
                         {% if emergency.status == 'TREATMENT' %}
                             <a href="{{ url_for('emergency.treatment', emergency_id=emergency.id) }}" class="btn btn-info w-100">
-                                <i class="fas fa-user-md me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("العلاج")")")")")")")') }}
+                                <i class="fas fa-user-md me-2"></i>{{ _(_('العلاج')) }}
                             </a>
                         {% endif %}
                         
                         <a href="{{ url_for('emergency.prescription', emergency_id=emergency.id) }}" class="btn btn-primary w-100">
-                            <i class="fas fa-prescription me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الوصفة الطبية")")")")")")")') }}
+                            <i class="fas fa-prescription me-2"></i>{{ _(_('الوصفة الطبية')) }}
                         </a>
                         
                         {% if module_active('lab') %}
                         <a href="{{ url_for('emergency.lab_request', emergency_id=emergency.id) }}" class="btn btn-warning w-100">
-                            <i class="fas fa-flask me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("طلب مختبر")")")")")")")') }}
+                            <i class="fas fa-flask me-2"></i>{{ _(_('طلب مختبر')) }}
                         </a>
                         {% endif %}
                         {% if module_active('radiology') %}
                         <a href="{{ url_for('emergency.radiology_request', emergency_id=emergency.id) }}" class="btn btn-secondary w-100">
-                            <i class="fas fa-x-ray me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("طلب أشعة")")")")")")")') }}
+                            <i class="fas fa-x-ray me-2"></i>{{ _(_('طلب أشعة')) }}
                         </a>
                         {% endif %}
                         
                         {% if emergency.status == 'OBSERVATION' %}
                             <form method="POST" action="{{ url_for('emergency.end_treatment', emergency_id=emergency.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-danger w-100" data-action="confirm-submit" data-message="_(" _(" _(" _(" _(" _("هل أنت متأكد من إنهاء العلاج؟")")")")")")">
+                                <button type="submit" class="btn btn-danger w-100" data-action="confirm-submit" data-message="هل أنت متأكد من إنهاء العلاج؟">
                                     <i class="fas fa-stop me-2"></i>{{ _('إنهاء العلاج') }}
                                 </button>
                             </form>
@@ -190,36 +190,36 @@
                     <ul class="nav nav-tabs card-header-tabs" id="emergencyTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="triage-tab" data-bs-toggle="tab" data-bs-target="#triage" type="button" role="tab">
-                                <i class="fas fa-stethoscope me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("التقييم")")")")")")")') }}
+                                <i class="fas fa-stethoscope me-2"></i>{{ _(_('التقييم')) }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="treatment-tab" data-bs-toggle="tab" data-bs-target="#treatment" type="button" role="tab">
-                                <i class="fas fa-user-md me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("العلاج")")")")")")")') }}
+                                <i class="fas fa-user-md me-2"></i>{{ _(_('العلاج')) }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="prescriptions-tab" data-bs-toggle="tab" data-bs-target="#prescriptions" type="button" role="tab">
-                                <i class="fas fa-prescription me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الوصفات")")")")")")")') }}
+                                <i class="fas fa-prescription me-2"></i>{{ _(_('الوصفات')) }}
                             </button>
                         </li>
                         {% if module_active('lab') %}
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="lab-tab" data-bs-toggle="tab" data-bs-target="#lab" type="button" role="tab">
-                                <i class="fas fa-flask me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("المختبر")")")")")")")') }}
+                                <i class="fas fa-flask me-2"></i>{{ _(_('المختبر')) }}
                             </button>
                         </li>
                         {% endif %}
                         {% if module_active('radiology') %}
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="radiology-tab" data-bs-toggle="tab" data-bs-target="#radiology" type="button" role="tab">
-                                <i class="fas fa-x-ray me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الأشعة")")")")")")")') }}
+                                <i class="fas fa-x-ray me-2"></i>{{ _(_('الأشعة')) }}
                             </button>
                         </li>
                         {% endif %}
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
-                                <i class="fas fa-history me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("السجل الطبي")")")")")")")') }}
+                                <i class="fas fa-history me-2"></i>{{ _(_('السجل الطبي')) }}
                             </button>
                         </li>
                     </ul>
@@ -230,43 +230,43 @@
                         <div class="tab-pane fade show active" id="triage" role="tabpanel">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الشكوى الرئيسية:")")")")")")")') }}</h6>
-                                    <p>{{ emergency.chief_complaint or '_("_(" _(" _(" _(" _(" _("لم يتم إدخالها")")")")")")")' }}</p>
+                                    <h6>{{ _(_('الشكوى الرئيسية:')) }}</h6>
+                                    <p>{{ emergency.chief_complaint or _('لم يتم إدخالها') }}</p>
                                     
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الأعراض:")")")")")")")') }}</h6>
-                                    <p>{{ emergency.symptoms or '_("_(" _(" _(" _(" _(" _("لم يتم إدخالها")")")")")")")' }}</p>
+                                    <h6>{{ _(_('الأعراض:')) }}</h6>
+                                    <p>{{ emergency.symptoms or _('لم يتم إدخالها') }}</p>
                                     
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("العلامات الحيوية:")")")")")")")') }}</h6>
-                                    <p>{{ emergency.vital_signs or '_("_(" _(" _(" _(" _(" _("لم يتم إدخالها")")")")")")")' }}</p>
+                                    <h6>{{ _(_('العلامات الحيوية:')) }}</h6>
+                                    <p>{{ emergency.vital_signs or _('لم يتم إدخالها') }}</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات التقييم:")")")")")")")') }}</h6>
-                                    <p>{{ emergency.triage_notes or '_("_(" _(" _(" _(" _(" _("لم يتم إدخالها")")")")")")")' }}</p>
+                                    <h6>{{ _(_('ملاحظات التقييم:')) }}</h6>
+                                    <p>{{ emergency.triage_notes or _('لم يتم إدخالها') }}</p>
                                     
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية:")")")")")")")') }}</h6>
+                                    <h6>{{ _(_('الأولوية:')) }}</h6>
                                     <p>
                                         {% if emergency.priority == 'CRITICAL' %}
-                                            <span class="badge text-bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("حرجة")")")")")")")') }}</span>
+                                            <span class="badge text-bg-danger">{{ _(_('حرجة')) }}</span>
                                         {% elif emergency.priority == 'URGENT' %}
-                                            <span class="badge text-bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("عاجلة")")")")")")")') }}</span>
+                                            <span class="badge text-bg-warning">{{ _(_('عاجلة')) }}</span>
                                         {% elif emergency.priority == 'HIGH' %}
-                                            <span class="badge text-bg-info">{{ _('_("_(" _(" _(" _(" _(" _("عالية")")")")")")")') }}</span>
+                                            <span class="badge text-bg-info">{{ _(_('عالية')) }}</span>
                                         {% else %}
-                                            <span class="badge text-bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("عادية")")")")")")")') }}</span>
+                                            <span class="badge text-bg-secondary">{{ _(_('عادية')) }}</span>
                                         {% endif %}
                                     </p>
                                     
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("وقت التقييم:")")")")")")")') }}</h6>
-                                    <p>{{ emergency.triaged_at.strftime('%Y-%m-%d %H:%M') if emergency.triaged_at else '_("_(" _(" _(" _(" _(" _("لم يتم التقييم")")")")")")")' }}</p>
+                                    <h6>{{ _(_('وقت التقييم:')) }}</h6>
+                                    <p>{{ emergency.triaged_at.strftime('%Y-%m-%d %H:%M') if emergency.triaged_at else _('لم يتم التقييم') }}</p>
                                 </div>
                             </div>
                             
                             {% if emergency.status == 'TRIAGE' %}
                                 <div class="text-center py-4">
                                     <i class="fas fa-stethoscope fa-3x text-muted mb-3"></i>
-                                    <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تحتاج تقييم طبي")")")")")")")') }}</h5>
+                                    <h5 class="text-muted">{{ _(_('تحتاج تقييم طبي')) }}</h5>
                                     <a href="{{ url_for('emergency.triage', emergency_id=emergency.id) }}" class="btn btn-warning">
-                                        <i class="fas fa-plus me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إجراء التقييم")")")")")")")') }}
+                                        <i class="fas fa-plus me-2"></i>{{ _(_('إجراء التقييم')) }}
                                     </a>
                                 </div>
                             {% endif %}
@@ -276,33 +276,33 @@
                         <div class="tab-pane fade" id="treatment" role="tabpanel">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("التشخيص:")")")")")")")') }}</h6>
-                                    <p>{{ emergency.diagnosis or '_("_(" _(" _(" _(" _(" _("لم يتم إدخالها")")")")")")")' }}</p>
+                                    <h6>{{ _(_('التشخيص:')) }}</h6>
+                                    <p>{{ emergency.diagnosis or _('لم يتم إدخالها') }}</p>
                                     
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("العلاج المقدم:")")")")")")")') }}</h6>
-                                    <p>{{ emergency.treatment_given or '_("_(" _(" _(" _(" _(" _("لم يتم إدخالها")")")")")")")' }}</p>
+                                    <h6>{{ _(_('العلاج المقدم:')) }}</h6>
+                                    <p>{{ emergency.treatment_given or _('لم يتم إدخالها') }}</p>
                                     
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الأدوية:")")")")")")")') }}</h6>
-                                    <p>{{ emergency.medications or '_("_(" _(" _(" _(" _(" _("لم يتم إدخالها")")")")")")")' }}</p>
+                                    <h6>{{ _(_('الأدوية:')) }}</h6>
+                                    <p>{{ emergency.medications or _('لم يتم إدخالها') }}</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات:")")")")")")")') }}</h6>
-                                    <p>{{ emergency.procedures or '_("_(" _(" _(" _(" _(" _("لم يتم إدخالها")")")")")")")' }}</p>
+                                    <h6>{{ _(_('الإجراءات:')) }}</h6>
+                                    <p>{{ emergency.procedures or _('لم يتم إدخالها') }}</p>
                                     
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات العلاج:")")")")")")")') }}</h6>
-                                    <p>{{ emergency.treatment_notes or '_("_(" _(" _(" _(" _(" _("لم يتم إدخالها")")")")")")")' }}</p>
+                                    <h6>{{ _(_('ملاحظات العلاج:')) }}</h6>
+                                    <p>{{ emergency.treatment_notes or _('لم يتم إدخالها') }}</p>
                                     
-                                    <h6>{{ _('_("_(" _(" _(" _(" _(" _("وقت العلاج:")")")")")")")') }}</h6>
-                                    <p>{{ emergency.treated_at.strftime('%Y-%m-%d %H:%M') if emergency.treated_at else '_("_(" _(" _(" _(" _(" _("لم يتم العلاج")")")")")")")' }}</p>
+                                    <h6>{{ _(_('وقت العلاج:')) }}</h6>
+                                    <p>{{ emergency.treated_at.strftime('%Y-%m-%d %H:%M') if emergency.treated_at else _('لم يتم العلاج') }}</p>
                                 </div>
                             </div>
                             
                             {% if emergency.status == 'TREATMENT' %}
                                 <div class="text-center py-4">
                                     <i class="fas fa-user-md fa-3x text-muted mb-3"></i>
-                                    <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تحتاج علاج")")")")")")")') }}</h5>
+                                    <h5 class="text-muted">{{ _(_('تحتاج علاج')) }}</h5>
                                     <a href="{{ url_for('emergency.treatment', emergency_id=emergency.id) }}" class="btn btn-info">
-                                        <i class="fas fa-plus me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إدخال العلاج")")")")")")")') }}
+                                        <i class="fas fa-plus me-2"></i>{{ _(_('إدخال العلاج')) }}
                                     </a>
                                 </div>
                             {% endif %}
@@ -315,12 +315,12 @@
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("الجرعة")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("التكرار")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("المدة")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("التعليمات")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+                                                <th>{{ _(_('الدواء')) }}</th>
+                                                <th>{{ _(_('الجرعة')) }}</th>
+                                                <th>{{ _(_('التكرار')) }}</th>
+                                                <th>{{ _(_('المدة')) }}</th>
+                                                <th>{{ _(_('التعليمات')) }}</th>
+                                                <th>{{ _(_('التاريخ')) }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -331,7 +331,7 @@
                                                 <td>{{ prescription.frequency }}</td>
                                                 <td>{{ prescription.duration }}</td>
                                                 <td>{{ prescription.instructions }}</td>
-                                                <td>{{ prescription.created_at.strftime('%Y-%m-%d') if prescription.created_at else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                                <td>{{ prescription.created_at.strftime('%Y-%m-%d') if prescription.created_at else _('غير محدد') }}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -340,13 +340,13 @@
                             {% else %}
                                 <div class="text-center py-4">
                                     <i class="fas fa-prescription fa-3x text-muted mb-3"></i>
-                                    <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد وصفات سابقة")")")")")")")') }}</h5>
+                                    <h5 class="text-muted">{{ _(_('لا توجد وصفات سابقة')) }}</h5>
                                 </div>
                             {% endif %}
                             
                             <div class="text-center mt-3">
                                 <a href="{{ url_for('emergency.prescription', emergency_id=emergency.id) }}" class="btn btn-primary">
-                                    <i class="fas fa-plus me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إضافة وصفة جديدة")")")")")")")') }}
+                                    <i class="fas fa-plus me-2"></i>{{ _(_('إضافة وصفة جديدة')) }}
                                 </a>
                             </div>
                         </div>
@@ -359,10 +359,10 @@
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("رقم الطلب")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("الملاحظات")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+                                                <th>{{ _(_('رقم الطلب')) }}</th>
+                                                <th>{{ _(_('الملاحظات')) }}</th>
+                                                <th>{{ _(_('الحالة')) }}</th>
+                                                <th>{{ _(_('التاريخ')) }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -372,18 +372,18 @@
                                                 <td>{{ lab.notes or '-' }}</td>
                                                 <td>
                                                     {% if lab.status == 'REQUESTED' %}
-                                                        <span class="badge text-bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("مطلوب")")")")")")")') }}</span>
+                                                        <span class="badge text-bg-warning">{{ _(_('مطلوب')) }}</span>
                                                     {% elif lab.status == 'IN_PROGRESS' %}
-                                                        <span class="badge text-bg-info">{{ _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")') }}</span>
+                                                        <span class="badge text-bg-info">{{ _(_('قيد التنفيذ')) }}</span>
                                                     {% elif lab.status == 'DONE' %}
-                                                        <span class="badge text-bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
+                                                        <span class="badge text-bg-success">{{ _(_('مكتمل')) }}</span>
                                                     {% elif lab.status == 'CANCELLED' %}
-                                                        <span class="badge text-bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("ملغي")")")")")")")') }}</span>
+                                                        <span class="badge text-bg-danger">{{ _(_('ملغي')) }}</span>
                                                     {% else %}
                                                         <span class="badge text-bg-secondary">{{ lab.status | enum_label('OrderState') }}</span>
                                                     {% endif %}
                                                 </td>
-                                                <td>{{ lab.created_at.strftime('%Y-%m-%d') if lab.created_at else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                                <td>{{ lab.created_at.strftime('%Y-%m-%d') if lab.created_at else _('غير محدد') }}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -392,13 +392,13 @@
                             {% else %}
                                 <div class="text-center py-4">
                                     <i class="fas fa-flask fa-3x text-muted mb-3"></i>
-                                    <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد طلبات مختبر")")")")")")")') }}</h5>
+                                    <h5 class="text-muted">{{ _(_('لا توجد طلبات مختبر')) }}</h5>
                                 </div>
                             {% endif %}
                             
                             <div class="text-center mt-3">
                                 <a href="{{ url_for('emergency.lab_request', emergency_id=emergency.id) }}" class="btn btn-warning">
-                                    <i class="fas fa-plus me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("طلب فحص مختبر")")")")")")")') }}
+                                    <i class="fas fa-plus me-2"></i>{{ _(_('طلب فحص مختبر')) }}
                                 </a>
                             </div>
                         </div>
@@ -412,10 +412,10 @@
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("نوع الفحص")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("منطقة الفحص")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+                                                <th>{{ _(_('نوع الفحص')) }}</th>
+                                                <th>{{ _(_('منطقة الفحص')) }}</th>
+                                                <th>{{ _(_('الحالة')) }}</th>
+                                                <th>{{ _(_('التاريخ')) }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -425,18 +425,18 @@
                                                 <td>{{ radiology.body_part or '-' }}</td>
                                                 <td>
                                                     {% if radiology.status == 'REQUESTED' %}
-                                                        <span class="badge text-bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("مطلوب")")")")")")")') }}</span>
+                                                        <span class="badge text-bg-warning">{{ _(_('مطلوب')) }}</span>
                                                     {% elif radiology.status == 'IN_PROGRESS' %}
-                                                        <span class="badge text-bg-info">{{ _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")') }}</span>
+                                                        <span class="badge text-bg-info">{{ _(_('قيد التنفيذ')) }}</span>
                                                     {% elif radiology.status == 'DONE' %}
-                                                        <span class="badge text-bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
+                                                        <span class="badge text-bg-success">{{ _(_('مكتمل')) }}</span>
                                                     {% elif radiology.status == 'CANCELLED' %}
-                                                        <span class="badge text-bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("ملغي")")")")")")")') }}</span>
+                                                        <span class="badge text-bg-danger">{{ _(_('ملغي')) }}</span>
                                                     {% else %}
                                                         <span class="badge text-bg-secondary">{{ radiology.status | enum_label('OrderState') }}</span>
                                                     {% endif %}
                                                 </td>
-                                                <td>{{ radiology.created_at.strftime('%Y-%m-%d') if radiology.created_at else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                                <td>{{ radiology.created_at.strftime('%Y-%m-%d') if radiology.created_at else _('غير محدد') }}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -445,13 +445,13 @@
                             {% else %}
                                 <div class="text-center py-4">
                                     <i class="fas fa-x-ray fa-3x text-muted mb-3"></i>
-                                    <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد طلبات أشعة")")")")")")")') }}</h5>
+                                    <h5 class="text-muted">{{ _(_('لا توجد طلبات أشعة')) }}</h5>
                                 </div>
                             {% endif %}
                             
                             <div class="text-center mt-3">
                                 <a href="{{ url_for('emergency.radiology_request', emergency_id=emergency.id) }}" class="btn btn-secondary">
-                                    <i class="fas fa-plus me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("طلب فحص أشعة")")")")")")")') }}
+                                    <i class="fas fa-plus me-2"></i>{{ _(_('طلب فحص أشعة')) }}
                                 </a>
                             </div>
                         </div>
@@ -464,10 +464,10 @@
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("المحتوى")")")")")")")') }}</th>
-                                                <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
+                                                <th>{{ _(_('النوع')) }}</th>
+                                                <th>{{ _(_('العنوان')) }}</th>
+                                                <th>{{ _(_('المحتوى')) }}</th>
+                                                <th>{{ _(_('التاريخ')) }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -475,16 +475,16 @@
                                             <tr>
                                                 <td>
                                                     {% if record.record_type == 'EMERGENCY' %}
-                                                        <span class="badge text-bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("طوارئ")")")")")")")') }}</span>
+                                                        <span class="badge text-bg-danger">{{ _(_('طوارئ')) }}</span>
                                                     {% elif record.record_type == 'TREATMENT' %}
-                                                        <span class="badge text-bg-success">{{ _('_("_(" _(" _(" _(" _(" _("علاج")")")")")")")') }}</span>
+                                                        <span class="badge text-bg-success">{{ _(_('علاج')) }}</span>
                                                     {% else %}
                                                         <span class="badge text-bg-info">{{ record.record_type }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ record.title }}</td>
                                                 <td>{{ record.content[:100] }}{% if record.content|length > 100 %}...{% endif %}</td>
-                                                <td>{{ record.created_at.strftime('%Y-%m-%d') if record.created_at else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                                <td>{{ record.created_at.strftime('%Y-%m-%d') if record.created_at else _('غير محدد') }}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -493,13 +493,13 @@
                             {% else %}
                                 <div class="text-center py-4">
                                     <i class="fas fa-history fa-3x text-muted mb-3"></i>
-                                    <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد سجلات طبية")")")")")")")') }}</h5>
+                                    <h5 class="text-muted">{{ _(_('لا توجد سجلات طبية')) }}</h5>
                                 </div>
                             {% endif %}
                             
                             <div class="text-center mt-3">
                                 <a href="{{ url_for('emergency.medical_history', patient_id=emergency.patient_id) }}" class="btn btn-info">
-                                    <i class="fas fa-eye me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("عرض السجل الطبي الكامل")")")")")")")') }}
+                                    <i class="fas fa-eye me-2"></i>{{ _(_('عرض السجل الطبي الكامل')) }}
                                 </a>
                             </div>
                         </div>

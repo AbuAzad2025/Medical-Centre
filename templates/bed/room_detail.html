@@ -4,7 +4,7 @@
 <div class="container-fluid">
   <h2 class="mb-4">{{ room.name }} — {{ room.ward.name }}</h2>
   <div class="card">
-    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("الأسرة")")")")")")")') }}</div>
+    <div class="card-header">{{ _(_('الأسرة')) }}</div>
     <div class="card-body">
       <div class="row g-3">
         {% for b in beds %}
@@ -16,7 +16,7 @@
             </div>
           </div>
         {% else %}
-          <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد أسرة")")")")")")")') }}</p>
+          <p class="text-muted">{{ _(_('لا يوجد أسرة')) }}</p>
         {% endfor %}
       </div>
     </div>

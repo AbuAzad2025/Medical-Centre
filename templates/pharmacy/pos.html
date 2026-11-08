@@ -9,19 +9,19 @@
             <div class="card-header bg-white">
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="medSearch" class="form-control" placeholder="_(" _(" _(" _(" _(" _("ابحث عن دواء بالاسم أو الباركود...")")")")")")" autofocus>
+                    <input type="text" id="medSearch" class="form-control" placeholder="ابحث عن دواء بالاسم أو الباركود..." autofocus>
                 </div>
             </div>
             <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-hover mb-0" id="medTable">
-                    <thead><tr><th>{{ _('الدواء') }}</th><th>{{ _('_("السعر")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المخزون")")")")")")")') }}</th><th></th></tr></thead>
+                    <thead><tr><th>{{ _('الدواء') }}</th><th>{{ _(_('السعر')) }}</th><th>{{ _(_('المخزون')) }}</th><th></th></tr></thead>
                     <tbody id="medResults"></tbody>
                 </table>
-                <div id="noResults" class="text-center text-muted py-5 d-none">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد نتائج")")")")")")")') }}</div>
+                <div id="noResults" class="text-center text-muted py-5 d-none">{{ _(_('لا توجد نتائج')) }}</div>
             </div>
         </div>
         <div class="card mt-3">
-            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list ms-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("أصناف سريعة")")")")")")")') }}</h5></div>
+            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list ms-2"></i>{{ _(_('أصناف سريعة')) }}</h5></div>
             <div class="card-body">
                 <div class="row g-2" id="quickMedications">
                 {% for m in medications %}
@@ -38,25 +38,25 @@
     <div class="col-md-5 pos-cart-sticky">
         <div class="card">
             <div class="card-header bg-white d-flex justify-content-between">
-                <h5 class="mb-0"><i class="fas fa-shopping-cart ms-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("سلة المشتريات")")")")")")")') }}</h5>
+                <h5 class="mb-0"><i class="fas fa-shopping-cart ms-2"></i>{{ _(_('سلة المشتريات')) }}</h5>
                 <button class="btn btn-sm btn-outline-danger" id="clearCart"><i class="fas fa-trash"></i></button>
             </div>
             <div class="card-body p-0">
                 <div id="cartItems" class="p-3">
-                    <div class="text-center text-muted py-5" id="emptyCart">{{ _('_("_(" _(" _(" _(" _(" _("السلة فارغة")")")")")")")') }}</div>
+                    <div class="text-center text-muted py-5" id="emptyCart">{{ _(_('السلة فارغة')) }}</div>
                 </div>
             </div>
             <div class="card-footer bg-white">
                 <div class="d-flex justify-content-between mb-2">
-                    <span>{{ _('_("_(" _(" _(" _(" _(" _("الإجمالي:")")")")")")")') }}</span>
+                    <span>{{ _(_('الإجمالي:')) }}</span>
                     <span class="fw-bold fs-5" id="cartTotal">0.00 ₪</span>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small">{{ _('_("_(" _(" _(" _(" _(" _("اسم العميل (اختياري)")")")")")")")') }}</label>
-                    <input type="text" id="customerName" class="form-control" placeholder="_(" _(" _(" _(" _(" _("اسم العميل")")")")")")">
+                    <label class="form-label small">{{ _(_('اسم العميل (اختياري)')) }}</label>
+                    <input type="text" id="customerName" class="form-control" placeholder="اسم العميل">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small">{{ _('_("_(" _(" _(" _(" _(" _("طريقة الدفع")")")")")")")') }}</label>
+                    <label class="form-label small">{{ _(_('طريقة الدفع')) }}</label>
                     {% from 'partials/_payment_method_select.html' import payment_method_radios %}
                     {{ payment_method_radios(show_card=pos_enabled) }}
                 </div>
@@ -65,7 +65,7 @@
                 <div class="mb-3 d-none" id="cardChargeBlock">
                     <button type="button" class="btn btn-outline-primary w-100" id="pharmacyPosChargeBtn"
                         data-charge-url="{{ url_for('medication.pharmacy_pos_charge') }}">
-                        <i class="fas fa-credit-card ms-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تحصيل عبر جهاز البطاقة")")")")")")")') }}
+                        <i class="fas fa-credit-card ms-1"></i>{{ _(_('تحصيل عبر جهاز البطاقة')) }}
                     </button>
                     <small class="text-muted d-block mt-1" id="pharmacyPosStatus"></small>
                     <input type="hidden" id="pharmacyTransactionId" value="">
@@ -73,12 +73,12 @@
                 </div>
                 {% else %}
                 <div class="alert alert-warning small mb-3">
-                  <i class="fas fa-lock me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تحصيل البطاقة غير متاح في باقتك — استخدم الدفع النقدي.")")")")")")")') }}
+                  <i class="fas fa-lock me-1"></i>{{ _(_('تحصيل البطاقة غير متاح في باقتك — استخدم الدفع النقدي.')) }}
                 </div>
                 {% endif %}
                 {% endif %}
                 <button class="btn btn-success w-100 btn-lg" id="checkoutBtn" disabled>
-                    <i class="fas fa-check ms-1"></i><span id="checkoutBtnLabel">{{ _('_("_(" _(" _(" _(" _(" _("إتمام البيع (نقداً)")")")")")")")') }}</span>
+                    <i class="fas fa-check ms-1"></i><span id="checkoutBtnLabel">{{ _(_('إتمام البيع (نقداً)')) }}</span>
                 </button>
             </div>
         </div>

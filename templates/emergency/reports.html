@@ -9,11 +9,11 @@
       <div class="card border-0 shadow-sm">
         <div class="card-body d-flex justify-content-between align-items-center">
           <div>
-            <h2 class="mb-1 text-danger"><i class="fas fa-chart-line me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تقارير الطوارئ")")")")")")")') }}</h2>
-            <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تحليلات الحالات وأوقات الذروة وزمن الانتقال بين الحالات")")")")")")")') }}</div>
+            <h2 class="mb-1 text-danger"><i class="fas fa-chart-line me-2"></i>{{ _(_('تقارير الطوارئ')) }}</h2>
+            <div class="text-muted">{{ _(_('تحليلات الحالات وأوقات الذروة وزمن الانتقال بين الحالات')) }}</div>
           </div>
           <div>
-            <a href="{{ url_for('emergency.dashboard') }}" class="btn btn-secondary">{{ _('_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")') }}</a>
+            <a href="{{ url_for('emergency.dashboard') }}" class="btn btn-secondary">{{ _(_('رجوع')) }}</a>
           </div>
         </div>
       </div>
@@ -24,29 +24,29 @@
     <div class="card-body">
       <form method="GET" class="row g-3 align-items-end">
         <div class="col-md-4">
-          <label class="form-label"_(" _(" _(" _(" _(" _(">من</label>
-          <input class=")")")")")")"form-control" type="date" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') }}">
+          <label class="form-label">من</label>
+          <input class="form-control" type="date" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') }}">
         </div>
         <div class="col-md-4">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إلى")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('إلى')) }}</label>
           <input class="form-control" type="date" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') }}">
         </div>
         <div class="col-md-4">
-          <button class="btn btn-primary w-100" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</button>
+          <button class="btn btn-primary w-100" type="submit">{{ _(_('عرض')) }}</button>
         </div>
       </form>
-      <div class="mt-3 text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الإجمالي:")")")")")")")') }} <strong>{{ total }}</strong></div>
+      <div class="mt-3 text-muted">{{ _(_('الإجمالي:')) }} <strong>{{ total }}</strong></div>
     </div>
   </div>
 
   <div class="row g-3 mb-4">
     <div class="col-lg-4">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-light">{{ _('_("_(" _(" _(" _(" _(" _("حسب الحالة")")")")")")")') }}</div>
+        <div class="card-header bg-light">{{ _(_('حسب الحالة')) }}</div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-sm mb-0">
-              <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("العدد")")")")")")")') }}</th></tr></thead>
+              <thead><tr><th>{{ _(_('الحالة')) }}</th><th class="text-end">{{ _(_('العدد')) }}</th></tr></thead>
               <tbody>
                 {% for k,v in by_status.items() %}
                   <tr><td>{{ k }}</td><td class="text-end">{{ v }}</td></tr>
@@ -59,11 +59,11 @@
     </div>
     <div class="col-lg-4">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-light">{{ _('_("_(" _(" _(" _(" _(" _("حسب الشدة")")")")")")")') }}</div>
+        <div class="card-header bg-light">{{ _(_('حسب الشدة')) }}</div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-sm mb-0">
-              <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الشدة")")")")")")")') }}</th><th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("العدد")")")")")")")') }}</th></tr></thead>
+              <thead><tr><th>{{ _(_('الشدة')) }}</th><th class="text-end">{{ _(_('العدد')) }}</th></tr></thead>
               <tbody>
                 {% for k,v in by_severity.items() %}
                   <tr><td>{{ k }}</td><td class="text-end">{{ v }}</td></tr>
@@ -76,11 +76,11 @@
     </div>
     <div class="col-lg-4">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-light">{{ _('_("_(" _(" _(" _(" _(" _("ساعات الذروة")")")")")")")') }}</div>
+        <div class="card-header bg-light">{{ _(_('ساعات الذروة')) }}</div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-sm mb-0">
-              <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الساعة")")")")")")")') }}</th><th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("العدد")")")")")")")') }}</th></tr></thead>
+              <thead><tr><th>{{ _(_('الساعة')) }}</th><th class="text-end">{{ _(_('العدد')) }}</th></tr></thead>
               <tbody>
                 {% for hr in range(0,24) %}
                   <tr><td>{{ "%02d"|format(hr) }}</td><td class="text-end">{{ by_hour.get(hr, 0) }}</td></tr>
@@ -96,11 +96,11 @@
   <div class="row g-3">
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-light">{{ _('_("_(" _(" _(" _(" _(" _("الأسباب الشائعة")")")")")")")') }}</div>
+        <div class="card-header bg-light">{{ _(_('الأسباب الشائعة')) }}</div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-sm mb-0">
-              <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("السبب")")")")")")")') }}</th><th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("العدد")")")")")")")') }}</th></tr></thead>
+              <thead><tr><th>{{ _(_('السبب')) }}</th><th class="text-end">{{ _(_('العدد')) }}</th></tr></thead>
               <tbody>
                 {% for txt, cnt in top_reasons %}
                   <tr><td>{{ txt }}</td><td class="text-end">{{ cnt }}</td></tr>
@@ -113,11 +113,11 @@
     </div>
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-light">{{ _('_("_(" _(" _(" _(" _(" _("متوسط زمن البقاء في كل حالة (بالدقائق)")")")")")")")') }}</div>
+        <div class="card-header bg-light">{{ _(_('متوسط زمن البقاء في كل حالة (بالدقائق)')) }}</div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-sm mb-0">
-              <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("المتوسط")")")")")")")') }}</th><th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("العينات")")")")")")")') }}</th></tr></thead>
+              <thead><tr><th>{{ _(_('الحالة')) }}</th><th class="text-end">{{ _(_('المتوسط')) }}</th><th class="text-end">{{ _(_('العينات')) }}</th></tr></thead>
               <tbody>
                 {% for k,v in stage_avg.items() %}
                   <tr><td>{{ k }}</td><td class="text-end">{{ v }}</td><td class="text-end">{{ stage_samples.get(k, 0) }}</td></tr>

@@ -2,13 +2,13 @@
 {% block title %}الفواتير المفتوحة{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("الفواتير المفتوحة")")")")")")")') }}</h2>
+  <h2 class="mb-3">{{ _(_('الفواتير المفتوحة')) }}</h2>
   <div class="card"><div class="card-body">
-    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإجمالي")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المدفوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ")")")")")")")') }}</th></tr></thead><tbody>
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الإجمالي')) }}</th><th>{{ _(_('المدفوع')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('تاريخ')) }}</th></tr></thead><tbody>
       {% for i in invoices or [] %}
       <tr><td>{{ i.id }}</td><td>{{ i.patient.full_name if i.patient else '' }}</td><td>{{ i.total_amount }}</td><td>{{ i.paid_amount }}</td><td>{{ i.status | enum_label('InvoiceStatus') }}</td><td>{{ i.created_at }}</td></tr>
       {% else %}
-      <tr><td colspan="6" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا فواتير")")")")")")")') }}</td></tr>
+      <tr><td colspan="6" class="text-center">{{ _(_('لا فواتير')) }}</td></tr>
       {% endfor %}
     </tbody></table></div>
   </div></div>

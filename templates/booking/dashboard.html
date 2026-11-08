@@ -5,13 +5,13 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("حجوزاتي")")")")")")")', subtitle=(patient.full_name if patient else '_("_(" _(" _(" _(" _(" _("غير مرتبط بمريض")")")")")")")'), icon='fas fa-calendar-alt', actions=[
-      {'label': '_("_(" _(" _(" _(" _(" _("حجز جديد")")")")")")")', 'url': url_for('booking.index'), 'style': 'primary'},
-      {'label': '_("_(" _(" _(" _(" _(" _("تسجيل الخروج")")")")")")")', 'url': url_for('auth.logout'), 'style': 'outline-secondary'}
+  {{ page_header(_('حجوزاتي'), subtitle=(patient.full_name if patient else _('غير مرتبط بمريض')), icon='fas fa-calendar-alt', actions=[
+      {'label': _('حجز جديد'), 'url': url_for('booking.index'), 'style': 'primary'},
+      {'label': _('تسجيل الخروج'), 'url': url_for('auth.logout'), 'style': 'outline-secondary'}
   ]) }}
 
   {% if not patient %}
-    <div class="alert alert-warning">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد ربط بمريض. راجع الإدارة.")")")")")")")') }}</div>
+    <div class="alert alert-warning">{{ _(_('لا يوجد ربط بمريض. راجع الإدارة.')) }}</div>
   {% endif %}
 
   <div class="card border-0 shadow-sm">
@@ -20,12 +20,12 @@
         <table class="table table-striped align-middle mb-0">
           <thead>
             <tr>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("المرجع")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+              <th>{{ _(_('المرجع')) }}</th>
+              <th>{{ _(_('القسم')) }}</th>
+              <th>{{ _(_('الطبيب')) }}</th>
+              <th>{{ _(_('التاريخ')) }}</th>
+              <th>{{ _(_('الوقت')) }}</th>
+              <th>{{ _(_('الحالة')) }}</th>
               <th></th>
             </tr>
           </thead>
@@ -42,14 +42,14 @@
                   {% if b.can_be_cancelled() %}
                     <form method="POST" action="{{ url_for('booking.cancel_booking', booking_id=b.id) }}" class="d-inline">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                      <button type="submit" class="btn btn-sm btn-outline-danger" data-action="confirm-submit" data-message="_(" _(" _(" _(" _(" _("هل تريد إلغاء هذا الحجز؟")")")")")")">{{ _('إلغاء') }}</button>
+                      <button type="submit" class="btn btn-sm btn-outline-danger" data-action="confirm-submit" data-message="هل تريد إلغاء هذا الحجز؟">{{ _('إلغاء') }}</button>
                     </form>
                   {% endif %}
                 </td>
               </tr>
             {% else %}
               <tr>
-                <td colspan="7" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد حجوزات")")")")")")")') }}</td>
+                <td colspan="7" class="text-center text-muted py-4">{{ _(_('لا توجد حجوزات')) }}</td>
               </tr>
             {% endfor %}
           </tbody>

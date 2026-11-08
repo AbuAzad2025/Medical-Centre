@@ -3,29 +3,29 @@
 {% block title %}تقرير الاستهلاك{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("تقرير استهلاك الأدوية")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("حسب القسم/الطبيب/الدواء وضمن فترة")")")")")")")', icon='fas fa-chart-line', actions=[
-      {'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('medication.dashboard'), 'style': 'secondary'}
+  {{ page_header(_('تقرير استهلاك الأدوية'), subtitle=_('حسب القسم/الطبيب/الدواء وضمن فترة'), icon='fas fa-chart-line', actions=[
+      {'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'url': url_for('medication.dashboard'), 'style': 'secondary'}
   ]) }}
 
   <form method="GET" class="row g-3 mb-3">
     <div class="col-md-4">
-      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التجميع")")")")")")")') }}</label>
+      <label class="form-label">{{ _(_('التجميع')) }}</label>
       <select class="form-select" name="group">
-        <option value="medication" {% if group == 'medication' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("حسب الدواء")")")")")")")') }}</option>
-        <option value="doctor" {% if group == 'doctor' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("حسب الطبيب")")")")")")")') }}</option>
-        <option value="department" {% if group == 'department' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("حسب القسم")")")")")")")') }}</option>
+        <option value="medication" {% if group == 'medication' %}selected{% endif %}>{{ _(_('حسب الدواء')) }}</option>
+        <option value="doctor" {% if group == 'doctor' %}selected{% endif %}>{{ _(_('حسب الطبيب')) }}</option>
+        <option value="department" {% if group == 'department' %}selected{% endif %}>{{ _(_('حسب القسم')) }}</option>
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label"_(" _(" _(" _(" _(" _(">من</label>
-      <input class=")")")")")")"form-control" type="date" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
+      <label class="form-label">من</label>
+      <input class="form-control" type="date" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
     </div>
     <div class="col-md-3">
-      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إلى")")")")")")")') }}</label>
+      <label class="form-label">{{ _(_('إلى')) }}</label>
       <input class="form-control" type="date" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
     </div>
     <div class="col-md-2 d-flex align-items-end">
-      <button class="btn btn-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</button>
+      <button class="btn btn-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>{{ _(_('عرض')) }}</button>
     </div>
   </form>
 
@@ -35,10 +35,10 @@
         <table class="table table-striped align-middle">
           <thead>
             <tr>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</th>
-              <th class="w-140">{{ _('_("_(" _(" _(" _(" _(" _("عدد الوصفات")")")")")")")') }}</th>
-              <th class="w-140">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي الكمية")")")")")")")') }}</th>
-              <th class="w-180">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي القيمة")")")")")")")') }}</th>
+              <th>{{ _(_('العنوان')) }}</th>
+              <th class="w-140">{{ _(_('عدد الوصفات')) }}</th>
+              <th class="w-140">{{ _(_('إجمالي الكمية')) }}</th>
+              <th class="w-180">{{ _(_('إجمالي القيمة')) }}</th>
             </tr>
           </thead>
           <tbody>
@@ -50,7 +50,7 @@
                 <td>{{ "%.2f"|format(r.total_value) }}</td>
               </tr>
             {% else %}
-              <tr><td colspan="4" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا بيانات ضمن الفترة")")")")")")")') }}</td></tr>
+              <tr><td colspan="4" class="text-center text-muted">{{ _(_('لا بيانات ضمن الفترة')) }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

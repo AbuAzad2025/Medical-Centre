@@ -1,6 +1,6 @@
 {# Form stepper chrome — fields stay in DOM; panels toggled via JS (G-20) #}
 {% macro form_stepper(steps) %}
-<nav class="form-stepper mb-4" aria-label="_(" _(" _(" _(" _(" _("خطوات النموذج")")")")")")" data-form-stepper>
+<nav class="form-stepper mb-4" aria-label="خطوات النموذج" data-form-stepper>
   <ol class="form-stepper-list list-unstyled d-flex flex-wrap gap-2 mb-0">
     {% for label, icon in steps %}
     <li class="form-stepper-item{% if loop.first %} active{% endif %}" data-step-index="{{ loop.index0 }}" role="presentation">
@@ -12,8 +12,8 @@
     {% endfor %}
   </ol>
   <div class="d-flex justify-content-between mt-3 gap-2">
-    <button type="button" class="btn btn-outline-secondary btn-sm" data-stepper-prev disabled>{{ _('_("_(" _(" _(" _(" _(" _("السابق")")")")")")")') }}</button>
-    <button type="button" class="btn btn-primary btn-sm" data-stepper-next>{{ _('_("_(" _(" _(" _(" _(" _("التالي")")")")")")")') }}</button>
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-stepper-prev disabled>{{ _(_('السابق')) }}</button>
+    <button type="button" class="btn btn-primary btn-sm" data-stepper-next>{{ _(_('التالي')) }}</button>
   </div>
 </nav>
 {% endmacro %}

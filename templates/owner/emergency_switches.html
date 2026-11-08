@@ -5,7 +5,7 @@
 {% block header_actions %}
 <div class="d-flex gap-2">
     <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
-        <i class="fas fa-arrow-right"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة للوحة التحكم")")")")")")")') }}
+        <i class="fas fa-arrow-right"></i> {{ _(_('العودة للوحة التحكم')) }}
     </a>
 </div>
 {% endblock %}
@@ -17,10 +17,9 @@
         <div class="mb-3">
             <i class="fas fa-radiation fa-4x text-danger animate-pulse"></i>
         </div>
-        <h2 class="fw-bold text-danger mb-2">{{ _('_("_(" _(" _(" _(" _(" _("نظام التحكم في الطوارئ")")")")")")")') }}</h2>
+        <h2 class="fw-bold text-danger mb-2">{{ _(_('نظام التحكم في الطوارئ')) }}</h2>
         <p class="text-muted mx-auto" style="max-width: 600px;">
-            <strong>{{ _('_("_(" _(" _(" _(" _(" _("تحذير:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("تفعيل هذه المفاتيح يؤثر على جميع العملاء والمستخدمين في المنصة بشكل فوري. 
-            استخدمها فقط في حالات الأزمات التقنية أو الأمنية القصوى.")")")")")")")') }}
+            <strong>{{ _(_('تحذير:')) }}</strong> {{ _('تفعيل هذه المفاتيح يؤثر على جميع العملاء والمستخدمين في المنصة بشكل فوري. استخدمها فقط في حالات الأزمات التقنية أو الأمنية القصوى.') }}
         </p>
     </div>
 </div>

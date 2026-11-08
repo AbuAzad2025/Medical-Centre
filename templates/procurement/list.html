@@ -5,10 +5,10 @@
 <div class="container-fluid">
 
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="fas fa-truck-ramp-box me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("أوامر الشراء")")")")")")")') }}</h4>
+    <h4 class="mb-0"><i class="fas fa-truck-ramp-box me-2 text-primary"></i>{{ _(_('أوامر الشراء')) }}</h4>
     {% if current_user.role in ('manager', 'admin', 'owner', 'super_admin') %}
     <a href="{{ url_for('procurement.new_po_form') }}" class="btn btn-primary btn-sm">
-      <i class="fas fa-plus me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("أمر شراء جديد")")")")")")")') }}
+      <i class="fas fa-plus me-1"></i>{{ _(_('أمر شراء جديد')) }}
     </a>
     {% endif %}
   </div>
@@ -19,12 +19,12 @@
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("المورد")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("عدد الأصناف")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("بنود غير مستلمة")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجمالي")")")")")")")') }}</th>
-            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+            <th>{{ _(_('التاريخ')) }}</th>
+            <th>{{ _(_('المورد')) }}</th>
+            <th>{{ _(_('عدد الأصناف')) }}</th>
+            <th>{{ _(_('بنود غير مستلمة')) }}</th>
+            <th>{{ _(_('الإجمالي')) }}</th>
+            <th>{{ _(_('الحالة')) }}</th>
             <th></th>
           </tr>
         </thead>
@@ -34,36 +34,36 @@
             <td>{{ o.purchase_date }}</td>
             <td>
               {%- set sup = suppliers | selectattr('id', 'equalto', o.supplier_id) | list | first -%}
-              {{ sup.name if sup else ('_("_(" _(" _(" _(" _(" _("مورد #")")")")")")")' ~ o.supplier_id) }}
+              {{ sup.name if sup else (_('مورد #') ~ o.supplier_id) }}
             </td>
             <td>{{ o.items | length }}</td>
             <td>{{ o.open_lines }}</td>
             <td class="fw-bold">{{ '%.2f' % o.total }}</td>
             <td>
               {% if o.open_lines == 0 %}
-                <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مستلم بالكامل")")")")")")")') }}</span>
+                <span class="badge bg-success">{{ _(_('مستلم بالكامل')) }}</span>
               {% else %}
-                <span class="badge bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("بانتظار الاستلام")")")")")")")') }}</span>
+                <span class="badge bg-warning text-dark">{{ _(_('بانتظار الاستلام')) }}</span>
               {% endif %}
             </td>
             <td>
               <button class="btn btn-outline-primary btn-sm"
                       type="button" data-bs-toggle="collapse"
                       data-bs-target="#po-{{ loop.index }}">
-                {{ _('_("_(" _(" _(" _(" _(" _("التفاصيل")")")")")")")') }}
+                {{ _(_('التفاصيل')) }}
               </button>
             </td>
           </tr>
           <tr class="collapse" id="po-{{ loop.index }}">
             <td colspan="7">
               <table class="table table-sm mb-0">
-                <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الدواء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الكمية")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المتبقي للاستلام")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("السعر")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التشغيلة")")")")")")")') }}</th><th></th></tr></thead>
+                <thead><tr><th>{{ _(_('الدواء')) }}</th><th>{{ _(_('الكمية')) }}</th><th>{{ _(_('المتبقي للاستلام')) }}</th><th>{{ _(_('السعر')) }}</th><th>{{ _(_('التشغيلة')) }}</th><th></th></tr></thead>
                 <tbody>
                   {% for p in o['items'] %}
                   <tr>
                     <td>
                       {%- set med = medications_map.get(p.medication_id) if medications_map else None -%}
-                      {{ med.trade_name if med else ('_("_(" _(" _(" _(" _(" _("دواء #")")")")")")")' ~ p.medication_id) }}
+                      {{ med.trade_name if med else (_('دواء #') ~ p.medication_id) }}
                     </td>
                     <td>{{ p.quantity }}</td>
                     <td>{{ p.remaining_quantity }}</td>
@@ -75,10 +75,10 @@
                         <button class="btn btn-success btn-sm btn-receive"
                                 data-id="{{ p.id }}"
                                 data-name="{{ p.batch_number }}">
-                          <i class="fas fa-check me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("استلام")")")")")")")') }}
+                          <i class="fas fa-check me-1"></i>{{ _(_('استلام')) }}
                         </button>
                       {% elif p.remaining_quantity == 0 %}
-                        <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("✓ مستلم")")")")")")")') }}</span>
+                        <span class="badge bg-secondary">{{ _(_('✓ مستلم')) }}</span>
                       {% endif %}
                     </td>
                   </tr>
@@ -97,10 +97,10 @@
   {% from 'partials/_empty_state.html' import empty_state %}
   {{ empty_state(
       icon='fas fa-truck-ramp-box',
-      title='_("_(" _(" _(" _(" _(" _("لا توجد أوامر شراء بعد")")")")")")")',
-      subtitle='_("_(" _(" _(" _(" _(" _("ابدأ بإنشاء أول أمر شراء لتوريد الأدوية إلى المخزون")")")")")")")',
+      title=_('لا توجد أوامر شراء بعد'),
+      subtitle=_('ابدأ بإنشاء أول أمر شراء لتوريد الأدوية إلى المخزون'),
       action_url=url_for('procurement.new_po_form'),
-      action_text='_("_(" _(" _(" _(" _(" _("إنشاء أمر شراء")")")")")")")'
+      action_text=_('إنشاء أمر شراء')
   ) }}
   {% endif %}
 </div>

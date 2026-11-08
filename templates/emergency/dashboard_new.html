@@ -3,36 +3,36 @@
 {% block content %}
 <div class="row mb-3">
     <div class="col-12 d-flex flex-wrap gap-2">
-        <a href="{{ url_for('emergency.patient_queue') }}" class="btn btn-danger"><i class="fas fa-ambulance me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("طابور الطوارئ")")")")")")")') }}</a>
-        <a href="{{ url_for('emergency.reports') }}" class="btn btn-secondary"><i class="fas fa-chart-bar me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("تقارير الطوارئ")")")")")")")') }}</a>
+        <a href="{{ url_for('emergency.patient_queue') }}" class="btn btn-danger"><i class="fas fa-ambulance me-1"></i> {{ _(_('طابور الطوارئ')) }}</a>
+        <a href="{{ url_for('emergency.reports') }}" class="btn btn-secondary"><i class="fas fa-chart-bar me-1"></i> {{ _(_('تقارير الطوارئ')) }}</a>
     </div>
 </div>
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card card-stat bg-danger">
             <div class="icon-bg"><i class="fas fa-ambulance"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("حالات اليوم")")")")")")")') }}</h6>
+            <h6>{{ _(_('حالات اليوم')) }}</h6>
             <h3>{{ stats.today_emergencies }}</h3>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card card-stat bg-warning">
             <div class="icon-bg"><i class="fas fa-heartbeat"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("الحالات النشطة")")")")")")")') }}</h6>
+            <h6>{{ _(_('الحالات النشطة')) }}</h6>
             <h3>{{ stats.active_emergencies }}</h3>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card card-stat bg-success">
             <div class="icon-bg"><i class="fas fa-check-circle"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("مكتملة اليوم")")")")")")")') }}</h6>
+            <h6>{{ _(_('مكتملة اليوم')) }}</h6>
             <h3>{{ stats.completed_today }}</h3>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card card-stat bg-info">
             <div class="icon-bg"><i class="fas fa-calendar-week"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("مكتملة هذا الأسبوع")")")")")")")') }}</h6>
+            <h6>{{ _(_('مكتملة هذا الأسبوع')) }}</h6>
             <h3>{{ stats.weekly_emergencies }}</h3>
         </div>
     </div>
@@ -41,14 +41,14 @@
     <div class="col-md-4">
         <div class="card card-stat bg-dark">
             <div class="icon-bg"><i class="fas fa-exclamation-triangle"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("حالات حرجة")")")")")")")') }}</h6>
+            <h6>{{ _(_('حالات حرجة')) }}</h6>
             <h3>{{ stats.critical_cases }}</h3>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card card-stat bg-primary">
             <div class="icon-bg"><i class="fas fa-procedures"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("حالات عاجلة")")")")")")")') }}</h6>
+            <h6>{{ _(_('حالات عاجلة')) }}</h6>
             <h3>{{ stats.urgent_cases }}</h3>
         </div>
     </div>
@@ -56,7 +56,7 @@
     <div class="col-md-4">
         <div class="card card-stat bg-secondary">
             <div class="icon-bg"><i class="fas fa-flask"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("طلبات مختبر معلّقة")")")")")")")') }}</h6>
+            <h6>{{ _(_('طلبات مختبر معلّقة')) }}</h6>
             <h3>{{ stats.pending_lab_requests }}</h3>
         </div>
     </div>
@@ -65,23 +65,23 @@
 <div class="row g-3">
     <div class="col-lg-8">
         <div class="card h-100">
-            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2 text-danger"></i>{{ _('_("_(" _(" _(" _(" _(" _("قائمة الانتظار — الحالات الحرجة والعاجلة")")")")")")")') }}</h5></div>
+            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2 text-danger"></i>{{ _(_('قائمة الانتظار — الحالات الحرجة والعاجلة')) }}</h5></div>
             <div class="card-body p-0">
                 <table class="table table-hover mb-0">
-                    <thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الشكوى")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الخطورة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراء")")")")")")")') }}</th></tr></thead>
+                    <thead><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الشكوى')) }}</th><th>{{ _(_('الخطورة')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('الوقت')) }}</th><th>{{ _(_('الإجراء')) }}</th></tr></thead>
                     <tbody>
                     {% for c in upcoming_cases %}
                     <tr>
                         <td>{{ c.id }}</td>
                         <td>{{ c.patient.full_name if c.patient else '-' }}</td>
                         <td class="small text-muted">{{ c.chief_complaint or '-' }}</td>
-                        <td><span class="badge bg-{% if c.severity=='CRITICAL' %}dark{% elif c.severity=='HIGH' %}danger{% elif c.severity=='MODERATE' %}warning{% else %}info{% endif %}">{{ c.severity or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</span></td>
+                        <td><span class="badge bg-{% if c.severity=='CRITICAL' %}dark{% elif c.severity=='HIGH' %}danger{% elif c.severity=='MODERATE' %}warning{% else %}info{% endif %}">{{ c.severity or _('غير محدد') }}</span></td>
                         <td><span class="badge bg-secondary">{{ c.status or '-' }}</span></td>
                         <td class="small text-muted">{{ c.created_at.strftime('%H:%M') if c.created_at else '-' }}</td>
-                        <td><a href="{{ url_for('emergency.patient_details', emergency_id=c.id) }}" class="btn btn-sm btn-primary">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</a></td>
+                        <td><a href="{{ url_for('emergency.patient_details', emergency_id=c.id) }}" class="btn btn-sm btn-primary">{{ _(_('عرض')) }}</a></td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="7"><div class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد حالات حرجة في قائمة الانتظار")")")")")")")') }}</div></td></tr>
+                    <tr><td colspan="7"><div class="text-center text-muted py-4">{{ _(_('لا توجد حالات حرجة في قائمة الانتظار')) }}</div></td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -90,13 +90,13 @@
     </div>
     <div class="col-lg-4">
         <div class="card h-100">
-            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-stopwatch me-2 text-warning"></i>{{ _('_("_(" _(" _(" _(" _(" _("مؤشرات الوقت")")")")")")")') }}</h5></div>
+            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-stopwatch me-2 text-warning"></i>{{ _(_('مؤشرات الوقت')) }}</h5></div>
             <div class="card-body">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("متوسط وقت الانتظار")")")")")")")') }}</span><strong>{{ stats.time_metrics.avg_wait_time or 0 }} د</strong></li>
-                    <li class="list-group-item d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("متوسط وقت العلاج")")")")")")")') }}</span><strong>{{ stats.time_metrics.avg_treatment_time or 0 }} د</strong></li>
-                    <li class="list-group-item d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("إجمالي الحالات (7 أيام)")")")")")")")') }}</span><strong>{{ stats.ems_metrics.ems_cases_7d or 0 }}</strong></li>
-                    <li class="list-group-item d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("استجابات اليوم")")")")")")")') }}</span><strong>{{ stats.ems_metrics.today_responses or 0 }}</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>{{ _(_('متوسط وقت الانتظار')) }}</span><strong>{{ stats.time_metrics.avg_wait_time or 0 }} د</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>{{ _(_('متوسط وقت العلاج')) }}</span><strong>{{ stats.time_metrics.avg_treatment_time or 0 }} د</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>{{ _(_('إجمالي الحالات (7 أيام)')) }}</span><strong>{{ stats.ems_metrics.ems_cases_7d or 0 }}</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>{{ _(_('استجابات اليوم')) }}</span><strong>{{ stats.ems_metrics.today_responses or 0 }}</strong></li>
                 </ul>
             </div>
         </div>

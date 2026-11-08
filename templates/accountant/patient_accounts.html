@@ -3,12 +3,12 @@
 {% block title %}حسابات المرضى{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("حسابات المرضى")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("الأرصدة والحسابات المرتبطة")")")")")")")', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'url': url_for('accountant.dashboard'), 'style': 'secondary'}]) }}
+  {{ page_header(_('حسابات المرضى'), subtitle=_('الأرصدة والحسابات المرتبطة'), actions=[{'label': _('العودة'), 'url': url_for('accountant.dashboard'), 'style': 'secondary'}]) }}
   <div class="card shadow">
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-hover">
-          <thead class="table-light"><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المستخدم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإنشاء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التفضيلات")")")")")")")') }}</th></tr></thead>
+          <thead class="table-light"><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('المستخدم')) }}</th><th>{{ _(_('تاريخ الإنشاء')) }}</th><th>{{ _(_('التفضيلات')) }}</th></tr></thead>
           <tbody>
             {% for a in accounts %}
             <tr>
@@ -19,12 +19,12 @@
               <td class="small text-muted">{{ a.portal_preferences or '-' }}</td>
             </tr>
             {% else %}
-            <tr><td colspan="5" class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد حسابات")")")")")")")') }}</td></tr>
+            <tr><td colspan="5" class="text-center text-muted py-4">{{ _(_('لا توجد حسابات')) }}</td></tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-      <div class="alert alert-info small">{{ _('_("_(" _(" _(" _(" _(" _("رصيد المريض التفصيلي يُدار عبر الفواتير والمدفوعات. هذا السجل يربط حساب البوابة بالمريض.")")")")")")")') }}</div>
+      <div class="alert alert-info small">{{ _(_('رصيد المريض التفصيلي يُدار عبر الفواتير والمدفوعات. هذا السجل يربط حساب البوابة بالمريض.')) }}</div>
     </div>
   </div>
 </div>

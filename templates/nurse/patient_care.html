@@ -5,21 +5,21 @@
 
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("رعاية المرضى")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("مرحباً ")")")")")")")' ~ current_user.full_name, icon='fas fa-user-nurse', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('nurse.dashboard'), 'style': 'secondary'}]) }}
+  {{ page_header(_('رعاية المرضى'), subtitle=_('مرحباً ') ~ current_user.full_name, icon='fas fa-user-nurse', actions=[{'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'url': url_for('nurse.dashboard'), 'style': 'secondary'}]) }}
 
   <div class="row">
     <div class="col-12">
       <div class="card shadow">
-        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("المرضى")")")")")")")') }}</div>
+        <div class="card-header">{{ _(_('المرضى')) }}</div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("العمر")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                  <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("إجراء")")")")")")")') }}</th>
+                  <th>{{ _(_('الاسم')) }}</th>
+                  <th>{{ _(_('العمر')) }}</th>
+                  <th>{{ _(_('الحالة')) }}</th>
+                  <th class="text-end">{{ _(_('إجراء')) }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -28,18 +28,18 @@
                     <tr>
                       <td>{{ p.full_name or p.name }}</td>
                       <td>{{ p.age or '' }}</td>
-                      <td>{{ p.status or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                      <td>{{ p.status or _('غير محدد') }}</td>
                       <td class="text-end">
                         <a class="btn btn-sm btn-outline-primary" href="{{ url_for('nurse.vital_signs', patient_id=p.id) }}">
                           <i class="fas fa-heartbeat me-1"></i>
-                          {{ _('_("_(" _(" _(" _(" _(" _("العلامات الحيوية")")")")")")")') }}
+                          {{ _(_('العلامات الحيوية')) }}
                         </a>
                       </td>
                     </tr>
                   {% endfor %}
                 {% else %}
                   <tr>
-                    <td colspan="4" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات مرضى متاحة")")")")")")")') }}</td>
+                    <td colspan="4" class="text-center text-muted">{{ _(_('لا توجد بيانات مرضى متاحة')) }}</td>
                   </tr>
                 {% endif %}
               </tbody>

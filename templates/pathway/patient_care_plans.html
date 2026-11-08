@@ -2,11 +2,11 @@
 {% block title %}خطط الرعاية — <bdi>{{ patient.full_name }}</bdi>{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("خطط الرعاية —")")")")")")")') }} <bdi>{{ patient.full_name }}</bdi></h2>
+  <h2 class="mb-4">{{ _(_('خطط الرعاية —')) }} <bdi>{{ patient.full_name }}</bdi></h2>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الخطة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ البدء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النهاية المتوقعة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التقدم")")")")")")")') }}</th></tr></thead>
+        <thead><tr><th>{{ _(_('الخطة')) }}</th><th>{{ _(_('تاريخ البدء')) }}</th><th>{{ _(_('النهاية المتوقعة')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('التقدم')) }}</th></tr></thead>
         <tbody>
         {% for p in plans %}
           <tr>
@@ -22,7 +22,7 @@
             </td>
           </tr>
         {% else %}
-          <tr><td colspan="5" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد خطط رعاية")")")")")")")') }}</td></tr>
+          <tr><td colspan="5" class="text-muted text-center">{{ _(_('لا يوجد خطط رعاية')) }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

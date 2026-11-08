@@ -5,10 +5,10 @@
   <h2 class="mb-4">{{ pathway.name }}</h2>
   <p class="text-muted">{{ pathway.description or '' }}</p>
   <div class="card">
-    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("الخطوات")")")")")")")') }}</div>
+    <div class="card-header">{{ _(_('الخطوات')) }}</div>
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("اليوم المتوقع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("إلزامي")")")")")")")') }}</th></tr></thead>
+        <thead><tr><th>#</th><th>{{ _(_('العنوان')) }}</th><th>{{ _(_('النوع')) }}</th><th>{{ _(_('اليوم المتوقع')) }}</th><th>{{ _(_('إلزامي')) }}</th></tr></thead>
         <tbody>
         {% for s in steps %}
           <tr>
@@ -16,10 +16,10 @@
             <td>{{ s.title }}</td>
             <td><span class="badge bg-info">{{ s.step_type }}</span></td>
             <td>{{ s.expected_day or '-' }}</td>
-            <td>{% if s.is_mandatory %}<span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("نعم")")")")")")")') }}</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
+            <td>{% if s.is_mandatory %}<span class="badge bg-danger">{{ _(_('نعم')) }}</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
           </tr>
         {% else %}
-          <tr><td colspan="5" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد خطوات")")")")")")")') }}</td></tr>
+          <tr><td colspan="5" class="text-muted text-center">{{ _(_('لا يوجد خطوات')) }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

@@ -5,7 +5,7 @@
 {% block header_actions %}
 <div class="d-flex gap-2">
     <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
-        <i class="fas fa-arrow-right"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة للوحة التحكم")")")")")")")') }}
+        <i class="fas fa-arrow-right"></i> {{ _(_('العودة للوحة التحكم')) }}
     </a>
 </div>
 {% endblock %}
@@ -17,9 +17,9 @@
         <form method="get" action="{{ url_for('owner.owner_system_config') }}" class="row g-3 align-items-end">
             <div class="col-md-6">
                 <div class="owner-form-group mb-0">
-                    <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("تصفية حسب التصنيف")")")")")")")') }}</label>
+                    <label class="owner-form-label">{{ _(_('تصفية حسب التصنيف')) }}</label>
                     <select name="category" class="owner-select" onchange="this.form.submit()">
-                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("كل التصنيفات")")")")")")")') }}</option>
+                        <option value="">{{ _(_('كل التصنيفات')) }}</option>
                         {% for c in categories %}
                         <option value="{{ c }}" {{ 'selected' if category_filter == c else '' }}>{{ c }}</option>
                         {% endfor %}
@@ -28,7 +28,7 @@
             </div>
             <div class="col-md-6 text-md-end">
                 <button type="submit" class="owner-btn owner-btn-outline">
-                    <i class="fas fa-sync-alt"></i> {{ _('_("_(" _(" _(" _(" _(" _("تحديث الفلتر")")")")")")")') }}
+                    <i class="fas fa-sync-alt"></i> {{ _(_('تحديث الفلتر')) }}
                 </button>
             </div>
         </form>
@@ -41,20 +41,20 @@
     
     <div class="owner-card animate-fadeInUp delay-2 mb-4">
         <div class="owner-card-header">
-            <h6 class="owner-card-title"><i class="fas fa-list text-primary"></i> {{ _('_("_(" _(" _(" _(" _(" _("الإعدادات الحالية")")")")")")")') }}</h6>
+            <h6 class="owner-card-title"><i class="fas fa-list text-primary"></i> {{ _(_('الإعدادات الحالية')) }}</h6>
             <button type="submit" class="owner-btn owner-btn-primary">
-                <i class="fas fa-save me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("حفظ التغييرات")")")")")")")') }}
+                <i class="fas fa-save me-1"></i> {{ _(_('حفظ التغييرات')) }}
             </button>
         </div>
         <div class="table-responsive">
             <table class="owner-table mb-0">
                 <thead>
                     <tr>
-                        <th style="width: 25%">{{ _('_("_(" _(" _(" _(" _(" _("المفتاح")")")")")")")') }}</th>
-                        <th style="width: 15%">{{ _('_("_(" _(" _(" _(" _(" _("التصنيف")")")")")")")') }}</th>
-                        <th style="width: 15%">{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
-                        <th style="width: 35%">{{ _('_("_(" _(" _(" _(" _(" _("القيمة")")")")")")")') }}</th>
-                        <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
+                        <th style="width: 25%">{{ _(_('المفتاح')) }}</th>
+                        <th style="width: 15%">{{ _(_('التصنيف')) }}</th>
+                        <th style="width: 15%">{{ _(_('النوع')) }}</th>
+                        <th style="width: 35%">{{ _(_('القيمة')) }}</th>
+                        <th class="text-end">{{ _(_('الإجراءات')) }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -62,7 +62,7 @@
                     <tr>
                         <td>
                             <div class="fw-bold">{{ cfg.config_key }}</div>
-                            <div class="x-small text-muted">{{ cfg.description or '_("_(" _(" _(" _(" _(" _("لا يوجد وصف")")")")")")")' }}</div>
+                            <div class="x-small text-muted">{{ cfg.description or _('لا يوجد وصف') }}</div>
                         </td>
                         <td>
                             <span class="badge bg-light text-dark border">{{ cfg.category or 'general' }}</span>
@@ -73,8 +73,8 @@
                         <td>
                             {% if cfg.config_type == 'boolean' %}
                             <select name="config_{{ cfg.config_key }}" class="owner-select">
-                                <option value="true" {{ 'selected' if cfg.get_value() else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("نعم (True)")")")")")")")') }}</option>
-                                <option value="false" {{ 'selected' if not cfg.get_value() else '' }}>{{ _('_("_(" _(" _(" _(" _(" _("لا (False)")")")")")")")') }}</option>
+                                <option value="true" {{ 'selected' if cfg.get_value() else '' }}>{{ _(_('نعم (True)')) }}</option>
+                                <option value="false" {{ 'selected' if not cfg.get_value() else '' }}>{{ _(_('لا (False)')) }}</option>
                             </select>
                             {% elif cfg.config_type == 'password' %}
                             <input type="password" name="config_{{ cfg.config_key }}" class="owner-input" value="{{ cfg.config_value or '' }}">
@@ -84,14 +84,14 @@
                         </td>
                         <td class="text-end">
                             {% if not cfg.is_system %}
-                            <form method="post" action="{{ url_for('owner.owner_delete_system_config', config_key=cfg.config_key) }}" class="d-inline" onsubmit="return confirm('_("_(" _(" _(" _(" _(" _("هل أنت متأكد من حذف هذا الإعداد؟")")")")")")")');">
+                            <form method="post" action="{{ url_for('owner.owner_delete_system_config', config_key=cfg.config_key) }}" class="d-inline" onsubmit="return confirm(_('هل أنت متأكد من حذف هذا الإعداد؟'));">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="_(" _(" _(" _(" _(" _("حذف الإعداد")")")")")")">
+                                <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="حذف الإعداد">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
                             {% else %}
-                            <span class="small text-muted"><i class="fas fa-lock me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("محمي")")")")")")")') }}</span>
+                            <span class="small text-muted"><i class="fas fa-lock me-1"></i>{{ _(_('محمي')) }}</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -99,7 +99,7 @@
                     <tr>
                         <td colspan="5" class="owner-empty py-5">
                             <i class="fas fa-info-circle"></i>
-                            <h5>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد إعدادات في هذا التصنيف")")")")")")")') }}</h5>
+                            <h5>{{ _(_('لا توجد إعدادات في هذا التصنيف')) }}</h5>
                         </td>
                     </tr>
                     {% endfor %}
@@ -111,20 +111,20 @@
     <!-- Add New Config Card -->
     <div class="owner-card animate-fadeInUp delay-3">
         <div class="owner-card-header">
-            <h6 class="owner-card-title"><i class="fas fa-plus-circle text-success"></i> {{ _('_("_(" _(" _(" _(" _(" _("إضافة إعداد جديد")")")")")")")') }}</h6>
+            <h6 class="owner-card-title"><i class="fas fa-plus-circle text-success"></i> {{ _(_('إضافة إعداد جديد')) }}</h6>
         </div>
         <div class="owner-card-body">
             <form method="post" action="{{ url_for('owner.owner_save_system_config', category=category_filter) }}" class="row g-3">
                 {{ csrf() }}
                 <div class="col-md-3">
                     <div class="owner-form-group">
-                        <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("المفتاح (Key)")")")")")")")') }}</label>
-                        <input type="text" name="new_config_key" class="owner-input" placeholder="_(" _(" _(" _(" _(" _("مثال: وضع_الصيانة")")")")")")" required>
+                        <label class="owner-form-label">{{ _(_('المفتاح (Key)')) }}</label>
+                        <input type="text" name="new_config_key" class="owner-input" placeholder="مثال: وضع_الصيانة" required>
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="owner-form-group">
-                        <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("النوع (Type)")")")")")")")') }}</label>
+                        <label class="owner-form-label">{{ _(_('النوع (Type)')) }}</label>
                         <select name="new_config_type" class="owner-select">
                             <option value="string">String</option>
                             <option value="integer">Integer</option>
@@ -136,7 +136,7 @@
                 </div>
                 <div class="col-md-2">
                     <div class="owner-form-group">
-                        <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("التصنيف (Category)")")")")")")")') }}</label>
+                        <label class="owner-form-label">{{ _(_('التصنيف (Category)')) }}</label>
                         <select name="new_config_category" class="owner-select">
                             <option value="general">General</option>
                             <option value="security">Security</option>
@@ -151,8 +151,8 @@
                 </div>
                 <div class="col-md-4">
                     <div class="owner-form-group">
-                        <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("القيمة (Value)")")")")")")")') }}</label>
-                        <input type="text" name="new_config_value" class="owner-input" placeholder="_(" _(" _(" _(" _(" _("القيمة الافتراضية")")")")")")">
+                        <label class="owner-form-label">{{ _(_('القيمة (Value)')) }}</label>
+                        <input type="text" name="new_config_value" class="owner-input" placeholder="القيمة الافتراضية">
                     </div>
                 </div>
                 <div class="col-md-1 d-flex align-items-end">

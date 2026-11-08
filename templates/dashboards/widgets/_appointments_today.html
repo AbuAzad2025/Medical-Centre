@@ -2,7 +2,7 @@
   <div class="cc-widget__head"><span><i class="fas fa-calendar me-1"></i> {% if dashboard_role == 'doctor' %}مواعيدي اليوم{% else %}مواعيد اليوم{% endif %}</span></div>
   <div class="cc-widget__body table-responsive">
     <table class="table table-hover mb-0">
-      <thead><tr><th>{{ _('المريض') }}</th><th>{{ _('_("الطبيب")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th></tr></thead>
+      <thead><tr><th>{{ _('المريض') }}</th><th>{{ _(_('الطبيب')) }}</th><th>{{ _(_('الوقت')) }}</th><th>{{ _(_('الحالة')) }}</th></tr></thead>
       <tbody>
       {% for a in widget_data.lists.today_appointments or [] %}
       <tr>
@@ -12,7 +12,7 @@
         <td><span class="badge bg-secondary">{{ a.status | enum_label('AppointmentState') }}</span></td>
       </tr>
       {% else %}
-      <tr><td colspan="4" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا مواعيد اليوم")")")")")")")') }}</td></tr>
+      <tr><td colspan="4" class="text-center text-muted py-3">{{ _(_('لا مواعيد اليوم')) }}</td></tr>
       {% endfor %}
       </tbody>
     </table>

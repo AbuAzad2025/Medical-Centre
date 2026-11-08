@@ -2,19 +2,19 @@
 {% block title %}دفع رسوم الحجز{% endblock %}
 {% block content %}
 <div class="container">
-  <h2 class="mb-3">{{ _('_("_(" _(" _(" _(" _(" _("دفع رسوم الحجز")")")")")")")') }}</h2>
+  <h2 class="mb-3">{{ _(_('دفع رسوم الحجز')) }}</h2>
   <form method="post" action="{{ url_for('booking.payment', booking_id=booking.id) }}" class="card p-3 shadow-sm">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <div class="mb-3"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المبلغ")")")")")")")') }}</label><input name="amount" type="number" step="0.01" class="form-control" value="50"></div>
-    <div class="mb-3"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("طريقة الدفع")")")")")")")') }}</label>
+    <div class="mb-3"><label class="form-label">{{ _(_('المبلغ')) }}</label><input name="amount" type="number" step="0.01" class="form-control" value="50"></div>
+    <div class="mb-3"><label class="form-label">{{ _(_('طريقة الدفع')) }}</label>
       <select name="payment_method" class="form-select">
-        <option value="CASH">{{ _('_("_(" _(" _(" _(" _(" _("نقدي")")")")")")")') }}</option>
-        <option value="CARD">{{ _('_("_(" _(" _(" _(" _(" _("بطاقة")")")")")")")') }}</option>
-        <option value="INSURANCE">{{ _('_("_(" _(" _(" _(" _(" _("تأمين")")")")")")")') }}</option>
-        <option value="WIRE">{{ _('_("_(" _(" _(" _(" _(" _("تحويل")")")")")")")') }}</option>
+        <option value="CASH">{{ _(_('نقدي')) }}</option>
+        <option value="CARD">{{ _(_('بطاقة')) }}</option>
+        <option value="INSURANCE">{{ _(_('تأمين')) }}</option>
+        <option value="WIRE">{{ _(_('تحويل')) }}</option>
       </select>
     </div>
-    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("دفع")")")")")")")') }}</button><a class="btn btn-secondary" href="{{ url_for('booking.confirmation', booking_id=booking.id) }}">{{ _('_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")') }}</a></div>
+    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">{{ _(_('دفع')) }}</button><a class="btn btn-secondary" href="{{ url_for('booking.confirmation', booking_id=booking.id) }}">{{ _(_('رجوع')) }}</a></div>
   </form>
 </div>
 {% endblock %}

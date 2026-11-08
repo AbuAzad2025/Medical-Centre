@@ -1,45 +1,45 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container py-4">
-  <h4><i class="bi bi-cpu me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تحليل الأشعة بالذكاء الاصطناعي")")")")")")")') }}</h4>
+  <h4><i class="bi bi-cpu me-2"></i>{{ _(_('تحليل الأشعة بالذكاء الاصطناعي')) }}</h4>
   <div class="card shadow-sm mb-4">
-    <div class="card-header bg-primary text-white">{{ _('_("_(" _(" _(" _(" _(" _("طلب تحليل جديد")")")")")")")') }}</div>
+    <div class="card-header bg-primary text-white">{{ _(_('طلب تحليل جديد')) }}</div>
     <div class="card-body">
       <form method="post" action="{{ url_for('ai_imaging.request_analysis') }}">
         {{ forms.csrf() }}
         <div class="row g-3">
           <div class="col-md-4">
-            <label for="study_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("معرف الدراسة")")")")")")")') }}</label>
+            <label for="study_id" class="form-label">{{ _(_('معرف الدراسة')) }}</label>
             <input type="number" class="form-control" id="study_id" name="study_id" required>
           </div>
           <div class="col-md-4">
-            <label for="analysis_type" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع التحليل")")")")")")")') }}</label>
+            <label for="analysis_type" class="form-label">{{ _(_('نوع التحليل')) }}</label>
             <select class="form-select" id="analysis_type" name="analysis_type">
-              <option value="detection">{{ _('_("_(" _(" _(" _(" _(" _("كشف")")")")")")")') }}</option>
-              <option value="classification">{{ _('_("_(" _(" _(" _(" _(" _("تصنيف")")")")")")")') }}</option>
-              <option value="segmentation">{{ _('_("_(" _(" _(" _(" _(" _("تجزئة")")")")")")")') }}</option>
-              <option value="anomaly">{{ _('_("_(" _(" _(" _(" _(" _("شذوذ")")")")")")")') }}</option>
-              <option value="report_suggestion">{{ _('_("_(" _(" _(" _(" _(" _("اقتراح تقرير")")")")")")")') }}</option>
+              <option value="detection">{{ _(_('كشف')) }}</option>
+              <option value="classification">{{ _(_('تصنيف')) }}</option>
+              <option value="segmentation">{{ _(_('تجزئة')) }}</option>
+              <option value="anomaly">{{ _(_('شذوذ')) }}</option>
+              <option value="report_suggestion">{{ _(_('اقتراح تقرير')) }}</option>
             </select>
           </div>
           <div class="col-md-4">
-            <label for="provider" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المزود")")")")")")")') }}</label>
+            <label for="provider" class="form-label">{{ _(_('المزود')) }}</label>
             <select class="form-select" id="provider" name="provider">
-              <option value="internal">{{ _('_("_(" _(" _(" _(" _(" _("داخلي")")")")")")")') }}</option>
+              <option value="internal">{{ _(_('داخلي')) }}</option>
               <option value="google_medlm">Google MedLM</option>
               <option value="azure_health">Azure Health</option>
             </select>
           </div>
         </div>
         <div class="d-grid mt-3">
-          <button type="submit" class="btn btn-success">{{ _('_("_(" _(" _(" _(" _(" _("إرسال للتحليل")")")")")")")') }}</button>
+          <button type="submit" class="btn btn-success">{{ _(_('إرسال للتحليل')) }}</button>
         </div>
       </form>
     </div>
   </div>
   <div class="table-responsive">
     <table class="table table-striped">
-      <thead><tr><th>ID</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الثقة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الخطورة")")")")")")")') }}</th><th></th></tr></thead>
+      <thead><tr><th>ID</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('النوع')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('الثقة')) }}</th><th>{{ _(_('الخطورة')) }}</th><th></th></tr></thead>
       <tbody>
         {% for a in analyses %}
         <tr>
@@ -47,11 +47,11 @@
           <td>{{ a.patient.full_name if a.patient else '—' }}</td>
           <td>{{ a.analysis_type }}</td>
           <td>
-            {% if a.status == 'completed' %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>{% endif %}
-            {% if a.status == 'pending' %}<span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("معلق")")")")")")")') }}</span>{% endif %}
-            {% if a.status == 'processing' %}<span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("قيد المعالجة")")")")")")")') }}</span>{% endif %}
-            {% if a.status == 'failed' %}<span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("فشل")")")")")")")') }}</span>{% endif %}
-            {% if a.status == 'reviewed' %}<span class="badge bg-primary">{{ _('_("_(" _(" _(" _(" _(" _("مُراجع")")")")")")")') }}</span>{% endif %}
+            {% if a.status == 'completed' %}<span class="badge bg-success">{{ _(_('مكتمل')) }}</span>{% endif %}
+            {% if a.status == 'pending' %}<span class="badge bg-warning">{{ _(_('معلق')) }}</span>{% endif %}
+            {% if a.status == 'processing' %}<span class="badge bg-info">{{ _(_('قيد المعالجة')) }}</span>{% endif %}
+            {% if a.status == 'failed' %}<span class="badge bg-danger">{{ _(_('فشل')) }}</span>{% endif %}
+            {% if a.status == 'reviewed' %}<span class="badge bg-primary">{{ _(_('مُراجع')) }}</span>{% endif %}
           </td>
           <td>{{ a.confidence_score }}</td>
           <td>{{ a.severity }}</td>
@@ -59,7 +59,7 @@
             {% if a.status == 'completed' %}
             <form method="post" action="{{ url_for('ai_imaging.review', ai_id=a.id) }}" class="d-inline">
               {{ forms.csrf() }}
-              <input type="text" name="review_notes" class="form-control form-control-sm d-inline w-auto" placeholder="_(" _(" _(" _(" _(" _("ملاحظات")")")")")")" required>
+              <input type="text" name="review_notes" class="form-control form-control-sm d-inline w-auto" placeholder="ملاحظات" required>
               <button type="submit" class="btn btn-sm btn-primary">{{ _('مراجعة') }}</button>
             </form>
             {% endif %}

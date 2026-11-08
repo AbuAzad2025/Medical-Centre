@@ -3,34 +3,34 @@
 {% block title %}تعديل زيارة - الاستقبال{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("تعديل الزيارة")")")")")")")', subtitle=('_("_(" _(" _(" _(" _(" _("رقم الزيارة: ")")")")")")")' ~ visit.visit_number ~ '_("_(" _(" _(" _(" _(" _(" | المريض: ")")")")")")")' ~ (visit.patient.full_name if visit.patient else '-')), icon='fas fa-edit', actions=[{'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'icon': 'fas fa-arrow-right', 'url': url_for('reception.view_visit', visit_id=visit.id), 'style': 'secondary'}]) }}
+  {{ page_header(_('تعديل الزيارة'), subtitle=(_('رقم الزيارة: ') ~ visit.visit_number ~ _(' | المريض: ') ~ (visit.patient.full_name if visit.patient else '-')), icon='fas fa-edit', actions=[{'label': _('رجوع'), 'icon': 'fas fa-arrow-right', 'url': url_for('reception.view_visit', visit_id=visit.id), 'style': 'secondary'}]) }}
 
   <div class="row">
     <div class="col-12">
       <div class="card shadow">
-        <div class="card-header py-3"><h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("معلومات الزيارة")")")")")")")') }}</h6></div>
+        <div class="card-header py-3"><h6 class="m-0 fw-bold text-primary">{{ _(_('معلومات الزيارة')) }}</h6></div>
         <div class="card-body">
           <form method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <div class="row mb-3">
               <div class="col-md-6">
-                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</label>
+                <label class="form-label">{{ _(_('المريض')) }}</label>
                 <input type="text" class="form-control" value="{{ visit.patient.full_name if visit.patient else '-' }}" readonly>
               </div>
               <div class="col-md-3">
-                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رقم الزيارة")")")")")")")') }}</label>
+                <label class="form-label">{{ _(_('رقم الزيارة')) }}</label>
                 <input type="text" class="form-control" value="{{ visit.visit_number or '-' }}" readonly>
               </div>
               <div class="col-md-3">
-                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</label>
+                <label class="form-label">{{ _(_('الحالة')) }}</label>
                 <input type="text" class="form-control" value="{{ visit.status | enum_label('VisitState') }}" readonly>
               </div>
             </div>
 
             <div class="row mb-3">
               <div class="col-md-4">
-                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</label>
+                <label class="form-label">{{ _(_('القسم')) }}</label>
                 <select name="department_id" class="form-select">
                   {% for d in departments %}
                   <option value="{{ d.id }}" {% if visit.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
@@ -38,21 +38,21 @@
                 </select>
               </div>
               <div class="col-md-4">
-                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</label>
+                <label class="form-label">{{ _(_('الطبيب')) }}</label>
                 <select name="doctor_id" class="form-select">
-                  <option value="">{{ _('_("_(" _(" _(" _(" _(" _("-- اختر طبيب --")")")")")")")') }}</option>
+                  <option value="">{{ _(_('-- اختر طبيب --')) }}</option>
                   {% for doc in doctors %}
                   <option value="{{ doc.id }}" {% if visit.doctor_id == doc.id %}selected{% endif %}>{{ doc.full_name or doc.username }}</option>
                   {% endfor %}
                 </select>
               </div>
               <div class="col-md-4">
-                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع الزيارة")")")")")")")') }}</label>
+                <label class="form-label">{{ _(_('نوع الزيارة')) }}</label>
                 <select name="visit_type" class="form-select">
-                  <option value="REGULAR" {% if visit.visit_type == 'REGULAR' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("عادية")")")")")")")') }}</option>
-                  <option value="FOLLOW_UP" {% if visit.visit_type == 'FOLLOW_UP' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("متابعة")")")")")")")') }}</option>
-                  <option value="CONSULTATION" {% if visit.visit_type == 'CONSULTATION' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("استشارة")")")")")")")') }}</option>
-                  <option value="EMERGENCY" {% if visit.visit_type == 'EMERGENCY' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("طوارئ")")")")")")")') }}</option>
+                  <option value="REGULAR" {% if visit.visit_type == 'REGULAR' %}selected{% endif %}>{{ _(_('عادية')) }}</option>
+                  <option value="FOLLOW_UP" {% if visit.visit_type == 'FOLLOW_UP' %}selected{% endif %}>{{ _(_('متابعة')) }}</option>
+                  <option value="CONSULTATION" {% if visit.visit_type == 'CONSULTATION' %}selected{% endif %}>{{ _(_('استشارة')) }}</option>
+                  <option value="EMERGENCY" {% if visit.visit_type == 'EMERGENCY' %}selected{% endif %}>{{ _(_('طوارئ')) }}</option>
                 </select>
               </div>
             </div>
@@ -60,7 +60,7 @@
             {% if module_active('billing') %}
             <div class="row mb-3">
               <div class="col-md-6">
-                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("طريقة الدفع")")")")")")")') }}</label>
+                <label class="form-label">{{ _(_('طريقة الدفع')) }}</label>
                 <select name="payment_method" class="form-select">
                   <option value="CASH" {% if visit.payment_method == 'CASH' %}selected{% endif %}>{{ 'CASH' | enum_label('PaymentMethod') }}</option>
                   <option value="CARD" {% if visit.payment_method == 'CARD' %}selected{% endif %}>{{ 'CARD' | enum_label('PaymentMethod') }}</option>
@@ -70,7 +70,7 @@
                 </select>
               </div>
               <div class="col-md-6">
-                <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الحالة المالية")")")")")")")') }}</label>
+                <label class="form-label">{{ _(_('الحالة المالية')) }}</label>
                 <input type="text" class="form-control" value="{{ visit.payment_status | enum_label('PaymentStatus') }}" readonly>
               </div>
             </div>
@@ -79,18 +79,18 @@
             {% endif %}
 
             <div class="mb-3">
-              <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الأعراض")")")")")")")') }}</label>
+              <label class="form-label">{{ _(_('الأعراض')) }}</label>
               <textarea name="symptoms" class="form-control" rows="3">{{ visit.symptoms or '' }}</textarea>
             </div>
 
             <div class="mb-3">
-              <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</label>
+              <label class="form-label">{{ _(_('ملاحظات')) }}</label>
               <textarea name="notes" class="form-control" rows="3">{{ visit.notes or '' }}</textarea>
             </div>
 
             <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("حفظ التعديلات")")")")")")")') }}</button>
-              <a href="{{ url_for('reception.view_visit', visit_id=visit.id) }}" class="btn btn-secondary"><i class="fas fa-times me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</a>
+              <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> {{ _(_('حفظ التعديلات')) }}</button>
+              <a href="{{ url_for('reception.view_visit', visit_id=visit.id) }}" class="btn btn-secondary"><i class="fas fa-times me-1"></i> {{ _(_('إلغاء')) }}</a>
             </div>
           </form>
         </div>

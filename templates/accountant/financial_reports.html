@@ -5,8 +5,8 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("التقارير المالية")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("مرحباً ")")")")")")")' ~ current_user.full_name, icon='fas fa-chart-line', actions=[
-        {'label': '_("_(" _(" _(" _(" _(" _("العودة للوحة التحكم")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('accountant.dashboard'), 'style': 'secondary'}
+    {{ page_header(_('التقارير المالية'), subtitle=_('مرحباً ') ~ current_user.full_name, icon='fas fa-chart-line', actions=[
+        {'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-left', 'url': url_for('accountant.dashboard'), 'style': 'secondary'}
     ]) }}
 
     <!-- Financial Reports -->
@@ -14,13 +14,13 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("التقارير المالية")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('التقارير المالية')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="text-center py-5">
                         <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد تقارير مالية")")")")")")")') }}</h5>
-                        <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("ستظهر التقارير المالية هنا عند إنشائها")")")")")")")') }}</p>
+                        <h5 class="text-muted">{{ _(_('لا توجد تقارير مالية')) }}</h5>
+                        <p class="text-muted">{{ _(_('ستظهر التقارير المالية هنا عند إنشائها')) }}</p>
                     </div>
                 </div>
             </div>

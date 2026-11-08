@@ -3,50 +3,50 @@
 {% block content %}
 <div class="row mb-3">
     <div class="col-12 d-flex flex-wrap gap-2">
-        <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("زيارة جديدة")")")")")")")') }}</a>
-        <a href="{{ url_for('reception.queue_management') }}" class="btn btn-success"><i class="fas fa-list-ol me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("الطابور")")")")")")")') }}</a>
-        <a href="{{ url_for('reception.appointments') }}" class="btn btn-info"><i class="fas fa-calendar me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("المواعيد")")")")")")")') }}</a>
+        <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> {{ _(_('زيارة جديدة')) }}</a>
+        <a href="{{ url_for('reception.queue_management') }}" class="btn btn-success"><i class="fas fa-list-ol me-1"></i> {{ _(_('الطابور')) }}</a>
+        <a href="{{ url_for('reception.appointments') }}" class="btn btn-info"><i class="fas fa-calendar me-1"></i> {{ _(_('المواعيد')) }}</a>
         {% if module_active('billing') %}
-        <a href="{{ url_for('reception.cash_register') }}" class="btn btn-warning"><i class="fas fa-cash-register me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("الصندوق")")")")")")")') }}</a>
+        <a href="{{ url_for('reception.cash_register') }}" class="btn btn-warning"><i class="fas fa-cash-register me-1"></i> {{ _(_('الصندوق')) }}</a>
         {% endif %}
-        <a href="{{ url_for('reception.patients') }}" class="btn btn-secondary"><i class="fas fa-users me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("المرضى")")")")")")")') }}</a>
+        <a href="{{ url_for('reception.patients') }}" class="btn btn-secondary"><i class="fas fa-users me-1"></i> {{ _(_('المرضى')) }}</a>
     </div>
 </div>
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card card-stat bg-primary">
             <div class="icon-bg"><i class="fas fa-users"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المرضى")")")")")")")') }}</h6>
+            <h6>{{ _(_('إجمالي المرضى')) }}</h6>
             <h3>{{ total_patients }}</h3>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card card-stat bg-success">
             <div class="icon-bg"><i class="fas fa-calendar-check"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("زيارات اليوم")")")")")")")') }}</h6>
+            <h6>{{ _(_('زيارات اليوم')) }}</h6>
             <h3>{{ today_visits }}</h3>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card card-stat bg-warning">
             <div class="icon-bg"><i class="fas fa-clock"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("مواعيد معلقة")")")")")")")') }}</h6>
+            <h6>{{ _(_('مواعيد معلقة')) }}</h6>
             <h3>{{ pending_appointments }}</h3>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card card-stat bg-info">
             <div class="icon-bg"><i class="fas fa-list-ol"></i></div>
-            <h6>{{ _('_("_(" _(" _(" _(" _(" _("الطابور النشط")")")")")")")') }}</h6>
+            <h6>{{ _(_('الطابور النشط')) }}</h6>
             <h3>{{ active_queue_items|length }}</h3>
         </div>
     </div>
 </div>
 <div class="card">
-    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("زيارات اليوم")")")")")")")') }}</h5></div>
+    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2"></i>{{ _(_('زيارات اليوم')) }}</h5></div>
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
-            <thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th></tr></thead>
+            <thead><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('القسم')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('الوقت')) }}</th></tr></thead>
             <tbody>
             {% for v in today_visits_list %}
             <tr>
@@ -61,8 +61,8 @@
                 <td colspan="5">
                     <div class="empty-state-smart">
                         <div class="empty-icon-wrap"><i class="fas fa-calendar-day"></i></div>
-                        <h5>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد زيارات اليوم")")")")")")")') }}</h5>
-                        <p>{{ _('_("_(" _(" _(" _(" _(" _("لم يتم تسجيل أي زيارات لهذا اليوم بعد.")")")")")")")') }}</p>
+                        <h5>{{ _(_('لا توجد زيارات اليوم')) }}</h5>
+                        <p>{{ _(_('لم يتم تسجيل أي زيارات لهذا اليوم بعد.')) }}</p>
                     </div>
                 </td>
             </tr>
@@ -76,13 +76,13 @@
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-calendar-day me-2 text-info"></i>{{ _('_("_(" _(" _(" _(" _(" _("مواعيد اليوم")")")")")")")') }}</h5>
-                <a href="{{ url_for('reception.appointments') }}" class="btn btn-sm btn-outline-info">{{ _('_("_(" _(" _(" _(" _(" _("إدارة المواعيد")")")")")")")') }}</a>
+                <h5 class="mb-0"><i class="fas fa-calendar-day me-2 text-info"></i>{{ _(_('مواعيد اليوم')) }}</h5>
+                <a href="{{ url_for('reception.appointments') }}" class="btn btn-sm btn-outline-info">{{ _(_('إدارة المواعيد')) }}</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th></tr></thead>
+                        <thead><tr><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الطبيب')) }}</th><th>{{ _(_('الوقت')) }}</th><th>{{ _(_('الحالة')) }}</th></tr></thead>
                         <tbody>
                         {% for a in today_appointments %}
                         <tr>
@@ -92,7 +92,7 @@
                             <td><span class="badge bg-{% if a.status=='CHECKED_IN' %}success{% elif a.status=='CONFIRMED' %}primary{% else %}secondary{% endif %}">{{ a.status | enum_label('AppointmentState') }}</span></td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="4"><div class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مواعيد اليوم")")")")")")")') }}</div></td></tr>
+                        <tr><td colspan="4"><div class="text-center text-muted py-4">{{ _(_('لا توجد مواعيد اليوم')) }}</div></td></tr>
                         {% endfor %}
                         </tbody>
                     </table>
@@ -103,13 +103,13 @@
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-list-ol me-2 text-warning"></i>{{ _('_("_(" _(" _(" _(" _(" _("الطابور النشط")")")")")")")') }}</h5>
-                <a href="{{ url_for('reception.queue_management') }}" class="btn btn-sm btn-outline-warning">{{ _('_("_(" _(" _(" _(" _(" _("إدارة الطابور")")")")")")")') }}</a>
+                <h5 class="mb-0"><i class="fas fa-list-ol me-2 text-warning"></i>{{ _(_('الطابور النشط')) }}</h5>
+                <a href="{{ url_for('reception.queue_management') }}" class="btn btn-sm btn-outline-warning">{{ _(_('إدارة الطابور')) }}</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead><tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th></tr></thead>
+                        <thead><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('القسم')) }}</th><th>{{ _(_('الأولوية')) }}</th><th>{{ _(_('الحالة')) }}</th></tr></thead>
                         <tbody>
                         {% for q in active_queue_items %}
                         <tr>
@@ -120,7 +120,7 @@
                             <td><span class="badge bg-{% if q.status=='in_progress' %}primary{% elif q.status=='called' %}success{% else %}secondary{% endif %}">{{ q.status | enum_label('QueueState') }}</span></td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="5"><div class="text-center text-muted py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد مرضى في الطابور")")")")")")")') }}</div></td></tr>
+                        <tr><td colspan="5"><div class="text-center text-muted py-4">{{ _(_('لا يوجد مرضى في الطابور')) }}</div></td></tr>
                         {% endfor %}
                         </tbody>
                     </table>

@@ -1,8 +1,8 @@
 <div class="cc-widget cc-widget--md" data-widget-id="pharmacy_dispense">
   <div class="cc-widget__body p-3 text-center">
     <i class="fas fa-pills fa-2x text-primary mb-2"></i>
-    <p class="mb-2">{{ _('_("_(" _(" _(" _(" _(" _("نقطة البيع والصرف")")")")")")")') }}</p>
+    <p class="mb-2">{{ _(_('نقطة البيع والصرف')) }}</p>
     {% if module_active('pharmacy') %}
-    <a href="{{ url_for('medication.pos') }}" class="btn btn-primary btn-sm">{{ _('_("_(" _(" _(" _(" _(" _("فتح نقطة البيع")")")")")")")') }}</a>
+    <a href="{{ url_for('medication.pos') }}" class="btn btn-primary btn-sm">{{ _(_('فتح نقطة البيع')) }}</a>
     {% endif %}  </div>
 </div>

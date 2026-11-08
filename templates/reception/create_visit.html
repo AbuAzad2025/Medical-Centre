@@ -14,10 +14,10 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("إنشاء زيارة جديدة")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("تسجيل زيارة جديدة للمريض")")")")")")")', icon='fas fa-hospital', actions=[
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'icon': 'fas fa-arrow-right', 'data_action': 'go-back', 'style': 'secondary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("حفظ الزيارة")")")")")")")', 'icon': 'fas fa-save', 'data_action': 'save-visit', 'style': 'primary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("طوارئ سريعة")")")")")")")', 'icon': 'fas fa-ambulance', 'id': 'quickEmergencyBtn', 'style': 'danger'}
+    {{ page_header(_('إنشاء زيارة جديدة'), subtitle=_('تسجيل زيارة جديدة للمريض'), icon='fas fa-hospital', actions=[
+        {'type': 'button', 'label': _('رجوع'), 'icon': 'fas fa-arrow-right', 'data_action': 'go-back', 'style': 'secondary'},
+        {'type': 'button', 'label': _('حفظ الزيارة'), 'icon': 'fas fa-save', 'data_action': 'save-visit', 'style': 'primary'},
+        {'type': 'button', 'label': _('طوارئ سريعة'), 'icon': 'fas fa-ambulance', 'id': 'quickEmergencyBtn', 'style': 'danger'}
     ]) }}
 
     <!-- Visit Form -->
@@ -25,15 +25,15 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("معلومات الزيارة")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('معلومات الزيارة')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-secondary mb-4">
                         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
                             <div>
-                                <strong>{{ _('_("_(" _(" _(" _(" _(" _("خطوات سريعة لإنشاء زيارة:")")")")")")")') }}</strong>
+                                <strong>{{ _(_('خطوات سريعة لإنشاء زيارة:')) }}</strong>
                                 <span class="d-block d-md-inline ms-md-2">
-                                    {{ _('_("_(" _(" _(" _(" _(" _("1) اختيار المريض، 2) اختيار القسم والطبيب، 3) تحديد نوع الزيارة وطريقة الدفع، 4) حفظ.")")")")")")")') }}
+                                    {{ _(_('1) اختيار المريض، 2) اختيار القسم والطبيب، 3) تحديد نوع الزيارة وطريقة الدفع، 4) حفظ.')) }}
                                 </span>
                             </div>
                         </div>
@@ -42,10 +42,10 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                         {{ form_stepper([
-                            ('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")', 'fa-user'),
-                            ('_("_(" _(" _(" _(" _(" _("القسم والطبيب")")")")")")")', 'fa-hospital'),
-                            ('_("_(" _(" _(" _(" _(" _("الزيارة والفحوصات")")")")")")")', 'fa-clipboard-list'),
-                            ('_("_(" _(" _(" _(" _(" _("الدفع")")")")")")")', 'fa-credit-card'),
+                            (_('المريض'), 'fa-user'),
+                            (_('القسم والطبيب'), 'fa-hospital'),
+                            (_('الزيارة والفحوصات'), 'fa-clipboard-list'),
+                            (_('الدفع'), 'fa-credit-card'),
                         ]) }}
 
 {% include "partials/_visit_step_patient.html" %}

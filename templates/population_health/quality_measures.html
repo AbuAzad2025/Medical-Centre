@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container py-4">
-  <h4><i class="bi bi-award me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("مؤشرات الجودة")")")")")")")') }}</h4>
+  <h4><i class="bi bi-award me-2"></i>{{ _(_('مؤشرات الجودة')) }}</h4>
   <div class="card shadow-sm">
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-striped">
-          <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("المؤشر")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الهدف")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الأداء")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th></tr></thead>
+          <thead><tr><th>{{ _(_('المؤشر')) }}</th><th>{{ _(_('الهدف')) }}</th><th>{{ _(_('الأداء')) }}</th><th>{{ _(_('الحالة')) }}</th></tr></thead>
           <tbody>
             {% for m in measures %}
             <tr>
@@ -14,13 +14,13 @@
               <td>{{ m.target_value or '—' }}</td>
               <td>{{ m.actual_value or '—' }}</td>
               <td>
-                {% if m.status == 'met' %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("محقق")")")")")")")') }}</span>{% endif %}
-                {% if m.status == 'not_met' %}<span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("غير محقق")")")")")")")') }}</span>{% endif %}
-                {% if m.status == 'pending' %}<span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("معلق")")")")")")")') }}</span>{% endif %}
+                {% if m.status == 'met' %}<span class="badge bg-success">{{ _(_('محقق')) }}</span>{% endif %}
+                {% if m.status == 'not_met' %}<span class="badge bg-danger">{{ _(_('غير محقق')) }}</span>{% endif %}
+                {% if m.status == 'pending' %}<span class="badge bg-secondary">{{ _(_('معلق')) }}</span>{% endif %}
               </td>
             </tr>
             {% else %}
-            <tr><td colspan="4" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مؤشرات")")")")")")")') }}</td></tr>
+            <tr><td colspan="4" class="text-center text-muted">{{ _(_('لا توجد مؤشرات')) }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

@@ -5,47 +5,47 @@
 
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("مهام التمريض")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("مرحباً ")")")")")")")' ~ current_user.full_name, icon='fas fa-tasks', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('nurse.dashboard'), 'style': 'secondary'}]) }}
+  {{ page_header(_('مهام التمريض'), subtitle=_('مرحباً ') ~ current_user.full_name, icon='fas fa-tasks', actions=[{'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'url': url_for('nurse.dashboard'), 'style': 'secondary'}]) }}
 
   <div class="row">
     <div class="col-12">
       <div class="card shadow mb-4">
-        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("إضافة مهمة")")")")")")")') }}</div>
+        <div class="card-header">{{ _(_('إضافة مهمة')) }}</div>
         <div class="card-body">
           <form method="POST" action="{{ url_for('nurse.create_task') }}" class="row g-3">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="col-md-5">
-              <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</label>
+              <label class="form-label">{{ _(_('العنوان')) }}</label>
               <input class="form-control" name="title" required>
             </div>
             <div class="col-md-3">
-              <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الزيارة (اختياري)")")")")")")")') }}</label>
+              <label class="form-label">{{ _(_('الزيارة (اختياري)')) }}</label>
               <select class="form-select" name="visit_id">
-                <option value="">{{ _('_("_(" _(" _(" _(" _(" _("بدون")")")")")")")') }}</option>
+                <option value="">{{ _(_('بدون')) }}</option>
                 {% for v in (active_visits or []) %}
                   <option value="{{ v.id }}">#{{ v.id }} — {{ v.patient.full_name if v.patient else v.patient_id }}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="col-md-2">
-              <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</label>
+              <label class="form-label">{{ _(_('الأولوية')) }}</label>
               <select class="form-select" name="priority">
-                <option value="low">{{ _('_("_(" _(" _(" _(" _(" _("منخفضة")")")")")")")') }}</option>
-                <option value="medium" selected>{{ _('_("_(" _(" _(" _(" _(" _("متوسطة")")")")")")")') }}</option>
-                <option value="high">{{ _('_("_(" _(" _(" _(" _(" _("عالية")")")")")")")') }}</option>
-                <option value="urgent">{{ _('_("_(" _(" _(" _(" _(" _("عاجلة")")")")")")")') }}</option>
+                <option value="low">{{ _(_('منخفضة')) }}</option>
+                <option value="medium" selected>{{ _(_('متوسطة')) }}</option>
+                <option value="high">{{ _(_('عالية')) }}</option>
+                <option value="urgent">{{ _(_('عاجلة')) }}</option>
               </select>
             </div>
             <div class="col-md-2">
-              <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاستحقاق")")")")")")")') }}</label>
+              <label class="form-label">{{ _(_('الاستحقاق')) }}</label>
               <input class="form-control" type="datetime-local" name="due_date">
             </div>
             <div class="col-12">
-              <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</label>
+              <label class="form-label">{{ _(_('الوصف')) }}</label>
               <input class="form-control" name="description">
             </div>
             <div class="col-12 d-flex justify-content-end">
-              <button class="btn btn-primary" type="submit"><i class="fas fa-plus me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("إضافة")")")")")")")') }}</button>
+              <button class="btn btn-primary" type="submit"><i class="fas fa-plus me-1"></i>{{ _(_('إضافة')) }}</button>
             </div>
           </form>
         </div>
@@ -53,44 +53,44 @@
 
       <div class="card shadow">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span>{{ _('_("_(" _(" _(" _(" _(" _("المهام الموكلة إليك")")")")")")")') }}</span>
+          <span>{{ _(_('المهام الموكلة إليك')) }}</span>
           <span class="text-muted small">({{ (tasks or [])|length }})</span>
         </div>
         <div class="card-body">
           {% if tasks %}
             {% set status_map = {
-              'pending': {'label': '_("_(" _(" _(" _(" _(" _("معلقة")")")")")")")', 'cls': 'bg-warning text-dark'},
-              'in_progress': {'label': '_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")', 'cls': 'bg-info'},
-              'completed': {'label': '_("_(" _(" _(" _(" _(" _("مكتملة")")")")")")")', 'cls': 'bg-success'},
-              'cancelled': {'label': '_("_(" _(" _(" _(" _(" _("ملغاة")")")")")")")', 'cls': 'bg-secondary'},
-              'on_hold': {'label': '_("_(" _(" _(" _(" _(" _("معلقة مؤقتاً")")")")")")")', 'cls': 'bg-light text-dark'}
+              'pending': {'label': _('معلقة'), 'cls': 'bg-warning text-dark'},
+              'in_progress': {'label': _('قيد التنفيذ'), 'cls': 'bg-info'},
+              'completed': {'label': _('مكتملة'), 'cls': 'bg-success'},
+              'cancelled': {'label': _('ملغاة'), 'cls': 'bg-secondary'},
+              'on_hold': {'label': _('معلقة مؤقتاً'), 'cls': 'bg-light text-dark'}
             } %}
             {% set priority_map = {
-              'low': {'label': '_("_(" _(" _(" _(" _(" _("منخفضة")")")")")")")', 'cls': 'bg-secondary'},
-              'medium': {'label': '_("_(" _(" _(" _(" _(" _("متوسطة")")")")")")")', 'cls': 'bg-info'},
-              'high': {'label': '_("_(" _(" _(" _(" _(" _("عالية")")")")")")")', 'cls': 'bg-warning text-dark'},
-              'urgent': {'label': '_("_(" _(" _(" _(" _(" _("عاجلة")")")")")")")', 'cls': 'bg-danger'}
+              'low': {'label': _('منخفضة'), 'cls': 'bg-secondary'},
+              'medium': {'label': _('متوسطة'), 'cls': 'bg-info'},
+              'high': {'label': _('عالية'), 'cls': 'bg-warning text-dark'},
+              'urgent': {'label': _('عاجلة'), 'cls': 'bg-danger'}
             } %}
             {% set type_map = {
-              'patient_care': '_("_(" _(" _(" _(" _(" _("رعاية المرضى")")")")")")")',
-              'administrative': '_("_(" _(" _(" _(" _(" _("إداري")")")")")")")',
-              'maintenance': '_("_(" _(" _(" _(" _(" _("صيانة")")")")")")")',
-              'emergency': '_("_(" _(" _(" _(" _(" _("طوارئ")")")")")")")',
-              'follow_up': '_("_(" _(" _(" _(" _(" _("متابعة")")")")")")")',
-              'reporting': '_("_(" _(" _(" _(" _(" _("تقارير")")")")")")")'
+              'patient_care': _('رعاية المرضى'),
+              'administrative': _('إداري'),
+              'maintenance': _('صيانة'),
+              'emergency': _('طوارئ'),
+              'follow_up': _('متابعة'),
+              'reporting': _('تقارير')
             } %}
 
             <div class="table-responsive">
               <table class="table table-striped align-middle mb-0">
                 <thead>
                   <tr>
-                    <th>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</th>
-                    <th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
-                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</th>
-                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الاستحقاق")")")")")")")') }}</th>
-                    <th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ الإنشاء")")")")")")")') }}</th>
-                    <th class="text-end">{{ _('_("_(" _(" _(" _(" _(" _("إجراءات")")")")")")")') }}</th>
+                    <th>{{ _(_('العنوان')) }}</th>
+                    <th>{{ _(_('النوع')) }}</th>
+                    <th>{{ _(_('الأولوية')) }}</th>
+                    <th>{{ _(_('الحالة')) }}</th>
+                    <th>{{ _(_('الاستحقاق')) }}</th>
+                    <th>{{ _(_('تاريخ الإنشاء')) }}</th>
+                    <th class="text-end">{{ _(_('إجراءات')) }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -116,21 +116,21 @@
                             <form method="POST" action="{{ url_for('nurse.update_task_status', task_id=t.id) }}">
                               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                               <input type="hidden" name="status" value="in_progress">
-                              <button class="btn btn-sm btn-outline-primary" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("بدء")")")")")")")') }}</button>
+                              <button class="btn btn-sm btn-outline-primary" type="submit">{{ _(_('بدء')) }}</button>
                             </form>
                           {% endif %}
                           {% if t.status in ['pending', 'in_progress', 'on_hold'] %}
                             <form method="POST" action="{{ url_for('nurse.update_task_status', task_id=t.id) }}">
                               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                               <input type="hidden" name="status" value="completed">
-                              <button class="btn btn-sm btn-outline-success" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("إنهاء")")")")")")")') }}</button>
+                              <button class="btn btn-sm btn-outline-success" type="submit">{{ _(_('إنهاء')) }}</button>
                             </form>
                           {% endif %}
                           {% if t.status not in ['completed', 'cancelled'] %}
                             <form method="POST" action="{{ url_for('nurse.update_task_status', task_id=t.id) }}">
                               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                               <input type="hidden" name="status" value="cancelled">
-                              <button class="btn btn-sm btn-outline-danger" type="submit" data-confirm="_(" _(" _(" _(" _(" _("هل أنت متأكد من إلغاء المهمة؟")")")")")")">{{ _('إلغاء') }}</button>
+                              <button class="btn btn-sm btn-outline-danger" type="submit" data-confirm="هل أنت متأكد من إلغاء المهمة؟">{{ _('إلغاء') }}</button>
                             </form>
                           {% endif %}
                         </div>
@@ -146,14 +146,14 @@
                 <div class="text-muted small">عرض {{ total }} مهمة</div>
                 <div class="btn-group">
                     <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
-                       href="{{ url_for('nurse.tasks', page=page-1) }}">{{ _('_("_(" _(" _(" _(" _(" _("السابق")")")")")")")') }}</a>
+                       href="{{ url_for('nurse.tasks', page=page-1) }}">{{ _(_('السابق')) }}</a>
                     <span class="btn btn-outline-secondary">Page {{ page }} of {{ pages if pages > 0 else 1 }}</span>
                     <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
-                       href="{{ url_for('nurse.tasks', page=page+1) }}">{{ _('_("_(" _(" _(" _(" _(" _("التالي")")")")")")")') }}</a>
+                       href="{{ url_for('nurse.tasks', page=page+1) }}">{{ _(_('التالي')) }}</a>
                 </div>
             </div>
           {% else %}
-            <div class="text-center py-5 text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مهام مخصصة لك حالياً")")")")")")")') }}</div>
+            <div class="text-center py-5 text-muted">{{ _(_('لا توجد مهام مخصصة لك حالياً')) }}</div>
           {% endif %}
         </div>
       </div>

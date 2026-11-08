@@ -6,8 +6,8 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h1 class="h3 mb-0"><i class="fas fa-chart-bar me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تقارير المنصة")")")")")")")') }}</h1>
-            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تقارير شاملة لأداء المنصة والمنشآت")")")")")")")') }}</p>
+            <h1 class="h3 mb-0"><i class="fas fa-chart-bar me-2"></i>{{ _(_('تقارير المنصة')) }}</h1>
+            <p class="text-muted">{{ _(_('تقارير شاملة لأداء المنصة والمنشآت')) }}</p>
         </div>
         <div class="col-auto">
             <div class="btn-group" role="group">
@@ -31,7 +31,7 @@
                 <div class="card-body text-center">
                     <div class="text-primary mb-2"><i class="fas fa-building fa-2x"></i></div>
                     <h4 class="mb-0">{{ tenant_stats.total }}</h4>
-                    <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المنشآت")")")")")")")') }}</small>
+                    <small class="text-muted">{{ _(_('إجمالي المنشآت')) }}</small>
                 </div>
             </div>
         </div>
@@ -40,7 +40,7 @@
                 <div class="card-body text-center">
                     <div class="text-success mb-2"><i class="fas fa-check-circle fa-2x"></i></div>
                     <h4 class="mb-0">{{ tenant_stats.active }}</h4>
-                    <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("منشآت نشطة")")")")")")")') }}</small>
+                    <small class="text-muted">{{ _(_('منشآت نشطة')) }}</small>
                 </div>
             </div>
         </div>
@@ -49,7 +49,7 @@
                 <div class="card-body text-center">
                     <div class="text-warning mb-2"><i class="fas fa-clock fa-2x"></i></div>
                     <h4 class="mb-0">{{ tenant_stats.trial }}</h4>
-                    <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("فترة تجريبية")")")")")")")') }}</small>
+                    <small class="text-muted">{{ _(_('فترة تجريبية')) }}</small>
                 </div>
             </div>
         </div>
@@ -58,7 +58,7 @@
                 <div class="card-body text-center">
                     <div class="text-danger mb-2"><i class="fas fa-ban fa-2x"></i></div>
                     <h4 class="mb-0">{{ tenant_stats.suspended }}</h4>
-                    <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("معلقة")")")")")")")') }}</small>
+                    <small class="text-muted">{{ _(_('معلقة')) }}</small>
                 </div>
             </div>
         </div>
@@ -70,7 +70,7 @@
                 <div class="card-body text-center">
                     <div class="text-success mb-2"><i class="fas fa-users fa-2x"></i></div>
                     <h4 class="mb-0">{{ user_stats.total }}</h4>
-                    <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المستخدمين")")")")")")")') }}</small>
+                    <small class="text-muted">{{ _(_('إجمالي المستخدمين')) }}</small>
                 </div>
             </div>
         </div>
@@ -79,7 +79,7 @@
                 <div class="card-body text-center">
                     <div class="text-success mb-2"><i class="fas fa-user-check fa-2x"></i></div>
                     <h4 class="mb-0">{{ user_stats.active }}</h4>
-                    <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مستخدمين نشطين")")")")")")")') }}</small>
+                    <small class="text-muted">{{ _(_('مستخدمين نشطين')) }}</small>
                 </div>
             </div>
         </div>
@@ -88,7 +88,7 @@
                 <div class="card-body text-center">
                     <div class="text-primary mb-2"><i class="fas fa-money-bill-wave fa-2x"></i></div>
                     <h4 class="mb-0">{{ '%.2f' % revenue }} SAR</h4>
-                    <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الإيرادات (30 يوماً)")")")")")")")') }}</small>
+                    <small class="text-muted">{{ _(_('الإيرادات (30 يوماً)')) }}</small>
                 </div>
             </div>
         </div>
@@ -97,7 +97,7 @@
                 <div class="card-body text-center">
                     <div class="text-info mb-2"><i class="fas fa-people-arrows fa-2x"></i></div>
                     <h4 class="mb-0">{{ visits }}</h4>
-                    <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات (30 يوماً)")")")")")")")') }}</small>
+                    <small class="text-muted">{{ _(_('الزيارات (30 يوماً)')) }}</small>
                 </div>
             </div>
         </div>
@@ -108,36 +108,36 @@
         <div class="col-md-6">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-building me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات المنشآت")")")")")")")') }}</h5>
+                    <h5 class="mb-0"><i class="fas fa-building me-2"></i>{{ _(_('إحصائيات المنشآت')) }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("العدد")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("النسبة")")")")")")")') }}</th>
+                                    <th>{{ _(_('الحالة')) }}</th>
+                                    <th>{{ _(_('العدد')) }}</th>
+                                    <th>{{ _(_('النسبة')) }}</th>
                                 </tr>
                             </thead>
 <tbody>
                 <tr>
-                    <td><span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشطة")")")")")")")') }}</span></td>
+                    <td><span class="badge bg-success">{{ _(_('نشطة')) }}</span></td>
                     <td>{{ tenant_stats.active }}</td>
                     <td>{{ '%.1f' % ((tenant_stats.active / tenant_stats.total * 100)) if tenant_stats.total > 0 else 0 }}%</td>
                 </tr>
                 <tr>
-                    <td><span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("تجريبي")")")")")")")') }}</span></td>
+                    <td><span class="badge bg-warning">{{ _(_('تجريبي')) }}</span></td>
                     <td>{{ tenant_stats.trial }}</td>
                     <td>{{ '%.1f' % ((tenant_stats.trial / tenant_stats.total * 100)) if tenant_stats.total > 0 else 0 }}%</td>
                 </tr>
                 <tr>
-                    <td><span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("معلقة")")")")")")")') }}</span></td>
+                    <td><span class="badge bg-danger">{{ _(_('معلقة')) }}</span></td>
                     <td>{{ tenant_stats.suspended }}</td>
                     <td>{{ '%.1f' % ((tenant_stats.suspended / tenant_stats.total * 100)) if tenant_stats.total > 0 else 0 }}%</td>
                 </tr>
                                 <tr>
-                                    <td><strong>{{ _('_("_(" _(" _(" _(" _(" _("الإجمالي")")")")")")")') }}</strong></td>
+                                    <td><strong>{{ _(_('الإجمالي')) }}</strong></td>
                                     <td><strong>{{ tenant_stats.total }}</strong></td>
                                     <td><strong>100%</strong></td>
                                 </tr>
@@ -150,16 +150,16 @@
         <div class="col-md-6">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("توزيع المستخدمين حسب الدور")")")")")")")') }}</h5>
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>{{ _(_('توزيع المستخدمين حسب الدور')) }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("العدد")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("النسبة")")")")")")")') }}</th>
+                                    <th>{{ _(_('الدور')) }}</th>
+                                    <th>{{ _(_('العدد')) }}</th>
+                                    <th>{{ _(_('النسبة')) }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -171,7 +171,7 @@
                                   </tr>
                                   {% endfor %}
                                 <tr class="table-active">
-                                    <td><strong>{{ _('_("_(" _(" _(" _(" _(" _("الإجمالي")")")")")")")') }}</strong></td>
+                                    <td><strong>{{ _(_('الإجمالي')) }}</strong></td>
                                     <td><strong>{{ user_stats.total }}</strong></td>
                                     <td><strong>100%</strong></td>
                                 </tr>
@@ -186,21 +186,21 @@
     <!-- Financial Summary -->
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("ملخص مالي (آخر 30 يوماً)")")")")")")")') }}</h5>
+            <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>{{ _(_('ملخص مالي (آخر 30 يوماً)')) }}</h5>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4 text-center">
                     <h4 class="text-success">{{ '%.2f' % revenue }} SAR</h4>
-                    <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي الإيرادات")")")")")")")') }}</small>
+                    <small class="text-muted">{{ _(_('إجمالي الإيرادات')) }}</small>
                 </div>
                 <div class="col-md-4 text-center">
                     <h4 class="text-primary">{{ visits }}</h4>
-                    <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}</small>
+                    <small class="text-muted">{{ _(_('الزيارات')) }}</small>
                 </div>
                 <div class="col-md-4 text-center">
                     <h4 class="text-info">{{ patients }}</h4>
-                    <small class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("المرضى")")")")")")")') }}</small>
+                    <small class="text-muted">{{ _(_('المرضى')) }}</small>
                 </div>
             </div>
         </div>
@@ -209,7 +209,7 @@
     <!-- Export Options -->
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-download me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تصدير التقارير")")")")")")")') }}</h5>
+            <h5 class="mb-0"><i class="fas fa-download me-2"></i>{{ _(_('تصدير التقارير')) }}</h5>
         </div>
         <div class="card-body">
             <div class="row g-3">
@@ -217,10 +217,10 @@
                     <div class="card h-100 border-primary">
                         <div class="card-body text-center">
                             <i class="fas fa-file-excel fa-3x text-success mb-3"></i>
-                            <h5>{{ _('_("_(" _(" _(" _(" _(" _("تقرير Excel")")")")")")")') }}</h5>
-                            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تقرير مفصل بصيغة Excel")")")")")")")') }}</p>
+                            <h5>{{ _(_('تقرير Excel')) }}</h5>
+                            <p class="text-muted">{{ _(_('تقرير مفصل بصيغة Excel')) }}</p>
                             <button class="btn btn-success" onclick="exportReport('excel')">
-                                <i class="fas fa-download me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")') }}
+                                <i class="fas fa-download me-1"></i>{{ _(_('تصدير')) }}
                             </button>
                         </div>
                     </div>
@@ -229,10 +229,10 @@
                     <div class="card h-100 border-danger">
                         <div class="card-body text-center">
                             <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
-                            <h5>{{ _('_("_(" _(" _(" _(" _(" _("تقرير PDF")")")")")")")') }}</h5>
-                            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("تقرير جاهز للطباعة")")")")")")")') }}</p>
+                            <h5>{{ _(_('تقرير PDF')) }}</h5>
+                            <p class="text-muted">{{ _(_('تقرير جاهز للطباعة')) }}</p>
                             <button class="btn btn-danger" onclick="exportReport('pdf')">
-                                <i class="fas fa-download me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")') }}
+                                <i class="fas fa-download me-1"></i>{{ _(_('تصدير')) }}
                             </button>
                         </div>
                     </div>
@@ -241,10 +241,10 @@
                     <div class="card h-100 border-info">
                         <div class="card-body text-center">
                             <i class="fas fa-file-csv fa-3x text-info mb-3"></i>
-                            <h5>{{ _('_("_(" _(" _(" _(" _(" _("تقرير CSV")")")")")")")') }}</h5>
-                            <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("بيانات خام للتحليل")")")")")")")') }}</p>
+                            <h5>{{ _(_('تقرير CSV')) }}</h5>
+                            <p class="text-muted">{{ _(_('بيانات خام للتحليل')) }}</p>
                             <button class="btn btn-info" onclick="exportReport('csv')">
-                                <i class="fas fa-download me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")') }}
+                                <i class="fas fa-download me-1"></i>{{ _(_('تصدير')) }}
                             </button>
                         </div>
                     </div>

@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("علاج إسعافي")")")")")")")', subtitle=visit.patient.full_name ~ '_("_(" _(" _(" _(" _(" _(" - رقم الزيارة: ")")")")")")")' ~ (visit.visit_id_number or visit.id), icon='fas fa-ambulance', actions=[
-        {'label': '_("_(" _(" _(" _(" _(" _("العودة للطوارئ")")")")")")")', 'icon': 'fas fa-arrow-right', 'url': url_for('emergency.emergency_visits'), 'style': 'secondary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("طباعة")")")")")")")', 'icon': 'fas fa-print', 'data_action': 'print', 'style': 'primary'}
+    {{ page_header(_('علاج إسعافي'), subtitle=visit.patient.full_name ~ _(' - رقم الزيارة: ') ~ (visit.visit_id_number or visit.id), icon='fas fa-ambulance', actions=[
+        {'label': _('العودة للطوارئ'), 'icon': 'fas fa-arrow-right', 'url': url_for('emergency.emergency_visits'), 'style': 'secondary'},
+        {'type': 'button', 'label': _('طباعة'), 'icon': 'fas fa-print', 'data_action': 'print', 'style': 'primary'}
     ]) }}
 
     <!-- Emergency Treatment Form -->
@@ -17,7 +17,7 @@
                 <div class="card-header py-3">
                     <h6 class="m-0 fw-bold text-primary">
                         <i class="fas fa-ambulance me-2"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("نموذج العلاج الإسعافي")")")")")")")') }}
+                        {{ _(_('نموذج العلاج الإسعافي')) }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -27,28 +27,28 @@
                             <div class="col-md-6">
                                 <div class="card border-left-info">
                                     <div class="card-body">
-                                        <h6 class="text-info">{{ _('_("_(" _(" _(" _(" _(" _("بيانات المريض")")")")")")")') }}</h6>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الاسم:")")")")")")")') }}</strong> {{ visit.patient.full_name }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("العمر:")")")")")")")') }}</strong> {{ visit.patient.age or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }} سنة</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الجنس:")")")")")")")') }}</strong> {{ visit.patient.get_gender_display() }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم الزيارة:")")")")")")")') }}</strong> {{ visit.visit_id_number or visit.id }}</p>
+                                        <h6 class="text-info">{{ _(_('بيانات المريض')) }}</h6>
+                                        <p><strong>{{ _(_('الاسم:')) }}</strong> {{ visit.patient.full_name }}</p>
+                                        <p><strong>{{ _(_('العمر:')) }}</strong> {{ visit.patient.age or _('غير محدد') }} سنة</p>
+                                        <p><strong>{{ _(_('الجنس:')) }}</strong> {{ visit.patient.get_gender_display() }}</p>
+                                        <p><strong>{{ _(_('رقم الزيارة:')) }}</strong> {{ visit.visit_id_number or visit.id }}</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="card border-left-warning">
                                     <div class="card-body">
-                                        <h6 class="text-warning">{{ _('_("_(" _(" _(" _(" _(" _("بيانات الطوارئ")")")")")")")') }}</h6>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("وقت الوصول:")")")")")")")') }}</strong> {{ visit.created_at.strftime('%H:%M') }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الموظف:")")")")")")")') }}</strong> {{ current_user.full_name }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ:")")")")")")")') }}</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
-                                        <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("مستوى الفرز:")")")")")")")') }}</strong> 
+                                        <h6 class="text-warning">{{ _(_('بيانات الطوارئ')) }}</h6>
+                                        <p><strong>{{ _(_('وقت الوصول:')) }}</strong> {{ visit.created_at.strftime('%H:%M') }}</p>
+                                        <p><strong>{{ _(_('الموظف:')) }}</strong> {{ current_user.full_name }}</p>
+                                        <p><strong>{{ _(_('التاريخ:')) }}</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
+                                        <p><strong>{{ _(_('مستوى الفرز:')) }}</strong> 
                                             {% if visit.triage_level == 'RED' %}
-                                                <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("أحمر - حرج")")")")")")")') }}</span>
+                                                <span class="badge bg-danger">{{ _(_('أحمر - حرج')) }}</span>
                                             {% elif visit.triage_level == 'YELLOW' %}
-                                                <span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("أصفر - عاجل")")")")")")")') }}</span>
+                                                <span class="badge bg-warning">{{ _(_('أصفر - عاجل')) }}</span>
                                             {% else %}
-                                                <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("أخضر - عادي")")")")")")")') }}</span>
+                                                <span class="badge bg-success">{{ _(_('أخضر - عادي')) }}</span>
                                             {% endif %}
                                         </p>
                                     </div>
@@ -59,16 +59,16 @@
                         <!-- Emergency Diagnosis -->
                         <div class="row">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("التشخيص الإسعافي")")")")")")")') }}</h6>
+                                <h6 class="text-primary mb-3">{{ _(_('التشخيص الإسعافي')) }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label for="emergency_diagnosis">{{ _('_("_(" _(" _(" _(" _(" _("التشخيص الأولي")")")")")")")') }}</label>
+                                    <label for="emergency_diagnosis">{{ _(_('التشخيص الأولي')) }}</label>
                                     <textarea class="form-control" id="emergency_diagnosis" name="emergency_diagnosis" rows="3" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل التشخيص الإسعافي الأولي")")")")")")" required></textarea>
+                                              placeholder="أدخل التشخيص الإسعافي الأولي" required></textarea>
                                 </div>
                             </div>
                         </div>
@@ -76,16 +76,16 @@
                         <!-- Emergency Treatment -->
                         <div class="row">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات الإسعافية")")")")")")")') }}</h6>
+                                <h6 class="text-primary mb-3">{{ _(_('الإجراءات الإسعافية')) }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label for="emergency_treatment">{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات المطبقة")")")")")")")') }}</label>
+                                    <label for="emergency_treatment">{{ _(_('الإجراءات المطبقة')) }}</label>
                                     <textarea class="form-control" id="emergency_treatment" name="emergency_treatment" rows="4" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل الإجراءات الإسعافية المطبقة")")")")")")" required></textarea>
+                                              placeholder="أدخل الإجراءات الإسعافية المطبقة" required></textarea>
                                 </div>
                             </div>
                         </div>
@@ -93,16 +93,16 @@
                         <!-- Emergency Medications -->
                         <div class="row">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("الأدوية الإسعافية")")")")")")")') }}</h6>
+                                <h6 class="text-primary mb-3">{{ _(_('الأدوية الإسعافية')) }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label for="emergency_medications">{{ _('_("_(" _(" _(" _(" _(" _("الأدوية المعطاة")")")")")")")') }}</label>
+                                    <label for="emergency_medications">{{ _(_('الأدوية المعطاة')) }}</label>
                                     <textarea class="form-control" id="emergency_medications" name="emergency_medications" rows="3" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل الأدوية الإسعافية المعطاة")")")")")")"></textarea>
+                                              placeholder="أدخل الأدوية الإسعافية المعطاة"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -111,14 +111,14 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="treatment_start_time">{{ _('_("_(" _(" _(" _(" _(" _("وقت بدء العلاج")")")")")")")') }}</label>
+                                    <label for="treatment_start_time">{{ _(_('وقت بدء العلاج')) }}</label>
                                     <input type="time" class="form-control" id="treatment_start_time" name="treatment_start_time" 
                                            value="{{ moment().format('HH:mm') }}">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="treatment_duration">{{ _('_("_(" _(" _(" _(" _(" _("مدة العلاج (دقائق)")")")")")")")') }}</label>
+                                    <label for="treatment_duration">{{ _(_('مدة العلاج (دقائق)')) }}</label>
                                     <input type="number" class="form-control" id="treatment_duration" name="treatment_duration" 
                                            placeholder="30">
                                 </div>
@@ -128,37 +128,37 @@
                         <!-- Patient Response -->
                         <div class="row">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("استجابة المريض")")")")")")")') }}</h6>
+                                <h6 class="text-primary mb-3">{{ _(_('استجابة المريض')) }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="patient_condition">{{ _('_("_(" _(" _(" _(" _(" _("حالة المريض بعد العلاج")")")")")")")') }}</label>
+                                    <label for="patient_condition">{{ _(_('حالة المريض بعد العلاج')) }}</label>
                                     <select class="form-control" id="patient_condition" name="patient_condition">
-                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الحالة")")")")")")")') }}</option>
-                                        <option value="stable">{{ _('_("_(" _(" _(" _(" _(" _("مستقر")")")")")")")') }}</option>
-                                        <option value="improved">{{ _('_("_(" _(" _(" _(" _(" _("تحسن")")")")")")")') }}</option>
-                                        <option value="critical">{{ _('_("_(" _(" _(" _(" _(" _("حرج")")")")")")")') }}</option>
-                                        <option value="deteriorated">{{ _('_("_(" _(" _(" _(" _(" _("تدهور")")")")")")")') }}</option>
+                                        <option value="">{{ _(_('اختر الحالة')) }}</option>
+                                        <option value="stable">{{ _(_('مستقر')) }}</option>
+                                        <option value="improved">{{ _(_('تحسن')) }}</option>
+                                        <option value="critical">{{ _(_('حرج')) }}</option>
+                                        <option value="deteriorated">{{ _(_('تدهور')) }}</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="consciousness_level">{{ _('_("_(" _(" _(" _(" _(" _("مستوى الوعي")")")")")")")') }}</label>
+                                    <label for="consciousness_level">{{ _(_('مستوى الوعي')) }}</label>
                                     <select class="form-control" id="consciousness_level" name="consciousness_level">
-                                        <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر المستوى")")")")")")")') }}</option>
-                                        <option value="alert">{{ _('_("_(" _(" _(" _(" _(" _("واعي")")")")")")")') }}</option>
-                                        <option value="drowsy">{{ _('_("_(" _(" _(" _(" _(" _("نعسان")")")")")")")') }}</option>
-                                        <option value="unconscious">{{ _('_("_(" _(" _(" _(" _(" _("فاقد الوعي")")")")")")")') }}</option>
+                                        <option value="">{{ _(_('اختر المستوى')) }}</option>
+                                        <option value="alert">{{ _(_('واعي')) }}</option>
+                                        <option value="drowsy">{{ _(_('نعسان')) }}</option>
+                                        <option value="unconscious">{{ _(_('فاقد الوعي')) }}</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="pain_level_after">{{ _('_("_(" _(" _(" _(" _(" _("مستوى الألم بعد العلاج")")")")")")")') }}</label>
+                                    <label for="pain_level_after">{{ _(_('مستوى الألم بعد العلاج')) }}</label>
                                     <input type="number" class="form-control" id="pain_level_after" name="pain_level_after" 
                                            min="1" max="10" placeholder="5">
                                 </div>
@@ -169,9 +169,9 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label for="emergency_notes">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات إسعافية")")")")")")")') }}</label>
+                                    <label for="emergency_notes">{{ _(_('ملاحظات إسعافية')) }}</label>
                                     <textarea class="form-control" id="emergency_notes" name="emergency_notes" rows="4" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل الملاحظات الإسعافية الإضافية")")")")")")"></textarea>
+                                              placeholder="أدخل الملاحظات الإسعافية الإضافية"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -179,16 +179,16 @@
                         <!-- Follow-up Recommendations -->
                         <div class="row">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("التوصيات")")")")")")")') }}</h6>
+                                <h6 class="text-primary mb-3">{{ _(_('التوصيات')) }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label for="follow_up_recommendations">{{ _('_("_(" _(" _(" _(" _(" _("توصيات المتابعة")")")")")")")') }}</label>
+                                    <label for="follow_up_recommendations">{{ _(_('توصيات المتابعة')) }}</label>
                                     <textarea class="form-control" id="follow_up_recommendations" name="follow_up_recommendations" rows="3" 
-                                              placeholder="_(" _(" _(" _(" _(" _("أدخل توصيات المتابعة")")")")")")"></textarea>
+                                              placeholder="أدخل توصيات المتابعة"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -198,11 +198,11 @@
                             <div class="col-12 text-center">
                                 <button type="submit" class="btn btn-primary btn-lg">
                                     <i class="fas fa-save me-1"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("حفظ العلاج الإسعافي")")")")")")")') }}
+                                    {{ _(_('حفظ العلاج الإسعافي')) }}
                                 </button>
                                 <a href="{{ url_for('emergency.emergency_visits') }}" class="btn btn-secondary btn-lg me-2">
                                     <i class="fas fa-arrow-right me-1"></i>
-                                    {{ _('_("_(" _(" _(" _(" _(" _("العودة للطوارئ")")")")")")")') }}
+                                    {{ _(_('العودة للطوارئ')) }}
                                 </a>
                             </div>
                         </div>

@@ -8,10 +8,10 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body d-flex justify-content-between align-items-center">
-                    <h2 class="mb-0 text-danger">{{ _('_("_(" _(" _(" _(" _(" _("تقرير تتبع الديون")")")")")")")') }}</h2>
+                    <h2 class="mb-0 text-danger">{{ _(_('تقرير تتبع الديون')) }}</h2>
                     <div class="d-flex gap-2">
-                        <a href="{{ url_for('accountant.dashboard') }}" class="btn btn-secondary">{{ _('_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")') }}</a>
-                        <a href="{{ url_for('accountant.export_audit_report', report_type='debts') }}?format=json" class="btn btn-info">{{ _('_("_(" _(" _(" _(" _(" _("تصدير JSON")")")")")")")') }}</a>
+                        <a href="{{ url_for('accountant.dashboard') }}" class="btn btn-secondary">{{ _(_('رجوع')) }}</a>
+                        <a href="{{ url_for('accountant.export_audit_report', report_type='debts') }}?format=json" class="btn btn-info">{{ _(_('تصدير JSON')) }}</a>
                     </div>
                 </div>
             </div>
@@ -21,18 +21,18 @@
     <div class="row mb-4">
         <div class="col-md-4">
             <div class="card shadow">
-                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("تاريخ التقرير")")")")")")")') }}</div>
+                <div class="card-header">{{ _(_('تاريخ التقرير')) }}</div>
                 <div class="card-body">{{ report.report_date }}</div>
             </div>
         </div>
         <div class="col-md-8">
             <div class="card shadow">
-                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("ملخص")")")")")")")') }}</div>
+                <div class="card-header">{{ _(_('ملخص')) }}</div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-3 mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("عدد الديون:")")")")")")")') }}</strong> {{ report.summary.total_debts }}</div>
-                        <div class="col-md-3 mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المبلغ:")")")")")")")') }}</strong> {{ "%.2f"|format(report.summary.total_amount) }}</div>
-                        <div class="col-md-3 mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("أقدم دين (أيام):")")")")")")")') }}</strong> {{ report.oldest_debt_days }}</div>
+                        <div class="col-md-3 mb-2"><strong>{{ _(_('عدد الديون:')) }}</strong> {{ report.summary.total_debts }}</div>
+                        <div class="col-md-3 mb-2"><strong>{{ _(_('إجمالي المبلغ:')) }}</strong> {{ "%.2f"|format(report.summary.total_amount) }}</div>
+                        <div class="col-md-3 mb-2"><strong>{{ _(_('أقدم دين (أيام):')) }}</strong> {{ report.oldest_debt_days }}</div>
                     </div>
                 </div>
             </div>
@@ -42,23 +42,23 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow">
-                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("التصنيف حسب العمر")")")")")")")') }}</div>
+                <div class="card-header">{{ _(_('التصنيف حسب العمر')) }}</div>
                 <div class="card-body">
                     <div class="row mb-3">
-                        <div class="col-md-3"><strong>{{ _('_("_(" _(" _(" _(" _(" _("0-7 أيام:")")")")")")")') }}</strong> {{ report.summary.by_age_count['0-7_days'] }} | {{ "%.2f"|format(report.summary.by_age_amount['0-7_days']) }}</div>
-                        <div class="col-md-3"><strong>{{ _('_("_(" _(" _(" _(" _(" _("8-30 أيام:")")")")")")")') }}</strong> {{ report.summary.by_age_count['8-30_days'] }} | {{ "%.2f"|format(report.summary.by_age_amount['8-30_days']) }}</div>
-                        <div class="col-md-3"><strong>{{ _('_("_(" _(" _(" _(" _(" _("31-60 أيام:")")")")")")")') }}</strong> {{ report.summary.by_age_count['31-60_days'] }} | {{ "%.2f"|format(report.summary.by_age_amount['31-60_days']) }}</div>
-                        <div class="col-md-3"><strong>{{ _('_("_(" _(" _(" _(" _(" _("60+ أيام:")")")")")")")') }}</strong> {{ report.summary.by_age_count['60+_days'] }} | {{ "%.2f"|format(report.summary.by_age_amount['60+_days']) }}</div>
+                        <div class="col-md-3"><strong>{{ _(_('0-7 أيام:')) }}</strong> {{ report.summary.by_age_count['0-7_days'] }} | {{ "%.2f"|format(report.summary.by_age_amount['0-7_days']) }}</div>
+                        <div class="col-md-3"><strong>{{ _(_('8-30 أيام:')) }}</strong> {{ report.summary.by_age_count['8-30_days'] }} | {{ "%.2f"|format(report.summary.by_age_amount['8-30_days']) }}</div>
+                        <div class="col-md-3"><strong>{{ _(_('31-60 أيام:')) }}</strong> {{ report.summary.by_age_count['31-60_days'] }} | {{ "%.2f"|format(report.summary.by_age_amount['31-60_days']) }}</div>
+                        <div class="col-md-3"><strong>{{ _(_('60+ أيام:')) }}</strong> {{ report.summary.by_age_count['60+_days'] }} | {{ "%.2f"|format(report.summary.by_age_amount['60+_days']) }}</div>
                     </div>
 
-                    <h6 class="mt-2">{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل")")")")")")")') }}</h6>
+                    <h6 class="mt-2">{{ _(_('تفاصيل')) }}</h6>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="card mb-3">
-                                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("0-7 أيام")")")")")")")') }}</div>
+                                <div class="card-header">{{ _(_('0-7 أيام')) }}</div>
                                 <div class="card-body p-0">
                                     <table class="table mb-0">
-                                        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("زيارة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المتبقي")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("طريقة")")")")")")")') }}</th></tr></thead>
+                                        <thead><tr><th>{{ _(_('زيارة')) }}</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('تاريخ')) }}</th><th>{{ _(_('المتبقي')) }}</th><th>{{ _(_('طريقة')) }}</th></tr></thead>
                                         <tbody>
                                             {% for d in report.debts_by_age['0-7_days'] %}
                                             <tr>
@@ -68,7 +68,7 @@
                                                 <td>{{ "%.2f"|format(d.remaining_amount) }}</td>
                                                 <td>{{ d.payment_method }}</td>
                                             </tr>
-                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td></tr>{% endfor %}
+                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
@@ -76,10 +76,10 @@
                         </div>
                         <div class="col-md-6">
                             <div class="card mb-3">
-                                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("8-30 أيام")")")")")")")') }}</div>
+                                <div class="card-header">{{ _(_('8-30 أيام')) }}</div>
                                 <div class="card-body p-0">
                                     <table class="table mb-0">
-                                        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("زيارة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المتبقي")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("طريقة")")")")")")")') }}</th></tr></thead>
+                                        <thead><tr><th>{{ _(_('زيارة')) }}</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('تاريخ')) }}</th><th>{{ _(_('المتبقي')) }}</th><th>{{ _(_('طريقة')) }}</th></tr></thead>
                                         <tbody>
                                             {% for d in report.debts_by_age['8-30_days'] %}
                                             <tr>
@@ -89,7 +89,7 @@
                                                 <td>{{ "%.2f"|format(d.remaining_amount) }}</td>
                                                 <td>{{ d.payment_method }}</td>
                                             </tr>
-                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td></tr>{% endfor %}
+                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
@@ -97,10 +97,10 @@
                         </div>
                         <div class="col-md-6">
                             <div class="card mb-3">
-                                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("31-60 أيام")")")")")")")') }}</div>
+                                <div class="card-header">{{ _(_('31-60 أيام')) }}</div>
                                 <div class="card-body p-0">
                                     <table class="table mb-0">
-                                        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("زيارة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المتبقي")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("طريقة")")")")")")")') }}</th></tr></thead>
+                                        <thead><tr><th>{{ _(_('زيارة')) }}</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('تاريخ')) }}</th><th>{{ _(_('المتبقي')) }}</th><th>{{ _(_('طريقة')) }}</th></tr></thead>
                                         <tbody>
                                             {% for d in report.debts_by_age['31-60_days'] %}
                                             <tr>
@@ -110,7 +110,7 @@
                                                 <td>{{ "%.2f"|format(d.remaining_amount) }}</td>
                                                 <td>{{ d.payment_method }}</td>
                                             </tr>
-                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td></tr>{% endfor %}
+                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
@@ -118,10 +118,10 @@
                         </div>
                         <div class="col-md-6">
                             <div class="card mb-3">
-                                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("60+ أيام")")")")")")")') }}</div>
+                                <div class="card-header">{{ _(_('60+ أيام')) }}</div>
                                 <div class="card-body p-0">
                                     <table class="table mb-0">
-                                        <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("زيارة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المتبقي")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("طريقة")")")")")")")') }}</th></tr></thead>
+                                        <thead><tr><th>{{ _(_('زيارة')) }}</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('تاريخ')) }}</th><th>{{ _(_('المتبقي')) }}</th><th>{{ _(_('طريقة')) }}</th></tr></thead>
                                         <tbody>
                                             {% for d in report.debts_by_age['60+_days'] %}
                                             <tr>
@@ -131,7 +131,7 @@
                                                 <td>{{ "%.2f"|format(d.remaining_amount) }}</td>
                                                 <td>{{ d.payment_method }}</td>
                                             </tr>
-                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد بيانات")")")")")")")') }}</td></tr>{% endfor %}
+                                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                                         </tbody>
                                     </table>
                                 </div>

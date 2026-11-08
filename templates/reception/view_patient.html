@@ -5,57 +5,57 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("تفاصيل المريض")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("عرض بيانات المريض وزياراته")")")")")")")', actions=[{'label': '_("_(" _(" _(" _(" _(" _("رجوع")")")")")")")', 'url': url_for('reception.patients'), 'style': 'secondary'}]) }}
+    {{ page_header(_('تفاصيل المريض'), subtitle=_('عرض بيانات المريض وزياراته'), actions=[{'label': _('رجوع'), 'url': url_for('reception.patients'), 'style': 'secondary'}]) }}
 
     <div class="row">
         <div class="col-md-4">
             <div class="card shadow">
-                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("بيانات المريض")")")")")")")') }}</div>
+                <div class="card-header">{{ _(_('بيانات المريض')) }}</div>
                 <div class="card-body">
-                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الاسم:")")")")")")")') }}</strong> {{ patient.full_name }}</div>
-                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف:")")")")")")")') }}</strong> {{ patient.phone or '-' }}</div>
-                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الهوية:")")")")")")")') }}</strong> {{ patient.national_id or '-' }}</div>
-                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الجنس:")")")")")")")') }}</strong> {{ '_("_(" _(" _(" _(" _(" _("ذكر")")")")")")")' if patient.gender == 'M' else ('_("_(" _(" _(" _(" _(" _("أنثى")")")")")")")' if patient.gender == 'F' else '_("_(" _(" _(" _(" _(" _("آخر")")")")")")")') }}</div>
-                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("عدد الزيارات:")")")")")")")') }}</strong> {{ patient.visit_count }}</div>
-                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة الاجتماعية:")")")")")")")') }}</strong>
+                    <div class="mb-2"><strong>{{ _(_('الاسم:')) }}</strong> {{ patient.full_name }}</div>
+                    <div class="mb-2"><strong>{{ _(_('الهاتف:')) }}</strong> {{ patient.phone or '-' }}</div>
+                    <div class="mb-2"><strong>{{ _(_('الهوية:')) }}</strong> {{ patient.national_id or '-' }}</div>
+                    <div class="mb-2"><strong>{{ _(_('الجنس:')) }}</strong> {{ _('ذكر') if patient.gender == 'M' else (_('أنثى') if patient.gender == 'F' else _('آخر')) }}</div>
+                    <div class="mb-2"><strong>{{ _(_('عدد الزيارات:')) }}</strong> {{ patient.visit_count }}</div>
+                    <div class="mb-2"><strong>{{ _(_('الحالة الاجتماعية:')) }}</strong>
                         {% if patient.marital_status == 'married' %}متزوج/ة{% elif patient.marital_status == 'single' %}أعزب/غير متزوج{% elif patient.marital_status == 'divorced' %}مطلق/ة{% elif patient.marital_status == 'widowed' %}أرمل/ة{% else %}-{% endif %}
                     </div>
                     <div class="mb-2"><strong>{{ _('العنوان:') }}</strong> {{ patient.address or '-' }}</div>
-                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("جهة التأمين:")")")")")")")') }}</strong> {{ patient.insurance_company.name_ar if patient.insurance_company and patient.insurance_company.name_ar else (patient.insurance_company.name if patient.insurance_company else '-') }}</div>
-                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("رقم التأمين:")")")")")")")') }}</strong> {{ patient.insurance_member_number or '-' }}</div>
-                    <div class="mb-2"><strong>{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات إدارية:")")")")")")")') }}</strong> <span class="text-pre-line">{{ patient.admin_notes or '-' }}</span></div>
+                    <div class="mb-2"><strong>{{ _(_('جهة التأمين:')) }}</strong> {{ patient.insurance_company.name_ar if patient.insurance_company and patient.insurance_company.name_ar else (patient.insurance_company.name if patient.insurance_company else '-') }}</div>
+                    <div class="mb-2"><strong>{{ _(_('رقم التأمين:')) }}</strong> {{ patient.insurance_member_number or '-' }}</div>
+                    <div class="mb-2"><strong>{{ _(_('ملاحظات إدارية:')) }}</strong> <span class="text-pre-line">{{ patient.admin_notes or '-' }}</span></div>
                 </div>
             </div>
         </div>
         <div class="col-md-8">
             <div class="card shadow mb-4">
-                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("آخر الزيارات")")")")")")")') }}</div>
+                <div class="card-header">{{ _(_('آخر الزيارات')) }}</div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التكلفة الإجمالية")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الضريبة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</th>
+                                    <th>{{ _(_('القسم')) }}</th>
+                                    <th>{{ _(_('الطبيب')) }}</th>
+                                    <th>{{ _(_('التاريخ')) }}</th>
+                                    <th>{{ _(_('التكلفة الإجمالية')) }}</th>
+                                    <th>{{ _(_('الضريبة')) }}</th>
+                                    <th>{{ _(_('ملاحظات')) }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for v in visits %}
                                 <tr>
                                     <td>{{ v.id }}</td>
-                                    <td>{{ v.department.name_ar if v.department else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
-                                    <td>{{ v.doctor.full_name if v.doctor else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                    <td>{{ v.department.name_ar if v.department else _('غير محدد') }}</td>
+                                    <td>{{ v.doctor.full_name if v.doctor else _('غير محدد') }}</td>
                                     <td>{{ v.created_at.strftime('%Y-%m-%d') if v.created_at else '-' }}</td>
                                     <td>{{ v.total_amount or '0.00' }} ₪</td>
                                     <td>
                                         {% if v.tax_amount and v.tax_amount > 0 %}
                                             {{ v.tax_amount }} ₪
-                                            <small class="text-muted">({{ '_("_(" _(" _(" _(" _(" _("شاملة")")")")")")")' if v.is_tax_inclusive else '_("_(" _(" _(" _(" _(" _("مضافة")")")")")")")' }})</small>
+                                            <small class="text-muted">({{ _('شاملة') if v.is_tax_inclusive else _('مضافة') }})</small>
                                         {% else %}
                                             -
                                         {% endif %}
@@ -64,7 +64,7 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="7" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد زيارات")")")")")")")') }}</td>
+                                    <td colspan="7" class="text-center">{{ _(_('لا توجد زيارات')) }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -76,15 +76,15 @@
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="card shadow h-100">
-                        <div class="card-header bg-info text-white">{{ _('_("_(" _(" _(" _(" _(" _("طلبات المختبر الأخيرة")")")")")")")') }}</div>
+                        <div class="card-header bg-info text-white">{{ _(_('طلبات المختبر الأخيرة')) }}</div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-sm">
                                     <thead>
                                         <tr>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الملاحظات/الفحوصات")")")")")")")') }}</th>
+                                            <th>{{ _(_('التاريخ')) }}</th>
+                                            <th>{{ _(_('الحالة')) }}</th>
+                                            <th>{{ _(_('الملاحظات/الفحوصات')) }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -93,13 +93,13 @@
                                             <td>{{ req.created_at.strftime('%Y-%m-%d') if req.created_at else '-' }}</td>
                                             <td>
                                                 {% if req.status == 'REQUESTED' %}
-                                                    <span class="badge text-bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("مطلوب")")")")")")")') }}</span>
+                                                    <span class="badge text-bg-warning">{{ _(_('مطلوب')) }}</span>
                                                 {% elif req.status == 'IN_PROGRESS' %}
-                                                    <span class="badge text-bg-info">{{ _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")') }}</span>
+                                                    <span class="badge text-bg-info">{{ _(_('قيد التنفيذ')) }}</span>
                                                 {% elif req.status == 'DONE' %}
-                                                    <span class="badge text-bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
+                                                    <span class="badge text-bg-success">{{ _(_('مكتمل')) }}</span>
                                                 {% elif req.status == 'CANCELLED' %}
-                                                    <span class="badge text-bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("ملغي")")")")")")")') }}</span>
+                                                    <span class="badge text-bg-danger">{{ _(_('ملغي')) }}</span>
                                                 {% else %}
                                                     <span class="badge text-bg-secondary">{{ req.status | enum_label('OrderState') }}</span>
                                                 {% endif %}
@@ -108,7 +108,7 @@
                                         </tr>
                                         {% else %}
                                         <tr>
-                                            <td colspan="3" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد طلبات مختبر")")")")")")")') }}</td>
+                                            <td colspan="3" class="text-center">{{ _(_('لا توجد طلبات مختبر')) }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -119,16 +119,16 @@
                 </div>
                 <div class="col-md-6">
                     <div class="card shadow h-100">
-                        <div class="card-header bg-warning text-dark">{{ _('_("_(" _(" _(" _(" _(" _("طلبات الأشعة الأخيرة")")")")")")")') }}</div>
+                        <div class="card-header bg-warning text-dark">{{ _(_('طلبات الأشعة الأخيرة')) }}</div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-sm">
                                     <thead>
                                         <tr>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("العضو")")")")")")")') }}</th>
-                                            <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
+                                            <th>{{ _(_('التاريخ')) }}</th>
+                                            <th>{{ _(_('النوع')) }}</th>
+                                            <th>{{ _(_('العضو')) }}</th>
+                                            <th>{{ _(_('الحالة')) }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -139,13 +139,13 @@
                                             <td>{{ req.body_part or '-' }}</td>
                                             <td>
                                                 {% if req.status == 'REQUESTED' %}
-                                                    <span class="badge text-bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("مطلوب")")")")")")")') }}</span>
+                                                    <span class="badge text-bg-warning">{{ _(_('مطلوب')) }}</span>
                                                 {% elif req.status == 'IN_PROGRESS' %}
-                                                    <span class="badge text-bg-info">{{ _('_("_(" _(" _(" _(" _(" _("قيد التنفيذ")")")")")")")') }}</span>
+                                                    <span class="badge text-bg-info">{{ _(_('قيد التنفيذ')) }}</span>
                                                 {% elif req.status == 'DONE' %}
-                                                    <span class="badge text-bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مكتمل")")")")")")")') }}</span>
+                                                    <span class="badge text-bg-success">{{ _(_('مكتمل')) }}</span>
                                                 {% elif req.status == 'CANCELLED' %}
-                                                    <span class="badge text-bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("ملغي")")")")")")")') }}</span>
+                                                    <span class="badge text-bg-danger">{{ _(_('ملغي')) }}</span>
                                                 {% else %}
                                                     <span class="badge text-bg-secondary">{{ req.status | enum_label('OrderState') }}</span>
                                                 {% endif %}
@@ -153,7 +153,7 @@
                                         </tr>
                                         {% else %}
                                         <tr>
-                                            <td colspan="4" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد طلبات أشعة")")")")")")")') }}</td>
+                                            <td colspan="4" class="text-center">{{ _(_('لا توجد طلبات أشعة')) }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -167,13 +167,13 @@
                 <div class="col-md-4">
                     <div class="card shadow h-100">
                         <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-allergies me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("الحساسيات")")")")")")")') }}</span>
+                            <span><i class="fas fa-allergies me-1"></i> {{ _(_('الحساسيات')) }}</span>
                             <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addAllergyModal"><i class="fas fa-plus"></i></button>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-sm mb-0">
-                                    <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("المادة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الخطورة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("تاريخ")")")")")")")') }}</th></tr></thead>
+                                    <thead><tr><th>{{ _(_('المادة')) }}</th><th>{{ _(_('الخطورة')) }}</th><th>{{ _(_('الوصف')) }}</th><th>{{ _(_('تاريخ')) }}</th></tr></thead>
                                     <tbody>
                                         {% for a in allergies %}
                                         <tr>
@@ -183,7 +183,7 @@
                                             <td class="small">{{ a.created_at.strftime('%Y-%m-%d') if a.created_at else '-' }}</td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="4" class="text-center text-muted py-2">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد حساسيات")")")")")")")') }}</td></tr>
+                                        <tr><td colspan="4" class="text-center text-muted py-2">{{ _(_('لا توجد حساسيات')) }}</td></tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -194,13 +194,13 @@
                 <div class="col-md-4">
                     <div class="card shadow h-100">
                         <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-clipboard-list me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("قائمة المشاكل")")")")")")")') }}</span>
+                            <span><i class="fas fa-clipboard-list me-1"></i> {{ _(_('قائمة المشاكل')) }}</span>
                             <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#addProblemModal"><i class="fas fa-plus"></i></button>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-sm mb-0">
-                                    <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("إجراء")")")")")")")') }}</th></tr></thead>
+                                    <thead><tr><th>{{ _(_('الوصف')) }}</th><th>{{ _(_('النوع')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('إجراء')) }}</th></tr></thead>
                                     <tbody>
                                         {% for p in problems %}
                                         <tr>
@@ -210,12 +210,12 @@
                                             <td>
                                                 <form method="POST" action="{{ url_for('reception.toggle_problem_status', patient_id=patient.id, problem_id=p.id) }}" class="d-inline">
                                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <button class="btn btn-xs btn-outline-primary btn-sm" type="submit">{{ '_("_(" _(" _(" _(" _(" _("حل")")")")")")")' if p.status=='ACTIVE' else '_("_(" _(" _(" _(" _(" _("إعادة فتح")")")")")")")' }}</button>
+                                                    <button class="btn btn-xs btn-outline-primary btn-sm" type="submit">{{ _('حل') if p.status=='ACTIVE' else _('إعادة فتح') }}</button>
                                                 </form>
                                             </td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="4" class="text-center text-muted py-2">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مشاكل")")")")")")")') }}</td></tr>
+                                        <tr><td colspan="4" class="text-center text-muted py-2">{{ _(_('لا توجد مشاكل')) }}</td></tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -225,11 +225,11 @@
                 </div>
                 <div class="col-md-4">
                     <div class="card shadow h-100">
-                        <div class="card-header bg-success text-white">{{ _('_("_(" _(" _(" _(" _(" _("العلامات الحيوية الأخيرة")")")")")")")') }}</div>
+                        <div class="card-header bg-success text-white">{{ _(_('العلامات الحيوية الأخيرة')) }}</div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-sm mb-0">
-                                    <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("ضغط")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("نبض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("حرارة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("أكسجين")")")")")")")') }}</th></tr></thead>
+                                    <thead><tr><th>{{ _(_('التاريخ')) }}</th><th>{{ _(_('ضغط')) }}</th><th>{{ _(_('نبض')) }}</th><th>{{ _(_('حرارة')) }}</th><th>{{ _(_('أكسجين')) }}</th></tr></thead>
                                     <tbody>
                                         {% for v in vitals %}
                                         <tr>
@@ -240,13 +240,13 @@
                                             <td>{{ v.oxygen_saturation or '-' }}%</td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="5" class="text-center text-muted py-2">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد قراءات")")")")")")")') }}</td></tr>
+                                        <tr><td colspan="5" class="text-center text-muted py-2">{{ _(_('لا توجد قراءات')) }}</td></tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
                             <div class="p-2 text-center">
-                                <a href="{{ url_for('nurse.record_vital_signs', patient_id=patient.id) }}" class="btn btn-sm btn-outline-success"><i class="fas fa-heartbeat me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("تسجيل علامات")")")")")")")') }}</a>
+                                <a href="{{ url_for('nurse.record_vital_signs', patient_id=patient.id) }}" class="btn btn-sm btn-outline-success"><i class="fas fa-heartbeat me-1"></i> {{ _(_('تسجيل علامات')) }}</a>
                             </div>
                         </div>
                     </div>
@@ -254,29 +254,29 @@
             </div>
 
             <div class="card shadow">
-                <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("آخر المواعيد")")")")")")")') }}</div>
+                <div class="card-header">{{ _(_('آخر المواعيد')) }}</div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات")")")")")")")') }}</th>
+                                    <th>{{ _(_('التاريخ')) }}</th>
+                                    <th>{{ _(_('القسم')) }}</th>
+                                    <th>{{ _(_('الطبيب')) }}</th>
+                                    <th>{{ _(_('ملاحظات')) }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for a in appointments %}
                                 <tr>
                                     <td>{{ a.starts_at.strftime('%Y-%m-%d %H:%M') if a.starts_at else '-' }}</td>
-                                    <td>{{ a.department.name_ar if a.department else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
-                                    <td>{{ a.doctor.full_name if a.doctor else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                    <td>{{ a.department.name_ar if a.department else _('غير محدد') }}</td>
+                                    <td>{{ a.doctor.full_name if a.doctor else _('غير محدد') }}</td>
                                     <td>{{ a.notes or '-' }}</td>
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="4" class="text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مواعيد")")")")")")")') }}</td>
+                                    <td colspan="4" class="text-center">{{ _(_('لا توجد مواعيد')) }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -292,15 +292,15 @@
 <div class="modal fade" id="addAllergyModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">{{ _('_("_(" _(" _(" _(" _(" _("إضافة حساسية")")")")")")")') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ _(_('إضافة حساسية')) }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <div class="mb-3"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المادة المسببة *")")")")")")")') }}</label><input id="allergy_allergen" class="form-control" placeholder="_(" _(" _(" _(" _(" _("مثال: بنسلين")")")")")")"></div>
-        <div class="mb-3"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الخطورة")")")")")")")') }}</label>
-          <select id="allergy_severity" class="form-select"><option value="LOW">{{ _('_("_(" _(" _(" _(" _(" _("خفيفة")")")")")")")') }}</option><option value="MODERATE">{{ _('_("_(" _(" _(" _(" _(" _("متوسطة")")")")")")")') }}</option><option value="HIGH" selected>{{ _('_("_(" _(" _(" _(" _(" _("شديدة")")")")")")")') }}</option><option value="LIFE_THREATENING">{{ _('_("_(" _(" _(" _(" _(" _("مهددة للحياة")")")")")")")') }}</option></select>
+        <div class="mb-3"><label class="form-label">{{ _(_('المادة المسببة *')) }}</label><input id="allergy_allergen" class="form-control" placeholder="مثال: بنسلين"></div>
+        <div class="mb-3"><label class="form-label">{{ _(_('الخطورة')) }}</label>
+          <select id="allergy_severity" class="form-select"><option value="LOW">{{ _(_('خفيفة')) }}</option><option value="MODERATE">{{ _(_('متوسطة')) }}</option><option value="HIGH" selected>{{ _(_('شديدة')) }}</option><option value="LIFE_THREATENING">{{ _(_('مهددة للحياة')) }}</option></select>
         </div>
-        <div class="mb-3"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</label><textarea id="allergy_description" class="form-control" rows="2"></textarea></div>
+        <div class="mb-3"><label class="form-label">{{ _(_('الوصف')) }}</label><textarea id="allergy_description" class="form-control" rows="2"></textarea></div>
       </div>
-      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button><button class="btn btn-danger" onclick="submitAllergy()">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button></div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button><button class="btn btn-danger" onclick="submitAllergy()">{{ _(_('حفظ')) }}</button></div>
     </div>
   </div>
 </div>
@@ -308,12 +308,12 @@
 <div class="modal fade" id="addProblemModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">{{ _('_("_(" _(" _(" _(" _(" _("إضافة مشكلة / تشخيص")")")")")")")') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ _(_('إضافة مشكلة / تشخيص')) }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <div class="mb-3"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الوصف *")")")")")")")') }}</label><textarea id="problem_desc" class="form-control" rows="2"></textarea></div>
-        <div class="row"><div class="col-6"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</label><select id="problem_type" class="form-select"><option value="DIAGNOSIS">{{ _('_("_(" _(" _(" _(" _(" _("تشخيص")")")")")")")') }}</option><option value="SYMPTOM">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</option><option value="COMPLAINT">{{ _('_("_(" _(" _(" _(" _(" _("شكوى")")")")")")")') }}</option></select></div><div class="col-6"><label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الخطورة")")")")")")")') }}</label><select id="problem_severity" class="form-select"><option value="MILD">{{ _('_("_(" _(" _(" _(" _(" _("خفيفة")")")")")")")') }}</option><option value="MODERATE" selected>{{ _('_("_(" _(" _(" _(" _(" _("متوسطة")")")")")")")') }}</option><option value="SEVERE">{{ _('_("_(" _(" _(" _(" _(" _("شديدة")")")")")")")') }}</option></select></div></div>
+        <div class="mb-3"><label class="form-label">{{ _(_('الوصف *')) }}</label><textarea id="problem_desc" class="form-control" rows="2"></textarea></div>
+        <div class="row"><div class="col-6"><label class="form-label">{{ _(_('النوع')) }}</label><select id="problem_type" class="form-select"><option value="DIAGNOSIS">{{ _(_('تشخيص')) }}</option><option value="SYMPTOM">{{ _(_('عرض')) }}</option><option value="COMPLAINT">{{ _(_('شكوى')) }}</option></select></div><div class="col-6"><label class="form-label">{{ _(_('الخطورة')) }}</label><select id="problem_severity" class="form-select"><option value="MILD">{{ _(_('خفيفة')) }}</option><option value="MODERATE" selected>{{ _(_('متوسطة')) }}</option><option value="SEVERE">{{ _(_('شديدة')) }}</option></select></div></div>
       </div>
-      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">{{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}</button><button class="btn btn-warning" onclick="submitProblem()">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button></div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إلغاء')) }}</button><button class="btn btn-warning" onclick="submitProblem()">{{ _(_('حفظ')) }}</button></div>
     </div>
   </div>
 </div>

@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container py-4">
-  <h4><i class="bi bi-camera-video me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تفاصيل الموعد عن بعد")")")")")")")') }}</h4>
+  <h4><i class="bi bi-camera-video me-2"></i>{{ _(_('تفاصيل الموعد عن بعد')) }}</h4>
   <div class="card shadow-sm">
     <div class="card-body">
       <div class="row g-3">
-        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("المريض:")")")")")")")') }}</strong> {{ tm.patient.full_name }}</div>
-        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب:")")")")")")")') }}</strong> {{ tm.doctor.full_name if tm.doctor else '—' }}</div>
-        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ:")")")")")")")') }}</strong> {{ tm.scheduled_start.strftime('%Y-%m-%d %H:%M') }}</div>
-        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong> {{ tm.status | enum_label }}</div>
-        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("المنصة:")")")")")")")') }}</strong> {{ tm.meeting_provider }}</div>
-        <div class="col-md-6"><strong>{{ _('_("_(" _(" _(" _(" _(" _("المدة:")")")")")")")') }}</strong> {{ tm.duration_minutes or '—' }} دقيقة</div>
+        <div class="col-md-6"><strong>{{ _(_('المريض:')) }}</strong> {{ tm.patient.full_name }}</div>
+        <div class="col-md-6"><strong>{{ _(_('الطبيب:')) }}</strong> {{ tm.doctor.full_name if tm.doctor else '—' }}</div>
+        <div class="col-md-6"><strong>{{ _(_('التاريخ:')) }}</strong> {{ tm.scheduled_start.strftime('%Y-%m-%d %H:%M') }}</div>
+        <div class="col-md-6"><strong>{{ _(_('الحالة:')) }}</strong> {{ tm.status | enum_label }}</div>
+        <div class="col-md-6"><strong>{{ _(_('المنصة:')) }}</strong> {{ tm.meeting_provider }}</div>
+        <div class="col-md-6"><strong>{{ _(_('المدة:')) }}</strong> {{ tm.duration_minutes or '—' }} دقيقة</div>
       </div>
       {% if tm.meeting_url %}
       <div class="mt-3">
@@ -22,12 +22,12 @@
       {% endif %}
       {% if tm.chief_complaint %}
       <hr>
-      <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("الشكوى الرئيسية:")")")")")")")') }}</strong></p>
+      <p><strong>{{ _(_('الشكوى الرئيسية:')) }}</strong></p>
       <div class="bg-light p-3 rounded">{{ tm.chief_complaint }}</div>
       {% endif %}
       {% if tm.notes %}
       <hr>
-      <p><strong>{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات الجلسة:")")")")")")")') }}</strong></p>
+      <p><strong>{{ _(_('ملاحظات الجلسة:')) }}</strong></p>
       <div class="bg-light p-3 rounded">{{ tm.notes }}</div>
       {% endif %}
     </div>

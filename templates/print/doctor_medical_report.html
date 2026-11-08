@@ -7,45 +7,45 @@
 
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>{{ _('رقم الزيارة:') }}</strong> {{ visit.id }}</span>
-<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ:")")")")")")")') }}</strong> {{ visit.visit_date.strftime('%Y-%m-%d %H:%M') if visit.visit_date else '—' }}</span>
-<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("القسم:")")")")")")")') }}</strong> {{ visit.department.name_ar if visit.department else '—' }}</span>
-<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الطبيب:")")")")")")")') }}</strong> {{ current_user.full_name }}</span>
+<span class="print-doc-meta__item"><strong>{{ _(_('التاريخ:')) }}</strong> {{ visit.visit_date.strftime('%Y-%m-%d %H:%M') if visit.visit_date else '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _(_('القسم:')) }}</strong> {{ visit.department.name_ar if visit.department else '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _(_('الطبيب:')) }}</strong> {{ current_user.full_name }}</span>
 {% endblock %}
 
 {% block subject_strip %}
 <div class="print-subject-strip__grid">
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</span><span>{{ visit.patient.full_name if visit.patient else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الهوية")")")")")")")') }}</span><span>{{ visit.patient.national_id if visit.patient else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</span><span>{{ visit.patient.phone if visit.patient else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الجنس")")")")")")")') }}</span><span>{{ visit.patient.gender if visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('المريض')) }}</span><span>{{ visit.patient.full_name if visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الهوية')) }}</span><span>{{ visit.patient.national_id if visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الهاتف')) }}</span><span>{{ visit.patient.phone if visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الجنس')) }}</span><span>{{ visit.patient.gender if visit.patient else '—' }}</span></div>
 </div>
 {% endblock %}
 
 {% block body %}
 {% if visit.medical_record and visit.medical_record.diagnosis %}
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("التشخيص")")")")")")")') }}</h3>
+    <h3 class="print-section__title">{{ _(_('التشخيص')) }}</h3>
     <div>{{ visit.medical_record.diagnosis }}</div>
 </div>
 {% endif %}
 
 {% if visit.medical_record and visit.medical_record.notes %}
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("الملاحظات")")")")")")")') }}</h3>
+    <h3 class="print-section__title">{{ _(_('الملاحظات')) }}</h3>
     <div>{{ visit.medical_record.notes }}</div>
 </div>
 {% endif %}
 
 {% if visit.vital_signs %}
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("العلامات الحيوية")")")")")")")') }}</h3>
+    <h3 class="print-section__title">{{ _(_('العلامات الحيوية')) }}</h3>
     <div>{{ visit.vital_signs }}</div>
 </div>
 {% endif %}
 
 {% if visit.treatment_plan %}
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("خطة العلاج")")")")")")")') }}</h3>
+    <h3 class="print-section__title">{{ _(_('خطة العلاج')) }}</h3>
     <div>{{ visit.treatment_plan }}</div>
 </div>
 {% endif %}
@@ -54,16 +54,16 @@
 {% block signatures %}
 <div class="print-signature-box">
     <div class="print-signature-line"></div>
-    <div class="print-signature-label">{{ _('_("_(" _(" _(" _(" _(" _("توقيع الطبيب")")")")")")")') }}</div>
+    <div class="print-signature-label">{{ _(_('توقيع الطبيب')) }}</div>
 </div>
 <div class="print-signature-box">
     <div class="print-signature-line"></div>
-    <div class="print-signature-label">{{ _('_("_(" _(" _(" _(" _(" _("ختم المركز")")")")")")")') }}</div>
+    <div class="print-signature-label">{{ _(_('ختم المركز')) }}</div>
 </div>
 {% endblock %}
 
 {% block legal_footer %}
-<p><strong>{{ _('_("_(" _(" _(" _(" _(" _("هذا التقرير صالح للاستخدام الطبي")")")")")")")') }}</strong></p>
+<p><strong>{{ _(_('هذا التقرير صالح للاستخدام الطبي')) }}</strong></p>
 <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
 {% endblock %}
 

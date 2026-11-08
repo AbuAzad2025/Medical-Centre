@@ -7,22 +7,22 @@
 
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>{{ _('رقم الحالة:') }}</strong> {{ emergency.case_number }}</span>
-<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ:")")")")")")")') }}</strong> {{ emergency.created_at.strftime('%Y-%m-%d %H:%M') if emergency.created_at else '—' }}</span>
-<span class="print-doc-meta__item"><strong>{{ _('_("_(" _(" _(" _(" _(" _("الحالة:")")")")")")")') }}</strong> {{ emergency.status or '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _(_('التاريخ:')) }}</strong> {{ emergency.created_at.strftime('%Y-%m-%d %H:%M') if emergency.created_at else '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _(_('الحالة:')) }}</strong> {{ emergency.status or '—' }}</span>
 {% endblock %}
 
 {% block subject_strip %}
 <div class="print-subject-strip__grid">
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</span><span>{{ emergency.patient.full_name if emergency.patient else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الهوية")")")")")")")') }}</span><span>{{ emergency.patient.national_id if emergency.patient else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</span><span>{{ emergency.patient.phone if emergency.patient else '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _('_("_(" _(" _(" _(" _(" _("الشدة")")")")")")")') }}</span>
+    <div class="print-subject-strip__item"><span>{{ _(_('المريض')) }}</span><span>{{ emergency.patient.full_name if emergency.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الهوية')) }}</span><span>{{ emergency.patient.national_id if emergency.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الهاتف')) }}</span><span>{{ emergency.patient.phone if emergency.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الشدة')) }}</span>
         <span>
             {% set sev = emergency.severity %}
-            {% if sev == 'LOW' %}<span class="badge-sev-low">{{ _('_("_(" _(" _(" _(" _(" _("منخفضة")")")")")")")') }}</span>
-            {% elif sev == 'MODERATE' %}<span class="badge-sev-mod">{{ _('_("_(" _(" _(" _(" _(" _("متوسطة")")")")")")")') }}</span>
-            {% elif sev == 'HIGH' %}<span class="badge-sev-high">{{ _('_("_(" _(" _(" _(" _(" _("مرتفعة")")")")")")")') }}</span>
-            {% elif sev == 'CRITICAL' %}<span class="badge-sev-critical">{{ _('_("_(" _(" _(" _(" _(" _("حرجة")")")")")")")') }}</span>
+            {% if sev == 'LOW' %}<span class="badge-sev-low">{{ _(_('منخفضة')) }}</span>
+            {% elif sev == 'MODERATE' %}<span class="badge-sev-mod">{{ _(_('متوسطة')) }}</span>
+            {% elif sev == 'HIGH' %}<span class="badge-sev-high">{{ _(_('مرتفعة')) }}</span>
+            {% elif sev == 'CRITICAL' %}<span class="badge-sev-critical">{{ _(_('حرجة')) }}</span>
             {% else %}{{ sev or '—' }}{% endif %}
         </span>
     </div>
@@ -31,29 +31,29 @@
 
 {% block body %}
 <div class="print-section print-section--highlight">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("الشكوى الرئيسية")")")")")")")') }}</h3>
+    <h3 class="print-section__title">{{ _(_('الشكوى الرئيسية')) }}</h3>
     <div>{{ emergency.chief_complaint or '—' }}</div>
 </div>
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("ملاحظات الفرز")")")")")")")') }}</h3>
-    <div>{{ emergency.triage_notes or '_("_(" _(" _(" _(" _(" _("لا توجد ملاحظات")")")")")")")' }}</div>
+    <h3 class="print-section__title">{{ _(_('ملاحظات الفرز')) }}</h3>
+    <div>{{ emergency.triage_notes or _('لا توجد ملاحظات') }}</div>
 </div>
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("العلامات الحيوية")")")")")")")') }}</h3>
-    <div>{{ emergency.vital_signs or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</div>
+    <h3 class="print-section__title">{{ _(_('العلامات الحيوية')) }}</h3>
+    <div>{{ emergency.vital_signs or _('غير محدد') }}</div>
 </div>
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("التشخيص")")")")")")")') }}</h3>
-    <div>{{ emergency.diagnosis or '_("_(" _(" _(" _(" _(" _("لم يتم تحديد التشخيص")")")")")")")' }}</div>
+    <h3 class="print-section__title">{{ _(_('التشخيص')) }}</h3>
+    <div>{{ emergency.diagnosis or _('لم يتم تحديد التشخيص') }}</div>
 </div>
 <div class="print-section">
-    <h3 class="print-section__title">{{ _('_("_(" _(" _(" _(" _(" _("خطة العلاج")")")")")")")') }}</h3>
-    <div>{{ emergency.treatment_plan or '_("_(" _(" _(" _(" _(" _("لا توجد خطة علاج محددة")")")")")")")' }}</div>
+    <h3 class="print-section__title">{{ _(_('خطة العلاج')) }}</h3>
+    <div>{{ emergency.treatment_plan or _('لا توجد خطة علاج محددة') }}</div>
 </div>
 {% endblock %}
 
 {% block legal_footer %}
-<p><strong>{{ _('_("_(" _(" _(" _(" _(" _("هذا التقرير صالح للاستخدام الطبي")")")")")")")') }}</strong></p>
+<p><strong>{{ _(_('هذا التقرير صالح للاستخدام الطبي')) }}</strong></p>
 <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
 {% endblock %}
 

@@ -5,20 +5,20 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("مراقبة المرضى")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("مرحباً ")")")")")")")' ~ current_user.full_name, icon='fas fa-heartbeat', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة للوحة التحكم")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('nurse.dashboard'), 'style': 'secondary'}]) }}
+    {{ page_header(_('مراقبة المرضى'), subtitle=_('مرحباً ') ~ current_user.full_name, icon='fas fa-heartbeat', actions=[{'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-left', 'url': url_for('nurse.dashboard'), 'style': 'secondary'}]) }}
 
     <!-- Patient Monitoring -->
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("مراقبة المرضى")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('مراقبة المرضى')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="text-center py-5">
                         <i class="fas fa-heartbeat fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مراقبة المرضى")")")")")")")') }}</h5>
-                        <p class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("ستظهر هنا قائمة مراقبة المرضى")")")")")")")') }}</p>
+                        <h5 class="text-muted">{{ _(_('مراقبة المرضى')) }}</h5>
+                        <p class="text-muted">{{ _(_('ستظهر هنا قائمة مراقبة المرضى')) }}</p>
                     </div>
                 </div>
             </div>

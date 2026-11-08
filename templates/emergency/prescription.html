@@ -7,11 +7,11 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div id="meds">
       <div class="row g-2 align-items-end mb-2">
-        <div class="col"><input class="form-control" name="medications[]" placeholder="_(" _(" _(" _(" _(" _("الدواء")")")")")")"></div>
-        <div class="col"><input class="form-control" name="dosages[]" placeholder="_(" _(" _(" _(" _(" _("الجرعة")")")")")")"></div>
-        <div class="col"><input class="form-control" name="frequencies[]" placeholder="_(" _(" _(" _(" _(" _("التكرار")")")")")")"></div>
-        <div class="col"><input class="form-control" name="durations[]" placeholder="_(" _(" _(" _(" _(" _("المدة")")")")")")"></div>
-        <div class="col"><input class="form-control" name="instructions[]" placeholder="_(" _(" _(" _(" _(" _("تعليمات")")")")")")"></div>
+        <div class="col"><input class="form-control" name="medications[]" placeholder="الدواء"></div>
+        <div class="col"><input class="form-control" name="dosages[]" placeholder="الجرعة"></div>
+        <div class="col"><input class="form-control" name="frequencies[]" placeholder="التكرار"></div>
+        <div class="col"><input class="form-control" name="durations[]" placeholder="المدة"></div>
+        <div class="col"><input class="form-control" name="instructions[]" placeholder="تعليمات"></div>
       </div>
     </div>
     <button type="submit" class="btn btn-primary">{{ _('حفظ') }}</button>

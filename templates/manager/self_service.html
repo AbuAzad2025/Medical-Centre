@@ -3,30 +3,30 @@
 {% block title %}تحليلات ذاتية الخدمة{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("تحليلات ذاتية الخدمة")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("اختر نوع التقرير والفترة")")")")")")")', icon='fas fa-filter', actions=[
-    {'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'url': url_for('manager.dashboard'), 'style': 'secondary'}
+  {{ page_header(_('تحليلات ذاتية الخدمة'), subtitle=_('اختر نوع التقرير والفترة'), icon='fas fa-filter', actions=[
+    {'label': _('العودة'), 'url': url_for('manager.dashboard'), 'style': 'secondary'}
   ]) }}
 
   <form class="row g-3 mb-3">
     <div class="col-md-3">
-      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</label>
+      <label class="form-label">{{ _(_('النوع')) }}</label>
       <select class="form-select" name="type">
-        <option value="patients" {% if report_type == 'patients' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("المرضى")")")")")")")') }}</option>
-        <option value="visits" {% if report_type == 'visits' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("الزيارات")")")")")")")') }}</option>
-        {% if module_active('billing') %}<option value="financial" {% if report_type == 'financial' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("المالية")")")")")")")') }}</option>{% endif %}
-        <option value="departments" {% if report_type == 'departments' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("الأقسام")")")")")")")') }}</option>
+        <option value="patients" {% if report_type == 'patients' %}selected{% endif %}>{{ _(_('المرضى')) }}</option>
+        <option value="visits" {% if report_type == 'visits' %}selected{% endif %}>{{ _(_('الزيارات')) }}</option>
+        {% if module_active('billing') %}<option value="financial" {% if report_type == 'financial' %}selected{% endif %}>{{ _(_('المالية')) }}</option>{% endif %}
+        <option value="departments" {% if report_type == 'departments' %}selected{% endif %}>{{ _(_('الأقسام')) }}</option>
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label"_(" _(" _(" _(" _(" _(">من</label>
-      <input type=")")")")")")"date" class="form-control" name="start_date" value="{{ start_date }}">
+      <label class="form-label">من</label>
+      <input type="date" class="form-control" name="start_date" value="{{ start_date }}">
     </div>
     <div class="col-md-3">
-      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إلى")")")")")")")') }}</label>
+      <label class="form-label">{{ _(_('إلى')) }}</label>
       <input type="date" class="form-control" name="end_date" value="{{ end_date }}">
     </div>
     <div class="col-md-3 d-flex align-items-end">
-      <button class="btn btn-primary w-100" type="submit">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</button>
+      <button class="btn btn-primary w-100" type="submit">{{ _(_('عرض')) }}</button>
     </div>
   </form>
 

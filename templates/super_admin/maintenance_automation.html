@@ -3,35 +3,35 @@
 {% block title %}أتمتة الصيانة{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("أتمتة الصيانة")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إعدادات التشغيل الآلي والتنظيف")")")")")")")', icon='fas fa-cogs', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'url': url_for('super_admin.dashboard'), 'style': 'secondary'}]) }}
+  {{ page_header(_('أتمتة الصيانة'), subtitle=_('إعدادات التشغيل الآلي والتنظيف'), icon='fas fa-cogs', actions=[{'label': _('العودة'), 'url': url_for('super_admin.dashboard'), 'style': 'secondary'}]) }}
 
   <div class="card shadow-sm">
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-3">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تنظيف تلقائي")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('تنظيف تلقائي')) }}</label>
           <select id="auto_cleanup" class="form-select">
-            <option value="true" {% if settings.auto_cleanup %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مفعل")")")")")")")') }}</option>
-            <option value="false" {% if not settings.auto_cleanup %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</option>
+            <option value="true" {% if settings.auto_cleanup %}selected{% endif %}>{{ _(_('مفعل')) }}</option>
+            <option value="false" {% if not settings.auto_cleanup %}selected{% endif %}>{{ _(_('معطل')) }}</option>
           </select>
         </div>
         <div class="col-md-3">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("أيام التنظيف")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('أيام التنظيف')) }}</label>
           <input id="cleanup_days" type="number" class="form-control" value="{{ settings.cleanup_days or 30 }}">
         </div>
         <div class="col-md-3">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("احتفاظ السجلات")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('احتفاظ السجلات')) }}</label>
           <input id="log_retention_days" type="number" class="form-control" value="{{ settings.log_retention_days or 90 }}">
         </div>
         <div class="col-md-3">
-          <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نسخ احتياطي تلقائي")")")")")")")') }}</label>
+          <label class="form-label">{{ _(_('نسخ احتياطي تلقائي')) }}</label>
           <select id="auto_backup" class="form-select">
-            <option value="true" {% if settings.auto_backup %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("مفعل")")")")")")")') }}</option>
-            <option value="false" {% if not settings.auto_backup %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</option>
+            <option value="true" {% if settings.auto_backup %}selected{% endif %}>{{ _(_('مفعل')) }}</option>
+            <option value="false" {% if not settings.auto_backup %}selected{% endif %}>{{ _(_('معطل')) }}</option>
           </select>
         </div>
       </div>
-      <button class="btn btn-primary mt-3" id="saveAutomation">{{ _('_("_(" _(" _(" _(" _(" _("حفظ الإعدادات")")")")")")")') }}</button>
+      <button class="btn btn-primary mt-3" id="saveAutomation">{{ _(_('حفظ الإعدادات')) }}</button>
     </div>
   </div>
 </div>

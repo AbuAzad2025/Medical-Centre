@@ -2,20 +2,20 @@
 {% from "macros/forms.html" import csrf %}
 {% block content %}
 <div class="container py-4">
-  <h4><i class="bi bi-globe me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إعدادات SSO / LDAP")")")")")")")') }}</h4>
+  <h4><i class="bi bi-globe me-2"></i>{{ _(_('إعدادات SSO / LDAP')) }}</h4>
   <div class="row g-4">
     <div class="col-md-5">
       <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">{{ _('_("_(" _(" _(" _(" _(" _("إضافة إعداد جديد")")")")")")")') }}</div>
+        <div class="card-header bg-primary text-white">{{ _(_('إضافة إعداد جديد')) }}</div>
         <div class="card-body">
           <form method="post">
             {{ csrf() }}
             <div class="mb-3">
-              <label for="name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</label>
+              <label for="name" class="form-label">{{ _(_('الاسم')) }}</label>
               <input type="text" class="form-control" id="name" name="name" required>
             </div>
             <div class="mb-3">
-              <label for="provider_type" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</label>
+              <label for="provider_type" class="form-label">{{ _(_('النوع')) }}</label>
               <select class="form-select" id="provider_type" name="provider_type">
                 <option value="ldap">LDAP</option>
                 <option value="active_directory">Active Directory</option>
@@ -24,7 +24,7 @@
               </select>
             </div>
             <div class="mb-3">
-              <label for="server_url" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("عنوان السيرفر")")")")")")")') }}</label>
+              <label for="server_url" class="form-label">{{ _(_('عنوان السيرفر')) }}</label>
               <input type="text" class="form-control" id="server_url" name="server_url" placeholder="ldaps://dc.example.com">
             </div>
             <div class="mb-3">
@@ -36,19 +36,19 @@
               <input type="text" class="form-control" id="bind_dn" name="bind_dn">
             </div>
             <div class="mb-3">
-              <label for="bind_password" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("كلمة مرور Bind")")")")")")")') }}</label>
+              <label for="bind_password" class="form-label">{{ _(_('كلمة مرور Bind')) }}</label>
               <input type="password" class="form-control" id="bind_password" name="bind_password">
             </div>
             <div class="mb-3 form-check">
               <input type="checkbox" class="form-check-input" id="auto_create_user" name="auto_create_user" checked>
-              <label class="form-check-label" for="auto_create_user">{{ _('_("_(" _(" _(" _(" _(" _("إنشاء مستخدم تلقائياً")")")")")")")') }}</label>
+              <label class="form-check-label" for="auto_create_user">{{ _(_('إنشاء مستخدم تلقائياً')) }}</label>
             </div>
             <div class="mb-3">
-              <label for="default_role" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الدور الافتراضي")")")")")")")') }}</label>
+              <label for="default_role" class="form-label">{{ _(_('الدور الافتراضي')) }}</label>
               <input type="text" class="form-control" id="default_role" name="default_role" value="user">
             </div>
             <div class="d-grid">
-              <button type="submit" class="btn btn-success">{{ _('_("_(" _(" _(" _(" _(" _("حفظ")")")")")")")') }}</button>
+              <button type="submit" class="btn btn-success">{{ _(_('حفظ')) }}</button>
             </div>
           </form>
         </div>
@@ -56,20 +56,20 @@
     </div>
     <div class="col-md-7">
       <div class="card shadow-sm">
-        <div class="card-header bg-info text-white">{{ _('_("_(" _(" _(" _(" _(" _("الإعدادات الحالية")")")")")")")') }}</div>
+        <div class="card-header bg-info text-white">{{ _(_('الإعدادات الحالية')) }}</div>
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
-            <thead><tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th></th></tr></thead>
+            <thead><tr><th>{{ _(_('الاسم')) }}</th><th>{{ _(_('النوع')) }}</th><th>{{ _(_('الحالة')) }}</th><th></th></tr></thead>
             <tbody>
               {% for c in configs %}
               <tr>
                 <td>{{ c.name }}</td>
                 <td>{{ c.provider_type }}</td>
-                <td>{% if c.is_active %}<span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مفعّل")")")")")")")') }}</span>{% else %}<span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("معطّل")")")")")")")') }}</span>{% endif %}</td>
+                <td>{% if c.is_active %}<span class="badge bg-success">{{ _(_('مفعّل')) }}</span>{% else %}<span class="badge bg-secondary">{{ _(_('معطّل')) }}</span>{% endif %}</td>
                 <td>
                   <form method="post" action="{{ url_for('sso.toggle', config_id=c.id) }}" class="d-inline">
                     {{ csrf() }}
-                    <button type="submit" class="btn btn-sm btn-outline-primary">{{ _('_("_(" _(" _(" _(" _(" _("تبديل")")")")")")")') }}</button>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">{{ _(_('تبديل')) }}</button>
                   </form>
                 </td>
               </tr>

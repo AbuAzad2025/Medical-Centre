@@ -2,48 +2,48 @@
 {% from "macros/forms.html" import csrf %}
 {% block content %}
 <div class="container py-4">
-  <h4><i class="bi bi-camera-video me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("موعد عن بعد جديد")")")")")")")') }}</h4>
+  <h4><i class="bi bi-camera-video me-2"></i>{{ _(_('موعد عن بعد جديد')) }}</h4>
   <div class="card shadow-sm">
     <div class="card-body">
       <form method="post">
         {{ csrf() }}
         <div class="row g-3">
           <div class="col-md-6">
-            <label for="patient_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</label>
+            <label for="patient_id" class="form-label">{{ _(_('المريض')) }}</label>
             <select class="form-select" id="patient_id" name="patient_id" required>
               {% for p in patients %}<option value="{{ p.id }}">{{ p.full_name }}</option>{% endfor %}
             </select>
           </div>
           <div class="col-md-6">
-            <label for="doctor_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الطبيب")")")")")")")') }}</label>
+            <label for="doctor_id" class="form-label">{{ _(_('الطبيب')) }}</label>
             <select class="form-select" id="doctor_id" name="doctor_id" required>
               {% for d in doctors %}<option value="{{ d.id }}">{{ d.full_name }}</option>{% endfor %}
             </select>
           </div>
           <div class="col-md-6">
-            <label for="scheduled_start" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("بداية الموعد")")")")")")")') }}</label>
+            <label for="scheduled_start" class="form-label">{{ _(_('بداية الموعد')) }}</label>
             <input type="datetime-local" class="form-control" id="scheduled_start" name="scheduled_start" required>
           </div>
           <div class="col-md-6">
-            <label for="scheduled_end" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نهاية الموعد")")")")")")")') }}</label>
+            <label for="scheduled_end" class="form-label">{{ _(_('نهاية الموعد')) }}</label>
             <input type="datetime-local" class="form-control" id="scheduled_end" name="scheduled_end">
           </div>
           <div class="col-md-6">
-            <label for="meeting_provider" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("منصة الاجتماع")")")")")")")') }}</label>
+            <label for="meeting_provider" class="form-label">{{ _(_('منصة الاجتماع')) }}</label>
             <select class="form-select" id="meeting_provider" name="meeting_provider">
-              <option value="jitsi">{{ _('_("_(" _(" _(" _(" _(" _("Jitsi Meet (مجاني)")")")")")")")') }}</option>
+              <option value="jitsi">{{ _(_('Jitsi Meet (مجاني)')) }}</option>
               <option value="zoom">Zoom</option>
               <option value="teams">Microsoft Teams</option>
-              <option value="custom">{{ _('_("_(" _(" _(" _(" _(" _("رابط مخصص")")")")")")")') }}</option>
+              <option value="custom">{{ _(_('رابط مخصص')) }}</option>
             </select>
           </div>
           <div class="col-12">
-            <label for="chief_complaint" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الشكوى الرئيسية")")")")")")")') }}</label>
+            <label for="chief_complaint" class="form-label">{{ _(_('الشكوى الرئيسية')) }}</label>
             <textarea class="form-control" id="chief_complaint" name="chief_complaint" rows="2"></textarea>
           </div>
         </div>
         <div class="d-grid mt-3">
-          <button type="submit" class="btn btn-success">{{ _('_("_(" _(" _(" _(" _(" _("إنشاء الموعد")")")")")")")') }}</button>
+          <button type="submit" class="btn btn-success">{{ _(_('إنشاء الموعد')) }}</button>
         </div>
       </form>
     </div>

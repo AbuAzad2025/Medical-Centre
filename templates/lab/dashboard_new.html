@@ -6,10 +6,10 @@
 .lab-gradient { background: linear-gradient(135deg, #1a3a2f 0%, #2d5a45 50%, #3a7a5f 100%); }
 </style>
 <div class="container-fluid py-3">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("قسم المختبر")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة التحاليل وضبط الجودة ومخزون المواد")")")")")")")', icon='fas fa-flask', hero_class='lab-gradient', actions=[
-      {'label': '_("_(" _(" _(" _(" _(" _("قائمة العمل")")")")")")")', 'icon': 'fas fa-list', 'url': url_for('lab.worklist'), 'style': 'light'},
-      {'label': '_("_(" _(" _(" _(" _(" _("ضبط الجودة")")")")")")")', 'icon': 'fas fa-chart-line', 'url': url_for('lab.quality_control'), 'style': 'outline-light'},
-      {'label': '_("_(" _(" _(" _(" _(" _("المواد")")")")")")")', 'icon': 'fas fa-vials', 'url': url_for('lab.reagents'), 'style': 'outline-light'}
+  {{ page_header(_('قسم المختبر'), subtitle=_('إدارة التحاليل وضبط الجودة ومخزون المواد'), icon='fas fa-flask', hero_class='lab-gradient', actions=[
+      {'label': _('قائمة العمل'), 'icon': 'fas fa-list', 'url': url_for('lab.worklist'), 'style': 'light'},
+      {'label': _('ضبط الجودة'), 'icon': 'fas fa-chart-line', 'url': url_for('lab.quality_control'), 'style': 'outline-light'},
+      {'label': _('المواد'), 'icon': 'fas fa-vials', 'url': url_for('lab.reagents'), 'style': 'outline-light'}
   ]) }}
 
   <div class="row g-3 mb-4">
@@ -18,12 +18,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("طلبات اليوم")")")")")")")') }}</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('طلبات اليوم')) }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.today_requests or 0 }}</h3>
             </div>
             <div class="bg-primary bg-opacity-10 p-3 rounded"><i class="fas fa-flask text-primary fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("معلقة:")")")")")")")') }} <strong class="text-warning">{{ stats.pending_requests or 0 }}</strong></div>
+          <div class="small text-muted">{{ _(_('معلقة:')) }} <strong class="text-warning">{{ stats.pending_requests or 0 }}</strong></div>
           <canvas id="sparkToday" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -33,12 +33,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("مكتملة اليوم")")")")")")")') }}</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('مكتملة اليوم')) }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.completed_today or 0 }}</h3>
             </div>
             <div class="bg-success bg-opacity-10 p-3 rounded"><i class="fas fa-check-circle text-success fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("معدل الإنجاز:")")")")")")")') }} <strong class="text-success">{{ stats.smart_analytics.completion_rate or 0 }}%</strong></div>
+          <div class="small text-muted">{{ _(_('معدل الإنجاز:')) }} <strong class="text-success">{{ stats.smart_analytics.completion_rate or 0 }}%</strong></div>
           <canvas id="sparkCompleted" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -48,12 +48,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("وقت المعالجة")")")")")")")') }}</h6>
-              <h3 class="mb-0 fw-bold">{{ stats.smart_analytics.avg_processing_time or 0 }} <small class="fs-6 text-muted"_(" _(" _(" _(" _(" _(">س</small></h3>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('وقت المعالجة')) }}</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.smart_analytics.avg_processing_time or 0 }} <small class="fs-6 text-muted">س</small></h3>
             </div>
-            <div class=")")")")")")"bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-clock text-info fa-lg"></i></div>
+            <div class="bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-clock text-info fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الكفاءة:")")")")")")")') }} <strong class="text-dark">{{ stats.smart_analytics.efficiency_score or 0 }}/100</strong></div>
+          <div class="small text-muted">{{ _(_('الكفاءة:')) }} <strong class="text-dark">{{ stats.smart_analytics.efficiency_score or 0 }}/100</strong></div>
           <canvas id="sparkTime" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -63,12 +63,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">{{ _('_("_(" _(" _(" _(" _(" _("ضبط الجودة")")")")")")")') }}</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _(_('ضبط الجودة')) }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.quality_control.quality_score or 100 }}%</h3>
             </div>
             <div class="bg-warning bg-opacity-10 p-3 rounded"><i class="fas fa-shield-alt text-warning fa-lg"></i></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("فاشلة:")")")")")")")') }} <strong class="text-danger">{{ stats.quality_control.qc_fail or 0 }}</strong></div>
+          <div class="small text-muted">{{ _(_('فاشلة:')) }} <strong class="text-danger">{{ stats.quality_control.qc_fail or 0 }}</strong></div>
           <canvas id="sparkQuality" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -78,7 +78,7 @@
   <div class="row g-3 mb-4">
     <div class="col-md-8">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("أداء المختبر — طلبات وإنجاز")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>{{ _(_('أداء المختبر — طلبات وإنجاز')) }}</h6></div>
         <div class="card-body"><canvas id="labMainChart" height="260"></canvas></div>
       </div>
     </div>
@@ -86,20 +86,20 @@
       <div class="row g-3">
         <div class="col-12">
           <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-success me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("حالة المعدات")")")")")")")') }}</h6></div>
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-success me-2"></i>{{ _(_('حالة المعدات')) }}</h6></div>
             <div class="card-body"><canvas id="equipmentChart" height="180"></canvas></div>
           </div>
         </div>
         <div class="col-12">
           <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-brain text-info me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("التنبؤ بالطلبات")")")")")")")') }}</h6></div>
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-brain text-info me-2"></i>{{ _(_('التنبؤ بالطلبات')) }}</h6></div>
             <div class="card-body text-center">
               <h2 class="fw-bold text-primary">{{ stats.predictive_insights.predicted_demand or 0 }}</h2>
-              <p class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("طلب متوقع هذا الأسبوع")")")")")")")') }}</p>
+              <p class="text-muted small">{{ _(_('طلب متوقع هذا الأسبوع')) }}</p>
               <div class="small text-start mt-2">
-                <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("أسبوعي")")")")")")")') }}</span><strong>{{ stats.predictive_insights.weekly_requests or 0 }}</strong></div>
-                <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("شهري")")")")")")")') }}</span><strong>{{ stats.predictive_insights.monthly_requests or 0 }}</strong></div>
-                <div class="d-flex justify-content-between"><span>{{ _('_("_(" _(" _(" _(" _(" _("معدل النمو")")")")")")")') }}</span><strong class="{{ 'text-success' if (stats.predictive_insights.growth_rate or 0) > 0 else 'text-danger' }}">{{ stats.predictive_insights.growth_rate or 0 }}%</strong></div>
+                <div class="d-flex justify-content-between"><span>{{ _(_('أسبوعي')) }}</span><strong>{{ stats.predictive_insights.weekly_requests or 0 }}</strong></div>
+                <div class="d-flex justify-content-between"><span>{{ _(_('شهري')) }}</span><strong>{{ stats.predictive_insights.monthly_requests or 0 }}</strong></div>
+                <div class="d-flex justify-content-between"><span>{{ _(_('معدل النمو')) }}</span><strong class="{{ 'text-success' if (stats.predictive_insights.growth_rate or 0) > 0 else 'text-danger' }}">{{ stats.predictive_insights.growth_rate or 0 }}%</strong></div>
               </div>
             </div>
           </div>
@@ -113,36 +113,36 @@
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("نسبة QC ناجح")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('نسبة QC ناجح')) }}</div>
           <h3 class="fw-bold text-success">{{ stats.quality_control.pass_rate or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("نسبة QC")")")")")")"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("نسبة QC")")")")")")" data-width="{{ stats.quality_control.pass_rate or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="نسبة QC"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="نسبة QC" data-width="{{ stats.quality_control.pass_rate or 0 }}"></div></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("دقة النتائج")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('دقة النتائج')) }}</div>
           <h3 class="fw-bold text-primary">{{ stats.quality_control.result_accuracy or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("دقة النتائج")")")")")")"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("دقة النتائج")")")")")")" data-width="{{ stats.quality_control.result_accuracy or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="دقة النتائج"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="دقة النتائج" data-width="{{ stats.quality_control.result_accuracy or 0 }}"></div></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("وقت التحويل (TAT)")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('وقت التحويل (TAT)')) }}</div>
           <h3 class="fw-bold text-info">{{ stats.test_optimization.avg_turnaround_minutes or 0 }} د</h3>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("الهدف:")")")")")")")') }} <strong>{{ _('_("_(" _(" _(" _(" _(" _("&lt;60 د")")")")")")")') }}</strong></div>
+          <div class="small text-muted">{{ _(_('الهدف:')) }} <strong>{{ _(_('&lt;60 د')) }}</strong></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">{{ _('_("_(" _(" _(" _(" _(" _("معدات نشطة")")")")")")")') }}</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _(_('معدات نشطة')) }}</div>
           <h3 class="fw-bold text-warning">{{ stats.equipment_monitoring.active_equipment or 0 }}</h3>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("صيانة:")")")")")")")') }} <strong class="text-danger">{{ stats.equipment_monitoring.maintenance_count or 0 }}</strong></div>
+          <div class="small text-muted">{{ _(_('صيانة:')) }} <strong class="text-danger">{{ stats.equipment_monitoring.maintenance_count or 0 }}</strong></div>
         </div>
       </div>
     </div>
@@ -151,34 +151,34 @@
   <div class="row g-3 mb-4">
     <div class="col-md-6">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("اقتراحات التحسين")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i>{{ _(_('اقتراحات التحسين')) }}</h6></div>
         <div class="card-body">
-          {% if stats.test_optimization.optimization_suggestions %}<div class="list-group list-group-flush">{% for s in stats.test_optimization.optimization_suggestions %}<div class="list-group-item px-0"><i class="fas fa-angle-left text-warning me-2"></i>{{ s }}</div>{% endfor %}</div>{% else %}<p class="text-muted text-center my-3">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد اقتراحات حالياً — الأداء ممتاز")")")")")")")') }}</p>{% endif %}
+          {% if stats.test_optimization.optimization_suggestions %}<div class="list-group list-group-flush">{% for s in stats.test_optimization.optimization_suggestions %}<div class="list-group-item px-0"><i class="fas fa-angle-left text-warning me-2"></i>{{ s }}</div>{% endfor %}</div>{% else %}<p class="text-muted text-center my-3">{{ _(_('لا توجد اقتراحات حالياً — الأداء ممتاز')) }}</p>{% endif %}
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("إجراءات سريعة")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>{{ _(_('إجراءات سريعة')) }}</h6></div>
         <div class="card-body">
           <div class="d-grid gap-2">
-            <a href="{{ url_for('lab.worklist') }}" class="btn btn-primary btn-sm"><i class="fas fa-list me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("قائمة العمل")")")")")")")') }}</a>
-            <a href="{{ url_for('lab.quality_control') }}" class="btn btn-success btn-sm"><i class="fas fa-chart-bar me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("ضبط الجودة")")")")")")")') }}</a>
-            <a href="{{ url_for('lab.reagents') }}" class="btn btn-info btn-sm"><i class="fas fa-vials me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("المواد")")")")")")")') }}</a>
+            <a href="{{ url_for('lab.worklist') }}" class="btn btn-primary btn-sm"><i class="fas fa-list me-1"></i> {{ _(_('قائمة العمل')) }}</a>
+            <a href="{{ url_for('lab.quality_control') }}" class="btn btn-success btn-sm"><i class="fas fa-chart-bar me-1"></i> {{ _(_('ضبط الجودة')) }}</a>
+            <a href="{{ url_for('lab.reagents') }}" class="btn btn-info btn-sm"><i class="fas fa-vials me-1"></i> {{ _(_('المواد')) }}</a>
           </div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-cogs text-secondary me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("أتمتة سير العمل")")")")")")")') }}</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-cogs text-secondary me-2"></i>{{ _(_('أتمتة سير العمل')) }}</h6></div>
         <div class="card-body text-center">
           <h2 class="fw-bold text-primary">{{ stats.workflow_automation.automation_rate or 0 }}%</h2>
-          <p class="text-muted small">{{ _('_("_(" _(" _(" _(" _(" _("نسبة الأتمتة")")")")")")")') }}</p>
-          <div class="progress mb-2 prog-thin" title="_(" _(" _(" _(" _(" _("نسبة الأتمتة")")")")")")">
-            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="_(" _(" _(" _(" _(" _("نسبة الأتمتة")")")")")")" data-width="{{ stats.workflow_automation.automation_rate or 0 }}"></div>
+          <p class="text-muted small">{{ _(_('نسبة الأتمتة')) }}</p>
+          <div class="progress mb-2 prog-thin" title="نسبة الأتمتة">
+            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="نسبة الأتمتة" data-width="{{ stats.workflow_automation.automation_rate or 0 }}"></div>
           </div>
-          <div class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("وقت موفر:")")")")")")")') }} <strong>{{ stats.workflow_automation.time_saved or 0 }} س</strong></div>
+          <div class="small text-muted">{{ _(_('وقت موفر:')) }} <strong>{{ stats.workflow_automation.time_saved or 0 }} س</strong></div>
         </div>
       </div>
     </div>
@@ -186,14 +186,14 @@
 
   <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-      <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>{{ _('_("_(" _(" _(" _(" _(" _("آخر طلبات المختبر")")")")")")")') }}</h6>
-      <a href="{{ url_for('lab.worklist') }}" class="small text-decoration-none">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</a>
+      <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>{{ _(_('آخر طلبات المختبر')) }}</h6>
+      <a href="{{ url_for('lab.worklist') }}" class="small text-decoration-none">{{ _(_('الكل')) }}</a>
     </div>
     <div class="card-body p-0 dashboard-table-wrap">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0 table-medical-responsive">
           <thead class="table-light">
-            <tr><th>#</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الفحص")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th></tr>
+            <tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الفحص')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('الأولوية')) }}</th><th>{{ _(_('الوقت')) }}</th><th>{{ _(_('الإجراءات')) }}</th></tr>
           </thead>
           <tbody>
             {% for req in recent_requests %}
@@ -209,14 +209,14 @@
               <td class="small text-muted">{{ req.created_at.strftime('%Y-%m-%d %H:%M') if req.created_at else '-' }}</td>
               <td>
                 <div class="d-flex gap-1">
-                  <a href="{{ url_for('lab.reports', request_id=req.id) }}" class="btn btn-sm btn-outline-primary" title="_(" _(" _(" _(" _(" _("تقرير")")")")")")"><i class="fas fa-file-alt"></i> <span class="btn-label">زر</span></a>
+                  <a href="{{ url_for('lab.reports', request_id=req.id) }}" class="btn btn-sm btn-outline-primary" title="تقرير"><i class="fas fa-file-alt"></i> <span class="btn-label">زر</span></a>
                   {% if req.status != 'DONE' %}
-                  <a href="{{ url_for('lab.worklist_request', request_id=req.id) }}" class="btn btn-sm btn-outline-success" title="_(" _(" _(" _(" _(" _("معالجة")")")")")")"><i class="fas fa-play"></i> <span class="btn-label">{{ _('تشغيل') }}</span></a>
+                  <a href="{{ url_for('lab.worklist_request', request_id=req.id) }}" class="btn btn-sm btn-outline-success" title="معالجة"><i class="fas fa-play"></i> <span class="btn-label">{{ _('تشغيل') }}</span></a>
                   {% endif %}
                 </div>
               </td>
             </tr>
-            {% else %}<tr><td colspan="7" class="text-muted text-center py-4">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد طلبات")")")")")")")') }}</td></tr>
+            {% else %}<tr><td colspan="7" class="text-muted text-center py-4">{{ _(_('لا توجد طلبات')) }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

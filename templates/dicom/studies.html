@@ -2,11 +2,11 @@
 {% block title %}دراسات الأشعة{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">{{ _('_("_(" _(" _(" _(" _(" _("دراسات الأشعة (DICOM)")")")")")")")') }}</h2>
+  <h2 class="mb-4">{{ _(_('دراسات الأشعة (DICOM)')) }}</h2>
   <div class="card">
     <div class="card-body">
       <table class="table table-hover">
-        <thead><tr><th>UID</th><th>{{ _('_("_(" _(" _(" _(" _(" _("المريض")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("التاريخ")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الوصف")")")")")")")') }}</th><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th></th></tr></thead>
+        <thead><tr><th>UID</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('التاريخ')) }}</th><th>{{ _(_('النوع')) }}</th><th>{{ _(_('الوصف')) }}</th><th>{{ _(_('الحالة')) }}</th><th></th></tr></thead>
         <tbody>
         {% for s in studies %}
           <tr>
@@ -17,12 +17,12 @@
             <td>{{ s.study_description or '-' }}</td>
             <td><span class="badge bg-secondary">{{ s.status | enum_label }}</span></td>
             <td>
-              <a href="{{ url_for('dicom.study_detail', study_id=s.id) }}" class="btn btn-sm btn-outline-primary">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</a>
+              <a href="{{ url_for('dicom.study_detail', study_id=s.id) }}" class="btn btn-sm btn-outline-primary">{{ _(_('عرض')) }}</a>
               <a href="{{ url_for('dicom.viewer', study_id=s.id) }}" class="btn btn-sm btn-outline-success">Viewer</a>
             </td>
           </tr>
         {% else %}
-          <tr><td colspan="7" class="text-muted text-center">{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد دراسات")")")")")")")') }}</td></tr>
+          <tr><td colspan="7" class="text-muted text-center">{{ _(_('لا يوجد دراسات')) }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

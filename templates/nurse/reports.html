@@ -5,24 +5,24 @@
 <div class="container-fluid">
   {{ page_header(
       title='تقرير التمريض',
-      subtitle='_("ملخص المهام خلال فترة")',
+      subtitle=_('ملخص المهام خلال فترة'),
       icon='fas fa-chart-bar',
       actions=[
-          {'url': url_for('nurse.dashboard'), 'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
+          {'url': url_for('nurse.dashboard'), 'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
       ]
   ) }}
 
   <form method="GET" class="row g-3 mb-3">
     <div class="col-md-3">
-      <label class="form-label"_(" _(" _(" _(" _(" _(">من</label>
-      <input class=")")")")")")"form-control" type="date" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
+      <label class="form-label">من</label>
+      <input class="form-control" type="date" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
     </div>
     <div class="col-md-3">
-      <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إلى")")")")")")")') }}</label>
+      <label class="form-label">{{ _(_('إلى')) }}</label>
       <input class="form-control" type="date" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
     </div>
     <div class="col-md-2 d-flex align-items-end">
-      <button class="btn btn-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</button>
+      <button class="btn btn-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>{{ _(_('عرض')) }}</button>
     </div>
   </form>
 
@@ -30,7 +30,7 @@
     <div class="col-md-3 mb-3">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي المهام")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('إجمالي المهام')) }}</div>
           <div class="h3 mb-0">{{ total_tasks }}</div>
         </div>
       </div>
@@ -38,7 +38,7 @@
     <div class="col-md-3 mb-3">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مهام مكتملة")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('مهام مكتملة')) }}</div>
           <div class="h3 mb-0">{{ completed_tasks }}</div>
         </div>
       </div>
@@ -46,7 +46,7 @@
     <div class="col-md-3 mb-3">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مهام متأخرة")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('مهام متأخرة')) }}</div>
           <div class="h3 mb-0">{{ overdue_tasks }}</div>
         </div>
       </div>
@@ -54,7 +54,7 @@
     <div class="col-md-3 mb-3">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <div class="text-muted">{{ _('_("_(" _(" _(" _(" _(" _("مهام عاجلة")")")")")")")') }}</div>
+          <div class="text-muted">{{ _(_('مهام عاجلة')) }}</div>
           <div class="h3 mb-0">{{ urgent_tasks }}</div>
         </div>
       </div>
@@ -64,18 +64,18 @@
   <div class="row mb-4">
     <div class="col-md-6 mb-3">
       <div class="card shadow">
-        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("توزيع حسب الحالة")")")")")")")') }}</div>
+        <div class="card-header">{{ _(_('توزيع حسب الحالة')) }}</div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-sm table-striped align-middle mb-0">
               <thead>
-                <tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th><th class="w-140">{{ _('_("_(" _(" _(" _(" _(" _("عدد")")")")")")")') }}</th></tr>
+                <tr><th>{{ _(_('الحالة')) }}</th><th class="w-140">{{ _(_('عدد')) }}</th></tr>
               </thead>
               <tbody>
                 {% for st, cnt in (by_status or []) %}
                   <tr><td>{{ st }}</td><td>{{ cnt }}</td></tr>
                 {% else %}
-                  <tr><td colspan="2" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا بيانات")")")")")")")') }}</td></tr>
+                  <tr><td colspan="2" class="text-center text-muted">{{ _(_('لا بيانات')) }}</td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -85,18 +85,18 @@
     </div>
     <div class="col-md-6 mb-3">
       <div class="card shadow">
-        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("توزيع حسب الأولوية")")")")")")")') }}</div>
+        <div class="card-header">{{ _(_('توزيع حسب الأولوية')) }}</div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-sm table-striped align-middle mb-0">
               <thead>
-                <tr><th>{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</th><th class="w-140">{{ _('_("_(" _(" _(" _(" _(" _("عدد")")")")")")")') }}</th></tr>
+                <tr><th>{{ _(_('الأولوية')) }}</th><th class="w-140">{{ _(_('عدد')) }}</th></tr>
               </thead>
               <tbody>
                 {% for pr, cnt in (by_priority or []) %}
                   <tr><td>{{ pr }}</td><td>{{ cnt }}</td></tr>
                 {% else %}
-                  <tr><td colspan="2" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا بيانات")")")")")")")') }}</td></tr>
+                  <tr><td colspan="2" class="text-center text-muted">{{ _(_('لا بيانات')) }}</td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -107,18 +107,18 @@
   </div>
 
   <div class="card shadow mb-4">
-    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("توزيع حسب القسم")")")")")")")') }}</div>
+    <div class="card-header">{{ _(_('توزيع حسب القسم')) }}</div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-sm table-striped align-middle mb-0">
           <thead>
-            <tr><th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th><th class="w-140">{{ _('_("_(" _(" _(" _(" _(" _("عدد")")")")")")")') }}</th></tr>
+            <tr><th>{{ _(_('القسم')) }}</th><th class="w-140">{{ _(_('عدد')) }}</th></tr>
           </thead>
           <tbody>
             {% for dept, cnt in (by_department or []) %}
-              <tr><td>{{ dept or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td><td>{{ cnt }}</td></tr>
+              <tr><td>{{ dept or _('غير محدد') }}</td><td>{{ cnt }}</td></tr>
             {% else %}
-              <tr><td colspan="2" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا بيانات")")")")")")")') }}</td></tr>
+              <tr><td colspan="2" class="text-center text-muted">{{ _(_('لا بيانات')) }}</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -127,17 +127,17 @@
   </div>
 
   <div class="card shadow">
-    <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("المهام المتأخرة (Top)")")")")")")")') }}</div>
+    <div class="card-header">{{ _(_('المهام المتأخرة (Top)')) }}</div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-striped align-middle">
           <thead>
             <tr>
-              <th>{{ _('_("_(" _(" _(" _(" _(" _("العنوان")")")")")")")') }}</th>
-              <th class="w-200">{{ _('_("_(" _(" _(" _(" _(" _("الممرضة")")")")")")")') }}</th>
-              <th class="w-120">{{ _('_("_(" _(" _(" _(" _(" _("الأولوية")")")")")")")') }}</th>
-              <th class="w-140">{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-              <th class="w-180">{{ _('_("_(" _(" _(" _(" _(" _("الاستحقاق")")")")")")")') }}</th>
+              <th>{{ _(_('العنوان')) }}</th>
+              <th class="w-200">{{ _(_('الممرضة')) }}</th>
+              <th class="w-120">{{ _(_('الأولوية')) }}</th>
+              <th class="w-140">{{ _(_('الحالة')) }}</th>
+              <th class="w-180">{{ _(_('الاستحقاق')) }}</th>
             </tr>
           </thead>
           <tbody>
@@ -150,7 +150,7 @@
                 <td class="text-danger">{{ r.due_date|format_datetime }}</td>
               </tr>
             {% else %}
-              <tr><td colspan="5" class="text-center text-muted">{{ _('_("_(" _(" _(" _(" _(" _("لا توجد مهام متأخرة ضمن الفترة")")")")")")")') }}</td></tr>
+              <tr><td colspan="5" class="text-center text-muted">{{ _(_('لا توجد مهام متأخرة ضمن الفترة')) }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

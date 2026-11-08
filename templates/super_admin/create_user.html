@@ -5,14 +5,14 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("إضافة مستخدم جديد")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إنشاء حساب مستخدم جديد في النظام")")")")")")")', icon='fas fa-user-plus', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة للمستخدمين")")")")")")")', 'icon': 'fas fa-arrow-right', 'url': url_for('super_admin.users'), 'style': 'secondary'}]) }}
+    {{ page_header(_('إضافة مستخدم جديد'), subtitle=_('إنشاء حساب مستخدم جديد في النظام'), icon='fas fa-user-plus', actions=[{'label': _('العودة للمستخدمين'), 'icon': 'fas fa-arrow-right', 'url': url_for('super_admin.users'), 'style': 'secondary'}]) }}
 
     <!-- Create User Form -->
     <div class="row">
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("بيانات المستخدم")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('بيانات المستخدم')) }}</h6>
                 </div>
                 <div class="card-body">
                     <form method="POST" id="createUserForm">
@@ -21,65 +21,65 @@
                         <!-- Basic Information -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("المعلومات الأساسية")")")")")")")') }}</h6>
+                                <h6 class="text-primary mb-3">{{ _(_('المعلومات الأساسية')) }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="username" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("اسم المستخدم")")")")")")")') }} <span class="text-danger">*</span></label>
+                                <label for="username" class="form-label">{{ _(_('اسم المستخدم')) }} <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="username" name="username" required
-                                       placeholder="_(" _(" _(" _(" _(" _("أدخل اسم المستخدم")")")")")")">
-                                <div class="form-text">{{ _('_("_(" _(" _(" _(" _(" _("يجب أن يكون فريداً في النظام")")")")")")")') }}</div>
+                                       placeholder="أدخل اسم المستخدم">
+                                <div class="form-text">{{ _(_('يجب أن يكون فريداً في النظام')) }}</div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="email" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("البريد الإلكتروني")")")")")")")') }} <span class="text-danger">*</span></label>
+                                <label for="email" class="form-label">{{ _(_('البريد الإلكتروني')) }} <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control" id="email" name="email" required
-                                       placeholder="_(" _(" _(" _(" _(" _("أدخل البريد الإلكتروني")")")")")")">
+                                       placeholder="أدخل البريد الإلكتروني">
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="full_name" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الاسم الكامل")")")")")")")') }} <span class="text-danger">*</span></label>
+                                <label for="full_name" class="form-label">{{ _(_('الاسم الكامل')) }} <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="full_name" name="full_name" required
-                                       placeholder="_(" _(" _(" _(" _(" _("أدخل الاسم الكامل")")")")")")">
+                                       placeholder="أدخل الاسم الكامل">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="phone" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("رقم الهاتف")")")")")")")') }}</label>
+                                <label for="phone" class="form-label">{{ _(_('رقم الهاتف')) }}</label>
                                 <input type="tel" class="form-control" id="phone" name="phone"
-                                       placeholder="_(" _(" _(" _(" _(" _("أدخل رقم الهاتف")")")")")")">
+                                       placeholder="أدخل رقم الهاتف">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="doctor_room" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("غرفة الطبيب")")")")")")")') }}</label>
+                                <label for="doctor_room" class="form-label">{{ _(_('غرفة الطبيب')) }}</label>
                                 <input type="text" class="form-control" id="doctor_room" name="doctor_room"
-                                       placeholder="_(" _(" _(" _(" _(" _("مثال: 12")")")")")")">
+                                       placeholder="مثال: 12">
                             </div>
                         </div>
 
                         <!-- Role and Department -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("الدور والصلاحيات")")")")")")")') }}</h6>
+                                <h6 class="text-primary mb-3">{{ _(_('الدور والصلاحيات')) }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="role" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }} <span class="text-danger">*</span></label>
+                                <label for="role" class="form-label">{{ _(_('الدور')) }} <span class="text-danger">*</span></label>
                                 <select class="form-control" id="role" name="role" required>
-                                    <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر الدور")")")")")")")') }}</option>
+                                    <option value="">{{ _(_('اختر الدور')) }}</option>
                                     {% for role_code, role_name in roles %}
                                     <option value="{{ role_code }}">{{ role_name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="department_id" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</label>
+                                <label for="department_id" class="form-label">{{ _(_('القسم')) }}</label>
                                 <select class="form-control" id="department_id" name="department_id">
-                                    <option value="">{{ _('_("_(" _(" _(" _(" _(" _("اختر القسم")")")")")")")') }}</option>
+                                    <option value="">{{ _(_('اختر القسم')) }}</option>
                                     {% for department in departments %}
                                     <option value="{{ department.id }}">{{ department.name_ar or department.name }}</option>
                                     {% endfor %}
@@ -89,52 +89,52 @@
 
                         <div class="row mb-4 d-none">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("تسعير الطبيب")")")")")")")') }}</h6>
+                                <h6 class="text-primary mb-3">{{ _(_('تسعير الطبيب')) }}</h6>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="consultation_price" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("سعر الكشف الأولي")")")")")")")') }}</label>
-                                <input type="number" step="0.01" min="0" class="form-control" id="consultation_price" name="consultation_price" placeholder="_(" _(" _(" _(" _(" _("مثال: 100.00")")")")")")">
+                                <label for="consultation_price" class="form-label">{{ _(_('سعر الكشف الأولي')) }}</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="consultation_price" name="consultation_price" placeholder="مثال: 100.00">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="follow_up_price" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("سعر المراجعة")")")")")")")') }}</label>
-                                <input type="number" step="0.01" min="0" class="form-control" id="follow_up_price" name="follow_up_price" placeholder="_(" _(" _(" _(" _(" _("مثال: 50.00")")")")")")">
+                                <label for="follow_up_price" class="form-label">{{ _(_('سعر المراجعة')) }}</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="follow_up_price" name="follow_up_price" placeholder="مثال: 50.00">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="emergency_price" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("سعر الطوارئ")")")")")")")') }}</label>
-                                <input type="number" step="0.01" min="0" class="form-control" id="emergency_price" name="emergency_price" placeholder="_(" _(" _(" _(" _(" _("مثال: 150.00")")")")")")">
+                                <label for="emergency_price" class="form-label">{{ _(_('سعر الطوارئ')) }}</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="emergency_price" name="emergency_price" placeholder="مثال: 150.00">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="vip_price" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("سعر VIP")")")")")")")') }}</label>
-                                <input type="number" step="0.01" min="0" class="form-control" id="vip_price" name="vip_price" placeholder="_(" _(" _(" _(" _(" _("مثال: 250.00")")")")")")">
+                                <label for="vip_price" class="form-label">{{ _(_('سعر VIP')) }}</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="vip_price" name="vip_price" placeholder="مثال: 250.00">
                             </div>
                         </div>
 
                         <!-- Security -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("الأمان")")")")")")")') }}</h6>
+                                <h6 class="text-primary mb-3">{{ _(_('الأمان')) }}</h6>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="password" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("كلمة المرور")")")")")")")') }} <span class="text-danger">*</span></label>
+                                <label for="password" class="form-label">{{ _(_('كلمة المرور')) }} <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="password" name="password" required
-                                           placeholder="_(" _(" _(" _(" _(" _("أدخل كلمة المرور")")")")")")" minlength="8">
+                                           placeholder="أدخل كلمة المرور" minlength="8">
                                     <button class="btn btn-outline-secondary" type="button" data-action="toggle-password" data-target="password">
-                                        <i class="fas fa-eye"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</span>
+                                        <i class="fas fa-eye"></i> <span class="btn-label">{{ _(_('عرض')) }}</span>
                                     </button>
                                 </div>
-                                <div class="form-text">{{ _('_("_(" _(" _(" _(" _(" _("يجب أن تكون 8 أحرف على الأقل")")")")")")")') }}</div>
+                                <div class="form-text">{{ _(_('يجب أن تكون 8 أحرف على الأقل')) }}</div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="confirm_password" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("تأكيد كلمة المرور")")")")")")")') }} <span class="text-danger">*</span></label>
+                                <label for="confirm_password" class="form-label">{{ _(_('تأكيد كلمة المرور')) }} <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="confirm_password" name="confirm_password" required
-                                           placeholder="_(" _(" _(" _(" _(" _("أعد إدخال كلمة المرور")")")")")")">
+                                           placeholder="أعد إدخال كلمة المرور">
                                     <button class="btn btn-outline-secondary" type="button" data-action="toggle-password" data-target="confirm_password">
-                                        <i class="fas fa-eye"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</span>
+                                        <i class="fas fa-eye"></i> <span class="btn-label">{{ _(_('عرض')) }}</span>
                                     </button>
                                 </div>
                             </div>
@@ -143,7 +143,7 @@
                         <!-- Status -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">{{ _('_("_(" _(" _(" _(" _(" _("حالة الحساب")")")")")")")') }}</h6>
+                                <h6 class="text-primary mb-3">{{ _(_('حالة الحساب')) }}</h6>
                             </div>
                         </div>
 
@@ -152,7 +152,7 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
                                     <label class="form-check-label" for="is_active">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("حساب نشط")")")")")")")') }}
+                                        {{ _(_('حساب نشط')) }}
                                     </label>
                                 </div>
                             </div>
@@ -160,7 +160,7 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="is_admin" name="is_admin">
                                     <label class="form-check-label" for="is_admin">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("صلاحيات إدارية")")")")")")")') }}
+                                        {{ _(_('صلاحيات إدارية')) }}
                                     </label>
                                 </div>
                             </div>
@@ -172,11 +172,11 @@
                                 <div class="d-flex gap-2">
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-save me-1"></i>
-                                        {{ _('_("_(" _(" _(" _(" _(" _("إنشاء المستخدم")")")")")")")') }}
+                                        {{ _(_('إنشاء المستخدم')) }}
                                     </button>
                                     <a href="{{ url_for('super_admin.users') }}" class="btn btn-secondary">
                                         <i class="fas fa-times me-1"></i>
-                                        {{ _('_("_(" _(" _(" _(" _(" _("إلغاء")")")")")")")') }}
+                                        {{ _(_('إلغاء')) }}
                                     </a>
                                 </div>
                             </div>
@@ -190,37 +190,37 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("نصائح مهمة")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _(_('نصائح مهمة')) }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info">
-                        <h6><i class="fas fa-info-circle me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("الأدوار المتاحة:")")")")")")")') }}</h6>
+                        <h6><i class="fas fa-info-circle me-2"></i>{{ _(_('الأدوار المتاحة:')) }}</h6>
                         <ul class="mb-0">
-                            <li><strong>{{ _('_("_(" _(" _(" _(" _(" _("سوبر أدمن:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("صلاحيات كاملة")")")")")")")') }}</li>
-                            <li><strong>{{ _('_("_(" _(" _(" _(" _(" _("مدير:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("إدارة شاملة")")")")")")")') }}</li>
-                            <li><strong>{{ _('_("_(" _(" _(" _(" _(" _("طبيب:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("إدارة المرضى والزيارات")")")")")")")') }}</li>
-                            <li><strong>{{ _('_("_(" _(" _(" _(" _(" _("استقبال:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("تسجيل المرضى والمواعيد")")")")")")")') }}</li>
-                            <li><strong>{{ _('_("_(" _(" _(" _(" _(" _("مختبر:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("إدارة التحاليل")")")")")")")') }}</li>
-                            <li><strong>{{ _('_("_(" _(" _(" _(" _(" _("أشعة:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("إدارة الأشعة")")")")")")")') }}</li>
-                            <li><strong>{{ _('_("_(" _(" _(" _(" _(" _("محاسب:")")")")")")")') }}</strong> {{ _('_("_(" _(" _(" _(" _(" _("إدارة المالية")")")")")")")') }}</li>
+                            <li><strong>{{ _(_('سوبر أدمن:')) }}</strong> {{ _(_('صلاحيات كاملة')) }}</li>
+                            <li><strong>{{ _(_('مدير:')) }}</strong> {{ _(_('إدارة شاملة')) }}</li>
+                            <li><strong>{{ _(_('طبيب:')) }}</strong> {{ _(_('إدارة المرضى والزيارات')) }}</li>
+                            <li><strong>{{ _(_('استقبال:')) }}</strong> {{ _(_('تسجيل المرضى والمواعيد')) }}</li>
+                            <li><strong>{{ _(_('مختبر:')) }}</strong> {{ _(_('إدارة التحاليل')) }}</li>
+                            <li><strong>{{ _(_('أشعة:')) }}</strong> {{ _(_('إدارة الأشعة')) }}</li>
+                            <li><strong>{{ _(_('محاسب:')) }}</strong> {{ _(_('إدارة المالية')) }}</li>
                         </ul>
                     </div>
 
                     <div class="alert alert-warning">
-                        <h6><i class="fas fa-exclamation-triangle me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("تحذيرات:")")")")")")")') }}</h6>
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>{{ _(_('تحذيرات:')) }}</h6>
                         <ul class="mb-0">
-                            <li>{{ _('_("_(" _(" _(" _(" _(" _("تأكد من صحة البيانات المدخلة")")")")")")")') }}</li>
-                            <li>{{ _('_("_(" _(" _(" _(" _(" _("كلمة المرور يجب أن تكون قوية")")")")")")")') }}</li>
-                            <li>{{ _('_("_(" _(" _(" _(" _(" _("اختر الدور المناسب للمستخدم")")")")")")")') }}</li>
+                            <li>{{ _(_('تأكد من صحة البيانات المدخلة')) }}</li>
+                            <li>{{ _(_('كلمة المرور يجب أن تكون قوية')) }}</li>
+                            <li>{{ _(_('اختر الدور المناسب للمستخدم')) }}</li>
                         </ul>
                     </div>
 
                     <div class="alert alert-success">
-                        <h6><i class="fas fa-check-circle me-2"></i>{{ _('_("_(" _(" _(" _(" _(" _("بعد الإنشاء:")")")")")")")') }}</h6>
+                        <h6><i class="fas fa-check-circle me-2"></i>{{ _(_('بعد الإنشاء:')) }}</h6>
                         <ul class="mb-0">
-                            <li>{{ _('_("_(" _(" _(" _(" _(" _("سيتم إرسال بيانات الدخول للمستخدم")")")")")")")') }}</li>
-                            <li>{{ _('_("_(" _(" _(" _(" _(" _("يمكن تعديل البيانات لاحقاً")")")")")")")') }}</li>
-                            <li>{{ _('_("_(" _(" _(" _(" _(" _("يمكن تغيير الصلاحيات عند الحاجة")")")")")")")') }}</li>
+                            <li>{{ _(_('سيتم إرسال بيانات الدخول للمستخدم')) }}</li>
+                            <li>{{ _(_('يمكن تعديل البيانات لاحقاً')) }}</li>
+                            <li>{{ _(_('يمكن تغيير الصلاحيات عند الحاجة')) }}</li>
                         </ul>
                     </div>
                 </div>

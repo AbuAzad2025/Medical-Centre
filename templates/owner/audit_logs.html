@@ -5,7 +5,7 @@
 {% block header_actions %}
 <div class="d-flex gap-2">
     <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
-        <i class="fas fa-arrow-right"></i> {{ _('_("_(" _(" _(" _(" _(" _("العودة")")")")")")")') }}
+        <i class="fas fa-arrow-right"></i> {{ _(_('العودة')) }}
     </a>
 </div>
 {% endblock %}
@@ -16,31 +16,31 @@
     <div class="owner-card-body">
         <form method="get" action="{{ url_for('owner.owner_audit_logs') }}" class="row g-3 align-items-end">
             <div class="col-md-4">
-                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع الكيان")")")")")")")') }}</label>
+                <label class="owner-form-label">{{ _(_('نوع الكيان')) }}</label>
                 <select name="entity_type" class="owner-input" onchange="this.form.submit()">
-                    <option value="">{{ _('_("_(" _(" _(" _(" _(" _("كل الأنواع")")")")")")")') }}</option>
-                    <option value="tenant" {% if entity_type == 'tenant' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("عميل (Tenant)")")")")")")")') }}</option>
-                    <option value="plan" {% if entity_type == 'plan' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("خطة (Plan)")")")")")")")') }}</option>
-                    <option value="system" {% if entity_type == 'system' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("نظام (System)")")")")")")")') }}</option>
-                    <option value="notification" {% if entity_type == 'notification' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("إشعار (Notification)")")")")")")")') }}</option>
-                    <option value="ticket" {% if entity_type == 'ticket' %}selected{% endif %}>{{ _('_("_(" _(" _(" _(" _(" _("تذكرة (Ticket)")")")")")")")') }}</option>
+                    <option value="">{{ _(_('كل الأنواع')) }}</option>
+                    <option value="tenant" {% if entity_type == 'tenant' %}selected{% endif %}>{{ _(_('عميل (Tenant)')) }}</option>
+                    <option value="plan" {% if entity_type == 'plan' %}selected{% endif %}>{{ _(_('خطة (Plan)')) }}</option>
+                    <option value="system" {% if entity_type == 'system' %}selected{% endif %}>{{ _(_('نظام (System)')) }}</option>
+                    <option value="notification" {% if entity_type == 'notification' %}selected{% endif %}>{{ _(_('إشعار (Notification)')) }}</option>
+                    <option value="ticket" {% if entity_type == 'ticket' %}selected{% endif %}>{{ _(_('تذكرة (Ticket)')) }}</option>
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="owner-form-label">{{ _('_("_(" _(" _(" _(" _(" _("البحث عن إجراء أو تفاصيل")")")")")")")') }}</label>
+                <label class="owner-form-label">{{ _(_('البحث عن إجراء أو تفاصيل')) }}</label>
                 <div class="input-group">
                     <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
-                    <input type="text" name="q" class="owner-input border-start-0" placeholder="_(" _(" _(" _(" _(" _("ابحث هنا...")")")")")")" value="{{ search }}">
+                    <input type="text" name="q" class="owner-input border-start-0" placeholder="ابحث هنا..." value="{{ search }}">
                 </div>
             </div>
             <div class="col-md-2">
                 <button type="submit" class="owner-btn owner-btn-primary w-100">
-                    <i class="fas fa-filter"></i> {{ _('_("_(" _(" _(" _(" _(" _("تصفية")")")")")")")') }}
+                    <i class="fas fa-filter"></i> {{ _(_('تصفية')) }}
                 </button>
             </div>
             <div class="col-md-2">
                 <a href="{{ url_for('owner.owner_audit_logs') }}" class="owner-btn owner-btn-outline w-100">
-                    <i class="fas fa-redo"></i> {{ _('_("_(" _(" _(" _(" _(" _("إعادة ضبط")")")")")")")') }}
+                    <i class="fas fa-redo"></i> {{ _(_('إعادة ضبط')) }}
                 </a>
             </div>
         </form>
@@ -50,7 +50,7 @@
 <!-- Audit Logs Table Card -->
 <div class="owner-card animate-fadeInUp delay-2">
     <div class="owner-card-header">
-        <h6 class="owner-card-title"><i class="fas fa-history text-primary"></i> {{ _('_("_(" _(" _(" _(" _(" _("السجلات التفصيلية")")")")")")")') }}</h6>
+        <h6 class="owner-card-title"><i class="fas fa-history text-primary"></i> {{ _(_('السجلات التفصيلية')) }}</h6>
         <span class="badge bg-primary">{{ logs|length }} حدث</span>
     </div>
     <div class="table-responsive">
@@ -58,12 +58,12 @@
             <thead>
                 <tr>
                     <th style="width: 5%">#</th>
-                    <th style="width: 15%">{{ _('_("_(" _(" _(" _(" _(" _("الإجراء")")")")")")")') }}</th>
-                    <th style="width: 15%">{{ _('_("_(" _(" _(" _(" _(" _("النوع")")")")")")")') }}</th>
+                    <th style="width: 15%">{{ _(_('الإجراء')) }}</th>
+                    <th style="width: 15%">{{ _(_('النوع')) }}</th>
                     <th style="width: 10%">ID</th>
-                    <th style="width: 35%">{{ _('_("_(" _(" _(" _(" _(" _("التفاصيل")")")")")")")') }}</th>
+                    <th style="width: 35%">{{ _(_('التفاصيل')) }}</th>
                     <th style="width: 15%">IP</th>
-                    <th style="width: 10%">{{ _('_("_(" _(" _(" _(" _(" _("الوقت")")")")")")")') }}</th>
+                    <th style="width: 10%">{{ _(_('الوقت')) }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -91,8 +91,8 @@
                 <tr>
                     <td colspan="7" class="owner-empty py-5">
                         <i class="fas fa-clipboard-check"></i>
-                        <h5>{{ _('_("_(" _(" _(" _(" _(" _("لا توجد سجلات تدقيق")")")")")")")') }}</h5>
-                        <p class="small text-muted">{{ _('_("_(" _(" _(" _(" _(" _("سيتم تسجيل كافة العمليات الهامة هنا تلقائياً.")")")")")")")') }}</p>
+                        <h5>{{ _(_('لا توجد سجلات تدقيق')) }}</h5>
+                        <p class="small text-muted">{{ _(_('سيتم تسجيل كافة العمليات الهامة هنا تلقائياً.')) }}</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -106,7 +106,7 @@
         <nav>
             <ul class="pagination pagination-sm mb-0">
                 {% if pagination.has_prev %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('owner.owner_audit_logs', page=pagination.prev_num, entity_type=entity_type, q=search) }}">{{ _('_("_(" _(" _(" _(" _(" _("السابق")")")")")")")') }}</a></li>
+                <li class="page-item"><a class="page-link" href="{{ url_for('owner.owner_audit_logs', page=pagination.prev_num, entity_type=entity_type, q=search) }}">{{ _(_('السابق')) }}</a></li>
                 {% endif %}
                 {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
                     {% if p %}
@@ -116,7 +116,7 @@
                     {% endif %}
                 {% endfor %}
                 {% if pagination.has_next %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('owner.owner_audit_logs', page=pagination.next_num, entity_type=entity_type, q=search) }}">{{ _('_("_(" _(" _(" _(" _(" _("التالي")")")")")")")') }}</a></li>
+                <li class="page-item"><a class="page-link" href="{{ url_for('owner.owner_audit_logs', page=pagination.next_num, entity_type=entity_type, q=search) }}">{{ _(_('التالي')) }}</a></li>
                 {% endif %}
             </ul>
         </nav>

@@ -3,17 +3,17 @@
 {% block title %}بحث عن المرضى{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  {{ page_header('_("_(" _(" _(" _(" _(" _("بحث عن المرضى")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("يمكنك البحث في جميع مرضى المركز وعرض تاريخهم الطبي دون تعديل البيانات الأساسية.")")")")")")")', icon='fas fa-users', actions=[{'label': '_("_(" _(" _(" _(" _(" _("العودة")")")")")")")', 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.dashboard'), 'style': 'secondary'}]) }}
+  {{ page_header(_('بحث عن المرضى'), subtitle=_('يمكنك البحث في جميع مرضى المركز وعرض تاريخهم الطبي دون تعديل البيانات الأساسية.'), icon='fas fa-users', actions=[{'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.dashboard'), 'style': 'secondary'}]) }}
 
   <div class="row mb-4">
     <div class="col-12">
       <div class="card shadow-sm">
-        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("بحث عن مريض")")")")")")")') }}</div>
+        <div class="card-header">{{ _(_('بحث عن مريض')) }}</div>
         <div class="card-body">
           <form method="get" class="row g-3">
             <div class="col-md-6">
-              <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("كلمة البحث")")")")")")")') }}</label>
-              <input type="text" class="form-control" name="q" value="{{ q or '' }}" placeholder="_(" _(" _(" _(" _(" _("اسم المريض، الهاتف، الهوية...")")")")")")">
+              <label class="form-label">{{ _(_('كلمة البحث')) }}</label>
+              <input type="text" class="form-control" name="q" value="{{ q or '' }}" placeholder="اسم المريض، الهاتف، الهوية...">
             </div>
             <div class="col-md-3 d-flex align-items-end">
               <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> {{ _('بحث') }}</button>
@@ -27,22 +27,22 @@
   <div class="row">
     <div class="col-12">
       <div class="card shadow-sm">
-        <div class="card-header">{{ _('_("_(" _(" _(" _(" _(" _("النتائج")")")")")")")') }}</div>
+        <div class="card-header">{{ _(_('النتائج')) }}</div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-hover">
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الهاتف")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الهوية")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("العمر")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("عدد الزيارات")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("آخر زيارة")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الخط الزمني")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("السجل الطبي")")")")")")")') }}</th>
-                  <th>{{ _('_("_(" _(" _(" _(" _(" _("الوصفات")")")")")")")') }}</th>
+                  <th>{{ _(_('الاسم')) }}</th>
+                  <th>{{ _(_('الهاتف')) }}</th>
+                  <th>{{ _(_('الهوية')) }}</th>
+                  <th>{{ _(_('العمر')) }}</th>
+                  <th>{{ _(_('عدد الزيارات')) }}</th>
+                  <th>{{ _(_('آخر زيارة')) }}</th>
+                  <th>{{ _(_('الخط الزمني')) }}</th>
+                  <th>{{ _(_('السجل الطبي')) }}</th>
+                  <th>{{ _(_('الوصفات')) }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -63,17 +63,17 @@
                     </td>
                     <td>
                       <a href="{{ url_for('doctor.patient_timeline', patient_id=row.id) }}" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-stream me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("الخط الزمني")")")")")")")') }}
+                        <i class="fas fa-stream me-1"></i> {{ _(_('الخط الزمني')) }}
                       </a>
                     </td>
                     <td>
                       <a href="{{ url_for('doctor.medical_history', patient_id=row.id) }}" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-notes-medical me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("السجل الطبي")")")")")")")') }}
+                        <i class="fas fa-notes-medical me-1"></i> {{ _(_('السجل الطبي')) }}
                       </a>
                     </td>
                     <td>
                       <a href="{{ url_for('doctor.prescriptions_history', patient_id=row.id) }}" class="btn btn-sm btn-outline-info">
-                        <i class="fas fa-file-prescription me-1"></i> {{ _('_("_(" _(" _(" _(" _(" _("الوصفات")")")")")")")') }}
+                        <i class="fas fa-file-prescription me-1"></i> {{ _(_('الوصفات')) }}
                       </a>
                     </td>
                   </tr>
@@ -82,8 +82,8 @@
                     <td colspan="10">
                       <div class="empty-state-smart">
                         <div class="empty-icon-wrap"><i class="fas fa-users"></i></div>
-                        <h5>{{ _('_("_(" _(" _(" _(" _(" _("لا يوجد مرضى")")")")")")")') }}</h5>
-                        <p>{{ _('_("_(" _(" _(" _(" _(" _("لم يتم العثور على مرضى مطابقين لمعايير البحث.")")")")")")")') }}</p>
+                        <h5>{{ _(_('لا يوجد مرضى')) }}</h5>
+                        <p>{{ _(_('لم يتم العثور على مرضى مطابقين لمعايير البحث.')) }}</p>
                       </div>
                     </td>
                   </tr>
