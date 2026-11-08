@@ -304,15 +304,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     })();
 
-    initPosCharge({
-        button: 'posChargeBtn',
-        amountInput: 'amount_paid',
-        amountFallback: 'visitCost',
-        statusElement: 'posStatus',
-        chargeUrl: document.getElementById('posChargeBtn')?.dataset.chargeUrl || ((window.API_ROUTES && window.API_ROUTES.reception_pos_charge) || '/reception/pos/charge'),
-        cardLastDigitsId: 'card_last_digits',
-        cardHolderId: 'card_holder_name',
-    });
+    // initPosCharge is published on window by components/pos-charge.js (loaded
+    // before this module). If that module fails to load or is absent, POS
+    // charging should degrade gracefully instead of taking down every other
+    // handler in this DOMContentLoaded block.
+    if (typeof window.initPosCharge === 'function') {
+        window.initPosCharge({
+            button: 'posChargeBtn',
+            amountInput: 'amount_paid',
+            amountFallback: 'visitCost',
+            statusElement: 'posStatus',
+            chargeUrl: document.getElementById('posChargeBtn')?.dataset.chargeUrl || ((window.API_ROUTES && window.API_ROUTES.reception_pos_charge) || '/reception/pos/charge'),
+            cardLastDigitsId: 'card_last_digits',
+            cardHolderId: 'card_holder_name',
+        });
+    }
     const saveAndPrintBtn = document.getElementById('saveAndPrintBtn');
     if (saveAndPrintBtn) {
         saveAndPrintBtn.addEventListener('click', function() {
