@@ -66,14 +66,20 @@ class HL7ORUService:
         for obx in obx_segs:
             if len(obx) < 6:
                 continue
-            test_name = obx[3] if len(obx) > 3 else ''
+            test_field = obx[3] if len(obx) > 3 else ''
             value = obx[5] if len(obx) > 5 else ''
             unit = obx[6] if len(obx) > 6 else ''
             ref_range = obx[7] if len(obx) > 7 else ''
             abnormal_flag = obx[8] if len(obx) > 8 else ''
+            # OBX-3 is 'code^text^coding_system'; keep the code for the
+            # mandatory test_code column and the text for display.
+            parts = test_field.split('^')
+            test_code = (parts[0] or test_field).strip() or 'UNKNOWN'
+            test_name = (parts[1] if len(parts) > 1 else test_field).strip() or test_code
 
             result['results'].append(
                 {
+                    'test_code': test_code,
                     'test_name': test_name,
                     'value': value,
                     'unit': unit,
@@ -100,27 +106,32 @@ class HL7ORUService:
             errors.append(f'Lab request {parsed["order_id"]} not found')
             return {'created': created, 'errors': errors}
 
+        created_objs = []
         for res in parsed['results']:
             try:
                 lab_result = LabResult(
                     tenant_id=tenant_id or lab_request.tenant_id,
-                    lab_request_id=lab_request.id,
+                    request_id=lab_request.id,
                     patient_id=parsed['patient_id'] or lab_request.patient_id,
-                    test_name=res['test_name'],
-                    result_value=res['value'],
-                    unit=res['unit'],
-                    reference_range=res['reference_range'],
+                    test_code=res.get('test_code') or 'UNKNOWN',
+                    test_name=res.get('test_name') or 'UNKNOWN',
+                    value=res.get('value'),
+                    unit=res.get('unit'),
+                    reference_range=res.get('reference_range'),
                     is_critical=res['abnormal_flag'] in ('HH', 'LL', 'H', 'L'),
-                    entered_by=0,
+                    status='PENDING',
                 )
                 db.session.add(lab_result)
-                created.append(lab_result.id)
+                created_objs.append(lab_result)
             except Exception as e:
                 errors.append(f'Error creating result for {res["test_name"]}: {e}')
 
-        if created:
+        if created_objs:
             try:
+                db.session.flush()
                 db.session.commit()
+                # ids are only assigned after the flush, so collect them now
+                created = [obj.id for obj in created_objs]
             except Exception as e:
                 errors.append(f'Commit failed: {e}')
                 db.session.rollback()
