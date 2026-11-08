@@ -237,7 +237,7 @@ export function transferVisit(visitId) {
                 docSelect.innerHTML = '<option value="">بدون تحديد موظف</option>';
                 (data.staff || []).forEach(s => {
                     const roleAr = {'doctor':'طبيب','nurse':'ممرض','lab':'فني مختبر','radiology':'فني أشعة','emergency':'طوارئ'}[s.role] || s.role;
-                    docSelect.innerHTML += `<option value="${s.id}">${window.escHtml(s.full_name)} - ${window.escHtml(roleAr)}</option>`;
+                    docSelect.insertAdjacentHTML('beforeend', `<option value="${window.escHtml(String(s.id))}">${window.escHtml(s.full_name)} - ${window.escHtml(roleAr)}</option>`);
                 });
             })
             .catch(function(err) {

@@ -11,7 +11,7 @@ var __M = window.__M || [];
 window.__M0__
 
     const chartDataEl = document.getElementById('chart-data');
-    if (chartDataEl) {
+    if (chartDataEl && typeof Chart !== 'undefined') {
     const chartData = JSON.parse(chartDataEl.textContent);
     const months = chartData.months;
     const tenantGrowth = chartData.tenantGrowth;
@@ -87,7 +87,10 @@ window.__M0__
     });
 
     function sparkline(id, data, color) {
-        const ctx = document.getElementById(id).getContext('2d');
+        const sparkCanvas = document.getElementById(id);
+        if (!sparkCanvas) return;
+        const ctx = sparkCanvas.getContext('2d');
+        if (!ctx) return;
         new Chart(ctx, {
             type: 'line',
             data: {

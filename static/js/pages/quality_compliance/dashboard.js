@@ -13,7 +13,8 @@ fetch(window.__M0__)
       return r.json();
     })
     .then(d => {
-      new Chart(document.getElementById('qcMainChart'), {
+      if (typeof Chart !== 'undefined' && document.getElementById('qcMainChart')) {
+        new Chart(document.getElementById('qcMainChart'), {
         type: 'line',
         data: {
           labels: d.labels,
@@ -24,9 +25,13 @@ fetch(window.__M0__)
           ]
         },
         options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }, scales: { y: { beginAtZero: true } } }
-      });
+        });
+      }
     })
-    .catch(() => { document.getElementById('qcMainChart').parentNode.innerHTML = '<p class="text-muted text-center">تعذر تحميل البيانات</p>'; });
+    .catch(() => {
+      const chart = document.getElementById('qcMainChart');
+      if (chart && chart.parentNode) chart.parentNode.innerHTML = '<p class="text-muted text-center">تعذر تحميل البيانات</p>';
+    });
   document.querySelectorAll('.progress-dynamic').forEach(function(el){ el.style.width = (parseFloat(el.dataset.width) || 0) + '%'; });
 
 export {};
