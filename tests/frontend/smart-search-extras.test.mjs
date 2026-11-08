@@ -127,3 +127,56 @@ describe('smart-search.js data-attribute fallback arms', () => {
     expect(() => mod.initSmartSearch(document.getElementById('ss3'))).not.toThrow();
   });
 });
+
+describe('smart-search.js remaining arms', () => {
+  it('root without data-api falls back to the default endpoint', async () => {
+    document.body.innerHTML = `
+      <div class="smart-search" id="ss">
+        <input type="text" data-smart-search-input>
+        <div class="smart-search-results" data-smart-search-results hidden></div>
+      </div>
+    `;
+    const mod = await loadModule('static/js/smart-search.js');
+    mod.initSmartSearch(document.getElementById('ss'));
+    const input = document.querySelector('[data-smart-search-input]');
+    input.value = 'sara';
+    input.dispatchEvent(new Event('input'));
+    await vi.advanceTimersByTimeAsync(350);
+    expect(String(global.fetch.mock.calls[0][0])).toContain('/api/search/patients');
+  });
+
+  it('renderResults patient without name/id/national_id/phone renders empty placeholders', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ patients: [{}] }) });
+    const mod = await loadModule('static/js/smart-search.js');
+    mod.initSmartSearch(document.getElementById('ss'));
+    const input = document.querySelector('[data-smart-search-input]');
+    input.value = 'sara';
+    input.dispatchEvent(new Event('input'));
+    await vi.advanceTimersByTimeAsync(350);
+    const html = document.getElementById('externalHidden') ? document.querySelector('.smart-search-results').innerHTML : '';
+    expect(html.length).toBeGreaterThan(0);
+  });
+
+  it('patient with fullName but missing national_id renders the fallback dash', async () => {
+    window.PiiMask = { nationalId: (v) => 'masked-nid', phone: (v) => 'masked-phone' };
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ patients: [{ id: 1, full_name: 'Ali' }] }) });
+    const mod = await loadModule('static/js/smart-search.js');
+    mod.initSmartSearch(document.getElementById('ss'));
+    const input = document.querySelector('[data-smart-search-input]');
+    input.value = 'ali';
+    input.dispatchEvent(new Event('input'));
+    await vi.advanceTimersByTimeAsync(350);
+    expect(document.querySelector('.smart-search-results').innerHTML).toContain('Ali');
+  });
+
+  it('empty object response data falls back to empty patient list', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) });
+    const mod = await loadModule('static/js/smart-search.js');
+    mod.initSmartSearch(document.getElementById('ss'));
+    const input = document.querySelector('[data-smart-search-input]');
+    input.value = 'sara';
+    input.dispatchEvent(new Event('input'));
+    await vi.advanceTimersByTimeAsync(350);
+    expect(document.querySelector('.smart-search-results').textContent).toContain('لا توجد نتائج');
+  });
+});

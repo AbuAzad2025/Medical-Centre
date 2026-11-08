@@ -61,3 +61,11 @@ describe('medication/interactions.js', () => {
     expect(typeof window.toggleInteraction).toBe('function');
   });
 });
+describe('interactions.js API_ROUTES key fallback arms', () => {
+  it('API_ROUTES object without the toggle key falls back to the default URL', async () => {
+    window.API_ROUTES = {}; // defined but missing the key
+    const mod = await loadModule('static/js/pages/medication/interactions.js');
+    await mod.toggleInteraction('11');
+    expect(String(global.fetch.mock.calls[0][0])).toContain('/medication/interactions/11/toggle');
+  });
+});
