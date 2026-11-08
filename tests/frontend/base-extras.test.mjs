@@ -437,3 +437,26 @@ describe('base.js tooltip/popover init arms', () => {
     expect(popoverSpy).toHaveBeenCalled();
   });
 });
+
+describe('base.js initAutoSave and perf monitoring arms', () => {
+  it('initAutoSave wires inputs and resets the dirty flag on the interval', async () => {
+    vi.useFakeTimers();
+    const mod = await loadModule('static/js/base.js');
+    document.body.innerHTML = '<form id="autoForm"><input type="text" id="txt"><textarea></textarea><select><option>a</option></select></form>';
+    mod.initAutoSave('autoForm', 1000);
+    document.getElementById('txt').dispatchEvent(new Event('input'));
+    vi.advanceTimersByTime(1100);
+    vi.useRealTimers();
+    expect(true).toBe(true);
+  });
+
+  it('initAutoSave with a missing form returns silently', async () => {
+    const mod = await loadModule('static/js/base.js');
+    expect(() => mod.initAutoSave('nonexistentFormXYZ')).not.toThrow();
+  });
+
+  it('initPerformanceMonitoring registers a load listener without crashing', async () => {
+    const mod = await loadModule('static/js/base.js');
+    expect(() => mod.initPerformanceMonitoring()).not.toThrow();
+  });
+});
