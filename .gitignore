@@ -176,3 +176,4 @@ coverage.xml
 /tmp_*.txt
 /diag*.test.mjs
 
+coverage_clean.txt
