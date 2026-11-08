@@ -160,3 +160,11 @@ describe('quality_compliance/dashboard.js extra branches', () => {
     expect(true).toBe(true);
   });
 });
+
+describe('owner/dashboard.js Chart-undefined arm', () => {
+  it('module loads without Chart and without chart-data element', async () => {
+    delete window.Chart;
+    document.body.innerHTML = '';
+    await expect(loadModule('static/js/pages/owner/dashboard.js')).resolves.toBeDefined();
+  });
+});

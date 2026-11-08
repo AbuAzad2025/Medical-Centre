@@ -4,13 +4,11 @@ if (typeof Chart !== 'undefined') {
   Chart.defaults.plugins.legend.rtl = true;
   Chart.defaults.plugins.legend.labels.font = Chart.defaults.plugins.legend.labels.font || {};
   Chart.defaults.font.family = "'Cairo', 'Tajawal', sans-serif";
+  Chart.defaults.color = '#6c757d';
 }
 
 var __M = window.__M || [];
 window.__M0__
-
-Chart.defaults.font.family = "'Segoe UI', 'Tahoma', sans-serif";
-    Chart.defaults.color = '#6c757d';
 
     const chartDataEl = document.getElementById('chart-data');
     if (chartDataEl) {
