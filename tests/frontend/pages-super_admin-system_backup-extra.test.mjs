@@ -127,7 +127,8 @@ describe('system_backup.js extra branches', () => {
   it('scheduleBackup network failure shows error', async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error('network'));
     const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
-    await mod.scheduleBackup();
+    mod.scheduleBackup();
+    await new Promise(r => setTimeout(r, 80));
     await new Promise(r => setTimeout(r, 50));
     expect(window.Swal.fire).toHaveBeenCalled();
     expect(window.Swal.fire.mock.calls[0][0]).toMatch(/خطأ/);
@@ -136,7 +137,8 @@ describe('system_backup.js extra branches', () => {
   it('scheduleBackup server success:false shows error', async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: false, message: 'boom' }) });
     const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
-    await mod.scheduleBackup();
+    mod.scheduleBackup();
+    await new Promise(r => setTimeout(r, 80));
     await new Promise(r => setTimeout(r, 50));
     expect(window.Swal.fire).toHaveBeenCalled();
     expect(window.Swal.fire.mock.calls[0][0]).toMatch(/خطأ/);
@@ -151,7 +153,8 @@ describe('system_backup.js extra branches', () => {
     global.fetch = vi.fn().mockImplementation(() => Promise.resolve(responses[call++]));
     window.Swal.fire = vi.fn().mockResolvedValue({ isConfirmed: true, value: { enabled: true, type: 'daily', time: '02:00' } });
     const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
-    await mod.scheduleBackup();
+    mod.scheduleBackup();
+    await new Promise(r => setTimeout(r, 80));
     await new Promise(r => setTimeout(r, 100));
     expect(window.Swal.fire).toHaveBeenCalled();
   });
@@ -165,7 +168,8 @@ describe('system_backup.js extra branches', () => {
     global.fetch = vi.fn().mockImplementation(() => Promise.resolve(responses[call++]));
     window.Swal.fire = vi.fn().mockResolvedValue({ isConfirmed: true, value: { enabled: true, type: 'daily', time: '02:00' } });
     const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
-    await mod.scheduleBackup();
+    mod.scheduleBackup();
+    await new Promise(r => setTimeout(r, 80));
     await new Promise(r => setTimeout(r, 100));
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
@@ -179,7 +183,8 @@ describe('system_backup.js extra branches', () => {
     global.fetch = vi.fn().mockImplementation(() => Promise.resolve(responses[call++]));
     window.Swal.fire = vi.fn().mockResolvedValue({ isConfirmed: true, value: { enabled: true, type: 'daily', time: '02:00' } });
     const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
-    await mod.scheduleBackup();
+    mod.scheduleBackup();
+    await new Promise(r => setTimeout(r, 80));
     await new Promise(r => setTimeout(r, 100));
     expect(window.Swal.fire).toHaveBeenCalled();
   });
@@ -393,5 +398,249 @@ describe('system_backup.js extra branches', () => {
     await loadModule('static/js/pages/super_admin/system_backup.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
     expect(true).toBe(true);
+  });
+});
+describe('system_backup.js no-meta and default-route branches', () => {
+  let mod;
+
+  beforeEach(async () => {
+    document.querySelector('meta[name="csrf-token"]').remove();
+    window.API_ROUTES = {};
+    mod = await loadModule('static/js/pages/super_admin/system_backup.js');
+  });
+
+  it('module loads with empty csrfToken when meta is missing', () => {
+    expect(typeof mod.createBackup).toBe('function');
+  });
+
+  it('createBackup without an argument disables no button and uses the default route', async () => {
+    await mod.createBackup();
+    await new Promise(r => setTimeout(r, 40));
+    const call = global.fetch.mock.calls.find(c => String(c[0]).includes('/super-admin/backup/create'));
+    expect(call).toBeTruthy();
+    expect(call[1].headers['X-CSRFToken']).toBeUndefined();
+  });
+
+  it('createFullBackup without argument uses default route and no csrf header', async () => {
+    await mod.createFullBackup();
+    await new Promise(r => setTimeout(r, 40));
+    const call = global.fetch.mock.calls.find(c => String(c[0]).includes('/super-admin/backup/create'));
+    expect(call[1].headers['X-CSRFToken']).toBeUndefined();
+  });
+
+  it('createIncrementalBackup without argument uses default route and no csrf header', async () => {
+    await mod.createIncrementalBackup();
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch.mock.calls[0][0]).toBe('/super-admin/backup/create');
+    expect(global.fetch.mock.calls[0][1].headers['X-CSRFToken']).toBeUndefined();
+  });
+
+  it('createDatabaseBackup without argument uses default route and no csrf header', async () => {
+    await mod.createDatabaseBackup();
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch.mock.calls[0][0]).toBe('/super-admin/backup/create');
+  });
+
+  it('createFilesBackup without argument uses default route and no csrf header', async () => {
+    await mod.createFilesBackup();
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch.mock.calls[0][0]).toBe('/super-admin/backup/create');
+  });
+
+  it('restoreBackup uses the default route and no csrf header', async () => {
+    await mod.restoreBackup('42');
+    await new Promise(r => setTimeout(r, 40));
+    const call = global.fetch.mock.calls[0];
+    expect(call[0]).toBe('/super-admin/backup/restore/42');
+    expect(call[1].headers['X-CSRFToken']).toBeUndefined();
+  });
+
+  it('deleteBackup uses the default route and no csrf header', async () => {
+    await mod.deleteBackup('42');
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch.mock.calls[0][0]).toBe('/super-admin/backup/delete/42');
+    expect(global.fetch.mock.calls[0][1].headers['X-CSRFToken']).toBeUndefined();
+  });
+
+  it('cancelBackup uses the default route and no csrf header', async () => {
+    await mod.cancelBackup('42');
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch.mock.calls[0][0]).toBe('/super-admin/backup/cancel/42');
+    expect(global.fetch.mock.calls[0][1].headers['X-CSRFToken']).toBeUndefined();
+  });
+
+  it('retryBackup uses the default route and no csrf header', async () => {
+    await mod.retryBackup('full');
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch.mock.calls[0][0]).toBe('/super-admin/backup/create');
+    expect(global.fetch.mock.calls[0][1].headers['X-CSRFToken']).toBeUndefined();
+  });
+
+  it('retryBackup with success:false and no message shows the unknown-error text', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: false }) });
+    await mod.retryBackup('full');
+    await new Promise(r => setTimeout(r, 40));
+    const last = window.Swal.fire.mock.calls[window.Swal.fire.mock.calls.length - 1];
+    expect(String(last[1])).toContain('حدث خطأ غير معروف');
+  });
+
+  it('saveBackupSettings without csrf meta sends no token header', async () => {
+    await mod.saveBackupSettings();
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch.mock.calls[0][1].headers['X-CSRFToken']).toBeUndefined();
+  });
+
+  it('generateBackupReport navigates to the default report route', async () => {
+    mod.generateBackupReport();
+    expect(window.location.href).toBe('/super-admin/backup/report');
+  });
+
+  it('exportBackupLogs navigates to the default export route', async () => {
+    mod.exportBackupLogs();
+    expect(window.location.href).toBe('/super-admin/backup/export-logs');
+  });
+
+  it('generateBackupReport and exportBackupLogs use API_ROUTES when set', async () => {
+    window.API_ROUTES = { backup_report: '/custom/report', export_backup_logs: '/custom/logs' };
+    const m = await loadModule('static/js/pages/super_admin/system_backup.js');
+    m.generateBackupReport();
+    expect(window.location.href).toBe('/custom/report');
+    m.exportBackupLogs();
+    expect(window.location.href).toBe('/custom/logs');
+  });
+
+  it('viewBackupHistory uses the default route when API_ROUTES unset', async () => {
+    mod.viewBackupHistory();
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch.mock.calls[0][0]).toBe('/super-admin/backup/history');
+  });
+
+  it('viewBackupHistory renders the empty history state', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true, history: [] }) });
+    mod.viewBackupHistory();
+    await new Promise(r => setTimeout(r, 40));
+    const html = String(window.Swal.fire.mock.calls[window.Swal.fire.mock.calls.length - 1][0].html);
+    expect(html).toContain('لا توجد سجلات');
+  });
+
+  it('viewBackupHistory item with missing fields renders empty fallbacks', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true, history: [{}] }) });
+    mod.viewBackupHistory();
+    await new Promise(r => setTimeout(r, 40));
+    const html = String(window.Swal.fire.mock.calls[window.Swal.fire.mock.calls.length - 1][0].html);
+    expect(html).toContain('badge');
+  });
+});
+
+describe('system_backup.js scheduleBackup rendering branches', () => {
+  function scheduleFetchMock(schedule) {
+    return vi.fn((url) => {
+      const u = String(url);
+      if (u.includes('/api/backup/schedule')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, ...schedule }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true }) });
+    });
+  }
+
+  it('weekly type is rendered pre-selected', async () => {
+    global.fetch = scheduleFetchMock({ enabled: true, type: 'weekly', time: '03:00' });
+    const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
+    mod.scheduleBackup();
+    await new Promise(r => setTimeout(r, 80));
+    const html = String(window.Swal.fire.mock.calls[0][0].html);
+    expect(html).toContain('value="weekly" selected');
+    expect(html).toContain('03:00');
+  });
+
+  it('monthly type is rendered pre-selected', async () => {
+    global.fetch = scheduleFetchMock({ enabled: false, type: 'monthly', time: '04:30' });
+    const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
+    mod.scheduleBackup();
+    await new Promise(r => setTimeout(r, 80));
+    const html = String(window.Swal.fire.mock.calls[0][0].html);
+    expect(html).toContain('value="monthly" selected');
+    expect(html).not.toContain('checked');
+  });
+
+  it('schedule GET non-ok shows the failure message', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });
+    const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
+    mod.scheduleBackup();
+    await new Promise(r => setTimeout(r, 80));
+    await new Promise(r => setTimeout(r, 40));
+    const last = window.Swal.fire.mock.calls[window.Swal.fire.mock.calls.length - 1];
+    expect(String(last[1])).toContain('فشل تحميل الإعدادات');
+  });
+
+  it('schedule POST error response surfaces the generic error', async () => {
+    const responses = [
+      { ok: true, json: () => Promise.resolve({ success: true, enabled: true, type: 'daily', time: '02:00' }) },
+      { ok: false, status: 500 },
+    ];
+    let call = 0;
+    global.fetch = vi.fn().mockImplementation(() => Promise.resolve(responses[call++]));
+    window.Swal.fire = vi.fn()
+      .mockResolvedValueOnce({ isConfirmed: true, value: { enabled: true, type: 'daily', time: '02:00' } })
+      .mockResolvedValue({ isConfirmed: true });
+    const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
+    mod.scheduleBackup();
+    await new Promise(r => setTimeout(r, 80));
+    await new Promise(r => setTimeout(r, 60));
+    const last = window.Swal.fire.mock.calls[window.Swal.fire.mock.calls.length - 1][0];
+    expect(last).toBe('خطأ');
+  });
+
+  it('saveBackupSettings non-ok falls back to generic error', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });
+    const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
+    await mod.saveBackupSettings();
+    await new Promise(r => setTimeout(r, 40));
+    expect(window.Swal.fire.mock.calls[window.Swal.fire.mock.calls.length - 1][0]).toBe('خطأ');
+  });
+
+  it('createBackup with success:false and no message uses the default text', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: false }) });
+    const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
+    await mod.createBackup({ target: document.createElement('button') });
+    await new Promise(r => setTimeout(r, 40));
+    const last = window.Swal.fire.mock.calls[window.Swal.fire.mock.calls.length - 1][0];
+    expect(last.text).toContain('حدث خطأ في إنشاء النسخة الاحتياطية');
+  });
+
+  it('createDatabaseBackup with success:false and no message uses the default text', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: false }) });
+    const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
+    await mod.createDatabaseBackup({ target: document.createElement('button') });
+    await new Promise(r => setTimeout(r, 40));
+    const last = window.Swal.fire.mock.calls[window.Swal.fire.mock.calls.length - 1][0];
+    expect(last.text).toContain('حدث خطأ في إنشاء النسخة');
+  });
+
+  it('createFilesBackup with success:false and no message uses the default text', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: false }) });
+    const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
+    await mod.createFilesBackup({ target: document.createElement('button') });
+    await new Promise(r => setTimeout(r, 40));
+    const last = window.Swal.fire.mock.calls[window.Swal.fire.mock.calls.length - 1][0];
+    expect(last.text).toContain('حدث خطأ في إنشاء النسخة');
+  });
+
+  it('createFullBackup with success:false and no message uses the default text', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: false }) });
+    const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
+    await mod.createFullBackup({ target: document.createElement('button') });
+    await new Promise(r => setTimeout(r, 40));
+    const last = window.Swal.fire.mock.calls[window.Swal.fire.mock.calls.length - 1][0];
+    expect(last.text).toContain('حدث خطأ في إنشاء النسخة');
+  });
+
+  it('createIncrementalBackup with success:false and no message uses the default text', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: false }) });
+    const mod = await loadModule('static/js/pages/super_admin/system_backup.js');
+    await mod.createIncrementalBackup({ target: document.createElement('button') });
+    await new Promise(r => setTimeout(r, 40));
+    const last = window.Swal.fire.mock.calls[window.Swal.fire.mock.calls.length - 1][0];
+    expect(last.text).toContain('حدث خطأ في إنشاء النسخة');
   });
 });
