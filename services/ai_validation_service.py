@@ -41,7 +41,7 @@ class AIValidationService:
                 warnings.append('⚠️ كلمة المرور ضعيفة - يُنصح باستخدام أحرف وأرقام ورموز')
 
         # التحقق من رقم الهاتف
-        if data.get('phone'):
+        if data.get('phone') is not None:
             phone = str(data['phone']).replace(' ', '').replace('-', '')
             if not phone.isdigit():
                 errors.append('⚠️ رقم الهاتف يجب أن يحتوي على أرقام فقط')
@@ -58,7 +58,7 @@ class AIValidationService:
         warnings = []
 
         # التحقق من العمر
-        if data.get('age'):
+        if data.get('age') is not None:
             age = int(data['age'])
             if age < 0:
                 errors.append('⚠️ العمر لا يمكن أن يكون سالباً')
@@ -70,7 +70,7 @@ class AIValidationService:
                 warnings.append('⚠️ المريض رضيع - يرجى التأكد من العمر')
 
         # التحقق من تاريخ الميلاد
-        if data.get('birth_date'):
+        if data.get('birth_date') is not None:
             try:
                 birth_date = datetime.strptime(str(data['birth_date']), '%Y-%m-%d')
                 today = datetime.now()
@@ -87,12 +87,12 @@ class AIValidationService:
                 errors.append('⚠️ تاريخ الميلاد بصيغة غير صحيحة')
 
         # التحقق من الجنس
-        if data.get('gender'):
+        if data.get('gender') is not None:
             if data['gender'].lower() not in ['male', 'female', 'ذكر', 'أنثى', 'm', 'f']:
                 errors.append('⚠️ الجنس يجب أن يكون ذكر أو أنثى')
 
         # التحقق من رقم الهوية
-        if data.get('national_id'):
+        if data.get('national_id') is not None:
             national_id = str(data['national_id'])
             if not national_id.isdigit():
                 errors.append('⚠️ رقم الهوية يجب أن يحتوي على أرقام فقط')
@@ -109,7 +109,7 @@ class AIValidationService:
         warnings = []
 
         # التحقق من تاريخ الزيارة
-        if data.get('visit_date'):
+        if data.get('visit_date') is not None:
             try:
                 visit_date = datetime.strptime(str(data['visit_date']), '%Y-%m-%d')
                 today = datetime.now()
@@ -122,7 +122,7 @@ class AIValidationService:
                 errors.append('⚠️ تاريخ الزيارة بصيغة غير صحيحة')
 
         # التحقق من الأعراض
-        if data.get('symptoms'):
+        if data.get('symptoms') is not None:
             symptoms = str(data['symptoms'])
             if len(symptoms) < 3:
                 warnings.append('⚠️ وصف الأعراض قصير جداً')
@@ -130,13 +130,13 @@ class AIValidationService:
                 warnings.append('⚠️ وصف الأعراض طويل جداً')
 
         # التحقق من التشخيص
-        if data.get('diagnosis'):
+        if data.get('diagnosis') is not None:
             diagnosis = str(data['diagnosis'])
             if len(diagnosis) < 3:
                 warnings.append('⚠️ التشخيص قصير جداً')
 
         # التحقق من ضغط الدم
-        if data.get('blood_pressure'):
+        if data.get('blood_pressure') is not None:
             bp = str(data['blood_pressure'])
             if '/' in bp:
                 try:
@@ -159,7 +159,7 @@ class AIValidationService:
                     errors.append('⚠️ صيغة ضغط الدم غير صحيحة (يجب أن تكون مثل: 120/80)')
 
         # التحقق من درجة الحرارة
-        if data.get('temperature'):
+        if data.get('temperature') is not None:
             try:
                 temp = float(data['temperature'])
                 if temp < 30 or temp > 45:
@@ -172,7 +172,7 @@ class AIValidationService:
                 errors.append('⚠️ درجة الحرارة يجب أن تكون رقماً')
 
         # التحقق من نبضات القلب
-        if data.get('heart_rate'):
+        if data.get('heart_rate') is not None:
             try:
                 hr = int(data['heart_rate'])
                 if hr < 30 or hr > 250:
@@ -183,7 +183,7 @@ class AIValidationService:
                 errors.append('⚠️ نبضات القلب يجب أن تكون رقماً')
 
         # التحقق من الوزن
-        if data.get('weight'):
+        if data.get('weight') is not None:
             try:
                 weight = float(data['weight'])
                 if weight < 0.5 or weight > 500:
@@ -203,13 +203,13 @@ class AIValidationService:
         warnings = []
 
         # التحقق من الجرعة
-        if data.get('dosage'):
+        if data.get('dosage') is not None:
             dosage = str(data['dosage'])
             if len(dosage) < 2:
                 warnings.append('⚠️ وصف الجرعة قصير جداً')
 
         # التحقق من التكرار
-        if data.get('frequency'):
+        if data.get('frequency') is not None:
             try:
                 freq = int(data['frequency'])
                 if freq < 1:
@@ -220,7 +220,7 @@ class AIValidationService:
                 pass  # قد يكون نص مثل "3 مرات يومياً"
 
         # التحقق من المدة
-        if data.get('duration'):
+        if data.get('duration') is not None:
             try:
                 duration = int(data['duration'])
                 if duration < 1:
@@ -231,7 +231,7 @@ class AIValidationService:
                 pass
 
         # التحقق من السعر
-        if data.get('price'):
+        if data.get('price') is not None:
             try:
                 price = float(data['price'])
                 if price < 0:
@@ -264,7 +264,7 @@ class AIValidationService:
                 errors.append('⚠️ المبلغ يجب أن يكون رقماً')
 
         # التحقق من الخصم
-        if data.get('discount'):
+        if data.get('discount') is not None:
             try:
                 discount = float(data['discount'])
                 if discount < 0:
@@ -321,18 +321,28 @@ class AIValidationService:
                     elif not doctor.is_active:
                         errors.append(f'⚠️ الطبيب {doctor.full_name} غير نشط حالياً')
 
-                    # التحقق من تعارض المواعيد
-                    conflicting = (
-                        db.session.execute(
-                            select(Visit).filter(
-                                Visit.doctor_id == doctor_id,
-                                Visit.appointment_time == appointment_time,
-                                Visit.status != 'cancelled',
+                    # التحقق من تعارض المواعيد — Visit is keyed by visit_time
+                    # (DateTime), not a nonexistent appointment_time column.
+                    try:
+                        appt_dt = appointment_time
+                        if isinstance(appt_dt, str):
+                            appt_dt = datetime.fromisoformat(appt_dt)
+                    except (TypeError, ValueError):
+                        appt_dt = None
+
+                    conflicting = None
+                    if appt_dt is not None:
+                        conflicting = (
+                            db.session.execute(
+                                select(Visit).filter(
+                                    Visit.doctor_id == doctor_id,
+                                    Visit.visit_time == appt_dt,
+                                    Visit.status != 'cancelled',
+                                )
                             )
+                            .scalars()
+                            .first()
                         )
-                        .scalars()
-                        .first()
-                    )
 
                     if conflicting:
                         errors.append('⚠️ يوجد موعد آخر لنفس الطبيب في نفس الوقت')
