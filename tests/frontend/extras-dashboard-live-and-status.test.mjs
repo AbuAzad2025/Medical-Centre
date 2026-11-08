@@ -211,3 +211,39 @@ describe('biometric/status.js disabled-button and fallback branches', () => {
     expect(btn.textContent).toBe('Register');
   });
 });
+
+describe('biometric/status.js guarded-arm test', () => {
+  it('disabled button ignores even a directly dispatched click', async () => {
+    document.body.innerHTML = `
+      <meta name="csrf-token" content="csrf-bio">
+      <button id="registerBtn" disabled>Register</button>
+      <div id="registerResult"></div>
+    `;
+    window.escHtml = (s) => String(s ?? '');
+    window.__M0__ = '/biometric/api/register';
+    window.showToast = vi.fn();
+    global.fetch = vi.fn();
+    await loadModule('static/js/pages/biometric/status.js');
+    const btn = document.getElementById('registerBtn');
+    btn.dispatchEvent(new Event('click', { bubbles: true }));
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(btn.textContent).toBe('Register');
+  });
+
+  it('network failure with a message shows it and without message shows the default label', async () => {
+    document.body.innerHTML = `
+      <meta name="csrf-token" content="csrf-bio">
+      <button id="registerBtn">Register</button>
+      <div id="registerResult"></div>
+    `;
+    window.escHtml = (s) => String(s ?? '');
+    window.__M0__ = '/biometric/api/register';
+    window.showToast = vi.fn();
+    global.fetch = vi.fn().mockRejectedValue(new Error('customboom'));
+    await loadModule('static/js/pages/biometric/status.js');
+    document.getElementById('registerBtn').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(document.getElementById('registerResult').innerHTML).toContain('customboom');
+    expect(window.showToast).toHaveBeenCalled();
+  });
+});
