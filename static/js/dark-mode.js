@@ -6,8 +6,16 @@
   const DARK = 'dark';
   const LIGHT = 'light';
 
+  function safeGetStored() {
+    try {
+      return localStorage.getItem(STORAGE_KEY);
+    } catch (e) {
+      return null; // sandboxed frames / private mode: treat as unset
+    }
+  }
+
   function getPreferredTheme() {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = safeGetStored();
     if (stored) return stored;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? DARK : LIGHT;
   }
@@ -18,7 +26,13 @@
     // system-derived theme on load must not persist, or the page stops
     // following future OS theme changes forever (the change listener bails on
     // any stored value).
-    if (persist !== false) localStorage.setItem(STORAGE_KEY, theme);
+    if (persist !== false) {
+      try {
+        localStorage.setItem(STORAGE_KEY, theme);
+      } catch (e) {
+        // private mode: keep the choice for this page load only
+      }
+    }
     // Update meta theme-color
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
@@ -34,12 +48,12 @@
   // Apply on load. If the theme comes from the OS (no stored choice), do not
   // persist it - the page should keep following OS changes until the user
   // actually picks a theme via the toggle.
-  const hadStoredChoice = Boolean(localStorage.getItem(STORAGE_KEY));
+  const hadStoredChoice = Boolean(safeGetStored());
   applyTheme(getPreferredTheme(), hadStoredChoice);
 
   // Listen for system preference changes
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (!localStorage.getItem(STORAGE_KEY)) {
+    if (!safeGetStored()) {
       applyTheme(e.matches ? DARK : LIGHT);
     }
   });
