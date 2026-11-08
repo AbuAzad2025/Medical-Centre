@@ -100,7 +100,6 @@ def get_accounting_smart_analytics():
                 .filter(Payment.tenant_id == current_user.tenant_id)
                 .group_by(Payment.method)
             )
-            .scalars()
             .all()
         )
 
@@ -218,7 +217,6 @@ def get_cash_flow_analysis():
                 )
                 .group_by(func.date(Payment.created_at))
             )
-            .scalars()
             .all()
         )
 
@@ -288,7 +286,6 @@ def get_payment_optimization():
                 .filter(Payment.tenant_id == current_user.tenant_id)
                 .group_by(Payment.method)
             )
-            .scalars()
             .all()
         )
 
@@ -302,7 +299,6 @@ def get_payment_optimization():
                 .filter(Payment.tenant_id == current_user.tenant_id)
                 .group_by(func.extract('hour', Payment.created_at))
             )
-            .scalars()
             .all()
         )
 

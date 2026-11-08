@@ -123,7 +123,6 @@ def quality():
                 .group_by(db.func.upper(RadiologyRequest.modality))
                 .order_by(db.func.count(RadiologyRequest.id).desc())
             )
-            .scalars()
             .all()
         )
         for r in rows:

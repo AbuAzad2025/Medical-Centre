@@ -181,7 +181,6 @@ def get_nursing_smart_analytics():
                 .filter(Task.task_type == 'nursing')
                 .group_by(Task.task_type)
             )
-            .scalars()
             .all()
         )
 

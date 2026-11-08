@@ -234,7 +234,6 @@ def get_ai_diagnostic_assistant():
                 .order_by(func.count(MedicalRecord.id).desc())
                 .limit(5)
             )
-            .scalars()
             .all()
         )
 
@@ -256,7 +255,6 @@ def get_ai_diagnostic_assistant():
                 .order_by(func.count(func.distinct(Prescription.id)).desc())
                 .limit(5)
             )
-            .scalars()
             .all()
         )
 
@@ -473,7 +471,6 @@ def get_patient_medical_history_ai():
                 .group_by(Visit.patient_id)
                 .having(func.count(Visit.id) > 2)
             )
-            .scalars()
             .all()
         )
 
@@ -488,7 +485,6 @@ def get_patient_medical_history_ai():
                 )
                 .group_by(MedicalRecord.diagnosis)
             )
-            .scalars()
             .all()
         )
 
@@ -509,7 +505,6 @@ def get_patient_medical_history_ai():
                 .group_by(Medication.trade_name)
                 .having(func.count(func.distinct(Prescription.id)) > 3)
             )
-            .scalars()
             .all()
         )
 
@@ -565,7 +560,6 @@ def get_treatment_recommendations():
                 )
                 .group_by(MedicalRecord.diagnosis, Medication.trade_name)
             )
-            .scalars()
             .all()
         )
 
@@ -716,7 +710,6 @@ def get_clinical_decision_support():
                 )
                 .group_by(MedicalRecord.diagnosis)
             )
-            .scalars()
             .all()
         )
 
@@ -756,7 +749,6 @@ def get_clinical_decision_support():
                 )
                 .group_by(Medication.trade_name)
             )
-            .scalars()
             .all()
         )
 
@@ -826,7 +818,6 @@ def get_medical_analytics():
                 )
                 .group_by(MedicalRecord.diagnosis)
             )
-            .scalars()
             .all()
         )
 
@@ -846,7 +837,6 @@ def get_medical_analytics():
                 )
                 .group_by(Medication.trade_name)
             )
-            .scalars()
             .all()
         )
 
@@ -891,7 +881,6 @@ def get_workflow_optimization():
                 )
                 .group_by(func.extract('hour', Visit.visit_time))
             )
-            .scalars()
             .all()
         )
 

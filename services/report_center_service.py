@@ -151,7 +151,6 @@ class ReportCenterService:
                 .group_by(VisitTransferLog.from_department_id, VisitTransferLog.to_department_id)
                 .order_by(desc(func.count(VisitTransferLog.id)))
             )
-            .scalars()
             .all()
         )
 
@@ -211,7 +210,6 @@ class ReportCenterService:
                 .order_by(desc(func.count(OnlineBooking.id)))
                 .limit(10)
             )
-            .scalars()
             .all()
         )
 
@@ -227,7 +225,6 @@ class ReportCenterService:
                 .order_by(desc(func.count(OnlineBooking.id)))
                 .limit(10)
             )
-            .scalars()
             .all()
         )
 
@@ -248,16 +245,15 @@ class ReportCenterService:
         from models.emergency import EmergencyCase
         from models.emergency_status_history import EmergencyStatusHistory
 
-        case_ids = [
-            r[0]
-            for r in db.session.execute(
+        case_ids = list(
+            db.session.execute(
                 select(EmergencyCase.id).filter(
                     EmergencyCase.created_at >= start_dt, EmergencyCase.created_at <= end_dt
                 )
             )
             .scalars()
             .all()
-        ]
+        )
         if not case_ids:
             return {'avg_minutes': {}, 'cases': 0}
 

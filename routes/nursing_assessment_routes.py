@@ -186,7 +186,6 @@ def dashboard():
                 func.avg(NursingAssessment.total_score).label('avg_score'),
             ).group_by(NursingAssessment.assessment_type)
         )
-        .scalars()
         .all()
     )
     return render_template('nursing_assessment/dashboard.html', recent=recent, stats=stats)

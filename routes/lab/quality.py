@@ -126,7 +126,6 @@ def quality():
                 .order_by(db.func.count(LabResult.id).desc())
                 .limit(25)
             )
-            .scalars()
             .all()
         )
         for g in dup_groups:
@@ -165,7 +164,6 @@ def quality():
                 )
                 .limit(30)
             )
-            .scalars()
             .all()
         )
         for r in rows:

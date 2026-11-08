@@ -450,7 +450,6 @@ def get_smart_queue_management(department_id=None):
                         func.count(QueueManagement.id).label('count'),
                     ).group_by(func.extract('hour', QueueManagement.created_at))
                 )
-                .scalars()
                 .all()
             )
         except Exception:
@@ -516,7 +515,6 @@ def get_patient_flow_analysis():
                     .filter(Visit.created_at >= week_ago)
                     .group_by(func.extract('hour', Visit.created_at))
                 )
-                .scalars()
                 .all()
             )
         except Exception:
@@ -530,7 +528,6 @@ def get_patient_flow_analysis():
                 .filter(Visit.created_at >= week_ago)
                 .group_by(Visit.department_id)
             )
-            .scalars()
             .all()
         )
 
@@ -571,7 +568,6 @@ def get_appointment_optimization():
                 .filter(Appointment.starts_at >= today, Appointment.starts_at <= week_ahead)
                 .group_by(func.date(Appointment.starts_at))
             )
-            .scalars()
             .all()
         )
 
@@ -583,7 +579,6 @@ def get_appointment_optimization():
                 .filter(Appointment.starts_at >= today, Appointment.starts_at <= week_ahead)
                 .group_by(User.id, User.full_name)
             )
-            .scalars()
             .all()
         )
 
@@ -722,7 +717,6 @@ def get_workflow_automation():
                 .group_by(Patient.id)
                 .having(func.count(Visit.id) > 3)
             )
-            .scalars()
             .all()
         )
 
@@ -908,7 +902,6 @@ def get_patient_demand_forecast(hours_ahead=4, days_window=14):
                     .filter(Visit.created_at >= start_date)
                     .group_by(func.extract('hour', Visit.created_at))
                 )
-                .scalars()
                 .all()
             )
         except Exception:
@@ -921,7 +914,6 @@ def get_patient_demand_forecast(hours_ahead=4, days_window=14):
                     .filter(Visit.created_at >= start_date)
                     .group_by(func.extract('hour', Visit.created_at))
                 )
-                .scalars()
                 .all()
             )
 

@@ -581,7 +581,6 @@ def get_predictive_analytics():
                         func.count(Visit.id).label('count'),
                     ).group_by(func.extract('hour', Visit.created_at))
                 )
-                .scalars()
                 .all()
             )
         except Exception:
@@ -742,7 +741,6 @@ def get_performance_optimization():
                         func.count(Visit.id).label('count'),
                     ).group_by(func.extract('hour', Visit.created_at))
                 )
-                .scalars()
                 .all()
             )
         except Exception:
@@ -768,7 +766,6 @@ def get_performance_optimization():
                 .join(User, Visit.doctor_id == User.id)
                 .group_by(User.department_id)
             )
-            .scalars()
             .all()
         )
 

@@ -85,7 +85,6 @@ def dashboard():
                     Payment.method
                 )
             )
-            .scalars()
             .all()
         )
 
@@ -625,7 +624,6 @@ def payment_reports():
                 )
                 .group_by(db.func.date(Payment.created_at))
             )
-            .scalars()
             .all()
         )
 
@@ -643,7 +641,6 @@ def payment_reports():
                 )
                 .group_by(Payment.method)
             )
-            .scalars()
             .all()
         )
 

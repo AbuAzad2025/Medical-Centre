@@ -100,7 +100,6 @@ def get_pharmacy_smart_analytics():
                 .filter(Medication.tenant_id == current_user.tenant_id)
                 .group_by(Medication.category)
             )
-            .scalars()
             .all()
         )
 

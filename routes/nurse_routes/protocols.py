@@ -126,7 +126,6 @@ def reports():
                 )
                 .group_by(Task.status)
             )
-            .scalars()
             .all()
         )
         by_priority = (
@@ -138,7 +137,6 @@ def reports():
                 )
                 .group_by(Task.priority)
             )
-            .scalars()
             .all()
         )
 
@@ -152,7 +150,6 @@ def reports():
                 )
                 .group_by(Department.name_ar)
             )
-            .scalars()
             .all()
         )
 
