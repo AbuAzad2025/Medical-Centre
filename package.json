@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
-    "azad-medical-frontend": "file:",
     "bootstrap": "^5.3.3"
   }
 }
