@@ -860,6 +860,7 @@ def booking_recurring_appointments():
     items = db.session.execute(q).scalars().all()
     return jsonify({'success': True, 'appointments': [a.to_dict() for a in items]})
 
+
 from services import waitlist_service
 
 

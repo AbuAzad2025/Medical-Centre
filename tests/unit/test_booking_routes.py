@@ -198,9 +198,7 @@ class TestBookingRead:
         assert any(d['id'] == doctor.id for d in body['doctors'])
 
     def test_available_times_api(self, client, dept, doctor):
-        resp = client.get(
-            f'/booking/api/available-times?doctor_id={doctor.id}&date={date.today()}'
-        )
+        resp = client.get(f'/booking/api/available-times?doctor_id={doctor.id}&date={date.today()}')
         assert resp.status_code == 200
         body = resp.get_json() if resp.is_json else {}
         assert body.get('success') is True
@@ -211,9 +209,7 @@ class TestBookingRead:
         assert resp.status_code == 400
 
     def test_smart_slots_api(self, client, dept, doctor):
-        resp = client.get(
-            f'/booking/api/smart-slots?doctor_id={doctor.id}&date={date.today()}'
-        )
+        resp = client.get(f'/booking/api/smart-slots?doctor_id={doctor.id}&date={date.today()}')
         assert resp.status_code == 200
         body = resp.get_json() if resp.is_json else {}
         assert body.get('success') is True
@@ -226,7 +222,9 @@ class TestBookingRead:
 
 class TestWaitlistLifecycle:
     def _login_reception(self, login_as, client):
-        return login_as(client, f'wl_reception_{datetime.now(UTC).strftime("%H%M%S%f")}', 'reception')
+        return login_as(
+            client, f'wl_reception_{datetime.now(UTC).strftime("%H%M%S%f")}', 'reception'
+        )
 
     def test_waitlist_add_list_and_convert(self, login_as, client, patient, doctor):
         self._login_reception(login_as, client)
@@ -293,9 +291,7 @@ class TestWaitlistLifecycle:
         resp = client.post('/booking/waitlist', json={'patient_id': 99999999})
         assert resp.status_code == 404
 
-    def test_waitlist_entry_of_other_tenant_hidden(
-        self, login_as, client, patient, test_tenant
-    ):
+    def test_waitlist_entry_of_other_tenant_hidden(self, login_as, client, patient, test_tenant):
         """The service refuses an entry whose tenant does not match the caller."""
         self._login_reception(login_as, client)
         created = client.post('/booking/waitlist', json={'patient_id': patient.id})

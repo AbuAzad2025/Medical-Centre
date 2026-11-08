@@ -57,9 +57,7 @@ class AppointmentWaitlist(TenantMixin, db.Model):
     )
 
     patient = db.relationship('Patient', lazy='selectin')
-    doctor = db.relationship(
-        'User', foreign_keys=[doctor_id], lazy='selectin'
-    )
+    doctor = db.relationship('User', foreign_keys=[doctor_id], lazy='selectin')
     department = db.relationship('Department', lazy='selectin')
 
     def __repr__(self) -> str:

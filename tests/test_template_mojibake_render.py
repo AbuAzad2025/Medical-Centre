@@ -55,34 +55,39 @@ def _make_role(login_as, client, ctx, role):
 
 
 class TestMojibakeEradicated:
-    @pytest.mark.parametrize('path', [
-        '/super-admin/dashboard',
-        '/super-admin/users',
-        '/super-admin/roles',
-        '/super-admin/reports',
-        '/super-admin/permissions',
-        '/super-admin/security-logs',
-        '/super-admin/audit-trail',
-        '/super-admin/system/maintenance',
-        '/super-admin/system-config',
-        '/super-admin/backup',
-        '/super-admin/departments',
-        '/super-admin/pricing',
-        '/super-admin/services',
-        '/manager/dashboard',
-        '/manager/analytics',
-        '/manager/reports',
-        '/manager/reports-center',
-        '/manager/staff',
-        '/manager/budget',
-        '/manager/pricing',
-        '/manager/settlements',
-        '/manager/settings',
-        '/manager/departments',
-        '/manager/exchange-rates',
-    ])
+    @pytest.mark.parametrize(
+        'path',
+        [
+            '/super-admin/dashboard',
+            '/super-admin/users',
+            '/super-admin/roles',
+            '/super-admin/reports',
+            '/super-admin/permissions',
+            '/super-admin/security-logs',
+            '/super-admin/audit-trail',
+            '/super-admin/system/maintenance',
+            '/super-admin/system-config',
+            '/super-admin/backup',
+            '/super-admin/departments',
+            '/super-admin/pricing',
+            '/super-admin/services',
+            '/manager/dashboard',
+            '/manager/analytics',
+            '/manager/reports',
+            '/manager/reports-center',
+            '/manager/staff',
+            '/manager/budget',
+            '/manager/pricing',
+            '/manager/settlements',
+            '/manager/settings',
+            '/manager/departments',
+            '/manager/exchange-rates',
+        ],
+    )
     def test_page_renders_clean(self, login_as, client, ctx, path):
-        _make_role(login_as, client, ctx, 'super_admin' if path.startswith('/super-admin') else 'manager')
+        _make_role(
+            login_as, client, ctx, 'super_admin' if path.startswith('/super-admin') else 'manager'
+        )
         resp = client.get(path)
         assert resp.status_code in (200, 302), path
         if resp.status_code != 200:
@@ -91,16 +96,19 @@ class TestMojibakeEradicated:
         assert '_("_(' not in text, f'residual mojibake in {path}'
         assert '"_("' not in text, f'residual mojibake in {path}'
 
-    @pytest.mark.parametrize('path, role', [
-        ('/reception/dashboard', 'reception'),
-        ('/doctor/dashboard', 'doctor'),
-        ('/nurse/dashboard', 'nurse'),
-        ('/lab/dashboard', 'lab'),
-        ('/radiology/dashboard', 'radiology'),
-        ('/emergency/dashboard', 'emergency'),
-        ('/accountant/dashboard', 'accountant'),
-        ('/medication/dashboard', 'pharmacist'),
-    ])
+    @pytest.mark.parametrize(
+        'path, role',
+        [
+            ('/reception/dashboard', 'reception'),
+            ('/doctor/dashboard', 'doctor'),
+            ('/nurse/dashboard', 'nurse'),
+            ('/lab/dashboard', 'lab'),
+            ('/radiology/dashboard', 'radiology'),
+            ('/emergency/dashboard', 'emergency'),
+            ('/accountant/dashboard', 'accountant'),
+            ('/medication/dashboard', 'pharmacist'),
+        ],
+    )
     def test_role_dashboards_render_clean(self, login_as, client, ctx, path, role):
         _make_role(login_as, client, ctx, role)
         resp = client.get(path)

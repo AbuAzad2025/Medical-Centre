@@ -155,9 +155,7 @@ def notify_waitlist_entry(entry_id: int, tenant_id, actor_id) -> tuple[dict, boo
     if entry is None:
         raise WaitlistError('Waitlist entry not found', 404)
     if entry.status != 'WAITING':
-        raise WaitlistError(
-            f'Entry is {entry.status}; only WAITING entries notify', 409
-        )
+        raise WaitlistError(f'Entry is {entry.status}; only WAITING entries notify', 409)
     patient = db.session.get(Patient, entry.patient_id)
     queued = False
     if patient is not None and patient.phone:
