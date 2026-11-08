@@ -95,12 +95,17 @@ def validate_hl7_message(raw: str) -> tuple[bool, str]:
         return False, 'Missing message type (MSH-9)'
     if not _MSG_TYPE_RE.match(msg_type):
         return False, f'Invalid message type format: {msg_type}'
-    # Every segment name must be a 3-character uppercase code.
+    # Every segment name must be a 3-character segment id: one uppercase
+    # letter followed by two alphanumerics. The previous rule demanded all
+    # letters, which rejected legitimate HL7 segments that contain digits
+    # (PV1, PV2, Z-segments) and made validation reject the very ADT messages
+    # this service generates.
+    seg_re = re.compile(r'[A-Z][A-Z0-9]{2}')
     for line in text.split('\r'):
         line = line.strip()
         if not line:
             continue
-        if len(line) < 3 or not line[:3].isalpha() or not line[:3].isupper():
+        if len(line) < 3 or not seg_re.fullmatch(line[:3]) or not line[:3].isupper():
             return False, f'Invalid segment: {line[:12]}'
     return True, ''
 

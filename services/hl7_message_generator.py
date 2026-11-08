@@ -114,13 +114,12 @@ def build_pv1(
         '',  # PV1-6
         attending_doctor,  # PV1-7
     ]
-    # attach visit id into PV1-19 (visit number) when provided
-    while len(fields) < 19:
+    # PV1-19 is the visit number. Pad to PV1-18, then append the visit id as
+    # the 19th field (index 18); the previous version produced 20 fields and
+    # landed the visit number in PV1-20 while claiming PV1-19.
+    while len(fields) < 18:
         fields.append('')
-    if len(fields) == 19:
-        fields.append(_str(visit_id))
-    else:
-        fields[19] = _str(visit_id)
+    fields.append(_str(visit_id))
     return build_segment('PV1', fields)
 
 
