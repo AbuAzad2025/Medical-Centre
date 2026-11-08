@@ -1,118 +1,92 @@
 var __M = window.__M || [];
 
+function dateStamp() {
+    return new Date().toISOString().split('T')[0];
+}
+
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function csvCell(value) {
+    const s = String(value == null ? '' : value);
+    // Spreadsheet formula-injection guard: leading = + - @ or tab would be
+    // interpreted as a formula by Excel/LibreOffice.
+    const guarded = /^[=+\-@\t]/.test(s) ? "'" + s : s;
+    return '"' + guarded.replace(/"/g, '""') + '"';
+}
+
 export function refreshAuditLogs() {
     location.reload();
 }
 
-export function exportAuditLogs() {
-    var csvContent = "data:text/csv;charset=utf-8,"
-        + window.__M0__.map(function(l) {
-            var ts = l.timestamp ? l.timestamp : "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f";
-            var user = l.user ? l.user.full_name : "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f";
-            return ts + "," + user + "," + l.action + "," + (l.entity_type || "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f") + "," + (l.description || "\u0644\u0627 \u064a\u0648\u062c\u062f \u062a\u0641\u0627\u0635\u064a\u0644") + "," + l.status + "\n";
-        }).join("");
+export function exportAuditLogs(format) {
+    format = (format || 'csv').toLowerCase();
+    const logs = Array.isArray(window.__M0__) ? window.__M0__ : [];
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "audit_logs_" + new Date().toISOString().split('T')[0] + ".csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-export function applyFilters() {
-
-    const form = document.getElementById('auditFiltersForm');
-    const formData = new FormData(form);
-
-    const filters = {};
-    for (let [key, value] of formData.entries()) {
-        if (value) filters[key] = value;
+    if (format === 'json') {
+        const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+        downloadBlob(blob, 'audit_logs_' + dateStamp() + '.json');
+        return 'json';
     }
 
-    Swal.fire({ title: 'تطبيق التصفية', text: 'تم تطبيق التصفية', icon: 'success' });
-}
-
-export function clearFilters() {
-
-    document.getElementById('auditFiltersForm').reset();
-    Swal.fire({ title: 'تم', text: 'تم مسح التصفية', icon: 'success' });
-}
-
-export function filterLogs(status, e) {
-    const rows = document.querySelectorAll('#auditLogsTable tbody tr');
-
-    rows.forEach(row => {
-        if (status === 'all' || row.dataset.status === status) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+    // 'csv' and 'excel' both produce a UTF-8 (BOM) CSV, which Excel opens
+    // natively; there is no server-side spreadsheet renderer, so this is the
+    // honest Excel-compatible export.
+    const headers = ['Timestamp', 'User', 'Action', 'Target Model', 'Target ID', 'IP Address', 'Details', 'Request ID'];
+    const lines = [headers];
+    logs.forEach(function (log) {
+        lines.push([
+            log.timestamp || '',
+            (log.actor && log.actor.full_name) || 'غير محدد',
+            log.action || '',
+            log.target_model || '',
+            log.target_id == null ? '' : log.target_id,
+            log.ip_address || '',
+            log.description || (log.changes ? JSON.stringify(log.changes) : ''),
+            log.request_id || '',
+        ]);
     });
-
-    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger').forEach(btn => {
-        btn.classList.remove('active');
-    });
-
-    if (e) e.target.classList.add('active');
-}
-
-export function viewLogDetails(logId) {
-    Swal.fire({ title: 'تفاصيل السجل', text: 'عرض تفاصيل السجل: ' + logId, icon: 'info' });
-}
-
-export function exportLog(logId) {
-    Swal.fire({ title: 'تصدير', text: 'تصدير السجل: ' + logId, icon: 'info' });
-}
-
-export function generateAuditReport() {
-    Swal.fire({ title: 'إنشاء تقرير', text: 'إنشاء تقرير التدقيق', icon: 'info' });
+    const csv = lines.map(function (row) { return row.map(csvCell).join(','); }).join('\r\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    downloadBlob(blob, 'audit_logs_' + dateStamp() + '.csv');
+    return 'csv';
 }
 
 export function exportAllLogs() {
-
-    exportAuditLogs();
+    return exportAuditLogs('csv');
 }
 
-export function cleanOldLogs() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد تنظيف السجلات القديمة (أكثر من 90 يوم)؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، تنظيف',
-        cancelButtonText: 'إلغاء'
-    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم تنظيف السجلات القديمة', icon: 'success' }); } });
+function openModal(modalId, contentId, text) {
+    const el = document.getElementById(contentId);
+    if (el) el.textContent = text;
+    if (window.bootstrap && window.bootstrap.Modal) {
+        const modalEl = document.getElementById(modalId);
+        if (modalEl) new window.bootstrap.Modal(modalEl).show();
+    }
 }
 
-export function viewAuditSettings() {
-    Swal.fire({ title: 'إعدادات التدقيق', text: 'عرض إعدادات التدقيق', icon: 'info' });
+export function showChangesModal(changes) {
+    const text = typeof changes === 'string' ? changes : JSON.stringify(changes, null, 2);
+    openModal('changesModal', 'changes-content', text);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+export function showLogDetails(log) {
+    openModal('detailsModal', 'details-content', JSON.stringify(log, null, 2));
+}
 
-    const rows = document.querySelectorAll('#auditLogsTable tbody tr');
-    rows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-        });
-    });
-});
-
-
-// Backward compatibility
-if (typeof exportLog !== "undefined") window.exportLog = exportLog;
-if (typeof viewAuditSettings !== "undefined") window.viewAuditSettings = viewAuditSettings;
+// Backward compatibility: only the functions the page actually uses.
 if (typeof refreshAuditLogs !== "undefined") window.refreshAuditLogs = refreshAuditLogs;
 if (typeof exportAuditLogs !== "undefined") window.exportAuditLogs = exportAuditLogs;
-if (typeof viewLogDetails !== "undefined") window.viewLogDetails = viewLogDetails;
-if (typeof cleanOldLogs !== "undefined") window.cleanOldLogs = cleanOldLogs;
-if (typeof generateAuditReport !== "undefined") window.generateAuditReport = generateAuditReport;
-if (typeof clearFilters !== "undefined") window.clearFilters = clearFilters;
 if (typeof exportAllLogs !== "undefined") window.exportAllLogs = exportAllLogs;
-if (typeof filterLogs !== "undefined") window.filterLogs = filterLogs;
-if (typeof applyFilters !== "undefined") window.applyFilters = applyFilters;
+if (typeof showChangesModal !== "undefined") window.showChangesModal = showChangesModal;
+if (typeof showLogDetails !== "undefined") window.showLogDetails = showLogDetails;
+
+export {};

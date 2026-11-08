@@ -1,122 +1,116 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadModule } from './test-utils.mjs';
 
-function baseDom() {
-  document.body.innerHTML = `
-    <table id="auditLogsTable"><tbody><tr data-status="SUCCESS"><td>x</td></tr><tr data-status="FAILED"><td>y</td></tr></tbody></table>
-    <form id="auditFiltersForm">
-      <input name="from" value="2026-01-01">
-      <input name="to" value="">
-      <select name="status"><option value="SUCCESS">SUCCESS</option></select>
-    </form>
-  `;
+
+function blobText(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(blob);
+  });
 }
 
 beforeEach(() => {
-  baseDom();
+  document.body.innerHTML = `
+    <div class="modal" id="changesModal"><pre id="changes-content"></pre></div>
+    <div class="modal" id="detailsModal"><pre id="details-content"></pre></div>
+  `;
   window.__M = [];
   window.escHtml = (s) => String(s || '');
   window.__M0__ = [
-    { timestamp: '2026-11-01T09:00', user: { full_name: 'admin' }, action: 'login', entity_type: 'user', description: 'login', status: 'SUCCESS' },
+    { timestamp: '2026-11-01T09:00', user: { full_name: 'admin' }, action: 'login', entity_type: 'user', description: 'login', status: 'SUCCESS', target_model: 'User', target_id: 7, ip_address: '10.0.0.1', request_id: 'req-1' },
   ];
   window.API_ROUTES = {};
+  window.location = { reload: vi.fn() };
   window.Swal = { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) };
-  window.bootstrap = { Collapse: { getOrCreateInstance: vi.fn(() => ({ show: vi.fn() })) }, Modal: { getOrCreateInstance: vi.fn(() => ({ show: vi.fn(), hide: vi.fn() })) } };
+  window.bootstrap = {
+    Modal: vi.fn().mockImplementation(() => ({ show: vi.fn(), hide: vi.fn() })),
+  };
+  global.URL.createObjectURL = vi.fn(() => 'blob:x');
+  global.URL.revokeObjectURL = vi.fn();
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.useRealTimers();
 });
 
 describe('super_admin/audit_trail.js', () => {
-  it('refreshAuditLogs calls reload', async () => {
+  it('refreshAuditLogs reloads the page', async () => {
     const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    expect(() => mod.refreshAuditLogs()).not.toThrow();
+    mod.refreshAuditLogs();
+    expect(window.location.reload).toHaveBeenCalled();
   });
 
-  it('exportAuditLogs builds CSV link', async () => {
+  it('exportAuditLogs() exports the real __M0__ array as CSV', async () => {
     const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    expect(() => mod.exportAuditLogs()).not.toThrow();
+    expect(mod.exportAuditLogs()).toBe('csv');
+    expect(global.URL.createObjectURL).toHaveBeenCalled();
+    const blob = global.URL.createObjectURL.mock.calls[0][0];
+    expect(blob.type).toContain('text/csv');
   });
 
-  it('applyFilters collects non-empty fields', async () => {
+  it('exportAuditLogs(json) exports real JSON payload', async () => {
     const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    mod.applyFilters();
-    expect(window.Swal.fire).toHaveBeenCalled();
+    expect(mod.exportAuditLogs('json')).toBe('json');
+    const blob = global.URL.createObjectURL.mock.calls[0][0];
+    expect(blob.type).toContain('application/json');
   });
 
-  it('clearFilters resets form', async () => {
+  it('exportAuditLogs with empty payload still produces a file', async () => {
+    window.__M0__ = undefined;
     const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    mod.clearFilters();
-    expect(document.getElementById('auditFiltersForm').reset).toBeDefined();
-    expect(window.Swal.fire).toHaveBeenCalled();
+    expect(() => mod.exportAuditLogs('csv')).not.toThrow();
   });
 
-  it('filterLogs shows all rows for all', async () => {
+  it('CSV cells with quotes and commas are escaped', async () => {
+    window.__M0__ = [{ timestamp: '2026-11-08', actor: { full_name: 'Ali, "The Boss"' }, action: 'update', entity_type: 'Patient' }];
     const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    mod.filterLogs('all', null);
-    const rows = document.querySelectorAll('#auditLogsTable tbody tr');
-    expect(rows[0].style.display).toBe('');
-    expect(rows[1].style.display).toBe('');
+    mod.exportAuditLogs('csv');
+    const blob = global.URL.createObjectURL.mock.calls[0][0];
+    const text = await blobText(blob);
+    expect(text).toContain('"Ali, ""The Boss"""');
   });
 
-  it('filterLogs filters by status', async () => {
+  it('CSV formula injection is neutralised with a leading quote', async () => {
+    window.__M0__ = [{ timestamp: '=1+1', user: { full_name: 'x' }, action: 'login' }];
     const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    mod.filterLogs('SUCCESS', null);
-    const rows = document.querySelectorAll('#auditLogsTable tbody tr');
-    expect(rows[0].style.display).toBe('');
-    expect(rows[1].style.display).toBe('none');
+    mod.exportAuditLogs('csv');
+    const blob = global.URL.createObjectURL.mock.calls[0][0];
+    const text = await blobText(blob);
+    expect(text).toContain('"\u0027=1+1"');
   });
 
-  it('filterLogs marks clicked button active', async () => {
+  it('showChangesModal renders the payload into the changes pre element', async () => {
     const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    const btn = document.createElement('button');
-    mod.filterLogs('all', { target: btn });
-    expect(btn.classList.contains('active')).toBe(true);
+    mod.showChangesModal({ before: 1, after: 2 });
+    expect(document.getElementById('changes-content').textContent).toContain('"before": 1');
+    expect(window.bootstrap.Modal).toHaveBeenCalled();
   });
 
-  it('viewLogDetails shows details', async () => {
+  it('showChangesModal with a string payload passes it through', async () => {
     const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    mod.viewLogDetails('42');
-    expect(window.Swal.fire.mock.calls[0][0].text).toContain('42');
+    mod.showChangesModal('raw text');
+    expect(document.getElementById('changes-content').textContent).toBe('raw text');
   });
 
-  it('exportLog shows info Swal', async () => {
+  it('showLogDetails renders the log JSON into the details pre element', async () => {
     const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    mod.exportLog('42');
-    expect(window.Swal.fire.mock.calls[0][0].icon).toBe('info');
+    mod.showLogDetails({ id: 5, action: 'login' });
+    expect(document.getElementById('details-content').textContent).toContain('"id": 5');
   });
 
-  it('generateAuditReport shows info Swal', async () => {
+  it('exportAllLogs delegates to exportAuditLogs with csv format', async () => {
     const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    mod.generateAuditReport();
-    expect(window.Swal.fire.mock.calls[0][0].icon).toBe('info');
+    expect(mod.exportAllLogs()).toBe('csv');
   });
 
-  it('exportAllLogs delegates to exportAuditLogs', async () => {
+  it('missing modal elements do not crash the modal helpers', async () => {
+    document.body.innerHTML = '';
     const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    expect(() => mod.exportAllLogs()).not.toThrow();
-  });
-
-  it('cleanOldLogs confirms before cleaning', async () => {
-    const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    await mod.cleanOldLogs();
-    expect(window.Swal.fire).toHaveBeenCalled();
-  });
-
-  it('viewAuditSettings shows settings info', async () => {
-    const mod = await loadModule('static/js/pages/super_admin/audit_trail.js');
-    mod.viewAuditSettings();
-    expect(window.Swal.fire.mock.calls[0][0].icon).toBe('info');
-  });
-
-  it('DOMContentLoaded attaches hover handlers', async () => {
-    await loadModule('static/js/pages/super_admin/audit_trail.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-    const row = document.querySelector('#auditLogsTable tbody tr');
-    row.dispatchEvent(new MouseEvent('mouseenter'));
-    expect(row.style.backgroundColor).toBe('rgb(248, 249, 250)');
-    row.dispatchEvent(new MouseEvent('mouseleave'));
-    expect(row.style.backgroundColor).toBe('');
+    expect(() => mod.showChangesModal({ a: 1 })).not.toThrow();
+    expect(() => mod.showLogDetails({ b: 2 })).not.toThrow();
   });
 });

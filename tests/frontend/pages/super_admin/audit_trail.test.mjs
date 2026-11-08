@@ -3,19 +3,14 @@ import { loadModule } from '../../test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `
-    <div id="app"></div>
-    <table id="auditLogsTable"><tbody>
-      <tr data-status="success"><td>Success Log</td></tr>
-      <tr data-status="failure"><td>Failure Log</td></tr>
-    </tbody></table>
-    <form id="auditFiltersForm"></form>
-    <button class="btn-outline-primary">All</button>
-    <button class="btn-outline-success">Success</button>
+    <div class="modal" id="changesModal"><pre id="changes-content"></pre></div>
+    <div class="modal" id="detailsModal"><pre id="details-content"></pre></div>
   `;
   window.__M0__ = [{ timestamp: '2026-01-01', user: { full_name: 'Admin' }, action: 'login', entity_type: 'user', description: 'Login', status: 'success' }];
   window.API_ROUTES = {};
   window.escHtml = (s) => String(s || '');
-  window.Swal = { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) };
+  global.URL.createObjectURL = vi.fn(() => 'blob:x');
+  global.URL.revokeObjectURL = vi.fn();
 });
 
 describe('super_admin/audit_trail.js', () => {
@@ -23,9 +18,9 @@ describe('super_admin/audit_trail.js', () => {
     await loadModule('static/js/pages/super_admin/audit_trail.js');
   });
 
-  test('filterLogs is a function', async () => {
+  test('showChangesModal is a function', async () => {
     await loadModule('static/js/pages/super_admin/audit_trail.js');
-    expect(typeof filterLogs).toBe('function');
+    expect(typeof showChangesModal).toBe('function');
   });
 
   test('exportAuditLogs is a function', async () => {
@@ -33,19 +28,15 @@ describe('super_admin/audit_trail.js', () => {
     expect(typeof exportAuditLogs).toBe('function');
   });
 
-  test('filterLogs with event parameter', async () => {
+  test('showChangesModal accepts an inline-passed object like the row buttons do', async () => {
     await loadModule('static/js/pages/super_admin/audit_trail.js');
-    const btn = document.querySelector('.btn-outline-primary');
-    const event = { target: btn };
-    filterLogs('all', event);
-    expect(btn.classList.contains('active')).toBe(true);
+    showChangesModal({ before: 1, after: 2 });
+    expect(document.getElementById('changes-content').textContent).toContain('"before": 1');
   });
 
-  test('filterLogs filters by status', async () => {
+  test('showLogDetails renders JSON for an inline-passed object', async () => {
     await loadModule('static/js/pages/super_admin/audit_trail.js');
-    filterLogs('success');
-    const rows = document.querySelectorAll('#auditLogsTable tbody tr');
-    expect(rows[0].style.display).toBe('');
-    expect(rows[1].style.display).toBe('none');
+    showLogDetails({ id: 9, action: 'login' });
+    expect(document.getElementById('details-content').textContent).toContain('"id": 9');
   });
 });
