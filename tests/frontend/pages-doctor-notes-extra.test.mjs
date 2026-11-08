@@ -260,3 +260,110 @@ describe('doctor/notes.js extra branches', () => {
     expect(window.console.warn).toHaveBeenCalled();
   });
 });
+describe('doctor/notes.js remaining branch arms', () => {
+  it('applyTplBtn with missing template select element is a no-op', async () => {
+    document.getElementById('note_template_select').remove();
+    await loadModule('static/js/pages/doctor/notes.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 20));
+    expect(() => document.getElementById('apply_note_template_btn').click()).not.toThrow();
+  });
+
+  it('applyTplBtn with missing notes textarea is a no-op', async () => {
+    document.getElementById('medical_notes').remove();
+    await loadModule('static/js/pages/doctor/notes.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 20));
+    expect(() => document.getElementById('apply_note_template_btn').click()).not.toThrow();
+  });
+
+  it('apply template without text inserts the empty string', async () => {
+    global.fetch = vi.fn((url) => {
+      if (String(url).includes('note-templates')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ templates: [{ id: '3', name: 'NoText', is_active: true }] }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true }) });
+    });
+    await loadModule('static/js/pages/doctor/notes.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 30));
+    document.getElementById('note_template_select').value = '3';
+    document.getElementById('apply_note_template_btn').click();
+    expect(document.getElementById('medical_notes').value).toBe('');
+  });
+
+  it('click directly on the table body (no target) is a no-op', async () => {
+    await loadModule('static/js/pages/doctor/notes.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 30));
+    const tbody = document.getElementById('dnt_table_body');
+    tbody.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(window.notify.confirm).not.toHaveBeenCalled();
+  });
+
+  it('template delete without csrf meta sends no token header', async () => {
+    document.querySelector('meta[name="csrf-token"]').remove();
+    await loadModule('static/js/pages/doctor/notes.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 30));
+    const btn = document.querySelector('#dnt_table_body button[data-action="delete"]');
+    btn.click();
+    await new Promise(r => setTimeout(r, 30));
+    const deleteCall = global.fetch.mock.calls.find(c => String(c[0]).includes('note-templates/delete'));
+    expect(deleteCall).toBeTruthy();
+    expect(deleteCall[1].headers['X-CSRFToken']).toBeUndefined();
+  });
+
+  it('template delete network failure shows the connection error', async () => {
+    global.fetch = vi.fn((url) => {
+      const u = String(url);
+      if (u.includes('note-templates/delete')) return Promise.reject(new Error('network'));
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ templates: TEMPLATES }) });
+    });
+    await loadModule('static/js/pages/doctor/notes.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 30));
+    const btn = document.querySelector('#dnt_table_body button[data-action="delete"]');
+    btn.click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(window.notify.error).toHaveBeenCalledWith('انقطع الاتصال. تحقق من الشبكة وحاول مرة أخرى.');
+  });
+
+  it('template save fetch failure shows the connection error', async () => {
+    global.fetch = vi.fn((url) => {
+      const u = String(url);
+      if (u.includes('note-templates/save')) return Promise.reject(new Error('network'));
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ templates: TEMPLATES }) });
+    });
+    await loadModule('static/js/pages/doctor/notes.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 30));
+    document.getElementById('doctorNoteTemplateForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await new Promise(r => setTimeout(r, 40));
+    expect(window.notify.error).toHaveBeenCalledWith('انقطع الاتصال. تحقق من الشبكة وحاول مرة أخرى.');
+  });
+
+  it('template save non-ok shows the retry message', async () => {
+    global.fetch = vi.fn((url) => {
+      const u = String(url);
+      if (u.includes('note-templates/save')) return Promise.resolve({ ok: false, status: 500 });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ templates: TEMPLATES }) });
+    });
+    await loadModule('static/js/pages/doctor/notes.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 30));
+    document.getElementById('doctorNoteTemplateForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await new Promise(r => setTimeout(r, 40));
+    expect(window.notify.error).toHaveBeenCalledWith('تعذّر حفظ القالب. حاول مرة أخرى.');
+  });
+
+  it('applyTplBtn appends template text to existing notes', async () => {
+    await loadModule('static/js/pages/doctor/notes.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 30));
+    document.getElementById('medical_notes').value = 'previous';
+    document.getElementById('note_template_select').value = '1';
+    document.getElementById('apply_note_template_btn').click();
+    expect(document.getElementById('medical_notes').value).toBe('previous\nمرحباً');
+  });
+});
