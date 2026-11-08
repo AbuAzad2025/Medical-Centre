@@ -1,10 +1,24 @@
 var __M = window.__M || [];
 const apiUrl = window.__M0__;
+
+// Standalone template: base.js is not loaded on this page, so EscHtml does not
+// exist yet. Use it when present, otherwise a local equivalent — never trust
+// server data raw into innerHTML.
+const escHtml = window.escHtml || function (v) {
+    return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+};
         const grid = document.getElementById('calls-grid');
         const clockEl = document.getElementById('live-clock');
-        const queueSocket = io('/queue');
+        // Socket.io may be blocked/unavailable (kiosk offline); degrade to polling.
+        const queueSocket = (typeof io === 'function') ? io('/queue') : { on: function () {} };
 
         function render(items) {
+            if (!grid) return;
             grid.innerHTML = '';
             if (!items || items.length === 0) {
                 const div = document.createElement('div');
@@ -18,11 +32,11 @@ const apiUrl = window.__M0__;
                 col.className = 'col-12 col-md-6 col-lg-4';
                 col.innerHTML = `
                     <div class="call-card p-4 rounded">
-                        <div class="queue-number text-warning">${it.queue_number || '-'}</div>
-                        <div class="fs-5">${window.escHtml(it.department_name || '')}</div>
-                        <div class="text-muted">${window.escHtml(it.doctor_name || '')}</div>
-                        <div class="text-muted">${it.room_name ? 'غرفة ' + window.escHtml(it.room_name) : ''}</div>
-                        <div class="text-muted">${window.escHtml(it.status || '')}</div>
+                        <div class="queue-number text-warning">${escHtml(it.queue_number == null ? '-' : it.queue_number)}</div>
+                        <div class="fs-5">${escHtml(it.department_name || '')}</div>
+                        <div class="text-muted">${escHtml(it.doctor_name || '')}</div>
+                        <div class="text-muted">${it.room_name ? 'غرفة ' + escHtml(it.room_name) : ''}</div>
+                        <div class="text-muted">${escHtml(it.status || '')}</div>
                     </div>
                 `;
                 grid.appendChild(col);
@@ -46,6 +60,7 @@ const apiUrl = window.__M0__;
         }
 
         function tickClock() {
+            if (!clockEl) return;
             const now = new Date();
             const h = String(now.getHours()).padStart(2, '0');
             const m = String(now.getMinutes()).padStart(2, '0');

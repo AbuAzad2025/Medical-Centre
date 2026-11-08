@@ -1,5 +1,7 @@
 'use strict';
 
+import { maskNationalId, maskPhone } from './utils/pii_mask.js';
+
 export function debounce(fn, ms) {
   let t;
   return function (...args) {
@@ -33,7 +35,7 @@ export function initSmartSearch(root) {
     if (infoEl) {
       infoEl.innerHTML = '<strong>المريض المحدد:</strong> ';
       const details = document.createTextNode(
-        `${patient.full_name} | الهوية: ${window.PiiMask ? window.PiiMask.nationalId(patient.national_id || '-') : (patient.national_id || '-')} | الهاتف: ${window.PiiMask ? window.PiiMask.phone(patient.phone || '-') : (patient.phone || '-')}`
+        `${patient.full_name} | الهوية: ${maskNationalId(patient.national_id || '-') || '-'} | الهاتف: ${maskPhone(patient.phone || '-') || '-'}`
       );
       infoEl.appendChild(details);
       infoEl.classList.remove('d-none');
@@ -80,12 +82,12 @@ export function initSmartSearch(root) {
           const nameStrong = document.createElement('strong');
           nameStrong.textContent = patient.full_name;
           const idSmall = document.createElement('small');
-          idSmall.textContent = patient.national_id || '';
+          idSmall.textContent = maskNationalId(patient.national_id || '');
           nameDiv.appendChild(nameStrong);
           nameDiv.appendChild(idSmall);
           const phoneSmall = document.createElement('small');
           phoneSmall.className = 'text-muted';
-          phoneSmall.textContent = patient.phone || '';
+          phoneSmall.textContent = maskPhone(patient.phone || '');
           item.appendChild(nameDiv);
           item.appendChild(phoneSmall);
           item.addEventListener('click', () => selectPatient(patient));

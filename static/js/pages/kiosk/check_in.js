@@ -1,5 +1,16 @@
 'use strict';
 
+// Standalone-safe escaping: the kiosk shell does load base.js, but this page
+// must never render server data raw even if that script fails to arrive.
+function escapeHtml(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function doCheckIn() {
   var input = document.getElementById('nationalId');
   var result = document.getElementById('kioskResult');
@@ -20,13 +31,13 @@ export function doCheckIn() {
     .then(function (res) {
       var d = res.data || {};
       if (d.success) {
-        var q = d.queue_number ? '<div class="display-6 my-2">' + d.queue_number + '</div>' : '';
-        showResult(true, '<strong>' + (d.patient_name || '') + '</strong><br>' + (d.message || '') + q);
+        var q = d.queue_number ? '<div class="display-6 my-2">' + escapeHtml(d.queue_number) + '</div>' : '';
+        showResult(true, '<strong>' + escapeHtml(d.patient_name || '') + '</strong><br>' + escapeHtml(d.message || '') + q);
         if (navigator.vibrate) navigator.vibrate(10);
         input.value = '';
         setTimeout(function () { result.hidden = true; }, 8000);
       } else {
-        showResult(false, d.message || 'تعذر تسجيل الوصول');
+        showResult(false, escapeHtml(d.message || 'تعذر تسجيل الوصول'));
       }
     })
     .catch(function () {

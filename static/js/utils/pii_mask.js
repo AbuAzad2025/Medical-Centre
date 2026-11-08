@@ -45,17 +45,20 @@ export function toggleReveal(btn, value) {
   }
 }
 
-window.PiiMask = {
-  nationalId: maskNationalId,
-  phone: maskPhone,
-  name: maskName,
-  email: maskEmail,
-  toggleReveal: toggleReveal,
-};
+if (typeof window !== 'undefined') {
+  window.PiiMask = {
+    nationalId: maskNationalId,
+    phone: maskPhone,
+    name: maskName,
+    email: maskEmail,
+    toggleReveal: toggleReveal,
+  };
+}
 
-// Backward compatibility
-if (typeof maskNationalId !== 'undefined') window.maskNationalId = maskNationalId;
-if (typeof maskPhone !== 'undefined') window.maskPhone = maskPhone;
-if (typeof maskName !== 'undefined') window.maskName = maskName;
-if (typeof maskEmail !== 'undefined') window.maskEmail = maskEmail;
-if (typeof toggleReveal !== 'undefined') window.toggleReveal = toggleReveal;
+if (typeof window !== 'undefined') {
+  if (typeof maskNationalId !== 'undefined') window.maskNationalId = maskNationalId;
+  if (typeof maskPhone !== 'undefined') window.maskPhone = maskPhone;
+  if (typeof maskName !== 'undefined') window.maskName = maskName;
+  if (typeof maskEmail !== 'undefined') window.maskEmail = maskEmail;
+  if (typeof toggleReveal !== 'undefined') window.toggleReveal = toggleReveal;
+}

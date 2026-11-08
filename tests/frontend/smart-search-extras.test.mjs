@@ -16,7 +16,6 @@ beforeEach(() => {
   baseDom();
   window.__M = [];
   window.escHtml = (s) => String(s ?? '');
-  window.PiiMask = { nationalId: (v) => 'masked-nid', phone: (v) => 'masked-phone' };
   window.onPatientPicked = vi.fn();
   global.fetch = vi.fn().mockResolvedValue({
     ok: true,
@@ -51,7 +50,8 @@ describe('smart-search.js data-attribute fallback arms', () => {
     expect(document.getElementById('externalHidden').value).toBe('42');
   });
 
-  it('selectPatient renders info text with PiiMask applied', async () => {
+  it('selectPatient always renders masked identifiers', async () => {
+    window.PiiMask = undefined; // module-level PiiMask is a fallback, not the mechanism
     const mod = await loadModule('static/js/smart-search.js');
     mod.initSmartSearch(document.getElementById('ss'));
     const input = document.querySelector('[data-smart-search-input]');
@@ -59,8 +59,11 @@ describe('smart-search.js data-attribute fallback arms', () => {
     input.dispatchEvent(new Event('input'));
     await vi.advanceTimersByTimeAsync(350);
     document.querySelector('.smart-search-results button').click();
-    expect(document.getElementById('infoBox').textContent).toContain('masked-nid');
-    expect(document.getElementById('infoBox').textContent).toContain('masked-phone');
+    const infoText = document.getElementById('infoBox').textContent;
+    expect(infoText).toContain('111XXXXX3');
+    expect(infoText).toContain('XXXXXX0000');
+    expect(infoText).not.toContain('111222333');
+    expect(infoText).not.toContain('0599000000');
     expect(document.getElementById('infoBox').classList.contains('d-none')).toBe(false);
   });
 
@@ -75,8 +78,8 @@ describe('smart-search.js data-attribute fallback arms', () => {
     expect(window.onPatientPicked).toHaveBeenCalledWith(expect.objectContaining({ id: 42 }));
   });
 
-  it('selectPatient without PiiMask falls back to raw national_id and phone', async () => {
-    delete window.PiiMask;
+  it('raw national_id and phone are never rendered in the info box', async () => {
+    delete window.PiiMask; // no ambient PiiMask anywhere: masks are module-internal
     const mod = await loadModule('static/js/smart-search.js');
     mod.initSmartSearch(document.getElementById('ss'));
     const input = document.querySelector('[data-smart-search-input]');
@@ -84,8 +87,10 @@ describe('smart-search.js data-attribute fallback arms', () => {
     input.dispatchEvent(new Event('input'));
     await vi.advanceTimersByTimeAsync(350);
     document.querySelector('.smart-search-results button').click();
-    expect(document.getElementById('infoBox').textContent).toContain('111222333');
-    expect(document.getElementById('infoBox').textContent).toContain('0599000000');
+    const infoText = document.getElementById('infoBox').textContent;
+    expect(infoText).not.toContain('111222333');
+    expect(infoText).not.toContain('0599000000');
+    expect(infoText).toContain('111XXXXX3');
   });
 
   it('data-on-select pointing at a non-function is ignored', async () => {
@@ -158,7 +163,6 @@ describe('smart-search.js remaining arms', () => {
   });
 
   it('patient with fullName but missing national_id renders the fallback dash', async () => {
-    window.PiiMask = { nationalId: (v) => 'masked-nid', phone: (v) => 'masked-phone' };
     global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ patients: [{ id: 1, full_name: 'Ali' }] }) });
     const mod = await loadModule('static/js/smart-search.js');
     mod.initSmartSearch(document.getElementById('ss'));
