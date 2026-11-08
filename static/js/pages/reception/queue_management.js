@@ -167,7 +167,14 @@ export function callPatient(ticketId) {
 }
 
 export function startTreatment(ticketId) {
-    fetch(((window.API_ROUTES && window.API_ROUTES.start_treatment) || '/reception/queue/start-treatment/0').replace('/0', '/' + ticketId), { credentials: 'same-origin' })
+    // The inline modal button calls startTreatment() with no argument; fall
+    // back to the ticket stored by callPatient() instead of sending undefined.
+    const id = ticketId || currentTicketId;
+    if (!id) {
+        Swal.fire({ title: 'خطأ', text: 'لم يتم تحديد رقم التذكرة', icon: 'error' });
+        return;
+    }
+    fetch(((window.API_ROUTES && window.API_ROUTES.start_treatment) || '/reception/queue/start-treatment/0').replace('/0', '/' + id), { credentials: 'same-origin' })
         .then(response => {
             if (!response.ok) throw new Error(response.status);
             return response.text();

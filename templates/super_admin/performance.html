@@ -1,90 +1,89 @@
 {% extends "base.html" %}
 {% from 'partials/_page_header.html' import page_header %}
 
-{% block title %}مراقبة الأداء - السوبر أدمن{% endblock %}
+{% block title %}أداء النظام{% endblock %}
 
 {% block content %}
-{{ page_header(title='مراقبة الأداء', subtitle='_("مراقبة أداء النظام والموارد")', icon='fas fa-chart-line') }}
+{{ page_header(title='أداء النظام', subtitle='مراقبة أداء النظام بشكل حي', icon='fas fa-chart-line') }}
 
 <div class="stats-grid fade-in-up">
     <div class="stat-card">
         <div class="stat-icon info">
             <i class="fas fa-microchip"></i>
         </div>
-        <div class="stat-value" id="cpu-usage">0%</div>
-        <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("استخدام المعالج")")")")")")")') }}</div>
+        <div class="stat-value" id="cpu-usage">-</div>
+        <div class="stat-label">معالج النظام</div>
     </div>
-    
+
     <div class="stat-card">
         <div class="stat-icon success">
             <i class="fas fa-memory"></i>
         </div>
-        <div class="stat-value" id="memory-usage">0%</div>
-        <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("استخدام الذاكرة")")")")")")")') }}</div>
+        <div class="stat-value" id="memory-usage">-</div>
+        <div class="stat-label">استهلاك الذاكرة</div>
     </div>
-    
+
     <div class="stat-card">
         <div class="stat-icon warning">
             <i class="fas fa-hdd"></i>
         </div>
-        <div class="stat-value" id="disk-usage">0%</div>
-        <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("استخدام القرص")")")")")")")') }}</div>
+        <div class="stat-value" id="disk-usage">-</div>
+        <div class="stat-label">استهلاك القرص</div>
     </div>
-    
+
     <div class="stat-card">
         <div class="stat-icon danger">
             <i class="fas fa-clock"></i>
         </div>
-        <div class="stat-value" id="uptime">0</div>
-        <div class="stat-label">{{ _('_("_(" _(" _(" _(" _(" _("وقت التشغيل (ساعة)")")")")")")")') }}</div>
+        <div class="stat-value" id="uptime">-</div>
+        <div class="stat-label">وقت التشغيل (ساعة)</div>
     </div>
 </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-chart-line"></i>
-                        {{ _('_("_(" _(" _(" _(" _(" _("إحصائيات الأداء")")")")")")")') }}
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5>{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات قاعدة البيانات")")")")")")")') }}</h5>
-                            <ul class="list-group">
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    {{ _('_("_(" _(" _(" _(" _(" _("عدد الجداول")")")")")")")') }}
-                                    <span class="badge bg-primary rounded-pill">0</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    {{ _('_("_(" _(" _(" _(" _(" _("حجم قاعدة البيانات")")")")")")")') }}
-                                    <span class="badge bg-primary rounded-pill">0 MB</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    {{ _('_("_(" _(" _(" _(" _(" _("استعلامات/ثانية")")")")")")")') }}
-                                    <span class="badge bg-primary rounded-pill">0</span>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h5>{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات التطبيق")")")")")")")') }}</h5>
-                            <ul class="list-group">
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    {{ _('_("_(" _(" _(" _(" _(" _("الطلبات/الدقيقة")")")")")")")') }}
-                                    <span class="badge bg-primary rounded-pill">0</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    {{ _('_("_(" _(" _(" _(" _(" _("متوسط وقت الاستجابة")")")")")")")') }}
-                                    <span class="badge bg-primary rounded-pill">0 ms</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    {{ _('_("_(" _(" _(" _(" _(" _("المستخدمين النشطين")")")")")")")') }}
-                                    <span class="badge bg-primary rounded-pill">0</span>
-                                </li>
-                            </ul>
-                        </div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-line"></i>
+                    المؤشرات الحقيقية
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>مؤشرات قاعدة البيانات</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                اتصالات نشطة بالقاعدة
+                                <span class="badge bg-primary rounded-pill" id="active-db-connections">-</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                حجم قاعدة البيانات
+                                <span class="badge bg-primary rounded-pill"><span id="db-size-mb">-</span> MB</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                زيارات اليوم
+                                <span class="badge bg-primary rounded-pill" id="visits-today">-</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>نشاط اليوم</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                مدفوعات اليوم
+                                <span class="badge bg-primary rounded-pill"><span id="payments-today">-</span> عملية</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                إجمالي مدفوعات اليوم
+                                <span class="badge bg-primary rounded-pill" id="payment-amount-today">-</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                وصفات طبية اليوم
+                                <span class="badge bg-primary rounded-pill" id="prescriptions-today">-</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>

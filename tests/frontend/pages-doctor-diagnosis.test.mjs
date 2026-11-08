@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadModule } from './test-utils.mjs';
+import { isolateDomContentLoaded } from './dom-isolation.mjs';
+
+const iso = isolateDomContentLoaded();
 
 function baseDom() {
   document.body.innerHTML = `
@@ -13,6 +16,7 @@ function baseDom() {
 }
 
 beforeEach(() => {
+  iso.install();
   baseDom();
   window.showToast = vi.fn();
   window.console.warn = vi.fn();
@@ -21,6 +25,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  iso.cleanup();
   vi.useRealTimers();
 });
 
@@ -32,36 +37,11 @@ describe('doctor/diagnosis.js', () => {
     expect(document.getElementById('diagnosisForm').classList.contains('dirty')).toBe(true);
   });
 
-  it('periodic health check POSTs after 30 seconds', async () => {
+  it('no timers resubmit the clinical form after any amount of time', async () => {
     await loadModule('static/js/pages/doctor/diagnosis.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
-    await vi.advanceTimersByTimeAsync(30000);
-    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/doctor/diagnosis/save'), expect.objectContaining({ method: 'POST' }));
-  });
-
-  it('periodic health check failure shows toast', async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error('network'));
-    await loadModule('static/js/pages/doctor/diagnosis.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-    await vi.advanceTimersByTimeAsync(30000);
-    expect(window.showToast).toHaveBeenCalled();
-  });
-
-  it('periodic health check non-ok response shows toast', async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });
-    await loadModule('static/js/pages/doctor/diagnosis.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-    await vi.advanceTimersByTimeAsync(30000);
-    expect(window.showToast).toHaveBeenCalled();
-  });
-
-  it('fallback to console.warn when no showToast and failure occurs', async () => {
-    delete window.showToast;
-    global.fetch = vi.fn().mockRejectedValue(new Error('network'));
-    await loadModule('static/js/pages/doctor/diagnosis.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-    await vi.advanceTimersByTimeAsync(30000);
-    expect(window.console.warn).toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('beforeunload with dirty form prevents default and flags returnValue', async () => {
@@ -80,12 +60,12 @@ describe('doctor/diagnosis.js', () => {
     expect(form.classList.contains('dirty')).toBe(false);
   });
 
-  it('beforeunload clears the interval', async () => {
+  it('beforeunload on a clean form does not prevent default', async () => {
     await loadModule('static/js/pages/doctor/diagnosis.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
-    window.dispatchEvent(new Event('beforeunload'));
-    await vi.advanceTimersByTimeAsync(120000);
-    expect(global.fetch).not.toHaveBeenCalled();
+    const e = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(e);
+    expect(e.defaultPrevented).toBe(false);
   });
 
   it('no form in DOM does not wire anything', async () => {

@@ -46,3 +46,5 @@ cryptography==50.0.0
 # about CI. Two red builds came from this before the pin existed. Keep the two
 # versions identical.
 ruff==0.16.4
+psutil==7.2.2
+

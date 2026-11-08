@@ -9,9 +9,17 @@ if (typeof Chart !== 'undefined') {
 var __M = window.__M || [];
 window.__M0__
 
+// The templates set the chart payload on window.__M0__ (a bare global); the
+// #acc-chart-data json-script element does not exist on those pages. Prefer it, and fall
+// back to the element for pages that still ship it.
 const el = document.getElementById('acc-chart-data');
-if (el) {
-const d = JSON.parse(el.textContent);
+let d = null;
+if (window.__M0__ && window.__M0__.spark) {
+  d = window.__M0__;
+} else if (el) {
+  d = JSON.parse(el.textContent);
+}
+if (d) {
   function spark(id, data, color) {
     new Chart(document.getElementById(id).getContext('2d'), {
       type: 'line',

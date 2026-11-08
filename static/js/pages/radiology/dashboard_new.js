@@ -10,8 +10,13 @@ var __M = window.__M || [];
 
 (function() {
   const el = document.getElementById('rad-chart-data');
-  if (!el) return;
-  const d = JSON.parse(el.textContent);
+  let d = null;
+  if (window.__M0__ && window.__M0__.spark) {
+    d = window.__M0__;
+  } else if (el) {
+    d = JSON.parse(el.textContent);
+  }
+  if (!d) return;
 
   function spark(id, data, color) {
     new Chart(document.getElementById(id).getContext('2d'), {

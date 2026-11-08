@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 # Imports
 from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 from app.core.platform_capabilities import require_platform_capability
 from app.extensions import db
@@ -15,6 +15,89 @@ from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import super_admin_required
 
 # SYSTEM ROUTES
+
+
+@super_admin_bp.route('/system/force-logout-all', methods=['POST'])
+@login_required
+@super_admin_required
+def force_logout_all_users():
+    """إجبار الجميع على تسجيل الخروج — يُبطل كل جلسات الدخول النشطة."""
+    try:
+        from models.audit_trail import AuditTrail
+        from models.user import User
+
+        updated = (
+            db.session.execute(
+                select(func.count(User.id)).where(User.is_active == True)  # noqa: E712
+            )
+            .scalar()
+            or 0
+        )
+        db.session.execute(
+            update(User).values(session_version=func.coalesce(User.session_version, 0) + 1)
+        )
+
+        db.session.add(
+            AuditTrail(
+                entity_type='system',
+                entity_id=0,
+                tenant_id=getattr(current_user, 'tenant_id', None),
+                action='force_logout',
+                user_id=current_user.id,
+                user_ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                description=f'إجبار جميع المستخدمين على تسجيل الخروج ({updated} مستخدم)',
+                notes='force_logout_all',
+            )
+        )
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        return jsonify({'success': True, 'message': f'تم إجبار {updated} مستخدم على تسجيل الخروج'}), 200
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception('force_logout_all_users error')
+        return jsonify({'success': False, 'message': 'حدث خطأ في تنفيذ العملية'}), 500
+
+
+@super_admin_bp.route('/system/optimize-database', methods=['POST'])
+@login_required
+@super_admin_required
+def optimize_database():
+    """تحسين قاعدة البيانات — VACUUM ANALYZE على الجداول الأكثر نشاطاً."""
+    try:
+        from sqlalchemy import text
+
+        tables = (
+            'patients', 'visits', 'appointments', 'lab_requests',
+            'lab_results', 'prescriptions', 'audit_trail', 'purchase_orders',
+        )
+        with db.engine.connect().execution_options(isolation_level='AUTOCOMMIT') as conn:
+            for table in tables:
+                try:
+                    conn.execute(text(f'VACUUM (ANALYZE) {table}'))
+                except Exception as exc:
+                    logging.warning('VACUUM %s failed (table may not exist): %s', table, exc)
+
+        from models.audit_trail import AuditTrail
+
+        db.session.add(
+            AuditTrail(
+                entity_type='system',
+                entity_id=0,
+                tenant_id=getattr(current_user, 'tenant_id', None),
+                action='security',
+                user_id=current_user.id,
+                user_ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                description='تحسين قاعدة البيانات (VACUUM ANALYZE)',
+                notes='optimize_database',
+            )
+        )
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        return jsonify({'success': True, 'message': 'تم تحسين قاعدة البيانات (VACUUM ANALYZE)'}), 200
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception('optimize_database error')
+        return jsonify({'success': False, 'message': 'حدث خطأ أثناء تحسين قاعدة البيانات'}), 500
 
 
 @super_admin_bp.route('/system-config', methods=['GET', 'POST'])

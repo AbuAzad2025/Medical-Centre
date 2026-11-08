@@ -2,14 +2,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadModule } from './test-utils.mjs';
 
 beforeEach(() => {
-  document.body.innerHTML = '<span id="systemStatusIndicator"></span>';
+  document.body.innerHTML = '<meta name="csrf-token" content="test-csrf">\n<span id="systemStatusIndicator"></span>';
   window.location = { reload: vi.fn() };
   window.Swal = { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) };
   window.API_ROUTES = { health: '/health' };
   window.console.warn = vi.fn();
   global.fetch = vi.fn().mockResolvedValue({
     ok: true,
-    json: () => Promise.resolve({ status: 'healthy', database: 'connected', redis: 'connected', version: '3.5.0' }),
+    json: () => Promise.resolve({ success: true, message: 'ok', status: 'healthy', database: 'connected', redis: 'connected', version: '3.5.0' }),
   });
 });
 
@@ -18,36 +18,79 @@ afterEach(() => {
 });
 
 describe('system_maintenance.js', () => {
-  it('optimizeDatabase confirms then shows info', async () => {
+  it('optimizeDatabase confirms then posts to the optimize endpoint', async () => {
     const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
     mod.optimizeDatabase();
-    await new Promise(r => setTimeout(r, 30));
-    expect(window.Swal.fire).toHaveBeenCalledTimes(2);
-    expect(window.Swal.fire.mock.calls[1][0].icon).toBe('info');
+    await new Promise(r => setTimeout(r, 40));
+    expect(window.Swal.fire).toHaveBeenCalled();
+    expect(window.Swal.fire.mock.calls[0][0].text).toContain('VACUUM');
+    expect(global.fetch).toHaveBeenCalled();
+    const [url, init] = global.fetch.mock.calls[0];
+    expect(url).toBe('/super-admin/system/optimize-database');
+    expect(init.method).toBe('POST');
+    expect(init.headers['X-CSRFToken']).toBe('test-csrf');
   });
 
-  it('optimizeDatabase cancel shows no second Swal', async () => {
-    window.Swal.fire = vi.fn().mockResolvedValue({ isConfirmed: false });
+  it('optimizeDatabase success shows success Swal', async () => {
     const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
     mod.optimizeDatabase();
-    await new Promise(r => setTimeout(r, 30));
-    expect(window.Swal.fire).toHaveBeenCalledTimes(1);
-  });
-
-  it('forceLogoutAll confirms then shows success', async () => {
-    const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
-    mod.forceLogoutAll();
-    await new Promise(r => setTimeout(r, 30));
-    expect(window.Swal.fire).toHaveBeenCalledTimes(2);
+    await new Promise(r => setTimeout(r, 40));
     expect(window.Swal.fire.mock.calls[1][0].icon).toBe('success');
   });
 
-  it('forceLogoutAll cancel shows no second Swal', async () => {
+  it('optimizeDatabase server failure surfaces the error message', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: false, message: 'فشل التحسين' }),
+    });
+    const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
+    mod.optimizeDatabase();
+    await new Promise(r => setTimeout(r, 40));
+    expect(window.Swal.fire.mock.calls[1][0].icon).toBe('error');
+    expect(window.Swal.fire.mock.calls[1][0].text).toBe('فشل التحسين');
+  });
+
+  it('optimizeDatabase cancel shows no fetch', async () => {
+    window.Swal.fire = vi.fn().mockResolvedValue({ isConfirmed: false });
+    const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
+    mod.optimizeDatabase();
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('optimizeDatabase network failure shows the generic error', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error('network'));
+    const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
+    mod.optimizeDatabase();
+    await new Promise(r => setTimeout(r, 40));
+    expect(window.Swal.fire.mock.calls[1][0].icon).toBe('error');
+  });
+
+  it('forceLogoutAll confirms then posts to the force-logout endpoint', async () => {
+    const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
+    mod.forceLogoutAll();
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch).toHaveBeenCalled();
+    const [url, init] = global.fetch.mock.calls[0];
+    expect(url).toBe('/super-admin/system/force-logout-all');
+    expect(init.method).toBe('POST');
+    expect(init.headers['X-CSRFToken']).toBe('test-csrf');
+  });
+
+  it('forceLogoutAll success shows success Swal and reloads', async () => {
+    const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
+    mod.forceLogoutAll();
+    await new Promise(r => setTimeout(r, 40));
+    expect(window.Swal.fire.mock.calls[1][0].icon).toBe('success');
+    expect(window.location.reload).toHaveBeenCalled();
+  });
+
+  it('forceLogoutAll cancel shows no fetch', async () => {
     window.Swal.fire = vi.fn().mockResolvedValue({ isConfirmed: false });
     const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
     mod.forceLogoutAll();
-    await new Promise(r => setTimeout(r, 30));
-    expect(window.Swal.fire).toHaveBeenCalledTimes(1);
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('refreshLogs calls location.reload', async () => {
@@ -56,20 +99,31 @@ describe('system_maintenance.js', () => {
     expect(window.location.reload).toHaveBeenCalled();
   });
 
-  it('clearLogs confirms then shows success', async () => {
+  it('clearLogs confirms then posts cleanup_type=logs to the cleanup endpoint', async () => {
     const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
     mod.clearLogs();
-    await new Promise(r => setTimeout(r, 30));
-    expect(window.Swal.fire).toHaveBeenCalledTimes(2);
-    expect(window.Swal.fire.mock.calls[1][0].icon).toBe('success');
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch).toHaveBeenCalled();
+    const [url, init] = global.fetch.mock.calls[0];
+    expect(url).toBe('/super-admin/system/cleanup');
+    expect(init.method).toBe('POST');
+    expect(init.body.get('cleanup_type')).toBe('logs');
   });
 
-  it('clearLogs cancel shows no second Swal', async () => {
+  it('clearLogs cancel shows no fetch', async () => {
     window.Swal.fire = vi.fn().mockResolvedValue({ isConfirmed: false });
     const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
     mod.clearLogs();
-    await new Promise(r => setTimeout(r, 30));
-    expect(window.Swal.fire).toHaveBeenCalledTimes(1);
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('clearLogs network failure shows the generic error', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error('network'));
+    const mod = await loadModule('static/js/pages/super_admin/system_maintenance.js');
+    mod.clearLogs();
+    await new Promise(r => setTimeout(r, 40));
+    expect(window.Swal.fire.mock.calls[1][0].icon).toBe('error');
   });
 
   it('loadSystemStatus marks healthy system as bg-success', async () => {

@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadModule } from './test-utils.mjs';
+import { isolateDomContentLoaded } from './dom-isolation.mjs';
+
+const iso = isolateDomContentLoaded();
 
 function baseDom() {
   document.body.innerHTML = `
@@ -13,6 +16,7 @@ function baseDom() {
 }
 
 beforeEach(() => {
+  iso.install();
   baseDom();
   window.__M = [];
   window.escHtml = (s) => String(s ?? '');
@@ -23,39 +27,32 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  iso.cleanup();
   vi.useRealTimers();
 });
 
-describe('diagnosis.js csrf branches', () => {
-  it('form csrf input is preferred over meta for the health check', async () => {
+describe('diagnosis.js removed periodic writes', () => {
+  it('advancing five minutes never fires a fetch', async () => {
     await loadModule('static/js/pages/doctor/diagnosis.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
-    await vi.advanceTimersByTimeAsync(30000);
-    expect(global.fetch.mock.calls[0][1].headers['X-CSRFToken']).toBe('form-csrf');
+    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('meta csrf is used when the form has no csrf input', async () => {
-    document.querySelector('#diagnosisForm input[name="csrf_token"]').remove();
-    await loadModule('static/js/pages/doctor/diagnosis.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-    await vi.advanceTimersByTimeAsync(30000);
-    expect(global.fetch.mock.calls[0][1].headers['X-CSRFToken']).toBe('meta-csrf');
-  });
-
-  it('no csrf elements anywhere sends no token header', async () => {
-    document.querySelector('#diagnosisForm input[name="csrf_token"]').remove();
-    document.querySelector('meta[name="csrf-token"]').remove();
-    await loadModule('static/js/pages/doctor/diagnosis.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-    await vi.advanceTimersByTimeAsync(30000);
-    expect(global.fetch.mock.calls[0][1].headers['X-CSRFToken']).toBeUndefined();
-  });
-
-  it('beforeunload without dirty form sets no returnValue', async () => {
+  it('beforeunload on clean form does not prevent default', async () => {
     await loadModule('static/js/pages/doctor/diagnosis.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
     const event = new Event('beforeunload', { cancelable: true });
     window.dispatchEvent(event);
     expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('typing in the form makes beforeunload block accidental navigation', async () => {
+    await loadModule('static/js/pages/doctor/diagnosis.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    document.querySelector('[name="assessment"]').dispatchEvent(new Event('input'));
+    const event = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
   });
 });
