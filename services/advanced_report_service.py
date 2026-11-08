@@ -41,8 +41,11 @@ class AdvancedReportService:
                 patients_query = patients_query.filter(Patient.tenant_id == tenant_id)
 
             if department_id:
-                patients_query = patients_query.join(Visit).filter(
-                    Visit.department_id == department_id
+                # A patient with N visits would otherwise be counted N times
+                patients_query = (
+                    patients_query.join(Visit)
+                    .filter(Visit.department_id == department_id)
+                    .distinct()
                 )
 
             patients = db.session.execute(patients_query).scalars().all()
@@ -739,11 +742,26 @@ class AdvancedReportService:
                 import csv
                 import io
 
+                def _cell(value):
+                    # Neutralize spreadsheet formula injection: cells starting
+                    # with these characters are parsed as formulas by Excel,
+                    # LibreOffice and Google Sheets.
+                    text = '' if value is None else str(value)
+                    if text.lstrip().startswith(('=', '+', '-', '@')):
+                        return "'" + text
+                    return text
+
                 output = io.StringIO()
                 if analytics_data and len(analytics_data) > 0:
-                    writer = csv.DictWriter(output, fieldnames=analytics_data[0].keys())
+                    fieldnames = list(analytics_data[0].keys())
+                    writer = csv.DictWriter(
+                        output,
+                        fieldnames=fieldnames,
+                        extrasaction='ignore',
+                    )
                     writer.writeheader()
-                    writer.writerows(analytics_data)
+                    for row in analytics_data:
+                        writer.writerow({k: _cell(v) for k, v in row.items()})
 
                 return {'success': True, 'data': output.getvalue()}
             return {'success': False, 'message': 'تنسيق التصدير غير مدعوم'}
