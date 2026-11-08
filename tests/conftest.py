@@ -1047,6 +1047,14 @@ def _clear_flask_login_state():
         'feature_flags',
         '_tenant_filter_bypass',
         'original_user',
+        # Flask-WTF caches the generated token on ``g.csrf_token`` for the
+        # request. The test harness reuses the app context across requests,
+        # so once any page renders a token the cached value leaks into every
+        # later test: later sessions never seed their own csrf_token and
+        # every CSRF-protected POST then fails with
+        # "The CSRF session token is missing." Mirror the per-request g of
+        # production by clearing it here.
+        'csrf_token',
     )
 
     def _clear():
