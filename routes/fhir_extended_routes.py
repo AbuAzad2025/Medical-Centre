@@ -147,7 +147,7 @@ def fhir_appointments():
 @role_required('admin', 'manager', 'doctor', 'nurse')
 @handle_route_errors
 def fhir_allergies():
-    from models.allergy import Allergy
+    from models.problem_list import AllergyIntolerance as Allergy
 
     patient_id = request.args.get('patient', type=int)
     q = select(Allergy)
@@ -159,7 +159,7 @@ def fhir_allergies():
             'resourceType': 'AllergyIntolerance',
             'id': str(a.id),
             'clinicalStatus': {'coding': [{'code': 'active'}]},
-            'code': {'text': getattr(a, 'allergen', 'Unknown')},
+            'code': {'text': getattr(a, 'substance', 'Unknown')},
             'patient': {'reference': f'Patient/{a.patient_id}'},
             'recordedDate': a.created_at.isoformat() if getattr(a, 'created_at', None) else None,
         }
@@ -207,22 +207,34 @@ def fhir_procedures():
 @role_required('admin', 'manager', 'doctor', 'nurse')
 @handle_route_errors
 def fhir_immunizations():
-    from models.vaccination import Vaccination
+    from models.vaccination import Immunization as _ImmModel
+    from models.vaccination import Vaccine
 
     patient_id = request.args.get('patient', type=int)
-    q = select(Vaccination)
+    q = select(_ImmModel)
     if patient_id:
-        q = q.filter(Vaccination.patient_id == patient_id)
+        q = q.filter(_ImmModel.patient_id == patient_id)
     vax = db.session.execute(q.limit(100)).scalars().all()
+    vaccine_ids = {v.vaccine_id for v in vax}
+    vaccines = {}
+    if vaccine_ids:
+        for vacc in db.session.execute(select(Vaccine).filter(Vaccine.id.in_(vaccine_ids))).scalars():
+            vaccines[vacc.id] = vacc
     entries = [
         {
             'resourceType': 'Immunization',
             'id': str(v.id),
-            'status': 'completed',
-            'vaccineCode': {'text': getattr(v, 'vaccine_name', 'Unknown')},
+            'status': (v.status or 'COMPLETED').lower(),
+            'vaccineCode': {
+                'text': (
+                    vaccines[v.vaccine_id].name
+                    if v.vaccine_id in vaccines
+                    else 'Vaccine'
+                )
+            },
             'patient': {'reference': f'Patient/{v.patient_id}'},
-            'occurrenceDateTime': v.administered_date.isoformat()
-            if getattr(v, 'administered_date', None)
+            'occurrenceDateTime': v.administration_date.isoformat()
+            if v.administration_date
             else None,
         }
         for v in vax
@@ -294,21 +306,43 @@ def fhir_service_requests():
 @role_required('admin', 'manager')
 @handle_route_errors
 def fhir_coverages():
-    from models.insurance import Insurance
+    from models.insurance import InsuranceCompany
+    from models.patient import Patient
 
     patient_id = request.args.get('patient', type=int)
-    q = select(Insurance)
+    q = select(Patient).filter(Patient.insurance_company_id.isnot(None))
     if patient_id:
-        q = q.filter(Insurance.patient_id == patient_id)
+        q = q.filter(Patient.id == patient_id)
     coverages = db.session.execute(q.limit(100)).scalars().all()
+    company_ids = {p.insurance_company_id for p in coverages}
+    companies = {}
+    if company_ids:
+        for co in db.session.execute(
+            select(InsuranceCompany).filter(InsuranceCompany.id.in_(company_ids))
+        ).scalars():
+            companies[co.id] = co
     entries = [
         {
             'resourceType': 'Coverage',
             'id': str(c.id),
             'status': 'active',
-            'type': {'text': getattr(c, 'insurance_type', 'Insurance')},
-            'beneficiary': {'reference': f'Patient/{c.patient_id}'},
-            'payor': [{'display': getattr(c, 'provider_name', 'Unknown')}],
+            'type': {
+                'text': (
+                    companies[c.insurance_company_id].name
+                    if c.insurance_company_id in companies
+                    else 'Insurance'
+                )
+            },
+            'beneficiary': {'reference': f'Patient/{c.id}'},
+            'payor': [
+                {
+                    'display': (
+                        companies[c.insurance_company_id].name
+                        if c.insurance_company_id in companies
+                        else 'Unknown'
+                    )
+                }
+            ],
         }
         for c in coverages
     ]
@@ -322,25 +356,22 @@ def fhir_coverages():
 @role_required('admin', 'manager', 'doctor', 'reception')
 @handle_route_errors
 def fhir_related_persons():
-    from models.relationships_map import PatientRelationship
-
+    # No next-of-kin/emergency-contact model exists in this schema yet.
+    # Until one is modelled, the honest answer is a FHIR-valid empty bundle —
+    # never a 500.
     patient_id = request.args.get('patient', type=int)
-    q = select(PatientRelationship)
     if patient_id:
-        q = q.filter(PatientRelationship.patient_id == patient_id)
-    rels = db.session.execute(q.limit(100)).scalars().all()
-    entries = [
-        {
-            'resourceType': 'RelatedPerson',
-            'id': str(r.id),
-            'patient': {'reference': f'Patient/{r.patient_id}'},
-            'relationship': [{'text': getattr(r, 'relationship_type', 'Unknown')}],
-            'name': [{'text': getattr(r, 'related_person_name', 'Unknown')}],
-        }
-        for r in rels
-    ]
+        from utils.tenant_query import TenantContextError
+
+        from models.patient import Patient
+
+        try:
+            if get_tenant_record(Patient, patient_id) is None:
+                abort(404)
+        except TenantContextError:
+            abort(404)
     _log('SEARCH', 'RelatedPerson')
-    return jsonify(_bundle(entries, len(entries)))
+    return jsonify(_bundle([], 0))
 
 
 # --- Task ---
@@ -526,19 +557,23 @@ def fhir_specimens():
 @role_required('admin', 'manager')
 @handle_route_errors
 def fhir_devices():
-    from models.barcode_tracking import BarcodeDevice
+    from models.barcode_tracking import BarcodeRegistry
 
     devices = (
-        db.session.execute(select(BarcodeDevice).limit(100)).scalars().all()
-        if hasattr(BarcodeDevice, '__tablename__')
-        else []
+        db.session.execute(
+            select(BarcodeRegistry).filter(BarcodeRegistry.entity_type == 'EQUIPMENT').limit(100)
+        )
+        .scalars()
+        .all()
     )
     entries = [
         {
             'resourceType': 'Device',
             'id': str(d.id),
-            'status': 'active',
-            'deviceName': [{'name': getattr(d, 'name', 'Device'), 'type': 'user-friendly-name'}],
+            'status': 'active' if d.is_active else 'inactive',
+            'deviceName': [
+                {'name': d.barcode_value, 'type': 'user-friendly-name'}
+            ],
         }
         for d in devices
     ]

@@ -55,7 +55,8 @@ class ManagerService:
     @staticmethod
     def get_financial_summary(period: str = 'monthly') -> dict:
         from models.expense import Expense
-        from models.invoice import Invoice, Payment
+        from models.invoice import Invoice
+        from models.payment import Payment
 
         try:
             total_billed = db.session.execute(
@@ -134,10 +135,18 @@ class ManagerService:
     @staticmethod
     def get_satisfaction_stats() -> dict:
         try:
-            from models.feedback import PatientFeedback
+            from models.patient_satisfaction import PatientSatisfactionSurvey
 
-            avg = db.session.execute(select(func.avg(PatientFeedback.rating))).scalar()
-            count = db.session.execute(select(func.count()).select_from(PatientFeedback)).scalar()
+            avg = db.session.execute(
+                select(func.avg(PatientSatisfactionSurvey.rating)).filter(
+                    PatientSatisfactionSurvey.rating.isnot(None)
+                )
+            ).scalar()
+            count = db.session.execute(
+                select(func.count()).select_from(PatientSatisfactionSurvey).filter(
+                    PatientSatisfactionSurvey.submitted_at.isnot(None)
+                )
+            ).scalar()
             return {'average_rating': float(avg) if avg else 0, 'total_responses': count}
         except Exception:
             return {'average_rating': 0, 'total_responses': 0}

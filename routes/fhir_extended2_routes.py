@@ -154,28 +154,20 @@ def fhir_medication_administrations():
 @role_required('admin', 'manager', 'pharmacist')
 @handle_route_errors
 def fhir_medication_dispenses():
-    try:
-        from models.medication import MedicationDispense
-    except ImportError:
-        MedicationDispense = None
-
-    if MedicationDispense is None or not hasattr(MedicationDispense, '__tablename__'):
-        return jsonify(_bundle([], 0))
+    from models.medication import PrescriptionDispenseLog
 
     patient_id = request.args.get('patient', type=int)
-    q = select(MedicationDispense)
+    q = select(PrescriptionDispenseLog)
     if patient_id:
-        q = q.filter(MedicationDispense.patient_id == patient_id)
+        q = q.filter(PrescriptionDispenseLog.patient_id == patient_id)
     dispenses = db.session.execute(q.limit(100)).scalars().all()
     entries = [
         {
             'resourceType': 'MedicationDispense',
             'id': str(d.id),
-            'status': getattr(d, 'status', 'completed').lower(),
-            'medicationCodeableConcept': {'text': getattr(d, 'medication_name', 'Unknown')},
-            'subject': {'reference': f'Patient/{d.patient_id}'}
-            if getattr(d, 'patient_id', None)
-            else None,
+            'status': 'completed',
+            'subject': {'reference': f'Patient/{d.patient_id}'} if d.patient_id else None,
+            'whenHandedOver': d.dispensed_at.isoformat() if d.dispensed_at else None,
         }
         for d in dispenses
     ]
@@ -327,20 +319,16 @@ def fhir_claims():
 @role_required('admin', 'manager', 'accountant')
 @handle_route_errors
 def fhir_charge_items():
-    from models.service import Service
+    from models.service import ServiceMaster
 
-    services = (
-        db.session.execute(select(Service).limit(100)).scalars().all()
-        if hasattr(Service, '__tablename__')
-        else []
-    )
+    services = db.session.execute(select(ServiceMaster).limit(100)).scalars().all()
     entries = [
         {
             'resourceType': 'ChargeItem',
             'id': str(s.id),
             'status': 'billable',
-            'code': {'text': getattr(s, 'name', 'Service')},
-            'priceOverride': {'value': float(getattr(s, 'price', 0) or 0)},
+            'code': {'text': s.name},
+            'priceOverride': {'value': float(s.base_price or 0)},
         }
         for s in services
     ]
@@ -381,27 +369,21 @@ def fhir_flags():
 @role_required('admin', 'manager', 'doctor')
 @handle_route_errors
 def fhir_lists():
-    from models.problem_list import ProblemList
+    from models.problem_list import PatientProblem
 
     patient_id = request.args.get('patient', type=int)
-    q = select(ProblemList)
+    q = select(PatientProblem)
     if patient_id:
-        q = q.filter(ProblemList.patient_id == patient_id)
-    problems = (
-        db.session.execute(q.limit(100)).scalars().all()
-        if hasattr(ProblemList, '__tablename__')
-        else []
-    )
+        q = q.filter(PatientProblem.patient_id == patient_id)
+    problems = db.session.execute(q.limit(100)).scalars().all()
     entries = [
         {
             'resourceType': 'List',
             'id': str(p.id),
             'status': 'current',
             'mode': 'working',
-            'title': getattr(p, 'problem', 'Problem List'),
-            'subject': {'reference': f'Patient/{p.patient_id}'}
-            if getattr(p, 'patient_id', None)
-            else None,
+            'title': p.problem_description,
+            'subject': {'reference': f'Patient/{p.patient_id}'},
         }
         for p in problems
     ]
@@ -519,13 +501,9 @@ def fhir_research_studies():
 @role_required('admin', 'manager')
 @handle_route_errors
 def fhir_endpoints():
-    from models.sso_config import SSOConfig
+    from models.sso_config import SSOConfiguration
 
-    configs = (
-        db.session.execute(select(SSOConfig).limit(100)).scalars().all()
-        if hasattr(SSOConfig, '__tablename__')
-        else []
-    )
+    configs = db.session.execute(select(SSOConfiguration).limit(100)).scalars().all()
     entries = [
         {
             'resourceType': 'Endpoint',

@@ -393,7 +393,7 @@ def data_export(patient_id=None):
 
     # Lab results
     try:
-        from models.lab_result import LabResult
+        from models.lab_request import LabResult
 
         lab_results = (
             db.session.execute(select(LabResult).filter(LabResult.patient_id == patient.id))
@@ -421,7 +421,7 @@ def data_export(patient_id=None):
 
     # Prescriptions
     try:
-        from models.prescription import Prescription
+        from models.medication import Prescription
 
         prescriptions = (
             db.session.execute(select(Prescription).filter(Prescription.patient_id == patient.id))

@@ -92,11 +92,13 @@ class ShiftHandoverService:
 
         pending_rx_ids: list[int] = []
         try:
-            from models.prescription import Prescription
+            from models.medication import Prescription
 
             pending_rx_ids = list(
                 db.session.execute(
-                    select(Prescription.id).where(Prescription.is_dispensed.is_(False))
+                    select(Prescription.id).where(
+                        Prescription.status.in_(('active', 'issued'))
+                    )
                 )
                 .scalars()
                 .all()
