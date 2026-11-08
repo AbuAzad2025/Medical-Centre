@@ -78,6 +78,38 @@ describe('accountant/dashboard_new.js', () => {
   });
 });
 
+describe('dashboard_new shared branch coverage', () => {
+  for (const [name, domId, dataId, mainCanvas] of [
+    ['accountant', 'acc-chart-data', 'acc-chart-data', 'accMainChart'],
+    ['nurse', 'nurse-chart-data', 'nurse-chart-data', 'nurseMainChart'],
+  ]) {
+    it(`${name}: Chart undefined and no chart data does not throw`, async () => {
+      delete window.Chart;
+      document.body.innerHTML = '';
+      await loadModule(`static/js/pages/${name}/dashboard_new.js`);
+      expect(true).toBe(true);
+    });
+
+    it(`${name}: preset window.__M and preset labels.font are respected`, async () => {
+      window.__M = ['preset'];
+      window.Chart.defaults.plugins.legend.labels.font = { size: 12 };
+      const sparkIds = name === 'nurse' ? ['sparkToday', 'sparkActive', 'sparkTasks', 'sparkEff'] : ['sparkToday', 'sparkMonth', 'sparkPending', 'sparkHealth'];
+      document.body.innerHTML = `
+        <script type="application/json" id="${dataId}">{"spark":[7,11,5,9],"mainData":[3,6,9,12,15]}</script>
+        ${sparkIds.map(id => `<canvas id="${id}"></canvas>`).join('\n')}
+        <canvas id="${mainCanvas}"></canvas>
+        <div class="progress-dynamic" data-width="not-a-number"></div>
+      `;
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({});
+      await loadModule(`static/js/pages/${name}/dashboard_new.js`);
+      expect(window.__M).toEqual(['preset']);
+      expect(window.Chart.defaults.plugins.legend.labels.font).toEqual({ size: 12 });
+      expect(document.querySelector('.progress-dynamic').style.width).toBe('0%');
+      delete window.__M;
+    });
+  }
+});
+
 describe('nurse/dashboard_new.js', () => {
   beforeEach(() => {
     document.body.innerHTML = `

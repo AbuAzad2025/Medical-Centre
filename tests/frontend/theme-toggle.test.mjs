@@ -74,3 +74,67 @@ describe('theme-toggle.js', () => {
   });
 
 });
+describe('theme-toggle.js extra branches', () => {
+  it('updateIcon without an icon element does not throw', async () => {
+    document.querySelector('[data-theme-icon]').remove();
+    const { updateIcon } = await loadModule('static/js/theme-toggle.js');
+    expect(() => updateIcon('dark')).not.toThrow();
+  });
+
+  it('applyTheme still applies the attribute when localStorage throws', async () => {
+    const original = window.localStorage;
+    Object.defineProperty(window, 'localStorage', {
+      value: { setItem() { throw new Error('quota'); }, getItem() { return null; }, clear() {} },
+      configurable: true,
+    });
+    const { applyTheme } = await loadModule('static/js/theme-toggle.js');
+    applyTheme('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    Object.defineProperty(window, 'localStorage', { value: original, configurable: true });
+  });
+
+  it('persist uses API_ROUTES.user_preferences when set', async () => {
+    window.API_ROUTES = { user_preferences: '/custom/prefs' };
+    const { persist } = await loadModule('static/js/theme-toggle.js');
+    persist('dark');
+    await new Promise(r => setTimeout(r, 20));
+    expect(global.fetch).toHaveBeenCalledWith('/custom/prefs', expect.objectContaining({ method: 'POST' }));
+  });
+
+  it('persist falls back to default endpoint when API_ROUTES missing the key', async () => {
+    window.API_ROUTES = {};
+    const { persist } = await loadModule('static/js/theme-toggle.js');
+    persist('dark');
+    await new Promise(r => setTimeout(r, 20));
+    expect(global.fetch).toHaveBeenCalledWith('/api/user/preferences', expect.objectContaining({ method: 'POST' }));
+  });
+
+  it('persist sends empty csrf header when meta token is missing', async () => {
+    document.querySelector('meta[name="csrf-token"]').remove();
+    const { persist } = await loadModule('static/js/theme-toggle.js');
+    persist('dark');
+    await new Promise(r => setTimeout(r, 20));
+    expect(global.fetch.mock.calls[0][1].headers['X-CSRFToken']).toBe('');
+  });
+
+  it('persist failure without showToast does not crash', async () => {
+    delete window.showToast;
+    global.fetch = vi.fn().mockRejectedValue(new Error('network'));
+    const { persist } = await loadModule('static/js/theme-toggle.js');
+    expect(() => persist('light')).not.toThrow();
+    await new Promise(r => setTimeout(r, 20));
+  });
+
+  it('DOMContentLoaded with no toggle button is a no-op', async () => {
+    document.getElementById('themeToggleBtn').remove();
+    await loadModule('static/js/theme-toggle.js');
+    expect(() => document.dispatchEvent(new Event('DOMContentLoaded'))).not.toThrow();
+  });
+
+  it('applyTheme light removes the data-theme attribute', async () => {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    const { applyTheme } = await loadModule('static/js/theme-toggle.js');
+    applyTheme('light');
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+  });
+});

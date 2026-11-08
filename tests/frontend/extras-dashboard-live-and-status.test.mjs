@@ -157,3 +157,57 @@ describe('biometric/status.js extra branches', () => {
     expect(global.fetch.mock.calls[0][1].headers['X-CSRFToken']).toBe('');
   });
 });
+describe('biometric/status.js disabled-button and fallback branches', () => {
+  function statusDom() {
+    document.body.innerHTML = `
+      <meta name="csrf-token" content="csrf-bio">
+      <button id="registerBtn">Register</button>
+      <div id="registerResult"></div>
+    `;
+    window.escHtml = (s) => String(s ?? '');
+    window.__M0__ = '/biometric/api/register';
+    window.showToast = vi.fn();
+  }
+
+  it('click on a disabled button does not fetch', async () => {
+    statusDom();
+    global.fetch = vi.fn();
+    await loadModule('static/js/pages/biometric/status.js');
+    const btn = document.getElementById('registerBtn');
+    btn.disabled = true;
+    btn.click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejection without an error message falls back to the generic label', async () => {
+    statusDom();
+    global.fetch = vi.fn().mockRejectedValue({});
+    await loadModule('static/js/pages/biometric/status.js');
+    document.getElementById('registerBtn').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(document.getElementById('registerResult').innerHTML).toContain('alert-danger');
+  });
+
+  it('success without showToast does not crash', async () => {
+    statusDom();
+    delete window.showToast;
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) });
+    await loadModule('static/js/pages/biometric/status.js');
+    document.getElementById('registerBtn').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(document.getElementById('registerResult').innerHTML).toContain('alert-success');
+  });
+
+  it('button text and disabled state are restored after failure', async () => {
+    statusDom();
+    global.fetch = vi.fn().mockRejectedValue(new Error('boom'));
+    await loadModule('static/js/pages/biometric/status.js');
+    const btn = document.getElementById('registerBtn');
+    btn.textContent = 'Register';
+    btn.click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(btn.disabled).toBe(false);
+    expect(btn.textContent).toBe('Register');
+  });
+});

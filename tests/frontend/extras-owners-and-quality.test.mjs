@@ -126,3 +126,37 @@ describe('visit_summary.js extra branches', () => {
     expect(true).toBe(true);
   });
 });
+describe('quality_compliance/dashboard.js extra branches', () => {
+  it('non-ok response triggers the catch branch and renders fallback', async () => {
+    document.body.innerHTML = `
+      <canvas id="qcMainChart"></canvas>
+      <div class="progress-dynamic" data-width="30"></div>
+    `;
+    window.__M0__ = '/quality/api/dashboard';
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });
+    await loadModule('static/js/pages/quality_compliance/dashboard.js');
+    await new Promise(r => setTimeout(r, 30));
+    expect(document.body.innerHTML).toContain('text-muted');
+  });
+
+  it('progress-dynamic with non-numeric width falls back to 0%', async () => {
+    document.body.innerHTML = `
+      <canvas id="qcMainChart"></canvas>
+      <div class="progress-dynamic" data-width="garbage"></div>
+    `;
+    window.__M0__ = '/quality/api/dashboard';
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ labels: ['Jan'], lab: [1], radiology: [2], visits: [3] }) });
+    await loadModule('static/js/pages/quality_compliance/dashboard.js');
+    expect(document.querySelector('.progress-dynamic').style.width).toBe('0%');
+  });
+
+  it('Chart undefined skips the defaults block without throwing', async () => {
+    document.body.innerHTML = '<canvas id="qcMainChart"></canvas>';
+    delete window.Chart;
+    window.__M0__ = '/quality/api/dashboard';
+    global.fetch = vi.fn().mockRejectedValue(new Error('network'));
+    await loadModule('static/js/pages/quality_compliance/dashboard.js');
+    await new Promise(r => setTimeout(r, 30));
+    expect(true).toBe(true);
+  });
+});
