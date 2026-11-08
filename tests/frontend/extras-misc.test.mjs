@@ -128,7 +128,9 @@ describe('dark-mode.js', () => {
     window.matchMedia = vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
     await loadModule('static/js/dark-mode.js');
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-    expect(localStorage.getItem('azad-theme')).toBe('light');
+    // A system-derived theme is not persisted: the page must keep following
+    // OS theme changes until the user actually picks one via the toggle.
+    expect(localStorage.getItem('azad-theme')).toBeNull();
   });
 
   it('applies dark theme when system prefers dark', async () => {
