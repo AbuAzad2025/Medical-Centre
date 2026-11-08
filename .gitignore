@@ -160,3 +160,19 @@ COV_ALL.json
 coverage.xml
 /coverage_results.txt
 /test_results.txt
+
+# Local analysis scratch files (aggregate coverage analyzers used ad-hoc)
+/sc_out*
+/os_out*
+/cov_*.py
+/cov_*.txt
+/rx_*.py
+/rx_*.txt
+/dash_out*.txt
+/mon_out.txt
+/pos_tail*.txt
+/v_notes.py
+/notes_*.txt
+/tmp_*.txt
+/diag*.test.mjs
+
