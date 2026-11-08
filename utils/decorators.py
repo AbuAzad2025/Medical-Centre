@@ -7,6 +7,7 @@ from functools import wraps
 
 from flask import abort, flash, jsonify, redirect, request, url_for
 from flask_login import current_user
+from werkzeug.exceptions import HTTPException
 
 from app.shared.user_role_policy import normalize_role
 from utils.db_safety import safe_commit, safe_rollback
@@ -538,9 +539,13 @@ def handle_route_errors(f):
 
         try:
             return f(*args, **kwargs)
+        except HTTPException:
+            # abort() raises HTTPException; it is an intentional HTTP response,
+            # not an unhandled error, so it must propagate (404/403/etc.).
+            raise
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception('Unhandled error in {f.__name__}: %s')
+            logging.exception('Unhandled error in %s: %%s', f.__name__)
             if request.headers.get('Accept') and 'application/json' in request.headers.get(
                 'Accept', ''
             ):

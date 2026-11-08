@@ -66,6 +66,11 @@ os.environ['RLS_BYPASS_ALLOWED'] = '1'
 # running application keeps its own .env (single-install + encryption).
 os.environ['ENABLE_SAAS_MODE'] = 'true'
 os.environ.pop('FIELD_ENCRYPTION_KEY', None)
+# The FHIR integration is the point of the /api/fhir/* blueprints: the suite
+# exercises them for real (create/update/search), so the platform capability
+# that hides them until "ready" must be on for the test session. Unit tests
+# for the capability flag itself flip this with monkeypatch.
+os.environ['PLATFORM_CAP_FHIR'] = 'true'
 
 # Match the CI test environment (.github/workflows/ci.yml) for the task queue
 # as well. Several endpoints - the backup create among them - offer two paths:

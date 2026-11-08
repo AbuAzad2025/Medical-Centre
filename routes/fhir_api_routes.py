@@ -15,9 +15,20 @@ from models.patient import Patient
 from models.visit import Visit
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import handle_route_errors, role_required
-from utils.tenant_query import get_tenant_record, tenant_filter
+from utils.tenant_query import TenantContextError, get_tenant_record, tenant_filter
 
 fhir_bp = Blueprint('fhir', __name__)
+
+
+def _patient_or_404(patient_id):
+    """FHIR read of a missing resource must be 404, not a redirect."""
+    try:
+        patient = get_tenant_record(Patient, patient_id)
+    except TenantContextError:
+        abort(404)
+    if patient is None:
+        abort(404)
+    return patient
 
 
 def _log_fhir_access(
@@ -54,18 +65,45 @@ def fhir_patients():
     birthdate = request.args.get('birthdate', '')
 
     query = tenant_filter(Patient)
-    if name:
-        query = query.filter(Patient.full_name.ilike(f'%{name}%'))
     if gender:
         query = query.filter(Patient.gender.ilike(gender))
     if birthdate:
         query = query.filter(Patient.birth_date == birthdate)
 
-    total = query.count()
-    query = apply_fhir_sort(query, Patient, request.args.get('_sort'))
-    query, _count, _offset = apply_fhir_pagination(query, request)
+    sort_param = request.args.get('_sort')
 
-    patients = db.session.execute(query).scalars().all()
+    if name:
+        # Patient.full_name is a Python-side decrypting property, not a
+        # column; using .ilike on it raised AttributeError and every name
+        # search answered 500. Filter the tenant-scoped rows in Python
+        # instead, then sort and paginate in memory.
+        rows = db.session.execute(query).scalars().all()
+        needle = name.lower()
+        rows = [p for p in rows if needle in (p.full_name or '').lower()]
+        if sort_param:
+            descending = sort_param.startswith('-')
+            field = sort_param[1:] if descending else sort_param
+
+            def _key(p, field=field):
+                value = getattr(p, field, '') or ''
+                try:
+                    return str(value).lower()
+                except Exception:
+                    return ''
+
+            rows.sort(key=_key, reverse=descending)
+        try:
+            count = min(int(request.args.get('_count', 20)), 100)
+            offset = int(request.args.get('_offset', 0))
+        except (TypeError, ValueError):
+            count, offset = 20, 0
+        total = len(rows)
+        patients = rows[offset : offset + count]
+    else:
+        total = query.count()
+        query = apply_fhir_sort(query, Patient, sort_param)
+        query, _count, _offset = apply_fhir_pagination(query, request)
+        patients = db.session.execute(query).scalars().all()
 
     # _include support
     include_params = request.args.getlist('_include')
@@ -204,9 +242,7 @@ def fhir_patients():
 @role_required('admin', 'manager', 'doctor')
 @handle_route_errors
 def fhir_patient(patient_id):
-    patient = get_tenant_record(Patient, patient_id)
-    if not patient:
-        abort(404)
+    patient = _patient_or_404(patient_id)
     _log_fhir_access('READ', 'Patient', str(patient_id))
     return jsonify(
         {
@@ -263,9 +299,7 @@ def fhir_observations():
     patient_id = request.args.get('patient', type=int)
     results = []
     if patient_id:
-        patient = get_tenant_record(Patient, patient_id)
-        if not patient:
-            abort(404)
+        patient = _patient_or_404(patient_id)
         lab_results = (
             db.session.execute(select(LabResult).filter_by(patient_id=patient_id).limit(50))
             .scalars()
@@ -311,9 +345,7 @@ def fhir_conditions():
     patient_id = request.args.get('patient', type=int)
     conditions = []
     if patient_id:
-        patient = get_tenant_record(Patient, patient_id)
-        if not patient:
-            abort(404)
+        patient = _patient_or_404(patient_id)
         # Get medical records as conditions
         from models.medical_record import MedicalRecord
 
@@ -362,10 +394,8 @@ def fhir_medication_requests():
     patient_id = request.args.get('patient', type=int)
     requests_list = []
     if patient_id:
-        patient = get_tenant_record(Patient, patient_id)
-        if not patient:
-            abort(404)
-        from models.prescription import Prescription
+        patient = _patient_or_404(patient_id)
+        from models.medication import Prescription
 
         prescriptions = (
             db.session.execute(select(Prescription).filter_by(patient_id=patient_id).limit(50))

@@ -1255,18 +1255,24 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     try:
         from routes.fhir_extended_routes import fhir_bp2
 
+        _add_guard_once(fhir_bp2, 'integration')
+        _add_platform_cap_guard(fhir_bp2, 'fhir_api')
         app.register_blueprint(fhir_bp2, url_prefix='/api/fhir')
     except Exception:
         pass
     try:
         from routes.fhir_extended2_routes import fhir_bp3
 
+        _add_guard_once(fhir_bp3, 'integration')
+        _add_platform_cap_guard(fhir_bp3, 'fhir_api')
         app.register_blueprint(fhir_bp3, url_prefix='/api/fhir')
     except Exception:
         pass
     try:
         from routes.fhir_crud_routes import fhir_crud_bp
 
+        _add_guard_once(fhir_crud_bp, 'integration')
+        _add_platform_cap_guard(fhir_crud_bp, 'fhir_api')
         app.register_blueprint(fhir_crud_bp, url_prefix='/api/fhir')
     except Exception:
         pass
