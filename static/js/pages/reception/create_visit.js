@@ -486,6 +486,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     document.getElementById('custom_services_container').addEventListener('input', priceListener);
     document.getElementById('custom_services_container').addEventListener('change', priceListener);
+
+    // Expose for the delegated data-action buttons in the template
+    window.addServiceRow = addCustomServiceRow;
+    window.removeCustomServiceRow = removeCustomServiceRow;
+    window.saveVisit = function () {
+        const form = document.getElementById('visitForm');
+        if (form) form.requestSubmit();
+    };
 });
 
 

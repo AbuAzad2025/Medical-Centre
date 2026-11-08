@@ -25,18 +25,18 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2 flex-wrap justify-content-end">
-                                <button class="btn btn-light btn-lg btn-modern shadow-sm" data-action="refresh-dashboard" title="_(" _(" _(" _(" _(" _("تحديث البيانات")")")")")")">
-                                    <i class="fas fa-sync-alt"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تحديث")")")")")")")') }}</span>
+                                <button class="btn btn-light btn-lg btn-modern shadow-sm" data-action="reload" title="تحديث البيانات">
+                                    <i class="fas fa-sync-alt"></i> <span class="btn-label">تحديث</span>
                                 </button>
-                                <button class="btn btn-warning btn-lg btn-modern shadow-sm" data-action="create-backup" title="_(" _(" _(" _(" _(" _("نسخة احتياطية")")")")")")">
-                                    <i class="fas fa-database"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("نسخة")")")")")")")') }}</span>
+                                <button class="btn btn-warning btn-lg btn-modern shadow-sm" data-action="create-backup" title="نسخة احتياطية">
+                                    <i class="fas fa-database"></i> <span class="btn-label">نسخة</span>
                                 </button>
-                                <button class="btn btn-info btn-lg btn-modern shadow-sm" data-action="export-system-data" title="_(" _(" _(" _(" _(" _("تصدير البيانات")")")")")")">
-                                    <i class="fas fa-download"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تصدير")")")")")")")') }}</span>
+                                <button class="btn btn-info btn-lg btn-modern shadow-sm" data-action="export-system-data" title="تصدير البيانات">
+                                    <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
                                 </button>
-                                <button class="btn btn-success btn-lg btn-modern shadow-sm" data-action="open-system-monitor" title="_(" _(" _(" _(" _(" _("مراقب النظام")")")")")")">
-                                    <i class="fas fa-chart-line"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("مراقب")")")")")")")') }}</span>
-                                </button>
+                                <a class="btn btn-success btn-lg btn-modern shadow-sm" href="{{ url_for('super_admin.performance') }}" title="مراقب النظام">
+                                    <i class="fas fa-chart-line"></i> <span class="btn-label">مراقب</span>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -231,29 +231,26 @@
                                         </div>
                                         <div class="ai-input-container">
                                             <div class="input-group">
-                                                <button class="btn btn-light" id="voiceBtn" title="_(" _(" _(" _(" _(" _("أوامر صوتية")")")")")")">
-                                                    <i class="fas fa-microphone"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("صوتي")")")")")")")') }}</span>
-                                                </button>
-                                                <input type="text" class="form-control" id="aiInput" 
-                                                       placeholder="_(" _(" _(" _(" _(" _("اكتب سؤالك أو طلبك هنا... (مثال: حلل أداء النظام، أنشئ تقرير المستخدمين، ما هي التحسينات المقترحة؟)")")")")")")">
-                                                <button class="btn btn-success" id="sendBtn" data-action="send-ai-message">
+                                                <input type="text" class="form-control" id="aiInput"
+                                                       placeholder="اكتب سؤالك أو طلبك هنا (مثال: حلل أداء النظام)" autocomplete="off">
+                                                <button class="btn btn-success" id="sendBtn" type="button">
                                                     <i class="fas fa-paper-plane me-1"></i>
-                                                    {{ _('_("_(" _(" _(" _(" _(" _("إرسال")")")")")")")') }}
+                                                    إرسال
                                                 </button>
                                             </div>
                                             <div class="quick-commands mt-2">
-                                                <small class="text-white-50">{{ _('_("_(" _(" _(" _(" _(" _("أوامر سريعة:")")")")")")")') }}</small>
-                                                <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="analyze">
-                                                    <i class="fas fa-chart-line"></i> {{ _('_("_(" _(" _(" _(" _(" _("تحليل النظام")")")")")")")') }}
+                                                <small class="text-white-50">أوامر سريعة:</small>
+                                                <button class="btn btn-sm btn-outline-light ms-1 quick-command" data-command="analyze" type="button">
+                                                    <i class="fas fa-chart-line"></i> تحليل النظام
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="report">
-                                                    <i class="fas fa-file-alt"></i> {{ _('_("_(" _(" _(" _(" _(" _("إنشاء تقرير")")")")")")")') }}
+                                                <button class="btn btn-sm btn-outline-light ms-1 quick-command" data-command="report" type="button">
+                                                    <i class="fas fa-file-alt"></i> إنشاء تقرير
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="optimize">
-                                                    <i class="fas fa-cog"></i> {{ _('_("_(" _(" _(" _(" _(" _("اقتراحات التحسين")")")")")")")') }}
+                                                <button class="btn btn-sm btn-outline-light ms-1 quick-command" data-command="optimize" type="button">
+                                                    <i class="fas fa-cog"></i> اقتراحات التحسين
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="backup">
-                                                    <i class="fas fa-database"></i> {{ _('_("_(" _(" _(" _(" _(" _("نسخة احتياطية")")")")")")")') }}
+                                                <button class="btn btn-sm btn-outline-light ms-1 quick-command" data-command="backup" type="button">
+                                                    <i class="fas fa-database"></i> نسخة احتياطية
                                                 </button>
                                             </div>
                                         </div>
@@ -478,4 +475,5 @@
         </div>
     </div>
 </div>
+<script type="module" src="{{ url_for('static', filename='js/pages/super_admin/dashboard.js') }}"></script>
 {% endblock %}

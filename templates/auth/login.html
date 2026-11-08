@@ -108,7 +108,7 @@
                             <input type="checkbox" id="remember" name="remember" value="1">
                             <span>{{ _('_("_(" _(" _(" _(" _(" _("تذكرني")")")")")")")') }}</span>
                         </label>
-                        <button type="button" class="forgot-link" data-action="forgot-password">{{ _('_("_(" _(" _(" _(" _(" _("هل نسيت كلمة المرور؟")")")")")")")') }}</button>
+                        <a class="forgot-link" href="{{ url_for('auth.forgot_password') }}">{{ _('_("_(" _(" _(" _(" _(" _("هل نسيت كلمة المرور؟")")")")")")")') }}</a>
                     </div>
 
                     <button type="submit" class="login-primary-btn" id="loginBtn">

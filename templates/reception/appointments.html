@@ -311,10 +311,10 @@
                           <h5 class="text-muted">لا توجد مواعيد</h5>
                           <p class="text-muted">ابدأ بإنشاء موعد جديد</p>
                           {% if current_user.is_authenticated and has_permission('patient_create') %}
-                          <button class="btn btn-primary" data-action="new-appointment">
+                          <a class="btn btn-primary" href="{{ url_for('reception.create_appointment') }}">
                               <i class="fas fa-plus me-1"></i>
                               موعد جديد
-                          </button>
+                          </a>
                           {% endif %}
                         {% endif %}
                     </div>
@@ -335,10 +335,10 @@
                     <div class="row">
                         {% if current_user.is_authenticated and has_permission('patient_create') %}
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-primary w-100" data-action="new-appointment">
+                            <a class="btn btn-primary w-100" href="{{ url_for('reception.create_appointment') }}">
                                 <i class="fas fa-plus me-2"></i>
                                 موعد جديد
-                            </button>
+                            </a>
                         </div>
                         {% endif %}
                         <div class="col-md-3 mb-3">

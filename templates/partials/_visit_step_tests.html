@@ -1,14 +1,14 @@
                         <div class="form-step-panel d-none" data-step="2" hidden>
-                        <div class="row mb-4" id="test_selection_section" class="d-none">
+                        <div class="row mb-4" id="test_selection_section">
                             <div class="col-md-8">
                                 <div class="mb-3">
-                                    <label for="selected_tests" class="form-label" id="tests_section_label">{{ _('_("_(" _(" _(" _(" _(" _("الفحوصات والخدمات المطلوبة")")")")")")")') }}</label>
+                                    <label for="selected_tests" class="form-label" id="tests_section_label">الاختبارات والفحوصات المطلوبة</label>
                                     <select class="form-control" id="selected_tests" name="selected_tests" multiple></select>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("إجمالي الفحوصات")")")")")")")') }}</label>
+                                    <label class="form-label">عدد الاختبارات</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="testsTotalPrice" readonly>
                                         <div class="input-group-append">
@@ -19,37 +19,37 @@
                             </div>
                         </div>
 
-                        <div class="row mb-4" id="custom_services_section" class="d-none">
+                        <div class="row mb-4" id="custom_services_section">
                             <div class="col-12">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <label class="form-label mb-0">{{ _('_("_(" _(" _(" _(" _(" _("خدمات / فحوصات إضافية يدوية")")")")")")")') }}</label>
+                                    <label class="form-label mb-0">الخدمات / الفحوصات المخصصة</label>
                                     <button type="button" class="btn btn-outline-primary btn-sm" data-action="add-service-row">
-                                        <i class="fas fa-plus"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("إضافة خدمة")")")")")")")') }}</span>
+                                        <i class="fas fa-plus"></i> <span class="btn-label">إضافة صف</span>
                                     </button>
                                 </div>
-                                <div id="custom_services_container"_(" _(" _(" _(" _(" _("></div>
+                                <div id="custom_services_container"></div>
                             </div>
                         </div>
-                        <!-- نوع الزيارة والتكلفة -->
-                        <div class=")")")")")")"row mb-4">
+                        <!-- ملاحظات وزيارة -->
+                        <div class="row mb-4">
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="visit_type" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("نوع الزيارة")")")")")")")') }}</label>
+                                    <label for="visit_type" class="form-label">نوع الزيارة</label>
                                     <select class="form-control" id="visit_type" name="visit_type">
-                                        <option value="REGULAR">{{ _('_("_(" _(" _(" _(" _(" _("زيارة عادية")")")")")")")') }}</option>
-                                        <option value="FOLLOW_UP">{{ _('_("_(" _(" _(" _(" _(" _("مراجعة")")")")")")")') }}</option>
-                                        <option value="CONSULTATION">{{ _('_("_(" _(" _(" _(" _(" _("استشارة")")")")")")")') }}</option>
-                                        <option value="EMERGENCY">{{ _('_("_(" _(" _(" _(" _(" _("طوارئ")")")")")")")') }}</option>
+                                        <option value="REGULAR">زيارة عادية</option>
+                                        <option value="FOLLOW_UP">متابعة</option>
+                                        <option value="CONSULTATION">استشارة</option>
+                                        <option value="EMERGENCY">طوارئ</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="tax_type" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الضريبة")")")")")")")') }}</label>
+                                    <label for="tax_type" class="form-label">الضريبة</label>
                                     <select class="form-control" id="tax_type" name="tax_type">
-                                        <option value="none" selected>{{ _('_("_(" _(" _(" _(" _(" _("بدون ضريبة")")")")")")")') }}</option>
-                                        <option value="inclusive">{{ _('_("_(" _(" _(" _(" _(" _("شامل الضريبة (15%)")")")")")")")') }}</option>
-                                        <option value="exclusive">{{ _('_("_(" _(" _(" _(" _(" _("غير شامل (إضافة 15%)")")")")")")")') }}</option>
+                                        <option value="none" selected>بدون ضريبة</option>
+                                        <option value="inclusive">شامل الضريبة (15%)</option>
+                                        <option value="exclusive">غير شامل (تضاف 15%)</option>
                                     </select>
                                 </div>
                             </div>
@@ -57,7 +57,7 @@
                                 <div class="mb-3">
                                     <label for="is_emergency" class="form-label">
                                         <input type="checkbox" id="is_emergency" name="is_emergency">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("طوارئ")")")")")")")') }}
+                                        طوارئ
                                     </label>
                                 </div>
                             </div>
@@ -65,35 +65,33 @@
                                 <div class="mb-3">
                                     <label for="is_force_payment" class="form-label">
                                         <input type="checkbox" id="is_force_payment" name="is_force_payment">
-                                        {{ _('_("_(" _(" _(" _(" _(" _("إعفاء/قوي")")")")")")")') }}
+                                        دفع قسري/آجل
                                     </label>
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="mb-3">
-                                    <label class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("التكلفة")")")")")")")') }}</label>
+                                    <label class="form-label">التكلفة</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="visitCost" readonly>
                                         <div class="input-group-append">
                                             <span class="input-group-text">₪</span>
                                         </div>
                                     </div>
-                                    <small class="text-muted" id="costBreakdown"_(" _(" _(" _(" _(" _("></small>
+                                    <small class="text-muted" id="costBreakdown"></small>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- معلومات الزيارة -->
-                        <div class=")")")")")")"row mb-4">
+                        <!-- ملاحظات الزيارة -->
+                        <div class="row mb-4">
                             <div class="col-12">
                                 <div class="mb-3">
-                                    <label for="symptoms" class="form-label">{{ _('_("_(" _(" _(" _(" _(" _("الأعراض/الشكوى")")")")")")")') }}</label>
-                                    <textarea class="form-control" id="symptoms" name="symptoms" rows="3" 
-                                              placeholder="_(" _(" _(" _(" _(" _("وصف الأعراض أو الشكوى...")")")")")")" _(" _(" _(" _(" _("></textarea>
+                                    <label for="symptoms" class="form-label">الأعراض/الشكوى</label>
+                                    <textarea class="form-control" id="symptoms" name="symptoms" rows="3"
+                                              placeholder="وصف الأعراض أو الشكوى..."></textarea>
                                 </div>
                             </div>
                         </div>
 
                         </div>{# end step 2 #}
-
-                        <!-- طرق الدفع -->
