@@ -1,5 +1,5 @@
 {
-  "total_routes": 958,
+  "total_routes": 959,
   "routes": [
     {
       "endpoint": "main.index",
@@ -9421,6 +9421,15 @@
     {
       "endpoint": "super_admin.optimize_database",
       "path": "/super-admin/system/optimize-database",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "super_admin.service_pricing_delete",
+      "path": "/super-admin/service-pricing/delete/<int:price_id>",
       "methods": [
         "OPTIONS",
         "POST"

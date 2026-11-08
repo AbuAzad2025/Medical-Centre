@@ -5,9 +5,8 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('_("_(" _(" _(" _(" _(" _("إدارة المستخدمين")")")")")")")', subtitle='_("_(" _(" _(" _(" _(" _("إدارة شاملة لمستخدمي النظام")")")")")")")', icon='fas fa-users', actions=[
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("إضافة مستخدم")")")")")")")', 'icon': 'fas fa-user-plus', 'data_action': 'add-user', 'style': 'primary'},
-        {'type': 'button', 'label': '_("_(" _(" _(" _(" _(" _("تصدير المستخدمين")")")")")")")', 'icon': 'fas fa-file-excel', 'data_action': 'export-users', 'style': 'success'}
+    {{ page_header(title='إدارة المستخدمين', subtitle='حسابات موظفي المنشأة وأدوارهم', icon='fas fa-users', actions=[
+        {'type': 'button', 'label': 'تصدير CSV', 'icon': 'fas fa-file-csv', 'data_action': 'export-users', 'style': 'success'}
     ]) }}
 
     <!-- Users Statistics -->
@@ -18,7 +17,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("إجمالي المستخدمين")")")")")")")') }}
+                                إجمالي المستخدمين
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ users|length }}</div>
                         </div>
@@ -36,7 +35,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("المستخدمين النشطين")")")")")")")') }}
+                                المستخدمون النشطون
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">
                                 {{ users|selectattr('is_active', 'equalto', True)|list|length }}
@@ -56,7 +55,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("المستخدمين المعطلين")")")")")")")') }}
+                                المستخدمون غير النشطين
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">
                                 {{ users|selectattr('is_active', 'equalto', False)|list|length }}
@@ -76,7 +75,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-info text-uppercase mb-1">
-                                {{ _('_("_(" _(" _(" _(" _(" _("المديرين")")")")")")")') }}
+                                المديرون
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">
                                 {{ users|selectattr('is_admin', 'equalto', True)|list|length }}
@@ -96,12 +95,12 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("قائمة المستخدمين")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">قائمة المستخدمين</h6>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" data-action="filter-users" data-value="all">{{ _('_("_(" _(" _(" _(" _(" _("الكل")")")")")")")') }}</button>
-                        <button class="btn btn-sm btn-outline-success" data-action="filter-users" data-value="active">{{ _('_("_(" _(" _(" _(" _(" _("النشطين")")")")")")")') }}</button>
-                        <button class="btn btn-sm btn-outline-warning" data-action="filter-users" data-value="inactive">{{ _('_("_(" _(" _(" _(" _(" _("المعطلين")")")")")")")') }}</button>
-                        <button class="btn btn-sm btn-outline-info" data-action="filter-users" data-value="admin">{{ _('_("_(" _(" _(" _(" _(" _("المديرين")")")")")")")') }}</button>
+                        <button class="btn btn-sm btn-outline-primary" data-action="filter-users" data-value="all">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" data-action="filter-users" data-value="active">النشطون</button>
+                        <button class="btn btn-sm btn-outline-warning" data-action="filter-users" data-value="inactive">غير النشطين</button>
+                        <button class="btn btn-sm btn-outline-info" data-action="filter-users" data-value="admin">المديرون</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -109,20 +108,20 @@
                         <table class="table table-bordered" id="usersTable">
                             <thead>
                                 <tr>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الاسم")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("اسم المستخدم")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("البريد الإلكتروني")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الدور")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("القسم")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الحالة")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("آخر دخول")")")")")")")') }}</th>
-                                    <th>{{ _('_("_(" _(" _(" _(" _(" _("الإجراءات")")")")")")")') }}</th>
+                                    <th>الاسم</th>
+                                    <th>اسم المستخدم</th>
+                                    <th>البريد الإلكتروني</th>
+                                    <th>الدور</th>
+                                    <th>القسم</th>
+                                    <th>الحالة</th>
+                                    <th>آخر دخول</th>
+                                    <th>الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for user in users %}
-                                <tr data-status="{{ 'active' if user.is_active else 'inactive' }}" 
-                                    data-role="{{ user.role }}" 
+                                <tr data-user-id="{{ user.id }}" data-status="{{ 'active' if user.is_active else 'inactive' }}"
+                                    data-role="{{ user.role }}"
                                     data-admin="{{ 'admin' if user.is_admin else 'user' }}">
                                     <td>
                                         <div class="d-flex align-items-center">
@@ -130,61 +129,46 @@
                                                 {{ user.full_name[0] if user.full_name else 'U' }}
                                             </div>
                                             <div>
-                                                <div class="fw-bold">{{ user.full_name or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</div>
-                                                <small class="text-muted">{{ user.phone or '_("_(" _(" _(" _(" _(" _("لا يوجد رقم")")")")")")")' }}</small>
+                                                <div class="fw-bold">{{ user.full_name or 'غير محدد' }}</div>
+                                                <small class="text-muted">{{ user.phone or 'لا يوجد رقم' }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>{{ user.username }}</td>
-                                    <td>{{ user.email or '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                    <td>{{ user.email or 'غير محدد' }}</td>
                                     <td>
                                         {% if user.role == 'manager' %}
-                                            <span class="badge bg-warning">{{ _('_("_(" _(" _(" _(" _(" _("مدير")")")")")")")') }}</span>
+                                            <span class="badge bg-warning">مدير</span>
                                         {% elif user.role == 'doctor' %}
-                                            <span class="badge bg-info">{{ _('_("_(" _(" _(" _(" _(" _("طبيب")")")")")")")') }}</span>
+                                            <span class="badge bg-info">طبيب</span>
                                         {% elif user.role == 'reception' %}
-                                            <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("استقبال")")")")")")")') }}</span>
+                                            <span class="badge bg-success">استقبال</span>
                                         {% elif user.role == 'lab' %}
-                                            <span class="badge bg-primary">{{ _('_("_(" _(" _(" _(" _(" _("مختبر")")")")")")")') }}</span>
+                                            <span class="badge bg-primary">مختبر</span>
                                         {% elif user.role == 'radiology' %}
-                                            <span class="badge bg-secondary">{{ _('_("_(" _(" _(" _(" _(" _("أشعة")")")")")")")') }}</span>
+                                            <span class="badge bg-secondary">أشعة</span>
                                         {% elif user.role == 'emergency' %}
-                                            <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("طوارئ")")")")")")")') }}</span>
+                                            <span class="badge bg-danger">طوارئ</span>
                                         {% elif user.role == 'accountant' %}
-                                            <span class="badge bg-dark">{{ _('_("_(" _(" _(" _(" _(" _("محاسب")")")")")")")') }}</span>
+                                            <span class="badge bg-dark">محاسبة</span>
                                         {% else %}
                                             <span class="badge bg-light text-dark">{{ user.role }}</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ user.department.name if user.department else '_("_(" _(" _(" _(" _(" _("غير محدد")")")")")")")' }}</td>
+                                    <td>{{ user.department.name if user.department else 'غير محدد' }}</td>
                                     <td>
                                         {% if user.is_active %}
-                                            <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("نشط")")")")")")")') }}</span>
+                                            <span class="badge bg-success">نشط</span>
                                         {% else %}
-                                            <span class="badge bg-danger">{{ _('_("_(" _(" _(" _(" _(" _("معطل")")")")")")")') }}</span>
+                                            <span class="badge bg-danger">معطل</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ user.last_login|format_datetime if user.last_login else '_("_(" _(" _(" _(" _(" _("لم يسجل دخول")")")")")")")' }}</td>
+                                    <td>{{ user.last_login|format_datetime if user.last_login else 'لم يسجل دخول' }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                             <button class="btn btn-sm btn-outline-primary" data-action="viewUser" data-user-id="{{ user.id }}" title="_(" _(" _(" _(" _(" _("عرض")")")")")")">
-                                                <i class="fas fa-eye"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("عرض")")")")")")")') }}</span>
+                                            <button class="btn btn-sm btn-outline-primary" data-action="viewUser" data-user-id="{{ user.id }}" title="عرض">
+                                                <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-info" data-action="editUser" data-user-id="{{ user.id }}" title="_(" _(" _(" _(" _(" _("تعديل")")")")")")">
-                                                <i class="fas fa-edit"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("تعديل")")")")")")")') }}</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-{{ 'warning' if user.is_active else 'success' }}" 
-                                                    data-action="toggleUser" data-user-id="{{ user.id }}" title="{{ '_("_(" _(" _(" _(" _(" _("تعطيل")")")")")")")' if user.is_active else '_("_(" _(" _(" _(" _(" _("تفعيل")")")")")")")' }}">
-                                                <i class="fas fa-toggle-{{ 'on' if user.is_active else 'off' }}"></i> <span class="btn-label"_(" _(" _(" _(" _(" _(">زر</span>
-                                            </button>
-                                            <button class=")")")")")")"btn btn-sm btn-outline-secondary" data-action="resetPassword" data-user-id="{{ user.id }}" title="_(" _(" _(" _(" _(" _("إعادة تعيين كلمة المرور")")")")")")">
-                                                <i class="fas fa-key"></i> <span class="btn-label">زر</span>
-                                            </button>
-                                            {% if not user.is_admin %}
-                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteUser" data-user-id="{{ user.id }}" title="_(" _(" _(" _(" _(" _("حذف")")")")")")">
-                                                <i class="fas fa-trash"></i> <span class="btn-label">{{ _('حذف') }}</span>
-                                            </button>
-                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -202,7 +186,7 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("توزيع الأدوار")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">توزيع الأدوار</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -215,7 +199,7 @@
                                 {% set _ = role_counts.update({role: 1}) %}
                             {% endif %}
                         {% endfor %}
-                        
+
                         {% for role, count in role_counts.items() %}
                         <div class="col-md-6 mb-3">
                             <div class="role-stat-item">
@@ -253,70 +237,31 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إحصائيات سريعة")")")")")")")') }}</h6>
+                    <h6 class="m-0 fw-bold text-primary">ملخص الحسابات</h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
                         <div class="d-flex justify-content-between">
-                            <span>{{ _('_("_(" _(" _(" _(" _(" _("المستخدمين الجدد اليوم")")")")")")")') }}</span>
-                            <span class="fw-bold text-success">3</span>
+                            <span>إجمالي الحسابات</span>
+                            <span class="fw-bold">{{ users|length }}</span>
                         </div>
                     </div>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between">
-                            <span>{{ _('_("_(" _(" _(" _(" _(" _("آخر تسجيل دخول")")")")")")")') }}</span>
-                            <span class="fw-bold text-info">{{ _('_("_(" _(" _(" _(" _(" _("منذ 5 دقائق")")")")")")")') }}</span>
+                            <span>الحسابات النشطة</span>
+                            <span class="fw-bold text-success">{{ users|selectattr('is_active', 'equalto', True)|list|length }}</span>
                         </div>
                     </div>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between">
-                            <span>{{ _('_("_(" _(" _(" _(" _(" _("معدل النشاط")")")")")")")') }}</span>
-                            <span class="fw-bold text-warning">85%</span>
+                            <span>الحسابات المعطلة</span>
+                            <span class="fw-bold text-warning">{{ users|selectattr('is_active', 'equalto', False)|list|length }}</span>
                         </div>
                     </div>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between">
-                            <span>{{ _('_("_(" _(" _(" _(" _(" _("حالة النظام")")")")")")")') }}</span>
-                            <span class="badge bg-success">{{ _('_("_(" _(" _(" _(" _(" _("مستقر")")")")")")")') }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bulk Actions -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">{{ _('_("_(" _(" _(" _(" _(" _("إجراءات جماعية")")")")")")")') }}</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <button class="btn btn-primary w-100" data-action="bulk-activate">
-                                <i class="fas fa-check me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("تفعيل المستخدمين")")")")")")")') }}
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <button class="btn btn-warning w-100" data-action="bulk-deactivate">
-                                <i class="fas fa-pause me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("تعطيل المستخدمين")")")")")")")') }}
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <button class="btn btn-info w-100" data-action="bulk-reset-password">
-                                <i class="fas fa-key me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("إعادة تعيين كلمات المرور")")")")")")")') }}
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <button class="btn btn-success w-100" data-action="bulk-export">
-                                <i class="fas fa-download me-2"></i>
-                                {{ _('_("_(" _(" _(" _(" _(" _("تصدير المستخدمين")")")")")")")') }}
-                            </button>
+                            <span>ملاحظة</span>
+                            <span class="text-muted small">إدارة الحسابات (تغيير الدور/كلمة المرور) متاحة للمدير الأعلى فقط</span>
                         </div>
                     </div>
                 </div>
@@ -359,11 +304,6 @@
     font-size: 1.5rem;
     font-weight: bold;
     color: #5a5c69;
-}
-.btn-block:hover {
-    text-decoration: none;
-    transform: translateY(-2px);
-    transition: all 0.3s ease;
 }
 #usersTable {
     font-size: 0.9rem;

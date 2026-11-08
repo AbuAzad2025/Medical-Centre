@@ -162,18 +162,6 @@ describe('reception/appointments.js', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('generateReport shows info Swal', async () => {
-    const mod = await loadModule('static/js/pages/reception/appointments.js');
-    mod.generateReport();
-    expect(window.Swal.fire.mock.calls[0][0].icon).toBe('info');
-  });
-
-  it('bulkActions shows info Swal', async () => {
-    const mod = await loadModule('static/js/pages/reception/appointments.js');
-    mod.bulkActions();
-    expect(window.Swal.fire.mock.calls[0][0].icon).toBe('info');
-  });
-
   it('DOMContentLoaded attaches row hover handlers', async () => {
     await loadModule('static/js/pages/reception/appointments.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));

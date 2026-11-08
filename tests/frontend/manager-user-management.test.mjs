@@ -6,6 +6,8 @@ beforeEach(async () => {
   window.__M = [];
   window.API_ROUTES = {};
   global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ users: [] }) });
+  global.URL.createObjectURL = vi.fn(() => 'blob:x');
+  global.URL.revokeObjectURL = vi.fn();
   await loadModule('static/js/pages/manager/user_management.js');
 });
 

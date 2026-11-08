@@ -216,6 +216,14 @@ class TestManagerRoutes:
         resp = client.get('/manager/staff')
         assert resp.status_code in (200, 302)
 
+    def test_user_management_renders(self, login_as, client, ctx):
+        _make_role(login_as, client, ctx, 'manager')
+        ctx.user(role='doctor')
+        resp = client.get('/manager/user-management')
+        assert resp.status_code == 200
+        assert b'usersTable' in resp.data
+        assert b'data-user-id' in resp.data
+
     def test_api_pricing_services_get(self, login_as, client, ctx):
         _make_role(login_as, client, ctx, 'manager')
         resp = client.get('/manager/api/pricing/services')

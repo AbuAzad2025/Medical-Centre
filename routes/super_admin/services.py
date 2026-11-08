@@ -354,6 +354,45 @@ def service_pricing(service_id):
         return redirect(url_for('super_admin.services'))
 
 
+@super_admin_bp.route('/service-pricing/delete/<int:price_id>', methods=['POST'])
+@login_required
+@super_admin_required
+def service_pricing_delete(price_id):
+    """حذف تسعيرة خدمة — مع تسجيل العملية في سجل التدقيق."""
+    try:
+        from models.audit_trail import AuditTrail
+        from models.pricing_management import PricingManagement
+
+        rec = db.session.get(PricingManagement, price_id)
+        if not rec:
+            flash('التسعيرة غير موجودة', 'error')
+            return redirect(url_for('super_admin.services'))
+
+        service_id = rec.service_id
+        db.session.add(
+            AuditTrail(
+                entity_type='pricing',
+                entity_id=price_id,
+                tenant_id=getattr(current_user, 'tenant_id', None),
+                action='delete',
+                user_id=current_user.id,
+                user_ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                description=f'حذف تسعيرة الخدمة #{service_id} (ID {price_id})',
+                notes='service_pricing_delete',
+            )
+        )
+        db.session.delete(rec)
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        flash('تم حذف التسعيرة', 'success')
+        return redirect(url_for('super_admin.service_pricing', service_id=service_id))
+    except Exception:
+        safe_rollback(db.session, error_message='database rollback')
+        logging.exception('service_pricing_delete error')
+        flash('حدث خطأ في حذف التسعيرة', 'error')
+        return redirect(url_for('super_admin.services'))
+
+
 @super_admin_bp.route('/activate-service/<int:service_id>', methods=['POST'])
 @login_required
 @super_admin_required

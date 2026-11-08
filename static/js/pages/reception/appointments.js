@@ -160,14 +160,6 @@ export function noShowAppointment(appointmentId) {
     });
 }
 
-export function generateReport() {
-    Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير المواعيد', icon: 'info' });
-}
-
-export function bulkActions() {
-    Swal.fire({ title: 'إجراءات', text: 'الإجراءات الجماعية', icon: 'info' });
-}
-
 const searchInputEl = document.getElementById('searchInput');
 if (searchInputEl) {
     searchInputEl.addEventListener('input', function() {
@@ -196,8 +188,6 @@ if (typeof createNewVisit !== "undefined") window.createNewVisit = createNewVisi
 if (typeof cancelAppointment !== "undefined") window.cancelAppointment = cancelAppointment;
 if (typeof noShowAppointment !== "undefined") window.noShowAppointment = noShowAppointment;
 if (typeof confirmAppointment !== "undefined") window.confirmAppointment = confirmAppointment;
-if (typeof generateReport !== "undefined") window.generateReport = generateReport;
-if (typeof bulkActions !== "undefined") window.bulkActions = bulkActions;
 if (typeof createNewAppointment !== "undefined") window.createNewAppointment = createNewAppointment;
 if (typeof clearFilters !== "undefined") window.clearFilters = clearFilters;
 if (typeof viewAppointment !== "undefined") window.viewAppointment = viewAppointment;

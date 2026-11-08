@@ -45,7 +45,7 @@
                                                 </td>
                                                 <td>{{ price.description or '-' }}</td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-danger" data-action="deletePricing" data-price-id="price.id">
+                                                    <button class="btn btn-sm btn-danger" data-action="deletePricing" data-price-id="{{ price.id }}">
                                                         <i class="fas fa-trash"></i> <span class="btn-label">{{ _('_("_(" _(" _(" _(" _(" _("حذف")")")")")")")') }}</span>
                                                     </button>
                                                 </td>

@@ -12,20 +12,46 @@ afterEach(() => {
 });
 
 describe('service_pricing.js', () => {
-  it('deletePricing confirms then shows info', async () => {
+  it('deletePricing confirm posts to the delete endpoint and reloads', async () => {
+    window.location = { reload: vi.fn() };
+    document.head.innerHTML = '<meta name="csrf-token" content="tok-sp">';
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, redirected: true });
     const mod = await loadModule('static/js/pages/super_admin/service_pricing.js');
     mod.deletePricing('7');
-    await new Promise(r => setTimeout(r, 30));
-    expect(window.Swal.fire).toHaveBeenCalledTimes(2);
-    expect(window.Swal.fire.mock.calls[1][0].icon).toBe('info');
+    await new Promise(r => setTimeout(r, 40));
+    expect(global.fetch).toHaveBeenCalled();
+    const [url, init] = global.fetch.mock.calls[0];
+    expect(url).toBe('/super-admin/service-pricing/delete/7');
+    expect(init.method).toBe('POST');
+    expect(init.headers['X-CSRFToken']).toBe('tok-sp');
+    expect(window.location.reload).toHaveBeenCalled();
   });
 
-  it('deletePricing cancel does not show info Swal', async () => {
+  it('deletePricing cancel does not call fetch', async () => {
     window.Swal.fire = vi.fn().mockResolvedValue({ isConfirmed: false });
+    global.fetch = vi.fn();
     const mod = await loadModule('static/js/pages/super_admin/service_pricing.js');
     mod.deletePricing('7');
-    await new Promise(r => setTimeout(r, 30));
+    await new Promise(r => setTimeout(r, 40));
     expect(window.Swal.fire).toHaveBeenCalledTimes(1);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('deletePricing with garbage id refuses before confirming', async () => {
+    global.fetch = vi.fn();
+    const mod = await loadModule('static/js/pages/super_admin/service_pricing.js');
+    mod.deletePricing('abc!!');
+    expect(window.Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: 'error' }));
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('deletePricing server failure shows error Swal', async () => {
+    document.head.innerHTML = '<meta name="csrf-token" content="tok-sp">';
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500, redirected: false });
+    const mod = await loadModule('static/js/pages/super_admin/service_pricing.js');
+    mod.deletePricing('7');
+    await new Promise(r => setTimeout(r, 40));
+    expect(window.Swal.fire.mock.calls[1][0].icon).toBe('error');
   });
 
   it('exposes window.deletePricing', async () => {

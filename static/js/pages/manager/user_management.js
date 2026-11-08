@@ -1,82 +1,34 @@
 var __M = window.__M || [];
 
-export function addNewUser() {
-    Swal.fire({ title: 'إضافة مستخدم', text: 'إضافة مستخدم جديد', icon: 'info' });
+function csvCell(value) {
+    const s = String(value == null ? '' : value);
+    // Spreadsheet formula-injection guard
+    const guarded = /^[=+\-@\t]/.test(s) ? "'" + s : s;
+    return '"' + guarded.replace(/"/g, '""') + '"';
 }
 
 export function exportUsers() {
-    var rows = document.querySelectorAll('#usersTable tbody tr');
-    var csv = "data:text/csv;charset=utf-8,"
-        + "\u0627\u0644\u0627\u0633\u0645,\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645,\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a,\u0627\u0644\u062f\u0648\u0631,\u0627\u0644\u0642\u0633\u0645,\u0627\u0644\u062d\u0627\u0644\u0629,\u0622\u062e\u0631 \u062f\u062e\u0648\u0644\n";
-    rows.forEach(function(row) {
-        var cells = row.querySelectorAll('td');
+    const rows = document.querySelectorAll('#usersTable tbody tr');
+    const lines = [['الاسم', 'اسم المستخدم', 'البريد الإلكتروني', 'الدور', 'القسم', 'الحالة', 'آخر دخول']];
+    rows.forEach(function (row) {
+        const cells = row.querySelectorAll('td');
         if (cells.length < 7) return;
-        var vals = [];
-        for (var i = 0; i < 7; i++) {
-            vals.push((cells[i].textContent || '').trim().replace(/,/g, ' '));
+        const vals = [];
+        for (let i = 0; i < 7; i++) {
+            vals.push(csvCell((cells[i].textContent || '').trim()));
         }
-        csv += vals.join(',') + '\n';
+        lines.push(vals);
     });
-    var encoded = encodeURI(csv);
-    var link = document.createElement('a');
-    link.setAttribute('href', encoded);
+    const csv = lines.map(function (row) { return row.join(','); }).join('\r\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
     link.setAttribute('download', 'users_' + new Date().toISOString().split('T')[0] + '.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-}
-
-export function viewUser(userId) {
-    Swal.fire({ title: 'عرض المستخدم', text: 'عرض تفاصيل المستخدم: ' + userId, icon: 'info' });
-}
-
-export function editUser(userId) {
-    Swal.fire({ title: 'تعديل المستخدم', text: 'تعديل المستخدم: ' + userId, icon: 'info' });
-}
-
-export function toggleUser(userId) {
-    Swal.fire({
-        title: 'تغيير الحالة',
-        text: 'هل تريد تغيير حالة هذا المستخدم؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'تأكيد',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم تغيير حالة المستخدم: ' + userId, icon: 'success' }).then(() => { location.reload(); });
-        }
-    });
-}
-
-export function resetPassword(userId) {
-    Swal.fire({
-        title: 'إعادة تعيين كلمة المرور',
-        text: 'هل تريد إعادة تعيين كلمة مرور هذا المستخدم؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'تأكيد',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم إعادة تعيين كلمة المرور للمستخدم: ' + userId, icon: 'success' });
-        }
-    });
-}
-
-export function deleteUser(userId) {
-    Swal.fire({
-        title: 'حذف المستخدم',
-        text: 'هل تريد حذف هذا المستخدم نهائياً؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'حذف',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم حذف المستخدم: ' + userId, icon: 'success' }).then(() => { location.reload(); });
-        }
-    });
+    URL.revokeObjectURL(url);
 }
 
 export function filterUsers(filter, e) {
@@ -101,58 +53,42 @@ export function filterUsers(filter, e) {
     if (e) e.target.classList.add('active');
 }
 
-export function bulkActivate() {
+export function viewUser(userId) {
+    // Show the real, already-rendered row data for this user — no server round-trip, no invented fields.
+    // Only allow simple ids into the selector (numbers and word chars).
+    const safeId = String(userId == null ? '' : userId).replace(/[^\w-]/g, '');
+    const row = safeId ? document.querySelector('#usersTable tbody tr[data-user-id="' + safeId + '"]') : null;
+    if (!row) {
+        Swal.fire({ title: 'تفاصيل المستخدم', text: 'لم يتم العثور على المستخدم', icon: 'info' });
+        return;
+    }
+    const cells = row.querySelectorAll('td');
+    const cellText = (i) => (cells[i] ? cells[i].textContent.trim() : '');
     Swal.fire({
-        title: 'تفعيل المستخدمين',
-        text: 'هل تريد تفعيل المستخدمين المحددين؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'تفعيل',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم تفعيل المستخدمين', icon: 'success' }).then(() => { location.reload(); });
-        }
+        title: cellText(0).replace(/\s+/g, ' ') || 'تفاصيل المستخدم',
+        html:
+            '<div class="text-start">'
+            + '<p class="mb-1"><strong>اسم المستخدم:</strong> ' + escapeHtml(cellText(1)) + '</p>'
+            + '<p class="mb-1"><strong>البريد:</strong> ' + escapeHtml(cellText(2)) + '</p>'
+            + '<p class="mb-1"><strong>الدور:</strong> ' + escapeHtml(cellText(3)) + '</p>'
+            + '<p class="mb-1"><strong>القسم:</strong> ' + escapeHtml(cellText(4)) + '</p>'
+            + '<p class="mb-1"><strong>الحالة:</strong> ' + escapeHtml(cellText(5)) + '</p>'
+            + '<p class="mb-0"><strong>آخر دخول:</strong> ' + escapeHtml(cellText(6)) + '</p>'
+            + '</div>',
+        icon: 'info',
     });
 }
 
-export function bulkDeactivate() {
-    Swal.fire({
-        title: 'تعطيل المستخدمين',
-        text: 'هل تريد تعطيل المستخدمين المحددين؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'تعطيل',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم تعطيل المستخدمين', icon: 'success' }).then(() => { location.reload(); });
-        }
-    });
-}
-
-export function bulkResetPassword() {
-    Swal.fire({
-        title: 'إعادة تعيين كلمات المرور',
-        text: 'هل تريد إعادة تعيين كلمات مرور المستخدمين المحددين؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'تأكيد',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم إعادة تعيين كلمات المرور', icon: 'success' });
-        }
-    });
-}
-
-export function bulkExport() {
-
-    exportUsers();
+function escapeHtml(v) {
+    return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-
     const rows = document.querySelectorAll('#usersTable tbody tr');
     rows.forEach(row => {
         row.addEventListener('mouseenter', function() {
@@ -164,17 +100,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
 // Backward compatibility
 if (typeof filterUsers !== "undefined") window.filterUsers = filterUsers;
-if (typeof bulkActivate !== "undefined") window.bulkActivate = bulkActivate;
-if (typeof resetPassword !== "undefined") window.resetPassword = resetPassword;
 if (typeof exportUsers !== "undefined") window.exportUsers = exportUsers;
-if (typeof addNewUser !== "undefined") window.addNewUser = addNewUser;
-if (typeof deleteUser !== "undefined") window.deleteUser = deleteUser;
-if (typeof editUser !== "undefined") window.editUser = editUser;
-if (typeof bulkDeactivate !== "undefined") window.bulkDeactivate = bulkDeactivate;
 if (typeof viewUser !== "undefined") window.viewUser = viewUser;
-if (typeof bulkResetPassword !== "undefined") window.bulkResetPassword = bulkResetPassword;
-if (typeof toggleUser !== "undefined") window.toggleUser = toggleUser;
-if (typeof bulkExport !== "undefined") window.bulkExport = bulkExport;
+
+export {};

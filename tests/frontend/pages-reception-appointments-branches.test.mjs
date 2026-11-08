@@ -320,13 +320,6 @@ describe('appointments.js view/edit/navigation branches', () => {
     expect(window.location.href).toBe('/reception/edit_appointment/6');
   });
 
-  it('generateReport and bulkActions fire info Swal', async () => {
-    const mod = await loadModule('static/js/pages/reception/appointments.js');
-    mod.generateReport();
-    mod.bulkActions();
-    expect(window.Swal.fire).toHaveBeenCalledTimes(2);
-  });
-
   it('search input triggers applyFilters', async () => {
     const mod = await loadModule('static/js/pages/reception/appointments.js');
     const input = document.getElementById('searchInput');
