@@ -603,12 +603,13 @@ def api_available_doctors():
         department_id = request.args.get('department_id', type=int)
         request.args.get('appointment_type', type=str)
 
-        query = select(User)
+        query = select(User).where(User.role == 'doctor', User.is_active.is_(True))
         if department_id:
-            query = query.filter(User.department_id == department_id)
+            query = query.where(User.department_id == department_id)
 
-        # يمكن لاحقًا استخدام appointment_type لفلترة الأطباء بحسب التسعير أو جدول العمل
-        doctors = query.order_by(User.full_name.asc()).all()
+        # full_name is encrypted at rest, so SQL cannot order by it; use id for a
+        # stable order. The caller can sort the decrypted names if it needs to.
+        doctors = db.session.execute(query.order_by(User.id)).scalars().all()
 
         return jsonify(
             {
@@ -618,7 +619,7 @@ def api_available_doctors():
         )
 
     except Exception:
-        logging.exception('Error getting available doctors: %s')
+        logging.exception('Error getting available doctors')
         return jsonify({'success': False, 'message': 'تعذر جلب الأطباء المتاحين حالياً'})
 
 
@@ -714,7 +715,7 @@ def api_available_times():
         return jsonify({'success': True, 'available_times': available_times})
 
     except Exception:
-        logging.exception('Error getting available times: %s')
+        logging.exception('Error getting available times')
         return jsonify({'success': False, 'message': 'تعذر جلب الأوقات المتاحة حالياً'})
 
 
@@ -785,7 +786,7 @@ def api_smart_slots():
             {'success': True, 'suggested_times': suggested, 'available_times': available_times}
         ), 200
     except Exception:
-        logging.exception('Error getting smart slots: %s')
+        logging.exception('Error getting smart slots')
         return jsonify({'success': False, 'message': 'تعذر اقتراح الأوقات'}), 500
 
 
@@ -797,15 +798,6 @@ from flask_login import login_required
 
 from routes.booking_routes import booking_bp
 from utils.decorators import role_required
-
-_WAITLIST_BOOKING: list = []
-_WB_COUNTER = 0
-
-
-def _next_wb() -> int:
-    global _WB_COUNTER
-    _WB_COUNTER += 1
-    return _WB_COUNTER
 
 
 @booking_bp.route('/appointments/recurring', methods=['POST', 'GET'])
@@ -868,6 +860,12 @@ def booking_recurring_appointments():
     items = db.session.execute(q).scalars().all()
     return jsonify({'success': True, 'appointments': [a.to_dict() for a in items]})
 
+from services import waitlist_service
+
+
+def _waitlist_error(exc):
+    return jsonify({'success': False, 'error': exc.message, **exc.extra}), exc.status
+
 
 @booking_bp.route('/waitlist', methods=['GET', 'POST'])
 @booking_bp.route('/appointments/waitlist', methods=['GET', 'POST'])
@@ -877,21 +875,68 @@ def booking_waitlist_management():
     tenant_id = getattr(g, 'tenant_id', None)
     if request.method == 'POST':
         data = request.get_json(silent=True) or {}
+        if not data and request.form:
+            data = request.form.to_dict()
         try:
-            patient_id = int(data.get('patient_id'))
-        except (TypeError, ValueError):
-            return jsonify({'success': False, 'error': 'patient_id required'}), 400
-        entry = {
-            'id': _next_wb(),
-            'tenant_id': tenant_id,
-            'patient_id': patient_id,
-            'status': 'WAITING',
-            'created_at': datetime.now(UTC).isoformat(),
-        }
-        _WAITLIST_BOOKING.append(entry)
+            entry = waitlist_service.add_to_waitlist(
+                patient_id=data.get('patient_id'),
+                doctor_id=data.get('doctor_id'),
+                department_id=data.get('department_id'),
+                preferred_time=data.get('preferred_time'),
+                notes=data.get('notes'),
+                tenant_id=tenant_id,
+                created_by_id=getattr(current_user, 'id', None),
+            )
+        except waitlist_service.WaitlistError as exc:
+            return _waitlist_error(exc)
         return jsonify({'success': True, 'data': entry}), 201
-    out = [w for w in _WAITLIST_BOOKING if w.get('tenant_id') == tenant_id]
-    return jsonify({'success': True, 'waitlist': out, 'count': len(out)})
+    status_filter = request.args.get('status')
+    items = waitlist_service.list_waitlist(tenant_id=tenant_id, status=status_filter)
+    return jsonify({'success': True, 'waitlist': items, 'count': len(items)})
+
+
+@booking_bp.route('/waitlist/<int:entry_id>/cancel', methods=['POST'])
+@booking_bp.route('/appointments/waitlist/<int:entry_id>/cancel', methods=['POST'])
+@login_required
+@role_required('reception', 'admin', 'manager', 'doctor')
+def booking_waitlist_cancel(entry_id):
+    tenant_id = getattr(g, 'tenant_id', None)
+    try:
+        entry = waitlist_service.cancel_waitlist_entry(entry_id, tenant_id)
+    except waitlist_service.WaitlistError as exc:
+        return _waitlist_error(exc)
+    return jsonify({'success': True, 'data': entry})
+
+
+@booking_bp.route('/waitlist/<int:entry_id>/notify', methods=['POST'])
+@booking_bp.route('/appointments/waitlist/<int:entry_id>/notify', methods=['POST'])
+@login_required
+@role_required('reception', 'admin', 'manager')
+def booking_waitlist_notify(entry_id):
+    tenant_id = getattr(g, 'tenant_id', None)
+    try:
+        entry, queued = waitlist_service.notify_waitlist_entry(
+            entry_id, tenant_id, getattr(current_user, 'id', None)
+        )
+    except waitlist_service.WaitlistError as exc:
+        return _waitlist_error(exc)
+    return jsonify({'success': True, 'data': entry, 'sms_queued': queued})
+
+
+@booking_bp.route('/waitlist/<int:entry_id>/convert', methods=['POST'])
+@booking_bp.route('/appointments/waitlist/<int:entry_id>/convert', methods=['POST'])
+@login_required
+@role_required('reception', 'admin', 'manager', 'doctor')
+def booking_waitlist_convert(entry_id):
+    tenant_id = getattr(g, 'tenant_id', None)
+    data = request.get_json(silent=True) or {}
+    try:
+        appointment, entry = waitlist_service.convert_waitlist_entry(
+            entry_id, tenant_id, data.get('starts_at'), getattr(current_user, 'id', None)
+        )
+    except waitlist_service.WaitlistError as exc:
+        return _waitlist_error(exc)
+    return jsonify({'success': True, 'appointment': appointment, 'data': entry}), 201
 
 
 @booking_bp.route('/appointment-reminders', methods=['GET', 'POST'])

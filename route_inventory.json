@@ -1,5 +1,5 @@
 {
-  "total_routes": 959,
+  "total_routes": 965,
   "routes": [
     {
       "endpoint": "main.index",
@@ -1545,6 +1545,33 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "booking.booking_waitlist_cancel",
+      "path": "/booking/appointments/waitlist/<int:entry_id>/cancel",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "booking.booking_waitlist_convert",
+      "path": "/booking/appointments/waitlist/<int:entry_id>/convert",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "booking.booking_waitlist_notify",
+      "path": "/booking/appointments/waitlist/<int:entry_id>/notify",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "booking.cancel_booking",
       "path": "/booking/cancel/<int:booking_id>",
       "methods": [
@@ -1643,6 +1670,33 @@
       "methods": [
         "GET",
         "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "booking.booking_waitlist_cancel",
+      "path": "/booking/waitlist/<int:entry_id>/cancel",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "booking.booking_waitlist_convert",
+      "path": "/booking/waitlist/<int:entry_id>/convert",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "booking.booking_waitlist_notify",
+      "path": "/booking/waitlist/<int:entry_id>/notify",
+      "methods": [
         "OPTIONS",
         "POST"
       ],
@@ -8356,6 +8410,16 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "super_admin.performance_metrics",
+      "path": "/super-admin/api/performance",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "super_admin.api_recent_activities",
       "path": "/super-admin/api/recent-activities",
       "methods": [
@@ -8939,6 +9003,15 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "super_admin.service_pricing_delete",
+      "path": "/super-admin/service-pricing/delete/<int:price_id>",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "super_admin.view_service",
       "path": "/super-admin/service/<int:service_id>",
       "methods": [
@@ -9028,6 +9101,15 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "super_admin.force_logout_all_users",
+      "path": "/super-admin/system/force-logout-all",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "super_admin.system_maintenance",
       "path": "/super-admin/system/maintenance",
       "methods": [
@@ -9058,6 +9140,15 @@
     {
       "endpoint": "super_admin.run_notifications",
       "path": "/super-admin/system/notifications/run",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "super_admin.optimize_database",
+      "path": "/super-admin/system/optimize-database",
       "methods": [
         "OPTIONS",
         "POST"
@@ -9394,43 +9485,6 @@
       "methods": [
         "GET",
         "HEAD",
-        "OPTIONS",
-        "POST"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "super_admin.performance_metrics",
-      "path": "/super-admin/api/performance",
-      "methods": [
-        "GET",
-        "HEAD",
-        "OPTIONS"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "super_admin.force_logout_all_users",
-      "path": "/super-admin/system/force-logout-all",
-      "methods": [
-        "OPTIONS",
-        "POST"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "super_admin.optimize_database",
-      "path": "/super-admin/system/optimize-database",
-      "methods": [
-        "OPTIONS",
-        "POST"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "super_admin.service_pricing_delete",
-      "path": "/super-admin/service-pricing/delete/<int:price_id>",
-      "methods": [
         "OPTIONS",
         "POST"
       ],

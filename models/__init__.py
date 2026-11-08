@@ -13,6 +13,7 @@ from .ai_analytics import (
 )
 from .ai_imaging import AIImagingAnalysis
 from .appointment import Appointment
+from .appointment_waitlist import AppointmentWaitlist
 from .audit_trail import AuditTrail, LoginAttempt, SecurityEvent, SlowQueryReport, SystemLog
 from .backup import Backup, BackupLog
 from .backup_restore import BackupRestoreLog
@@ -138,6 +139,7 @@ __all__ = [
     'Admission',
     'AllergyIntolerance',
     'Appointment',
+    'AppointmentWaitlist',
     'AuditLog',
     'AuditTrail',
     'Backup',

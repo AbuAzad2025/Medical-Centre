@@ -863,16 +863,8 @@ from flask import g
 from flask_login import login_required
 
 from routes.reception import reception_bp
+from services import waitlist_service
 from utils.decorators import role_required
-
-_WAITLIST: list = []
-_WAITLIST_COUNTER = 0
-
-
-def _next_waitlist_id() -> int:
-    global _WAITLIST_COUNTER
-    _WAITLIST_COUNTER += 1
-    return _WAITLIST_COUNTER
 
 
 @reception_bp.route('/appointments/recurring', methods=['POST', 'GET'])
@@ -949,6 +941,10 @@ def recurring_appointments():
     return jsonify({'success': True, 'appointments': [a.to_dict() for a in items]})
 
 
+def _waitlist_error(exc):
+    return jsonify({'success': False, 'error': exc.message, **exc.extra}), exc.status
+
+
 @reception_bp.route('/appointments/waitlist', methods=['GET', 'POST'])
 @reception_bp.route('/waitlist', methods=['GET', 'POST'])
 @login_required
@@ -960,34 +956,33 @@ def waitlist_management():
         if not data and request.form:
             data = request.form.to_dict()
         try:
-            patient_id = int(data.get('patient_id'))
-        except (TypeError, ValueError):
-            return jsonify({'success': False, 'error': 'patient_id required'}), 400
-        entry = {
-            'id': _next_waitlist_id(),
-            'tenant_id': tenant_id,
-            'patient_id': patient_id,
-            'doctor_id': data.get('doctor_id'),
-            'department_id': data.get('department_id'),
-            'preferred_time': data.get('preferred_time'),
-            'status': 'WAITING',
-            'created_at': datetime.now(UTC).isoformat(),
-        }
-        _WAITLIST.append(entry)
+            entry = waitlist_service.add_to_waitlist(
+                patient_id=data.get('patient_id'),
+                doctor_id=data.get('doctor_id'),
+                department_id=data.get('department_id'),
+                preferred_time=data.get('preferred_time'),
+                notes=data.get('notes'),
+                tenant_id=tenant_id,
+                created_by_id=getattr(current_user, 'id', None),
+            )
+        except waitlist_service.WaitlistError as exc:
+            return _waitlist_error(exc)
         return jsonify({'success': True, 'data': entry}), 201
-    out = [w for w in _WAITLIST if w.get('tenant_id') == tenant_id]
-    return jsonify({'success': True, 'waitlist': out, 'count': len(out)})
+    status_filter = request.args.get('status')
+    items = waitlist_service.list_waitlist(tenant_id=tenant_id, status=status_filter)
+    return jsonify({'success': True, 'waitlist': items, 'count': len(items)})
 
 
 @reception_bp.route('/appointments/waitlist/<int:entry_id>', methods=['DELETE', 'POST'])
 @login_required
 @role_required('reception', 'admin', 'manager')
 def remove_waitlist_entry(entry_id: int):
-    for i, w in enumerate(_WAITLIST):
-        if w.get('id') == entry_id:
-            _WAITLIST.pop(i)
-            return jsonify({'success': True})
-    return jsonify({'success': False, 'error': 'Not found'}), 404
+    tenant_id = getattr(g, 'tenant_id', None)
+    try:
+        waitlist_service.cancel_waitlist_entry(entry_id, tenant_id)
+    except waitlist_service.WaitlistError as exc:
+        return _waitlist_error(exc)
+    return jsonify({'success': True})
 
 
 @reception_bp.route('/appointments/reminders', methods=['GET', 'POST'])
