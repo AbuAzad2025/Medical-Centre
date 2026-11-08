@@ -40,6 +40,8 @@ class LabWorkflowService:
     def enter_results(lab_result, values: dict, entered_by: int) -> None:
         for k, v in values.items():
             setattr(lab_result, k, v)
-        lab_result.entered_by = entered_by
-        lab_result.entered_at = datetime.now(UTC)
+        # LabResult has no entered_by/entered_at columns; map to the
+        # closest existing audit fields so they are actually persisted.
+        lab_result.performed_by = entered_by
+        lab_result.updated_at = datetime.now(UTC)
         db.session.add(lab_result)

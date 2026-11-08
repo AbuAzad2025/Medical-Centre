@@ -134,10 +134,11 @@ class FHIRService:
             if getattr(result, 'visit_id', None)
             else None,
             'valueQuantity': {
-                'value': result.result_value,
+                # LabResult stores the reading in `value`, not `result_value`
+                'value': getattr(result, 'value', None),
                 'unit': result.unit or '',
             }
-            if getattr(result, 'result_value', None)
+            if getattr(result, 'value', None)
             else None,
             'interpretation': [{'text': result.interpretation}]
             if getattr(result, 'interpretation', None)
