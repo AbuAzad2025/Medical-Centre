@@ -291,7 +291,9 @@ class TestWaitlistLifecycle:
         resp = client.post('/booking/waitlist', json={'patient_id': 99999999})
         assert resp.status_code == 404
 
-    def test_waitlist_entry_of_other_tenant_hidden(self, login_as, client, db, patient, test_tenant):
+    def test_waitlist_entry_of_other_tenant_hidden(
+        self, login_as, client, db, patient, test_tenant
+    ):
         """The service refuses an entry whose tenant does not match the caller."""
         self._login_reception(login_as, client)
         created = client.post('/booking/waitlist', json={'patient_id': patient.id})
