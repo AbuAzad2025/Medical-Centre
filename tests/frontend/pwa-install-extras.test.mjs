@@ -89,3 +89,23 @@ describe('pwa-install.js showBanner edge branches', () => {
     expect(document.getElementById('pwaInstallBanner')).toBeNull();
   });
 });
+
+describe('pwa-install.js dismiss localStorage throw arm', () => {
+  it('dismiss click swallows localStorage errors', async () => {
+    const original = window.localStorage;
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: () => null,
+        setItem() { throw new Error('quota'); },
+        removeItem() {},
+        clear() {},
+      },
+      configurable: true,
+    });
+    const mod = await loadModule('static/js/pwa-install.js');
+    mod.showBanner();
+    expect(() => document.getElementById('pwaInstallDismiss').click()).not.toThrow();
+    expect(document.getElementById('pwaInstallBanner')).toBeNull();
+    Object.defineProperty(window, 'localStorage', { value: original, configurable: true });
+  });
+});

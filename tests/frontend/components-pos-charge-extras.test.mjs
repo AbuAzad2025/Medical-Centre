@@ -126,3 +126,63 @@ describe('pos-charge.js success payload arms', () => {
     expect(document.getElementById('statusEl').textContent).toContain('الاتصال');
   });
 });
+
+describe('pos-charge.js remaining fallback arms', () => {
+  it('statusElement passed directly as an element object', async () => {
+    const statusEl = document.getElementById('statusEl');
+    initPosCharge({ button: 'chargeBtn', amountInput: 'amountInput', statusElement: statusEl, chargeUrl: '/pos/charge' });
+    document.getElementById('chargeBtn').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(statusEl.className).toBe('text-success ms-2');
+  });
+
+  it('getAmount returns NaN and falls back to zero with warning', async () => {
+    initPosCharge({ button: 'chargeBtn', amountInput: 'amountInput', statusElement: 'statusEl', chargeUrl: '/pos/charge', getAmount: () => 'garbage' });
+    document.getElementById('chargeBtn').click();
+    await new Promise(r => setTimeout(r, 20));
+    expect(window.showApiWarning).toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('amountFallback element missing does not crash and still warns', async () => {
+    document.getElementById('amountInput').value = '0';
+    initPosCharge({ button: 'chargeBtn', amountInput: 'amountInput', statusElement: 'statusEl', chargeUrl: '/pos/charge', amountFallback: 'missingFallbackId' });
+    document.getElementById('chargeBtn').click();
+    await new Promise(r => setTimeout(r, 20));
+    expect(window.showApiWarning).toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('meta csrf is used when the hidden form input is absent', async () => {
+    document.querySelector('meta[name="csrf-token"]');
+    // do not add a hidden input; only meta exists
+    initPosCharge({ button: 'chargeBtn', amountInput: 'amountInput', chargeUrl: '/pos/charge' });
+    document.getElementById('chargeBtn').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(global.fetch.mock.calls[0][1].headers['X-CSRFToken']).toBe('test-csrf');
+  });
+
+  it('response data missing falls back to empty object and goes to the error branch', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(null) });
+    initPosCharge({ button: 'chargeBtn', amountInput: 'amountInput', statusElement: 'statusEl', chargeUrl: '/pos/charge' });
+    document.getElementById('chargeBtn').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(document.getElementById('statusEl').className).toBe('text-danger ms-2');
+  });
+
+  it('success with approval_code only renders approval_code', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true, approval_code: 'AP-77' }) });
+    initPosCharge({ button: 'chargeBtn', amountInput: 'amountInput', statusElement: 'statusEl', chargeUrl: '/pos/charge' });
+    document.getElementById('chargeBtn').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(document.getElementById('statusEl').textContent).toContain('AP-77');
+  });
+
+  it('success with neither transaction_id nor approval_code renders the success default', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true }) });
+    initPosCharge({ button: 'chargeBtn', amountInput: 'amountInput', statusElement: 'statusEl', chargeUrl: '/pos/charge' });
+    document.getElementById('chargeBtn').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(document.getElementById('statusEl').textContent).toContain('نجاح');
+  });
+});
