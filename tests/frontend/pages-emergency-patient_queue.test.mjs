@@ -1,21 +1,49 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { loadModule } from './test-utils.mjs';
 
-beforeEach(async () => {
-  document.body.innerHTML = '<div id="app"></div>';
-  window.__M = [];
-  window.API_ROUTES = {};
-  window.escHtml = (s) => s;
-  window.Swal = { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) };
-  window.bootstrap = { Collapse: { getOrCreateInstance: vi.fn(() => ({ show: vi.fn() })) }, Modal: { getOrCreateInstance: vi.fn(() => ({ show: vi.fn(), hide: vi.fn() })) } };
-  window.Chart = vi.fn().mockImplementation(() => ({}));
-  if (window.Chart) window.Chart.defaults = { plugins: { tooltip: {}, legend: { labels: { font: {} } } }, font: {} };
-  global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) });
-  try { await loadModule('static/js/pages/emergency/patient_queue.js'); } catch (e) { /* ok */ }
+beforeEach(() => {
+  document.body.innerHTML = `
+    <table><tbody><tr class="table-danger"><td>critical</td></tr><tr><td>normal</td></tr></tbody></table>
+    <button type="submit">Save</button>
+  `;
+  window.location = { reload: vi.fn() };
 });
 
-describe('static/js/pages/emergency/patient_queue.js', () => {
-  it('loads without critical error', () => {
-    expect(true).toBe(true);
+describe('emergency/patient_queue.js', () => {
+  it('refreshQueue calls location.reload', async () => {
+    const mod = await loadModule('static/js/pages/emergency/patient_queue.js');
+    mod.refreshQueue();
+    expect(window.location.reload).toHaveBeenCalled();
+  });
+
+  it('DOMContentLoaded row hover sets and clears background', async () => {
+    await loadModule('static/js/pages/emergency/patient_queue.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const rows = document.querySelectorAll('tbody tr');
+    rows[0].dispatchEvent(new MouseEvent('mouseenter'));
+    expect(rows[0].style.backgroundColor).toBe('rgb(248, 249, 250)');
+    rows[0].dispatchEvent(new MouseEvent('mouseleave'));
+    expect(rows[0].style.backgroundColor).toBe('');
+  });
+
+  it('submit buttons are disabled with spinner on click', async () => {
+    await loadModule('static/js/pages/emergency/patient_queue.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const btn = document.querySelector('button[type="submit"]');
+    btn.click();
+    expect(btn.disabled).toBe(true);
+    expect(btn.innerHTML).toContain('fa-spinner');
+  });
+
+  it('critical rows get pulse animation', async () => {
+    await loadModule('static/js/pages/emergency/patient_queue.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const critical = document.querySelector('tr.table-danger');
+    expect(critical.style.animation).toContain('pulse');
+  });
+
+  it('exposes window.refreshQueue', async () => {
+    await loadModule('static/js/pages/emergency/patient_queue.js');
+    expect(typeof window.refreshQueue).toBe('function');
   });
 });
