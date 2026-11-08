@@ -367,3 +367,16 @@ describe('doctor/notes.js remaining branch arms', () => {
     expect(document.getElementById('medical_notes').value).toBe('previous\nمرحباً');
   });
 });
+
+describe('doctor/notes.js delegation edge arms', () => {
+  it('click dispatched on a text node does nothing', async () => {
+    await loadModule('static/js/pages/doctor/notes.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 30));
+    const tbody = document.getElementById('dnt_table_body');
+    const textNode = document.createTextNode('plain text');
+    tbody.appendChild(textNode);
+    expect(() => textNode.dispatchEvent(new MouseEvent('click', { bubbles: true }))).not.toThrow();
+    expect(window.notify.confirm).not.toHaveBeenCalled();
+  });
+});
