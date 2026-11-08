@@ -152,7 +152,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
+            const href = this.getAttribute('href') || '';
+            if (href.charAt(0) !== '#') return; // safe-links may have rewritten it to javascript:; nothing to scroll to
+            let target = null;
+            try {
+                target = href.length > 1 ? document.querySelector(href) : null;
+            } catch (ex) {
+                target = null;
+            }
             if (target) {
                 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 target.scrollIntoView({
