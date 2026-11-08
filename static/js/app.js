@@ -1,24 +1,30 @@
+export function initCsrfManual() {
+  try {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    const token = meta ? meta.getAttribute('content') : '';
+    window.csrfToken = token || window.csrfToken || '';
+    document.querySelectorAll('form').forEach(form => {
+      if (!form.querySelector('input[name="csrf_token"]')) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = window.csrfToken;
+        form.appendChild(csrfInput);
+      }
+    });
+    window.__csrfInitialized = true;
+  } catch (_) {
+    // meta may be missing or document may be partially parsed; nothing else to fall back to
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const m = await import('./csrf.js');
     const fn = m.initCsrf || (m.default && m.default.initCsrf);
     if (typeof fn === 'function') fn();
   } catch (e) {
-    try {
-      const meta = document.querySelector('meta[name="csrf-token"]');
-      const token = meta ? meta.getAttribute('content') : '';
-      window.csrfToken = token || window.csrfToken || '';
-      document.querySelectorAll('form').forEach(form => {
-        if (!form.querySelector('input[name="csrf_token"]')) {
-          const csrfInput = document.createElement('input');
-          csrfInput.type = 'hidden';
-          csrfInput.name = 'csrf_token';
-          csrfInput.value = window.csrfToken;
-          form.appendChild(csrfInput);
-        }
-      });
-      window.__csrfInitialized = true;
-    } catch (_) {}
+    initCsrfManual();
   }
   try {
     const m = await import('./flash.js');
@@ -36,5 +42,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof fn === 'function') fn();
   } catch (_) {}
 });
+
+// Backward compatibility
+if (typeof initCsrfManual !== 'undefined') window.initCsrfManual = initCsrfManual;
 
 export {};

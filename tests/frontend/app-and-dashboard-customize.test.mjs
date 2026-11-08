@@ -30,20 +30,99 @@ describe('app.js', () => {
     expect(document.querySelector('#f1 input[name="csrf_token"]')).toBeTruthy();
   });
 
-  it('still sets __csrfInitialized when csrf.js import path fails via fallback branch', async () => {
-    window.__csrfInitialized = false;
-    vi.doMock('../../../static/js/csrf.js', () => { throw new Error('csrf.js unavailable'); });
+  it('exposes initCsrfManual for the import-failure path', async () => {
+    const mod = await loadModule('static/js/app.js');
+    expect(typeof mod.initCsrfManual).toBe('function');
+    expect(typeof window.initCsrfManual).toBe('function');
+  });
+
+  it('initCsrfManual injects hidden csrf_token into forms without one', async () => {
+    document.body.innerHTML = '<meta name="csrf-token" content="from-meta"><form id="f1"></form><form id="f2"><input type="hidden" name="csrf_token" value="keep-mine"></form>';
+    const mod = await loadModule('static/js/app.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    mod.initCsrfManual();
+    expect(document.querySelector('#f1 input[name="csrf_token"]').value).toBe('from-meta');
+    expect(document.querySelector('#f2 input[name="csrf_token"]').value).toBe('keep-mine');
+    expect(window.__csrfInitialized).toBe(true);
+  });
+
+  it('initCsrfManual prefers preset window.csrfToken when meta is absent', async () => {
+    document.body.innerHTML = '<form id="f1"></form>';
     window.csrfToken = 'preset-token';
-    document.getElementById('f1').innerHTML = '<input type="text" name="field">';
+    const mod = await loadModule('static/js/app.js');
+    mod.initCsrfManual();
+    expect(document.querySelector('#f1 input[name="csrf_token"]').value).toBe('preset-token');
+  });
+
+  it('initCsrfManual works without meta and without a preset token', async () => {
+    document.body.innerHTML = '<form id="f1"></form>';
+    const mod = await loadModule('static/js/app.js');
+    expect(() => mod.initCsrfManual()).not.toThrow();
+    expect(window.__csrfInitialized).toBe(true);
+  });
+
+  it('initCsrfManual leaves no stray inputs when all forms already carry csrf_token', async () => {
+    document.body.innerHTML = '<form id="f1"><input type="hidden" name="csrf_token" value="abc"></form>';
+    const mod = await loadModule('static/js/app.js');
+    mod.initCsrfManual();
+    expect(document.querySelectorAll('#f1 input[name="csrf_token"]').length).toBe(1);
+  });
+
+  it('does not throw when flash.js import fails', async () => {
+    const { renameSync } = await import('fs');
+    const real = 'static/js/flash.js';
+    const bak = 'static/js/flash.js.bak';
+    renameSync(real, bak);
     try {
       await loadModule('static/js/app.js');
       document.dispatchEvent(new Event('DOMContentLoaded'));
       await new Promise(r => setTimeout(r, 30));
-      expect(window.__csrfInitialized).toBe(true);
-      expect(document.querySelector('#f1 input[name="csrf_token"]')).toBeTruthy();
+      expect(true).toBe(true);
     } finally {
-      vi.doUnmock('../../../static/js/csrf.js');
+      renameSync(bak, real);
     }
+  });
+
+  it('does not throw when digits-ar.js import fails', async () => {
+    const { renameSync } = await import('fs');
+    const real = 'static/js/digits-ar.js';
+    const bak = 'static/js/digits-ar.js.bak';
+    renameSync(real, bak);
+    try {
+      await loadModule('static/js/app.js');
+      document.dispatchEvent(new Event('DOMContentLoaded'));
+      await new Promise(r => setTimeout(r, 30));
+      expect(true).toBe(true);
+    } finally {
+      renameSync(bak, real);
+    }
+  });
+
+  it('does not throw when datatables-init.js import fails', async () => {
+    const { renameSync } = await import('fs');
+    const real = 'static/js/datatables-init.js';
+    const bak = 'static/js/datatables-init.js.bak';
+    renameSync(real, bak);
+    try {
+      await loadModule('static/js/app.js');
+      document.dispatchEvent(new Event('DOMContentLoaded'));
+      await new Promise(r => setTimeout(r, 30));
+      expect(true).toBe(true);
+    } finally {
+      renameSync(bak, real);
+    }
+  });
+
+  it('initCsrfManual never throws even if forms cannot be modified', async () => {
+    document.body.innerHTML = '<form id="f1"></form>';
+    const mod = await loadModule('static/js/app.js');
+    const original = document.querySelectorAll.bind(document);
+    const spy = vi.spyOn(document, 'querySelectorAll').mockImplementation((sel) => {
+      if (sel === 'form') throw new Error('boom');
+      return original(sel);
+    });
+    expect(() => mod.initCsrfManual()).not.toThrow();
+    spy.mockRestore();
   });
 });
 

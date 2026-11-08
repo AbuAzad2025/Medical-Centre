@@ -1,9 +1,15 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadModule } from '../../test-utils.mjs';
 
+let pendingDomListeners = [];
+const realAdd = document.addEventListener.bind(document);
+function triggerDomContentLoaded() {
+  for (const listener of pendingDomListeners) listener();
+}
+
 async function setup() {
   const mod = await loadModule('static/js/pages/doctor/prescription.js');
-  document.dispatchEvent(new Event('DOMContentLoaded'));
+  triggerDomContentLoaded();
   return mod;
 }
 
@@ -13,7 +19,7 @@ beforeEach(() => {
     <button id="addRxItemBtn"></button>
     <select id="templateSelect"><option value="">None</option><option value="1">Template 1</option></select>
     <button id="applyTemplateBtn"></button>
-    <form id="prescriptionForm" action="/test" data-success-url="/success">
+    <form id="prescriptionForm" action="/test" data-success-url="#/success">
       <input name="csrf_token" value="t"/>
     </form>
     <div id="prescriptionError" class="d-none"></div>
@@ -24,6 +30,14 @@ beforeEach(() => {
   window.Swal = { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) };
   window.Toast = { fire: vi.fn() };
   global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true }) });
+  pendingDomListeners = [];
+  document.addEventListener = (type, listener, options) => {
+    if (type === 'DOMContentLoaded') {
+      pendingDomListeners.push(listener);
+      return;
+    }
+    return realAdd(type, listener, options);
+  };
 });
 
 afterEach(() => {
@@ -124,7 +138,7 @@ describe('doctor/prescription.js', () => {
     document.body.innerHTML = '';
     document.body.innerHTML = `
       <table id="rxItemsTable"><tbody></tbody></table>
-      <form id="prescriptionForm" action="/test" data-success-url="/success">
+      <form id="prescriptionForm" action="/test" data-success-url="#/success">
         <input name="csrf_token" value="t"/>
         <input type="hidden" class="medication-id" value="10"/>
       </form>
@@ -137,12 +151,36 @@ describe('doctor/prescription.js', () => {
     expect(global.fetch).toHaveBeenCalled();
   });
 
+  test('showSafetyModal Escape key removes modal', async () => {
+    const { showSafetyModal } = await loadModule('static/js/pages/doctor/prescription.js');
+    showSafetyModal([{ severity: 'hard_stop', message: 'interaction' }], vi.fn());
+    const modal = document.getElementById('safetyOverrideModal');
+    expect(modal).toBeTruthy();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(document.getElementById('safetyOverrideModal')).toBeNull();
+  });
+
+  test('refInput input parses ref into medication-id', async () => {
+    const mod = await loadModule('static/js/pages/doctor/prescription.js');
+    triggerDomContentLoaded();
+    document.querySelector('#rxItemsTable tbody').innerHTML = '';
+    mod.createRxRow();
+    const refInput = document.querySelector('.medication-ref');
+    const idInput = document.querySelector('.medication-id');
+    refInput.value = '55|Metformin 500mg';
+    refInput.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(idInput.value).toBe('55');
+    refInput.value = '';
+    refInput.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(idInput.value).toBe('');
+  });
+
   test('submit hard stops shows safety modal', async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: false, hard_stops: [{ severity: 'hard_stop', message: 'allergy' }] }) });
     document.body.innerHTML = '';
     document.body.innerHTML = `
       <table id="rxItemsTable"><tbody></tbody></table>
-      <form id="prescriptionForm" action="/test" data-success-url="/success">
+      <form id="prescriptionForm" action="/test" data-success-url="#/success">
         <input name="csrf_token" value="t"/>
         <input type="hidden" class="medication-id" value="10"/>
       </form>
@@ -160,7 +198,7 @@ describe('doctor/prescription.js', () => {
     document.body.innerHTML = '';
     document.body.innerHTML = `
       <table id="rxItemsTable"><tbody></tbody></table>
-      <form id="prescriptionForm" action="/test" data-success-url="/success">
+      <form id="prescriptionForm" action="/test" data-success-url="#/success">
         <input name="csrf_token" value="t"/>
         <input type="hidden" class="medication-id" value="10"/>
       </form>
