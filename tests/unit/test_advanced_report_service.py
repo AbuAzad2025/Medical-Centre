@@ -15,17 +15,19 @@ from models.user import User
 from models.visit import Visit
 from services.advanced_report_service import AdvancedReportService
 
+pytest_plugins = ['tests._isolated_tenant']
+
 R = AdvancedReportService
 
 
 @pytest.fixture
-def report_data(app, test_tenant, db):
+def report_data(app, isolated_tenant, db):
     suffix = datetime.now(UTC).strftime('%H%M%S%f')
     dept = Department(
         name=f'AdvReport-{suffix}',
         name_ar='قسم التقارير',
         is_active=True,
-        tenant_id=test_tenant.id,
+        tenant_id=isolated_tenant.id,
     )
     db.session.add(dept)
     db.session.flush()
@@ -36,7 +38,7 @@ def report_data(app, test_tenant, db):
         full_name='Report Doctor',
         role='doctor',
         is_active=True,
-        tenant_id=test_tenant.id,
+        tenant_id=isolated_tenant.id,
         department_id=dept.id,
     )
     doctor.set_password('test123')
@@ -44,7 +46,7 @@ def report_data(app, test_tenant, db):
     db.session.flush()
 
     p1 = Patient(
-        tenant_id=test_tenant.id,
+        tenant_id=isolated_tenant.id,
         first_name='Ana',
         last_name='Lima',
         phone=f'0521{suffix[-6:]}',
@@ -52,7 +54,7 @@ def report_data(app, test_tenant, db):
         birth_date=date(1990, 5, 1),
     )
     p2 = Patient(
-        tenant_id=test_tenant.id,
+        tenant_id=isolated_tenant.id,
         first_name='Bruno',
         last_name='Silva',
         phone=f'0522{suffix[-6:]}',
@@ -62,9 +64,9 @@ def report_data(app, test_tenant, db):
     db.session.add_all([p1, p2])
     db.session.flush()
 
-    today = date.today()
+    today = datetime.now(UTC).date()
     visit1 = Visit(
-        tenant_id=test_tenant.id,
+        tenant_id=isolated_tenant.id,
         patient_id=p1.id,
         department_id=dept.id,
         doctor_id=doctor.id,
@@ -76,7 +78,7 @@ def report_data(app, test_tenant, db):
         paid_amount=100,
     )
     visit2 = Visit(
-        tenant_id=test_tenant.id,
+        tenant_id=isolated_tenant.id,
         patient_id=p2.id,
         department_id=dept.id,
         doctor_id=doctor.id,
@@ -93,7 +95,7 @@ def report_data(app, test_tenant, db):
     for amount, method in ((100, 'CASH'), (200, 'CARD'), (100, 'CASH')):
         db.session.add(
             Payment(
-                tenant_id=test_tenant.id,
+                tenant_id=isolated_tenant.id,
                 patient_id=p1.id,
                 visit_id=visit1.id,
                 method=method,
@@ -104,7 +106,7 @@ def report_data(app, test_tenant, db):
             )
         )
     inv = Invoice(
-        tenant_id=test_tenant.id,
+        tenant_id=isolated_tenant.id,
         visit_id=visit1.id,
         total_amount=400,
         status=InvoiceStatus.PAID,
@@ -124,7 +126,7 @@ def report_data(app, test_tenant, db):
 
 
 class TestPatientAnalytics:
-    def test_counts_and_groups(self, app, test_tenant, report_data, db):
+    def test_counts_and_groups(self, app, isolated_tenant, report_data, db):
         start = datetime.now(UTC) - timedelta(days=7)
         out = R.generate_patient_analytics(start, datetime.now(UTC))
         assert out['success'] is True
@@ -136,7 +138,7 @@ class TestPatientAnalytics:
         assert analytics['age_groups']['0-18'] == 1  # Bruno (2010)
         assert analytics['status_distribution']['active'] == 2
 
-    def test_department_filter_uses_distinct_patients(self, app, test_tenant, report_data, db):
+    def test_department_filter_uses_distinct_patients(self, app, isolated_tenant, report_data, db):
         dept = report_data['dept']
         start = datetime.now(UTC) - timedelta(days=7)
         out = R.generate_patient_analytics(start, datetime.now(UTC), department_id=dept.id)
@@ -146,7 +148,7 @@ class TestPatientAnalytics:
 
 
 class TestVisitAnalytics:
-    def test_totals_and_types(self, app, test_tenant, report_data, db):
+    def test_totals_and_types(self, app, isolated_tenant, report_data, db):
         start = datetime.now(UTC) - timedelta(days=1)
         out = R.generate_visit_analytics(start, datetime.now(UTC))
         assert out['success'] is True
@@ -158,7 +160,7 @@ class TestVisitAnalytics:
 
 
 class TestFinancialAnalytics:
-    def test_revenue_not_cross_joined(self, app, test_tenant, report_data, db):
+    def test_revenue_not_cross_joined(self, app, isolated_tenant, report_data, db):
         start = datetime.now(UTC) - timedelta(days=1)
         out = R.generate_financial_analytics(start, datetime.now(UTC))
         assert out['success'] is True
@@ -170,7 +172,7 @@ class TestFinancialAnalytics:
         assert payments['method_distribution']['CASH']['amount'] == 200.0
         assert payments['method_distribution']['CARD']['amount'] == 200.0
 
-    def test_invoice_metrics(self, app, test_tenant, report_data, db):
+    def test_invoice_metrics(self, app, isolated_tenant, report_data, db):
         start = datetime.now(UTC) - timedelta(days=1)
         out = R.generate_financial_analytics(start, datetime.now(UTC))
         assert out['success'] is True
@@ -181,7 +183,7 @@ class TestFinancialAnalytics:
 
 
 class TestDoctorPerformanceAnalytics:
-    def test_performance_aggregates(self, app, test_tenant, report_data, db):
+    def test_performance_aggregates(self, app, isolated_tenant, report_data, db):
         start = datetime.now(UTC) - timedelta(days=1)
         out = R.generate_doctor_performance_analytics(start, datetime.now(UTC))
         assert out['success'] is True
@@ -195,7 +197,7 @@ class TestDoctorPerformanceAnalytics:
         assert doc['total_revenue'] == 300
         assert doc['paid_revenue'] == 150
 
-    def test_filter_by_doctor(self, app, test_tenant, report_data, db):
+    def test_filter_by_doctor(self, app, isolated_tenant, report_data, db):
         start = datetime.now(UTC) - timedelta(days=1)
         out = R.generate_doctor_performance_analytics(
             start, datetime.now(UTC), doctor_id=report_data['doctor'].id
@@ -205,7 +207,7 @@ class TestDoctorPerformanceAnalytics:
 
 
 class TestDepartmentAnalytics:
-    def test_department_aggregates(self, app, test_tenant, report_data, db):
+    def test_department_aggregates(self, app, isolated_tenant, report_data, db):
         start = datetime.now(UTC) - timedelta(days=1)
         dept = report_data['dept']
         out = R.generate_department_analytics(start, datetime.now(UTC), department_id=dept.id)
@@ -219,7 +221,7 @@ class TestDepartmentAnalytics:
 
 
 class TestSystemUsageAnalytics:
-    def test_totals(self, app, test_tenant, report_data, db):
+    def test_totals(self, app, isolated_tenant, report_data, db):
         start = datetime.now(UTC) - timedelta(days=1)
         out = R.generate_system_usage_analytics(start, datetime.now(UTC))
         assert out['success'] is True
@@ -231,7 +233,7 @@ class TestSystemUsageAnalytics:
 
 
 class TestComprehensiveReport:
-    def test_wraps_subreports(self, app, test_tenant, report_data, db):
+    def test_wraps_subreports(self, app, isolated_tenant, report_data, db):
         start = datetime.now(UTC) - timedelta(days=1)
         out = R.generate_comprehensive_report(start, datetime.now(UTC))
         assert out['success'] is True

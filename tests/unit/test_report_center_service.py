@@ -20,15 +20,23 @@ from models.visit import Visit
 from models.visit_transfer import VisitTransferLog
 from services.report_center_service import ReportCenterService
 
+pytest_plugins = ['tests._isolated_tenant']
+
 
 @pytest.fixture
-def deps(app, test_tenant):
+def deps(app, isolated_tenant):
     suffix = datetime.now(UTC).strftime('%H%M%S%f')
     d1 = Department(
-        name=f'ReportCenter-A-{suffix}', name_ar='القسم أ', is_active=True, tenant_id=test_tenant.id
+        name=f'ReportCenter-A-{suffix}',
+        name_ar='القسم أ',
+        is_active=True,
+        tenant_id=isolated_tenant.id,
     )
     d2 = Department(
-        name=f'ReportCenter-B-{suffix}', name_ar='القسم ب', is_active=True, tenant_id=test_tenant.id
+        name=f'ReportCenter-B-{suffix}',
+        name_ar='القسم ب',
+        is_active=True,
+        tenant_id=isolated_tenant.id,
     )
     db.session.add_all([d1, d2])
     db.session.commit()
@@ -52,11 +60,11 @@ def _dt(y, m, d, hh=10, mm=0):
 
 
 class TestComparePeriods:
-    def test_delta_and_percent(self, app, test_tenant, db, deps):
+    def test_delta_and_percent(self, app, isolated_tenant, db, deps):
         d1, d2 = deps
-        patient = _patient(test_tenant.id, datetime.now(UTC).strftime('%H%M%S%f'))
+        patient = _patient(isolated_tenant.id, datetime.now(UTC).strftime('%H%M%S%f'))
         visit_a = Visit(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             patient_id=patient.id,
             doctor_id=None,
             department_id=d1.id,
@@ -65,7 +73,7 @@ class TestComparePeriods:
             status='COMPLETED',
         )
         visit_b = Visit(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             patient_id=patient.id,
             doctor_id=None,
             department_id=d2.id,
@@ -76,7 +84,7 @@ class TestComparePeriods:
         db.session.add_all([visit_a, visit_b])
         db.session.flush()
         pay_a = Payment(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             patient_id=patient.id,
             visit_id=visit_a.id,
             method='CASH',
@@ -86,7 +94,7 @@ class TestComparePeriods:
             payment_date=_dt(2026, 3, 10),
         )
         pay_b = Payment(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             patient_id=patient.id,
             visit_id=visit_b.id,
             method='CASH',
@@ -111,12 +119,12 @@ class TestComparePeriods:
         assert result['delta']['revenue'] == -150.0
         assert result['pct']['revenue'] == -60.0
 
-    def test_department_filter(self, app, test_tenant, db, deps):
+    def test_department_filter(self, app, isolated_tenant, db, deps):
         d1, d2 = deps
-        patient = _patient(test_tenant.id, datetime.now(UTC).strftime('%H%M%S%f'))
+        patient = _patient(isolated_tenant.id, datetime.now(UTC).strftime('%H%M%S%f'))
         db.session.add(
             Visit(
-                tenant_id=test_tenant.id,
+                tenant_id=isolated_tenant.id,
                 patient_id=patient.id,
                 department_id=d1.id,
                 visit_date=date(2026, 5, 2),
@@ -144,15 +152,15 @@ class TestComparePeriods:
 
 
 class TestDepartmentTransfers:
-    def test_empty_window_returns_empty(self, app, test_tenant, db):
+    def test_empty_window_returns_empty(self, app, isolated_tenant, db):
         rows = ReportCenterService.department_transfers(_dt(1990, 1, 1), _dt(1990, 1, 2))
         assert rows == []
 
-    def test_grouped_transfers(self, app, test_tenant, db, deps):
+    def test_grouped_transfers(self, app, isolated_tenant, db, deps):
         d1, d2 = deps
-        patient = _patient(test_tenant.id, datetime.now(UTC).strftime('%H%M%S%f'))
+        patient = _patient(isolated_tenant.id, datetime.now(UTC).strftime('%H%M%S%f'))
         visit = Visit(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             patient_id=patient.id,
             department_id=d1.id,
             visit_date=date(2026, 6, 1),
@@ -161,7 +169,7 @@ class TestDepartmentTransfers:
         db.session.add(visit)
         db.session.flush()
         log = VisitTransferLog(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             visit_id=visit.id,
             from_department_id=d1.id,
             to_department_id=d2.id,
@@ -179,19 +187,19 @@ class TestDepartmentTransfers:
 
 
 class TestBookingReport:
-    def test_empty_window(self, app, test_tenant, db):
+    def test_empty_window(self, app, isolated_tenant, db):
         out = ReportCenterService.booking_report(_dt(1990, 1, 1), _dt(1990, 1, 2))
         assert out['total'] == 0
         assert out['attendance_rate'] == 0
         assert out['by_status']['completed'] == 0
 
-    def test_rates_and_top_lists(self, app, test_tenant, db, deps):
+    def test_rates_and_top_lists(self, app, isolated_tenant, db, deps):
         d1, _d2 = deps
         suffix = datetime.now(UTC).strftime('%H%M%S%f')
 
         def booking(ref, status, department_id=None, doctor_id=None):
             return OnlineBooking(
-                tenant_id=test_tenant.id,
+                tenant_id=isolated_tenant.id,
                 booking_reference=ref,
                 first_name='Booking',
                 last_name='Test',
@@ -225,15 +233,15 @@ class TestBookingReport:
 
 
 class TestEmergencyStageTimes:
-    def test_empty_window(self, app, test_tenant, db):
+    def test_empty_window(self, app, isolated_tenant, db):
         out = ReportCenterService.emergency_stage_times(_dt(1990, 1, 1), _dt(1990, 1, 2))
         assert out == {'avg_minutes': {}, 'cases': 0}
 
-    def test_average_transition_minutes(self, app, test_tenant, db):
-        patient = _patient(test_tenant.id, datetime.now(UTC).strftime('%H%M%S%f'))
+    def test_average_transition_minutes(self, app, isolated_tenant, db):
+        patient = _patient(isolated_tenant.id, datetime.now(UTC).strftime('%H%M%S%f'))
         suffix = datetime.now(UTC).strftime('%H%M%S%f')
         case = EmergencyCase(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             patient_id=patient.id,
             case_number=f'ER{suffix}',
             chief_complaint='test complaint',
@@ -244,21 +252,21 @@ class TestEmergencyStageTimes:
         db.session.add(case)
         db.session.flush()
         h1 = EmergencyStatusHistory(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             emergency_id=case.id,
             from_status=None,
             to_status='TRIAGED',
             created_at=_dt(2026, 8, 1, 8, 0),
         )
         h2 = EmergencyStatusHistory(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             emergency_id=case.id,
             from_status='TRIAGED',
             to_status='TREATMENT',
             created_at=_dt(2026, 8, 1, 8, 30),
         )
         h3 = EmergencyStatusHistory(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             emergency_id=case.id,
             from_status='TREATMENT',
             to_status='DISCHARGED',
@@ -274,16 +282,16 @@ class TestEmergencyStageTimes:
 
 
 class TestRadiologyRevisionRate:
-    def test_empty(self, app, test_tenant, db):
+    def test_empty(self, app, isolated_tenant, db):
         out = ReportCenterService.radiology_revision_rate(_dt(1990, 1, 1), _dt(1990, 1, 2))
         assert out == {'reviewed': 0, 'revised_after_review': 0, 'rate': 0}
 
-    def test_rate_computed(self, app, test_tenant, db):
+    def test_rate_computed(self, app, isolated_tenant, db):
         from models.radiology_request import RadiologyRequest
 
-        patient = _patient(test_tenant.id, datetime.now(UTC).strftime('%H%M%S%f'))
+        patient = _patient(isolated_tenant.id, datetime.now(UTC).strftime('%H%M%S%f'))
         req = RadiologyRequest(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             patient_id=patient.id,
             modality='XRay',
             status='DONE',
@@ -293,7 +301,7 @@ class TestRadiologyRevisionRate:
         for i, (reviewed, revised) in enumerate([(True, False), (True, True), (False, False)]):
             db.session.add(
                 RadiologyResult(
-                    tenant_id=test_tenant.id,
+                    tenant_id=isolated_tenant.id,
                     request_id=req.id,
                     patient_id=patient.id,
                     status='READY',
@@ -310,11 +318,11 @@ class TestRadiologyRevisionRate:
 
 
 class TestCapacityImpact:
-    def test_empty_window(self, app, test_tenant, db):
+    def test_empty_window(self, app, isolated_tenant, db):
         out = ReportCenterService.capacity_impact(date(1990, 1, 1), date(1990, 1, 2))
         assert isinstance(out, list)
 
-    def test_schedule_and_absence(self, app, test_tenant, db, deps):
+    def test_schedule_and_absence(self, app, isolated_tenant, db, deps):
         d1, _d2 = deps
         suffix = datetime.now(UTC).strftime('%H%M%S%f')
         doctor = User(
@@ -323,7 +331,7 @@ class TestCapacityImpact:
             full_name='Cap Doc',
             role='doctor',
             is_active=True,
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             department_id=d1.id,
         )
         doctor.set_password('test123')
@@ -342,7 +350,7 @@ class TestCapacityImpact:
         for dow in (5, 6):
             db.session.add(
                 StaffWorkSchedule(
-                    tenant_id=test_tenant.id,
+                    tenant_id=isolated_tenant.id,
                     user_id=doctor.id,
                     day_of_week=dow,
                     start_time=time(9, 0),
@@ -352,7 +360,7 @@ class TestCapacityImpact:
             )
         # Absence for 2 of the 7 days (Oct 5-6 2026)
         absence = StaffAbsence(
-            tenant_id=test_tenant.id,
+            tenant_id=isolated_tenant.id,
             user_id=doctor.id,
             start_date=date(2026, 10, 5),
             end_date=date(2026, 10, 6),

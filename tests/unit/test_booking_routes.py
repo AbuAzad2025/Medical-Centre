@@ -71,27 +71,27 @@ def _register_patient(client, name='Test Patient', phone='0500000123', password=
 
 
 class TestRegister:
-    def test_register_get_renders(self, client):
+    def test_register_get_renders(self, client, db):
         resp = client.get('/booking/register')
         assert resp.status_code == 200
 
-    def test_register_success_redirects_to_dashboard(self, client):
+    def test_register_success_redirects_to_dashboard(self, client, db):
         resp = _register_patient(client)
         assert resp.status_code == 302
         assert '/booking/dashboard' in resp.headers.get('Location', '')
 
-    def test_register_missing_name(self, client):
+    def test_register_missing_name(self, client, db):
         resp = _register_patient(client, name='')
         assert resp.status_code == 200  # re-renders with error flash
 
-    def test_register_missing_phone(self, client):
+    def test_register_missing_phone(self, client, db):
         resp = client.post(
             '/booking/register',
             data={'full_name': 'Test', 'phone': '', 'password': 'X123456!'},
         )
         assert resp.status_code == 200
 
-    def test_register_missing_password(self, client):
+    def test_register_missing_password(self, client, db):
         resp = client.post(
             '/booking/register',
             data={'full_name': 'Test', 'phone': '0500000124', 'password': ''},
@@ -100,11 +100,11 @@ class TestRegister:
 
 
 class TestBookingCreate:
-    def test_create_booking_get_renders(self, client, dept, doctor):
+    def test_create_booking_get_renders(self, client, db, dept, doctor):
         resp = client.get('/booking/create')
         assert resp.status_code == 200
 
-    def test_create_booking_success(self, client, dept, doctor):
+    def test_create_booking_success(self, client, db, dept, doctor):
         dt = (datetime.now(UTC) + timedelta(days=2)).date().isoformat()
         resp = client.post(
             '/booking/create',
@@ -124,7 +124,7 @@ class TestBookingCreate:
         assert resp.status_code == 302
         assert '/confirmation' in resp.headers.get('Location', '')
 
-    def test_create_booking_missing_phone(self, client, dept):
+    def test_create_booking_missing_phone(self, client, db, dept):
         dt = (datetime.now(UTC) + timedelta(days=2)).date().isoformat()
         resp = client.post(
             '/booking/create',
@@ -138,7 +138,7 @@ class TestBookingCreate:
         )
         assert resp.status_code == 200  # re-renders with error flash
 
-    def test_create_booking_missing_department(self, client):
+    def test_create_booking_missing_department(self, client, db):
         dt = (datetime.now(UTC) + timedelta(days=2)).date().isoformat()
         resp = client.post(
             '/booking/create',
@@ -152,7 +152,7 @@ class TestBookingCreate:
         )
         assert resp.status_code == 200
 
-    def test_create_booking_missing_date(self, client, dept):
+    def test_create_booking_missing_date(self, client, db, dept):
         resp = client.post(
             '/booking/create',
             data={
@@ -165,7 +165,7 @@ class TestBookingCreate:
         )
         assert resp.status_code == 200
 
-    def test_create_booking_missing_time(self, client, dept):
+    def test_create_booking_missing_time(self, client, db, dept):
         dt = (datetime.now(UTC) + timedelta(days=2)).date().isoformat()
         resp = client.post(
             '/booking/create',
@@ -181,41 +181,41 @@ class TestBookingCreate:
 
 
 class TestBookingRead:
-    def test_dashboard_renders_for_anonymous(self, client):
+    def test_dashboard_renders_for_anonymous(self, client, db):
         resp = client.get('/booking/')
         assert resp.status_code in (200, 302)
 
-    def test_dashboard_renders_for_registered(self, client):
+    def test_dashboard_renders_for_registered(self, client, db):
         _register_patient(client, name='Dash Patient', phone='0500001111')
         resp = client.get('/booking/dashboard')
         assert resp.status_code in (200, 302)
 
-    def test_available_doctors_api(self, client, dept, doctor):
+    def test_available_doctors_api(self, client, db, dept, doctor):
         resp = client.get(f'/booking/api/available-doctors?department_id={dept.id}')
         assert resp.status_code == 200
         body = resp.get_json() if resp.is_json else {}
         assert body.get('success') is True
         assert any(d['id'] == doctor.id for d in body['doctors'])
 
-    def test_available_times_api(self, client, dept, doctor):
+    def test_available_times_api(self, client, db, dept, doctor):
         resp = client.get(f'/booking/api/available-times?doctor_id={doctor.id}&date={date.today()}')
         assert resp.status_code == 200
         body = resp.get_json() if resp.is_json else {}
         assert body.get('success') is True
         assert isinstance(body.get('available_times'), list)
 
-    def test_available_times_missing_params(self, client):
+    def test_available_times_missing_params(self, client, db):
         resp = client.get('/booking/api/available-times')
         assert resp.status_code == 400
 
-    def test_smart_slots_api(self, client, dept, doctor):
+    def test_smart_slots_api(self, client, db, dept, doctor):
         resp = client.get(f'/booking/api/smart-slots?doctor_id={doctor.id}&date={date.today()}')
         assert resp.status_code == 200
         body = resp.get_json() if resp.is_json else {}
         assert body.get('success') is True
         assert isinstance(body.get('available_times'), list)
 
-    def test_smart_slots_missing_params(self, client):
+    def test_smart_slots_missing_params(self, client, db):
         resp = client.get('/booking/api/smart-slots')
         assert resp.status_code == 400
 
@@ -226,7 +226,7 @@ class TestWaitlistLifecycle:
             client, f'wl_reception_{datetime.now(UTC).strftime("%H%M%S%f")}', 'reception'
         )
 
-    def test_waitlist_add_list_and_convert(self, login_as, client, patient, doctor):
+    def test_waitlist_add_list_and_convert(self, login_as, client, db, patient, doctor):
         self._login_reception(login_as, client)
         resp = client.post(
             '/booking/waitlist',
@@ -252,7 +252,7 @@ class TestWaitlistLifecycle:
         assert body['data']['status'] == 'CONVERTED'
         assert body['data']['converted_appointment_id'] is not None
 
-    def test_waitlist_duplicate_rejected(self, login_as, client, patient):
+    def test_waitlist_duplicate_rejected(self, login_as, client, db, patient):
         self._login_reception(login_as, client)
         first = client.post('/booking/waitlist', json={'patient_id': patient.id})
         assert first.status_code == 201
@@ -260,7 +260,7 @@ class TestWaitlistLifecycle:
         assert dup.status_code == 409
         assert dup.get_json()['success'] is False
 
-    def test_waitlist_cancel(self, login_as, client, patient):
+    def test_waitlist_cancel(self, login_as, client, db, patient):
         self._login_reception(login_as, client)
         created = client.post('/booking/waitlist', json={'patient_id': patient.id})
         entry_id = created.get_json()['data']['id']
@@ -270,7 +270,7 @@ class TestWaitlistLifecycle:
         active = client.get('/booking/waitlist').get_json()['waitlist']
         assert all(item['id'] != entry_id for item in active)
 
-    def test_waitlist_notify_marks_entry(self, login_as, client, patient):
+    def test_waitlist_notify_marks_entry(self, login_as, client, db, patient):
         self._login_reception(login_as, client)
         created = client.post('/booking/waitlist', json={'patient_id': patient.id})
         entry_id = created.get_json()['data']['id']
@@ -281,17 +281,17 @@ class TestWaitlistLifecycle:
         assert body['data']['status'] == 'NOTIFIED'
         assert 'sms_queued' in body
 
-    def test_waitlist_add_missing_patient_id(self, login_as, client):
+    def test_waitlist_add_missing_patient_id(self, login_as, client, db):
         self._login_reception(login_as, client)
         resp = client.post('/booking/waitlist', json={})
         assert resp.status_code == 400
 
-    def test_waitlist_add_unknown_patient(self, login_as, client):
+    def test_waitlist_add_unknown_patient(self, login_as, client, db):
         self._login_reception(login_as, client)
         resp = client.post('/booking/waitlist', json={'patient_id': 99999999})
         assert resp.status_code == 404
 
-    def test_waitlist_entry_of_other_tenant_hidden(self, login_as, client, patient, test_tenant):
+    def test_waitlist_entry_of_other_tenant_hidden(self, login_as, client, db, patient, test_tenant):
         """The service refuses an entry whose tenant does not match the caller."""
         self._login_reception(login_as, client)
         created = client.post('/booking/waitlist', json={'patient_id': patient.id})
@@ -302,7 +302,7 @@ class TestWaitlistLifecycle:
             waitlist_service.cancel_waitlist_entry(entry_id, test_tenant.id + 999)
         assert excinfo.value.status == 404
 
-    def test_reception_waitlist_add_and_remove(self, login_as, client, patient):
+    def test_reception_waitlist_add_and_remove(self, login_as, client, db, patient):
         login_as(client, f'wl_reception2_{datetime.now(UTC).strftime("%H%M%S%f")}', 'reception')
         resp = client.post(
             '/reception/appointments/waitlist',
@@ -318,18 +318,18 @@ class TestWaitlistLifecycle:
 
 
 class TestBookingFallback:
-    def test_recurring_appointments_get(self, client):
+    def test_recurring_appointments_get(self, client, db):
         resp = client.get('/booking/recurring-appointments')
         assert resp.status_code in (200, 302)
 
-    def test_waitlist_get(self, client):
+    def test_waitlist_get(self, client, db):
         resp = client.get('/booking/waitlist')
         assert resp.status_code in (200, 302)
 
-    def test_reminders_get(self, client):
+    def test_reminders_get(self, client, db):
         resp = client.get('/booking/appointments/reminders')
         assert resp.status_code in (200, 302)
 
-    def test_no_shows_get(self, client):
+    def test_no_shows_get(self, client, db):
         resp = client.get('/booking/no-shows')
         assert resp.status_code in (200, 302)
