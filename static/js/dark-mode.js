@@ -12,9 +12,13 @@
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? DARK : LIGHT;
   }
 
-  function applyTheme(theme) {
+  function applyTheme(theme, persist) {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem(STORAGE_KEY, theme);
+    // Only persist when the caller wants to remember the choice. Applying the
+    // system-derived theme on load must not persist, or the page stops
+    // following future OS theme changes forever (the change listener bails on
+    // any stored value).
+    if (persist !== false) localStorage.setItem(STORAGE_KEY, theme);
     // Update meta theme-color
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
@@ -27,8 +31,11 @@
     applyTheme(current === DARK ? LIGHT : DARK);
   }
 
-  // Apply on load
-  applyTheme(getPreferredTheme());
+  // Apply on load. If the theme comes from the OS (no stored choice), do not
+  // persist it - the page should keep following OS changes until the user
+  // actually picks a theme via the toggle.
+  const hadStoredChoice = Boolean(localStorage.getItem(STORAGE_KEY));
+  applyTheme(getPreferredTheme(), hadStoredChoice);
 
   // Listen for system preference changes
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
