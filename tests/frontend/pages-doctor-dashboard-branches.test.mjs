@@ -121,6 +121,42 @@ describe('doctor/dashboard.js loadLayout branches', () => {
   });
 });
 
+describe('doctor/dashboard.js sort and checkbox arms', () => {
+  it('items with and without order sort with the missing one treated as zero', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ items: [
+        { id: 'labs', title: 'Labs', order: 2, enabled: true },
+        { id: 'vitals', title: 'Vitals', enabled: true },
+      ] }),
+    });
+    const mod = await loadModule('static/js/pages/doctor/dashboard.js');
+    await mod.loadLayout();
+    const inputs = document.querySelectorAll('#dashboardSettingsList input[type="number"]');
+    // vitals (no order) must come first (order treated as 0)
+    expect(inputs[0].getAttribute('data-panel')).toBe('vitals');
+  });
+
+  it('checkbox missing for a rendered row defaults enabled to true', async () => {
+    const mod = await loadModule('static/js/pages/doctor/dashboard.js');
+    mod.renderSettings([{ id: 'ghost', title: 'Ghost', order: 1, enabled: false }]);
+    // destroy the checkbox so the lookup fails
+    document.getElementById('panel_ghost').remove();
+    mod.saveLayout();
+    await new Promise(r => setTimeout(r, 30));
+    const call = global.fetch.mock.calls.find(c => c[1] && c[1].method === 'POST');
+    const body = JSON.parse(call[1].body);
+    expect(body.items[0].enabled).toBe(true);
+  });
+
+  it('stats fetch without API_ROUTES falls back to the default URL', async () => {
+    delete window.API_ROUTES;
+    const mod = await loadModule('static/js/pages/doctor/dashboard.js');
+    await mod.refreshDashboardStats();
+    expect(global.fetch.mock.calls.some(c => String(c[0]) === '/doctor/api/dashboard-stats')).toBe(true);
+  });
+});
+
 describe('doctor/dashboard.js saveLayout branches', () => {
   it('save sends enabled state from the checkbox', async () => {
     document.body.insertAdjacentHTML('beforeend', '<div id="dashboardSettingsListMount"></div>');
