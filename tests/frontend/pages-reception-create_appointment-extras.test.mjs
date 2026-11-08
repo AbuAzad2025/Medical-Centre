@@ -60,6 +60,7 @@ describe('create_appointment.js non-ok arms', () => {
     document.dispatchEvent(new Event('DOMContentLoaded'));
     const doctor = document.getElementById('doctor_id');
     doctor.value = '3';
+    document.getElementById('appointment_date').value = '2026-12-01';
     doctor.dispatchEvent(new Event('change'));
     await new Promise(r => setTimeout(r, 30));
     expect(window.alert).toHaveBeenCalled();
@@ -71,6 +72,7 @@ describe('create_appointment.js non-ok arms', () => {
     document.dispatchEvent(new Event('DOMContentLoaded'));
     const doctor = document.getElementById('doctor_id');
     doctor.value = '3';
+    document.getElementById('appointment_date').value = '2026-12-01';
     doctor.dispatchEvent(new Event('change'));
     await new Promise(r => setTimeout(r, 30));
     expect(window.showToast).toHaveBeenCalled();
