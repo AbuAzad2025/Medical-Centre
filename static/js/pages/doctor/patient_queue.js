@@ -1,4 +1,9 @@
 var __M = window.__M || [];
+function notifyErr(msg) {
+  if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
+  else console.warn('[doctor-page]', msg);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const input = document.getElementById('doctorPatientSearch');
   const list = document.getElementById('doctorPatientResults');
@@ -76,11 +81,6 @@ export function refreshQueue() {
 }
 
 setInterval(function() {
-  function notifyErr(msg) {
-    if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
-    else console.warn('[doctor-page]', msg);
-  }
-
     refreshQueue();
 }, 30000);
 
