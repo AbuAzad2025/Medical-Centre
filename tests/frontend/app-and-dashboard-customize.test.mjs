@@ -32,11 +32,19 @@ describe('app.js', () => {
 
   it('still sets __csrfInitialized when csrf.js import path fails via fallback branch', async () => {
     window.__csrfInitialized = false;
-    // fallback branch executes when initCsrf import throws; just ensure module loads
-    await loadModule('static/js/app.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-    await new Promise(r => setTimeout(r, 30));
-    expect(window.__csrfInitialized).toBe(true);
+    const { renameSync } = await import('fs');
+    const real = 'static/js/csrf.js';
+    const bak = 'static/js/csrf.js.bak';
+    renameSync(real, bak);
+    try {
+      await loadModule('static/js/app.js');
+      document.dispatchEvent(new Event('DOMContentLoaded'));
+      await new Promise(r => setTimeout(r, 30));
+      expect(window.__csrfInitialized).toBe(true);
+      expect(document.querySelector('#f1 input[name="csrf_token"]')).toBeTruthy();
+    } finally {
+      renameSync(bak, real);
+    }
   });
 });
 

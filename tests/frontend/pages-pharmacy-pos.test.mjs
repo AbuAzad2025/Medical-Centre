@@ -33,6 +33,7 @@ beforeEach(() => {
   window.initPosCharge = vi.fn();
   window.showApiWarning = vi.fn();
   window.showApiError = vi.fn();
+  window.location = { href: '', reload: vi.fn() };
   global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true }) });
   vi.resetModules();
 });
@@ -180,6 +181,76 @@ describe('pharmacy/pos.js', () => {
     await new Promise(r => setTimeout(r, 30));
     expect(document.getElementById('checkoutBtn').disabled).toBe(false);
     expect(window.showApiError).toHaveBeenCalled();
+  });
+
+  it('qty-input change updates stored quantity with bounds', async () => {
+    const mod = await loadModule('static/js/pages/pharmacy/pos.js');
+    mod.addToCart('1', 'Aspirin', '5', '100');
+    mod.addToCart('2', 'Vitamin D', '10', '100');
+    const qtyInput = document.querySelector('.qty-input');
+    qtyInput.value = '3';
+    qtyInput.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(mod.cartTotal()).toBe(25);
+    const qtyInput2 = document.querySelectorAll('.qty-input')[1];
+    qtyInput2.value = '0';
+    qtyInput2.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(mod.cartTotal()).toBe(25 - 10 + 10); // first item qty 3 x5 = 15; second qty min 1 -> 10 => 25
+  });
+
+  it('paymentMethod change toggles card block', async () => {
+    await loadModule('static/js/pages/pharmacy/pos.js');
+    const pm = document.getElementById('pmCard');
+    pm.checked = true;
+    pm.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(document.getElementById('cardChargeBlock').classList.contains('d-none')).toBe(false);
+  });
+
+  it('posEnabled wiring calls initPosCharge', async () => {
+    window.__PHARMACY_POS__ = { posEnabled: true, sellUrl: '/api/sell', searchUrl: '/api/search', chargeUrl: '/pos/charge', receiptUrl: '/receipt/0' };
+    window.initPosCharge = vi.fn();
+    await loadModule('static/js/pages/pharmacy/pos.js');
+    expect(window.initPosCharge).toHaveBeenCalled();
+    expect(window.initPosCharge.mock.calls[0][0].button).toBe('pharmacyPosChargeBtn');
+  });
+
+  it('posEnabled charge success fills transaction id and card digits', async () => {
+    window.__PHARMACY_POS__ = { posEnabled: true, sellUrl: '/api/sell', searchUrl: '/api/search', chargeUrl: '/pos/charge', receiptUrl: '/receipt/0' };
+    let onSuccessCb = null;
+    window.initPosCharge = vi.fn().mockImplementation((opts) => { onSuccessCb = opts.onSuccess; });
+    document.body.innerHTML += '<input id="pharmacyTransactionId"><input id="pharmacyCardLastDigits"><div id="pharmacyPosStatus"></div><button id="pharmacyPosChargeBtn">Pay</button>';
+    await loadModule('static/js/pages/pharmacy/pos.js');
+    onSuccessCb({ transaction_id: 'TXN-777', card_last_digits: '4040' });
+    expect(document.getElementById('pharmacyTransactionId').value).toBe('TXN-777');
+    expect(document.getElementById('pharmacyCardLastDigits').value).toBe('4040');
+  });
+
+  it('posEnabled charge success with only approval_code fills pharmacyTransactionId', async () => {
+    window.__PHARMACY_POS__ = { posEnabled: true, sellUrl: '/api/sell', searchUrl: '/api/search', chargeUrl: '/pos/charge', receiptUrl: '/receipt/0' };
+    let onSuccessCb = null;
+    window.initPosCharge = vi.fn().mockImplementation((opts) => { onSuccessCb = opts.onSuccess; });
+    document.body.innerHTML += '<input id="pharmacyTransactionId"><input id="pharmacyCardLastDigits"><div id="pharmacyPosStatus"></div><button id="pharmacyPosChargeBtn">Pay</button>';
+    await loadModule('static/js/pages/pharmacy/pos.js');
+    onSuccessCb({ approval_code: 'APP-9', card_last_digits: '1111' });
+    expect(document.getElementById('pharmacyTransactionId').value).toBe('APP-9');
+  });
+
+  it('card checkout with pharmacyTransactionId posts transaction_id', async () => {
+    window.__PHARMACY_POS__ = { posEnabled: true, sellUrl: '/api/sell', searchUrl: '/api/search', chargeUrl: '/pos/charge', receiptUrl: '/receipt/0' };
+    let onSuccessCb = null;
+    window.initPosCharge = vi.fn().mockImplementation((opts) => { onSuccessCb = opts.onSuccess; });
+    document.body.innerHTML += '<input id="pharmacyTransactionId" value="TXN-777"><input id="pharmacyCardLastDigits" value="4040"><div id="pharmacyPosStatus"></div><button id="pharmacyPosChargeBtn">Pay</button>';
+    window.showApiWarning = vi.fn();
+    const mod = await loadModule('static/js/pages/pharmacy/pos.js');
+    onSuccessCb({ transaction_id: 'TXN-777', card_last_digits: '4040' });
+    document.getElementById('pmCard').checked = true;
+    mod.addToCart('1', 'Aspirin', '5', '100');
+    document.getElementById('checkoutBtn').click();
+    await new Promise(r => setTimeout(r, 30));
+    expect(window.showApiWarning).not.toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalled();
+    const body = JSON.parse(global.fetch.mock.calls[global.fetch.mock.calls.length - 1][1].body);
+    expect(body.transaction_id).toBe('TXN-777');
+    expect(body.card_last_digits).toBe('4040');
   });
 
   it('checkout network failure shows error and restores button', async () => {

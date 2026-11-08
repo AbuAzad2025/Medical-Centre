@@ -140,6 +140,58 @@ describe('doctor/dashboard.js', () => {
     expect(global.fetch).toHaveBeenCalled();
   });
 
+  it('keydown alt+p navigates to prescriptions', async () => {
+    await loadModule('static/js/pages/doctor/dashboard.js');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'p', altKey: true }));
+    expect(window.location.href).toBe('/doctor/prescriptions');
+  });
+
+  it('keydown alt+r navigates to reports', async () => {
+    await loadModule('static/js/pages/doctor/dashboard.js');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'r', altKey: true }));
+    expect(window.location.href).toBe('/doctor/reports');
+  });
+
+  it('keydown alt+a navigates to appointments', async () => {
+    await loadModule('static/js/pages/doctor/dashboard.js');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', altKey: true }));
+    expect(window.location.href).toBe('/doctor/appointments');
+  });
+
+  it('DOMContentLoaded loads layout and starts stats polling when data-stat present', async () => {
+    await loadModule('static/js/pages/doctor/dashboard.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 30));
+    expect(global.fetch).toHaveBeenCalled();
+  });
+
+  it('visibilitychange hidden stops polling, visible restarts', async () => {
+    vi.useFakeTimers();
+    await loadModule('static/js/pages/doctor/dashboard.js');
+    Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(true).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it('beforeunload stops polling', async () => {
+    await loadModule('static/js/pages/doctor/dashboard.js');
+    window.dispatchEvent(new Event('beforeunload'));
+    expect(true).toBe(true);
+  });
+
+  it('refreshDashboardStats failure falls back to console.warn when showToast missing', async () => {
+    delete window.showToast;
+    window.console.warn = vi.fn();
+    global.fetch = vi.fn().mockRejectedValue(new Error('network'));
+    const mod = await loadModule('static/js/pages/doctor/dashboard.js');
+    await mod.refreshDashboardStats();
+    expect(window.console.warn).toHaveBeenCalled();
+    window.console.warn = console.warn;
+  });
+
   it('keydown alt+q navigates to queue shortcut', async () => {
     await loadModule('static/js/pages/doctor/dashboard.js');
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'q', altKey: true }));

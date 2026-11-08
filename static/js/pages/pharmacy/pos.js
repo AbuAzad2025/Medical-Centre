@@ -101,6 +101,7 @@ document.addEventListener('change', function (e) {
   if (e.target.classList.contains('qty-input')) {
     const idx = parseInt(e.target.dataset.index, 10);
     const val = parseInt(e.target.value, 10) || 1;
+    if (!cart[idx]) return;
     cart[idx].qty = Math.max(1, Math.min(val, cart[idx].stock));
     renderCart();
   }

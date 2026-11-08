@@ -3,12 +3,6 @@ import { loadModule } from './test-utils.mjs';
 
 beforeEach(() => {
   document.body.innerHTML = `<div class="modal" id="modal" tabindex="-1"><input id="first"><button id="last">x</button></div>`;
-  window.MutationObserver = class {
-    constructor(cb) { this.cb = cb; }
-    observe() {}
-    disconnect() {}
-    trigger(mutations) { this.cb(mutations); }
-  };
 });
 
 afterEach(() => {
@@ -101,19 +95,19 @@ describe('focus-trap.js', () => {
     expect(document.activeElement.id).toBe('first');
   });
 
-  it('MutationObserver traps dynamically added modals', async () => {
-    const added = [];
-    window.MutationObserver = class {
-      constructor(cb) { this.cb = cb; }
-      observe() {}
-      trigger(records) { this.cb(records); }
-    };
+  it('MutationObserver wires dynamically added modals', async () => {
+    vi.useRealTimers();
     await loadModule('static/js/focus-trap.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
-    const newModal = document.createElement('div');
-    newModal.className = 'modal';
-    newModal.innerHTML = '<button id="dynFirst">a</button><button id="dynLast">b</button>';
-    document.body.appendChild(newModal);
-    expect(newModal).toBeTruthy();
+    const sheet = document.createElement('div');
+    sheet.className = 'modal';
+    sheet.innerHTML = '<button id="dynFirst">a</button><button id="dynLast">b</button>';
+    document.body.appendChild(sheet);
+    await new Promise(r => setTimeout(r, 50));
+    sheet.dispatchEvent(new Event('shown.bs.modal'));
+    const last = document.getElementById('dynLast');
+    last.focus();
+    sheet.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(document.activeElement.id).toBe('dynFirst');
   });
 });
