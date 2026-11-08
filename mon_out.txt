@@ -1,0 +1,50 @@
+41:     Swal.fire({ title: 'تحديث', text: 'تحديث الوحدة: ' + unitKey, icon: 'info' });
+42: }
+43: 
+44: export function clearLogs() {
+45:     Swal.fire({
+46:         title: 'تأكيد',
+47:         text: 'هل تريد مسح جميع السجلات؟',
+48:         icon: 'warning',
+49:         showCancelButton: true,
+50:         confirmButtonText: 'نعم',
+51:         cancelButtonText: 'إلغاء'
+52:     }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم مسح السجلات', icon: 'success' }); } });
+53: }
+54: 
+55: export function exportLogs() {
+56:     Swal.fire({ title: 'تم', text: 'تم تصدير السجلات', icon: 'success' });
+57: }
+58: 
+59: setInterval(function() {
+60: 
+61:     fetch(window.__M7__ + '?ajax=true', { credentials: 'same-origin' })
+62:         .then(response => {
+63:             if (!response.ok) throw new Error('http_' + response.status);
+64:             return response.json();
+65:         })
+66:         .then(data => {
+67:             if (data.success) {
+68: 
+69:                 updateUnitStatus(data.units_status);
+70:             }
+71:         })
+72:         .catch(error => {
+73:             console.warn('تعذر تحديث بيانات المراقبة');
+74:         });
+75: }, 60000);
+76: 
+77: export function updateUnitStatus(unitsStatus) {
+78:     const map = {
+79:         reception: 'pending_visits',
+80:         doctor: 'in_progress_visits',
+81:         emergency: 'emergency_visits',
+82:         lab: 'lab_requests',
+83:         radiology: 'radiology_requests',
+84:         accountant: 'open_invoices'
+85:     };
+86:     Object.keys(unitsStatus).forEach(unitKey => {
+87:         const unit = unitsStatus[unitKey];
+88:         const statProp = map[unitKey];
+89:         const statEl = document.getElementById(`stat-${unitKey}-${statProp}`);
+90:         if (statEl) {

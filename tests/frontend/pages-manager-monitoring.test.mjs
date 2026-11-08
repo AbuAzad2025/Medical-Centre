@@ -100,6 +100,36 @@ describe('monitoring.js', () => {
     expect(document.getElementById('badge-emergency-status').textContent).toBe('معطل');
   });
 
+  it('setInterval auto-refresh fetches and updates status', async () => {
+    vi.useFakeTimers();
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true, units_status: { lab: { lab_requests: 99, status: 'active' } } }) });
+    await loadModule('static/js/pages/manager/monitoring.js');
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(global.fetch).toHaveBeenCalled();
+    expect(document.getElementById('stat-lab-lab_requests').textContent).toBe('99');
+    vi.useRealTimers();
+  });
+
+  it('setInterval auto-refresh fetch failure logs warning', async () => {
+    vi.useFakeTimers();
+    global.fetch = vi.fn().mockRejectedValue(new Error('network'));
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await loadModule('static/js/pages/manager/monitoring.js');
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('setInterval auto-refresh with unsuccessful body does nothing', async () => {
+    vi.useFakeTimers();
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: false }) });
+    await loadModule('static/js/pages/manager/monitoring.js');
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(document.getElementById('stat-lab-lab_requests').textContent).toBe('25');
+    vi.useRealTimers();
+  });
+
   it('updateUnitStatus emergency warning threshold', async () => {
     const mod = await loadModule('static/js/pages/manager/monitoring.js');
     mod.updateUnitStatus({ emergency: { emergency_visits: 10, status: 'active' } });
