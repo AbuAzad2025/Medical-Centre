@@ -155,7 +155,8 @@ class TestAdministrations:
     def test_record_administration_success(self, fx):
         v = fx.visit()
         log = fx.admin_log(v)
-        assert NS.record_administration(log.id, nurse_id=1, notes='given') is True
+        nurse = fx.nurse()
+        assert NS.record_administration(log.id, nurse_id=nurse.id, notes='given') is True
         assert db.session.get(MedicationAdministrationLog, log.id).notes == 'given'
 
 

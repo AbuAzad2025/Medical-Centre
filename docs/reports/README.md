@@ -43,10 +43,10 @@ See `docs/reports/frontend-backend-matching.md` for detailed cross-reference.
 |---|---|
 | generated | 2,575 |
 | hand-written and audited | 40 |
-| total | 2,615 |
+| total | 2,618 |
 | templates | 267 |
 | code-derived axes | 84 |
-| state-changing routes reached | 359/377 |
+| state-changing routes reached | 358/394 |
 
 Families:
 
@@ -59,7 +59,7 @@ Families:
 
 ## Why scenario count and coverage are different numbers
 
-The matrix holds 2,615 scenarios and reaches
+The matrix holds 2,618 scenarios and reaches
 95.2% of the state-changing routes. Those two numbers are
 not supposed to track each other, and the difference is deliberate: scenarios
 multiply over a dimension, so a journey with a genuine five-value state

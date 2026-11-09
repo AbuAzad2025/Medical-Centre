@@ -118,7 +118,7 @@ def main():
     out.append('## Scenario Matrix\n')
     out.append('| Metric | Value |')
     out.append('|---|---:|')
-    out.append('| Total scenarios | 2,615 |')
+    out.append('| Total scenarios | 2,618 |')
     out.append('| Templates | 267 |')
     out.append('| Route coverage | 91.1% (755/829) |')
     out.append('\n---\n')
