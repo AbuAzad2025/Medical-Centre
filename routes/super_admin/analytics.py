@@ -333,7 +333,16 @@ def analytics():
         logging.exception('Analytics error: %s')
         return render_template(
             'super_admin/analytics.html',
-            stats={},
+            stats={
+                'total_users': None,
+                'total_patients': None,
+                'total_visits': None,
+                'visits_today': None,
+                'payments_today': None,
+                'payment_amount_today': None,
+                'prescriptions_today': None,
+                'audit_errors_today': None,
+            },
             chart={'visits': {'labels': [], 'data': []}, 'roles': {'labels': [], 'data': []}},
             recent_audit=[],
         )
