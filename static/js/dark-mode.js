@@ -51,10 +51,12 @@
   const hadStoredChoice = Boolean(safeGetStored());
   applyTheme(getPreferredTheme(), hadStoredChoice);
 
-  // Listen for system preference changes
+  // Listen for system preference changes. Like on load, an OS-derived
+  // change is not persisted - the page should keep following the OS until
+  // the user actually picks a theme via the toggle.
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
     if (!safeGetStored()) {
-      applyTheme(e.matches ? DARK : LIGHT);
+      applyTheme(e.matches ? DARK : LIGHT, false);
     }
   });
 
