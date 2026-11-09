@@ -1,5 +1,5 @@
 {
-  "total_routes": 965,
+  "total_routes": 966,
   "routes": [
     {
       "endpoint": "main.index",
@@ -1210,7 +1210,7 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "backup.dashboard",
+      "endpoint": "backup.dashboard_legacy",
       "path": "/backup/backup/dashboard",
       "methods": [
         "GET",
@@ -1227,6 +1227,16 @@
         "HEAD",
         "OPTIONS",
         "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "backup.dashboard",
+      "path": "/backup/dashboard",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
       ],
       "classification": "authenticated"
     },
