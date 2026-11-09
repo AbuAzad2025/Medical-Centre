@@ -10,7 +10,7 @@ from flask_login import current_user
 from werkzeug.exceptions import HTTPException
 
 from app.shared.user_role_policy import normalize_role
-from utils.db_safety import safe_commit, safe_rollback
+from utils.db_safety import safe_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -386,54 +386,6 @@ def can_archive_visits(f):
     return decorated_function
 
 
-def log_action(action_type):
-    """
-    ديكوريتر لتسجيل الإجراءات المهمة في سجل التدقيق
-
-    Usage:
-        @log_action('create_visit')
-        def create_visit():
-            ...
-    """
-
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            # تنفيذ الدالة أولاً
-            result = f(*args, **kwargs)
-
-            # تسجيل الإجراء
-            try:
-                from app_factory import db
-                from models.audit_trail import AuditTrail
-
-                audit = AuditTrail(
-                    user_id=current_user.id if current_user.is_authenticated else None,
-                    action=action_type,
-                    entity_type=f.__name__,
-                    user_ip=request.remote_addr,
-                    user_agent=request.user_agent.string,
-                    description=f'User {current_user.username if current_user.is_authenticated else "Anonymous"} performed {action_type}',
-                )
-
-                db.session.add(audit)
-                safe_commit(db.session, error_message='database commit failed', reraise=True)
-
-                logger.info(
-                    f'Action logged: {action_type} by user {current_user.id if current_user.is_authenticated else "Anonymous"}'
-                )
-
-            except Exception:
-                logger.exception('Error logging action: %s')
-                # لا نرفع الخطأ حتى لا نؤثر على العملية الأساسية
-
-            return result
-
-        return decorated_function
-
-    return decorator
-
-
 def require_payment_before_service(f):
     """
     ديكوريتر للتأكد من الدفع قبل تقديم الخدمة
@@ -560,17 +512,19 @@ def handle_route_errors(f):
 
 
 def super_admin_only(f):
+    """Only super_admin (and owner, by inheritance) may pass.
+
+    The previous version read ``current_user.is_super_admin``, an attribute that
+    does not exist on the User model at all, so the decorator could never let
+    anyone through — it was dead code that denied every super_admin too.
+    """
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        try:
-            is_sa = getattr(current_user, 'is_super_admin', None)
-            is_sa_val = is_sa() if callable(is_sa) else False
-        except Exception:
-            is_sa_val = False
-        if not is_sa_val:
+        if normalize_role(current_user.role) not in ('super_admin', 'owner'):
             flash(_format_message('no_permission'), 'error')
             abort(403)
         return f(*args, **kwargs)
