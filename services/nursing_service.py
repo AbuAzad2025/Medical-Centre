@@ -224,6 +224,7 @@ class NursingService:
             except TenantContextError:
                 return False
             record.notes = notes.strip() if notes else None
+            record.nurse_id = nurse_id
             return safe_commit(
                 db.session, error_message='Failed to record medication administration'
             )

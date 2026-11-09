@@ -510,7 +510,7 @@ class ClinicalSafetyService:
                 # AttributeError, which the caller swallowed, so the
                 # duplicate-therapy check never produced an alert at all.
                 if getattr(item, 'medication_id', None):
-                    current_drug_ids.add(item.drug_id)
+                    current_drug_ids.add(item.medication_id)
 
         duplicates = proposed_drug_ids & current_drug_ids
         for dup_id in duplicates:

@@ -13,7 +13,7 @@ from app.extensions import db
 from app.shared.enums import VisitState
 from models.department import Department
 from models.patient import Patient
-from models.payment import Payment, PaymentStatus
+from models.payment import Payment, PaymentMethod, PaymentStatus
 from models.user import User
 from models.visit import Visit
 from routes.reception import reception_bp
@@ -283,7 +283,11 @@ def _process_custom_services(custom_names, custom_prices, department_id, current
                     db.func.lower(ServiceMaster.name) == db.func.lower(name),
                     ServiceMaster.department_id == int(department_id),
                     ServiceMaster.is_active,
-                    not ServiceMaster.is_custom,
+                    # `not ServiceMaster.is_custom` was Python's boolean
+                    # negation, which in SQLAlchemy is not SQL: it never saw
+                    # the row, so every "matching" catalogue handover silently
+                    # created a duplicate custom service.
+                    ServiceMaster.is_custom.isnot(True),
                 )
             )
             .scalars()
@@ -669,8 +673,6 @@ def create_visit():
                         visit.payment_status = PaymentStatus.PARTIAL
 
                     # إنشاء سجل دفع
-                    from models.payment import PaymentMethod
-
                     payment_method_value = (
                         PaymentMethod.CARD
                         if payment_method in ['visa', 'card']
@@ -1127,10 +1129,14 @@ def calculate_visit_cost(department_id, doctor_id, visit_type, is_emergency, pay
             .first()
         )
         if pricing_entry:
+            # Keep the accumulator a float throughout this function; the
+            # catalogue columns are Numeric, and mixing Decimal with the
+            # float() accumulations further down raises TypeError, which the
+            # broad except below swallowed into a silent 0.00 visit total.
             if payment_method == 'insurance':
-                total_cost = pricing_entry.get_final_price('insurance')
+                total_cost = float(pricing_entry.get_final_price('insurance'))
             else:
-                total_cost = pricing_entry.base_price
+                total_cost = float(pricing_entry.base_price)
         else:
             service = get_service_by_department(department)
             if service:

@@ -37,7 +37,7 @@
                             <div class="x-small text-muted">
                                 <i class="fas fa-user-friends me-1"></i> {{ a.target_audience }} 
                                 <span class="mx-2">•</span>
-                                <i class="fas fa-calendar-alt me-1"></i> {{ a.created_at.strftime('%Y-%m-%d %H:%M') if a.created_at else '-' }}
+                                <i class="fas fa-calendar-alt me-1"></i> {% if a.created_at is defined and a.created_at %}{% if a.created_at.strftime is defined %}{{ a.created_at.strftime('%Y-%m-%d %H:%M') }}{% else %}{{ a.created_at[:16].replace('T', ' ') }}{% endif %}{% else %}'-'{% endif %}
                             </div>
                         </div>
                         <div class="d-flex gap-2 align-items-center">

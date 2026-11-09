@@ -86,7 +86,7 @@ class PlatformAssumptionService:
 
     @staticmethod
     def get_active_assumptions(user_id: int | None = None) -> list[PlatformTenantAssumption]:
-        q = select(PlatformTenantAssumption)
+        q = select(PlatformTenantAssumption).filter_by(is_active=True)
         if user_id is not None:
             q = q.filter_by(user_id=user_id)
         now = datetime.now(UTC)

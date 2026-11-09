@@ -9,6 +9,7 @@ from app.shared import enums as enums_module
 
 ENUM_LABELS_AR: dict[str, dict[str, str]] = {
     'VisitState': {
+        'PENDING': 'قيد الانتظار',
         'OPEN': 'مفتوح',
         'CHECKED_IN': 'حضور مسجّل',
         'IN_PROGRESS': 'قيد المعالجة',

@@ -324,7 +324,7 @@
                         <div class="col-md-6">
                             <label class="form-label">{{ _(_('نوع التخزين')) }}</label>
                             <select name="storage_mode" class="form-select">
-                                {% for sm in ['shared','dedicated','hybrid'] %}
+                                {% for sm in ['CLOUD','LOCAL','HYBRID'] %}
                                 <option value="{{ sm }}" {{ 'selected' if tenant.storage_mode.value == sm else '' }}>{{ sm }}</option>
                                 {% endfor %}
                             </select>

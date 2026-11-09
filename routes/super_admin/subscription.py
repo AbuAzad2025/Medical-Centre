@@ -114,7 +114,7 @@ def change_plan():
             select(PackageVersion)
             .join(PackageVersion.package)
             .filter(Package.is_active)
-            .filter(not PackageVersion.is_deprecated)
+            .filter(~PackageVersion.is_deprecated)
             .order_by(Package.name, PackageVersion.version)
         )
         .scalars()

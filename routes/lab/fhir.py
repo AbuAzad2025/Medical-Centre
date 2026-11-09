@@ -90,9 +90,10 @@ def api_fhir_lab_service_request():
             if not isinstance(t, dict):
                 continue
             code = (t.get('test_code') or '').strip()
-            name = (t.get('test_name') or '').strip() or code or 'Test'
-            if not code and not name:
+            raw_name = (t.get('test_name') or '').strip()
+            if not code and not raw_name:
                 continue
+            name = raw_name or code or 'Test'
             db.session.add(
                 LabResult(
                     request_id=req.id,

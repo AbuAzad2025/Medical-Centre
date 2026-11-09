@@ -5,7 +5,7 @@ import logging
 # Imports
 from flask import abort, flash, g, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from app.extensions import db
 from routes.super_admin import super_admin_bp
@@ -100,8 +100,8 @@ def edit_role(role_id):
             role.is_system_role = bool(request.form.get('is_system_role'))
             role.is_active = bool(request.form.get('is_active'))
 
-            # حذف الصلاحيات القديمة
-            select(RolePermission).delete()
+            # حذف الصلاحيات القديمة لهذا الدور فقط
+            db.session.execute(delete(RolePermission).where(RolePermission.role_id == role.id))
 
             # إضافة الصلاحيات الجديدة
             permissions = request.form.getlist('permissions')
@@ -151,8 +151,8 @@ def manage_role_permissions(role_id):
             abort(404)
 
         if request.method == 'POST':
-            # حذف الصلاحيات الحالية
-            select(RolePermission).delete()
+            # حذف الصلاحيات الحالية لهذا الدور فقط
+            db.session.execute(delete(RolePermission).where(RolePermission.role_id == role_id))
 
             # إضافة الصلاحيات الجديدة
             selected_permissions = request.form.getlist('permissions')
@@ -221,7 +221,9 @@ def manage_role_department_permissions(role_id):
         )
 
         if request.method == 'POST':
-            select(DepartmentPermission).delete()
+            db.session.execute(
+                delete(DepartmentPermission).where(DepartmentPermission.role_id == role_id)
+            )
 
             def _bool(name: str) -> bool:
                 return str(request.form.get(name) or '').lower() in {'1', 'true', 'on', 'yes'}
@@ -351,7 +353,7 @@ def permissions_matrix():
 
         if request.method == 'POST':
             for role in roles:
-                select(RolePermission).delete()
+                db.session.execute(delete(RolePermission).where(RolePermission.role_id == role.id))
                 selected = request.form.getlist(f'role_{role.id}_permissions')
                 for pid in selected:
                     try:
@@ -410,7 +412,7 @@ def delete_role(role_id):
             return redirect(url_for('super_admin.roles'))
 
         # حذف صلاحيات الدور أولاً
-        select(RolePermission).delete()
+        db.session.execute(delete(RolePermission).where(RolePermission.role_id == role.id))
 
         db.session.delete(role)
         safe_commit(db.session, error_message='database commit failed', reraise=True)

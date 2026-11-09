@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from flask import Blueprint, abort, flash, redirect, render_template, request, send_file, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func, select
+from werkzeug.exceptions import HTTPException
 
 from app.extensions import db
 from app.shared.enums import BackupStatus
@@ -28,7 +29,7 @@ backup_bp = Blueprint('backup', __name__)
 logger = logging.getLogger(__name__)
 
 
-@backup_bp.route('/backup/dashboard')
+@backup_bp.route('/dashboard')
 @login_required
 @super_admin_required
 def dashboard():
@@ -60,6 +61,13 @@ def dashboard():
         logger.exception('Error in backup dashboard: %s')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))
+
+
+# Legacy alias: the dashboard used to be registered at /backup/backup/dashboard
+# (its route was defined as '/backup/dashboard' inside a blueprint already
+# prefixed with '/backup'). Keep it reachable for existing bookmarks; url_for()
+# resolves to the corrected /backup/dashboard.
+backup_bp.add_url_rule('/backup/dashboard', endpoint='dashboard_legacy', view_func=dashboard)
 
 
 @backup_bp.route('/create', methods=['GET', 'POST'])
@@ -162,6 +170,8 @@ def restore_backup(backup_id):
         else:
             flash('فشل في استعادة النسخة الاحتياطية', 'error')
         return redirect(url_for('backup.list_backups'))
+    except HTTPException:
+        raise
     except Exception:
         logger.exception('Error restoring backup: %s')
         flash('حدث خطأ في استعادة النسخة الاحتياطية', 'error')
@@ -181,6 +191,8 @@ def download_backup(backup_id):
             return redirect(url_for('backup.list_backups'))
         download_name = os.path.basename(backup.backup_path)
         return send_file(backup.backup_path, as_attachment=True, download_name=download_name)
+    except HTTPException:
+        raise
     except Exception:
         logger.exception('Error downloading backup: %s')
         flash('حدث خطأ في تحميل النسخة الاحتياطية', 'error')
@@ -201,6 +213,8 @@ def delete_backup(backup_id):
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         flash('تم حذف النسخة الاحتياطية بنجاح', 'success')
         return redirect(url_for('backup.list_backups'))
+    except HTTPException:
+        raise
     except Exception:
         logger.exception('Error deleting backup: %s')
         flash('حدث خطأ في حذف النسخة الاحتياطية', 'error')

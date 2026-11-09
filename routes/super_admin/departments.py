@@ -29,10 +29,12 @@ def departments():
 
         query = select(Department)
 
-        total = query.count()
+        total = db.session.execute(select(func.count()).select_from(Department)).scalar() or 0
         pages = (total + per_page - 1) // per_page
 
-        departments = query.offset((page - 1) * per_page).limit(per_page).all()
+        departments = (
+            db.session.execute(query.offset((page - 1) * per_page).limit(per_page)).scalars().all()
+        )
         total_doctors = db.session.execute(
             select(func.count()).select_from(User).filter_by(role='doctor')
         ).scalar()

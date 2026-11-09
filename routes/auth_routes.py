@@ -494,9 +494,13 @@ def profile():
     if request.method == 'POST':
         try:
             user = current_user
-            user.full_name = request.form.get('full_name')
+            full_name = request.form.get('full_name')
+            if full_name:
+                user.full_name = full_name
             user.phone = request.form.get('phone')
-            user.email = request.form.get('email')
+            email = request.form.get('email')
+            if email:
+                user.email = email
             user.doctor_room = request.form.get('doctor_room')
 
             # Update department
@@ -928,7 +932,9 @@ def reset_password(token: str, user_id: int) -> ResponseReturnValue:
             _clear_reset_token(user_id)
             safe_commit(db.session, error_message='database commit failed', reraise=True)
 
-            # Log audit trail
+            # Log audit trail. chk_action has no 'password_reset' value; the
+            # closest allowed action is PASSWORD_CHANGE (a credential change
+            # made via the recovery link).
             try:
                 from models.audit_trail import AuditTrail
 
@@ -936,7 +942,7 @@ def reset_password(token: str, user_id: int) -> ResponseReturnValue:
                     AuditTrail(
                         entity_type='user',
                         entity_id=user.id,
-                        action='password_reset',
+                        action='PASSWORD_CHANGE',
                         user_id=user.id,
                         user_ip=request.remote_addr,
                         user_agent=request.headers.get('User-Agent'),

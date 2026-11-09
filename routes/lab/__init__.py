@@ -453,11 +453,11 @@ def generate_optimization_suggestions(avg_time):
     suggestions = []
 
     if avg_time > 4:
-        suggestions.append('ØªØ­Ø³ÙŠÙ† ØªØ¯ÙÙ‚ Ø§Ù„Ø¹ÙŠÙ†Ø§Øª')
+        suggestions.append('تحسين تدفق العينات')
     if avg_time > 6:
-        suggestions.append('Ø¥Ø¶Ø§ÙØ© Ù…Ø¹Ø¯Ø§Øª Ø¬Ø¯ÙŠØ¯Ø©')
+        suggestions.append('إضافة معدات جديدة')
     if avg_time > 8:
-        suggestions.append('Ø²ÙŠØ§Ø¯Ø© Ø¹Ø¯Ø¯ Ø§Ù„ÙÙ†ÙŠÙŠÙ†')
+        suggestions.append('زيادة عدد الفنيين')
 
     return suggestions
 

@@ -409,9 +409,7 @@ def refund_requests():
 def refund_approve(refund_id):
     from services.refund_service import RefundService
 
-    ok, payload = RefundService.approve_refund(
-        refund_id, approved_by=current_user.id, tenant_id=current_user.tenant_id
-    )
+    ok, payload = RefundService.approve_refund(refund_id, approved_by=current_user.id)
     if ok:
         flash('تمت الموافقة على الاسترداد', 'success')
     else:
@@ -426,9 +424,7 @@ def refund_reject(refund_id):
     from services.refund_service import RefundService
 
     reason = request.form.get('reason', '')
-    ok, payload = RefundService.reject_refund(
-        refund_id, rejected_by=current_user.id, reason=reason, tenant_id=current_user.tenant_id
-    )
+    ok, payload = RefundService.reject_refund(refund_id, rejected_by=current_user.id, reason=reason)
     if ok:
         flash('تم رفض الاسترداد', 'success')
     else:
@@ -442,9 +438,7 @@ def refund_reject(refund_id):
 def refund_execute(refund_id):
     from services.refund_service import RefundService
 
-    ok, payload = RefundService.execute_refund(
-        refund_id, executed_by=current_user.id, tenant_id=current_user.tenant_id
-    )
+    ok, payload = RefundService.execute_refund(refund_id, executed_by=current_user.id)
     if ok:
         flash('تم تنفيذ الاسترداد وعكس القيد', 'success')
     else:

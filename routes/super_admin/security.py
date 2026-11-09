@@ -150,7 +150,7 @@ def security_center():
         failed_logins = db.session.execute(
             select(func.count())
             .select_from(LoginAttempt)
-            .filter(not LoginAttempt.success, LoginAttempt.created_at >= start_24h)
+            .filter(~LoginAttempt.success, LoginAttempt.created_at >= start_24h)
         ).scalar()
         critical_logs = db.session.execute(
             select(func.count())
@@ -160,7 +160,9 @@ def security_center():
             )
         ).scalar()
         unresolved = db.session.execute(
-            select(func.count()).select_from(SecurityEvent).filter(not SecurityEvent.is_resolved)
+            select(func.count())
+            .select_from(SecurityEvent)
+            .filter(SecurityEvent.is_resolved.is_(False))
         ).scalar()
         latest_events = (
             db.session.execute(

@@ -486,6 +486,23 @@ def data_export(patient_id=None):
 # ---------------------------------------------------------------------------
 # 4. Consent management verification
 # ---------------------------------------------------------------------------
+def _expiry_passed(consent) -> bool:
+    """True when a non-null expires_at is in the past.
+
+    The ``expires_at`` column is a plain ``DateTime`` — values read back from
+    PostgreSQL are naive — while the comparison here uses an aware ``now``.
+    Normalise both sides before comparing instead of crashing on the mixed
+    comparison.
+    """
+    expires_at = getattr(consent, 'expires_at', None)
+    if not expires_at:
+        return False
+    now = datetime.now(UTC)
+    if expires_at.tzinfo is None:
+        return expires_at < now.replace(tzinfo=None)
+    return expires_at < now
+
+
 @compliance_bp.route('/consent-verification', methods=['GET'])
 @compliance_bp.route('/consent-management-verification', methods=['GET'])
 @compliance_bp.route('/consent-management', methods=['GET'])
@@ -505,7 +522,6 @@ def consent_management_verification():
 
     consents = db.session.execute(query).scalars().all()
 
-    now = datetime.now(UTC)
     total = len(consents)
     active = 0
     expired = 0
@@ -517,7 +533,7 @@ def consent_management_verification():
             withdrawn += 1
         elif status == 'pending_review':
             pending += 1
-        elif getattr(consent, 'expires_at', None) and consent.expires_at < now:
+        elif _expiry_passed(consent):
             expired += 1
         elif status == 'granted':
             active += 1

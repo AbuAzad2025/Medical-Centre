@@ -20,7 +20,7 @@ from utils.decorators import role_required
 def appointments():
     """المواعيد — مع إحصائيات وتصفح"""
     try:
-        from datetime import date, timedelta
+        from datetime import date
 
         from sqlalchemy import func
 
@@ -30,7 +30,6 @@ def appointments():
         page = request.args.get('page', 1, type=int)
         per_page = 20
         today = date.today()
-        today + timedelta(days=1)
 
         # Base query
         query = select(Appointment).filter(
@@ -39,8 +38,10 @@ def appointments():
             if hasattr(Appointment, 'tenant_id') and g.tenant_id
             else True,
         )
-        total = query.count()
-        appointments = query.offset((page - 1) * per_page).limit(per_page).all()
+        total = db.session.execute(select(func.count()).select_from(query.subquery())).scalar()
+        appointments = (
+            db.session.execute(query.offset((page - 1) * per_page).limit(per_page)).scalars().all()
+        )
         pages = (total + per_page - 1) // per_page if total > 0 else 1
 
         # Stats

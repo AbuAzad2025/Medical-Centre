@@ -287,7 +287,7 @@ def worklist_request(request_id):
                 try:
                     db.session.add(
                         AuditTrail(
-                            entity_type='lab_request',
+                            entity_type='lab_test',  # chk_entity_type forbids 'lab_request'
                             entity_id=lab_request.id,
                             action='update',
                             user_id=current_user.id,

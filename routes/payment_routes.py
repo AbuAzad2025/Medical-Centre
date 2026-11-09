@@ -652,7 +652,7 @@ def payment_reports():
 def request_refund(payment_id):
     """Create a refund request for a payment."""
     try:
-        json_data = request.json or {}
+        json_data = request.get_json(silent=True) or {}
         amount = request.form.get('amount') or json_data.get('amount')
         reason = request.form.get('reason') or json_data.get('reason', '')
         ok, result = refund_service.request_refund(
@@ -784,6 +784,9 @@ def process_pharmacy_return():
 
         return jsonify({'success': True, 'data': result})
 
+    except HTTPException:
+        # Malformed JSON is the client's 400/415, not our 500.
+        raise
     except Exception:
         logging.exception('Error processing pharmacy return')
         return jsonify({'success': False, 'error': 'Internal server error'}), 500

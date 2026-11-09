@@ -125,7 +125,9 @@ def lab_request(visit_id):
                 reception_dept = next(
                     (
                         d
-                        for d in db.session.execute(select(Department).filter_by(is_active=True))
+                        for d in db.session.execute(
+                            select(Department).filter_by(is_active=True, tenant_id=g.tenant_id)
+                        )
                         .scalars()
                         .all()
                         if d.get_type() == 'reception'

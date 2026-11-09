@@ -371,7 +371,13 @@ def service_pricing_delete(price_id):
         service_id = rec.service_id
         db.session.add(
             AuditTrail(
-                entity_type='pricing',
+                # 'pricing' is not a permitted entity_type in chk_entity_type
+                # (system, user, patient, ..., service, user_session). Writing
+                # 'pricing' made the whole delete fail its check constraint and
+                # roll back - the pricing row was never removed and the operator
+                # only saw a generic error. The constraint-sanctioned value for a
+                # service-related write is 'service'.
+                entity_type='service',
                 entity_id=price_id,
                 tenant_id=getattr(current_user, 'tenant_id', None),
                 action='delete',

@@ -31,6 +31,7 @@ class LabService:
         requested_by: int | None = None,
         notes: str | None = None,
         tenant_id: int | None = None,
+        patient_id: int | None = None,
     ) -> tuple[bool, dict]:
         """Create a structured LabRequest with LabResult rows from catalog test IDs.
 
@@ -40,10 +41,14 @@ class LabService:
 
         Dynamic bundle isolation: ``visit_id`` is optional for standalone-lab
         bundles (no ``doctor`` / ``reception`` module). When those modules are
-        active a visit is required; otherwise a walk-in request is accepted.
+        active a visit is required; otherwise a walk-in request is accepted —
+        and a walk-in still needs a patient, because
+        ``lab_requests.patient_id`` is NOT NULL: pass ``patient_id`` for the
+        walk-in case.
         """
         from models.lab_request import LabRequest, LabResult
         from models.lab_test_catalog import LabTestCatalog
+        from models.patient import Patient
         from models.visit import Visit
 
         if not test_ids:
@@ -60,10 +65,13 @@ class LabService:
                 resolved_tenant_id, 'doctor'
             ) or FeatureGateService.module_enabled(resolved_tenant_id, 'reception')
 
+        resolved_patient_id = None
         if visit_id is not None:
             visit = (
                 db.session.execute(
-                    select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id)
+                    select(Visit).filter(
+                        Visit.id == visit_id, Visit.tenant_id == resolved_tenant_id
+                    )
                 )
                 .scalars()
                 .first()
@@ -71,14 +79,31 @@ class LabService:
             if not visit:
                 return False, {'error': 'Visit not found'}
             resolved_tenant_id = resolved_tenant_id or visit.tenant_id
+            resolved_patient_id = visit.patient_id
         elif doctor_or_reception_active:
             # visit_id is mandatory when doctor/reception module is enabled
             return False, {
                 'error': 'visit_id is required when the doctor or reception module is enabled'
             }
         else:
-            # Standalone lab walk-in: no visit required
+            # Standalone lab walk-in: no visit required, but the patient is.
             visit = None
+            if patient_id is None:
+                return False, {
+                    'error': 'patient_id is required for a walk-in lab request without a visit'
+                }
+            patient = (
+                db.session.execute(
+                    select(Patient).filter(
+                        Patient.id == int(patient_id), Patient.tenant_id == resolved_tenant_id
+                    )
+                )
+                .scalars()
+                .first()
+            )
+            if not patient:
+                return False, {'error': 'Patient not found'}
+            resolved_patient_id = patient.id
 
         if requested_by is None and FeatureGateService.module_enabled(resolved_tenant_id, 'doctor'):
             return False, {
@@ -91,7 +116,7 @@ class LabService:
         lab_request = LabRequest(
             tenant_id=resolved_tenant_id,
             visit_id=visit.id if visit else None,
-            patient_id=visit.patient_id if visit else None,
+            patient_id=resolved_patient_id,
             requested_by=requested_by,
             request_number=request_number,
             status='REQUESTED',
@@ -105,7 +130,9 @@ class LabService:
         catalog_items = (
             db.session.execute(
                 select(LabTestCatalog).filter(
-                    LabTestCatalog.id.in_(test_ids), LabTestCatalog.is_active
+                    LabTestCatalog.id.in_(test_ids),
+                    LabTestCatalog.is_active,
+                    LabTestCatalog.tenant_id == resolved_tenant_id,
                 )
             )
             .scalars()
@@ -114,14 +141,16 @@ class LabService:
         found_ids = {c.id for c in catalog_items}
         missing = set(test_ids) - found_ids
         if missing:
-            safe_commit(db.session, error_message='Unknown or inactive test IDs')
+            # Nothing has been committed yet: discard the pending request row
+            # instead of committing an empty REQUESTED shell.
+            db.session.rollback()
             return False, {'error': f'Unknown or inactive test IDs: {sorted(missing)}'}
 
         for catalog in catalog_items:
             result = LabResult(
-                tenant_id=tenant_id,
+                tenant_id=resolved_tenant_id,
                 request_id=lab_request.id,
-                patient_id=visit.patient_id,
+                patient_id=resolved_patient_id,
                 test_code=catalog.code,
                 test_name=catalog.name_ar or catalog.name_en or catalog.code,
                 unit=catalog.unit,

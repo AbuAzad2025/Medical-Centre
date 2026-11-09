@@ -42,7 +42,10 @@ class CoreQueryService:
     def get_patient_by_code(code: str) -> Patient | None:
         from models.patient import Patient
 
-        return db.session.execute(tenant_filter(Patient).filter_by(code=code)).scalars().first()
+        # Patient has no `code` column; the identity number is the lookup key
+        # and it is blind-index backed. A bare filter_by(code=...) raised
+        # AttributeError on any call.
+        return Patient.find_by_national_id(code)
 
     @staticmethod
     def search_patients(
@@ -86,7 +89,7 @@ class CoreQueryService:
 
         return (
             db.session.execute(
-                select(Visit)
+                tenant_filter(Visit)
                 .filter_by(patient_id=patient_id)
                 .order_by(desc(Visit.created_at))
                 .limit(limit)
@@ -99,7 +102,7 @@ class CoreQueryService:
     def get_open_visits(department_id: int | None = None) -> list[Visit]:
         from models.visit import Visit
 
-        q = tenant_filter(Visit)
+        q = tenant_filter(Visit).filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))
         if department_id:
             q = q.filter_by(department_id=department_id)
         return q.order_by(Visit.created_at).all()
@@ -128,9 +131,13 @@ class CoreQueryService:
         from models.visit import Visit
 
         today = date.today()
-        return db.session.execute(
-            select(func.count()).select_from(Visit).filter(func.date(Visit.created_at) == today)
-        ).scalar()
+        q = select(func.count()).select_from(Visit).filter(func.date(Visit.created_at) == today)
+        from flask import g
+
+        tenant_id = getattr(g, 'tenant_id', None)
+        if tenant_id is not None:
+            q = q.filter(Visit.tenant_id == tenant_id)
+        return db.session.execute(q).scalar()
 
     # ==================== USER/STAFF QUERIES ====================
     @staticmethod
@@ -185,29 +192,30 @@ class CoreQueryService:
     # ==================== PAYMENT/INVOICE QUERIES ====================
     @staticmethod
     def get_payments_by_patient(patient_id: int) -> list[Payment]:
+
         from models.payment import Payment
 
-        return (
-            db.session.execute(
-                select(Payment)
-                .filter_by(patient_id=patient_id)
-                .order_by(desc(Payment.payment_date))
-            )
-            .scalars()
-            .all()
+        q = (
+            tenant_filter(Payment)
+            .filter_by(patient_id=patient_id)
+            .order_by(desc(Payment.payment_date))
         )
+        return db.session.execute(q).scalars().all()
 
     @staticmethod
     def get_invoices_by_patient(patient_id: int) -> list[Invoice]:
         from models.invoice import Invoice
+        from models.visit import Visit
 
-        return (
-            db.session.execute(
-                select(Invoice).filter_by(patient_id=patient_id).order_by(desc(Invoice.created_at))
-            )
-            .scalars()
-            .all()
+        # Invoices are visit-scoped; join through the visit to find a patient's
+        # invoices. A bare Invoice.patient_id does not exist on the model.
+        q = (
+            tenant_filter(Invoice)
+            .join(Visit, Invoice.visit_id == Visit.id)
+            .filter(Visit.patient_id == patient_id)
+            .order_by(desc(Invoice.created_at))
         )
+        return db.session.execute(q).scalars().all()
 
     @staticmethod
     def get_revenue_today() -> float:
@@ -250,27 +258,26 @@ class CoreQueryService:
 
         q = tenant_filter(Appointment).filter_by(doctor_id=doctor_id)
         if date_from:
-            q = q.filter(Appointment.appointment_date >= date_from)
+            q = q.filter(func.date(Appointment.starts_at) >= date_from)
         if date_to:
-            q = q.filter(Appointment.appointment_date <= date_to)
-        return q.order_by(Appointment.appointment_time).all()
+            q = q.filter(func.date(Appointment.starts_at) <= date_to)
+        # The model merged appointment_date/appointment_time into starts_at.
+        return q.order_by(Appointment.starts_at).all()
 
     @staticmethod
     def get_appointments_today() -> list[Appointment]:
         from datetime import date
 
+        from flask import g
+
         from models.appointment import Appointment
 
         today = date.today()
-        return (
-            db.session.execute(
-                select(Appointment)
-                .filter(func.date(Appointment.appointment_date) == today)
-                .order_by(Appointment.appointment_time)
-            )
-            .scalars()
-            .all()
-        )
+        q = select(Appointment).filter(func.date(Appointment.starts_at) == today)
+        tenant_id = getattr(g, 'tenant_id', None)
+        if tenant_id is not None:
+            q = q.filter(Appointment.tenant_id == tenant_id)
+        return db.session.execute(q.order_by(Appointment.starts_at)).scalars().all()
 
     # ==================== LAB QUERIES ====================
     @staticmethod
@@ -376,13 +383,13 @@ class CoreQueryService:
         tenant_id = getattr(g, 'tenant_id', None)
 
         def _count_with_tenant(model):
-            q = select(func.count())
+            q = select(func.count()).select_from(model)
             if tenant_id is not None and hasattr(model, 'tenant_id'):
                 q = q.filter(model.tenant_id == tenant_id)
             return db.session.execute(q).scalar()
 
         def _count_with_tenant_and_date_filter(model, date_filter):
-            q = select(func.count())
+            q = select(func.count()).select_from(model)
             if tenant_id is not None and hasattr(model, 'tenant_id'):
                 q = q.filter(model.tenant_id == tenant_id)
             if date_filter is not None:

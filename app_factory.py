@@ -416,7 +416,26 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
         """
         from datetime import UTC, datetime
 
-        return datetime.now(UTC) if value is None else value
+        class _Moment:
+            _TOKENS = (
+                ('YYYY', '%Y'),
+                ('MM', '%m'),
+                ('DD', '%d'),
+                ('HH', '%H'),
+                ('mm', '%M'),
+                ('ss', '%S'),
+            )
+
+            def __init__(self, dt):
+                self._dt = dt
+
+            def format(self, pattern='YYYY-MM-DD'):
+                out = str(pattern)
+                for token, repl in self._TOKENS:
+                    out = out.replace(token, repl)
+                return self._dt.strftime(out)
+
+        return _Moment(value if value is not None else datetime.now(UTC))
 
     @app.after_request
     def _compress_json_response(response):

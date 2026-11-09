@@ -77,6 +77,11 @@ class ModuleName(StrEnum):
 class VisitState(StrEnum):
     """Clinical lifecycle states stored in visit.status (ends at COMPLETED)."""
 
+    # The visits.status column default is 'PENDING'; keep the enum consistent
+    # with it (routes/reception/queue.py compared against VisitState.PENDING,
+    # which raised AttributeError inside a broad except and silently returned
+    # an empty alert list).
+    PENDING = 'PENDING'
     OPEN = 'OPEN'
     CHECKED_IN = 'CHECKED_IN'
     IN_PROGRESS = 'IN_PROGRESS'

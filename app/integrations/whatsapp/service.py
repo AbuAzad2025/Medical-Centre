@@ -13,6 +13,10 @@ class WhatsAppNotificationService:
     def __init__(self, client: WhatsAppClient | None = None):
         self.client = client or WhatsAppClient()
 
+    def send_message(self, to: str, body: str) -> dict:
+        """Send an arbitrary free-text message."""
+        return self.client.send_text(to=to, body=body)
+
     def send_appointment_reminder(
         self, phone: str, patient_name: str, date_str: str, time_str: str, doctor_name: str
     ) -> dict:
@@ -50,3 +54,7 @@ class WhatsAppNotificationService:
             f'شفاك الله.'
         )
         return self.client.send_text(to=phone, body=body)
+
+
+# Backwards-compatible alias: historical call sites import `WhatsAppService`.
+WhatsAppService = WhatsAppNotificationService

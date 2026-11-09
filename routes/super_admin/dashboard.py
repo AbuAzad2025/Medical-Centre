@@ -100,7 +100,7 @@ def _get_super_admin_security_stats():
             db.session.execute(
                 select(func.count())
                 .select_from(SecurityEvent)
-                .filter(not SecurityEvent.is_resolved)
+                .filter(SecurityEvent.is_resolved.is_(False))
             ).scalar()
             or 0
         ),

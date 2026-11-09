@@ -2,13 +2,14 @@
 Owner Blueprint — platform admin routes (SaaS control plane)
 """
 
+import calendar
 import json
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select, text, update
 
 from app.core.module.models import TenantModule
 from app.core.module.registry import MODULE_REGISTRY, get_all_module_names
@@ -79,6 +80,15 @@ def _clamped_page(default=1):
     return max(1, raw)
 
 
+def _add_months(day: date, months: int) -> date:
+    """Add ``months`` calendar months to ``day``, clamping the day of month."""
+    month_index = day.month - 1 + months
+    year = day.year + month_index // 12
+    month = month_index % 12 + 1
+    last_day = calendar.monthrange(year, month)[1]
+    return date(year, month, min(day.day, last_day))
+
+
 def _mask_secret(value, keep=4):
     if not value:
         return ''
@@ -124,9 +134,23 @@ def _log_action(action, entity_type, entity_id=None, details=None):
     # is no longer visible and any attribute refresh on `current_user` raises
     # ObjectDeletedError on a user that plainly exists. Capturing first is what
     # makes the platform scope safe to enter at all.
-    actor_id = getattr(current_user, 'id', None)
+    #
+    # An action that re-bound the session to a *customer* tenant before it
+    # returned here (provisioning does) has the same effect on the attribute
+    # read below - it happens before the platform scope switch and still
+    # triggers the refresh. The action's writes are already committed at that
+    # point; auditing must not retroactively turn a completed action into a
+    # reported failure, so the read is defensive: id/user_agent missing is
+    # better than a 400 returned for work that succeeded.
+    try:
+        actor_id = getattr(current_user, 'id', None) or None
+    except Exception:
+        actor_id = None
     actor_ip = request.remote_addr
-    agent = request.user_agent.string[:255] if request.user_agent else None
+    try:
+        agent = request.user_agent.string[:255] if request.user_agent else None
+    except Exception:
+        agent = None
 
     with platform_tenant_scope() as platform_tenant:
         log = PlatformAuditLog(
@@ -872,18 +896,18 @@ def owner_edit_user(user_id):
         user.is_admin = data.get('is_admin') == '1'
         new_tenant_id = data.get('tenant_id', type=int)
         if new_tenant_id and new_tenant_id != user.tenant_id:
-            # Ensure username/email uniqueness in new tenant
-            existing = (
-                db.session.execute(
-                    select(User).filter_by(tenant_id=new_tenant_id, username=user.username)
-                )
-                .scalars()
-                .first()
+            # A user row cannot be relocated to another tenant. Both isolation
+            # layers forbid it: the ORM filter rewrites the UPDATE to the
+            # current tenant (0 rows matched -> StaleDataError), and the
+            # Postgres RLS WITH CHECK rejects the new tenant_id. Binding the
+            # target tenant passes WITH CHECK but fails the USING clause, and
+            # vice versa. There is no sanctioned bypass for this, so the
+            # move is rejected outright instead of attempted-and-reverted.
+            flash(
+                'نقل المستخدم بين المنشآت غير مدعوم — أنشئ المستخدم من جديد في المنشأة المستهدفة',
+                'error',
             )
-            if existing and existing.id != user.id:
-                flash('اسم المستخدم موجود في المنشأة المحددة', 'error')
-                return redirect(url_for('owner.owner_users'))
-            user.tenant_id = new_tenant_id
+            return redirect(url_for('owner.owner_users'))
         safe_commit(db.session, error_message='database commit failed', reraise=True)
         _log_action('UPDATE_USER', 'user', user.id, f'Updated user {user.username}')
         flash('تم تحديث المستخدم بنجاح', 'success')
@@ -1125,18 +1149,12 @@ def owner_renew_tenant(tenant_id):
     try:
         old_plan = tenant.plan_id
         if tenant.plan and tenant.subscription_type == SubscriptionType.MONTHLY:
-            tenant.subscription_end = date.today().replace(
-                month=tenant.subscription_end.month + 1
-                if tenant.subscription_end and tenant.subscription_end.month < 12
-                else 1
+            tenant.subscription_end = (
+                _add_months(tenant.subscription_end, 1) if tenant.subscription_end else date.today()
             )
         elif tenant.plan and tenant.subscription_type == SubscriptionType.YEARLY:
             tenant.subscription_end = (
-                date(
-                    tenant.subscription_end.year + 1,
-                    tenant.subscription_end.month,
-                    tenant.subscription_end.day,
-                )
+                _add_months(tenant.subscription_end, 12)
                 if tenant.subscription_end
                 else date.today()
             )
@@ -1171,11 +1189,16 @@ def owner_suspend_tenant(tenant_id):
 
     tenant = db.get_or_404(Tenant, tenant_id)
     try:
-        TenantProvisioningService.suspend_tenant(
-            tenant_id,
-            reason='owner_suspend',
-            performed_by_user_id=current_user.id,
-        )
+        # lifecycle writes hit RLS-forced tables on behalf of *another*
+        # tenant; bind the tenant being acted on, as bound_tenant_scope()
+        # is designed for (the service otherwise writes under the caller's
+        # binding and every statement is rejected)
+        with bound_tenant_scope(tenant):
+            TenantProvisioningService.suspend_tenant(
+                tenant_id,
+                reason='owner_suspend',
+                performed_by_user_id=current_user.id,
+            )
         _log_action('SUSPEND_TENANT', 'tenant', tenant_id, f'Suspended tenant {tenant.name}')
         dispatch_webhook(EVENT_TENANT_SUSPENDED, {'tenant_id': tenant_id, 'name': tenant.name})
         flash('تم إيقاف العميل', 'warning')
@@ -1192,15 +1215,16 @@ def owner_activate_tenant(tenant_id):
 
     tenant = db.get_or_404(Tenant, tenant_id)
     try:
-        if tenant.status == TenantStatus.SUSPENDED:
-            TenantProvisioningService.reactivate_tenant(
-                tenant_id,
-                performed_by_user_id=current_user.id,
-            )
-        else:
-            tenant.status = TenantStatus.ACTIVE
-            safe_commit(db.session, error_message='database commit failed', reraise=True)
-            EntitlementProjectionService.calculate(tenant_id)
+        with bound_tenant_scope(tenant):
+            if tenant.status == TenantStatus.SUSPENDED:
+                TenantProvisioningService.reactivate_tenant(
+                    tenant_id,
+                    performed_by_user_id=current_user.id,
+                )
+            else:
+                tenant.status = TenantStatus.ACTIVE
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
+                EntitlementProjectionService.calculate(tenant_id)
         _log_action('ACTIVATE_TENANT', 'tenant', tenant_id, f'Activated tenant {tenant.name}')
         dispatch_webhook(EVENT_TENANT_ACTIVATED, {'tenant_id': tenant_id, 'name': tenant.name})
         flash('تم تفعيل العميل', 'success')
@@ -1262,7 +1286,9 @@ def owner_edit_plan(plan_id):
         data = request.form
         plan.name = data.get('name', plan.name).strip()
         plan.name_ar = data.get('name_ar', '').strip() or None
-        plan.billing_type = SubscriptionType(data.get('billing_type', plan.billing_type.value))
+        plan.billing_type = SubscriptionType(
+            str(data.get('billing_type', plan.billing_type.value)).strip().upper()
+        )
         plan.base_price = Decimal(str(data.get('base_price', plan.base_price) or 0))
         plan.currency = data.get('currency', plan.currency)
         plan.is_active = data.get('is_active') == '1'
@@ -1349,7 +1375,7 @@ def owner_announcements():
                     config_key='owner_announcements',
                     config_value=json.dumps(announcements),
                     config_type='json',
-                    category='owner',
+                    category='system',
                     created_by=current_user.id,
                     updated_by=current_user.id,
                 )
@@ -1663,7 +1689,7 @@ def owner_branding():
                     config_key='owner_platform_branding',
                     config_value=json.dumps(branding),
                     config_type='json',
-                    category='owner',
+                    category='system',
                     created_by=current_user.id,
                     updated_by=current_user.id,
                 )
@@ -1739,7 +1765,7 @@ def owner_webhooks():
                         config_key='owner_webhooks',
                         config_value=json.dumps(webhooks),
                         config_type='json',
-                        category='owner',
+                        category='system',
                         created_by=current_user.id,
                         updated_by=current_user.id,
                     )
@@ -1809,6 +1835,7 @@ def owner_api_keys_page():
                 tenant = db.session.get(Tenant, k.get('tenant_id'))
                 api_keys.append(
                     {
+                        'id': k.get('id'),
                         'name': k.get('name'),
                         'scopes': k.get('scopes'),
                         'key': _mask_secret(k.get('key', ''), keep=6),
@@ -1853,7 +1880,7 @@ def owner_api_keys_page():
                     config_key='owner_api_keys',
                     config_value=json.dumps(keys),
                     config_type='json',
-                    category='owner',
+                    category='system',
                     created_by=current_user.id,
                     updated_by=current_user.id,
                 )
@@ -1970,7 +1997,9 @@ def owner_set_default_theme(theme_id):
     from models.branding import SystemTheme
 
     try:
-        select(SystemTheme).update({'is_default': False})
+        # Select has no .update(): this used to raise AttributeError and
+        # silently no-op the whole action. Unset every default first...
+        db.session.execute(update(SystemTheme).values(is_default=False))
         theme = db.get_or_404(SystemTheme, theme_id)
         theme.is_default = True
         safe_commit(db.session, error_message='database commit failed', reraise=True)
@@ -2654,15 +2683,19 @@ def owner_create_package_version(package_id):
 def owner_deprecate_package_version(version_id):
     """Deprecate a package version."""
     pv = db.get_or_404(PackageVersion, version_id)
-    pv.is_deprecated = True
-    safe_commit(db.session, error_message='database commit failed', reraise=True)
-    _log_action(
-        'DEPRECATE_PACKAGE_VERSION',
-        'package_version',
-        pv.id,
-        f'package={pv.package.slug}, version={pv.version}',
-    )
-    flash('تم تعطيل الإصدار', 'warning')
+    try:
+        pv.is_deprecated = True
+        safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _log_action(
+            'DEPRECATE_PACKAGE_VERSION',
+            'package_version',
+            pv.id,
+            f'package={pv.package.slug}, version={pv.version}',
+        )
+        flash('تم تعطيل الإصدار', 'warning')
+    except Exception as e:
+        safe_rollback(db.session, error_message='database rollback')
+        flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_packages'))
 
 
@@ -2703,7 +2736,9 @@ def owner_delete_package(package_id):
     package = db.get_or_404(Package, package_id)
     try:
         # Check if package has versions
-        if package.versions.count() > 0:
+        # selectin-loaded collection: .count() on the list needs an argument
+        # and raised TypeError every call - deleting any package was impossible
+        if len(package.versions) > 0:
             flash('لا يمكن حذف حزمة بها إصدارات — أزل الإصدارات أولاً', 'error')
             return redirect(url_for('owner.owner_packages'))
         # Check if any tenant uses this package via subscription
@@ -2779,9 +2814,12 @@ def owner_delete_package_version(version_id):
             return redirect(url_for('owner.owner_packages'))
 
         # Also delete related entitlements, limits, pricing
-        pv.entitlements.delete()
-        pv.limits.delete()
-        pv.pricing.delete()
+        # selectin-loaded collections are InstrumentedList: .delete() does not
+        # exist. The relationships carry delete-orphan cascade, so clearing
+        # the collection marks the children for deletion at flush.
+        pv.entitlements.clear()
+        pv.limits.clear()
+        pv.pricing.clear()
 
         db.session.delete(pv)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
@@ -2828,9 +2866,11 @@ def owner_upgrade_subscription(tenant_id):
         flash('يجب اختيار Package Version', 'error')
         return redirect(url_for('owner.owner_subscriptions'))
     try:
-        TenantProvisioningService.upgrade_tenant(
-            tenant_id, version_id, billing_type, performed_by_user_id=current_user.id
-        )
+        tenant = db.get_or_404(Tenant, tenant_id)
+        with bound_tenant_scope(tenant):
+            TenantProvisioningService.upgrade_tenant(
+                tenant_id, version_id, billing_type, performed_by_user_id=current_user.id
+            )
         flash('تم ترقية الاشتراك بنجاح', 'success')
     except Exception as e:
         flash(f'فشل الترقية: {e}', 'error')
@@ -2848,9 +2888,11 @@ def owner_add_addon(tenant_id):
         flash('يجب اختيار Package Version', 'error')
         return redirect(url_for('owner.owner_subscriptions'))
     try:
-        TenantProvisioningService.add_addon(
-            tenant_id, version_id, billing_type, performed_by_user_id=current_user.id
-        )
+        tenant = db.get_or_404(Tenant, tenant_id)
+        with bound_tenant_scope(tenant):
+            TenantProvisioningService.add_addon(
+                tenant_id, version_id, billing_type, performed_by_user_id=current_user.id
+            )
         flash('تمت إضافة الإضافة بنجاح', 'success')
     except Exception as e:
         flash(f'فشل إضافة الإضافة: {e}', 'error')
@@ -2862,29 +2904,31 @@ def owner_add_addon(tenant_id):
 @owner_required
 def owner_renew_subscription(tenant_id):
     """Renew the active base line for a tenant."""
-    line = (
-        db.session.execute(
-            select(SubscriptionLine)
-            .filter_by(
-                tenant_id=tenant_id,
-                line_type=SubscriptionLineType.BASE,
-                status=SubscriptionLineStatus.ACTIVE,
+    tenant = db.get_or_404(Tenant, tenant_id)
+    with bound_tenant_scope(tenant):
+        line = (
+            db.session.execute(
+                select(SubscriptionLine)
+                .filter_by(
+                    tenant_id=tenant_id,
+                    line_type=SubscriptionLineType.BASE,
+                    status=SubscriptionLineStatus.ACTIVE,
+                )
+                .order_by(SubscriptionLine.effective_from.desc())
             )
-            .order_by(SubscriptionLine.effective_from.desc())
+            .scalars()
+            .first()
         )
-        .scalars()
-        .first()
-    )
-    if not line:
-        flash('لا يوجد اشتراك أساسي نشط للتجديد', 'error')
-        return redirect(url_for('owner.owner_subscriptions'))
-    try:
-        TenantProvisioningService.renew_base_line(
-            line.id, periods=1, performed_by_user_id=current_user.id
-        )
-        flash('تم تجديد الاشتراك بنجاح', 'success')
-    except Exception as e:
-        flash(f'فشل التجديد: {e}', 'error')
+        if not line:
+            flash('لا يوجد اشتراك أساسي نشط للتجديد', 'error')
+            return redirect(url_for('owner.owner_subscriptions'))
+        try:
+            TenantProvisioningService.renew_base_line(
+                line.id, periods=1, performed_by_user_id=current_user.id
+            )
+            flash('تم تجديد الاشتراك بنجاح', 'success')
+        except Exception as e:
+            flash(f'فشل التجديد: {e}', 'error')
     return redirect(url_for('owner.owner_subscriptions'))
 
 
@@ -2894,7 +2938,9 @@ def owner_renew_subscription(tenant_id):
 def owner_cancel_subscription(tenant_id):
     """Cancel a tenant subscription."""
     try:
-        TenantProvisioningService.cancel_tenant(tenant_id, performed_by_user_id=current_user.id)
+        tenant = db.get_or_404(Tenant, tenant_id)
+        with bound_tenant_scope(tenant):
+            TenantProvisioningService.cancel_tenant(tenant_id, performed_by_user_id=current_user.id)
         flash('تم إلغاء الاشتراك بنجاح', 'warning')
     except Exception as e:
         flash(f'فشل الإلغاء: {e}', 'error')
@@ -2987,31 +3033,47 @@ def owner_provision():
 def owner_tenant_usage(tenant_id):
     """UX0-006: owner view of a tenant's resource usage dashboard."""
     tenant = db.get_or_404(Tenant, tenant_id)
-    latest = (
-        db.session.execute(
-            select(ResourceUsage)
-            .filter_by(tenant_id=tenant_id)
-            .order_by(ResourceUsage.recorded_at.desc())
-        )
-        .scalars()
-        .first()
-    )
-    if not latest:
-        latest = ResourceUsage.record_snapshot(tenant_id)
 
-    base_line = (
-        db.session.execute(
-            select(SubscriptionLine)
-            .filter_by(
-                tenant_id=tenant_id,
-                line_type=SubscriptionLineType.BASE,
-                status=SubscriptionLineStatus.ACTIVE,
+    # The usage snapshot and the base-line lookup hit RLS-forced tables on
+    # behalf of another tenant; bind the tenant being viewed (the same
+    # pattern bound_tenant_scope() exists for) so the writes/reads pass.
+    with bound_tenant_scope(tenant):
+        latest = (
+            db.session.execute(
+                select(ResourceUsage)
+                .filter_by(tenant_id=tenant_id)
+                .order_by(ResourceUsage.recorded_at.desc())
             )
-            .order_by(SubscriptionLine.effective_from.desc())
+            .scalars()
+            .first()
         )
-        .scalars()
-        .first()
-    )
+        if not latest:
+            latest = ResourceUsage.record_snapshot(tenant_id)
+
+        base_line = (
+            db.session.execute(
+                select(SubscriptionLine)
+                .filter_by(
+                    tenant_id=tenant_id,
+                    line_type=SubscriptionLineType.BASE,
+                    status=SubscriptionLineStatus.ACTIVE,
+                )
+                .order_by(SubscriptionLine.effective_from.desc())
+            )
+            .scalars()
+            .first()
+        )
+
+        snapshots = (
+            db.session.execute(
+                select(ResourceUsage)
+                .filter_by(tenant_id=tenant_id)
+                .order_by(ResourceUsage.recorded_at.desc())
+                .limit(30)
+            )
+            .scalars()
+            .all()
+        )
 
     limits = {}
     if base_line:
@@ -3026,17 +3088,6 @@ def owner_tenant_usage(tenant_id):
                 'storage_gb': bundle.storage_gb,
                 'api_calls_per_month': bundle.api_calls_per_month,
             }
-
-    snapshots = (
-        db.session.execute(
-            select(ResourceUsage)
-            .filter_by(tenant_id=tenant_id)
-            .order_by(ResourceUsage.recorded_at.desc())
-            .limit(30)
-        )
-        .scalars()
-        .all()
-    )
 
     return render_template(
         'owner/tenant_usage.html',
@@ -3350,9 +3401,7 @@ def owner_control_toggle():
     cfg = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
     new_value = request.form.get('value') in ('1', 'true', 'on', 'yes')
     if not cfg:
-        cfg = SystemConfig(
-            config_key=key, config_type='boolean', category='platform_control', is_system=True
-        )
+        cfg = SystemConfig(config_key=key, config_type='boolean', category='system', is_system=True)
         db.session.add(cfg)
     cfg.config_value = 'true' if new_value else 'false'
     safe_commit(db.session, error_message='database commit failed', reraise=True)
@@ -3417,9 +3466,7 @@ def owner_emergency_toggle():
     cfg = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
     new_value = request.form.get('value') in ('1', 'true', 'on', 'yes')
     if not cfg:
-        cfg = SystemConfig(
-            config_key=key, config_type='boolean', category='emergency_switch', is_system=True
-        )
+        cfg = SystemConfig(config_key=key, config_type='boolean', category='system', is_system=True)
         db.session.add(cfg)
     cfg.config_value = 'true' if new_value else 'false'
     safe_commit(db.session, error_message='database commit failed', reraise=True)

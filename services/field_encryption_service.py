@@ -310,7 +310,7 @@ class FieldEncryptionService:
             payload = base64.urlsafe_b64encode(nonce + ct).decode('utf-8')
             return f'{self.GCM_PREFIX.decode("utf-8")}{payload}'
         except Exception:
-            logger.exception('Large field encryption failed: %s')
+            logger.exception('Large field encryption failed')
             raise
 
     def is_encrypted(self, value: str | bytes | None) -> bool:
@@ -347,7 +347,7 @@ class FieldEncryptionService:
             payload = base64.urlsafe_b64encode(nonce + ct).decode('utf-8')
             return f'{self.GCM_PREFIX.decode("utf-8")}{payload}'
         except Exception:
-            logger.exception('Large field encryption failed: %s')
+            logger.exception('Random field encryption failed')
             raise
 
     @classmethod

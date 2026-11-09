@@ -486,7 +486,15 @@ def get_patient_flow_analysis():
         for i in range(7):
             date = today - timedelta(days=i)
             visits_count = db.session.execute(
-                select(func.count()).select_from(Visit).filter(Visit.created_at == date)
+                # Visit.created_at is a DateTime; comparing it to a bare date
+                # never matched, so the daily "visits" bucket always read 0.
+                # Range-compare like the patient count below.
+                select(func.count())
+                .select_from(Visit)
+                .filter(
+                    Visit.created_at >= date,
+                    Visit.created_at < date + timedelta(days=1),
+                )
             ).scalar()
             patients_count = db.session.execute(
                 select(func.count())
@@ -783,11 +791,16 @@ def get_patient_satisfaction_ai():
         )
 
         # تحليل التكرار
-        repeat_visits = db.session.execute(
-            select(Visit.patient_id, func.count(Visit.id).label('visit_count'))
-            .group_by(Visit.patient_id)
-            .having(func.count(Visit.id) > 1)
-        ).scalar()
+        # .scalar() is None when no patient has more than one visit; the
+        # score calculation multiplies this, so coalesce to 0.
+        repeat_visits = (
+            db.session.execute(
+                select(Visit.patient_id, func.count(Visit.id).label('visit_count'))
+                .group_by(Visit.patient_id)
+                .having(func.count(Visit.id) > 1)
+            ).scalar()
+            or 0
+        )
 
         satisfaction_score = calculate_satisfaction_score(
             completion_rate, avg_wait_time, repeat_visits

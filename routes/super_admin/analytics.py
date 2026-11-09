@@ -615,7 +615,9 @@ def get_system_health_score():
 
         # فحص قاعدة البيانات
         try:
-            db.session.execute('SELECT 1')
+            from sqlalchemy import text as _text
+
+            db.session.execute(_text('SELECT 1'))
         except Exception:
             score -= 20
 
@@ -807,7 +809,9 @@ def get_user_behavior_analysis():
 
         # تحليل النشاط اليومي
         daily_activity = {}
-        for user in select(User):
+        for user in db.session.execute(select(User)).scalars().all():
+            if not user.last_login:
+                continue
             day = user.last_login.strftime('%A')
             daily_activity[day] = daily_activity.get(day, 0) + 1
 

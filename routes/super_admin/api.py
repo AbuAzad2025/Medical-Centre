@@ -1,7 +1,6 @@
 """api routes - extracted from monolithic super_admin.py"""
 
 import logging
-from datetime import UTC
 
 # Imports
 from flask import jsonify, request
@@ -110,15 +109,20 @@ def api_recent_activities():
         activities = []
         for activity in recent:
             # حساب الوقت النسبي
-            time_diff = datetime.now(UTC) - activity.created_at
-            if time_diff.seconds < 60:
-                time_str = f'منذ {time_diff.seconds} ثانية'
-            elif time_diff.seconds < 3600:
-                time_str = f'منذ {time_diff.seconds // 60} دقيقة'
-            elif time_diff.seconds < 86400:
-                time_str = f'منذ {time_diff.seconds // 3600} ساعة'
+            # created_at عمود timestamp بدون منطقة زمنية — قارن بوقت ساذج
+            now_naive = datetime.now()
+            if not activity.created_at:
+                time_str = 'غير معروف'
             else:
-                time_str = f'منذ {time_diff.days} يوم'
+                time_diff = now_naive - activity.created_at.replace(tzinfo=None)
+                if time_diff.seconds < 60 and time_diff.days == 0:
+                    time_str = f'منذ {time_diff.seconds} ثانية'
+                elif time_diff.seconds < 3600 and time_diff.days == 0:
+                    time_str = f'منذ {time_diff.seconds // 60} دقيقة'
+                elif time_diff.seconds < 86400 and time_diff.days == 0:
+                    time_str = f'منذ {time_diff.seconds // 3600} ساعة'
+                else:
+                    time_str = f'منذ {time_diff.days} يوم'
 
             # تحديد نوع النشاط
             activity_type = 'primary'

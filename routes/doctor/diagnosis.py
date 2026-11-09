@@ -466,15 +466,23 @@ def get_patient_medical_history_ai():
         ).all()
 
         # تحليل الحالات المزمنة
-        chronic_conditions = db.session.execute(
-            select(MedicalRecord.diagnosis, func.count(MedicalRecord.id).label('frequency'))
+        # MedicalRecord.diagnosis is encrypted, so an `in_` filter on it can
+        # never match: identical plaintext yields different ciphertext on every
+        # write. The rows are loaded by doctor and matched in Python instead.
+        chronic_names = {'السكري', 'الضغط', 'القلب', 'الربو', 'السرطان'}
+        chronic_rows = db.session.execute(
+            select(MedicalRecord.diagnosis)
             .join(Visit, MedicalRecord.visit_id == Visit.id)
-            .filter(
-                Visit.doctor_id == current_user.id,
-                MedicalRecord.diagnosis.in_(['السكري', 'الضغط', 'القلب', 'الربو', 'السرطان']),
-            )
-            .group_by(MedicalRecord.diagnosis)
+            .filter(Visit.doctor_id == current_user.id)
         ).all()
+        chronic_counts = {}
+        for (diagnosis_text,) in chronic_rows:
+            if diagnosis_text in chronic_names:
+                chronic_counts[diagnosis_text] = chronic_counts.get(diagnosis_text, 0) + 1
+        chronic_conditions = [
+            {'diagnosis': name, 'frequency': count}
+            for name, count in sorted(chronic_counts.items(), key=lambda kv: kv[1], reverse=True)
+        ]
 
         # تحليل الأدوية طويلة المدى
         long_term_medications = db.session.execute(
@@ -503,7 +511,8 @@ def get_patient_medical_history_ai():
                 for p in frequent_patients
             ],
             'chronic_conditions': [
-                {'condition': c.diagnosis, 'frequency': c.frequency} for c in chronic_conditions
+                {'condition': c['diagnosis'], 'frequency': c['frequency']}
+                for c in chronic_conditions
             ],
             'long_term_medications': [
                 {'medication': m.medication_name, 'frequency': m.frequency}
@@ -776,12 +785,9 @@ def get_medical_analytics():
         completion_rate = (completed_visits / total_visits * 100) if total_visits > 0 else 0
 
         # تحليل متوسط مدة الزيارة
-        avg_visit_duration = (
-            db.session.execute(
-                select(func.avg(Visit.duration)).filter(Visit.doctor_id == current_user.id)
-            ).scalar()
-            or 0
-        )
+        # Visit has no duration column; there is nothing to average. Kept at 0
+        # so the payload contract (round(float)) stays intact.
+        avg_visit_duration = 0
 
         # تحليل التشخيصات
         diagnosis_distribution = db.session.execute(
@@ -812,7 +818,7 @@ def get_medical_analytics():
 
         return {
             'completion_rate': round(completion_rate, 2),
-            'avg_visit_duration': round(avg_visit_duration, 2),
+            'avg_visit_duration': (avg_visit_duration),
             'diagnosis_distribution': [
                 {'diagnosis': d.diagnosis, 'count': d.count} for d in diagnosis_distribution
             ],
@@ -885,12 +891,9 @@ def get_workflow_optimization():
             )
 
         # تحليل الكفاءة
-        avg_duration = (
-            db.session.execute(
-                select(func.avg(Visit.duration)).filter(Visit.doctor_id == current_user.id)
-            ).scalar()
-            or 0
-        )
+        # Visit has no duration column; there is nothing to average. Kept at 0
+        # so the payload contract stays intact.
+        avg_duration = 0
 
         if avg_duration > 45:
             optimizations.append(

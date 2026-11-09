@@ -100,6 +100,7 @@ def start_treatment(visit_id):
             return redirect(url_for('doctor.patient_queue'))
         medical_record = MedicalRecord(
             patient_id=visit.patient_id,
+            visit_id=visit_id,
             title='بدء العلاج',
             details=f'تم بدء العلاج من قبل الطبيب: {current_user.full_name}',
             created_by=current_user.id,
@@ -715,6 +716,7 @@ def end_treatment(visit_id):
         visit.completed_at = datetime.now(UTC)
         medical_record = MedicalRecord(
             patient_id=visit.patient_id,
+            visit_id=visit_id,
             title='إنهاء العلاج',
             details=f'تم إنهاء العلاج بنجاح من قبل الطبيب: {current_user.full_name}',
             created_by=current_user.id,
