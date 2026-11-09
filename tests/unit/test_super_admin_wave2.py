@@ -15,6 +15,7 @@ not polluted. Backup creation never invokes a real pg_dump binary: a fake
 
 from __future__ import annotations
 
+import contextlib
 import gzip
 import io
 import os
@@ -422,7 +423,7 @@ def _fake_popen_factory(payload: bytes, *, returncode: int = 0, stderr: bytes = 
     captured = {}
 
     class FakePopen:
-        def __init__(self, cmd, env=None, stdout=None, stderr=None, **kwargs):
+        def __init__(self, cmd, env=None, stdout=None, stderr_stream=None, **kwargs):
             captured['cmd'] = list(cmd)
             captured['env'] = dict(env or {})
             self._returncode = returncode
@@ -1385,8 +1386,10 @@ class TestDownloadExportRoundTrip:
             assert resp.status_code == 200
             assert resp.get_data() == payload
         finally:
+            resp.close()
             if os.path.exists(path):
-                os.remove(path)
+                with contextlib.suppress(OSError):
+                    os.remove(path)
 
 
 class TestReportsExtended:

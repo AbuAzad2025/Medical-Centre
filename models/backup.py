@@ -18,7 +18,9 @@ class Backup(TenantMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     backup_name = db.Column(db.String(200), nullable=False)
-    backup_type = db.Column(db.String(50), nullable=False)  # full, incremental, differential
+    backup_type = db.Column(
+        db.String(50), nullable=False
+    )  # full, incremental, differential, schema
     backup_size = db.Column(db.BigInteger, nullable=True)  # حجم النسخة بالبايت
     backup_path = db.Column(db.String(500), nullable=False)  # مسار النسخة
     backup_status = db.Column(
@@ -57,7 +59,8 @@ class Backup(TenantMixin, db.Model):
     # Constraints and Indexes
     __table_args__ = (
         CheckConstraint(
-            "backup_type IN ('full', 'incremental', 'differential')", name='chk_backup_type'
+            "backup_type IN ('full', 'incremental', 'differential', 'schema')",
+            name='chk_backup_type',
         ),
         CheckConstraint(
             "backup_status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'CANCELLED')",

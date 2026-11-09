@@ -125,12 +125,14 @@ def run_pg_dump_sql_gz(output_path: str, database_url: str | None = None) -> int
         stderr=subprocess.PIPE,
     )
     try:
+        bytes_written = 0
         with gzip.open(output_path, 'wb', compresslevel=6) as gz:
             while True:
                 chunk = proc.stdout.read(BACKUP_CHUNK_SIZE)
                 if not chunk:
                     break
                 gz.write(chunk)
+                bytes_written += len(chunk)
         proc.wait(timeout=timeout)
     except subprocess.TimeoutExpired as exc:
         proc.kill()
@@ -149,7 +151,7 @@ def run_pg_dump_sql_gz(output_path: str, database_url: str | None = None) -> int
         raise PgBackupError(err or f'pg_dump exited with code {proc.returncode}')
 
     size = os.path.getsize(output_path)
-    if size <= 0:
+    if bytes_written <= 0 or size <= 0:
         raise PgBackupError('Backup artifact is empty')
     logger.info('pg_dump backup completed: %s (%s bytes)', output_path, size)
     return size

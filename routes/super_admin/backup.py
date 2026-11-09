@@ -5,7 +5,7 @@ import logging
 from datetime import UTC, datetime
 
 # Imports
-from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask import flash, g, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
 
@@ -115,14 +115,15 @@ def create_backup():
             backup_status=BackupStatus.IN_PROGRESS,
             created_by=current_user.id,
             started_at=datetime.now(UTC),
+            tenant_id=getattr(g, 'tenant_id', None),
         )
         db.session.add(backup)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
 
-        from celery_app import celery_is_enabled, task_always_eager
+        import celery_app
         from services.backup_queue_service import BackupQueueError, queue_system_backup
 
-        if celery_is_enabled() or task_always_eager():
+        if celery_app.celery_is_enabled() or celery_app.task_always_eager():
             try:
                 task_id = queue_system_backup(backup.id, tenant_id=backup.tenant_id)
                 return jsonify(
@@ -159,7 +160,7 @@ def create_backup():
             safe_commit(db.session, error_message='database commit failed', reraise=True)
             return jsonify({'success': False, 'message': str(exc)}), 500
 
-    except Exception:
+    except Exception as _e:
         safe_rollback(db.session, error_message='database rollback')
         logging.exception('Error creating backup')
         return jsonify({'success': False, 'message': 'تعذر إنشاء النسخة الاحتياطية حالياً'}), 500
