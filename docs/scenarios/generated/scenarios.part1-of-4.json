@@ -29470,5 +29470,42 @@
         "assertion": "active to dispensed"
       }
     ]
+  },
+  {
+    "scenario_id": "GS-0645",
+    "template": "DOCTOR_PRESCRIPTION_STATE_CHANGES",
+    "family": "clinical",
+    "axes": {
+      "actor_role": "owner"
+    },
+    "axes_note": {
+      "actor_role": "Roles accepted on a User by user_role_policy.ASSIGNABLE_ROLES. A scenario needing reception authority is written with reception, not manager: manager inherits reception through ROLE_HIERARCHY, so using manager would test inheritance instead of the receptionist."
+    },
+    "axes_effect": {
+      "actor_role": "the prescription is written by a owner prescriber"
+    },
+    "rule": "The prescription CHECK constraint allows exactly active, issued, dispensed and cancelled, while the PrescriptionState enum also carries draft, partial and expired. A state written from the enum rather than the constraint is rejected by the database, so the enum is wider than what the table accepts.",
+    "expected_payment_status": "PAID",
+    "tags": [],
+    "journey_steps": [
+      {
+        "step": 1,
+        "department": "Doctor",
+        "api": "GET|POST /doctor/prescription/<visit_id>",
+        "assertion": "prescription created active"
+      },
+      {
+        "step": 2,
+        "department": "Doctor",
+        "api": "POST /doctor/prescription/<visit_id>",
+        "assertion": "reissue while active"
+      },
+      {
+        "step": 3,
+        "department": "Pharmacy",
+        "api": "POST /medication/prescriptions/dispense/<prescription_id>",
+        "assertion": "active to dispensed"
+      }
+    ]
   }
 ]
