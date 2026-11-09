@@ -60,7 +60,11 @@ def create_role():
             # إضافة الصلاحيات للدور
             permissions = request.form.getlist('permissions')
             for perm_id in permissions:
-                role_permission = RolePermission(role_id=role.id, permission_id=int(perm_id))
+                role_permission = RolePermission(
+                    role_id=role.id,
+                    permission_id=int(perm_id),
+                    tenant_id=getattr(g, 'tenant_id', None),
+                )
                 db.session.add(role_permission)
 
             safe_commit(db.session, error_message='database commit failed', reraise=True)
@@ -106,7 +110,11 @@ def edit_role(role_id):
             # إضافة الصلاحيات الجديدة
             permissions = request.form.getlist('permissions')
             for perm_id in permissions:
-                role_permission = RolePermission(role_id=role.id, permission_id=int(perm_id))
+                role_permission = RolePermission(
+                    role_id=role.id,
+                    permission_id=int(perm_id),
+                    tenant_id=getattr(g, 'tenant_id', None),
+                )
                 db.session.add(role_permission)
 
             safe_commit(db.session, error_message='database commit failed', reraise=True)
@@ -158,7 +166,10 @@ def manage_role_permissions(role_id):
             selected_permissions = request.form.getlist('permissions')
             for permission_id in selected_permissions:
                 role_permission = RolePermission(
-                    role_id=role_id, permission_id=int(permission_id), granted_by=current_user.id
+                    role_id=role_id,
+                    permission_id=int(permission_id),
+                    granted_by=current_user.id,
+                    tenant_id=getattr(g, 'tenant_id', None),
                 )
                 db.session.add(role_permission)
 
@@ -267,6 +278,7 @@ def manage_role_department_permissions(role_id):
                     DepartmentPermission(
                         role_id=role_id,
                         department_id=did,
+                        tenant_id=getattr(g, 'tenant_id', None),
                         can_access=can_access,
                         can_manage_patients=can_manage_patients,
                         can_manage_visits=can_manage_visits,
@@ -277,7 +289,24 @@ def manage_role_department_permissions(role_id):
                     )
                 )
 
-            safe_commit(db.session, error_message='database commit failed', reraise=True)
+            try:
+                safe_commit(db.session, error_message='database commit failed', reraise=True)
+                print('DEBUG commit succeeded', file=__import__('sys').stderr, flush=True)
+            except Exception as _exc:
+                print(
+                    'DEBUG commit failed:',
+                    type(_exc).__name__,
+                    repr(_exc),
+                    file=__import__('sys').stderr,
+                    flush=True,
+                )
+                raise
+            _rows = (
+                db.session.execute(select(DepartmentPermission).filter_by(role_id=role_id))
+                .scalars()
+                .all()
+            )
+            print('DEBUG rows after commit:', len(_rows), file=__import__('sys').stderr, flush=True)
             flash('تم تحديث صلاحيات الأقسام للدور', 'success')
             return redirect(
                 url_for('super_admin.manage_role_department_permissions', role_id=role_id)
@@ -359,7 +388,10 @@ def permissions_matrix():
                     try:
                         db.session.add(
                             RolePermission(
-                                role_id=role.id, permission_id=int(pid), granted_by=current_user.id
+                                role_id=role.id,
+                                permission_id=int(pid),
+                                granted_by=current_user.id,
+                                tenant_id=getattr(g, 'tenant_id', None),
                             )
                         )
                     except Exception:
