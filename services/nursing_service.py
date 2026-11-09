@@ -225,15 +225,9 @@ class NursingService:
                 return False
             record.notes = notes.strip() if notes else None
             record.nurse_id = nurse_id
-            try:
-                _sc = safe_commit(
-                    db.session, error_message='Failed to record medication administration', reraise=True
-                )
-            except Exception as _e:
-                print('DEBUG exception:', type(_e).__name__, repr(_e), file=__import__('sys').stderr, flush=True)
-                raise
-            print('DEBUG safe_commit returned:', _sc, file=__import__('sys').stderr, flush=True)
-            return _sc
+            return safe_commit(
+                db.session, error_message='Failed to record medication administration'
+            )
         except Exception:
             logging.exception('Error recording medication administration: %s')
             db.session.rollback()
