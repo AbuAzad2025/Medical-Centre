@@ -19,7 +19,7 @@ from routes.doctor import (
     calculate_medical_performance_score,
     doctor_bp,
 )
-from services.visit_state_machine_service import VisitStateMachineService
+from services.visit_state_machine_service import VisitStateMachineService, set_vsm_authorized
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
 
@@ -119,7 +119,11 @@ def diagnosis(visit_id):
             try:
                 VisitStateMachineService.ensure_in_progress(visit, actor=current_user)
             except ValueError:
-                visit.status = VisitState.IN_PROGRESS
+                set_vsm_authorized(True)
+                try:
+                    visit.status = VisitState.IN_PROGRESS
+                finally:
+                    set_vsm_authorized(False)
             if additional_notes:
                 memo_text = '[ملاحظات طبية]\n' + additional_notes
                 current_notes = visit.notes or ''
@@ -887,21 +891,6 @@ def get_workflow_optimization():
                     'title': 'عبء المواعيد',
                     'description': f'لديك {tomorrow_appointments} موعد غداً',
                     'suggestion': 'مراجعة توزيع المواعيد',
-                }
-            )
-
-        # تحليل الكفاءة
-        # Visit has no duration column; there is nothing to average. Kept at 0
-        # so the payload contract stays intact.
-        avg_duration = 0
-
-        if avg_duration > 45:
-            optimizations.append(
-                {
-                    'type': 'efficiency',
-                    'title': 'تحسين الكفاءة',
-                    'description': f'متوسط مدة الزيارة: {avg_duration:.1f} دقيقة',
-                    'suggestion': 'تحسين العمليات لتقليل مدة الزيارة',
                 }
             )
 
