@@ -122,7 +122,7 @@ class CoreQueryService:
                 Visit.department_id == department_id,
                 Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]),
             )
-        return q.order_by(Visit.queue_number).all()
+        return q.order_by(Visit.created_at).all()
 
     @staticmethod
     def count_visits_today() -> int:
@@ -293,10 +293,10 @@ class CoreQueryService:
     def get_lab_results_ready(patient_id: int | None = None) -> list[LabResult]:
         from models.lab_request import LabResult
 
-        q = tenant_filter(LabResult).join(LabRequest)
+        q = tenant_filter(LabResult)
         if patient_id:
-            q = q.filter(LabRequest.patient_id == patient_id)
-        return q.order_by(desc(LabResult.completed_at)).all()
+            q = q.filter(LabResult.patient_id == patient_id)
+        return q.order_by(desc(LabResult.created_at)).all()
 
     # ==================== RADIOLOGY QUERIES ====================
     @staticmethod
@@ -314,10 +314,10 @@ class CoreQueryService:
     def get_radiology_results_ready(patient_id: int | None = None) -> list[RadiologyResult]:
         from models.radiology_result import RadiologyResult
 
-        q = tenant_filter(RadiologyResult).join(RadiologyRequest)
+        q = tenant_filter(RadiologyResult)
         if patient_id:
-            q = q.filter(RadiologyRequest.patient_id == patient_id)
-        return q.order_by(desc(RadiologyResult.completed_at)).all()
+            q = q.filter(RadiologyResult.patient_id == patient_id)
+        return q.order_by(desc(RadiologyResult.created_at)).all()
 
     # ==================== MEDICATION QUERIES ====================
     @staticmethod
@@ -326,7 +326,7 @@ class CoreQueryService:
 
         return (
             db.session.execute(
-                tenant_filter(Medication).filter_by(is_active=True).order_by(Medication.name)
+                tenant_filter(Medication).filter_by(is_active=True).order_by(Medication.trade_name)
             )
             .scalars()
             .all()
