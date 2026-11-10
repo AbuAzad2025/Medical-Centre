@@ -371,12 +371,23 @@ class FieldEncryptionService:
 
         session = db.session
         total = 0
+        prefixes = tuple(
+            p.decode('utf-8') for p in (svc.LEGACY_PREFIX, svc.GCM_PREFIX, svc.SIV_PREFIX)
+        )
+
+        def _plaintext_filter(column):
+            from sqlalchemy import and_
+
+            cond = and_(column.isnot(None), column != '')
+            for prefix in prefixes:
+                cond = and_(cond, ~column.like(f'{prefix}%'))
+            return cond
+
+        column = getattr(model_class, column_name)
         while True:
             rows = (
                 db.session.execute(
-                    select(model_class)
-                    .filter(getattr(model_class, column_name).isnot(None))
-                    .limit(batch_size)
+                    select(model_class).filter(_plaintext_filter(column)).limit(batch_size)
                 )
                 .scalars()
                 .all()

@@ -632,18 +632,11 @@ class TestMigrateColumn:
         total = fes.FieldEncryptionService.migrate_column(model, 'secret', batch_size=5, key=None)
         assert total == 0
 
-    def test_row_path_does_not_terminate(self, rollback_db, monkeypatch):
-        """Characterise a real defect in ``migrate_column``.
+    def test_row_path_terminates_and_encrypts(self, rollback_db, monkeypatch):
+        """``migrate_column`` encrypts plaintext rows and returns.
 
-        The loop re-selects the same non-null rows forever: the ORM decrypts
-        on read, so the ``is_encrypted`` guard never skips, and nothing narrows
-        the result set between iterations. With one plaintext row present the
-        migration encrypts it, then keeps "migrating" the same row forever
-        (each pass decrypts -> re-encrypts -> increments ``total``).
-
-        We cap the run at a few ``commit`` calls and assert the row ends up
-        stored as GCM ciphertext — proving the row-processing path works and
-        that the loop itself never exits on its own.
+        The loop selects only rows whose value does not already carry one of
+        the encrypted prefixes, and stops once no plaintext rows remain.
         """
 
         from sqlalchemy import text
@@ -662,31 +655,18 @@ class TestMigrateColumn:
         key = _fresh_key()
         monkeypatch.setenv('FIELD_ENCRYPTION_KEY', key)
 
-        class _MigrationLoopGuardError(RuntimeError):
-            pass
+        total = fes.FieldEncryptionService.migrate_column(model, 'secret', batch_size=1, key=key)
 
-        original_commit = rollback_db.session.commit
-        calls = {'n': 0}
-
-        def _capped_commit():
-            calls['n'] += 1
-            if calls['n'] > 3:
-                raise _MigrationLoopGuardError
-            return original_commit()
-
-        monkeypatch.setattr(rollback_db.session, 'commit', _capped_commit)
-
-        with pytest.raises(_MigrationLoopGuardError):
-            fes.FieldEncryptionService.migrate_column(model, 'secret', batch_size=1, key=key)
-
-        assert calls['n'] > 3  # the loop wanted to keep going long after the row was encrypted
+        assert total == 1
         raw = rollback_db.session.execute(text(f'SELECT secret FROM {table}')).scalar()
         assert raw.startswith('$gcm$')
 
-    def test_falsy_value_rows_are_skipped_but_loop_still_spins(self, rollback_db, monkeypatch):
-        """A selected row with a falsy value takes the ``if val and ...`` skip,
-        so ``total`` never advances — yet the row keeps being re-selected, so
-        the loop still never terminates. Characterised with the commit cap."""
+    def test_falsy_value_rows_are_skipped_and_loop_terminates(self, rollback_db, monkeypatch):
+        """A selected row with a falsy value takes the ``if val and ...`` skip.
+
+        The falsy value is not treated as plaintext needing encryption, so
+        ``total`` does not advance and the loop terminates with total == 0.
+        """
 
         from sqlalchemy import text
 
@@ -702,22 +682,8 @@ class TestMigrateColumn:
         key = _fresh_key()
         monkeypatch.setenv('FIELD_ENCRYPTION_KEY', key)
 
-        class _MigrationLoopGuardError(RuntimeError):
-            pass
+        total = fes.FieldEncryptionService.migrate_column(model, 'secret', batch_size=1, key=key)
 
-        original_commit = rollback_db.session.commit
-        calls = {'n': 0}
-
-        def _capped_commit():
-            calls['n'] += 1
-            if calls['n'] > 3:
-                raise _MigrationLoopGuardError
-            return original_commit()
-
-        monkeypatch.setattr(rollback_db.session, 'commit', _capped_commit)
-
-        with pytest.raises(_MigrationLoopGuardError):
-            fes.FieldEncryptionService.migrate_column(model, 'secret', batch_size=1, key=key)
-
+        assert total == 0
         raw = rollback_db.session.execute(text(f'SELECT secret FROM {table}')).scalar()
         assert raw == ''
