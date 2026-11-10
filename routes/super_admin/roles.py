@@ -52,6 +52,7 @@ def create_role():
                 description=request.form.get('description'),
                 is_system_role=bool(request.form.get('is_system_role')),
                 is_active=bool(request.form.get('is_active')),
+                tenant_id=getattr(g, 'tenant_id', None),
             )
 
             db.session.add(role)
@@ -582,6 +583,7 @@ def create_role_simple():
             description=request.form.get('description'),
             is_system_role=False,
             is_active=True,
+            tenant_id=getattr(g, 'tenant_id', None),
         )
 
         db.session.add(role)
