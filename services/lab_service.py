@@ -699,11 +699,14 @@ class LabService:
                 .first()
             )
             if patient and req:
+                doctor_id = req.requested_by
                 NotificationService.send_notification(
-                    user_id=patient.user_id if hasattr(patient, 'user_id') else None,
+                    recipient_id=doctor_id,
                     title='نتائج المختبر جاهزة',
-                    message=f'نتائج المختبر للطلب #{request_id} جاهزة للمريض {patient.name}',
-                    notification_type='lab_result',
+                    message=f'نتائج المختبر للطلب #{request_id} جاهزة للمريض {patient.full_name or ""}',
+                    notification_type='info',
+                    related_entity_type='lab_request',
+                    related_entity_id=req.id,
                 )
         except Exception:
             logging.exception('Error sending lab notification: %s')
@@ -747,7 +750,9 @@ class LabService:
 
     @staticmethod
     def can_transition_lab(from_status: str, to_status: str) -> bool:
-        return to_status in LabService._LAB_TRANSITIONS.get((from_status or '').upper(), set())
+        return (to_status or '').upper() in LabService._LAB_TRANSITIONS.get(
+            (from_status or '').upper(), set()
+        )
 
     @staticmethod
     @require_module('lab')
