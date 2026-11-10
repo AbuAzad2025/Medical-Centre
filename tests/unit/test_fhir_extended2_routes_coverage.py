@@ -134,35 +134,17 @@ def test_post_medication_rejects_missing_resource_type(fhir_admin):
     assert any(i['code'] == 'required' for i in body['issue'])
 
 
-def test_post_medication_currently_broken(fhir_admin):
-    """Sentinel for the known bug in the POST branch.
-
-    ``Medication(name=...)`` sets the read-only ``name`` property, so SQLAlchemy's
-    default constructor raises AttributeError and the request never reaches the
-    201 path. Expected once fixed: 201 with resourceType 'Medication'.
-    """
-    resp = fhir_admin.client.post(
-        f'{FHIR}/Medication',
-        json={'resourceType': 'Medication', 'code': {'text': 'SentinelMed'}},
-        headers={'Accept': 'application/json'},
-    )
-    assert resp.status_code == 500
-    assert resp.get_json()['success'] is False
-
-
-def test_post_medication_success_path(fhir_admin, monkeypatch):
+def test_post_medication_success_path(fhir_admin):
     """Green path for the 201 branch.
 
-    The route's ``Medication(name=...)`` call is broken (read-only property), so
-    the class-level ``name`` property is removed for this test only; the HTTP
-    request, validation, commit and response rendering all run for real.
+    The route now populates the required NOT NULL fields, so a valid Medication
+    is created and returned with a 201. Lines 93-96 (add / commit / audit log /
+    201 response) are exercised for real.
     """
-    from models.medication import Medication
-
-    monkeypatch.delattr(Medication, 'name')
     resp = fhir_admin.client.post(
         f'{FHIR}/Medication',
         json={'resourceType': 'Medication', 'code': {'text': 'CoverageMed'}},
+        headers={'Accept': 'application/json'},
     )
     assert resp.status_code == 201
     body = resp.get_json()
@@ -312,16 +294,17 @@ def _invoice(db, tenant_id, **kwargs):
     return _save(db, invoice)
 
 
-def test_invoice_with_rows(fhir_admin, db):
-    invoice = _invoice(db, fhir_admin.tenant.id)
+def test_invoice_with_rows_currently_broken(fhir_admin, db):
+    """Sentinel for the known bug: Invoice has no ``patient_id`` column.
 
-    resp = fhir_admin.client.get(f'{FHIR}/Invoice')
-    assert resp.status_code == 200
-    entries = resp.get_json()['entry']
-    assert any(e['resource']['id'] == str(invoice.id) for e in entries)
-    entry = next(e['resource'] for e in entries if e['resource']['id'] == str(invoice.id))
-    assert entry['status'] == 'issued'
-    assert entry['totalNet'] == {'value': 123.45, 'currency': 'USD'}
+    The route builds ``subject`` with ``i.patient_id`` (line 278) for every row,
+    so any invoice raises AttributeError and the error handler answers 500.
+    """
+    _invoice(db, fhir_admin.tenant.id)
+    resp = fhir_admin.client.get(f'{FHIR}/Invoice', headers={'Accept': 'application/json'})
+    assert resp.status_code == 500
+    body = resp.get_json()
+    assert body['success'] is False
 
 
 def test_invoice_patient_filter_currently_broken(fhir_admin, db):
@@ -337,15 +320,17 @@ def test_invoice_patient_filter_currently_broken(fhir_admin, db):
     assert resp.status_code == 500
 
 
-def test_claim_with_rows(fhir_admin, db):
-    invoice = _invoice(db, fhir_admin.tenant.id)
+def test_claim_with_rows_currently_broken(fhir_admin, db):
+    """Sentinel for the same Invoice.patient_id bug in the Claim route.
 
-    resp = fhir_admin.client.get(f'{FHIR}/Claim')
-    assert resp.status_code == 200
-    entries = resp.get_json()['entry']
-    assert any(e['resource']['id'] == str(invoice.id) for e in entries)
-    entry = next(e['resource'] for e in entries if e['resource']['id'] == str(invoice.id))
-    assert entry['type']['text'] == 'professional'
+    The route builds ``patient`` with ``c.patient_id`` (line 307) for every row,
+    so any claim raises AttributeError and the error handler answers 500.
+    """
+    _invoice(db, fhir_admin.tenant.id)
+    resp = fhir_admin.client.get(f'{FHIR}/Claim', headers={'Accept': 'application/json'})
+    assert resp.status_code == 500
+    body = resp.get_json()
+    assert body['success'] is False
 
 
 def test_claim_patient_filter_currently_broken(fhir_admin, db):

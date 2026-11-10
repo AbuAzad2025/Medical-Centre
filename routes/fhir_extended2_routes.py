@@ -86,9 +86,14 @@ def fhir_medications():
         issues = _validate_resource(data, ['resourceType'])
         if issues:
             return jsonify(_operation_outcome(issues)), 400
+        code_text = data.get('code', {}).get('text', 'Unknown')
         med = Medication(
-            name=data.get('code', {}).get('text', 'Unknown'),
-            description=data.get('code', {}).get('text'),
+            trade_name=code_text,
+            scientific_name=code_text,
+            dosage_form='tablet',
+            strength='500mg',
+            price=0,
+            description=code_text,
         )
         db.session.add(med)
         safe_commit(db.session, error_message='commit', reraise=True)

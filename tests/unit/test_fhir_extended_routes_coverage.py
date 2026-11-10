@@ -554,3 +554,72 @@ class TestHealthcareServiceEntries:
         assert dept.id in _bundle_ids(body)
         entry = next(e for e in body['entry'] if int(e['resource']['id']) == dept.id)
         assert entry['resource']['name'] == name
+
+
+# --- Plain-list GETs: entry building and the _log SEARCH call -------------
+
+
+class TestPractitionerListing:
+    def test_practitioner_search_returns_bundle_with_seeded_user(
+        self, admin_client, db, test_tenant
+    ):
+        user = ensure_test_user(
+            db,
+            test_tenant,
+            username=_uniq('FhPractitioner'),
+            role='doctor',
+            password=VALID_PASSWORD,
+        )
+        resp = _fhir_get(admin_client, '/Practitioner')
+        assert resp.status_code == 200
+        body = resp.get_json()
+        assert body['resourceType'] == 'Bundle'
+        assert body['type'] == 'searchset'
+        assert body['total'] >= 1
+        assert user.id in _bundle_ids(body)
+        entry = next(e for e in body['entry'] if int(e['resource']['id']) == user.id)
+        assert entry['resource']['resourceType'] == 'Practitioner'
+        assert entry['resource']['active'] is True
+
+
+class TestOrganizationListing:
+    def test_organization_search_returns_bundle(self, admin_client, test_tenant):
+        resp = _fhir_get(admin_client, '/Organization')
+        assert resp.status_code == 200
+        body = resp.get_json()
+        assert body['resourceType'] == 'Bundle'
+        assert body['type'] == 'searchset'
+        assert test_tenant.id in _bundle_ids(body)
+        entry = next(e for e in body['entry'] if int(e['resource']['id']) == test_tenant.id)
+        assert entry['resource']['resourceType'] == 'Organization'
+
+
+class TestMetadata:
+    def test_metadata_returns_capability_statement(self, admin_client):
+        resp = _fhir_get(admin_client, '/metadata')
+        assert resp.status_code == 200
+        body = resp.get_json()
+        assert body['resourceType'] == 'CapabilityStatement'
+        assert body['status'] == 'active'
+        assert body['fhirVersion'] == '4.0.1'
+        assert body['rest'], 'expected rest block'
+        types = {r['type'] for r in body['rest'][0]['resource']}
+        assert {'Practitioner', 'Organization', 'Appointment'} <= types
+
+
+# --- _log failure is swallowed and the request still succeeds ------------
+
+
+class TestAuditLogFailure:
+    def test_log_commit_failure_does_not_break_request(self, admin_client, monkeypatch):
+        import routes.fhir_extended_routes as fhir_ext_routes
+
+        def boom(*_args, **_kwargs):
+            raise RuntimeError('audit commit unavailable')
+
+        monkeypatch.setattr(fhir_ext_routes, 'safe_commit', boom)
+
+        resp = _fhir_get(admin_client, '/Practitioner')
+        # _log swallows its own failure; the search still answers 200.
+        assert resp.status_code == 200
+        assert resp.get_json()['resourceType'] == 'Bundle'
