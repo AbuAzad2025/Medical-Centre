@@ -1238,7 +1238,7 @@ class TestAnalyticsRoutes:
         patient = Patient(
             first_name='Test',
             last_name='Patient',
-            phone=_uniq('05'),
+            phone=f'050{uuid.uuid4().int % 10**7:07d}',
             gender='M',
         )
         db.session.add(patient)

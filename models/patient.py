@@ -238,20 +238,43 @@ class Patient(TenantMixin, db.Model):
         silently match nothing -- which would quietly turn duplicate detection
         off in development and CI. That fallback is why the unencrypted path
         still rejects duplicates.
+
+        As a correctness fallback for encrypted mode, if the blind-index lookup
+        misses, compare decrypted values in the tenant scope. This guards against
+        stale/missing digests while keeping identity matching correct.
         """
         from services.field_encryption_service import FieldEncryptionService
 
         digest = blind_index_value(value)
         if digest:
             stmt = select(cls).where(digest_column == digest)
-        elif not FieldEncryptionService.is_active():
-            stmt = select(cls).where(column == value)
-        else:
-            # Encrypted, but nothing indexable to search on.
+            if tenant_id is not None:
+                stmt = stmt.where(cls.tenant_id == tenant_id)
+            found = db.session.execute(stmt.limit(1)).scalars().first()
+            if found is not None:
+                return found
+
+            # Fallback: compare decrypted plaintext values (handles missing/stale hash rows).
+            attr_name = getattr(column, 'key', None) or str(column).split('.')[-1]
+            norm = normalize_for_index(value)
+            scan_stmt = select(cls)
+            if tenant_id is not None:
+                scan_stmt = scan_stmt.where(cls.tenant_id == tenant_id)
+            for candidate in db.session.execute(scan_stmt).scalars():
+                try:
+                    current = getattr(candidate, attr_name, None)
+                except Exception:
+                    continue
+                if current and normalize_for_index(current) == norm:
+                    return candidate
             return None
-        if tenant_id is not None:
-            stmt = stmt.where(cls.tenant_id == tenant_id)
-        return db.session.execute(stmt.limit(1)).scalars().first()
+        if not FieldEncryptionService.is_active():
+            stmt = select(cls).where(column == value)
+            if tenant_id is not None:
+                stmt = stmt.where(cls.tenant_id == tenant_id)
+            return db.session.execute(stmt.limit(1)).scalars().first()
+        # Encrypted, but nothing indexable to search on.
+        return None
 
     @classmethod
     def find_by_national_id(cls, national_id, *, tenant_id=None):
@@ -330,25 +353,46 @@ class Patient(TenantMixin, db.Model):
 
     @classmethod
     def _search_exact(cls, term, *, tenant_id=None, limit=50):
-        """Whole-field match on the normalised name columns, via blind index."""
+        """Whole-field match on normalised columns, via blind index.
+
+        Matches names (first/last, Arabic variants) and also exact phone or
+        national-id values so encrypted-mode search behaves like the plaintext
+        ILIKE path for identity lookups.
+        """
         parts = [p for p in term.split() if p]
         first_cols = (cls.first_name_hash, cls.first_name_ar_hash)
         last_cols = (cls.last_name_hash, cls.last_name_ar_hash)
-        stmt = None
+        identity_cols = (cls.phone_hash, cls.national_id_hash)
+
+        conditions = []
         if len(parts) >= 2:
             first_digest = blind_index_value(parts[0])
             last_digest = blind_index_value(parts[-1])
             if first_digest and last_digest:
-                stmt = select(cls).where(
-                    or_(*(c == first_digest for c in first_cols)),
-                    or_(*(c == last_digest for c in last_cols)),
+                conditions.append(
+                    db.and_(
+                        or_(*(c == first_digest for c in first_cols)),
+                        or_(*(c == last_digest for c in last_cols)),
+                    )
                 )
         else:
             digest = blind_index_value(parts[0])
             if digest:
-                stmt = select(cls).where(or_(*(c == digest for c in first_cols + last_cols)))
-        if stmt is None:
+                conditions.append(or_(*(c == digest for c in first_cols + last_cols)))
+                conditions.append(or_(*(c == digest for c in identity_cols)))
+
+        # Also try the full (normalized) term as an exact identity match, e.g. phone
+        # numbers entered with spaces/separators.
+        full_digest = blind_index_value(term)
+        if full_digest:
+            identity_match = or_(*(c == full_digest for c in identity_cols))
+            if identity_match not in conditions:
+                conditions.append(identity_match)
+
+        if not conditions:
             return []
+
+        stmt = select(cls).where(or_(*conditions))
         if tenant_id is not None:
             stmt = stmt.where(cls.tenant_id == tenant_id)
         stmt = stmt.order_by(cls.id).limit(limit)
