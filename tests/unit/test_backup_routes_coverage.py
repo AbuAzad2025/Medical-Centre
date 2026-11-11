@@ -256,16 +256,17 @@ class TestBackupCreate:
         self, app, client, db, test_tenant, rollback_db, monkeypatch, tmp_path
     ):
         from models.backup import Backup
-        from services.pg_backup_service import PgBackupError
+        from routes import backup_routes as br
 
+        PgBackupError = br.PgBackupError
         _login(client, db, test_tenant, _uniq('baknodump'), 'super_admin')
         target = _patch_backup_path(monkeypatch, tmp_path / 'backups' / 'no_dump.sql.gz')
         _force_sync_backup_path(monkeypatch)
 
-        def _missing(_name):
+        def _missing(_backup):
             raise PgBackupError('pg_dump not found on PATH — install PostgreSQL client tools')
 
-        monkeypatch.setattr('services.pg_backup_service._find_executable', _missing)
+        monkeypatch.setattr('routes.backup_routes.create_backup_file', _missing)
 
         resp = client.post('/backup/create', data={'backup_name': 'no pg_dump around'})
         assert resp.status_code == 302
@@ -281,8 +282,9 @@ class TestBackupCreate:
         self, app, client, db, test_tenant, rollback_db, monkeypatch, tmp_path
     ):
         from models.backup import Backup
-        from services.pg_backup_service import PgBackupError
+        from routes import backup_routes as br
 
+        PgBackupError = br.PgBackupError
         _login(client, db, test_tenant, _uniq('bakart'), 'super_admin')
         target = _patch_backup_path(monkeypatch, tmp_path / 'backups' / 'stale.sql.gz')
         _force_sync_backup_path(monkeypatch)
@@ -644,10 +646,9 @@ class TestBackupHelpers:
 
     def test_restore_backup_file_pg_error_returns_false(self, monkeypatch):
         from routes import backup_routes
-        from services.pg_backup_service import PgBackupError
 
         def _boom(_path):
-            raise PgBackupError('psql exploded')
+            raise backup_routes.PgBackupError('psql exploded')
 
         monkeypatch.setattr(backup_routes, 'restore_pg_sql_gz', _boom)
         backup = SimpleNamespace(id=8, backup_path='z.sql.gz')
