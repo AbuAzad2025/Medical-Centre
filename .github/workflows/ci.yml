@@ -10,7 +10,9 @@ on:
     branches: [main, develop]
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ github.event_name }}
+  # Cancel superseded runs on the same branch/event to save runner time,
+  # but avoid cancelling unrelated event types (e.g. schedule vs push).
   cancel-in-progress: true
 
 jobs:
@@ -111,7 +113,7 @@ jobs:
           retention-days: 1
           if-no-files-found: ignore
 
-  # â”€â”€ Agent1 Reception Deep Test (VSM-compliant, extended timeout) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ── Agent1 Reception Deep Test (VSM-compliant, extended timeout) ───────────
   agent1-reception:
     name: Agent1 Reception Deep Tests (VSM-compliant)
     runs-on: ubuntu-latest
@@ -138,14 +140,27 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install psycopg2-binary pytest-split
       - name: Set up test database
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.11'
-      - run: |
-          echo "aW1wb3J0IHBzeWNvcGcyCmNvbm4gPSBwc3ljb3BnMi5jb25uZWN0KCdwb3N0Z3Jlc3FsOi8vcG9zdGdyZXM6MTIzQGxvY2FsaG9zdDo1NDMyL3Bvc3RncmVzJykKY29ubi5hdXRvY29tbWl0ID0gVHJ1ZQpjdXIgPSBjb25uLmN1cnNvcigpCmN1ci5leGVjdXRlKCIgU0VMRUNUIDEgRlJPTSBwZ19kYXRhYmFzZSBXSEVSRSBkYXRuYW1lPSdtZWRpY2FsX3N5c3RlbV90ZXN0JzsiKQppZiBub3QgY3VyLmZldGNob25lKCk6CiAgICBjdXIuZXhlY3V0ZSgiQ1JFQVRFIERBVEFCQVNFIG1lZGljYWxfc3lzdGVtX3Rlc3Q7IikKY3VyLmNsb3NlKCkKY29ubi5jbG9zZSgp" | base64 -d | python
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: '123'
+        run: |
+          python - <<'PY'
+          import psycopg2
+          conn = psycopg2.connect("postgresql://postgres:123@localhost:5432/postgres")
+          conn.autocommit = True
+          cur = conn.cursor()
+          cur.execute("SELECT 1 FROM pg_database WHERE datname='medical_system_test'")
+          if not cur.fetchone():
+              cur.execute("CREATE DATABASE medical_system_test")
+          cur.close()
+          conn.close()
+          PY
       - name: Migrate test database
         env:
           DATABASE_URL: postgresql://postgres:123@localhost:5432/medical_system_test
@@ -448,15 +463,11 @@ jobs:
       - name: 3/5 â€” Audit RLS coverage on all tenant-scoped tables
         run: python scripts/ci/audit_rls_coverage.py
 
-      - name: 4/5 â€” Audit orphaned tenant_id=0 rows
+      - name: 4/4 â€” Audit orphaned tenant_id=0 rows
         run: python scripts/ops/audit_orphaned_tenant_rows.py
 
-      - name: 5/5 â€” Check for stale action items
-        run: python scripts/ci/audit_stale_action_items.py --stale-days 30
-
-  # Weekly scan of the incident log for stale action items (runs Monday 09:00 UTC)
+  # Stale action items audit (no DB required; runs on all events to avoid skipped jobs)
   stale-action-items:
-    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -610,12 +621,11 @@ jobs:
           print('BOOT OK')
           PY
 
-  # â”€â”€ Route / HTTP contract tests across PostgreSQL versions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ── Route / HTTP contract tests across PostgreSQL versions ──────────────
   # Curated HTTP-level test set run on PG 15, 16, and 17 to catch version
   # compatibility issues early (RLS, JSONB, exclusion constraints).
   routes:
     runs-on: ubuntu-latest
-    needs: migrate
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -681,12 +691,15 @@ jobs:
             tests/test_auth.py \
             tests/test_tenant_route_isolation.py
 
-  # â”€â”€ Unit tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ── Unit tests (sharded for speed) ──────────────────────────────────────
   unit:
     runs-on: ubuntu-latest
-    needs: migrate
-    timeout-minutes: 30
-    name: unit (PG 16)
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ["1", "2", "3", "4"]
+    name: unit (PG 16) (${{ matrix.shard }})
 
     services:
       postgres:
@@ -731,7 +744,7 @@ jobs:
       RLS_BYPASS_ALLOWED: "1"
       STRIPE_SECRET_KEY: sk_test_ci_e2e
       STRIPE_WEBHOOK_SECRET: whsec_test_ci_e2e
-      COVERAGE_FILE: .coverage.unit
+      COVERAGE_FILE: .coverage.unit.${{ matrix.shard }}
 
     steps:
       - uses: actions/checkout@v5
@@ -739,25 +752,25 @@ jobs:
       - name: Prepare test environment
         uses: ./.github/actions/test-env
 
-      - name: Run unit tests
+      - name: Run unit tests (shard ${{ matrix.shard }}/4)
         run: |
           python -m pytest tests/unit/ -q --tb=short \
+            --splits 4 --group ${{ matrix.shard }} \
             --cov=app --cov=routes --cov=services --cov=models --cov=utils \
             --cov-report=
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v6
         with:
-          name: cov-data-unit
-          path: .coverage.unit
+          name: cov-data-unit-${{ matrix.shard }}
+          path: .coverage.unit.${{ matrix.shard }}
           include-hidden-files: true
           retention-days: 1
           if-no-files-found: error
 
-  # â”€â”€ Integration tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ── Integration tests ───────────────────────────────────────────────────
   integration:
     runs-on: ubuntu-latest
-    needs: migrate
     timeout-minutes: 30
     name: integration (PG 16)
 
@@ -827,10 +840,9 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  # â”€â”€ Clinical safety tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ── Clinical safety tests ───────────────────────────────────────────────
   clinical:
     runs-on: ubuntu-latest
-    needs: migrate
     timeout-minutes: 30
     name: clinical (PG 16)
 
@@ -900,16 +912,15 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  # â”€â”€ Core suite (root test files), sharded 4-way for parallelism â”€â”€â”€â”€â”€â”€â”€â”€
+  # ── Core suite (root test files), sharded 4-way for parallelism ─────────
   core:
     runs-on: ubuntu-latest
-    needs: migrate
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         shard: ["1", "2", "3", "4"]
-    name: core (PG 16)
+    name: core (PG 16) (${{ matrix.shard }})
 
     services:
       postgres:

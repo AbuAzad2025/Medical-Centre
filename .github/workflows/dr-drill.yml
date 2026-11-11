@@ -7,12 +7,17 @@ on:
     - cron: '0 3 1 * *' # first day of month, 03:00 UTC
   workflow_dispatch: {} # manual trigger
 
+concurrency:
+  group: dr-drill-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pitr-restore-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16-alpine
         env:
           POSTGRES_PASSWORD: drillpass
           POSTGRES_DB: medical_system_drill
@@ -24,11 +29,12 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
+          cache: pip
 
       - name: Install dependencies
         run: |
