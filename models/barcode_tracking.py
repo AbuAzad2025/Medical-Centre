@@ -55,7 +55,10 @@ class BarcodeScanLog(TenantMixin, db.Model):
     barcode_registry_id = db.Column(
         db.Integer,
         db.ForeignKey('barcode_registry.id', ondelete='CASCADE'),
-        nullable=False,
+        # Nullable on purpose: a scan of a barcode that is not in the registry
+        # is still recorded (verification_result='NOT_FOUND'), and that row has
+        # no registry row to point at.
+        nullable=True,
         index=True,
     )
     scan_action = db.Column(db.String(50), nullable=False)

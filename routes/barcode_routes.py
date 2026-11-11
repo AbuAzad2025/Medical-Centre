@@ -28,8 +28,17 @@ def scan_page():
 @handle_route_errors
 def api_scan():
     data = request.get_json()
-    barcode_value = data.get('barcode') if data else request.form.get('barcode')
-    action = data.get('action') if data else request.form.get('action', 'VERIFY')
+    if data:
+        barcode_value = data.get('barcode')
+        # The JSON branch has to apply the default itself: `dict.get('action',
+        # 'VERIFY')` only ever defaults a *missing* key, and a client that
+        # sends `{"barcode": "..."}` without an action was writing NULL into
+        # `scan_action`, which is NOT NULL -- every such scan blew up on the
+        # insert instead of being logged.
+        action = data.get('action') or 'VERIFY'
+    else:
+        barcode_value = request.form.get('barcode')
+        action = request.form.get('action', 'VERIFY')
 
     if not barcode_value:
         return jsonify({'success': False, 'message': 'Barcode required'})
@@ -44,6 +53,7 @@ def api_scan():
     if not registry:
         # Log failed scan
         log = BarcodeScanLog(
+            tenant_id=current_user.tenant_id,
             barcode_registry_id=None,
             scan_action=action,
             scanned_by_id=current_user.id,
@@ -57,6 +67,7 @@ def api_scan():
 
     # Log successful scan
     log = BarcodeScanLog(
+        tenant_id=current_user.tenant_id,
         barcode_registry_id=registry.id,
         scan_action=action,
         scanned_by_id=current_user.id,

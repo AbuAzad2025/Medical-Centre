@@ -47,6 +47,7 @@ def barcode_scan(barcode):
     )
 
     scan_log = BarcodeScanLog(
+        tenant_id=current_user.tenant_id,
         barcode_registry_id=registry.id if registry else None,
         scan_action=action,
         scanned_by_id=current_user.id,
