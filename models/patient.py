@@ -396,7 +396,65 @@ class Patient(TenantMixin, db.Model):
         if tenant_id is not None:
             stmt = stmt.where(cls.tenant_id == tenant_id)
         stmt = stmt.order_by(cls.id).limit(limit)
-        return list(db.session.execute(stmt).scalars().all())
+        found = list(db.session.execute(stmt).scalars().all())
+        if found:
+            return found
+
+        # Correctness fallback for encrypted mode when hash/ngram state is unavailable.
+        # Compare normalized decrypted values (names/phone/national id) against the
+        # normalized search term and its parts.
+        from services.field_encryption_service import FieldEncryptionService
+
+        if not FieldEncryptionService.is_active():
+            return []
+
+        parts_norm = [normalize_for_index(p) for p in parts if normalize_for_index(p)]
+        term_norm = normalize_for_index(term)
+        if not term_norm and not parts_norm:
+            return []
+
+        scan_stmt = select(cls)
+        if tenant_id is not None:
+            scan_stmt = scan_stmt.where(cls.tenant_id == tenant_id)
+
+        results = []
+        for candidate in db.session.execute(scan_stmt).scalars():
+            values = []
+            for attr in (
+                'first_name',
+                'last_name',
+                'first_name_ar',
+                'last_name_ar',
+                'phone',
+                'national_id',
+            ):
+                try:
+                    v = getattr(candidate, attr, None)
+                except Exception:
+                    v = None
+                if v:
+                    values.append(normalize_for_index(v))
+            if not values:
+                continue
+            matched = False
+            if len(parts_norm) >= 2:
+                # Require first and last name-like parts to match some fields.
+                if any(parts_norm[0] == v for v in values) and any(
+                    parts_norm[-1] == v for v in values
+                ):
+                    matched = True
+            else:
+                probe = parts_norm[0] if parts_norm else term_norm
+                if any(probe == v for v in values):
+                    matched = True
+            if not matched and term_norm:
+                if any(term_norm == v for v in values):
+                    matched = True
+            if matched:
+                results.append(candidate)
+                if len(results) >= limit:
+                    break
+        return sorted(results, key=lambda p: p.id)[:limit]
 
     visits = db.relationship(
         'Visit',
