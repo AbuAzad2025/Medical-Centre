@@ -711,9 +711,11 @@ def end_treatment(visit_id):
             if not ok:
                 flash(msg, 'warning')
                 return redirect(url_for('doctor.patient_queue'))
-        VisitStateMachineService.transition(visit, VisitState.COMPLETED, actor=current_user)
-        visit.completed_by = current_user.id
-        visit.completed_at = datetime.now(UTC)
+        # complete_treatment() may have already transitioned the visit; avoid invalid self-transition.
+        if VisitStateMachineService.can_transition(visit, VisitState.COMPLETED):
+            VisitStateMachineService.transition(visit, VisitState.COMPLETED, actor=current_user)
+        visit.completed_by = visit.completed_by or current_user.id
+        visit.completed_at = visit.completed_at or datetime.now(UTC)
         medical_record = MedicalRecord(
             patient_id=visit.patient_id,
             visit_id=visit_id,
