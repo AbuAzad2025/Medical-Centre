@@ -1423,7 +1423,11 @@ def _make_fake_popen(recorded, stdout_bytes, returncode, stderr_bytes=b'dump: co
         proc.stdout = io.BytesIO(stdout_bytes)
         proc.stderr = io.BytesIO(b'' if returncode == 0 else stderr_bytes)
         proc.returncode = returncode
-        proc.wait = lambda _timeout=None: returncode
+
+        def _wait(**_kwargs):
+            return returncode
+
+        proc.wait = _wait
         proc.poll = lambda: returncode
         proc.kill = lambda: None
         return proc
