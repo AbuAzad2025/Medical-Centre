@@ -11,9 +11,9 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}-${{ github.event_name }}
-  # Cancel superseded runs on the same branch/event to save runner time,
-  # but avoid cancelling unrelated event types (e.g. schedule vs push).
-  cancel-in-progress: true
+  # csoport التشغيلات تحت نفس المجموعة دون إلغاء التشغيلات الجديدة،
+  # لتجنب قطع الوظائف قيد التنفيذ خلال الدفعات المتتالية.
+  cancel-in-progress: false
 
 jobs:
   # -- Python Static Analysis & Security Gate ---------------------------------
