@@ -543,7 +543,7 @@ def edit_patient(patient_id):
 
             if phone and phone != (patient.phone or None):
                 existing_by_phone = Patient.find_by_phone(phone)
-                if existing_by_phone:
+                if existing_by_phone and existing_by_phone.id != patient.id:
                     message = f'يوجد مريض بنفس رقم الهاتف ({phone})'
                     if _wants_json():
                         return jsonify(
