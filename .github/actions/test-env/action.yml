@@ -20,7 +20,14 @@ runs:
 
     - name: Install PostgreSQL client (pg_dump/psql)
       shell: bash
-      run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      run: |
+        for i in 1 2 3 4 5; do
+          sudo apt-get update -o Acquire::Retries=3 && sudo apt-get install -y --no-install-recommends -o Acquire::Retries=3 postgresql-client && exit 0
+          echo "apt-get failed (attempt $i), retrying in 10s..."
+          sleep 10
+        done
+        echo "Failed to install postgresql-client after retries" >&2
+        exit 1
 
     # Apply migrations so RLS policies exist for the SQL-level enforcement
     # tests (the suite itself uses db.create_all and is unaffected — it
