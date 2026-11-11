@@ -281,6 +281,43 @@ def process_payment(visit_id):
             allow_debt = bool(allow_debt_global) and bool(allow_debt_dept)
 
             remaining = visit.remaining_amount
+
+            # Idempotency: detect replay of an identical request before state validations.
+            payment_request_id = (request.form.get('payment_request_id') or '').strip()
+            if not payment_request_id:
+                payment_request_id = uuid.uuid4().hex
+            idempotency_seed = '|'.join(
+                [
+                    str(getattr(current_user, 'tenant_id', None) or ''),
+                    str(visit_id),
+                    str(amount_value),
+                    str(method_value),
+                    str(payment_reference or ''),
+                    str(payment_currency),
+                    payment_request_id,
+                ]
+            )
+            idempotency_key = hashlib.sha256(idempotency_seed.encode()).hexdigest()[:32]
+            existing_replay = (
+                db.session.execute(
+                    select(Payment).filter_by(
+                        idempotency_key=idempotency_key,
+                        tenant_id=getattr(current_user, 'tenant_id', None),
+                        operation_type='payment',
+                    )
+                )
+                .scalars()
+                .first()
+            )
+            if existing_replay:
+                resp = {'success': True, 'payment_id': existing_replay.id, 'replayed': True}
+                if _wants_json():
+                    return jsonify(resp)
+                flash('تم تسجيل الدفع بنجاح', 'success')
+                if return_to_reception:
+                    return redirect(url_for('reception.view_visit', visit_id=visit_id))
+                return redirect(url_for('reception.print_receipt', visit_id=visit_id))
+
             if amount_value > 0 and remaining <= 0:
                 if _wants_json():
                     return jsonify({'success': False, 'message': 'الزيارة مدفوعة بالكامل'}), 400
@@ -344,34 +381,8 @@ def process_payment(visit_id):
                     return redirect(url_for('reception.view_visit', visit_id=visit_id))
                 return redirect(url_for('reception.print_receipt', visit_id=visit_id))
 
-            # P3-001: deterministic idempotency fingerprint for this payment attempt.
-            #
-            # The seed carries a per-attempt id, not just the content. With the
-            # content alone, two separate payments of the same amount, by the
-            # same method, to the same visit, with no reference, hashed to the
-            # same key - so the second was treated as a replay of the first.
-            # The patient was charged twice and recorded once: the money was
-            # taken at the counter and appears nowhere, and the visit stayed
-            # part-paid for good.
-            #
-            # The id comes from the form, so a genuine retry of one request
-            # carries the same one and still collapses. A request without one
-            # gets a fresh id rather than colliding with anything.
-            payment_request_id = (request.form.get('payment_request_id') or '').strip()
-            if not payment_request_id:
-                payment_request_id = uuid.uuid4().hex
-            idempotency_seed = '|'.join(
-                [
-                    str(getattr(current_user, 'tenant_id', None) or ''),
-                    str(visit_id),
-                    str(amount_value),
-                    str(method_value),
-                    str(payment_reference or ''),
-                    str(payment_currency),
-                    payment_request_id,
-                ]
-            )
-            idempotency_key = hashlib.sha256(idempotency_seed.encode()).hexdigest()[:32]
+            # Idempotency key computed earlier for replay detection. Keep it consistent
+            # for create_payment so a true retry of the same request collapses.
 
             existing_invoice = (
                 db.session.execute(

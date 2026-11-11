@@ -863,9 +863,26 @@ class TestRefundFlow:
         assert resp.status_code == 302
         db.session.expire_all()
         assert db.session.get(RefundRequest, refund.id).status == 'EXECUTED'
-        from models.payment import Payment
+        from models.payment import Payment, PaymentStatus
 
-        assert db.session.get(Payment, payment.id).status == 'REFUNDED'
+        payment_row = db.session.get(Payment, payment.id)
+        # Partial refund (40 of 100): original payment keeps the net amount and remains confirmed;
+        # a separate REFUNDED payment row records the returned amount.
+        assert payment_row.status == PaymentStatus.CONFIRMED
+        assert Decimal(str(payment_row.amount)) == Decimal('60.00')
+        refunded_rows = (
+            db.session.execute(
+                select(Payment).filter_by(
+                    visit_id=payment.visit_id,
+                    status=PaymentStatus.REFUNDED,
+                    operation_type='refund',
+                )
+            )
+            .scalars()
+            .all()
+        )
+        assert len(refunded_rows) == 1
+        assert Decimal(str(refunded_rows[0].amount)) == Decimal('40.00')
 
     def test_approve_unknown_refund_redirects(self, app, client, db, test_tenant):
         _login(client, db, test_tenant, 'fc_refund_unk', 'accountant')
@@ -1569,8 +1586,9 @@ class TestInvoicePdfAndPaymentPlans:
 @pytest.mark.usefixtures('rollback_db')
 class TestManagerFinancial:
     def _doctor_and_visit(self, app, db, test_tenant, suffix):
-        from models.user import User
         from werkzeug.security import generate_password_hash
+
+        from models.user import User
 
         doctor = User(
             tenant_id=test_tenant.id,

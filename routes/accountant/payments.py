@@ -7,6 +7,7 @@ from datetime import UTC
 from flask import abort, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select
+from werkzeug.exceptions import HTTPException
 
 from app.extensions import db
 from app.shared.enums import InvoiceStatus
@@ -83,6 +84,8 @@ def payment_documentation(payment_id):
         if not payment:
             abort(404)
         return render_template('accountant/payment_documentation.html', payment=payment)
+    except HTTPException:
+        raise
     except Exception:
         logging.exception('Error loading payment documentation: %s')
         flash('حدث خطأ في تحميل توثيق الدفع', 'error')
@@ -121,13 +124,31 @@ def receipt(payment_id):
         qr_data_uri = generate_qr_data_uri(
             f'RCPT|{visit.id}|{visit.patient_id}|{visit.total_amount}'
         )
+        from models.payment import Payment as PaymentModel
+
+        last_payment = (
+            db.session.execute(
+                select(PaymentModel)
+                .filter_by(visit_id=visit.id)
+                .order_by(PaymentModel.created_at.desc())
+            )
+            .scalars()
+            .first()
+        )
         return render_template(
             'print/receipt.html',
             visit=visit,
-            printed_at=datetime.now(UTC),
-            survey_url=survey_url,
             qr_data_uri=qr_data_uri,
+            queue_ticket=None,
+            printed_at=datetime.now(UTC),
+            service_cost=None,
+            doctor_fee=None,
+            follow_up_discount=None,
+            last_payment=last_payment,
+            survey_url=survey_url,
         )
+    except HTTPException:
+        raise
     except Exception:
         logging.exception('Error generating receipt: %s')
         flash('حدث خطأ في إنشاء وصل القبض', 'error')

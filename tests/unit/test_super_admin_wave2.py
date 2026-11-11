@@ -1379,19 +1379,32 @@ class TestDownloadExportRoundTrip:
     def test_download_export_existing_file_roundtrip(self, sa_client):
         name = _uniq('export') + '.json'
         payload = b'{"wave2": true}'
-        path = os.path.join('instance', name)
-        os.makedirs('instance', exist_ok=True)
-        with open(path, 'wb') as fh:
-            fh.write(payload)
+        # Route resolves relative to CWD; create in CWD and app-root instance for robustness.
+        candidates = [
+            os.path.join('instance', name),
+            os.path.join(sa_client.application.root_path, 'instance', name),
+        ]
+        seen = set()
+        unique = []
+        for p in candidates:
+            rp = os.path.realpath(p)
+            if rp not in seen:
+                seen.add(rp)
+                unique.append(p)
+        for p in unique:
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with open(p, 'wb') as fh:
+                fh.write(payload)
         try:
             resp = sa_client.get(f'/super-admin/download-export/{name}')
             assert resp.status_code == 200
             assert resp.get_data() == payload
         finally:
             resp.close()
-            if os.path.exists(path):
-                with contextlib.suppress(OSError):
-                    os.remove(path)
+            for p in unique:
+                if os.path.exists(p):
+                    with contextlib.suppress(OSError):
+                        os.remove(p)
 
 
 class TestReportsExtended:

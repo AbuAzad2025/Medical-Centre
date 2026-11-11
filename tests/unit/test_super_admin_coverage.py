@@ -1654,7 +1654,9 @@ class TestBrandingRoutes:
             .first()
         )
         assert branding.logo_path and branding.logo_path.startswith('uploads/branding/')
-        written = os.path.join('static', branding.logo_path.replace('/', os.sep))
+        written = os.path.join(
+            sa_client.application.root_path, 'static', branding.logo_path.replace('/', os.sep)
+        )
         try:
             assert os.path.exists(written)
         finally:

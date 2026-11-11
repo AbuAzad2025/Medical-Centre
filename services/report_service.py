@@ -1462,6 +1462,10 @@ class ReportService:
             }
         except Exception:
             logging.exception('Error generating slow queries report: %s')
+            import contextlib
+
+            with contextlib.suppress(Exception):
+                db.session.rollback()
             return {'success': False, 'message': 'تعذر إنشاء تقرير الاستعلامات البطيئة حالياً'}
 
     @staticmethod
