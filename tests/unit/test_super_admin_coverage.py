@@ -239,11 +239,13 @@ class TestUsersRoutes:
         assert target.role == 'doctor'
 
     def test_edit_user_flags_invalid_stored_role(self, sa_client, db, test_tenant):
+        from sqlalchemy.orm.attributes import set_committed_value
+
         from tests.tenant_context import ensure_test_user
 
         target = ensure_test_user(db, test_tenant, username=_uniq('bogus'), role='doctor')
-        target.role = 'not_a_real_role'
-        db.session.commit()
+        # Simulate a legacy/corrupted stored role without violating chk_user_role in DB.
+        set_committed_value(target, 'role', 'not_a_real_role')
         resp = sa_client.post(
             f'/super-admin/users/{target.id}/edit',
             data={
@@ -256,6 +258,8 @@ class TestUsersRoutes:
         )
         assert resp.status_code == 302
         # The invalid role was rejected by the policy guard, not stored silently.
+        db.session.expire(target)
+        assert target.role == 'doctor'
         assert sa_client.get(f'/super-admin/users/{target.id}/edit').status_code == 200
 
     def test_delete_user(self, sa_client, db, test_tenant):
@@ -629,7 +633,8 @@ class TestRolesRoutes:
             data={'name': name, 'permissions': ['not-a-number']},
             follow_redirects=False,
         )
-        assert resp.status_code == 302
+        # Invalid permission id triggers rollback; route re-renders create form (200) with no persisted role.
+        assert resp.status_code == 200
         assert db.session.execute(select(Role).filter_by(name=name)).scalars().first() is None
 
     def test_edit_role_get(self, sa_client, db):
@@ -1371,6 +1376,9 @@ class TestBackupRoutes:
     def test_backup_create_queued_path(self, sa_client, db, monkeypatch):
         from models.backup import Backup
 
+        monkeypatch.setattr('celery_app.celery_is_enabled', lambda: True)
+        monkeypatch.setattr('celery_app.task_always_eager', lambda: True)
+
         def _fake_execute(backup_id):
             backup = db.session.get(Backup, backup_id)
             from app.shared.enums import BackupStatus
@@ -1426,14 +1434,18 @@ class TestBackupRoutes:
         assert 'pg_dump not installed' in (created.backup_notes or '')
 
     def test_backup_create_unrecorded_queue_failure_returns_500(self, sa_client, monkeypatch):
-        from services.backup_automation_service import BackupAutomationError
+        import celery_app
+        from services.backup_queue_service import BackupQueueError
 
-        def _boom(backup_id):
-            raise BackupAutomationError('tenant disappeared')
-
-        monkeypatch.setattr('services.backup_execution_service.execute_backup_by_id', _boom)
+        # Route maps BackupQueueError from queueing to 503 (service unavailable/unqueueable).
+        monkeypatch.setattr(celery_app, 'celery_is_enabled', lambda: True)
+        monkeypatch.setattr(celery_app, 'task_always_eager', lambda: False)
+        monkeypatch.setattr(
+            'services.backup_queue_service.queue_system_backup',
+            lambda *_a, **_k: (_ for _ in ()).throw(BackupQueueError('queue unavailable')),
+        )
         resp = sa_client.post('/super-admin/backup/create', json={'type': 'full'})
-        assert resp.status_code == 500
+        assert resp.status_code == 503
         assert resp.get_json()['success'] is False
 
     def test_restore_backup_success(self, sa_client, db, monkeypatch):

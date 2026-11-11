@@ -163,6 +163,7 @@ def export_system_data():
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f'medical_system_export_{timestamp}.json'
 
+        os.makedirs('instance', exist_ok=True)
         with open(f'instance/{filename}', 'w', encoding='utf-8') as f:
             json.dump(export_data, f, ensure_ascii=False, indent=2)
 
