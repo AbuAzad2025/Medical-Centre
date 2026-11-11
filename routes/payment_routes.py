@@ -546,24 +546,24 @@ def payment_history():
         query = select(Payment)
 
         if status:
-            query = query.filter(Payment.status == status.upper())
+            query = query.where(Payment.status == status.upper())
 
         if payment_method:
             pm = payment_method.upper()
-            query = query.filter(Payment.method == pm)
+            query = query.where(Payment.method == pm)
 
         if date_from:
             df = datetime.strptime(date_from, '%Y-%m-%d').date()
-            query = query.filter(db.func.date(Payment.created_at) >= df)
+            query = query.where(db.func.date(Payment.created_at) >= df)
 
         if date_to:
             dt = datetime.strptime(date_to, '%Y-%m-%d').date()
-            query = query.filter(db.func.date(Payment.created_at) <= dt)
+            query = query.where(db.func.date(Payment.created_at) <= dt)
 
-        payments = query.order_by(Payment.created_at.desc()).all()
+        payments = db.session.execute(query.order_by(Payment.created_at.desc())).scalars().all()
 
         return render_template(
-            'accountant/payment_management.html',
+            'payment/history.html',
             payments=payments,
             status=status,
             payment_method=payment_method,

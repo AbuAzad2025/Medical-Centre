@@ -771,7 +771,9 @@ class TestClinicalAiHelpers:
                 completed_at=datetime.now(UTC) - timedelta(days=1),
             )
         for _ in range(11):
-            _prescription(db, p=_patient(db), doc=doc, v=None)
+            p_rx = _patient(db)
+            v_rx = _visit(db, p_rx, doc, d, status='COMPLETED', archive_status='ARCHIVED')
+            _prescription(db, p=p_rx, doc=doc, v=v_rx)
         db.session.commit()
 
         from routes.doctor.diagnosis import get_smart_reminders
@@ -825,7 +827,7 @@ class TestStartTreatmentGaps:
         _login_as(client, db, test_tenant, doc)
         p = _patient(db)
         v = _visit(db, p, doc, None, status='OPEN')
-        ticket = _tick(db, v, dept, status='waiting')
+        ticket = _tick(db, v, dept, status='called')
 
         resp = client.post(f'/doctor/start-treatment/{v.id}')
         _assert_redirect_to(resp, f'/doctor/patient-details/{v.id}')
@@ -853,7 +855,7 @@ class TestStartTreatmentGaps:
             first_active = _department(db, name=f'FirstActive-{_tag()}')
         p = _patient(db)
         v = _visit(db, p, doc, None, status='OPEN')
-        ticket = _tick(db, v, first_active, status='waiting')
+        ticket = _tick(db, v, first_active, status='called')
 
         resp = client.post(f'/doctor/start-treatment/{v.id}')
         _assert_redirect_to(resp, f'/doctor/patient-details/{v.id}')
@@ -885,7 +887,7 @@ class TestStartTreatmentGaps:
         p = _patient(db)
         d = _department(db)
         v = _visit(db, p, doc, d, status='OPEN')
-        _tick(db, v, d, status='waiting')
+        _tick(db, v, d, status='called')
 
         def _boom(*args, **kwargs):
             raise RuntimeError('audit boom')
@@ -1353,7 +1355,7 @@ class TestPatientQueueGaps:
         def _boom(*args, **kwargs):
             raise RuntimeError('commit boom')
 
-        monkeypatch.setattr('routes.doctor.queue.safe_commit', _boom)
+        monkeypatch.setattr(db.session, 'commit', _boom)
         resp = client.post(f'/doctor/call-patient/{v.id}')
         _assert_redirect_to(resp, '/doctor/patient-queue')
         db.session.expire_all()
@@ -1586,8 +1588,11 @@ class TestLabRequestGaps:
         p = _patient(db)
         v = _visit(db, p, doc, _department(db), status='IN_PROGRESS')
 
+        import services.lab_service as _lab_mod
+
         monkeypatch.setattr(
-            'services.lab_service.lab_service.create_request',
+            _lab_mod.lab_service,
+            'create_request',
             lambda **_kwargs: (False, {'error': 'catalog unavailable'}),
         )
         resp = client.post(
@@ -1729,8 +1734,11 @@ class TestRadiologyRequestGaps:
         p = _patient(db)
         v = _visit(db, p, doc, _department(db), status='IN_PROGRESS')
 
+        import services.radiology_service as _rad_mod
+
         monkeypatch.setattr(
-            'services.radiology_service.radiology_service.create_request',
+            _rad_mod.radiology_service,
+            'create_request',
             lambda **_kwargs: (False, {'error': 'catalog unavailable'}),
         )
         resp = client.post(

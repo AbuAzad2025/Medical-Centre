@@ -457,7 +457,7 @@ class TestProcessPaymentValidationCoverage:
         # create department
         from models.department import Department
 
-        dept = Department(tenant_id=test_tenant.id, name='DeptCov')
+        dept = Department(tenant_id=test_tenant.id, name='DeptCov', name_ar='قسم تجريبي')
         db.session.add(dept)
         db.session.flush()
         qs = QueueSettings(department_id=dept.id, allow_partial_payment=False, allow_debt=False)
@@ -738,7 +738,7 @@ class TestRefundsCoverage:
         )
         assert resp.status_code in (302, 200)
         # find refund request
-        from models.refund import RefundRequest
+        from models.refund_request import RefundRequest
 
         rr = (
             db.session.execute(select(RefundRequest).filter_by(payment_id=pay.id)).scalars().first()
@@ -822,7 +822,7 @@ class TestPharmacyReturnsCoverage:
 
     def test_service_error_returns_400(self, app, client, db, test_tenant):
         _login(client, db, test_tenant, 'pr_ret_svc', 'pharmacist')
-        resp = client.post('/payment/api/pharmacy/returns', data={'sale_item_id': 999999})
+        resp = client.post('/payment/api/pharmacy/returns', json={'sale_item_id': 999999})
         assert resp.status_code in (400, 200)
 
     def test_exception_path(self, app, client, db, test_tenant, monkeypatch):
@@ -835,7 +835,7 @@ class TestPharmacyReturnsCoverage:
             raise RuntimeError('boom')
 
         monkeypatch.setattr(pss.PharmacySaleService, 'process_pharmacy_return', boom)
-        resp = client.post('/payment/api/pharmacy/returns', data={'sale_item_id': 1})
+        resp = client.post('/payment/api/pharmacy/returns', json={'sale_item_id': 1})
         monkeypatch.setattr(pss.PharmacySaleService, 'process_pharmacy_return', orig)
         assert resp.status_code == 500
 
@@ -857,12 +857,12 @@ class TestPharmacyReturnsCoverage:
 class TestInsuranceClaimsCoverage:
     def test_generate_empty_invoice_id(self, app, client, db, test_tenant):
         _login(client, db, test_tenant, 'pr_ic_empty', 'accountant')
-        resp = client.post('/payment/api/insurance/claims/generate', data={})
+        resp = client.post('/payment/api/insurance/claims/generate', json={})
         assert resp.status_code == 400
 
     def test_generate_no_tenant(self, app, client, db, test_tenant):
         resp = client.post(
-            '/payment/api/insurance/claims/generate', data={'invoice_id': 1}, follow_redirects=False
+            '/payment/api/insurance/claims/generate', json={'invoice_id': 1}, follow_redirects=False
         )
         assert resp.status_code in (302, 400, 401)
 
@@ -920,13 +920,13 @@ class TestInsuranceClaimsCoverage:
 
     def test_adjudicate_missing_status(self, app, client, db, test_tenant):
         _login(client, db, test_tenant, 'pr_ic_adjmiss', 'accountant')
-        resp = client.post('/payment/api/insurance/claims/1/adjudicate', data={})
+        resp = client.post('/payment/api/insurance/claims/1/adjudicate', json={})
         assert resp.status_code == 400
 
     def test_adjudicate_no_tenant(self, app, client, db, test_tenant):
         resp = client.post(
             '/payment/api/insurance/claims/1/adjudicate',
-            data={'status': 'APPROVED'},
+            json={'status': 'APPROVED'},
             follow_redirects=False,
         )
         assert resp.status_code in (302, 400, 401)
@@ -952,14 +952,14 @@ class TestInsuranceClaimsCoverage:
 
         monkeypatch.setattr(pr, 'FinancialService', _BoomService)
         resp = client.post(
-            '/payment/api/insurance/claims/1/adjudicate', data={'status': 'APPROVED'}
+            '/payment/api/insurance/claims/1/adjudicate', json={'status': 'APPROVED'}
         )
         assert resp.status_code == 500
 
     def test_adjudicate_unknown_claim(self, app, client, db, test_tenant):
         _login(client, db, test_tenant, 'pr_ic_adjunk', 'accountant')
         resp = client.post(
-            '/payment/api/insurance/claims/999999/adjudicate', data={'status': 'APPROVED'}
+            '/payment/api/insurance/claims/999999/adjudicate', json={'status': 'APPROVED'}
         )
         assert resp.status_code in (400, 200)
 
@@ -1005,13 +1005,13 @@ class TestInsuranceClaimsCoverage:
         if claim:
             resp = client.post(
                 f'/payment/api/insurance/claims/{claim.id}/adjudicate',
-                data={'status': 'APPROVED', 'approved_amount': '50', 'notes': 'ok'},
+                json={'status': 'APPROVED', 'approved_amount': '50', 'notes': 'ok'},
             )
             assert resp.status_code in (200, 400)
         else:
             resp = client.post(
                 '/payment/api/insurance/claims/1/adjudicate',
-                data={'status': 'APPROVED'},
+                json={'status': 'APPROVED'},
             )
             assert resp.status_code in (400, 404, 500)
 
@@ -1054,6 +1054,6 @@ class TestPermissionCoverage:
 
     def test_insurance_generate_anonymous_redirects(self, app, client, db, test_tenant):
         resp = client.post(
-            '/payment/api/insurance/claims/generate', data={'invoice_id': 1}, follow_redirects=False
+            '/payment/api/insurance/claims/generate', json={'invoice_id': 1}, follow_redirects=False
         )
         assert resp.status_code in (302, 401)
